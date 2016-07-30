@@ -26,6 +26,7 @@ package com.microsoft.identity.client;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -39,12 +40,9 @@ import java.util.Collections;
  * Tests for {@link HttpRequest}.
  */
 public final class HttpRequestTest {
-    static final String REQUEST_METHOD_GET = "GET";
-    static final String REQUEST_METHOD_POST = "POST";
-
     @After
     public void tearDown() {
-        HttpUrlConnectionFactory.setMockedConnection(null);
+        HttpUrlConnectionFactory.clearMockedConnectionQueue();
     }
 
     /**
@@ -56,11 +54,21 @@ public final class HttpRequestTest {
     }
 
     /**
-     * Verify the expected exception is thrown when request url is not using http or https protocol.
+     * Verify the expected exception is thrown when request url is not using https protocol.
      */
     @Test(expected = IllegalArgumentException.class)
-    public void testNonHttpRequestUrl() throws IOException, MSALAuthenticationException {
+    public void testNonHttpsRequestUrl() throws IOException, MSALAuthenticationException {
         HttpRequest.sendGet(new URL("file://a.com"), Collections.<String, String>emptyMap());
+    }
+
+    /**
+     * Verify the expect exception is thrown when reqeust url is starting with http.
+     * @throws IOException
+     * @throws MSALAuthenticationException
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testRequestUrlProtocolHttp() throws IOException, MSALAuthenticationException {
+        HttpRequest.sendGet(new URL("http://login.microsoftonline.com"), Collections.<String, String>emptyMap());
     }
 
     /**
@@ -68,31 +76,26 @@ public final class HttpRequestTest {
      */
     @Test
     public void testHttpGetSucceed() throws IOException {
-        new HttpRequestPositiveTestCase() {
+        // prepare the connection, only one connection will be made.
+        final HttpURLConnection mockedSuccessConnection = MockUtil.getMockedConnectionWithSuccessResponse(
+                getSuccessResponse());
+        HttpUrlConnectionFactory.addMockedConnection(mockedSuccessConnection);
 
-            @Override
-            void mockHttpUrlConnectionGetStream(HttpURLConnection mockedConnection) throws IOException {
-                Mockito.when(mockedConnection.getInputStream())
-                    .thenReturn(Util.createInputStream(getSuccessResponse()));
-                Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
-            }
+        try {
+            Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 1);
+            final HttpResponse response = sendHttpGet();
+            verifySuccessHttpResponse(response);
+        } catch (final MSALAuthenticationException e) {
+            Assert.fail();
+        }
 
-            @Override
-            int getNetworkCallTimes() {
-                return 1;
-            }
-
-            @Override
-            String getRequestMethod() {
-                return REQUEST_METHOD_GET;
-            }
-
-            @Override
-            void verifyInputStreamAndErrorStreamCalledTimes(HttpURLConnection mockedConnection) throws IOException {
-                Mockito.verify(mockedConnection, Mockito.times(1)).getInputStream();
-                Mockito.verify(mockedConnection, Mockito.times(0)).getErrorStream();
-            }
-        }.performTest();
+        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
+        final InOrder inOrder = Mockito.inOrder(mockedSuccessConnection);
+        inOrder.verify(mockedSuccessConnection).getInputStream();
+        inOrder.verify(mockedSuccessConnection, Mockito.never()).getErrorStream();
+        inOrder.verify(mockedSuccessConnection).getResponseCode();
+        inOrder.verify(mockedSuccessConnection).getHeaderFields();
+        inOrder.verifyNoMoreInteractions();
     }
 
     /**
@@ -100,31 +103,28 @@ public final class HttpRequestTest {
      */
     @Test
     public void testHttpPostSucceed() throws IOException {
-        new HttpRequestPositiveTestCase() {
+        // prepare the connection, only one connection will be made.
+        final HttpURLConnection mockedSuccessConnection = MockUtil.getMockedConnectionWithSuccessResponse(
+                getSuccessResponse());
+        mockRequestBody(mockedSuccessConnection);
+        HttpUrlConnectionFactory.addMockedConnection(mockedSuccessConnection);
 
-            @Override
-            void mockHttpUrlConnectionGetStream(HttpURLConnection mockedConnection) throws IOException {
-                Mockito.when(mockedConnection.getInputStream())
-                        .thenReturn(Util.createInputStream(getSuccessResponse()));
-                Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
-            }
+        try {
+            Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 1);
+            final HttpResponse response = sendHttpPost();
+            verifySuccessHttpResponse(response);
+        } catch (final MSALAuthenticationException e) {
+            Assert.fail();
+        }
 
-            @Override
-            int getNetworkCallTimes() {
-                return 1;
-            }
-
-            @Override
-            String getRequestMethod() {
-                return REQUEST_METHOD_POST;
-            }
-
-            @Override
-            void verifyInputStreamAndErrorStreamCalledTimes(HttpURLConnection mockedConnection) throws IOException {
-                Mockito.verify(mockedConnection, Mockito.times(1)).getInputStream();
-                Mockito.verify(mockedConnection, Mockito.times(0)).getErrorStream();
-            }
-        }.performTest();
+        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
+        final InOrder inOrder = Mockito.inOrder(mockedSuccessConnection);
+        // default times for verify is 1.
+        inOrder.verify(mockedSuccessConnection).getInputStream();
+        inOrder.verify(mockedSuccessConnection, Mockito.never()).getErrorStream();
+        inOrder.verify(mockedSuccessConnection).getResponseCode();
+        inOrder.verify(mockedSuccessConnection).getHeaderFields();
+        inOrder.verifyNoMoreInteractions();
     }
 
     /**
@@ -132,36 +132,39 @@ public final class HttpRequestTest {
      */
     @Test
     public void testHttpPostFailedWith500RetrySucceed() throws IOException {
-        new HttpRequestPositiveTestCase() {
+        // Set up two connections, the first is failed with 500, the second one succeeds.
+        final HttpURLConnection firstConnection = MockUtil.getMockedConnectionWithFailureResponse(
+                HttpURLConnection.HTTP_INTERNAL_ERROR, getErrorResponse());
+        mockRequestBody(firstConnection);
 
-            @Override
-            @SuppressWarnings("unchecked")
-            void mockHttpUrlConnectionGetStream(final HttpURLConnection mockedConnection) throws IOException {
-                assert mockedConnection != null;
+        final HttpURLConnection secondConnection = MockUtil.getMockedConnectionWithSuccessResponse(getSuccessResponse());
+        mockRequestBody(secondConnection);
 
-                Mockito.when(mockedConnection.getInputStream()).thenThrow(IOException.class).thenReturn(
-                        Util.createInputStream(getSuccessResponse()));
-                Mockito.when(mockedConnection.getErrorStream()).thenReturn(Util.createInputStream(getErrorResponse()));
-                Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_INTERNAL_ERROR,
-                        HttpURLConnection.HTTP_OK);
-            }
+        HttpUrlConnectionFactory.addMockedConnection(firstConnection);
+        HttpUrlConnectionFactory.addMockedConnection(secondConnection);
 
-            @Override
-            int getNetworkCallTimes() {
-                return 2;
-            }
+        try {
+            Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
+            final HttpResponse response = sendHttpPost();
+            verifySuccessHttpResponse(response);
+        } catch (final MSALAuthenticationException e) {
+            Assert.fail();
+        }
 
-            @Override
-            String getRequestMethod() {
-                return REQUEST_METHOD_POST;
-            }
+        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
 
-            @Override
-            void verifyInputStreamAndErrorStreamCalledTimes(HttpURLConnection mockedConnection) throws IOException {
-                Mockito.verify(mockedConnection, Mockito.times(2)).getInputStream();
-                Mockito.verify(mockedConnection, Mockito.times(1)).getErrorStream();
-            }
-        }.performTest();
+        final InOrder inOrder = Mockito.inOrder(firstConnection, secondConnection);
+        inOrder.verify(firstConnection).getInputStream();
+        inOrder.verify(firstConnection).getErrorStream();
+        inOrder.verify(firstConnection).getResponseCode();
+        // no HttpResponse is created, no need to verify getHeaderFields.
+
+        inOrder.verify(secondConnection).getInputStream();
+        inOrder.verify(secondConnection, Mockito.never()).getErrorStream();
+        inOrder.verify(secondConnection).getResponseCode();
+        inOrder.verify(secondConnection).getHeaderFields();
+
+        inOrder.verifyNoMoreInteractions();
     }
 
     /**
@@ -169,73 +172,78 @@ public final class HttpRequestTest {
      */
     @Test
     public void testHttpPostFailedWith503RetrySucceed() throws IOException {
-        new HttpRequestPositiveTestCase() {
+        // Set up two connections, the first is failed with 503, the second one succeeds.
+        final HttpURLConnection firstConnection = MockUtil.getMockedConnectionWithFailureResponse(
+                HttpURLConnection.HTTP_UNAVAILABLE, getErrorResponse());
+        mockRequestBody(firstConnection);
 
-            @Override
-            @SuppressWarnings("unchecked")
-            void mockHttpUrlConnectionGetStream(final HttpURLConnection mockedConnection)
-                    throws IOException {
-                Mockito.when(mockedConnection.getInputStream()).thenThrow(IOException.class).thenReturn(
-                        Util.createInputStream(getSuccessResponse()));
-                Mockito.when(mockedConnection.getErrorStream()).thenReturn(Util.createInputStream(getErrorResponse()));
-                Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_UNAVAILABLE,
-                        HttpURLConnection.HTTP_OK);
-            }
+        final HttpURLConnection secondConnection = MockUtil.getMockedConnectionWithSuccessResponse(
+                getSuccessResponse());
+        mockRequestBody(secondConnection);
 
-            @Override
-            int getNetworkCallTimes() {
-                return 2;
-            }
+        HttpUrlConnectionFactory.addMockedConnection(firstConnection);
+        HttpUrlConnectionFactory.addMockedConnection(secondConnection);
 
-            @Override
-            String getRequestMethod() {
-                return REQUEST_METHOD_POST;
-            }
+        try {
+            Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
+            final HttpResponse response = sendHttpPost();
+            verifySuccessHttpResponse(response);
+        } catch (final MSALAuthenticationException e) {
+            Assert.fail();
+        }
 
-            @Override
-            void verifyInputStreamAndErrorStreamCalledTimes(final HttpURLConnection mockedConnection)
-                    throws IOException {
-                Mockito.verify(mockedConnection, Mockito.times(2)).getInputStream();
-                Mockito.verify(mockedConnection, Mockito.times(1)).getErrorStream();
-            }
-        }.performTest();
+        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
+
+        final InOrder inOrder = Mockito.inOrder(firstConnection, secondConnection);
+        inOrder.verify(firstConnection).getInputStream();
+        inOrder.verify(firstConnection).getErrorStream();
+        inOrder.verify(firstConnection).getResponseCode();
+        // No HttpResponse created, no interaction on getHeaderFields
+
+        inOrder.verify(secondConnection).getInputStream();
+        inOrder.verify(secondConnection, Mockito.never()).getErrorStream();
+        inOrder.verify(secondConnection).getResponseCode();
+        inOrder.verify(secondConnection).getHeaderFields();
+
+        inOrder.verifyNoMoreInteractions();
     }
 
     /**
-     * Verify that the initial post request failed with {@link HttpURLConnection#HTTP_GATEWAY_TIMEOUT} and retry
+     * Verify that the initial get request failed with {@link HttpURLConnection#HTTP_GATEWAY_TIMEOUT} and retry
      * succeeds.
      */
     @Test
-    public void testHttpPostFailedWith504RetrySucceed() throws IOException {
-        new HttpRequestPositiveTestCase() {
+    public void testHttpGetFailedWith504RetrySucceed() throws IOException {
+        // Set up two connections, the first is failed with 503, the second one succeeds.
+        final HttpURLConnection firstConnection = MockUtil.getMockedConnectionWithFailureResponse(
+                HttpURLConnection.HTTP_GATEWAY_TIMEOUT, getErrorResponse());
+        final HttpURLConnection secondConnection = MockUtil.getMockedConnectionWithSuccessResponse(
+                getSuccessResponse());
 
-            @Override
-            @SuppressWarnings("unchecked")
-            void mockHttpUrlConnectionGetStream(HttpURLConnection mockedConnection) throws IOException {
-                Mockito.when(mockedConnection.getInputStream()).thenThrow(IOException.class).thenReturn(
-                        Util.createInputStream(getSuccessResponse()));
-                Mockito.when(mockedConnection.getErrorStream()).thenReturn(Util.createInputStream(getErrorResponse()));
-                Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT,
-                        HttpURLConnection.HTTP_OK);
-            }
+        HttpUrlConnectionFactory.addMockedConnection(firstConnection);
+        HttpUrlConnectionFactory.addMockedConnection(secondConnection);
 
-            @Override
-            int getNetworkCallTimes() {
-                return 2;
-            }
+        try {
+            Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
+            final HttpResponse response = sendHttpGet();
+            verifySuccessHttpResponse(response);
+        } catch (final MSALAuthenticationException e) {
+            Assert.fail();
+        }
 
-            @Override
-            String getRequestMethod() {
-                return REQUEST_METHOD_POST;
-            }
+        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
 
-            @Override
-            void verifyInputStreamAndErrorStreamCalledTimes(final HttpURLConnection mockedConnection)
-                    throws IOException {
-                Mockito.verify(mockedConnection, Mockito.times(2)).getInputStream();
-                Mockito.verify(mockedConnection, Mockito.times(1)).getErrorStream();
-            }
-        }.performTest();
+        final InOrder inOrder = Mockito.inOrder(firstConnection, secondConnection);
+        inOrder.verify(firstConnection).getInputStream();
+        inOrder.verify(firstConnection).getErrorStream();
+        inOrder.verify(firstConnection).getResponseCode();
+
+        inOrder.verify(secondConnection).getInputStream();
+        inOrder.verify(secondConnection, Mockito.never()).getErrorStream();
+        inOrder.verify(secondConnection).getResponseCode();
+        inOrder.verify(secondConnection).getHeaderFields();
+
+        inOrder.verifyNoMoreInteractions();
     }
 
     /**
@@ -244,34 +252,37 @@ public final class HttpRequestTest {
      */
     @Test
     public void testHttpPostFailedWithSocketTimeoutRetrySucceed() throws IOException {
-        new HttpRequestPositiveTestCase() {
+        // Set up two connections, the first is failed with SocketTimeout, the second one succeeds.
+        final HttpURLConnection firstConnection = MockUtil.getMockedConnectionWithSocketTimeout();
+        mockRequestBody(firstConnection);
 
-            @Override
-            @SuppressWarnings("unchecked")
-            void mockHttpUrlConnectionGetStream(final HttpURLConnection mockedConnection) throws IOException {
-                Mockito.when(mockedConnection.getInputStream()).thenThrow(SocketTimeoutException.class).thenReturn(
-                        Util.createInputStream(getSuccessResponse()));
-                Mockito.when(mockedConnection.getErrorStream()).thenReturn(Util.createInputStream(getErrorResponse()));
-                Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
-            }
+        final HttpURLConnection secondConnection = MockUtil.getMockedConnectionWithSuccessResponse(
+                getSuccessResponse());
+        mockRequestBody(secondConnection);
 
-            @Override
-            int getNetworkCallTimes() {
-                return 2;
-            }
+        HttpUrlConnectionFactory.addMockedConnection(firstConnection);
+        HttpUrlConnectionFactory.addMockedConnection(secondConnection);
 
-            @Override
-            String getRequestMethod() {
-                return REQUEST_METHOD_POST;
-            }
+        try {
+            Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
+            final HttpResponse response = sendHttpPost();
+            verifySuccessHttpResponse(response);
+        } catch (final MSALAuthenticationException e) {
+            Assert.fail();
+        }
 
-            @Override
-            void verifyInputStreamAndErrorStreamCalledTimes(final HttpURLConnection mockedConnection)
-                    throws IOException {
-                Mockito.verify(mockedConnection, Mockito.times(2)).getInputStream();
-                Mockito.verify(mockedConnection, Mockito.times(0)).getErrorStream();
-            }
-        }.performTest();
+        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
+        final InOrder inOrder = Mockito.inOrder(firstConnection, secondConnection);
+        inOrder.verify(firstConnection).getInputStream();
+        inOrder.verify(firstConnection, Mockito.never()).getErrorStream();
+        inOrder.verify(firstConnection, Mockito.never()).getResponseCode();
+
+        inOrder.verify(secondConnection).getInputStream();
+        inOrder.verify(secondConnection, Mockito.never()).getErrorStream();
+        inOrder.verify(secondConnection).getResponseCode();
+        inOrder.verify(secondConnection).getHeaderFields();
+
+        inOrder.verifyNoMoreInteractions();
     }
 
     /**
@@ -279,40 +290,29 @@ public final class HttpRequestTest {
      */
     @Test
     public void testHttpGetFailedNoRetry() throws IOException {
-        new HttpRequestRetryFailedWithNonRetryableErrorCode() {
+        final HttpURLConnection mockedFailureConnection = MockUtil.getMockedConnectionWithFailureResponse(
+                HttpURLConnection.HTTP_BAD_REQUEST, getErrorResponse());
+        HttpUrlConnectionFactory.addMockedConnection(mockedFailureConnection);
 
-            @Override
-            @SuppressWarnings("unchecked")
-            void mockHttpUrlConnectionGetStream(final HttpURLConnection mockedConnection) throws IOException {
-                Mockito.when(mockedConnection.getInputStream()).thenThrow(IOException.class);
-                Mockito.when(mockedConnection.getErrorStream()).thenReturn(Util.createInputStream(getErrorResponse()));
-                Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST);
-            }
+        try {
+            Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 1);
+            final HttpResponse response = sendHttpGet();
+            Assert.assertNotNull(response);
+            Assert.assertTrue(response.getStatusCode() == HttpURLConnection.HTTP_BAD_REQUEST);
+            Assert.assertTrue(response.getBody().equals(getErrorResponse()));
+        } catch (final MSALAuthenticationException e) {
+            Assert.fail();
+        }
 
-            @Override
-            int getNetworkCallTimes() {
-                return 1;
-            }
+        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
 
-            @Override
-            String getRequestMethod() {
-                return REQUEST_METHOD_GET;
-            }
+        final InOrder inOrder = Mockito.inOrder(mockedFailureConnection);
+        inOrder.verify(mockedFailureConnection).getInputStream();
+        inOrder.verify(mockedFailureConnection).getErrorStream();
+        inOrder.verify(mockedFailureConnection).getResponseCode();
+        inOrder.verify(mockedFailureConnection).getHeaderFields();
 
-            @Override
-            void verifyInputStreamAndErrorStreamCalledTimes(final HttpURLConnection mockedConnection)
-                    throws IOException {
-                Mockito.verify(mockedConnection, Mockito.times(1)).getInputStream();
-                Mockito.verify(mockedConnection, Mockito.times(1)).getErrorStream();
-            }
-
-            @Override
-            void verifyHttpResponse(final HttpResponse httpResponse) {
-                Assert.assertNotNull(httpResponse);
-                Assert.assertTrue(httpResponse.getStatusCode() == HttpURLConnection.HTTP_BAD_REQUEST);
-                Assert.assertTrue(httpResponse.getResponseBody().equals(getErrorResponse()));
-            }
-        }.performTest();
+        inOrder.verifyNoMoreInteractions();
     }
 
     /**
@@ -320,40 +320,31 @@ public final class HttpRequestTest {
      */
     @Test
     public void testHttpPostFailedNoRetry() throws IOException {
-        new HttpRequestRetryFailedWithNonRetryableErrorCode() {
+        final HttpURLConnection mockedFailureConnection = MockUtil.getMockedConnectionWithFailureResponse(
+                HttpURLConnection.HTTP_UNAUTHORIZED, getErrorResponse());
+        mockRequestBody(mockedFailureConnection);
+        HttpUrlConnectionFactory.addMockedConnection(mockedFailureConnection);
 
-            @Override
-            @SuppressWarnings("unchecked")
-            void mockHttpUrlConnectionGetStream(final HttpURLConnection mockedConnection) throws IOException {
-                Mockito.when(mockedConnection.getInputStream()).thenThrow(IOException.class);
-                Mockito.when(mockedConnection.getErrorStream()).thenReturn(Util.createInputStream(getErrorResponse()));
-                Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_UNAUTHORIZED);
-            }
+        // send a post request
+        try {
+            Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 1);
 
-            @Override
-            int getNetworkCallTimes() {
-                return 1;
-            }
+            final HttpResponse response = sendHttpPost();
+            Assert.assertNotNull(response);
+            Assert.assertTrue(response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED);
+            Assert.assertTrue(response.getBody().equals(getErrorResponse()));
+        } catch (final MSALAuthenticationException e) {
+            Assert.fail();
+        }
 
-            @Override
-            String getRequestMethod() {
-                return REQUEST_METHOD_POST;
-            }
+        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
 
-            @Override
-            void verifyInputStreamAndErrorStreamCalledTimes(final HttpURLConnection mockedConnection)
-                    throws IOException {
-                Mockito.verify(mockedConnection, Mockito.times(1)).getInputStream();
-                Mockito.verify(mockedConnection, Mockito.times(1)).getErrorStream();
-            }
-
-            @Override
-            void verifyHttpResponse(final HttpResponse httpResponse) {
-                Assert.assertNotNull(httpResponse);
-                Assert.assertTrue(httpResponse.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED);
-                Assert.assertTrue(httpResponse.getResponseBody().equals(getErrorResponse()));
-            }
-        }.performTest();
+        final InOrder inOrder = Mockito.inOrder(mockedFailureConnection);
+        inOrder.verify(mockedFailureConnection).getInputStream();
+        inOrder.verify(mockedFailureConnection).getErrorStream();
+        inOrder.verify(mockedFailureConnection).getResponseCode();
+        inOrder.verify(mockedFailureConnection).getHeaderFields();
+        inOrder.verifyNoMoreInteractions();
     }
 
     /**
@@ -362,39 +353,28 @@ public final class HttpRequestTest {
      */
     @Test
     public void testHttpGetFailedNoRetryNoResponseBody() throws IOException {
-        new HttpRequestRetryFailedWithNonRetryableErrorCode() {
-            @Override
-            @SuppressWarnings("unchecked")
-            void mockHttpUrlConnectionGetStream(final HttpURLConnection mockedConnection) throws IOException {
-                Mockito.when(mockedConnection.getInputStream()).thenThrow(IOException.class);
-                Mockito.when(mockedConnection.getErrorStream()).thenReturn(null);
-                Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_METHOD);
-            }
+        final HttpURLConnection mockedFailureConnection = MockUtil.getMockedConnectionWithFailureResponse(
+                HttpURLConnection.HTTP_BAD_METHOD, null);
+        HttpUrlConnectionFactory.addMockedConnection(mockedFailureConnection);
 
-            @Override
-            int getNetworkCallTimes() {
-                return 1;
-            }
+        try {
+            Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 1);
+            final HttpResponse response = sendHttpGet();
+            Assert.assertNotNull(response);
+            Assert.assertTrue(response.getStatusCode() == HttpURLConnection.HTTP_BAD_METHOD);
+            Assert.assertTrue(response.getBody().isEmpty());
+        } catch (final MSALAuthenticationException e) {
+            Assert.fail();
+        }
 
-            @Override
-            String getRequestMethod() {
-                return REQUEST_METHOD_POST;
-            }
+        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
 
-            @Override
-            void verifyInputStreamAndErrorStreamCalledTimes(final HttpURLConnection mockedConnection)
-                    throws IOException {
-                Mockito.verify(mockedConnection, Mockito.times(1)).getInputStream();
-                Mockito.verify(mockedConnection, Mockito.times(1)).getErrorStream();
-            }
-
-            @Override
-            void verifyHttpResponse(final HttpResponse httpResponse) {
-                Assert.assertNotNull(httpResponse);
-                Assert.assertTrue(httpResponse.getStatusCode() == HttpURLConnection.HTTP_BAD_METHOD);
-                Assert.assertTrue(httpResponse.getResponseBody().isEmpty());
-            }
-        }.performTest();
+        final InOrder inOrder = Mockito.inOrder(mockedFailureConnection);
+        inOrder.verify(mockedFailureConnection).getInputStream();
+        inOrder.verify(mockedFailureConnection).getErrorStream();
+        inOrder.verify(mockedFailureConnection).getResponseCode();
+        inOrder.verify(mockedFailureConnection).getHeaderFields();
+        inOrder.verifyNoMoreInteractions();
     }
 
     /**
@@ -403,41 +383,41 @@ public final class HttpRequestTest {
      */
     @Test
     public void testHttpPostFailedWithRetryableStatusCodeRetryFailsWithNonRetryableCode() throws IOException {
-        new HttpRequestRetryFailedWithNonRetryableErrorCode() {
-            @Override
-            @SuppressWarnings("unchecked")
-            void mockHttpUrlConnectionGetStream(final HttpURLConnection mockedConnection) throws IOException {
-                Mockito.when(mockedConnection.getInputStream()).thenThrow(IOException.class, IOException.class);
-                Mockito.when(mockedConnection.getErrorStream()).thenReturn(
-                        Util.createInputStream(getErrorResponse()), Util.createInputStream(getErrorResponse()));
-                Mockito.when(mockedConnection.getResponseCode()).thenReturn(
-                        HttpURLConnection.HTTP_INTERNAL_ERROR, HttpURLConnection.HTTP_UNAUTHORIZED);
-            }
+        // The first connection fails with retryable status code 500, the retry connection fails with 401.
+        final HttpURLConnection firstConnection = MockUtil.getMockedConnectionWithFailureResponse(
+                HttpURLConnection.HTTP_INTERNAL_ERROR, getErrorResponse());
+        mockRequestBody(firstConnection);
 
-            @Override
-            int getNetworkCallTimes() {
-                return 2;
-            }
+        final HttpURLConnection secondConnection = MockUtil.getMockedConnectionWithFailureResponse(
+                HttpURLConnection.HTTP_UNAUTHORIZED, getErrorResponse());
+        mockRequestBody(secondConnection);
 
-            @Override
-            String getRequestMethod() {
-                return REQUEST_METHOD_POST;
-            }
+        HttpUrlConnectionFactory.addMockedConnection(firstConnection);
+        HttpUrlConnectionFactory.addMockedConnection(secondConnection);
 
-            @Override
-            void verifyInputStreamAndErrorStreamCalledTimes(final HttpURLConnection mockedConnection)
-                    throws IOException {
-                Mockito.verify(mockedConnection, Mockito.times(2)).getInputStream();
-                Mockito.verify(mockedConnection, Mockito.times(2)).getErrorStream();
-            }
+        try {
+            Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
+            final HttpResponse response = sendHttpGet();
+            Assert.assertNotNull(response);
+            Assert.assertTrue(response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED);
+            Assert.assertTrue(response.getBody().equals(getErrorResponse()));
+        } catch (final MSALAuthenticationException e) {
+            Assert.fail();
+        }
 
-            @Override
-            void verifyHttpResponse(final HttpResponse httpResponse) {
-                Assert.assertNotNull(httpResponse);
-                Assert.assertTrue(httpResponse.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED);
-                Assert.assertTrue(httpResponse.getResponseBody().equals(getErrorResponse()));
-            }
-        }.performTest();
+        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
+
+        final InOrder inOrder = Mockito.inOrder(firstConnection, secondConnection);
+        inOrder.verify(firstConnection).getInputStream();
+        inOrder.verify(firstConnection).getErrorStream();
+        inOrder.verify(firstConnection).getResponseCode();
+
+        inOrder.verify(secondConnection).getInputStream();
+        inOrder.verify(secondConnection).getErrorStream();
+        inOrder.verify(secondConnection).getResponseCode();
+        inOrder.verify(secondConnection).getHeaderFields();
+
+        inOrder.verifyNoMoreInteractions();
     }
 
     /**
@@ -446,42 +426,39 @@ public final class HttpRequestTest {
      */
     @Test
     public void testHttpPostFailedWithSocketTimeoutRetryFailedWithNonRetryableCode() throws IOException {
-        new HttpRequestRetryFailedWithNonRetryableErrorCode() {
-            @Override
-            @SuppressWarnings("unchecked")
-            void mockHttpUrlConnectionGetStream(final HttpURLConnection mockedConnection) throws IOException {
-                Mockito.when(mockedConnection.getInputStream()).thenThrow(
-                        SocketTimeoutException.class, IOException.class);
-                Mockito.when(mockedConnection.getErrorStream()).thenReturn(
-                        Util.createInputStream(getErrorResponse()));
-                Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST);
-            }
+        // The first connection fails with retryable SocketTimeout, the retry connection fails with 400.
+        final HttpURLConnection firstConnection = MockUtil.getMockedConnectionWithSocketTimeout();
+        mockRequestBody(firstConnection);
 
-            @Override
-            int getNetworkCallTimes() {
-                return 2;
-            }
+        final HttpURLConnection secondConnection = MockUtil.getMockedConnectionWithFailureResponse(
+                HttpURLConnection.HTTP_BAD_REQUEST, getErrorResponse());
+        mockRequestBody(secondConnection);
 
-            @Override
-            String getRequestMethod() {
-                return REQUEST_METHOD_POST;
-            }
+        HttpUrlConnectionFactory.addMockedConnection(firstConnection);
+        HttpUrlConnectionFactory.addMockedConnection(secondConnection);
 
-            @Override
-            void verifyInputStreamAndErrorStreamCalledTimes(final HttpURLConnection mockedConnection)
-                    throws IOException {
-                Mockito.verify(mockedConnection, Mockito.times(2)).getInputStream();
-                Mockito.verify(mockedConnection, Mockito.times(1)).getErrorStream();
-                Mockito.verify(mockedConnection, Mockito.times(1)).getResponseCode();
-            }
+        try {
+            Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
+            final HttpResponse response = sendHttpGet();
+            Assert.assertNotNull(response);
+            Assert.assertTrue(response.getStatusCode() == HttpURLConnection.HTTP_BAD_REQUEST);
+            Assert.assertTrue(response.getBody().equals(getErrorResponse()));
+        } catch (final MSALAuthenticationException e) {
+            Assert.fail();
+        }
 
-            @Override
-            void verifyHttpResponse(final HttpResponse httpResponse) {
-                Assert.assertNotNull(httpResponse);
-                Assert.assertTrue(httpResponse.getStatusCode() == HttpURLConnection.HTTP_BAD_REQUEST);
-                Assert.assertTrue(httpResponse.getResponseBody().equals(getErrorResponse()));
-            }
-        }.performTest();
+        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
+        final InOrder inOrder = Mockito.inOrder(firstConnection, secondConnection);
+        inOrder.verify(firstConnection).getInputStream();
+        inOrder.verify(firstConnection, Mockito.never()).getErrorStream();
+        inOrder.verify(firstConnection, Mockito.never()).getResponseCode();
+
+        inOrder.verify(secondConnection).getInputStream();
+        inOrder.verify(secondConnection).getErrorStream();
+        inOrder.verify(secondConnection).getResponseCode();
+        inOrder.verify(secondConnection).getHeaderFields();
+
+        inOrder.verifyNoMoreInteractions();
     }
 
     /**
@@ -490,56 +467,42 @@ public final class HttpRequestTest {
      */
     @Test
     public void testPostFailedWithRetryableErrorRetryFailedWithRetryableError() throws IOException {
-        new BaseHttpRequestTestCase() {
-            @Override
-            @SuppressWarnings("unchecked")
-            void mockHttpUrlConnectionGetStream(HttpURLConnection mockedConnection) throws IOException {
-                Mockito.when(mockedConnection.getInputStream()).thenThrow(
-                        IOException.class, IOException.class);
-                Mockito.when(mockedConnection.getErrorStream()).thenReturn(Util.createInputStream(getErrorResponse()),
-                        Util.createInputStream(getErrorResponse()));
-                Mockito.when(mockedConnection.getResponseCode()).thenReturn(
-                        HttpURLConnection.HTTP_INTERNAL_ERROR, HttpURLConnection.HTTP_UNAVAILABLE);
-            }
+        // The first connection fails with retryable status code 500, the retry connection fails again with retryable
+        // status code 503.
+        final HttpURLConnection firstConnection = MockUtil.getMockedConnectionWithFailureResponse(
+                HttpURLConnection.HTTP_INTERNAL_ERROR, getErrorResponse());
+        mockRequestBody(firstConnection);
 
-            @Override
-            HttpResponse makeHttpRequestCall() throws IOException {
-                try {
-                    sendHttpPost();
-                    Assert.fail("Expect MSALAuthenticationException to be thrown.");
-                } catch (final MSALAuthenticationException e) {
-                    Assert.assertNotNull(e);
-                    Assert.assertTrue(e.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_SERVER_ERROR));
-                    Assert.assertTrue(e.getMessage().contains(
-                            "StatusCode: " + String.valueOf(HttpURLConnection.HTTP_UNAVAILABLE)));
-                }
+        final HttpURLConnection secondConnection = MockUtil.getMockedConnectionWithFailureResponse(
+                HttpURLConnection.HTTP_UNAVAILABLE, getErrorResponse());
+        mockRequestBody(secondConnection);
 
-                return null;
-            }
+        HttpUrlConnectionFactory.addMockedConnection(firstConnection);
+        HttpUrlConnectionFactory.addMockedConnection(secondConnection);
 
-            @Override
-            int getNetworkCallTimes() {
-                return 2;
-            }
+        try {
+            Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
+            sendHttpPost();
+            Assert.fail("Expect MSALAuthenticationException to be thrown.");
+        } catch (final MSALAuthenticationException e) {
+            Assert.assertNotNull(e);
+            Assert.assertTrue(e.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_SERVER_ERROR));
+            Assert.assertTrue(e.getMessage().contains(
+                    "StatusCode: " + String.valueOf(HttpURLConnection.HTTP_UNAVAILABLE)));
+        }
 
-            @Override
-            String getRequestMethod() {
-                return REQUEST_METHOD_POST;
-            }
+        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
+        final InOrder inOrder = Mockito.inOrder(firstConnection, secondConnection);
+        inOrder.verify(firstConnection).getInputStream();
+        inOrder.verify(firstConnection).getErrorStream();
+        inOrder.verify(firstConnection).getResponseCode();
 
-            @Override
-            void verifyInputStreamAndErrorStreamCalledTimes(final HttpURLConnection mockedConnection)
-                    throws IOException {
-                Mockito.verify(mockedConnection, Mockito.times(2)).getInputStream();
-                Mockito.verify(mockedConnection, Mockito.times(2)).getErrorStream();
-                Mockito.verify(mockedConnection, Mockito.times(2)).getResponseCode();
-            }
+        inOrder.verify(secondConnection).getInputStream();
+        inOrder.verify(secondConnection).getErrorStream();
+        inOrder.verify(secondConnection).getResponseCode();
+        inOrder.verify(secondConnection).getHeaderFields();
 
-            @Override
-            void verifyHttpResponse(final HttpResponse httpResponse) {
-                Assert.assertNull(httpResponse);
-            }
-        }.performTest();
+        inOrder.verifyNoMoreInteractions();
     }
 
     /**
@@ -548,54 +511,42 @@ public final class HttpRequestTest {
      */
     @Test
     public void testPostFailedWithSocketTimeoutRetryFailedWithRetryableError() throws IOException {
-        new BaseHttpRequestTestCase() {
-            @Override
-            @SuppressWarnings("unchecked")
-            void mockHttpUrlConnectionGetStream(HttpURLConnection mockedConnection) throws IOException {
-                Mockito.when(mockedConnection.getInputStream()).thenThrow(
-                        SocketTimeoutException.class, IOException.class);
-                Mockito.when(mockedConnection.getErrorStream()).thenReturn(Util.createInputStream(getErrorResponse()));
-                Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT);
-            }
+        // The first connection fails with retryable SocketTimeout, the retry connection fails again with retryable
+        // status code 504.
+        final HttpURLConnection firstConnection = MockUtil.getMockedConnectionWithSocketTimeout();
+        mockRequestBody(firstConnection);
 
-            @Override
-            HttpResponse makeHttpRequestCall() throws IOException {
-                try {
-                    sendHttpPost();
-                    Assert.fail("Expect MSALAuthenticationException to be thrown.");
-                } catch (final MSALAuthenticationException e) {
-                    Assert.assertNotNull(e);
-                    Assert.assertTrue(e.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_SERVER_ERROR));
-                    Assert.assertTrue(e.getMessage().contains(
-                            "StatusCode: " + String.valueOf(HttpURLConnection.HTTP_GATEWAY_TIMEOUT)));
-                }
+        final HttpURLConnection secondConnection = MockUtil.getMockedConnectionWithFailureResponse(
+                HttpURLConnection.HTTP_GATEWAY_TIMEOUT, getErrorResponse());
+        mockRequestBody(secondConnection);
 
-                return null;
-            }
+        HttpUrlConnectionFactory.addMockedConnection(firstConnection);
+        HttpUrlConnectionFactory.addMockedConnection(secondConnection);
 
-            @Override
-            int getNetworkCallTimes() {
-                return 2;
-            }
+        try {
+            Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
+            sendHttpPost();
+            Assert.fail("Expect MSALAuthenticationException to be thrown.");
+        } catch (final MSALAuthenticationException e) {
+            Assert.assertNotNull(e);
+            Assert.assertTrue(e.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_SERVER_ERROR));
+            Assert.assertTrue(e.getMessage().contains(
+                    "StatusCode: " + String.valueOf(HttpURLConnection.HTTP_GATEWAY_TIMEOUT)));
+        }
 
-            @Override
-            String getRequestMethod() {
-                return REQUEST_METHOD_POST;
-            }
+        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
 
-            @Override
-            void verifyInputStreamAndErrorStreamCalledTimes(final HttpURLConnection mockedConnection)
-                    throws IOException {
-                Mockito.verify(mockedConnection, Mockito.times(2)).getInputStream();
-                Mockito.verify(mockedConnection, Mockito.times(1)).getErrorStream();
-                Mockito.verify(mockedConnection, Mockito.times(1)).getResponseCode();
-            }
+        final InOrder inOrder = Mockito.inOrder(firstConnection, secondConnection);
+        inOrder.verify(firstConnection).getInputStream();
+        inOrder.verify(firstConnection, Mockito.times(0)).getErrorStream();
+        inOrder.verify(firstConnection, Mockito.times(0)).getResponseCode();
 
-            @Override
-            void verifyHttpResponse(final HttpResponse httpResponse) {
-                Assert.assertNull(httpResponse);
-            }
-        }.performTest();
+        inOrder.verify(secondConnection).getInputStream();
+        inOrder.verify(secondConnection).getErrorStream();
+        inOrder.verify(secondConnection).getResponseCode();
+        inOrder.verify(secondConnection).getHeaderFields();
+
+        inOrder.verifyNoMoreInteractions();
     }
 
     /**
@@ -604,56 +555,38 @@ public final class HttpRequestTest {
      */
     @Test
     public void testGetFailedWithRetryableCodeRetryFailedWithSocketTimeout() throws IOException {
-        new BaseHttpRequestTestCase() {
+        // The first connection fails with retryable status code 504, the retry fails SocketTimeout
+        final HttpURLConnection firstConnection = MockUtil.getMockedConnectionWithFailureResponse(
+                HttpURLConnection.HTTP_GATEWAY_TIMEOUT, getErrorResponse());
 
-            @Override
-            @SuppressWarnings("unchecked")
-            void mockHttpUrlConnectionGetStream(HttpURLConnection mockedConnection) throws IOException {
-                Mockito.when(mockedConnection.getInputStream()).thenThrow(
-                        IOException.class, SocketTimeoutException.class);
-                Mockito.when(mockedConnection.getErrorStream()).thenReturn(Util.createInputStream(getErrorResponse()));
-                Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT);
-            }
+        final HttpURLConnection secondConnection = MockUtil.getMockedConnectionWithSocketTimeout();
 
-            @Override
-            HttpResponse makeHttpRequestCall() throws IOException {
+        HttpUrlConnectionFactory.addMockedConnection(firstConnection);
+        HttpUrlConnectionFactory.addMockedConnection(secondConnection);
 
-                try {
-                    sendHttpGet();
-                    Assert.fail("Expect MSALAuthenticationException to be thrown.");
-                } catch (final MSALAuthenticationException e) {
-                    Assert.assertNotNull(e);
-                    Assert.assertTrue(e.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_NETWORK_TIME_OUT));
-                    Assert.assertNotNull(e.getCause());
-                    Assert.assertTrue(e.getCause() instanceof SocketTimeoutException);
-                }
+        try {
+            Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
+            sendHttpGet();
+            Assert.fail("Expect MSALAuthenticationException to be thrown.");
+        } catch (final MSALAuthenticationException e) {
+            Assert.assertNotNull(e);
+            Assert.assertTrue(e.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_NETWORK_TIME_OUT));
+            Assert.assertNotNull(e.getCause());
+            Assert.assertTrue(e.getCause() instanceof SocketTimeoutException);
+        }
 
-                return null;
-            }
+        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
+        final InOrder inOrder = Mockito.inOrder(firstConnection, secondConnection);
+        inOrder.verify(firstConnection).getInputStream();
+        inOrder.verify(firstConnection).getErrorStream();
+        inOrder.verify(firstConnection).getResponseCode();
 
-            @Override
-            int getNetworkCallTimes() {
-                return 2;
-            }
+        inOrder.verify(secondConnection).getInputStream();
+        inOrder.verify(secondConnection, Mockito.times(0)).getErrorStream();
+        inOrder.verify(secondConnection, Mockito.times(0)).getResponseCode();
+        inOrder.verify(secondConnection, Mockito.never()).getHeaderFields();
 
-            @Override
-            String getRequestMethod() {
-                return REQUEST_METHOD_GET;
-            }
-
-            @Override
-            void verifyInputStreamAndErrorStreamCalledTimes(final HttpURLConnection mockedConnection)
-                    throws IOException {
-                Mockito.verify(mockedConnection, Mockito.times(2)).getInputStream();
-                Mockito.verify(mockedConnection, Mockito.times(1)).getErrorStream();
-                Mockito.verify(mockedConnection, Mockito.times(1)).getResponseCode();
-            }
-
-            @Override
-            void verifyHttpResponse(final HttpResponse httpResponse) {
-                Assert.assertNull(httpResponse);
-            }
-        }.performTest();
+        inOrder.verifyNoMoreInteractions();
     }
 
     /**
@@ -662,146 +595,56 @@ public final class HttpRequestTest {
      */
     @Test
     public void testGetFailedWithSocketTimeoutRetryFailedWithSocketTimeout() throws IOException {
-        new BaseHttpRequestTestCase() {
-            @Override
-            @SuppressWarnings("unchecked")
-            void mockHttpUrlConnectionGetStream(HttpURLConnection mockedConnection) throws IOException {
-                Mockito.when(mockedConnection.getInputStream()).thenThrow(
-                        SocketTimeoutException.class, SocketTimeoutException.class);
-                Mockito.when(mockedConnection.getErrorStream()).thenReturn(Util.createInputStream(getErrorResponse()));
-                Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT);
-            }
+        // The two connections are all failed with SocketTimeout
+        final HttpURLConnection firstConnection = MockUtil.getMockedConnectionWithSocketTimeout();
+        final HttpURLConnection secondConnection = MockUtil.getMockedConnectionWithSocketTimeout();
 
-            @Override
-            HttpResponse makeHttpRequestCall() throws IOException {
-                try {
-                    sendHttpGet();
-                    Assert.fail("Expect MSALAuthenticationException to be thrown.");
-                } catch (final MSALAuthenticationException e) {
-                    Assert.assertNotNull(e);
-                    Assert.assertTrue(e.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_NETWORK_TIME_OUT));
-                    Assert.assertNotNull(e.getCause());
-                    Assert.assertTrue(e.getCause() instanceof SocketTimeoutException);
-                }
+        HttpUrlConnectionFactory.addMockedConnection(firstConnection);
+        HttpUrlConnectionFactory.addMockedConnection(secondConnection);
 
-                return null;
-            }
+        try {
+            Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
+            sendHttpGet();
+            Assert.fail("Expect MSALAuthenticationException to be thrown.");
+        } catch (final MSALAuthenticationException e) {
+            Assert.assertNotNull(e);
+            Assert.assertTrue(e.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_NETWORK_TIME_OUT));
+            Assert.assertNotNull(e.getCause());
+            Assert.assertTrue(e.getCause() instanceof SocketTimeoutException);
+        }
 
-            @Override
-            int getNetworkCallTimes() {
-                return 2;
-            }
+        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
+        final InOrder inOrder = Mockito.inOrder(firstConnection, secondConnection);
+        inOrder.verify(firstConnection).getInputStream();
+        inOrder.verify(firstConnection, Mockito.never()).getErrorStream();
+        inOrder.verify(firstConnection, Mockito.never()).getResponseCode();
 
-            @Override
-            String getRequestMethod() {
-                return REQUEST_METHOD_GET;
-            }
+        inOrder.verify(secondConnection).getInputStream();
+        inOrder.verify(secondConnection, Mockito.never()).getErrorStream();
+        inOrder.verify(secondConnection, Mockito.never()).getResponseCode();
+        inOrder.verify(secondConnection, Mockito.never()).getHeaderFields();
 
-            @Override
-            void verifyInputStreamAndErrorStreamCalledTimes(final HttpURLConnection mockedConnection)
-                    throws IOException {
-                Mockito.verify(mockedConnection, Mockito.times(2)).getInputStream();
-                Mockito.verify(mockedConnection, Mockito.times(0)).getErrorStream();
-                Mockito.verify(mockedConnection, Mockito.times(0)).getResponseCode();
-            }
+        inOrder.verifyNoMoreInteractions();
+    }
 
-            @Override
-            void verifyHttpResponse(final HttpResponse httpResponse) {
-                Assert.assertNull(httpResponse);
-            }
-        }.performTest();
+    void verifySuccessHttpResponse(final HttpResponse httpResponse) {
+        Assert.assertNotNull(httpResponse);
+        Assert.assertTrue(httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
+        Assert.assertTrue(httpResponse.getBody().equals(getSuccessResponse()));
+    }
+    /**
+     * Send http get request.
+     */
+    final HttpResponse sendHttpGet() throws IOException, MSALAuthenticationException {
+        return HttpRequest.sendGet(Util.getValidRequestUrl(), Collections.<String, String>emptyMap());
     }
 
     /**
-     * Test case for verifying that the http request succeeds(Retry could happen and succeed)with 200.
+     * Send http post request.
      */
-    abstract class HttpRequestPositiveTestCase extends BaseHttpRequestTestCase {
-
-        @Override
-        final HttpResponse makeHttpRequestCall() throws IOException {
-            try {
-                if (REQUEST_METHOD_POST.equalsIgnoreCase(getRequestMethod())) {
-                    return sendHttpPost();
-                } else {
-                    return sendHttpGet();
-                }
-            } catch (final MSALAuthenticationException e) {
-                Assert.fail();
-            }
-
-            return null;
-        }
-
-        @Override
-        final void verifyHttpResponse(final HttpResponse httpResponse) {
-            Assert.assertNotNull(httpResponse);
-            Assert.assertTrue(httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
-            Assert.assertTrue(httpResponse.getResponseBody().equals(getSuccessResponse()));
-        }
-    }
-
-    /**
-     * Test case for verify that http request fails with non retryable error code.
-     */
-    abstract class HttpRequestRetryFailedWithNonRetryableErrorCode extends BaseHttpRequestTestCase {
-
-        @Override
-        final HttpResponse makeHttpRequestCall() throws IOException {
-            try {
-                if (REQUEST_METHOD_GET.equalsIgnoreCase(getRequestMethod())) {
-                    return sendHttpGet();
-                } else {
-                    return sendHttpPost();
-                }
-            } catch (final MSALAuthenticationException e) {
-                Assert.fail("unexpected exception.");
-            }
-
-            return null;
-        }
-    }
-
-    /**
-     * Base test case for the network request call.
-     */
-    protected abstract class BaseHttpRequestTestCase {
-        abstract void mockHttpUrlConnectionGetStream(final HttpURLConnection mockedConnection) throws IOException;
-        abstract HttpResponse makeHttpRequestCall() throws IOException;
-        abstract int getNetworkCallTimes();
-        abstract String getRequestMethod();
-        abstract void verifyInputStreamAndErrorStreamCalledTimes(final HttpURLConnection mockedConnection)
-                throws IOException;
-        abstract void verifyHttpResponse(final HttpResponse httpResponse);
-
-        protected void performTest() throws IOException {
-            final HttpURLConnection mockedUrlConnection = Mockito.mock(HttpURLConnection.class);
-            Mockito.when(mockedUrlConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
-            mockHttpUrlConnectionGetStream(mockedUrlConnection);
-            Util.prepareMockedUrlConnection(mockedUrlConnection);
-
-            final HttpResponse response = makeHttpRequestCall();
-
-            Mockito.verify(mockedUrlConnection, Mockito.times(getNetworkCallTimes())).setRequestMethod(
-                    Mockito.refEq(getRequestMethod()));
-            verifyInputStreamAndErrorStreamCalledTimes(mockedUrlConnection);
-
-            verifyHttpResponse(response);
-        }
-
-        /**
-         * Send http get request.
-         */
-        final HttpResponse sendHttpGet() throws IOException, MSALAuthenticationException {
-            return HttpRequest.sendGet(Util.getValidRequestUrl(), Collections.<String, String>emptyMap());
-        }
-
-        /**
-         * Send http post request.
-         */
-        final HttpResponse sendHttpPost() throws IOException, MSALAuthenticationException {
-            return HttpRequest.sendPost(Util.getValidRequestUrl(), Collections.<String, String>emptyMap(),
-                    "SomeRequestMessage".getBytes(), "application/x-www-form-urlencoded");
-        }
+    final HttpResponse sendHttpPost() throws IOException, MSALAuthenticationException {
+        return HttpRequest.sendPost(Util.getValidRequestUrl(), Collections.<String, String>emptyMap(),
+                "SomeRequestMessage".getBytes(), "application/x-www-form-urlencoded");
     }
 
     /**
@@ -816,5 +659,9 @@ public final class HttpRequestTest {
      */
     private String getErrorResponse() {
         return "{\"response\":\"error response\"}";
+    }
+
+    private void mockRequestBody(final HttpURLConnection mockedConnection) throws IOException {
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
     }
 }

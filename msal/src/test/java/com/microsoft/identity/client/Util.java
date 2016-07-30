@@ -23,12 +23,8 @@
 
 package com.microsoft.identity.client;
 
-import org.mockito.Mockito;
-
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -43,14 +39,8 @@ public final class Util {
 
     static final String VALID_AUTHORITY = "https://login.microsoftonline.com/common";
 
-    static void prepareMockedUrlConnection(final HttpURLConnection mockedConnection) throws IOException {
-        HttpUrlConnectionFactory.setMockedConnection(mockedConnection);
-        Mockito.doNothing().when(mockedConnection).setConnectTimeout(Mockito.anyInt());
-        Mockito.doNothing().when(mockedConnection).setDoInput(Mockito.anyBoolean());
-    }
-
     static InputStream createInputStream(final String input) {
-        return  new ByteArrayInputStream(input.getBytes());
+        return input == null ? null : new ByteArrayInputStream(input.getBytes());
     }
 
     static URL getValidRequestUrl() throws MalformedURLException {

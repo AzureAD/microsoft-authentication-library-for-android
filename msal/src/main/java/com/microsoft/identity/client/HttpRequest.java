@@ -23,8 +23,6 @@
 
 package com.microsoft.identity.client;
 
-import android.os.Build;
-
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
@@ -48,20 +46,19 @@ final class HttpRequest {
     private static final String REQUEST_METHOD_GET = "GET";
     private static final String REQUEST_METHOD_POST = "POST";
     private static final String HOST = "Host";
-    private static final String HTTP_PROTOCOL = "http";
     private static final String HTTPS_PROTOCOL = "https";
-    private static final String HTTP_PORT_NUMBER = ":80";
-    private static final String HTTPS_PORT_NUMBER = ":443";
-    // TODO: should we make the timeout configuarable at client side.
-    private static final int CONNECT_TIME_OUT = 3000;
-    private static final int READ_TIME_OUT = 3000;
     /** The waiting time before doing retry to prevent hitting the server immediately failure. */
-    private static final int RETRY_TIME_WAITING_PERIOD = 1000;
+    private static final int RETRY_TIME_WAITING_PERIOD_MSEC = 1000;
+
+    // TODO: should we make the timeout configuarable at client side.
+    static final int CONNECT_TIME_OUT_MSEC = 30000;
+    static final int READ_TIME_OUT_MSEC = 30000;
 
     // class variables
     private final URL mRequestUrl;
     private final byte[] mRequestContent;
     private final String mRequestContentType;
+    private final String mRequestMethod;
     private final Map<String, String> mRequestHeaders = new HashMap<>();
 
     /**
@@ -69,8 +66,8 @@ final class HttpRequest {
      * @param requestUrl The {@link URL} to make the http request.
      * @param requestHeaders Headers used to send the http request.
      */
-    private HttpRequest(final URL requestUrl, final Map<String, String> requestHeaders) {
-        this(requestUrl, requestHeaders, null, null);
+    private HttpRequest(final URL requestUrl, final Map<String, String> requestHeaders, final String requestMethod) {
+        this(requestUrl, requestHeaders, requestMethod, null, null);
     }
 
     /**
@@ -81,23 +78,23 @@ final class HttpRequest {
      * @param requestContent Post message sent in the post request.
      * @param requestContentType Request content type.
      */
-    private HttpRequest(final URL requestUrl, final Map<String, String> requestHeaders, final byte[] requestContent,
-                       final String requestContentType) {
+    private HttpRequest(final URL requestUrl, final Map<String, String> requestHeaders, final String requestMethod,
+                        final byte[] requestContent, final String requestContentType) {
         // verify the request url first.
         if (requestUrl == null) {
             throw new IllegalArgumentException("null requestUrl");
         }
 
-        if (!HTTP_PROTOCOL.equalsIgnoreCase(requestUrl.getProtocol())
-                && !HTTPS_PROTOCOL.equalsIgnoreCase(requestUrl.getProtocol())) {
+        if (!HTTPS_PROTOCOL.equalsIgnoreCase(requestUrl.getProtocol())) {
             throw new IllegalArgumentException("invalid requestUrl");
         }
 
         mRequestUrl = requestUrl;
 
-        mRequestHeaders.put(HOST, getUrlAuthority(requestUrl));
+        mRequestHeaders.put(HOST, requestUrl.getAuthority());
         mRequestHeaders.putAll(requestHeaders);
 
+        mRequestMethod = requestMethod;
         mRequestContent = requestContent;
         mRequestContentType = requestContentType;
     }
@@ -112,8 +109,9 @@ final class HttpRequest {
     public static HttpResponse sendPost(final URL requestUrl, final Map<String, String> requestHeaders,
                                         final byte[] requestContent, final String requestContentType)
             throws IOException, MSALAuthenticationException {
-        final HttpRequest httpRequest = new HttpRequest(requestUrl, requestHeaders, requestContent, requestContentType);
-        return httpRequest.send(REQUEST_METHOD_POST);
+        final HttpRequest httpRequest = new HttpRequest(requestUrl, requestHeaders, REQUEST_METHOD_POST,
+                requestContent, requestContentType);
+        return httpRequest.send();
     }
 
     /**
@@ -123,34 +121,17 @@ final class HttpRequest {
      */
     public static HttpResponse sendGet(final URL requestUrl, final Map<String, String> requestHeaders)
             throws IOException, MSALAuthenticationException {
-        final HttpRequest httpRequest = new HttpRequest(requestUrl, requestHeaders);
-        return httpRequest.send(REQUEST_METHOD_GET);
-    }
-
-    /**
-     * Get the authority from given request URL.
-     */
-    private String getUrlAuthority(final URL requestUrl) {
-        String authority = requestUrl.getAuthority();
-
-        if (requestUrl.getPort() == -1) {
-            if (HTTP_PROTOCOL.equalsIgnoreCase(requestUrl.getProtocol())) {
-                authority += HTTP_PORT_NUMBER;
-            } else if (HTTPS_PROTOCOL.equalsIgnoreCase(requestUrl.getProtocol())) {
-                authority += HTTPS_PORT_NUMBER;
-            }
-        }
-
-        return authority;
+        final HttpRequest httpRequest = new HttpRequest(requestUrl, requestHeaders, REQUEST_METHOD_GET);
+        return httpRequest.send();
     }
 
     /**
      * Send http request.
      */
-    private HttpResponse send(final String requestMethod) throws IOException, MSALAuthenticationException {
+    private HttpResponse send() throws IOException, MSALAuthenticationException {
         final HttpResponse response;
         try {
-            response = sendWithRetry(requestMethod);
+            response = sendWithRetry();
         } catch (final SocketTimeoutException socketTimeoutException) {
             throw new MSALAuthenticationException(MSALError.RETRY_FAILED_WITH_NETWORK_TIME_OUT,
                     socketTimeoutException.getMessage(), socketTimeoutException);
@@ -159,7 +140,7 @@ final class HttpRequest {
         if (response != null && isRetryableError(response.getStatusCode())) {
             throw new MSALAuthenticationException(MSALError.RETRY_FAILED_WITH_SERVER_ERROR,
                     "StatusCode: " + String.valueOf(response.getStatusCode()) + ";ResponseBody: "
-                            + response.getResponseBody());
+                            + response.getBody());
         }
 
         return response;
@@ -169,29 +150,29 @@ final class HttpRequest {
      * Execute the send request, and retry if needed. Retry happens on all the endpoint when receiving
      * {@link SocketTimeoutException} or retryable error 500/503/504.
      */
-    private HttpResponse sendWithRetry(final String requestMethod) throws IOException {
-        HttpResponse httpResponse;
+    private HttpResponse sendWithRetry() throws IOException {
+        final HttpResponse httpResponse;
         try {
-            httpResponse = executeHttpSend(requestMethod);
+            httpResponse = executeHttpSend();
         } catch (final SocketTimeoutException socketTimeoutException) {
             // In android, network timeout is thrown as the SocketTimeOutException, we need to catch this and perform
             // retry. If retry also fails with timeout, the socketTimeoutException will be bubbled up
-            waitingBeforeRetry();
-            return executeHttpSend(requestMethod);
+            waitBeforeRetry();
+            return executeHttpSend();
         }
 
         if (isRetryableError(httpResponse.getStatusCode())) {
             // retry if we get 500/503/504
-            waitingBeforeRetry();
-            return executeHttpSend(requestMethod);
+            waitBeforeRetry();
+            return executeHttpSend();
         }
 
         return httpResponse;
     }
 
-    private HttpResponse executeHttpSend(final String requestMethod) throws IOException {
+    private HttpResponse executeHttpSend() throws IOException {
         final HttpURLConnection urlConnection = setupConnection();
-        urlConnection.setRequestMethod(requestMethod);
+        urlConnection.setRequestMethod(mRequestMethod);
 
         InputStream responseStream = null;
         final HttpResponse response;
@@ -199,6 +180,8 @@ final class HttpRequest {
             try {
                 responseStream = urlConnection.getInputStream();
             } catch (final SocketTimeoutException socketTimeoutException) {
+                // SocketTimeoutExcetion is thrown when connection timeout happens. For connection timeout, we want
+                // to retry once. Throw the exception to the upper layer, and the upper layer will handle the rety.
                 throw socketTimeoutException;
             } catch (final IOException ioException) {
                 responseStream = urlConnection.getErrorStream();
@@ -206,7 +189,6 @@ final class HttpRequest {
 
             final int statusCode = urlConnection.getResponseCode();
             final String responseBody = responseStream == null ? "" : convertStreamToString(responseStream);
-
             response = new HttpResponse(statusCode, responseBody, urlConnection.getHeaderFields());
         } finally {
             safeCloseStream(responseStream);
@@ -217,9 +199,7 @@ final class HttpRequest {
 
     private HttpURLConnection setupConnection() throws IOException {
         final HttpURLConnection urlConnection = HttpUrlConnectionFactory.createHttpURLConnection(mRequestUrl);
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB_MR2) {
-            urlConnection.setRequestProperty("Connection", "close");
-        }
+        urlConnection.setRequestProperty("Connection", "close");
 
         // Apply request headers and update the headers with default attributes first
         final Set<Map.Entry<String, String>> headerEntries = mRequestHeaders.entrySet();
@@ -227,8 +207,8 @@ final class HttpRequest {
             urlConnection.setRequestProperty(entry.getKey(), entry.getValue());
         }
 
-        urlConnection.setConnectTimeout(CONNECT_TIME_OUT);
-        urlConnection.setReadTimeout(READ_TIME_OUT);
+        urlConnection.setConnectTimeout(CONNECT_TIME_OUT_MSEC);
+        urlConnection.setReadTimeout(READ_TIME_OUT_MSEC);
         urlConnection.setInstanceFollowRedirects(true);
         urlConnection.setUseCaches(false);
         urlConnection.setDoInput(true);
@@ -240,24 +220,31 @@ final class HttpRequest {
 
     private static void setRequestBody(final HttpURLConnection connection, final byte[] contentRequest,
                                        final String requestContentType) throws IOException {
-        if (null != contentRequest) {
-            connection.setDoOutput(true);
+        if (contentRequest == null) {
+            return;
+        }
 
-            if (null != requestContentType && !requestContentType.isEmpty()) {
-                connection.setRequestProperty("Content-Type", requestContentType);
-            }
+        connection.setDoOutput(true);
 
-            connection.setRequestProperty("Content-Length",
-                    Integer.toString(contentRequest.length));
-            connection.setFixedLengthStreamingMode(contentRequest.length);
+        if (!MSALUtils.isEmpty(requestContentType)) {
+            connection.setRequestProperty("Content-Type", requestContentType);
+        }
 
-            OutputStream out = null;
-            try {
-                out = connection.getOutputStream();
-                out.write(contentRequest);
-            } finally {
-                safeCloseStream(out);
-            }
+        connection.setRequestProperty("Content-Length", String.valueOf(contentRequest.length));
+
+        // https://developer.android.com/reference/java/net/HttpURLConnection.html. In the Posting Content section
+        // recommended: For best performance, you should call either setFixedLengthStreamingMode(int) when the body
+        // length is known in advance, or setChunkedStreamingMode(int) when it is not. Otherwise HttpURLConnection
+        // will be forced to buffer the complete request body in memory before it is transmitted,
+        // wasting (and possibly exhausting) heap and increasing latency.
+        connection.setFixedLengthStreamingMode(contentRequest.length);
+
+        OutputStream out = null;
+        try {
+            out = connection.getOutputStream();
+            out.write(contentRequest);
+        } finally {
+            safeCloseStream(out);
         }
     }
 
@@ -269,23 +256,18 @@ final class HttpRequest {
      * @throws IOException Thrown when failing to access inputStream stream.
      */
     private static String convertStreamToString(final InputStream inputStream) throws IOException {
-        BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new InputStreamReader(inputStream));
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (sb.length() > 0) {
-                    sb.append('\n');
-                }
-                sb.append(line);
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            final char[] buffer = new char[1024];
+            final StringBuilder stringBuilder = new StringBuilder();
+            int charsRead;
+            while ((charsRead = reader.read(buffer)) > -1) {
+                stringBuilder.append(buffer, 0, charsRead);
             }
 
-            return sb.toString();
+            return stringBuilder.toString();
         } finally {
-            if (reader != null) {
-                reader.close();
-            }
+            safeCloseStream(inputStream);
         }
     }
 
@@ -295,19 +277,21 @@ final class HttpRequest {
      * @param stream stream to be closed
      */
     private static void safeCloseStream(final Closeable stream) {
-        if (stream != null) {
-            try {
-                stream.close();
-            } catch (final IOException e) {
-                // swallow error in this case
-                // TODO: log the error
-                // Logger.e(TAG, "Encounter IO exception when trying to close the stream", e);
-            }
+        if (stream == null) {
+            return;
+        }
+
+        try {
+            stream.close();
+        } catch (final IOException e) {
+            // swallow error in this case
+            // TODO: log the error
+            // Logger.e(TAG, "Encounter IO exception when trying to close the stream", e);
         }
     }
 
     /**
-     *
+     * Check if the given status code is the retryable status code(500/503/504).
      * @param statusCode The status to check.
      * @return True if the status code is 500, 503 or 504, false otherwise.
      */
@@ -320,9 +304,9 @@ final class HttpRequest {
     /**
      * Having the thread wait for 1 second before doing the retry to avoid hitting server immediately.
      */
-    private void waitingBeforeRetry() {
+    private void waitBeforeRetry() {
         try {
-            Thread.sleep(RETRY_TIME_WAITING_PERIOD);
+            Thread.sleep(RETRY_TIME_WAITING_PERIOD_MSEC);
         } catch (final InterruptedException interrupted) {
             // Swallow the exception here since we don't want to fail if error happens when having the thread hanging.
             // TODO: Logger.i(TAG, "Fail the have the thread waiting for 1 second before doing the retry")

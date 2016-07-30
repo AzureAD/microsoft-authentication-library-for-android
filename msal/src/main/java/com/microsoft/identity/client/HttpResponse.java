@@ -57,7 +57,7 @@ final class HttpResponse {
     /**
      * @return The raw server response.
      */
-    public String getResponseBody() {
+    public String getBody() {
         return mResponseBody;
     }
 
@@ -65,7 +65,7 @@ final class HttpResponse {
      * @return The unmodified Map of response headers.
      * Response headers is set by {@link java.net.HttpURLConnection#getHeaderFields()} which is an unmodified Map.
      */
-    public Map<String, List<String>> getResponseHeaders() {
+    public Map<String, List<String>> getHeaders() {
         return mResponseHeaders;
     }
 }

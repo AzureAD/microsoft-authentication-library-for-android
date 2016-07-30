@@ -26,13 +26,15 @@ package com.microsoft.identity.client;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * Internal class for create {@link java.net.HttpURLConnection}.
  * For testability, test case could set the mocked {@link java.net.HttpURLConnection} to inject dependency.
  */
 final class HttpUrlConnectionFactory {
-    private static HttpURLConnection sMockedConnection = null;
+    private static Queue<HttpURLConnection> sMockedConnectionQueue = new LinkedList<>();
 
     /**
      * Private constructor to prevent the class from being initiated.
@@ -40,11 +42,26 @@ final class HttpUrlConnectionFactory {
     private HttpUrlConnectionFactory() { }
 
     /**
-     * Used by tests to set mocked connection.
-     * @param mockedConnection
+     * Used by tests to add mocked connection into the queue.
+     * @param mockedConnection The mocked {@link HttpURLConnection} to put in the queue.
      */
-    static void setMockedConnection(final HttpURLConnection mockedConnection) {
-        sMockedConnection = mockedConnection;
+    static void addMockedConnection(final HttpURLConnection mockedConnection) {
+        sMockedConnectionQueue.add(mockedConnection);
+    }
+
+    /**
+     * Used by tests to clear the mocked connection queue.
+     */
+    static void clearMockedConnectionQueue() {
+        sMockedConnectionQueue.clear();
+    }
+
+    /**
+     * Used by test to get the current number of mocked connections in the queue.
+     * @return The number of mocked connections in the queue.
+     */
+    static int getMockedConnectionCountInQueue() {
+        return sMockedConnectionQueue.size();
     }
 
     /**
@@ -54,8 +71,8 @@ final class HttpUrlConnectionFactory {
      * @throws IOException if it fails to open connection with the provided URL.
      */
     static HttpURLConnection createHttpURLConnection(final URL url) throws IOException {
-        if (sMockedConnection != null) {
-            return sMockedConnection;
+        if (!sMockedConnectionQueue.isEmpty()) {
+            return sMockedConnectionQueue.poll();
         }
 
         return (HttpURLConnection) url.openConnection();

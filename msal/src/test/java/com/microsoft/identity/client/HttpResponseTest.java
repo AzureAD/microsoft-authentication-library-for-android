@@ -40,23 +40,23 @@ public final class HttpResponseTest {
     public void testHttpResponseWithNullBody() {
         final HttpResponse response = new HttpResponse(HttpURLConnection.HTTP_OK, null,
                 Collections.<String, List<String>>emptyMap());
-        Assert.assertNull(response.getResponseBody());
+        Assert.assertNull(response.getBody());
         Assert.assertTrue(response.getStatusCode() == HttpURLConnection.HTTP_OK);
-        Assert.assertTrue(response.getResponseHeaders().isEmpty());
+        Assert.assertTrue(response.getHeaders().isEmpty());
     }
 
     @Test
     public void testHttpResponseWithEmptyBody() {
         final HttpResponse response = new HttpResponse(HttpURLConnection.HTTP_OK, "",
                 Collections.<String, List<String>>emptyMap());
-        Assert.assertNotNull(response.getResponseBody());
-        Assert.assertTrue(response.getResponseBody().isEmpty());
+        Assert.assertNotNull(response.getBody());
+        Assert.assertTrue(response.getBody().isEmpty());
     }
 
     @Test
     public void testHttpResponseWithNullResponseHeaders() {
         final HttpResponse response = new HttpResponse(HttpURLConnection.HTTP_OK, RESPONSE_BODY, null);
-        Assert.assertTrue(response.getResponseBody().equals(RESPONSE_BODY));
-        Assert.assertNull(response.getResponseHeaders());
+        Assert.assertTrue(response.getBody().equals(RESPONSE_BODY));
+        Assert.assertNull(response.getHeaders());
     }
 }
