@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
-import java.net.URL;
 import java.util.Collections;
 
 /**
@@ -48,27 +47,9 @@ public final class HttpRequestTest {
     /**
      * Verify the expected exception is thrown when sending get request with null url.
      */
-    @Test(expected = IllegalArgumentException.class)
-    public void testNullRequestUrl() throws IOException, MSALAuthenticationException {
+    @Test(expected = NullPointerException.class)
+    public void testNullRequestUrl() throws IOException, RetryableException {
         HttpRequest.sendGet(null, Collections.<String, String>emptyMap());
-    }
-
-    /**
-     * Verify the expected exception is thrown when request url is not using https protocol.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testNonHttpsRequestUrl() throws IOException, MSALAuthenticationException {
-        HttpRequest.sendGet(new URL("file://a.com"), Collections.<String, String>emptyMap());
-    }
-
-    /**
-     * Verify the expect exception is thrown when reqeust url is starting with http.
-     * @throws IOException
-     * @throws MSALAuthenticationException
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testRequestUrlProtocolHttp() throws IOException, MSALAuthenticationException {
-        HttpRequest.sendGet(new URL("http://login.microsoftonline.com"), Collections.<String, String>emptyMap());
     }
 
     /**
@@ -85,7 +66,7 @@ public final class HttpRequestTest {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 1);
             final HttpResponse response = sendHttpGet();
             verifySuccessHttpResponse(response);
-        } catch (final MSALAuthenticationException e) {
+        } catch (final RetryableException e) {
             Assert.fail();
         }
 
@@ -113,7 +94,7 @@ public final class HttpRequestTest {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 1);
             final HttpResponse response = sendHttpPost();
             verifySuccessHttpResponse(response);
-        } catch (final MSALAuthenticationException e) {
+        } catch (final RetryableException e) {
             Assert.fail();
         }
 
@@ -147,7 +128,7 @@ public final class HttpRequestTest {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             final HttpResponse response = sendHttpPost();
             verifySuccessHttpResponse(response);
-        } catch (final MSALAuthenticationException e) {
+        } catch (final RetryableException e) {
             Assert.fail();
         }
 
@@ -188,7 +169,7 @@ public final class HttpRequestTest {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             final HttpResponse response = sendHttpPost();
             verifySuccessHttpResponse(response);
-        } catch (final MSALAuthenticationException e) {
+        } catch (final RetryableException e) {
             Assert.fail();
         }
 
@@ -227,7 +208,7 @@ public final class HttpRequestTest {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             final HttpResponse response = sendHttpGet();
             verifySuccessHttpResponse(response);
-        } catch (final MSALAuthenticationException e) {
+        } catch (final RetryableException e) {
             Assert.fail();
         }
 
@@ -267,7 +248,7 @@ public final class HttpRequestTest {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             final HttpResponse response = sendHttpPost();
             verifySuccessHttpResponse(response);
-        } catch (final MSALAuthenticationException e) {
+        } catch (final RetryableException e) {
             Assert.fail();
         }
 
@@ -300,7 +281,7 @@ public final class HttpRequestTest {
             Assert.assertNotNull(response);
             Assert.assertTrue(response.getStatusCode() == HttpURLConnection.HTTP_BAD_REQUEST);
             Assert.assertTrue(response.getBody().equals(getErrorResponse()));
-        } catch (final MSALAuthenticationException e) {
+        } catch (final RetryableException e) {
             Assert.fail();
         }
 
@@ -333,7 +314,7 @@ public final class HttpRequestTest {
             Assert.assertNotNull(response);
             Assert.assertTrue(response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED);
             Assert.assertTrue(response.getBody().equals(getErrorResponse()));
-        } catch (final MSALAuthenticationException e) {
+        } catch (final RetryableException e) {
             Assert.fail();
         }
 
@@ -363,7 +344,7 @@ public final class HttpRequestTest {
             Assert.assertNotNull(response);
             Assert.assertTrue(response.getStatusCode() == HttpURLConnection.HTTP_BAD_METHOD);
             Assert.assertTrue(response.getBody().isEmpty());
-        } catch (final MSALAuthenticationException e) {
+        } catch (final RetryableException e) {
             Assert.fail();
         }
 
@@ -401,7 +382,7 @@ public final class HttpRequestTest {
             Assert.assertNotNull(response);
             Assert.assertTrue(response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED);
             Assert.assertTrue(response.getBody().equals(getErrorResponse()));
-        } catch (final MSALAuthenticationException e) {
+        } catch (final RetryableException e) {
             Assert.fail();
         }
 
@@ -443,7 +424,7 @@ public final class HttpRequestTest {
             Assert.assertNotNull(response);
             Assert.assertTrue(response.getStatusCode() == HttpURLConnection.HTTP_BAD_REQUEST);
             Assert.assertTrue(response.getBody().equals(getErrorResponse()));
-        } catch (final MSALAuthenticationException e) {
+        } catch (final RetryableException e) {
             Assert.fail();
         }
 
@@ -483,11 +464,14 @@ public final class HttpRequestTest {
         try {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             sendHttpPost();
-            Assert.fail("Expect MSALAuthenticationException to be thrown.");
-        } catch (final MSALAuthenticationException e) {
+            Assert.fail("Expect AuthenticationException to be thrown.");
+        } catch (final RetryableException e) {
             Assert.assertNotNull(e);
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_SERVER_ERROR));
-            Assert.assertTrue(e.getMessage().contains(
+            Assert.assertNotNull(e.getCause());
+            Assert.assertTrue(e.getCause() instanceof AuthenticationException);
+            final AuthenticationException innerException = (AuthenticationException) e.getCause();
+            Assert.assertTrue(innerException.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_SERVER_ERROR));
+            Assert.assertTrue(innerException.getMessage().contains(
                     "StatusCode: " + String.valueOf(HttpURLConnection.HTTP_UNAVAILABLE)));
         }
 
@@ -526,11 +510,14 @@ public final class HttpRequestTest {
         try {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             sendHttpPost();
-            Assert.fail("Expect MSALAuthenticationException to be thrown.");
-        } catch (final MSALAuthenticationException e) {
+            Assert.fail("Expect AuthenticationException to be thrown.");
+        } catch (final RetryableException e) {
             Assert.assertNotNull(e);
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_SERVER_ERROR));
-            Assert.assertTrue(e.getMessage().contains(
+            Assert.assertNotNull(e.getCause());
+            Assert.assertTrue(e.getCause() instanceof AuthenticationException);
+            final AuthenticationException innerException = (AuthenticationException) e.getCause();
+            Assert.assertTrue(innerException.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_SERVER_ERROR));
+            Assert.assertTrue(innerException.getMessage().contains(
                     "StatusCode: " + String.valueOf(HttpURLConnection.HTTP_GATEWAY_TIMEOUT)));
         }
 
@@ -567,12 +554,11 @@ public final class HttpRequestTest {
         try {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             sendHttpGet();
-            Assert.fail("Expect MSALAuthenticationException to be thrown.");
-        } catch (final MSALAuthenticationException e) {
+            Assert.fail("Expect AuthenticationException to be thrown.");
+        } catch (final RetryableException e) {
             Assert.assertNotNull(e);
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_NETWORK_TIME_OUT));
             Assert.assertNotNull(e.getCause());
-            Assert.assertTrue(e.getCause() instanceof SocketTimeoutException);
+            Assert.assertTrue(e.getCause() instanceof  SocketTimeoutException);
         }
 
         Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
@@ -605,12 +591,11 @@ public final class HttpRequestTest {
         try {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             sendHttpGet();
-            Assert.fail("Expect MSALAuthenticationException to be thrown.");
-        } catch (final MSALAuthenticationException e) {
+            Assert.fail("Expect AuthenticationException to be thrown.");
+        } catch (final RetryableException e) {
             Assert.assertNotNull(e);
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_NETWORK_TIME_OUT));
             Assert.assertNotNull(e.getCause());
-            Assert.assertTrue(e.getCause() instanceof SocketTimeoutException);
+            Assert.assertTrue(e.getCause() instanceof  SocketTimeoutException);
         }
 
         Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
@@ -635,14 +620,14 @@ public final class HttpRequestTest {
     /**
      * Send http get request.
      */
-    final HttpResponse sendHttpGet() throws IOException, MSALAuthenticationException {
+    final HttpResponse sendHttpGet() throws IOException, RetryableException {
         return HttpRequest.sendGet(Util.getValidRequestUrl(), Collections.<String, String>emptyMap());
     }
 
     /**
      * Send http post request.
      */
-    final HttpResponse sendHttpPost() throws IOException, MSALAuthenticationException {
+    final HttpResponse sendHttpPost() throws IOException, RetryableException {
         return HttpRequest.sendPost(Util.getValidRequestUrl(), Collections.<String, String>emptyMap(),
                 "SomeRequestMessage".getBytes(), "application/x-www-form-urlencoded");
     }

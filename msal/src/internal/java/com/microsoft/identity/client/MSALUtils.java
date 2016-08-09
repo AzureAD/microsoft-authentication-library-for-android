@@ -24,26 +24,20 @@
 package com.microsoft.identity.client;
 
 /**
- * Enum class representing MSAL error code.
+ * Internal Util class for MSAL.
  */
-public enum MSALError {
-    /** Encounter network error and retry fails with 500/503/504. */
-    RETRY_FAILED_WITH_SERVER_ERROR("Retry failed with 500/503/504");
-
-    private String mErrorDescription;
+final class MSALUtils {
 
     /**
-     * Initiates {@link MSALError} with error description.
-     * @param errorDescription
+     * Private constructor to prevent Util class from being initiated.
      */
-    MSALError(final String errorDescription) {
-        mErrorDescription = errorDescription;
-    }
+    private MSALUtils() { }
 
     /**
-     * @return Description for the MSAL error.
+     * To improve test-ability with local Junit. Android.jar used for local Junit doesn't have a default implementation
+     * for {@link android.text.TextUtils}.
      */
-    public String getDescription() {
-        return mErrorDescription;
+    static boolean isEmpty(final String message) {
+        return message == null || message.trim().length() == 0;
     }
 }

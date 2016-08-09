@@ -46,11 +46,9 @@ final class HttpRequest {
     private static final String REQUEST_METHOD_GET = "GET";
     private static final String REQUEST_METHOD_POST = "POST";
     private static final String HOST = "Host";
-    private static final String HTTPS_PROTOCOL = "https";
     /** The waiting time before doing retry to prevent hitting the server immediately failure. */
     private static final int RETRY_TIME_WAITING_PERIOD_MSEC = 1000;
-
-    // TODO: should we make the timeout configuarable at client side.
+    
     static final int CONNECT_TIME_OUT_MSEC = 30000;
     static final int READ_TIME_OUT_MSEC = 30000;
 
@@ -80,15 +78,6 @@ final class HttpRequest {
      */
     private HttpRequest(final URL requestUrl, final Map<String, String> requestHeaders, final String requestMethod,
                         final byte[] requestContent, final String requestContentType) {
-        // verify the request url first.
-        if (requestUrl == null) {
-            throw new IllegalArgumentException("null requestUrl");
-        }
-
-        if (!HTTPS_PROTOCOL.equalsIgnoreCase(requestUrl.getProtocol())) {
-            throw new IllegalArgumentException("invalid requestUrl");
-        }
-
         mRequestUrl = requestUrl;
 
         mRequestHeaders.put(HOST, requestUrl.getAuthority());
@@ -108,7 +97,7 @@ final class HttpRequest {
      */
     public static HttpResponse sendPost(final URL requestUrl, final Map<String, String> requestHeaders,
                                         final byte[] requestContent, final String requestContentType)
-            throws IOException, MSALAuthenticationException {
+            throws IOException, RetryableException {
         final HttpRequest httpRequest = new HttpRequest(requestUrl, requestHeaders, REQUEST_METHOD_POST,
                 requestContent, requestContentType);
         return httpRequest.send();
@@ -120,7 +109,7 @@ final class HttpRequest {
      * @param requestHeaders Headers used to send the http request.
      */
     public static HttpResponse sendGet(final URL requestUrl, final Map<String, String> requestHeaders)
-            throws IOException, MSALAuthenticationException {
+            throws IOException, RetryableException {
         final HttpRequest httpRequest = new HttpRequest(requestUrl, requestHeaders, REQUEST_METHOD_GET);
         return httpRequest.send();
     }
@@ -128,19 +117,18 @@ final class HttpRequest {
     /**
      * Send http request.
      */
-    private HttpResponse send() throws IOException, MSALAuthenticationException {
+    private HttpResponse send() throws IOException, RetryableException {
         final HttpResponse response;
         try {
             response = sendWithRetry();
         } catch (final SocketTimeoutException socketTimeoutException) {
-            throw new MSALAuthenticationException(MSALError.RETRY_FAILED_WITH_NETWORK_TIME_OUT,
-                    socketTimeoutException.getMessage(), socketTimeoutException);
+            throw new RetryableException(socketTimeoutException.getMessage(), socketTimeoutException);
         }
 
         if (response != null && isRetryableError(response.getStatusCode())) {
-            throw new MSALAuthenticationException(MSALError.RETRY_FAILED_WITH_SERVER_ERROR,
-                    "StatusCode: " + String.valueOf(response.getStatusCode()) + ";ResponseBody: "
-                            + response.getBody());
+            throw new RetryableException("Retry fails with 500/503/504", new AuthenticationException(
+                    MSALError.RETRY_FAILED_WITH_SERVER_ERROR, "StatusCode: "
+                    + String.valueOf(response.getStatusCode()) + ";ResponseBody: " + response.getBody()));
         }
 
         return response;

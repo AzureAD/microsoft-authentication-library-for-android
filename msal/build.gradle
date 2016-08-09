@@ -7,7 +7,7 @@ android {
     buildToolsVersion "23.0.3"
 
     defaultConfig {
-        minSdkVersion 18
+        minSdkVersion 14
         targetSdkVersion 23
         versionCode 1
         versionName "1.0.0"
@@ -27,6 +27,12 @@ android {
 
     lintOptions {
         abortOnError false
+    }
+
+    sourceSets {
+        main {
+            java.srcDirs = ['src/main/java', 'src/http/java', 'src/internal/java']
+        }
     }
 }
 

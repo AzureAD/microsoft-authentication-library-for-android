@@ -24,26 +24,16 @@
 package com.microsoft.identity.client;
 
 /**
- * Enum class representing MSAL error code.
+ * Internal exception used to wrap the {@link java.net.SocketTimeoutException} and network request with status code as
+ * 500/503/504. For 500/503/504, we'll wrap the {@link AuthenticationException} as the cause.
  */
-public enum MSALError {
-    /** Encounter network error and retry fails with 500/503/504. */
-    RETRY_FAILED_WITH_SERVER_ERROR("Retry failed with 500/503/504");
+class RetryableException extends Exception {
 
-    private String mErrorDescription;
-
-    /**
-     * Initiates {@link MSALError} with error description.
-     * @param errorDescription
-     */
-    MSALError(final String errorDescription) {
-        mErrorDescription = errorDescription;
+    RetryableException(final String message) {
+        super(message);
     }
 
-    /**
-     * @return Description for the MSAL error.
-     */
-    public String getDescription() {
-        return mErrorDescription;
+    RetryableException(final String message, final Throwable throwable) {
+        super(message, throwable);
     }
 }

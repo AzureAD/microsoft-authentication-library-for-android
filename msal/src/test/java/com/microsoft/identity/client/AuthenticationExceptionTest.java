@@ -27,47 +27,47 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests for {@link MSALAuthenticationException}.
+ * Tests for {@link AuthenticationException}.
  */
-public final class MSALAuthenticationExceptionTest {
+public final class AuthenticationExceptionTest {
     private static final String TEST_ERROR_DESCRIPTION = "test error description";
 
     @Test
     public void testEmptyConstructor() {
-        final MSALAuthenticationException msalAuthenticationException = new MSALAuthenticationException();
-        Assert.assertNull(msalAuthenticationException.getErrorCode());
-        Assert.assertNull(msalAuthenticationException.getMessage());
-        Assert.assertNull(msalAuthenticationException.getCause());
+        final AuthenticationException authenticationException = new AuthenticationException();
+        Assert.assertNull(authenticationException.getErrorCode());
+        Assert.assertNull(authenticationException.getMessage());
+        Assert.assertNull(authenticationException.getCause());
     }
 
     @Test
     public void testWithErrorCode() {
-        final MSALAuthenticationException msalAuthenticationException = new MSALAuthenticationException(
+        final AuthenticationException authenticationException = new AuthenticationException(
                 MSALError.RETRY_FAILED_WITH_SERVER_ERROR);
-        Assert.assertTrue(msalAuthenticationException.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_SERVER_ERROR));
-        Assert.assertNotNull(msalAuthenticationException.getMessage());
-        Assert.assertTrue(msalAuthenticationException.getMessage().equals(
+        Assert.assertTrue(authenticationException.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_SERVER_ERROR));
+        Assert.assertNotNull(authenticationException.getMessage());
+        Assert.assertTrue(authenticationException.getMessage().equals(
                 MSALError.RETRY_FAILED_WITH_SERVER_ERROR.getDescription()));
-        Assert.assertNull(msalAuthenticationException.getCause());
+        Assert.assertNull(authenticationException.getCause());
     }
 
     @Test
     public void testWithErrorCodeAndDescription() {
-        final MSALAuthenticationException msalAuthenticationException = new MSALAuthenticationException(
+        final AuthenticationException authenticationException = new AuthenticationException(
                 MSALError.RETRY_FAILED_WITH_SERVER_ERROR, TEST_ERROR_DESCRIPTION);
-        Assert.assertTrue(msalAuthenticationException.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_SERVER_ERROR));
-        Assert.assertTrue(msalAuthenticationException.getMessage().equals(TEST_ERROR_DESCRIPTION));
-        Assert.assertNull(msalAuthenticationException.getCause());
+        Assert.assertTrue(authenticationException.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_SERVER_ERROR));
+        Assert.assertTrue(authenticationException.getMessage().equals(TEST_ERROR_DESCRIPTION));
+        Assert.assertNull(authenticationException.getCause());
     }
 
     @Test
     public void testWithErrorCodeAndDescriptAndCause() {
         final Throwable throwable = new Throwable(TEST_ERROR_DESCRIPTION);
-        final MSALAuthenticationException msalAuthenticationException = new MSALAuthenticationException(
+        final AuthenticationException authenticationException = new AuthenticationException(
                 MSALError.RETRY_FAILED_WITH_SERVER_ERROR, TEST_ERROR_DESCRIPTION, throwable);
-        Assert.assertTrue(msalAuthenticationException.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_SERVER_ERROR));
-        Assert.assertTrue(msalAuthenticationException.getMessage().equals(TEST_ERROR_DESCRIPTION));
-        Assert.assertNotNull(msalAuthenticationException.getCause());
-        Assert.assertTrue(msalAuthenticationException.getCause().getMessage().equals(TEST_ERROR_DESCRIPTION));
+        Assert.assertTrue(authenticationException.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_SERVER_ERROR));
+        Assert.assertTrue(authenticationException.getMessage().equals(TEST_ERROR_DESCRIPTION));
+        Assert.assertNotNull(authenticationException.getCause());
+        Assert.assertTrue(authenticationException.getCause().getMessage().equals(TEST_ERROR_DESCRIPTION));
     }
 }
