@@ -24,40 +24,7 @@
 package com.microsoft.identity.client;
 
 /**
- * Enum class representing MSAL error code.
+ * Created by weij on 8/10/2016.
  */
-public enum MSALError {
-    /** Encounter network error and retry fails with 500/503/504. */
-    RETRY_FAILED_WITH_SERVER_ERROR("Retry failed with 500/503/504"),
-
-    SERVER_ERROR("Server error"),
-
-    IDTOKEN_PARSING_FAILURE("Fail to parse Id token"),
-
-    UNSUPPORTED_ENCODING("Encoding is not supported"),
-
-    JSON_PARSE_FAILURE("Failed to parse the Json response"),
-
-    AUTH_FAILED("Authentication failed"),
-
-    OAUTH_ERROR("Auth failed with oath error"),
-
-    INTERACTION_REQUIRED("Silent request failed, interaction required");
-
-    private String mErrorDescription;
-
-    /**
-     * Initiates {@link MSALError} with error description.
-     * @param errorDescription
-     */
-    MSALError(final String errorDescription) {
-        mErrorDescription = errorDescription;
-    }
-
-    /**
-     * @return Description for the MSAL error.
-     */
-    public String getDescription() {
-        return mErrorDescription;
-    }
+final class CustomTab {
 }

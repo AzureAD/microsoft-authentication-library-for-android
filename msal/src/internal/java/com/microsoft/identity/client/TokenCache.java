@@ -24,40 +24,30 @@
 package com.microsoft.identity.client;
 
 /**
- * Enum class representing MSAL error code.
+ * MSAL internal representation for token cache. MS first party apps can use the internal
+ * {@link TokenCache#serialize(User)} and {@link TokenCache#deserialize(String)} to import and export family tokens
+ * to implement SSO. To prevent confusions among external apps, we don't expose these two methods.
  */
-public enum MSALError {
-    /** Encounter network error and retry fails with 500/503/504. */
-    RETRY_FAILED_WITH_SERVER_ERROR("Retry failed with 500/503/504"),
-
-    SERVER_ERROR("Server error"),
-
-    IDTOKEN_PARSING_FAILURE("Fail to parse Id token"),
-
-    UNSUPPORTED_ENCODING("Encoding is not supported"),
-
-    JSON_PARSE_FAILURE("Failed to parse the Json response"),
-
-    AUTH_FAILED("Authentication failed"),
-
-    OAUTH_ERROR("Auth failed with oath error"),
-
-    INTERACTION_REQUIRED("Silent request failed, interaction required");
-
-    private String mErrorDescription;
-
+class TokenCache {
     /**
-     * Initiates {@link MSALError} with error description.
-     * @param errorDescription
+     * Internal API for the SDK to serialize the family token cache item for the given user.
+     *
+     * The sdk will look up family token cache item with the given user id, and serialize the token cache item and
+     * return it as a serialized blob.
+     * @param user
+     * @return
      */
-    MSALError(final String errorDescription) {
-        mErrorDescription = errorDescription;
+    String serialize(final User user) {
+        return "";
     }
 
     /**
-     * @return Description for the MSAL error.
+     * Internal API for the sdk to take in the serialized blob and save it into the cache.
+     *
+     * The sdk will deserialize the input blob into the token cache item and save it into cache.
+     * @param serializedBlob
      */
-    public String getDescription() {
-        return mErrorDescription;
+    void deserialize(final String serializedBlob) {
+
     }
 }

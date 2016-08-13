@@ -24,40 +24,39 @@
 package com.microsoft.identity.client;
 
 /**
- * Enum class representing MSAL error code.
+ * Created by weij on 8/11/2016.
  */
-public enum MSALError {
-    /** Encounter network error and retry fails with 500/503/504. */
-    RETRY_FAILED_WITH_SERVER_ERROR("Retry failed with 500/503/504"),
+final class Constants {
 
-    SERVER_ERROR("Server error"),
+    // Private constructor to prevent class from being initialized.
+    private Constants() { }
 
-    IDTOKEN_PARSING_FAILURE("Fail to parse Id token"),
+    public static final String REQUEST_URL_KEY = "com.microsoft.identity.request.url.key";
 
-    UNSUPPORTED_ENCODING("Encoding is not supported"),
+    public static final String REQUEST_ID = "com.microsoft.identity.request.id";
 
-    JSON_PARSE_FAILURE("Failed to parse the Json response"),
+    public static final String CUSTOM_TAB_REDIRECT = "com.microsoft.identity.customtab.redirect";
 
-    AUTH_FAILED("Authentication failed"),
-
-    OAUTH_ERROR("Auth failed with oath error"),
-
-    INTERACTION_REQUIRED("Silent request failed, interaction required");
-
-    private String mErrorDescription;
-
-    /**
-     * Initiates {@link MSALError} with error description.
-     * @param errorDescription
-     */
-    MSALError(final String errorDescription) {
-        mErrorDescription = errorDescription;
+    static final class UIRequest {
+        static final int BROWSER_FLOW = 1001;
     }
 
-    /**
-     * @return Description for the MSAL error.
-     */
-    public String getDescription() {
-        return mErrorDescription;
+    static final class UIResponse {
+        public static final int CANCEL = 2001;
+
+        public static final int AUTH_CODE_ERROR = 2002;
+
+        public static final int AUTH_CODE_COMPLETE = 2003;
+
+        public static final int SUCCESS = 2004;
+    }
+
+    static final class MSALErrorMessage {
+        static final String AUTHORIZATION_SERVER_INVALID_RESPONSE = "The authorization server returned an invalid "
+                + "response.";
+    }
+
+    static final class MSALError {
+        static final String AUTHORIZATION_FAILED = "authorization_failed";
     }
 }

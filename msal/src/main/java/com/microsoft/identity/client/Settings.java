@@ -24,40 +24,31 @@
 package com.microsoft.identity.client;
 
 /**
- * Enum class representing MSAL error code.
+ * Settings that could be customized per PublicClientApplication. To perform the customization per application base, developer needs
+ * to get the reference from the {@link PublicClientApplication} and call the individual setter. The class doesn't expose the
+ * constructor.
  */
-public enum MSALError {
-    /** Encounter network error and retry fails with 500/503/504. */
-    RETRY_FAILED_WITH_SERVER_ERROR("Retry failed with 500/503/504"),
+public final class Settings {
 
-    SERVER_ERROR("Server error"),
-
-    IDTOKEN_PARSING_FAILURE("Fail to parse Id token"),
-
-    UNSUPPORTED_ENCODING("Encoding is not supported"),
-
-    JSON_PARSE_FAILURE("Failed to parse the Json response"),
-
-    AUTH_FAILED("Authentication failed"),
-
-    OAUTH_ERROR("Auth failed with oath error"),
-
-    INTERACTION_REQUIRED("Silent request failed, interaction required");
-
-    private String mErrorDescription;
+    private boolean mEnableHardwareAcceleration = true;
 
     /**
-     * Initiates {@link MSALError} with error description.
-     * @param errorDescription
+     * Internal constructor to prevent the class from being instantiated externally.
      */
-    MSALError(final String errorDescription) {
-        mErrorDescription = errorDescription;
+    Settings() { }
+
+    /**
+     * Enable/Disable hardware acceleration at the View level during runtime. By default, it's enabled.
+     * @param enableHardwareAcceleration True if enabling hardware acceleration at View level, false otherwise.
+     */
+    public void setEnableHardwareAcceleration(final boolean enableHardwareAcceleration) {
+        mEnableHardwareAcceleration = enableHardwareAcceleration;
     }
 
     /**
-     * @return Description for the MSAL error.
+     * @return True if enabling hardware acceleration at View level, false otherwise.
      */
-    public String getDescription() {
-        return mErrorDescription;
+    boolean getEnableHardwareAcceleration() {
+        return mEnableHardwareAcceleration;
     }
 }

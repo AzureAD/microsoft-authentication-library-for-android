@@ -23,41 +23,42 @@
 
 package com.microsoft.identity.client;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 /**
- * Enum class representing MSAL error code.
+ * MSAL internal representation for the authority.
  */
-public enum MSALError {
-    /** Encounter network error and retry fails with 500/503/504. */
-    RETRY_FAILED_WITH_SERVER_ERROR("Retry failed with 500/503/504"),
+final class Authority {
+    private static final String TAG = Authority.class.getSimpleName();
 
-    SERVER_ERROR("Server error"),
-
-    IDTOKEN_PARSING_FAILURE("Fail to parse Id token"),
-
-    UNSUPPORTED_ENCODING("Encoding is not supported"),
-
-    JSON_PARSE_FAILURE("Failed to parse the Json response"),
-
-    AUTH_FAILED("Authentication failed"),
-
-    OAUTH_ERROR("Auth failed with oath error"),
-
-    INTERACTION_REQUIRED("Silent request failed, interaction required");
-
-    private String mErrorDescription;
+    private static final String HTTPS_PROTOCOL = "https";
+    private final URL mAuthorityUrl;
 
     /**
-     * Initiates {@link MSALError} with error description.
-     * @param errorDescription
+     * Constructor for the {@link Authority}.
+     * @param authorityUrl The string representation for the authority url.
      */
-    MSALError(final String errorDescription) {
-        mErrorDescription = errorDescription;
+    Authority(final String authorityUrl, final boolean validateAuthority) {
+        try {
+            mAuthorityUrl = new URL(authorityUrl);
+        } catch (final MalformedURLException e) {
+            throw new IllegalArgumentException("malformed authority url.");
+        }
+
+        if (!HTTPS_PROTOCOL.equalsIgnoreCase(mAuthorityUrl.getProtocol())) {
+            throw new IllegalArgumentException("Invalid protocol for the authority url.");
+        }
+
+        if (validateAuthority) {
+            // TODO: perform authority validation.
+        }
     }
 
     /**
-     * @return Description for the MSAL error.
+     * @return The authority url.
      */
-    public String getDescription() {
-        return mErrorDescription;
+    URL getAuthorityUrl() {
+        return mAuthorityUrl;
     }
 }

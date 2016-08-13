@@ -26,7 +26,43 @@ package com.microsoft.identity.client;
 /**
  * Constant value for MSAL internal use.
  */
-class OauthConstants {
+final class OauthConstants {
+
+    static final class Oauth2Parameters {
+        static final String RESPONSE_TYPE = "response_type";
+        static final String GRANT_TYPE = "grant_type";
+        static final String CLIENT_ID = "client_id";
+        static final String REFRESH_TOKEN = "refresh_token";
+        static final String REDIRECT_URI = "redirect_uri";
+        static final String CODE = "code";
+        static final String SCOPE = "scope";
+        static final String LOGIN_HINT = "login_hint";
+        static final String PROMPT = "prompt";
+        static final String RESTRICT_TO_HINT = "restrict_to_hint";
+        static final String POLICY = "p";
+        static final String HAS_CHROME = "haschrome";
+    }
+
+    static final class Oauth2ResponseType {
+        static final String CODE = "code";
+    }
+
+    static final class Oauth2GrantType {
+        static final String AUTHORIZATION_CODE = "authorization_code";
+        static final String REFRESH_TOKEN = "refresh_token";
+    }
+
+    static final class Oauth2Value {
+        static final String SCOPE_EMAIL = "email";
+        static final String SCOPE_PROFILE = "profile";
+        static final String[] RESERVED_SCOPES = {"openid", SCOPE_EMAIL, SCOPE_PROFILE, "offline_access"};
+    }
+
+    static final class PromptValue {
+        static final String LOGIN = "login";
+        static final String SELECT_ACCOUNT = "select_account";
+        // TODO: what do we send for select_account and act_as_current_user?
+    }
 
     /**
      * {@link OauthHeader} contains the constant value for headers related to Oauth2 sent in the http request.
@@ -38,5 +74,22 @@ class OauthConstants {
 
         /** String representing the correlation id returned from server response. */
         static final String CORRELATION_ID_IN_RESPONSE = "return-client-request-id";
+    }
+
+    static final class TokenResponseClaim {
+        static final String CODE = "code";
+        static final String TOKEN_TYPE = "token_type";
+        static final String ACCESS_TOKEN = "access_token";
+        static final String REFRESH_TOKEN = "refresh_token";
+        static final String SCOPE = "scope";
+        static final String FAMILY_ID = "foci";
+        static final String ID_TOKEN = "id_token";
+        static final String EXPIRES_IN = "expires_in";
+        static final String ID_TOKEN_EXPIRES_IN = "id_token_expires_in";
+        static final String EXTENDED_EXPIRES_IN = "ext_expires_in";
+        static final String ERROR = "error";
+        static final String ERROR_DESCRIPTION = "error_description";
+        static final String ERROR_CODES = "error_codes";
+        static final String CORRELATION_ID = "correlation_id";
     }
 }
