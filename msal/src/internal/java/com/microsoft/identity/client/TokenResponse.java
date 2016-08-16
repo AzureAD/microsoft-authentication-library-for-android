@@ -202,7 +202,7 @@ final class TokenResponse {
             errorCodesList.add(errorCode);
         }
 
-        return new TokenResponse(error, errorDescription, (String[]) errorCodesList.toArray());
+        return new TokenResponse(error, errorDescription, errorCodesList.toArray(new String[errorCodesList.size()]));
     }
 
     static TokenResponse createSuccessTokenResponse(final Map<String, String> responseItems) {

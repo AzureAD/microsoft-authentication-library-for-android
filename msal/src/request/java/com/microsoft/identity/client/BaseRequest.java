@@ -80,6 +80,7 @@ abstract class BaseRequest {
                     preTokenRequest();
                     final AuthenticationResult authenticationResult = sentTokenRequest();
                     storeTokenIntoCache(authenticationResult);
+                    callbackHandler.onSuccess(authenticationResult);
                 } catch (final MSALUserCancelException userCancelException) {
                     callbackHandler.onCancel();
                 } catch (final AuthenticationException authenticationException) {
@@ -122,7 +123,7 @@ abstract class BaseRequest {
             throw new AuthenticationException(MSALError.AUTH_FAILED, "Auth failed with the error " + e.getMessage(), e);
         }
 
-        if (!MSALUtils.isEmpty(tokenResponse.getError())) {
+        if (MSALUtils.isEmpty(tokenResponse.getAccessToken())) {
             throw new AuthenticationException(MSALError.OAUTH_ERROR, "ErrorCode: " + tokenResponse.getError()
                     + "; ErrorDescription: " + tokenResponse.getErrorDescription());
         }

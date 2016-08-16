@@ -24,6 +24,7 @@
 package com.microsoft.identity.client;
 
 import java.util.Date;
+import java.util.Set;
 
 /**
  * Created by weij on 8/2/2016.
@@ -59,7 +60,8 @@ public final class AuthenticationResult {
             mUser = new User(idToken);
         }
 
-        mScope = (String[]) MSALUtils.getScopesAsSet(tokenResponse.getScope()).toArray();
+        final Set<String> returnedScopesInSet = MSALUtils.getScopesAsSet(tokenResponse.getScope());
+        mScope = returnedScopesInSet.toArray(new String[returnedScopesInSet.size()]);
     }
 
     /**
