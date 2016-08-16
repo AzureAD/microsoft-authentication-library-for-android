@@ -37,6 +37,10 @@ final class Constants {
 
     public static final String CUSTOM_TAB_REDIRECT = "com.microsoft.identity.customtab.redirect";
 
+    public static final String AUTHORIZATION_FINAL_URL = "com.microsoft.identity.client.finalUrl";
+
+    public static final String REDIRECT_INTENT = "com.microsoft.identity:redirect";
+
     static final class UIRequest {
         static final int BROWSER_FLOW = 1001;
     }
@@ -54,9 +58,12 @@ final class Constants {
     static final class MSALErrorMessage {
         static final String AUTHORIZATION_SERVER_INVALID_RESPONSE = "The authorization server returned an invalid "
                 + "response.";
+
+        static final String USER_CANCELLED_FLOW = "User pressed device back button to cancel the flow.";
     }
 
     static final class MSALError {
         static final String AUTHORIZATION_FAILED = "authorization_failed";
+        static final String USER_CANCEL = "user_cancelled";
     }
 }

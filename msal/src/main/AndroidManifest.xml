@@ -8,6 +8,9 @@
         android:minSdkVersion="16"
         android:targetSdkVersion="23" />
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application>
         <activity
             android:name="com.microsoft.identity.client.AuthenticationActivity"

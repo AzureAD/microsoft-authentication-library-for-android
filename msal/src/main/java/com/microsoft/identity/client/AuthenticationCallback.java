@@ -26,7 +26,7 @@ package com.microsoft.identity.client;
 /**
  * Callback to use with token request. Authentication result or error will be returned back via callback.
  */
-public interface AuthenticationCallback<AuthenticationResult> {
+public interface AuthenticationCallback {
 
     void onSuccess(final AuthenticationResult authenticationResult);
 

@@ -165,7 +165,8 @@ abstract class BaseRequest {
         final Set<String> scopes = new HashSet<>(inputScopes);
         final Set<String> reservedScopes = getReservedScopesAsSet();
         // fail if the input scopes contains the reserved scopes.
-        if (scopes.retainAll(reservedScopes)) {
+        // retainAll removes all the objects that are not contained in the reserved scopes.
+        if (!scopes.retainAll(reservedScopes)) {
             throw new IllegalArgumentException("Reserved scopes "
                     + OauthConstants.Oauth2Value.RESERVED_SCOPES.toString() + " cannot be provided as scopes.");
         }
@@ -178,10 +179,10 @@ abstract class BaseRequest {
 
     private static class CallbackHandler {
         private final Handler mReferenceHandler;
-        private final AuthenticationCallback<AuthenticationResult> mCallback;
+        private final AuthenticationCallback mCallback;
 
         public CallbackHandler(final Handler referenceHandler,
-                               final AuthenticationCallback<AuthenticationResult> callback) {
+                               final AuthenticationCallback callback) {
             if (callback == null) {
                 throw new IllegalArgumentException("callback is null");
             }

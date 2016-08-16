@@ -55,8 +55,6 @@ public final class CustomTabFragment extends Fragment {
         if (activity == null) {
             return;
         }
-
-//        mAuthRequest = getAuthenticationRequestFromIntent(activity.getIntent());
     }
 
     @Override
@@ -75,8 +73,6 @@ public final class CustomTabFragment extends Fragment {
 
         final CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder().build();
         customTabsIntent.intent.setPackage(MSALUtils.getChromePackages(this.getActivity()));
-//        final Oauth2 oauth2 = new Oauth2(mAuthRequest);
-        // TODO: how do we pass URL.
         final String url = getActivity().getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
         customTabsIntent.launchUrl(getActivity(), Uri.parse(url));
     }

@@ -30,7 +30,10 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -68,8 +71,7 @@ public final class PublicClientApplication {
      *                 For interactive request, the result has will be delivered back via the
      *                 {@link Activity#onActivityResult(int, int, Intent)}. Cannot be null.
      */
-    public PublicClientApplication(@NonNull final Activity activity)
-            throws PackageManager.NameNotFoundException{
+    public PublicClientApplication(@NonNull final Activity activity) {
         if (activity == null) {
             throw new IllegalArgumentException("activity is null.");
         }
@@ -138,6 +140,10 @@ public final class PublicClientApplication {
         return null;
     }
 
+    public void handleInteractiveRequestRedirect(int requestCode, int resultCode, final Intent data) {
+        InteractiveRequest.onActivityResult(requestCode, resultCode, data);
+    }
+
     // Interactive APIs. Will launch the web UI.
     /**
      * Acquire token interactively. Will pop the web UI.
@@ -147,7 +153,13 @@ public final class PublicClientApplication {
      * @param callback
      */
     // TODO: activity in the constructor
-    public void acquireToken(final String[] scopes, final AuthenticationCallback callback) { }
+    public void acquireToken(final String[] scopes, final AuthenticationCallback callback) {
+        if (callback == null) {
+            throw new IllegalArgumentException("callback");
+        }
+
+        acquireTokenInteractiveyly(scopes, "", UIOptions.SELECT_ACCOUNT, "", null, "", "", callback);
+    }
 
     /**
      * TODO: add javadoc
@@ -156,14 +168,33 @@ public final class PublicClientApplication {
      * @param callback
      */
     public void acquireToken(final String[] scopes, final String loginHint,
-                             final AuthenticationCallback callback) { }
+                             final AuthenticationCallback callback) {
+        if (callback == null) {
+            throw new IllegalArgumentException("callback");
+        }
+
+        acquireTokenInteractiveyly(scopes, loginHint, UIOptions.SELECT_ACCOUNT, "", null, "", "", callback);
+    }
 
     public void acquireToken(final String[] scopes, final String loginHint, final UIOptions uiOptions,
-                             final String extraQueryParams, final AuthenticationCallback callback) { }
+                             final String extraQueryParams, final AuthenticationCallback callback) {
+        if (callback == null) {
+            throw new IllegalArgumentException("callback");
+        }
+
+        acquireTokenInteractiveyly(scopes, loginHint, uiOptions, "", null, "", "", callback);
+    }
 
     public void acquireToken(final String[] scopes, final String loginHint, final UIOptions uiOptions,
                              final String extraQueryParams, final String[] additionalScope, final String authority,
-                             final String policy, final AuthenticationCallback callback) { }
+                             final String policy, final AuthenticationCallback callback) {
+        if (callback == null) {
+            throw new IllegalArgumentException("callback");
+        }
+
+        acquireTokenInteractiveyly(scopes, loginHint, uiOptions, extraQueryParams, additionalScope, authority, policy,
+                callback);
+    }
 
     // Silent call APIs.
     /**
@@ -195,6 +226,33 @@ public final class PublicClientApplication {
                                         final String policy, final boolean forceRefresh,
                                         final AuthenticationCallback callback) { }
 
+    private void acquireTokenInteractiveyly(final String[] scopes, final String loginHint, final UIOptions uiOptions,
+                                            final String extraQueryParams, final String[] additionalScope,
+                                            final String authority, final String policy,
+                                            final AuthenticationCallback callback) {
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(authority, scopes, loginHint,
+                extraQueryParams, policy, uiOptions);
+
+        final BaseRequest request = new InteractiveRequest(mActivity, requestParameters, additionalScope);
+        request.getToken(callback);
+    }
+
+    private AuthenticationRequestParameters getRequestParameters(final String authority, final String[] scopes,
+                                                                 final String loginHint, final String extraQueryParam,
+                                                                 final String policy, final UIOptions uiOption) {
+        final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? mAuthority
+                : new Authority(authority, mValidateAuthority);
+        // set correlation if not developer didn't set it.
+        if (mCorrelationId == null) {
+            mCorrelationId = UUID.randomUUID();
+        }
+
+        final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));
+
+        return new AuthenticationRequestParameters(authorityForRequest, mTokenCache, scopesAsSet, mClientId,
+                mRedirectUri, policy, mRestrictToSingleUser, loginHint, extraQueryParam, uiOption, mCorrelationId);
+    }
+
     /**
      * Keep this method internal only to make it easy for MS apps to do serialize/deserialize on the family tokens.
      * @return
@@ -203,9 +261,14 @@ public final class PublicClientApplication {
         return mTokenCache;
     }
 
-    private void loadMetaDataFromManifest() throws PackageManager.NameNotFoundException {
-        final ApplicationInfo applicationInfo = mAppContext.getPackageManager().getApplicationInfo(
-                mAppContext.getPackageName(), PackageManager.GET_META_DATA);
+    private void loadMetaDataFromManifest() {
+        final ApplicationInfo applicationInfo;
+        try {
+            applicationInfo = mAppContext.getPackageManager().getApplicationInfo(
+                    mAppContext.getPackageName(), PackageManager.GET_META_DATA);
+        } catch (PackageManager.NameNotFoundException e) {
+            throw new IllegalStateException("Unable to find the package info, unable to proceed");
+        }
 
         if (applicationInfo == null || applicationInfo.metaData == null) {
             throw new IllegalArgumentException("No meta-data existed");

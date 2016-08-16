@@ -48,7 +48,8 @@ public final class AuthenticationActivity extends Activity {
 
     private String mRequestUrl;
 
-    private String mRequestId;
+    private int mRequestId;
+    private String mRedirectUri;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -68,7 +69,8 @@ public final class AuthenticationActivity extends Activity {
         }
 
         mRequestUrl = data.getStringExtra(Constants.REQUEST_URL_KEY);
-        mRequestId = data.getStringExtra(Constants.REQUEST_ID);
+        mRequestId = data.getIntExtra(Constants.REQUEST_ID, 0);
+        mRedirectUri = data.getStringExtra(Constants.REDIRECT_INTENT);
         if (MSALUtils.isEmpty(mRequestUrl)) {
             // TODO: return to caller with error case
             return;
@@ -100,11 +102,9 @@ public final class AuthenticationActivity extends Activity {
 
         // TODO: figure out how the request object interacts with the AuthenticationActivity.
         final Intent resultIntent = new Intent();
-//        resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
-//        resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-//                mAuthRequest);
-//        returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE,
-//                resultIntent);
+        resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, url);
+        returnToCaller(Constants.UIResponse.AUTH_CODE_COMPLETE,
+                resultIntent);
     }
 
     void cancelRequest() {
@@ -126,7 +126,7 @@ public final class AuthenticationActivity extends Activity {
             intent.setAction(Intent.ACTION_VIEW);
             intent.addCategory(Intent.CATEGORY_DEFAULT);
             intent.addCategory(Intent.CATEGORY_BROWSABLE);
-            intent.setData(Uri.parse("x-msauth-adaltestapp-210://com.microsoft.adal.2.1.0.TestApp"));
+            intent.setDataAndNormalize(Uri.parse(mRedirectUri));
             infos = pm.queryIntentActivities(intent, PackageManager.GET_RESOLVED_FILTER);
         }
         boolean hasActivity = false;
@@ -138,7 +138,7 @@ public final class AuthenticationActivity extends Activity {
                 } else {
                     // another application is listening for this url scheme, don't open
                     // Custom Tab for security reasons
-                    return false;
+//                    return false;
                 }
             }
         }

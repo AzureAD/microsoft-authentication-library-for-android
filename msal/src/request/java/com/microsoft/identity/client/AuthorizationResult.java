@@ -63,9 +63,11 @@ final class AuthorizationResult {
             authorizationResult = getAuthorizationResultWithInvalidServerResponse();
         } else {
             final Map<String, String> urlParameters = MSALUtils.decodeUrlToMap(result, "&");
-            if (!urlParameters.containsKey("state")) {
-                authorizationResult = getAuthorizationResultWithInvalidServerResponse();
-            }else if (urlParameters.containsKey(OauthConstants.TokenResponseClaim.CODE)) {
+//            if (!urlParameters.containsKey("state")) {
+//                authorizationResult = getAuthorizationResultWithInvalidServerResponse();
+//            }else
+            // TODO: append state
+            if (urlParameters.containsKey(OauthConstants.TokenResponseClaim.CODE)) {
                 authorizationResult = new AuthorizationResult(urlParameters.get(OauthConstants.Oauth2Parameters.CODE));
             } else if (urlParameters.containsKey(OauthConstants.TokenResponseClaim.ERROR)) {
                 final String error = urlParameters.get(OauthConstants.TokenResponseClaim.ERROR);
@@ -96,9 +98,14 @@ final class AuthorizationResult {
         return mErrorDescription;
     }
 
-    private static AuthorizationResult getAuthorizationResultWithInvalidServerResponse() {
+    static AuthorizationResult getAuthorizationResultWithInvalidServerResponse() {
         return new AuthorizationResult(AuthorizationStatus.UNKNOWN, Constants.MSALError.AUTHORIZATION_FAILED,
                 Constants.MSALErrorMessage.AUTHORIZATION_SERVER_INVALID_RESPONSE);
+    }
+
+    static AuthorizationResult getAuthorizationResultWithUserCancel() {
+        return new AuthorizationResult(AuthorizationStatus.USER_CANCEL, Constants.MSALError.USER_CANCEL,
+                Constants.MSALErrorMessage.USER_CANCELLED_FLOW);
     }
 
     private String decodeState(final String encodedState) {

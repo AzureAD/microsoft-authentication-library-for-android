@@ -42,14 +42,15 @@ import java.util.concurrent.CountDownLatch;
  * tab or fall back to webview if custom tab is not available).
  */
 final class InteractiveRequest extends BaseRequest {
-
+    private static final String DEFAULT_AUTHORIZE_ENDPOINT = "oauth2/authorize";
+    static final String DEFAULT_TOKEN_ENDPOINT = "/oauth2/token";
     private final Set<String> mAdditionalScope = new HashSet<>();
 
-    private AuthorizationResult mAuthorizationResult;
+    static AuthorizationResult sAuthorizationResult;
 
     private final Activity mActivity;
 
-    static final CountDownLatch RESULT_LOCK = new CountDownLatch(1);
+    static CountDownLatch sResultLock = new CountDownLatch(1);
 
     InteractiveRequest(final Activity activity, final AuthenticationRequestParameters authRequestParameters,
                        final String[] additionalScope) {
@@ -91,6 +92,7 @@ final class InteractiveRequest extends BaseRequest {
 
         final Intent intentToLaunch = new Intent(mContext, AuthenticationActivity.class);
         intentToLaunch.putExtra(Constants.REQUEST_URL_KEY, authorizeUri);
+        intentToLaunch.putExtra(Constants.REDIRECT_INTENT, mAuthRequestParameters.getRedirectUri());
         intentToLaunch.putExtra(Constants.REQUEST_ID, mRequestId);
 
         // TODO: put a request id.
@@ -101,9 +103,22 @@ final class InteractiveRequest extends BaseRequest {
 
         mActivity.startActivityForResult(intentToLaunch, Constants.UIRequest.BROWSER_FLOW);
         try {
-            RESULT_LOCK.await();
+            if (sResultLock.getCount() == 0) {
+                sResultLock = new CountDownLatch(1);
+            }
+            sResultLock.await();
         } catch (final InterruptedException e) {
             // TODO: logging.
+        }
+
+        if (sAuthorizationResult == null) {
+            // TODO: throw unknown error
+        }
+
+        if (sAuthorizationResult.getError() == Constants.MSALError.USER_CANCEL) {
+            throw new MSALUserCancelException();
+        } else if (sAuthorizationResult.getError() == Constants.MSALError.AUTHORIZATION_FAILED) {
+            // TODO: throw the error back to developer with originally returned error code.
         }
     }
 
@@ -115,7 +130,7 @@ final class InteractiveRequest extends BaseRequest {
     final void setAdditionalRequestBody(final Oauth2Client oauth2Client) {
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.GRANT_TYPE,
                 OauthConstants.Oauth2GrantType.AUTHORIZATION_CODE);
-        oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.CODE, mAuthorizationResult.getAuthCode());
+        oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.CODE, sAuthorizationResult.getAuthCode());
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.REDIRECT_URI,
                 mAuthRequestParameters.getRedirectUri());
     }
@@ -124,7 +139,7 @@ final class InteractiveRequest extends BaseRequest {
         final Map<String, String> requestParameters = createRequestParameters();
         final String queryString = buildQueryParameter(requestParameters);
 
-        return String.format("%s?%s", mAuthRequestParameters.getAuthority().getAuthorityUrl(),
+        return String.format("%s?%s", mAuthRequestParameters.getAuthority().getAuthorityUrl() + DEFAULT_AUTHORIZE_ENDPOINT,
                 queryString);
     }
 
@@ -157,6 +172,7 @@ final class InteractiveRequest extends BaseRequest {
         final Set<String> requestedScopes = getDecoratedScope(scopes);
         requestParameters.put(OauthConstants.Oauth2Parameters.SCOPE,
                 MSALUtils.convertSetToString(requestedScopes, " "));
+        requestParameters.put(OauthConstants.Oauth2Parameters.CLIENT_ID, mAuthRequestParameters.getClientId());
         requestParameters.put(OauthConstants.Oauth2Parameters.REDIRECT_URI, mAuthRequestParameters.getRedirectUri());
         requestParameters.put(OauthConstants.Oauth2Parameters.RESPONSE_TYPE, OauthConstants.Oauth2ResponseType.CODE);
         requestParameters.put(OauthConstants.OauthHeader.CORRELATION_ID,
@@ -193,5 +209,30 @@ final class InteractiveRequest extends BaseRequest {
         }
     }
 
+    static void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+        if (requestCode != Constants.UIRequest.BROWSER_FLOW) {
+            sAuthorizationResult = AuthorizationResult.getAuthorizationResultWithInvalidServerResponse();
+        } else {
+            // check it is the same request.
+            processRedirectContainingAuthorizationResult(resultCode, data);
+        }
+
+        sResultLock.countDown();
+    }
+
+    private static void processRedirectContainingAuthorizationResult(int resultCode, final Intent data) {
+        if (data == null) {
+            // TODO: set authorizationResult
+        } else {
+            if (resultCode == Constants.UIResponse.CANCEL) {
+                sAuthorizationResult = AuthorizationResult.getAuthorizationResultWithUserCancel();
+            } else if (resultCode == Constants.UIResponse.AUTH_CODE_COMPLETE) {
+                final String url = data.getStringExtra(Constants.AUTHORIZATION_FINAL_URL);
+                sAuthorizationResult = AuthorizationResult.parseAuthorizationResponse(url);
+            } else if (resultCode == Constants.UIResponse.AUTH_CODE_ERROR) {
+                // TODO: handle to code error case.
+            }
+        }
+    }
 
 }

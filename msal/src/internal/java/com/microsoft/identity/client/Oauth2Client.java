@@ -45,7 +45,8 @@ import java.util.UUID;
 final class Oauth2Client {
     private static final String TAG = Oauth2Client.class.getSimpleName();
 
-    static final String DEFAULT_TOKEN_ENDPOINT = "/oauth2/v2.0/token";
+    // TODO: updated to v2
+    static final String DEFAULT_TOKEN_ENDPOINT = "/oauth2/token";
     static final String POST_CONTENT_TYPE = "application/x-www-form-urlencoded";
 
     private final Map<String, String> mBodyParameters = new HashMap<>();
