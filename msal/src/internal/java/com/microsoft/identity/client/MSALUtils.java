@@ -54,7 +54,7 @@ import java.util.StringTokenizer;
 /**
  * Internal Util class for MSAL.
  */
-final class MSALUtils {
+public final class MSALUtils {
     public static final String ENCODING_UTF8 = "UTF_8";
     /** Default access token expiration time in seconds. */
     public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
@@ -102,6 +102,11 @@ final class MSALUtils {
         return Collections.unmodifiableMap(responseItems);
     }
 
+    /**
+     * Calculate expires on based on given exipres in. Data will hold date in milliseconds.
+     * @param expiresIn The given expires in that is used to calculate the expires on.
+     * @return The date that the token will be expired.
+     */
     static Date calculateExpiresOn(final String expiresIn) {
         final Calendar expires = new GregorianCalendar();
 
@@ -114,6 +119,11 @@ final class MSALUtils {
         return expires.getTime();
     }
 
+    /**
+     * Converts the given string of scopes into set. The input String of scopes is delimited by " ".
+     * @param scopes The scopes in the format of string, delimited by " ".
+     * @return Converted scopes in the format of set.
+     */
     static Set<String> getScopesAsSet(final String scopes) {
         if (MSALUtils.isEmpty(scopes)) {
             return new HashSet<>();
@@ -123,37 +133,40 @@ final class MSALUtils {
         return new HashSet<>(Arrays.asList(scopeArray));
     }
 
-    static boolean hasCustomTwbRedirectActivity(final Context context, final String redirectUri) {
-        final PackageManager packageManager = context.getPackageManager();
-        if (packageManager == null) {
-            return false;
+    static boolean hasCustomTabRedirectActivity(final Context context, final String url) {
+        final PackageManager pm = context.getPackageManager();
+        List<ResolveInfo> infos = null;
+        if (pm != null) {
+            Intent intent = new Intent();
+            intent.setAction(Intent.ACTION_VIEW);
+            intent.addCategory(Intent.CATEGORY_DEFAULT);
+            intent.addCategory(Intent.CATEGORY_BROWSABLE);
+            intent.setDataAndNormalize(Uri.parse(url));
+            infos = pm.queryIntentActivities(intent, PackageManager.GET_RESOLVED_FILTER);
         }
-
-        final Intent intent = new Intent();
-        intent.setAction(Intent.ACTION_VIEW);
-        intent.addCategory(Intent.CATEGORY_DEFAULT);
-        intent.addCategory(Intent.CATEGORY_BROWSABLE);
-        intent.setData(Uri.parse(redirectUri));
-        final List<ResolveInfo> resolveInfos = packageManager.queryIntentActivities(intent,
-                PackageManager.GET_RESOLVED_FILTER);
-        if (resolveInfos == null) {
-            return false;
-        }
-
-        for (final ResolveInfo resolveInfo : resolveInfos) {
-            final ActivityInfo activityInfo = resolveInfo.activityInfo;
-            if (!activityInfo.name.equals(CustomTabActivity.class.getName())) {
-                // TODO: add logs
-                // Another application is listening for this url scheme, don't open custom tabs in this case for
-                // security reason.
-                return false;
+        boolean hasActivity = false;
+        if (infos != null) {
+            for (ResolveInfo info : infos) {
+                ActivityInfo activityInfo = info.activityInfo;
+                if (activityInfo.name.equals(CustomTabActivity.class.getName())) {
+                    hasActivity = true;
+                } else {
+                    // another application is listening for this url scheme, don't open
+                    // Custom Tab for security reasons
+                    return false;
+                }
             }
         }
-
-        return true;
+        return hasActivity;
     }
 
-    static String getChromePackages(final Context context) {
+    /**
+     * Check if the chrome package with custom tab support is available on the device, and return the package name if
+     * available.
+     * @param context The app {@link Context} to check for the package existence.
+     * @return The available package name for chrome. Will return null if no chrome package existed on the device.
+     */
+    public static String getChromePackageWithCustomTabSupport(final Context context) {
         final Intent customTabServiceIntent = new Intent(CUSTOM_TABS_SERVICE_ACTION);
         final List<ResolveInfo> resolveInfos = context.getPackageManager().queryIntentServices(
                 customTabServiceIntent, 0);
@@ -174,6 +187,27 @@ final class MSALUtils {
         return null;
     }
 
+    public static String getChromePackage(final Context context) {
+        String installedChromePackage = null;
+        final PackageManager packageManager = context.getPackageManager();
+        for (int i = 0; i < CHROME_PACKAGES.length; i++) {
+            try {
+                packageManager.getPackageInfo(CHROME_PACKAGES[i], PackageManager.GET_ACTIVITIES);
+                installedChromePackage = CHROME_PACKAGES[i];
+            } catch (final PackageManager.NameNotFoundException e) {
+                // swallow this exception. If the package is not existed, the exception will be thrown.
+            }
+        }
+
+        return installedChromePackage;
+    }
+
+    /**
+     * Decode the given url, and convert it into map with the given delimiter.
+     * @param url The url to decode for.
+     * @param delimiter The delimiter used to parse the url string.
+     * @return The Map of the items decoded with the given delimiter.
+     */
     static Map<String, String> decodeUrlToMap(final String url, final String delimiter) {
         final Map<String, String> decodedUrlMap = new HashMap<>();
 
@@ -205,10 +239,22 @@ final class MSALUtils {
         return decodedUrlMap;
     }
 
+    /**
+     * Perform URL decode on the given source.
+     * @param source The String to decode for.
+     * @return The decoded string.
+     * @throws UnsupportedEncodingException If encoding is not supported.
+     */
     static String urlDecodeString(final String source) throws UnsupportedEncodingException {
         return URLDecoder.decode(source, ENCODING_UTF8);
     }
 
+    /**
+     * Convert the given set of scopes into the string with the provided delimiter.
+     * @param inputSet The Set of scopes to convert.
+     * @param delimiter The delimiter used to construct the scopes in the format of String.
+     * @return The converted scopes in the format of String.
+     */
     static String convertSetToString(final Set<String> inputSet, final String delimiter) {
         if (inputSet == null || inputSet.isEmpty()) {
             return "";
@@ -219,7 +265,7 @@ final class MSALUtils {
         stringBuilder.append(iterator.next());
 
         while (iterator.hasNext()) {
-            stringBuilder.append(" ");
+            stringBuilder.append(delimiter);
             stringBuilder.append(iterator.next());
         }
 

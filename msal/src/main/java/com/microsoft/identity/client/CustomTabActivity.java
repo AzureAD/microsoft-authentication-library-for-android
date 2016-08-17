@@ -42,7 +42,8 @@ import android.os.Bundle;
  *     The target activity allows itself to be started by a web browser to display data.
  *     <category android:name="android.intent.category.BROWSABLE" />
  *
- *     <data android:scheme="unique identifier"/>
+ *     CustomTabActivity will be launched when matching the custom url scheme.
+ *     <data android:scheme="msauth-clientid" android:host=="appPackageName"/>
  * </intent-filter>
  */
 public final class CustomTabActivity extends Activity {

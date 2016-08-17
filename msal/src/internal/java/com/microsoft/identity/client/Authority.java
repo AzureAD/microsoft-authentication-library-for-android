@@ -40,8 +40,9 @@ final class Authority {
      * @param authorityUrl The string representation for the authority url.
      */
     Authority(final String authorityUrl, final boolean validateAuthority) {
+
         try {
-            mAuthorityUrl = new URL(authorityUrl);
+            mAuthorityUrl = new URL(authorityUrl.endsWith("/") ? authorityUrl : authorityUrl + "/");
         } catch (final MalformedURLException e) {
             throw new IllegalArgumentException("malformed authority url.");
         }
@@ -51,7 +52,8 @@ final class Authority {
         }
 
         if (validateAuthority) {
-            // TODO: perform authority validation.
+            // TODO: perform authority validation. Authority validation needs network call, consider using async task
+            // to perform the valiation.
         }
     }
 

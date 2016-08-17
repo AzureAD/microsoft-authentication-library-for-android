@@ -26,13 +26,7 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
-import android.net.Uri;
 import android.os.Bundle;
-
-import java.util.List;
 
 /**
  * Custom tab requires the device to have a browser with custom tab support, chrome with version >= 45 comes with the
@@ -55,16 +49,13 @@ public final class AuthenticationActivity extends Activity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // TODO: when AuthenticationActivity is created, request url will be passed in. The url will be constructed in
-        // the request object itself.
-        // read the url if savedInstanceState is null
         if (savedInstanceState != null) {
             return;
         }
 
         final Intent data = getIntent();
         if (data == null) {
-            // TODO: return to caller with error case.
+            sendError(Constants.MSALError.INVALID_REQUEST, "Received null data intent from caller");
             return;
         }
 
@@ -72,76 +63,57 @@ public final class AuthenticationActivity extends Activity {
         mRequestId = data.getIntExtra(Constants.REQUEST_ID, 0);
         mRedirectUri = data.getStringExtra(Constants.REDIRECT_INTENT);
         if (MSALUtils.isEmpty(mRequestUrl)) {
-            // TODO: return to caller with error case
+            sendError(Constants.MSALError.INVALID_REQUEST, "Request url is not set on the intent");
             return;
         }
 
-        if (MSALUtils.getChromePackages(this.getApplicationContext()) != null) {
-            if (!hasCustomTabRedirectActivity()) {
-                // TODO: error case.
-                // Every app should opt in to use custom tab. We'll check if they have the app itself has the url
-                // scheme, if developers does not set it and chrome custom tab is supported, we'll fail.
-                return;
-            }
-
+        // We'll use custom tab if the chrome installed on the device comes with custom tab support(on 45 and above it
+        // does). If the chrome package doesn't contain the support, we'll use chrome to launch the UI.
+        if (MSALUtils.getChromePackage(this.getApplicationContext()) != null) {
             final CustomTabFragment fragment = new CustomTabFragment();
             fragment. setRetainInstance(true);
 
             final FragmentManager fragmentManager = this.getFragmentManager();
             fragmentManager.beginTransaction().add(fragment, TAG).commit();
         } else {
-            // TODO: provide a fallback. We haven't concluded on how we should proceed with fallback, with webview
-            // or default browser or just chrome.
+            // TODO: log that chrome is not installed, cannot prompt the UI.
+            sendError(Constants.MSALError.INVALID_REQUEST, "Chrome is not installed on the device, cannot proceed with auth");
         }
     }
 
     @Override
-    protected void onNewIntent(Intent intent) {
+    protected final void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         final String url = intent.getStringExtra(Constants.CUSTOM_TAB_REDIRECT);
 
-        // TODO: figure out how the request object interacts with the AuthenticationActivity.
         final Intent resultIntent = new Intent();
         resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, url);
         returnToCaller(Constants.UIResponse.AUTH_CODE_COMPLETE,
                 resultIntent);
     }
 
+    /**
+     * Cancels the auth request.
+     */
     void cancelRequest() {
         returnToCaller(Constants.UIResponse.CANCEL, new Intent());
     }
 
-    void returnToCaller(final int resultCode, final Intent data) {
+    /**
+     * Send error back to caller with the error description.
+     * @param errorDescription
+     */
+    private void sendError(final String errorCode, final String errorDescription) {
+        final Intent errorIntent = new Intent();
+        errorIntent.putExtra(Constants.UIResponse.ERROR_CODE, errorCode);
+        errorIntent.putExtra(Constants.UIResponse.ERROR_DESCRIPTION, errorDescription);
+        returnToCaller(Constants.UIResponse.AUTH_CODE_ERROR, errorIntent);
+    }
+
+    private void returnToCaller(final int resultCode, final Intent data) {
         data.putExtra(Constants.REQUEST_ID, mRequestId);
 
         setResult(resultCode, data);
         this.finish();
-    }
-
-    private boolean hasCustomTabRedirectActivity() {
-        PackageManager pm = getApplicationContext().getPackageManager();
-        List<ResolveInfo> infos = null;
-        if (pm != null) {
-            Intent intent = new Intent();
-            intent.setAction(Intent.ACTION_VIEW);
-            intent.addCategory(Intent.CATEGORY_DEFAULT);
-            intent.addCategory(Intent.CATEGORY_BROWSABLE);
-            intent.setDataAndNormalize(Uri.parse(mRedirectUri));
-            infos = pm.queryIntentActivities(intent, PackageManager.GET_RESOLVED_FILTER);
-        }
-        boolean hasActivity = false;
-        if (infos != null) {
-            for (ResolveInfo info : infos) {
-                ActivityInfo activityInfo = info.activityInfo;
-                if (activityInfo.name.equals(CustomTabActivity.class.getName())) {
-                    hasActivity = true;
-                } else {
-                    // another application is listening for this url scheme, don't open
-                    // Custom Tab for security reasons
-//                    return false;
-                }
-            }
-        }
-        return hasActivity;
     }
 }

@@ -55,7 +55,15 @@ public class MainActivity extends Activity {
         buttonForInteractiveRequest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                callAcquireToken(SCOPES, UIOptions.FORCE_LOGIN, null, null, null, null);
+                callAcquireToken(SCOPES, UIOptions.FORCE_LOGIN, null, null, null, null, false);
+            }
+        });
+
+        final Button buttonForLaunchingChrome = (Button) findViewById(R.id.LaunchChrome);
+        buttonForLaunchingChrome.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                callAcquireToken(SCOPES, UIOptions.FORCE_LOGIN, null, null, null, null, true);
             }
         });
     }
@@ -67,7 +75,8 @@ public class MainActivity extends Activity {
 
 
     private void callAcquireToken(final String[] scopes, final UIOptions uiOptions, final String loginHint,
-                                  final String policy, final String extraQueryParam, final String[] additionalScope) {
+                                  final String policy, final String extraQueryParam, final String[] additionalScope, boolean disableCustomTab) {
+        mApplication.getMSALCustomizedSetting().setDisableCustomTab(disableCustomTab);
         mApplication.acquireToken(scopes, loginHint, uiOptions, extraQueryParam, additionalScope,
                 null, policy, new AuthenticationCallback() {
                     @Override

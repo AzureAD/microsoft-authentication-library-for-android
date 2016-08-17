@@ -52,7 +52,9 @@ final class Constants {
 
         public static final int AUTH_CODE_COMPLETE = 2003;
 
-        public static final int SUCCESS = 2004;
+        public static final String ERROR_CODE = "error_code";
+
+        public static final String ERROR_DESCRIPTION = "error_description";
     }
 
     static final class MSALErrorMessage {
@@ -65,5 +67,6 @@ final class Constants {
     static final class MSALError {
         static final String AUTHORIZATION_FAILED = "authorization_failed";
         static final String USER_CANCEL = "user_cancelled";
+        static final String INVALID_REQUEST = "invalid_request";
     }
 }

@@ -49,22 +49,19 @@
         </activity>
 
         <activity
-            android:name="com.microsoft.identity.client.CustomTabActivity"
-            android:exported="true">
+            android:name="com.microsoft.identity.client.CustomTabActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="x-msauth-adaltestapp-210" />
+                <data android:scheme="msauth-5a434691-ccb2-4fd1-b97b-b64bcfbc03fc"
+                      android:host="com.microsoft.identity.client.sample" />
             </intent-filter>
         </activity>
 
         <meta-data
             android:name="com.microsoft.identity.client.ClientId"
-            android:value="b92e0ba5-f86e-4411-8e18-6b5f928d968a"/>
-        <meta-data
-            android:name="com.microsoft.identity.client.RedirectUri"
-            android:value="x-msauth-adaltestapp-210://com.microsoft.adal.2.1.0.TestApp"/>
+            android:value="5a434691-ccb2-4fd1-b97b-b64bcfbc03fc"/>
     </application>
 
 </manifest>

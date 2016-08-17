@@ -25,29 +25,21 @@ package com.microsoft.identity.client;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.customtabs.CustomTabsIntent;
 
 /**
- * Created by weij on 8/11/2016.
+ * Fragment embedded in {@link AuthenticationActivity} to launch the chrome custom tab.
  */
 public final class CustomTabFragment extends Fragment {
     private static final String TAG = CustomTabFragment.class.getSimpleName();
-
     private boolean mRestarted;
-
-    private static final String CUSTOM_TABS_SERVICE_ACTION =
-            "android.support.customtabs.action.CustomTabsService";
-
-    private static final String[] CHROME_PACKAGES = {
-            "com.android.chrome",
-            "com.chrome.beta",
-            "com.chrome.dev",
-    };
+    private String mRequestUrl;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public final void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         mRestarted = savedInstanceState != null;
@@ -58,7 +50,7 @@ public final class CustomTabFragment extends Fragment {
     }
 
     @Override
-    public void onResume() {
+    public final void onResume() {
         super.onResume();
 
         if (mRestarted) {
@@ -71,9 +63,29 @@ public final class CustomTabFragment extends Fragment {
 
         mRestarted = true;
 
-        final CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder().build();
-        customTabsIntent.intent.setPackage(MSALUtils.getChromePackages(this.getActivity()));
-        final String url = getActivity().getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
-        customTabsIntent.launchUrl(getActivity(), Uri.parse(url));
+        final String chromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(
+                this.getActivity().getApplicationContext());
+        final boolean isCustomTabDisabled = getActivity().getIntent().getBooleanExtra(InteractiveRequest.DISABLE_CHROMETAB, false);
+        mRequestUrl =  getActivity().getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
+
+        if (chromePackageWithCustomTabSupport != null && !isCustomTabDisabled) {
+            final CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder().build();
+            customTabsIntent.intent.setPackage(MSALUtils.getChromePackageWithCustomTabSupport(this.getActivity()));
+            customTabsIntent.launchUrl(getActivity(), Uri.parse(mRequestUrl));
+        } else {
+            final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
+            browserIntent.setPackage(MSALUtils.getChromePackage(this.getActivity().getApplicationContext()));
+            browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
+            browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
+//            browserIntent.putExtra(Browser.EXTRA_APPLICATION_ID, "com.microsoft.identity.client");
+            this.getActivity().startActivity(browserIntent);
+        }
+    }
+
+    @Override
+    public final void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putString(Constants.REQUEST_URL_KEY, mRequestUrl);
     }
 }

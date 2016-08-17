@@ -42,11 +42,13 @@ final class AuthenticationRequestParameters {
     private final String mExtraQueryParam;
     private final UIOptions mUIOption;
     private final UUID mCorrelationId;
+    private final Settings mSettings;
 
     AuthenticationRequestParameters(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
                                     final String clientId, final String redirectUri, final String policy,
                                     final boolean restrictToSingleUser, final String loginHint,
-                                    final String extraQueryParam, final UIOptions uiOptions, final UUID correlationId) {
+                                    final String extraQueryParam, final UIOptions uiOptions, final UUID correlationId,
+                                    final Settings settings) {
         mAuthority = authority;
         mTokenCache = tokenCache;
         mScope.addAll(scope);
@@ -58,6 +60,7 @@ final class AuthenticationRequestParameters {
         mExtraQueryParam = extraQueryParam;
         mUIOption = uiOptions;
         mCorrelationId = correlationId;
+        mSettings = settings;
     }
 
     Authority getAuthority() {
@@ -102,5 +105,9 @@ final class AuthenticationRequestParameters {
 
     UUID getCorrelationId() {
         return mCorrelationId;
+    }
+
+    Settings getSettings() {
+        return mSettings;
     }
 }

@@ -80,6 +80,7 @@ public final class PublicClientApplication {
         mAppContext = activity.getApplicationContext();
 
         loadMetaDataFromManifest();
+        mRedirectUri = createRedirectUri(mClientId);
 
         validateInputParameters();
 
@@ -146,54 +147,85 @@ public final class PublicClientApplication {
 
     // Interactive APIs. Will launch the web UI.
     /**
-     * Acquire token interactively. Will pop the web UI.
+     * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
      * Default value for {@link UIOptions} is {@link UIOptions#SELECT_ACCOUNT}.
-     * Default value for redirect URI will be the default redirect uri "urn:ietf:wg:oauth:2.0:oob".
-     * @param scopes
-     * @param callback
+     * @param callback The {@link AuthenticationCallback} to receive the result back.
+     *                 1) If user cancels the flow by pressing the device back button, the result will be sent
+     *                 back via {@link AuthenticationCallback#onCancel()}.
+     *                 2) If the sdk successfully receives the token back, result will be sent back via
+     *                 {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     *                 3) All the other errors will be sent back via
+     *                 {@link AuthenticationCallback#onError(AuthenticationException)}.
      */
-    // TODO: activity in the constructor
     public void acquireToken(final String[] scopes, final AuthenticationCallback callback) {
-        if (callback == null) {
-            throw new IllegalArgumentException("callback");
-        }
-
-        acquireTokenInteractiveyly(scopes, "", UIOptions.SELECT_ACCOUNT, "", null, "", "", callback);
+        acquireTokenInteractively(scopes, "", UIOptions.SELECT_ACCOUNT, "", null, "", "", callback);
     }
 
     /**
-     * TODO: add javadoc
-     * @param scopes
-     * @param loginHint
-     * @param callback
+     * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
+     * Default value for {@link UIOptions} is {@link UIOptions#SELECT_ACCOUNT}.
+     * @param scopes An array of scopes to acquire the token for.
+     * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
+     *                  which will have the UPN pre-populated.
+     * @param callback The {@link AuthenticationCallback} to receive the result back.
+     *                 1) If user cancels the flow by pressing the device back button, the result will be sent
+     *                 back via {@link AuthenticationCallback#onCancel()}.
+     *                 2) If the sdk successfully receives the token back, result will be sent back via
+     *                 {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     *                 3) All the other errors will be sent back via
+     *                 {@link AuthenticationCallback#onError(AuthenticationException)}.
      */
     public void acquireToken(final String[] scopes, final String loginHint,
                              final AuthenticationCallback callback) {
-        if (callback == null) {
-            throw new IllegalArgumentException("callback");
-        }
-
-        acquireTokenInteractiveyly(scopes, loginHint, UIOptions.SELECT_ACCOUNT, "", null, "", "", callback);
+        acquireTokenInteractively(scopes, loginHint, UIOptions.SELECT_ACCOUNT, "", null, "", "", callback);
     }
 
+    /**
+     * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
+     * Default value for {@link UIOptions} is {@link UIOptions#SELECT_ACCOUNT}.
+     * @param scopes An array of scopes to acquire the token for.
+     * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
+     *                  which will have the UPN pre-populated.
+     * @param uiOptions The {@link UIOptions} for prompting behavior. By default, the sdk use {@link UIOptions#SELECT_ACCOUNT}.
+     * @param extraQueryParams Optional. The extra query parameter sent to authorize endpoint.
+     * @param callback The {@link AuthenticationCallback} to receive the result back.
+     *                 1) If user cancels the flow by pressing the device back button, the result will be sent
+     *                 back via {@link AuthenticationCallback#onCancel()}.
+     *                 2) If the sdk successfully receives the token back, result will be sent back via
+     *                 {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     *                 3) All the other errors will be sent back via
+     *                 {@link AuthenticationCallback#onError(AuthenticationException)}.
+     */
     public void acquireToken(final String[] scopes, final String loginHint, final UIOptions uiOptions,
                              final String extraQueryParams, final AuthenticationCallback callback) {
-        if (callback == null) {
-            throw new IllegalArgumentException("callback");
-        }
-
-        acquireTokenInteractiveyly(scopes, loginHint, uiOptions, "", null, "", "", callback);
+        acquireTokenInteractively(scopes, loginHint, uiOptions == null? UIOptions.SELECT_ACCOUNT : uiOptions,
+                extraQueryParams, null, "", "", callback);
     }
 
+    /**
+     * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
+     * Default value for {@link UIOptions} is {@link UIOptions#SELECT_ACCOUNT}.
+     * @param scopes An array of scopes to acquire the token for.
+     * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
+     *                  which will have the UPN pre-populated.
+     * @param uiOptions The {@link UIOptions} for prompting behavior. By default, the sdk use {@link UIOptions#SELECT_ACCOUNT}.
+     * @param extraQueryParams Optional. The extra query parameter sent to authorize endpoint.
+     * @param additionalScope Optional. The additional scope to consent for.
+     * @param authority Should be set if developer wants to get token for a different authority url.
+     * @param policy Optional. The policy to set for auth request.
+     * @param callback The {@link AuthenticationCallback} to receive the result back.
+     *                 1) If user cancels the flow by pressing the device back button, the result will be sent
+     *                 back via {@link AuthenticationCallback#onCancel()}.
+     *                 2) If the sdk successfully receives the token back, result will be sent back via
+     *                 {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     *                 3) All the other errors will be sent back via
+     *                 {@link AuthenticationCallback#onError(AuthenticationException)}.
+     */
     public void acquireToken(final String[] scopes, final String loginHint, final UIOptions uiOptions,
                              final String extraQueryParams, final String[] additionalScope, final String authority,
                              final String policy, final AuthenticationCallback callback) {
-        if (callback == null) {
-            throw new IllegalArgumentException("callback");
-        }
-
-        acquireTokenInteractiveyly(scopes, loginHint, uiOptions, extraQueryParams, additionalScope, authority, policy,
-                callback);
+        acquireTokenInteractively(scopes, loginHint, uiOptions == null ? UIOptions.SELECT_ACCOUNT : uiOptions,
+                extraQueryParams, additionalScope, authority, policy, callback);
     }
 
     // Silent call APIs.
@@ -226,33 +258,6 @@ public final class PublicClientApplication {
                                         final String policy, final boolean forceRefresh,
                                         final AuthenticationCallback callback) { }
 
-    private void acquireTokenInteractiveyly(final String[] scopes, final String loginHint, final UIOptions uiOptions,
-                                            final String extraQueryParams, final String[] additionalScope,
-                                            final String authority, final String policy,
-                                            final AuthenticationCallback callback) {
-        final AuthenticationRequestParameters requestParameters = getRequestParameters(authority, scopes, loginHint,
-                extraQueryParams, policy, uiOptions);
-
-        final BaseRequest request = new InteractiveRequest(mActivity, requestParameters, additionalScope);
-        request.getToken(callback);
-    }
-
-    private AuthenticationRequestParameters getRequestParameters(final String authority, final String[] scopes,
-                                                                 final String loginHint, final String extraQueryParam,
-                                                                 final String policy, final UIOptions uiOption) {
-        final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? mAuthority
-                : new Authority(authority, mValidateAuthority);
-        // set correlation if not developer didn't set it.
-        if (mCorrelationId == null) {
-            mCorrelationId = UUID.randomUUID();
-        }
-
-        final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));
-
-        return new AuthenticationRequestParameters(authorityForRequest, mTokenCache, scopesAsSet, mClientId,
-                mRedirectUri, policy, mRestrictToSingleUser, loginHint, extraQueryParam, uiOption, mCorrelationId);
-    }
-
     /**
      * Keep this method internal only to make it easy for MS apps to do serialize/deserialize on the family tokens.
      * @return
@@ -260,6 +265,7 @@ public final class PublicClientApplication {
     TokenCache getTokenCache() {
         return mTokenCache;
     }
+
 
     private void loadMetaDataFromManifest() {
         final ApplicationInfo applicationInfo;
@@ -288,22 +294,62 @@ public final class PublicClientApplication {
             mClientId = clientId;
         }
 
-        // read the redirect from manifest.
-        final String redirectUri = applicationInfo.metaData.getString(REDIRECT_META_DATA);
-        if (!MSALUtils.isEmpty(redirectUri)) {
-            mRedirectUri = redirectUri;
-        }
+        // TODO: Comment out for now. As discussed, redirect should be computed during runtime, developer needs to put
+//        final String redirectUri = applicationInfo.metaData.getString(REDIRECT_META_DATA);
+//        if (!MSALUtils.isEmpty(redirectUri)) {
+//            mRedirectUri = redirectUri;
+//        }
     }
 
+    // TODO: if no more input validation is needed, this could be moved back to the constructor.
     private void validateInputParameters() {
         if (MSALUtils.isEmpty(mClientId)) {
             throw new IllegalArgumentException("empty, null or blank client id.");
         }
 
-        if (MSALUtils.isEmpty(mRedirectUri)) {
-            throw new IllegalArgumentException("empty, null or blank redirect uri.");
+        if (!MSALUtils.hasCustomTabRedirectActivity(mAppContext, mRedirectUri)) {
+            throw new IllegalStateException("App doesn't have the correct configuration for "
+                    + CustomTabActivity.class.getSimpleName() + ".");
+        }
+    }
+
+    /**
+     * Redirect uri will the in the format of msauth-clientid://appPackageName.
+     * The sdk will comupte the redirect when the PublicClientApplication is initialized.
+     */
+    private String createRedirectUri(final String clientId) {
+        return "msauth-" + clientId + "://" + mAppContext.getPackageName();
+    }
+
+
+    private void acquireTokenInteractively(final String[] scopes, final String loginHint, final UIOptions uiOptions,
+                                           final String extraQueryParams, final String[] additionalScope,
+                                           final String authority, final String policy,
+                                           final AuthenticationCallback callback) {
+        if (callback == null) {
+            throw new IllegalArgumentException("callback is null");
         }
 
-        // TODO: once we decide on the redirect uri format, validate here.
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(authority, scopes, loginHint,
+                extraQueryParams, policy, uiOptions);
+
+        final BaseRequest request = new InteractiveRequest(mActivity, requestParameters, additionalScope);
+        request.getToken(callback);
+    }
+
+    private AuthenticationRequestParameters getRequestParameters(final String authority, final String[] scopes,
+                                                                 final String loginHint, final String extraQueryParam,
+                                                                 final String policy, final UIOptions uiOption) {
+        final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? mAuthority
+                : new Authority(authority, mValidateAuthority);
+        // set correlation if not developer didn't set it.
+        if (mCorrelationId == null) {
+            mCorrelationId = UUID.randomUUID();
+        }
+
+        final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));
+
+        return new AuthenticationRequestParameters(authorityForRequest, mTokenCache, scopesAsSet, mClientId,
+                mRedirectUri, policy, mRestrictToSingleUser, loginHint, extraQueryParam, uiOption, mCorrelationId, mSettings);
     }
 }

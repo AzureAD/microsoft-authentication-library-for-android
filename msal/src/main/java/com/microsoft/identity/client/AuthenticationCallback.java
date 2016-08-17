@@ -28,9 +28,20 @@ package com.microsoft.identity.client;
  */
 public interface AuthenticationCallback {
 
+    /**
+     * Authentication finishes successfully,{@link AuthenticationResult} will be sent back via the onSuccess.
+     * @param authenticationResult {@link AuthenticationResult} that contains the success response.
+     */
     void onSuccess(final AuthenticationResult authenticationResult);
 
+    /**
+     * Error occurs during the authentication.
+     * @param exception The {@link AuthenticationException} contains the error code, error message and cause if applicable.
+     */
     void onError(final AuthenticationException exception);
 
+    /**
+     * Will be called if user cancels the flow.
+     */
     void onCancel();
 }

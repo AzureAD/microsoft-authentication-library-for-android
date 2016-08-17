@@ -24,7 +24,7 @@
 package com.microsoft.identity.client;
 
 /**
- * Internal object representing the cient info.
+ * Internal object representing the client info.
  */
 class ClientInfo {
 }

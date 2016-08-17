@@ -102,6 +102,11 @@ abstract class BaseRequest {
         oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID,
                 mAuthRequestParameters.getCorrelationId().toString());
 
+        // add query parameter, policy is added as qp
+        if (!MSALUtils.isEmpty(mAuthRequestParameters.getPolicy())) {
+            oauth2Client.addQueryParameter(OauthConstants.Oauth2Parameters.POLICY, mAuthRequestParameters.getPolicy());
+        }
+
         // add body parameters
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.CLIENT_ID, mAuthRequestParameters.getClientId());
         final String scope = MSALUtils.convertSetToString(getDecoratedScope(mAuthRequestParameters.getScope()), " ");

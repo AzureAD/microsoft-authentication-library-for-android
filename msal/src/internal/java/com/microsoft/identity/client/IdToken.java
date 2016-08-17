@@ -31,9 +31,9 @@ import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 /**
- * Created by weij on 8/2/2016.
+ * MSAL internal class to represent the id token.
  */
-class IdToken {
+final class IdToken {
     private String mIssuer;
     private String mObjectId;
     private String mSubject;
@@ -48,6 +48,10 @@ class IdToken {
      * @param rawIdToken The raw Id token used to create the {@link IdToken}.
      */
     IdToken(final String rawIdToken) throws AuthenticationException {
+        if (MSALUtils.isEmpty(rawIdToken)) {
+            throw new IllegalArgumentException("null or empty raw idtoken");
+        }
+
         // set all the instance variables.
         final Map<String, String> idTokenItems = parseJWT(rawIdToken);
         if (idTokenItems == null || idTokenItems.isEmpty()) {

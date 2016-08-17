@@ -113,7 +113,6 @@ public final class AuthenticationResult {
     /**
      * @return The scope values returned from the service.
      */
-    // TODO: return the array
     public String[] getScope() {
         return mScope;
     }

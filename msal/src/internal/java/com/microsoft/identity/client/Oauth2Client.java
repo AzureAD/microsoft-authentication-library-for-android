@@ -46,7 +46,7 @@ final class Oauth2Client {
     private static final String TAG = Oauth2Client.class.getSimpleName();
 
     // TODO: updated to v2
-    static final String DEFAULT_TOKEN_ENDPOINT = "/oauth2/token";
+    static final String DEFAULT_TOKEN_ENDPOINT = "/oauth2/v2.0/token";
     static final String POST_CONTENT_TYPE = "application/x-www-form-urlencoded";
 
     private final Map<String, String> mBodyParameters = new HashMap<>();
@@ -83,10 +83,16 @@ final class Oauth2Client {
         return parseRawResponseToTokenResponse(response);
     }
 
-    private URL getTokenEndpoint(final URL authorityUrl) {
+    private URL getTokenEndpoint(final URL authorityUrl) throws UnsupportedEncodingException {
+        final Uri.Builder queryString = new Uri.Builder();
+        for (final Map.Entry<String, String> entry : mQueryParameters.entrySet()) {
+            queryString.appendQueryParameter(entry.getKey(), MSALUtils.urlEncode(entry.getValue()));
+        }
+
         final URL tokenEndpoint;
         try {
-            tokenEndpoint = new URL(authorityUrl.toString() + DEFAULT_TOKEN_ENDPOINT);
+            tokenEndpoint = new URL(authorityUrl.toString() + DEFAULT_TOKEN_ENDPOINT
+                    + queryString.build().toString());
         } catch (final MalformedURLException e) {
             throw new IllegalArgumentException("Malformed authority URL");
         }
@@ -136,7 +142,7 @@ final class Oauth2Client {
 
     private TokenResponse parseRawResponseToTokenResponse(final HttpResponse response) throws AuthenticationException {
         if (MSALUtils.isEmpty(response.getBody())) {
-            // TODO: Discuss in this case, should we create a concret error with status code, indicating it's server error.
+            // TODO: Discuss in this case, should we create a concrete error with status code, indicating it's server error.
             throw new AuthenticationException(MSALError.SERVER_ERROR, "statusCode: " + response.getStatusCode());
         }
 

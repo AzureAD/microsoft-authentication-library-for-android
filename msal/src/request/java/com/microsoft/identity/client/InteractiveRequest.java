@@ -42,10 +42,10 @@ import java.util.concurrent.CountDownLatch;
  * tab or fall back to webview if custom tab is not available).
  */
 final class InteractiveRequest extends BaseRequest {
-    private static final String DEFAULT_AUTHORIZE_ENDPOINT = "oauth2/authorize";
-    static final String DEFAULT_TOKEN_ENDPOINT = "/oauth2/token";
+    private static final String DEFAULT_AUTHORIZE_ENDPOINT = "oauth2/v2.0/authorize";
     private final Set<String> mAdditionalScope = new HashSet<>();
 
+    static final String DISABLE_CHROMETAB = "disablechrometab";
     static AuthorizationResult sAuthorizationResult;
 
     private final Activity mActivity;
@@ -94,6 +94,9 @@ final class InteractiveRequest extends BaseRequest {
         intentToLaunch.putExtra(Constants.REQUEST_URL_KEY, authorizeUri);
         intentToLaunch.putExtra(Constants.REDIRECT_INTENT, mAuthRequestParameters.getRedirectUri());
         intentToLaunch.putExtra(Constants.REQUEST_ID, mRequestId);
+        if (mAuthRequestParameters.getSettings().getDisableCustomTab()) {
+            intentToLaunch.putExtra(DISABLE_CHROMETAB, true);
+        }
 
         // TODO: put a request id.
         if (!resolveIntent(intentToLaunch)) {
