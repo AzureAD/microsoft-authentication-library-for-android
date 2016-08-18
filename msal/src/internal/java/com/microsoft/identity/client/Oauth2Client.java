@@ -33,6 +33,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,7 +46,6 @@ import java.util.UUID;
 final class Oauth2Client {
     private static final String TAG = Oauth2Client.class.getSimpleName();
 
-    // TODO: updated to v2
     static final String DEFAULT_TOKEN_ENDPOINT = "/oauth2/v2.0/token";
     static final String POST_CONTENT_TYPE = "application/x-www-form-urlencoded";
 
@@ -75,7 +75,6 @@ final class Oauth2Client {
 
         // TODO: device auth challenge should be handled here.
 
-        // TODO: validate the correlation id in the header.
         final UUID correlationIdInRequest = UUID.fromString(mHeader.get(
                 OauthConstants.OauthHeader.CORRELATION_ID));
         verifyCorrelationIdInResponseHeaders(response.getHeaders(), correlationIdInRequest);
@@ -83,16 +82,17 @@ final class Oauth2Client {
         return parseRawResponseToTokenResponse(response);
     }
 
-    private URL getTokenEndpoint(final URL authorityUrl) throws UnsupportedEncodingException {
-        final Uri.Builder queryString = new Uri.Builder();
+    URL getTokenEndpoint(final URL authorityUrl) throws UnsupportedEncodingException {
+        final Set<String> queryStringSet = new HashSet<>();
         for (final Map.Entry<String, String> entry : mQueryParameters.entrySet()) {
-            queryString.appendQueryParameter(entry.getKey(), MSALUtils.urlEncode(entry.getValue()));
+            queryStringSet.add(entry.getKey() + "=" + MSALUtils.urlEncode(entry.getValue()));
         }
 
+        final String queryString = queryStringSet.isEmpty() ? "" : "?" + MSALUtils.convertSetToString(queryStringSet, "&");
         final URL tokenEndpoint;
         try {
             tokenEndpoint = new URL(authorityUrl.toString() + DEFAULT_TOKEN_ENDPOINT
-                    + queryString.build().toString());
+                    + queryString);
         } catch (final MalformedURLException e) {
             throw new IllegalArgumentException("Malformed authority URL");
         }

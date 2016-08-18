@@ -38,6 +38,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
+import org.mockito.internal.util.MockUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -83,7 +84,7 @@ public final class MSALUtilTest {
 
     @Test
     public void testEncodeDecodeString() throws UnsupportedEncodingException {
-        Assert.assertTrue(MSALUtils.urlEncode(" $%&=").equals("+%24%25%26%3D"));
+        Assert.assertTrue(MSALUtils.urlEncode("1 $%&=").equals("1+%24%25%26%3D"));
         Assert.assertTrue(MSALUtils.urlDecode("+%24%25%26%3D").equals(" $%&="));
     }
 

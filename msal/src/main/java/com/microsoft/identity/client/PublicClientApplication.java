@@ -45,7 +45,6 @@ public final class PublicClientApplication {
     private static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common/";
     private static final String CLIENT_ID_META_DATA = "com.microsoft.identity.client.ClientId";
     private static final String AUTHORITY_META_DATA = "com.microsoft.identity.client.Authority";
-    private static final String REDIRECT_META_DATA = "com.microsoft.identity.client.RedirectUri";
 
     private final Context mAppContext;
     private final Activity mActivity;
@@ -58,7 +57,6 @@ public final class PublicClientApplication {
 
     private boolean mValidateAuthority = true;
     private boolean mRestrictToSingleUser = false;
-    private UUID mCorrelationId = null;
 
     /**
      * Constructor for {@link PublicClientApplication}.
@@ -343,13 +341,10 @@ public final class PublicClientApplication {
         final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? mAuthority
                 : new Authority(authority, mValidateAuthority);
         // set correlation if not developer didn't set it.
-        if (mCorrelationId == null) {
-            mCorrelationId = UUID.randomUUID();
-        }
-
+        final UUID correlationId = UUID.randomUUID();
         final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));
 
         return new AuthenticationRequestParameters(authorityForRequest, mTokenCache, scopesAsSet, mClientId,
-                mRedirectUri, policy, mRestrictToSingleUser, loginHint, extraQueryParam, uiOption, mCorrelationId, mSettings);
+                mRedirectUri, policy, mRestrictToSingleUser, loginHint, extraQueryParam, uiOption, correlationId, mSettings);
     }
 }

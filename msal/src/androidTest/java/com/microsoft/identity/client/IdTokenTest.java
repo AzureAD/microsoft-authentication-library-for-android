@@ -30,6 +30,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.UnsupportedEncodingException;
+
 /**
  * Instrumentation tests for {@link IdToken}.
  */
@@ -126,11 +128,26 @@ public final class IdTokenTest {
     }
 
     @Test
-    public void testIdTokenHappyPath() {
+    public void testIdTokenHappyPath() throws UnsupportedEncodingException {
         // Id token with invalid signature part, we don't do any signature validation today. As long as the id token
         // contains a valid payload, we'll successfully parse it.
+        final String rawIdToken = AndroidTestUtil.createIdToken(
+                AndroidTestUtil.AUDIENCE, AndroidTestUtil.ISSUER, AndroidTestUtil.NAME,
+                AndroidTestUtil.OBJECT_ID, AndroidTestUtil.PREFERRED_USERNAME,
+                AndroidTestUtil.SUBJECT, AndroidTestUtil.TENANT_ID, AndroidTestUtil.VERSION,
+                AndroidTestUtil.HOME_OBJECT_ID);
         try {
-            final IdToken()
+            final IdToken idToken = new IdToken(rawIdToken);
+            Assert.assertTrue(idToken.getIssuer().equals(AndroidTestUtil.ISSUER));
+            Assert.assertTrue(idToken.getName().equals(AndroidTestUtil.NAME));
+            Assert.assertTrue(idToken.getObjectId().equals(AndroidTestUtil.OBJECT_ID));
+            Assert.assertTrue(idToken.getPreferredName().equals(AndroidTestUtil.PREFERRED_USERNAME));
+            Assert.assertTrue(idToken.getVersion().equals(AndroidTestUtil.VERSION));
+            Assert.assertTrue(idToken.getTenantId().equals(AndroidTestUtil.TENANT_ID));
+            Assert.assertTrue(idToken.getHomeObjectId().equals(AndroidTestUtil.HOME_OBJECT_ID));
+            Assert.assertTrue(idToken.getSubject().equals(AndroidTestUtil.SUBJECT));
+        } catch (final AuthenticationException e) {
+            Assert.fail("unexpected exception");
         }
     }
 }

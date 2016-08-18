@@ -49,6 +49,17 @@ final class AuthenticationRequestParameters {
                                     final boolean restrictToSingleUser, final String loginHint,
                                     final String extraQueryParam, final UIOptions uiOptions, final UUID correlationId,
                                     final Settings settings) {
+
+        // Every acquireToken API call should contain correlation id.
+        if (correlationId == null) {
+            throw new IllegalArgumentException("correlationId");
+        }
+
+        // AuthenticationRequestParameters is created per acquireToken API call, should never be null.
+        if (scope == null) {
+            throw new IllegalArgumentException("scope");
+        }
+
         mAuthority = authority;
         mTokenCache = tokenCache;
         mScope.addAll(scope);

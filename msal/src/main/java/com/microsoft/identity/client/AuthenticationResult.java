@@ -55,7 +55,7 @@ public final class AuthenticationResult {
 
         if (!MSALUtils.isEmpty(tokenResponse.getRawIdToken())) {
             mIdToken = tokenResponse.getRawIdToken();
-            final IdToken idToken = new IdToken(tokenResponse.getRawIdToken());
+            final IdToken idToken = new IdToken(mIdToken);
             mTenantId = idToken.getTenantId();
             mUser = new User(idToken);
         }

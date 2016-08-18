@@ -31,7 +31,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 /**
- * MSAL internal class to represent the id token.
+ * MSAL internal class that represents the id token.
  */
 final class IdToken {
     private String mIssuer;

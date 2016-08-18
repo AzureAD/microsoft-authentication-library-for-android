@@ -47,7 +47,7 @@ final class TokenResponse {
     private String mScope;
     private String mTokenType;
     private String mFoCI;
-    // TODO: remve the client info for now.
+    // TODO: remove the client info for now.
 //    private ClientInfo mClientInfo;
     private String mError;
     private String mErrorDescription;
@@ -66,8 +66,6 @@ final class TokenResponse {
         mScope = scope;
         mTokenType = tokenType;
         mFoCI = foCI;
-        //TODO: create a copy constructor for ClientInfo
-//        mClientInfo = clientInfo;
         mError = null;
         mErrorDescription = null;
     }
@@ -84,7 +82,6 @@ final class TokenResponse {
         mScope = null;
         mTokenType = null;
         mFoCI = null;
-//        mClientInfo = null;
     }
 
     public void setAccessToken(final String accessToken) {
@@ -158,14 +155,6 @@ final class TokenResponse {
     public String getFamilyClientId() {
         return mFoCI;
     }
-
-//    public void setClientInfo(final ClientInfo clientInfo) {
-//        //TODO: make a copy constructor for clientInfo, do a deep copy
-//    }
-
-//    public ClientInfo getClientInfo() {
-//        return mClientInfo;
-//    }
 
     public void setError(final String error) {
         mError = error;

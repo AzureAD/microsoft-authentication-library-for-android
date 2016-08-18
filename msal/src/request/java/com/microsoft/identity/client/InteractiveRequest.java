@@ -147,13 +147,12 @@ final class InteractiveRequest extends BaseRequest {
     }
 
     private String buildQueryParameter(final Map<String, String> requestParameters) throws UnsupportedEncodingException {
-        final Uri.Builder queryParameters = new Uri.Builder();
+        final Set<String> queryParameterSet = new HashSet<>();
         for (Map.Entry<String, String> entry : requestParameters.entrySet()) {
-            queryParameters.appendQueryParameter(entry.getKey(), URLEncoder.encode(entry.getValue(),
-                    MSALUtils.ENCODING_UTF8));
+            queryParameterSet.add(entry.getKey() + "=" + MSALUtils.urlEncode(entry.getValue()));
         }
 
-        String queryString = queryParameters.build().getQuery();
+        String queryString = queryParameterSet.isEmpty() ? "" : MSALUtils.convertSetToString(queryParameterSet, "&");
         final String extraQP = mAuthRequestParameters.getExtraQueryParam();
         if (!MSALUtils.isEmpty(extraQP)) {
             String parsedQP = extraQP;
