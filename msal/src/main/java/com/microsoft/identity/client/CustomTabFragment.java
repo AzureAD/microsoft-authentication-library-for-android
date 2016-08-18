@@ -76,7 +76,6 @@ public final class CustomTabFragment extends Fragment {
             final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
             browserIntent.setPackage(MSALUtils.getChromePackage(this.getActivity().getApplicationContext()));
             browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
-            browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
 //            browserIntent.putExtra(Browser.EXTRA_APPLICATION_ID, "com.microsoft.identity.client");
             this.getActivity().startActivity(browserIntent);
         }

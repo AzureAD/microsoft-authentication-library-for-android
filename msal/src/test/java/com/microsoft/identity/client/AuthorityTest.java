@@ -23,8 +23,26 @@
 
 package com.microsoft.identity.client;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 /**
- * Internal object representing the client info.
+ * Unit test for {@link Authority}.
  */
-class ClientInfo {
+public final class AuthorityTest {
+    @Test(expected = IllegalArgumentException.class)
+    public void testAuthorityStartWithHttp() {
+        new Authority("http://test.com", false);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testAuthorityStartWithNonHttpProtocol() {
+        new Authority("file://test.com", false);
+    }
+
+    @Test
+    public void testAuthorityWithTrailingSlash() {
+        final Authority authority = new Authority("https://login.microsoftonline.com/common/", false);
+        Assert.assertFalse(authority.getAuthorityUrl().toString().endsWith("/"));
+    }
 }

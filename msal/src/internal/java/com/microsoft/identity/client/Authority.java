@@ -42,7 +42,8 @@ final class Authority {
     Authority(final String authorityUrl, final boolean validateAuthority) {
 
         try {
-            mAuthorityUrl = new URL(authorityUrl.endsWith("/") ? authorityUrl : authorityUrl + "/");
+            mAuthorityUrl = new URL(authorityUrl.endsWith("/") ? authorityUrl.substring(0, authorityUrl.length() -1)
+                    : authorityUrl);
         } catch (final MalformedURLException e) {
             throw new IllegalArgumentException("malformed authority url.");
         }

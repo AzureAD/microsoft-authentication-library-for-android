@@ -42,7 +42,7 @@ import java.util.concurrent.CountDownLatch;
  * tab or fall back to webview if custom tab is not available).
  */
 final class InteractiveRequest extends BaseRequest {
-    private static final String DEFAULT_AUTHORIZE_ENDPOINT = "oauth2/v2.0/authorize";
+    private static final String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/v2.0/authorize";
     private final Set<String> mAdditionalScope = new HashSet<>();
 
     static final String DISABLE_CHROMETAB = "disablechrometab";

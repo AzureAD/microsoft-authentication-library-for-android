@@ -62,7 +62,7 @@ public final class MSALUtils {
     private static final String CUSTOM_TABS_SERVICE_ACTION =
             "android.support.customtabs.action.CustomTabsService";
 
-    private static final String[] CHROME_PACKAGES = {
+    static final String[] CHROME_PACKAGES = {
             "com.android.chrome",
             "com.chrome.beta",
             "com.chrome.dev",
@@ -81,15 +81,42 @@ public final class MSALUtils {
         return message == null || message.trim().length() == 0;
     }
 
+    /**
+     * Translate the given string into the application/x-www-form-urlencoded using the utf_8 encoding scheme(The World
+     * Wide Web Consortium Recommendation states that UTF-8 should be used. Not doing so may introduce incompatibilites.).
+     * @param stringToEncode The String to encode.
+     * @return The url encoded string.
+     * @throws UnsupportedEncodingException If the named encoding is not supported.
+     */
     static String urlEncode(final String stringToEncode) throws UnsupportedEncodingException {
+        if (isEmpty(stringToEncode)) {
+            return "";
+        }
+
         return URLEncoder.encode(stringToEncode, ENCODING_UTF8);
     }
 
     /**
+     * Perform URL decode on the given source.
+     * @param source The String to decode for.
+     * @return The decoded string.
+     * @throws UnsupportedEncodingException If encoding is not supported.
+     */
+    static String urlDecode(final String source) throws UnsupportedEncodingException {
+        if (isEmpty(source)) {
+            return "";
+        }
+
+        return URLDecoder.decode(source, ENCODING_UTF8);
+    }
+
+    /**
      * Return the unmodifiable Map of response items.
+     * If the input jsonString is empty or blank, it't not in the correct json format, JsonException will be thrown.
      */
     static Map<String, String> extractJsonObjectIntoMap(final String jsonString)
             throws JSONException{
+
         final JSONObject jsonObject = new JSONObject(jsonString);
         final Iterator<String> keyIterator = jsonObject.keys();
 
@@ -109,12 +136,8 @@ public final class MSALUtils {
      */
     static Date calculateExpiresOn(final String expiresIn) {
         final Calendar expires = new GregorianCalendar();
-
         // Compute token expiration
-        expires.add(
-                Calendar.SECOND,
-                expiresIn == null || expiresIn.isEmpty() ? DEFAULT_EXPIRATION_TIME_SEC
-                        : Integer.parseInt(expiresIn));
+        expires.add(Calendar.SECOND, isEmpty(expiresIn) ? DEFAULT_EXPIRATION_TIME_SEC : Integer.parseInt(expiresIn));
 
         return expires.getTime();
     }
@@ -130,33 +153,43 @@ public final class MSALUtils {
         }
 
         final String[] scopeArray = scopes.toLowerCase(Locale.US).split(" ");
-        return new HashSet<>(Arrays.asList(scopeArray));
+        final Set<String> resultSet = new HashSet<>();
+        for (int i = 0; i < scopeArray.length; i++) {
+            if (!MSALUtils.isEmpty(scopeArray[i])) {
+                resultSet.add(scopeArray[i]);
+            }
+        }
+
+        return resultSet;
     }
 
     static boolean hasCustomTabRedirectActivity(final Context context, final String url) {
-        final PackageManager pm = context.getPackageManager();
-        List<ResolveInfo> infos = null;
-        if (pm != null) {
-            Intent intent = new Intent();
-            intent.setAction(Intent.ACTION_VIEW);
-            intent.addCategory(Intent.CATEGORY_DEFAULT);
-            intent.addCategory(Intent.CATEGORY_BROWSABLE);
-            intent.setDataAndNormalize(Uri.parse(url));
-            infos = pm.queryIntentActivities(intent, PackageManager.GET_RESOLVED_FILTER);
+        final PackageManager packageManager = context.getPackageManager();
+        if (packageManager == null) {
+            return false;
         }
+
+        final Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_VIEW);
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+        intent.addCategory(Intent.CATEGORY_BROWSABLE);
+        intent.setDataAndNormalize(Uri.parse(url));
+        final List<ResolveInfo> resolveInfos = packageManager.queryIntentActivities(intent,
+                PackageManager.GET_RESOLVED_FILTER);
+
+        // resolve info list will never be null, if no matching activities are found, empty list will be returned.
         boolean hasActivity = false;
-        if (infos != null) {
-            for (ResolveInfo info : infos) {
-                ActivityInfo activityInfo = info.activityInfo;
-                if (activityInfo.name.equals(CustomTabActivity.class.getName())) {
-                    hasActivity = true;
-                } else {
-                    // another application is listening for this url scheme, don't open
-                    // Custom Tab for security reasons
-                    return false;
-                }
+        for (ResolveInfo info : resolveInfos) {
+            ActivityInfo activityInfo = info.activityInfo;
+            if (activityInfo.name.equals(CustomTabActivity.class.getName())) {
+                hasActivity = true;
+            } else {
+                // another application is listening for this url scheme, don't open
+                // Custom Tab for security reasons
+                return false;
             }
         }
+
         return hasActivity;
     }
 
@@ -166,12 +199,17 @@ public final class MSALUtils {
      * @param context The app {@link Context} to check for the package existence.
      * @return The available package name for chrome. Will return null if no chrome package existed on the device.
      */
-    public static String getChromePackageWithCustomTabSupport(final Context context) {
+    static String getChromePackageWithCustomTabSupport(final Context context) {
+        if (context.getPackageManager() == null) {
+            return null;
+        }
+
         final Intent customTabServiceIntent = new Intent(CUSTOM_TABS_SERVICE_ACTION);
         final List<ResolveInfo> resolveInfos = context.getPackageManager().queryIntentServices(
                 customTabServiceIntent, 0);
 
-        if (resolveInfos == null) {
+        // queryIntentServices could return null or an empty list if no matching service existed.
+        if (resolveInfos == null || resolveInfos.isEmpty()) {
             // TODO: add logs
             return null;
         }
@@ -187,13 +225,25 @@ public final class MSALUtils {
         return null;
     }
 
-    public static String getChromePackage(final Context context) {
+    /**
+     * CHROME_PACKAGES array contains all the chrome packages that is currently available on play store, we always check
+     * the chrome packages in the order of 1)the currently stable one com.android.chrome 2) beta version com.chrome.beta
+     * 3) the dev version com.chrome.dev
+     * @param context The app context that is used to check the chrome packages.
+     * @return The chrome package name that exists on the device.
+     */
+    static String getChromePackage(final Context context) {
+        if (context.getPackageManager() == null) {
+            return null;
+        }
+
         String installedChromePackage = null;
         final PackageManager packageManager = context.getPackageManager();
         for (int i = 0; i < CHROME_PACKAGES.length; i++) {
             try {
                 packageManager.getPackageInfo(CHROME_PACKAGES[i], PackageManager.GET_ACTIVITIES);
                 installedChromePackage = CHROME_PACKAGES[i];
+                break;
             } catch (final PackageManager.NameNotFoundException e) {
                 // swallow this exception. If the package is not existed, the exception will be thrown.
             }
@@ -211,7 +261,8 @@ public final class MSALUtils {
     static Map<String, String> decodeUrlToMap(final String url, final String delimiter) {
         final Map<String, String> decodedUrlMap = new HashMap<>();
 
-        if (MSALUtils.isEmpty(url)) {
+        // delimiter can be " "
+        if (MSALUtils.isEmpty(url) || delimiter == null) {
             return decodedUrlMap;
         }
 
@@ -225,8 +276,8 @@ public final class MSALUtils {
             }
 
             try {
-                final String key = urlDecodeString(elements[0]);
-                final String value = urlDecodeString(elements[1]);
+                final String key = urlDecode(elements[0]);
+                final String value = urlDecode(elements[1]);
 
                 if (!MSALUtils.isEmpty(key) && !MSALUtils.isEmpty(value)) {
                     decodedUrlMap.put(key, value);
@@ -240,23 +291,13 @@ public final class MSALUtils {
     }
 
     /**
-     * Perform URL decode on the given source.
-     * @param source The String to decode for.
-     * @return The decoded string.
-     * @throws UnsupportedEncodingException If encoding is not supported.
-     */
-    static String urlDecodeString(final String source) throws UnsupportedEncodingException {
-        return URLDecoder.decode(source, ENCODING_UTF8);
-    }
-
-    /**
      * Convert the given set of scopes into the string with the provided delimiter.
      * @param inputSet The Set of scopes to convert.
      * @param delimiter The delimiter used to construct the scopes in the format of String.
      * @return The converted scopes in the format of String.
      */
     static String convertSetToString(final Set<String> inputSet, final String delimiter) {
-        if (inputSet == null || inputSet.isEmpty()) {
+        if (inputSet == null || inputSet.isEmpty() || delimiter == null) {
             return "";
         }
 

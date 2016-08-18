@@ -55,7 +55,7 @@ final class IdToken {
         // set all the instance variables.
         final Map<String, String> idTokenItems = parseJWT(rawIdToken);
         if (idTokenItems == null || idTokenItems.isEmpty()) {
-            return;
+            throw new AuthenticationException(MSALError.SERVER_ERROR, "Empty Id token");
         }
 
         mIssuer = idTokenItems.get(IdTokenClaim.ISSUER);
