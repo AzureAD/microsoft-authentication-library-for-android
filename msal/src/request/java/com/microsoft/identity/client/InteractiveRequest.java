@@ -29,10 +29,10 @@ import android.content.pm.ResolveInfo;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
 
@@ -46,14 +46,13 @@ final class InteractiveRequest extends BaseRequest {
 
     static final String DISABLE_CHROMETAB = "disablechrometab";
     static AuthorizationResult sAuthorizationResult;
+    static CountDownLatch sResultLock = new CountDownLatch(1);
 
     private final Activity mActivity;
 
-    static CountDownLatch sResultLock = new CountDownLatch(1);
-
     InteractiveRequest(final Activity activity, final AuthenticationRequestParameters authRequestParameters,
                        final String[] additionalScope) {
-        super(activity.getApplication(), authRequestParameters);
+        super(activity.getApplicationContext(), authRequestParameters);
 
         mActivity = activity;
 
@@ -70,7 +69,7 @@ final class InteractiveRequest extends BaseRequest {
             mAdditionalScope.addAll(additionalScopeSet);
         }
 
-        // verify the UI option. If UI option is set as as_as_current_user, login hint has to be provied.
+        // verify the UI option. If UI option is set as as_as_current_user, login hint has to be provided.
         if (MSALUtils.isEmpty(authRequestParameters.getLoginHint())
                 && authRequestParameters.getUIOption() == UIOptions.ACT_AS_CURRENT_USER) {
             throw new IllegalArgumentException(
@@ -177,9 +176,9 @@ final class InteractiveRequest extends BaseRequest {
     }
 
     private Map<String, String> createRequestParameters() {
-        final Map<String, String> requestParameters = new HashMap<>();
+        final Map<String, String> requestParameters = new TreeMap<>();
 
-        final Set<String> scopes = new HashSet<>(mAuthRequestParameters.getScope());
+        final Set<String> scopes = new TreeSet<>(mAuthRequestParameters.getScope());
         scopes.addAll(mAdditionalScope);
         final Set<String> requestedScopes = getDecoratedScope(scopes);
         requestParameters.put(OauthConstants.Oauth2Parameters.SCOPE,

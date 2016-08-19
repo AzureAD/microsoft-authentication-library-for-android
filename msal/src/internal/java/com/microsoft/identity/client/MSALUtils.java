@@ -50,6 +50,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.TreeSet;
 
 /**
  * Internal Util class for MSAL.
@@ -153,7 +154,7 @@ public final class MSALUtils {
         }
 
         final String[] scopeArray = scopes.toLowerCase(Locale.US).split(" ");
-        final Set<String> resultSet = new HashSet<>();
+        final Set<String> resultSet = new TreeSet<>();
         for (int i = 0; i < scopeArray.length; i++) {
             if (!MSALUtils.isEmpty(scopeArray[i])) {
                 resultSet.add(scopeArray[i]);

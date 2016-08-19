@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -71,7 +72,6 @@ abstract class BaseRequest {
     void getToken(final AuthenticationCallback callback) {
         final CallbackHandler callbackHandler = new CallbackHandler(getHandler(), callback);
         mRequestId = callback.hashCode();
-
         THREAD_EXECUTOR.execute(new Runnable() {
             @Override
             public void run() {
@@ -141,14 +141,14 @@ abstract class BaseRequest {
 
     private synchronized Handler getHandler() {
         if (mHandler == null) {
-            return new Handler(mContext.getMainLooper());
+            mHandler = new Handler(mContext.getMainLooper());
         }
 
         return mHandler;
     }
 
     Set<String> getDecoratedScope(final Set<String> inputScopes) {
-        final Set<String> scopes = new HashSet<>(inputScopes);
+        final Set<String> scopes = new TreeSet<>(inputScopes);
         final Set<String> reservedScopes = getReservedScopesAsSet();
         scopes.addAll(reservedScopes);
         scopes.remove(mAuthRequestParameters.getClientId());
@@ -163,7 +163,7 @@ abstract class BaseRequest {
     }
 
     private Set<String> getReservedScopesAsSet() {
-        return new HashSet<>(Arrays.asList(OauthConstants.Oauth2Value.RESERVED_SCOPES));
+        return new TreeSet<>(Arrays.asList(OauthConstants.Oauth2Value.RESERVED_SCOPES));
     }
 
     void validateInputScopes(final Set<String> inputScopes) {
