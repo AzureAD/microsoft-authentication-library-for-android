@@ -23,8 +23,6 @@
 
 package com.microsoft.identity.client;
 
-import android.net.Uri;
-
 import org.json.JSONException;
 
 import java.io.IOException;
@@ -37,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 
 /**
@@ -66,7 +65,7 @@ final class Oauth2Client {
     }
 
     TokenResponse getToken(final URL authorityUrl) throws IOException, RetryableException,
-            AuthenticationException, JSONException {
+            AuthenticationException {
         final URL tokenEndpoint = getTokenEndpoint(authorityUrl);
         addHeader("Accept", "application/json");
 
@@ -101,14 +100,14 @@ final class Oauth2Client {
     }
 
     private byte[] buildRequestMessage(final Map<String, String> bodyParameters) throws UnsupportedEncodingException {
-        final Uri.Builder builder = new Uri.Builder();
-
+        final Set<String> requestBodyEntries = new TreeSet<>();
         final Set<Map.Entry<String, String>> bodyEntries = bodyParameters.entrySet();
         for (Map.Entry<String, String> bodyEntry : bodyEntries) {
-            builder.appendQueryParameter(bodyEntry.getKey(), MSALUtils.urlEncode(bodyEntry.getValue()));
+            requestBodyEntries.add(bodyEntry.getKey() + "=" + MSALUtils.urlEncode(bodyEntry.getValue()));
         }
 
-        return builder.build().getQuery().getBytes(MSALUtils.ENCODING_UTF8);
+        final String requestMessage = requestBodyEntries.isEmpty() ? "" : MSALUtils.convertSetToString(requestBodyEntries, "&");
+        return requestMessage.getBytes(MSALUtils.ENCODING_UTF8);
     }
 
     private void verifyCorrelationIdInResponseHeaders(final Map<String, List<String>> responseHeader,

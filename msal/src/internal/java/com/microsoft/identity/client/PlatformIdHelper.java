@@ -25,6 +25,7 @@ package com.microsoft.identity.client;
 
 import android.os.Build;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,7 +55,7 @@ final class PlatformIdHelper {
         platformParameters.put(PlatformIdParameters.OS, String.valueOf(Build.VERSION.SDK_INT));
         platformParameters.put(PlatformIdParameters.DEVICE_MODEL, Build.MODEL);
 
-        return platformParameters;
+        return Collections.unmodifiableMap(platformParameters);
     }
 
     static final class PlatformIdParameters {

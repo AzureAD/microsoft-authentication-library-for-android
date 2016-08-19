@@ -46,6 +46,7 @@ public final class AndroidTestUtil {
     static final String VERSION = "2.0";
     static final String NAME = "test";
     static final String HOME_OBJECT_ID = "some.home.objid";
+    static final String ACCESS_TOKEN = "access_token";
 
     static final String TEST_IDTOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik1uQ19WWmNBVGZNNXBPWWlKSE1iYTlnb0VLWSJ9.eyJhdWQiOiI"
             + "1YTQzNDY5MS1jY2IyLTRmZDEtYjk3Yi1iNjRiY2ZiYzAzZmMiLCJpc3MiOiJodHRwczovL2xvZ2luLm1pY3Jvc29mdG9ubGluZS5jb20vMDI4N2Y5NjMtMmQ3M"
@@ -84,7 +85,20 @@ public final class AndroidTestUtil {
     static String getSuccessResponse() {
         final String tokenResponse = "{\"id_token\":\""
                 + TEST_IDTOKEN
-                + "\",\"access_token\":\"I am a new access token\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"scope\":\"scope1 scope2\"}";
+                + "\",\"access_token\":\"" + ACCESS_TOKEN + "\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"scope\":\"scope1 scope2\"}";
         return tokenResponse;
+    }
+
+    static String getErrorResponseMessage(final String errorCode) {
+        final String errorDescription = "\"error_description\":\"AADSTS70000: Authentication failed. Refresh Token is not valid.\r\nTrace ID: "
+                + "bb27293d-74e4-4390-882b-037a63429026\r\nCorrelation ID: b73106d5-419b-4163-8bc6-d2c18f1b1a13\r\nTimestamp: 2014-11-06 18:39:47Z\","
+                + "\"error_codes\":[70000, 70001],\"timestamp\":\"2014-11-06 18:39:47Z\",\"trace_id\":\"bb27293d-74e4-4390-882b-037a63429026\","
+                + "\"correlation_id\":\"b73106d5-419b-4163-8bc6-d2c18f1b1a13\",\"submit_url\":null,\"context\":null";
+
+        if (errorCode != null) {
+            return "{\"error\":\"" + errorCode + "\"," + errorDescription + "}";
+        }
+
+        return "{" + errorDescription + "}";
     }
 }

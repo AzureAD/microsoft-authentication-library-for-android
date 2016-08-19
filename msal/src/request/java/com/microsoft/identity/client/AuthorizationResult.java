@@ -36,20 +36,20 @@ final class AuthorizationResult {
     private final String mAuthCode;
     private final AuthorizationStatus mAuthorizationStatus;
     private final String mError;
-    private final String mErrorDescription;
+    private final String mSubError;
 
     private AuthorizationResult(final String authCode) {
         mAuthorizationStatus = AuthorizationStatus.SUCCESS;
         mAuthCode = authCode;
 
         mError = null;
-        mErrorDescription = null;
+        mSubError = null;
     }
 
-    private AuthorizationResult(final AuthorizationStatus status, final String error, final String errorDescription) {
+    private AuthorizationResult(final AuthorizationStatus status, final String error, final String subError) {
         mAuthorizationStatus = status;
         mError = error;
-        mErrorDescription = errorDescription;
+        mSubError = subError;
 
         mAuthCode = null;
     }
@@ -69,11 +69,13 @@ final class AuthorizationResult {
             // TODO: append state
             if (urlParameters.containsKey(OauthConstants.TokenResponseClaim.CODE)) {
                 authorizationResult = new AuthorizationResult(urlParameters.get(OauthConstants.Oauth2Parameters.CODE));
-            } else if (urlParameters.containsKey(OauthConstants.TokenResponseClaim.ERROR)) {
-                final String error = urlParameters.get(OauthConstants.TokenResponseClaim.ERROR);
-                final String errorDescription = urlParameters.get(OauthConstants.TokenResponseClaim.ERROR_DESCRIPTION);
+            } else if (urlParameters.containsKey(OauthConstants.Authorize.ERROR)) {
+                final String error = urlParameters.get(OauthConstants.Authorize.ERROR);
+                final String subError = urlParameters.get(OauthConstants.Authorize.ERROR_SUBCODE);
+
+                // TODO: finalize the error handling.
                 authorizationResult = new AuthorizationResult(AuthorizationStatus.PROTOCOL_ERROR, error,
-                        errorDescription);
+                        subError);
             } else {
                 authorizationResult = getAuthorizationResultWithInvalidServerResponse();
             }
@@ -82,27 +84,47 @@ final class AuthorizationResult {
         return authorizationResult;
     }
 
+    /**
+     * @return The auth code in the redirect uri.
+     */
     String getAuthCode() {
         return mAuthCode;
     }
 
+    /**
+     * @return The {@link AuthorizationStatus} indicating the auth status for the request sent to authorize endopoint.
+     */
     AuthorizationStatus getAuthorizationStatus() {
         return mAuthorizationStatus;
     }
 
+    /**
+     * @return The error string in the query string of the redirect if applicable.
+     */
     String getError() {
         return mError;
     }
 
-    String getErrorDescription() {
-        return mErrorDescription;
+    /**
+     * @return The sub error code in the query string of the redirect if applicable.
+     */
+    String getSubError() {
+        return mSubError;
     }
 
+    /**
+     * @return {@link AuthorizationResult} with invalid server response when the query string in redirect doesn't contain
+     * either code or error.
+     */
     static AuthorizationResult getAuthorizationResultWithInvalidServerResponse() {
         return new AuthorizationResult(AuthorizationStatus.UNKNOWN, Constants.MSALError.AUTHORIZATION_FAILED,
                 Constants.MSALErrorMessage.AUTHORIZATION_SERVER_INVALID_RESPONSE);
     }
 
+    /**
+     * @return {@link AuthorizationResult} indicating that user cancels the flow. If user press the device back button or
+     * user clicks on the cancel displayed in the browser.
+     */
     static AuthorizationResult getAuthorizationResultWithUserCancel() {
         return new AuthorizationResult(AuthorizationStatus.USER_CANCEL, Constants.MSALError.USER_CANCEL,
                 Constants.MSALErrorMessage.USER_CANCELLED_FLOW);
@@ -117,7 +139,10 @@ final class AuthorizationResult {
         return new String(stateBytes);
     }
 
-    static enum AuthorizationStatus {
+    /**
+     * Enum for representing different authorization status.
+     */
+    enum AuthorizationStatus {
         /**
          * Code is successfully returned.
          */
@@ -132,6 +157,8 @@ final class AuthorizationResult {
          * Returned URI contains error.
          */
         PROTOCOL_ERROR,
+
+        INVALID_REQUEST,
 
         UNKNOWN
         //TODO:  Investigate how chrome tab returns http timeout error

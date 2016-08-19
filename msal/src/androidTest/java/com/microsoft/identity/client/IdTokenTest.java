@@ -24,6 +24,7 @@
 package com.microsoft.identity.client;
 
 import android.support.test.runner.AndroidJUnit4;
+import android.test.suitebuilder.annotation.SmallTest;
 
 import org.json.JSONException;
 import org.junit.Assert;
@@ -36,6 +37,7 @@ import java.io.UnsupportedEncodingException;
  * Instrumentation tests for {@link IdToken}.
  */
 @RunWith(AndroidJUnit4.class)
+@SmallTest
 public final class IdTokenTest {
 
     @Test(expected = IllegalArgumentException.class)

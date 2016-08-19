@@ -47,6 +47,7 @@ public class User {
         }
 
         mDisplayableId = idToken.getPreferredName();
+        // TODO: home object id is returned in client info.
         mHomeObjectId = idToken.getHomeObjectId();
         mName = idToken.getName();
         mIdentityProvider = idToken.getIssuer();

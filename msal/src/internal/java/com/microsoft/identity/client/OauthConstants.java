@@ -76,6 +76,12 @@ final class OauthConstants {
         static final String CORRELATION_ID_IN_RESPONSE = "return-client-request-id";
     }
 
+    static final class Authorize {
+        static final String ERROR = "error";
+        static final String ERROR_SUBCODE = "error_subcode";
+        static final String CANCEL = "cancel";
+    }
+
     static final class TokenResponseClaim {
         static final String CODE = "code";
         static final String TOKEN_TYPE = "token_type";

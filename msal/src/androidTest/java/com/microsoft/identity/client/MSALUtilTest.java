@@ -31,6 +31,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.support.test.runner.AndroidJUnit4;
+import android.test.suitebuilder.annotation.SmallTest;
 
 import org.json.JSONException;
 import org.junit.Assert;
@@ -38,7 +39,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
-import org.mockito.internal.util.MockUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -55,6 +55,7 @@ import java.util.Set;
  * Tests for {@link MSALUtils}.
  */
 @RunWith(AndroidJUnit4.class)
+@SmallTest
 public final class MSALUtilTest {
     @Test
     public void testNullMessage() {

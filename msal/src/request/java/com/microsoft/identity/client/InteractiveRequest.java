@@ -26,15 +26,14 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
-import android.net.Uri;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -118,10 +117,21 @@ final class InteractiveRequest extends BaseRequest {
             // TODO: throw unknown error
         }
 
-        if (sAuthorizationResult.getError() == Constants.MSALError.USER_CANCEL) {
-            throw new MSALUserCancelException();
-        } else if (sAuthorizationResult.getError() == Constants.MSALError.AUTHORIZATION_FAILED) {
-            // TODO: throw the error back to developer with originally returned error code.
+        switch (sAuthorizationResult.getAuthorizationStatus()) {
+            case USER_CANCEL:
+                throw new MSALUserCancelException();
+            case PROTOCOL_ERROR:
+                if (sAuthorizationResult.getSubError().equalsIgnoreCase(OauthConstants.Authorize.CANCEL)) {
+                    throw new MSALUserCancelException();
+                } else {
+                    throw new AuthenticationException(MSALError.AUTH_FAILED,
+                            sAuthorizationResult.getError() + sAuthorizationResult.getSubError());
+                }
+            case UNKNOWN:
+                throw new AuthenticationException(MSALError.AUTH_FAILED,
+                        sAuthorizationResult.getError() + sAuthorizationResult.getSubError());
+            default:
+                return;
         }
     }
 
@@ -147,7 +157,7 @@ final class InteractiveRequest extends BaseRequest {
     }
 
     private String buildQueryParameter(final Map<String, String> requestParameters) throws UnsupportedEncodingException {
-        final Set<String> queryParameterSet = new HashSet<>();
+        final Set<String> queryParameterSet = new TreeSet<>();
         for (Map.Entry<String, String> entry : requestParameters.entrySet()) {
             queryParameterSet.add(entry.getKey() + "=" + MSALUtils.urlEncode(entry.getValue()));
         }
@@ -189,11 +199,13 @@ final class InteractiveRequest extends BaseRequest {
             requestParameters.put(OauthConstants.Oauth2Parameters.LOGIN_HINT, mAuthRequestParameters.getLoginHint());
         }
 
+        // TODO: comment out the code for adding haschrome=1. Evo displays the Cancel button, and the returned url would
+        // contain the error=access_denied&error_subcode=cancel
         // add hasChrome
-        if (MSALUtils.isEmpty(mAuthRequestParameters.getExtraQueryParam())
-                || mAuthRequestParameters.getExtraQueryParam().contains(OauthConstants.Oauth2Parameters.HAS_CHROME)) {
-            requestParameters.put(OauthConstants.Oauth2Parameters.HAS_CHROME, "1");
-        }
+//        if (MSALUtils.isEmpty(mAuthRequestParameters.getExtraQueryParam())
+//                || mAuthRequestParameters.getExtraQueryParam().contains(OauthConstants.Oauth2Parameters.HAS_CHROME)) {
+//            requestParameters.put(OauthConstants.Oauth2Parameters.HAS_CHROME, "1");
+//        }
 
         addUiOptionToRequestParameters(requestParameters);
 

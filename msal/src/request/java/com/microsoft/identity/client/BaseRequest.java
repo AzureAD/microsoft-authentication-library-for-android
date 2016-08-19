@@ -26,8 +26,6 @@ package com.microsoft.identity.client;
 import android.content.Context;
 import android.os.Handler;
 
-import org.json.JSONException;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -73,6 +71,7 @@ abstract class BaseRequest {
     void getToken(final AuthenticationCallback callback) {
         final CallbackHandler callbackHandler = new CallbackHandler(getHandler(), callback);
         mRequestId = callback.hashCode();
+
         THREAD_EXECUTOR.execute(new Runnable() {
             @Override
             public void run() {
@@ -124,7 +123,7 @@ abstract class BaseRequest {
                 throw new AuthenticationException(MSALError.SERVER_ERROR, retryableException.getMessage(),
                         retryableException.getCause());
             }
-        } catch (final IOException | JSONException e) {
+        } catch (final IOException e) {
             throw new AuthenticationException(MSALError.AUTH_FAILED, "Auth failed with the error " + e.getMessage(), e);
         }
 

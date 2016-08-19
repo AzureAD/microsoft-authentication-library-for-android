@@ -47,8 +47,6 @@ final class TokenResponse {
     private String mScope;
     private String mTokenType;
     private String mFoCI;
-    // TODO: remove the client info for now.
-//    private ClientInfo mClientInfo;
     private String mError;
     private String mErrorDescription;
     private String[] mErrorCodes;
@@ -144,7 +142,7 @@ final class TokenResponse {
         mTokenType = tokenType;
     }
 
-    public String getmTokenType() {
+    public String getTokenType() {
         return mTokenType;
     }
 
@@ -168,16 +166,24 @@ final class TokenResponse {
         mErrorDescription = errorDescription;
     }
 
+    public String getErrorDescription() {
+        return mErrorDescription;
+    }
+
+    public void setErrorCodes(final String[] errorCodes) {
+        mErrorCodes = errorCodes;
+    }
+
+    public String[] getErrorCodes() {
+        return mErrorCodes;
+    }
+
     public void setAdditionalData(final Map<String, String> additionalData) {
         mAdditionalData.putAll(additionalData);
     }
 
     public Map<String, String> getAdditionalData() {
         return mAdditionalData;
-    }
-
-    public String getErrorDescription() {
-        return mErrorDescription;
     }
 
     static TokenResponse createTokenResponseWithError(final Map<String, String> responseItems) throws JSONException {
@@ -190,6 +196,8 @@ final class TokenResponse {
             final String errorCode = errorCodesJsonArray.getString(i);
             errorCodesList.add(errorCode);
         }
+
+        // TODO: read additional data for error response?
 
         return new TokenResponse(error, errorDescription, errorCodesList.toArray(new String[errorCodesList.size()]));
     }
