@@ -80,7 +80,7 @@ final class InteractiveRequest extends BaseRequest {
         mLoadFromCache = false;
     }
 
-    final void preTokenRequest() throws MSALUserCancelException, AuthenticationException{
+    final synchronized void preTokenRequest() throws MSALUserCancelException, AuthenticationException{
         final String authorizeUri;
         try {
             authorizeUri = getAuthorizationUri();
@@ -103,6 +103,7 @@ final class InteractiveRequest extends BaseRequest {
         }
 
         mActivity.startActivityForResult(intentToLaunch, Constants.UIRequest.BROWSER_FLOW);
+        // lock the thread until onActivityResult release the lock.
         try {
             if (sResultLock.getCount() == 0) {
                 sResultLock = new CountDownLatch(1);
@@ -124,12 +125,13 @@ final class InteractiveRequest extends BaseRequest {
                     throw new MSALUserCancelException();
                 } else {
                     throw new AuthenticationException(MSALError.AUTH_FAILED,
-                            sAuthorizationResult.getError() + sAuthorizationResult.getSubError());
+                            sAuthorizationResult.getError() + ";" + sAuthorizationResult.getSubError());
                 }
             case UNKNOWN:
                 throw new AuthenticationException(MSALError.AUTH_FAILED,
-                        sAuthorizationResult.getError() + sAuthorizationResult.getSubError());
+                        sAuthorizationResult.getError() + ";" + sAuthorizationResult.getSubError());
             default:
+                // Happy path, continue the process to use code for new access token.
                 return;
         }
     }
@@ -222,7 +224,7 @@ final class InteractiveRequest extends BaseRequest {
         }
     }
 
-    static void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+    synchronized static void onActivityResult(int requestCode, int resultCode, final Intent data) {
         if (requestCode != Constants.UIRequest.BROWSER_FLOW) {
             sAuthorizationResult = AuthorizationResult.getAuthorizationResultWithInvalidServerResponse();
         } else {

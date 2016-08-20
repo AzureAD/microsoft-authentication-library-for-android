@@ -49,6 +49,24 @@ abstract class BaseRequest {
     protected final Context mContext;
     protected int mRequestId;
 
+    /**
+     * Abstract method, implemented by subclass for its own logic before the token request.
+     * @throws MSALUserCancelException If pre token request fails as user cancels the flow.
+     * @throws AuthenticationException If error happens during the pre-process.
+     */
+    abstract void preTokenRequest() throws MSALUserCancelException, AuthenticationException;
+
+    /**
+     * Abstract method to set the additional body parameters for specific request.
+     * @param oauth2Client
+     */
+    abstract void setAdditionalRequestBody(final Oauth2Client oauth2Client);
+
+    /**
+     * Constructor for abstract {@link BaseRequest}.
+     * @param appContext The app running context.
+     * @param authenticationRequestParameters The {@link AuthenticationRequestParameters} used to create request.
+     */
     BaseRequest(final Context appContext, final AuthenticationRequestParameters authenticationRequestParameters) {
         mContext = appContext;
         mAuthRequestParameters = authenticationRequestParameters;
@@ -64,11 +82,16 @@ abstract class BaseRequest {
         mStoreIntoCache = mLoadFromCache;
     }
 
-
-    abstract void preTokenRequest() throws MSALUserCancelException, AuthenticationException;
-
-    abstract void setAdditionalRequestBody(final Oauth2Client oauth2Client);
-
+    /**
+     * Perform the whole acquire token request.
+     * 1. preTokenRequest.
+     * 1) for interactive request, preToken is launching the web ui. The end result should be auth code or error result
+     * 2) for silent request, preToken is doing cache lookup. If there is a valid AT returned, we should return the AT.
+     * If there is a RT returned, we should use it to token acquisition.
+     * 2. performTokenRequest. Use either auth code or RT found in the preTokenRequest to get a new token.
+     * 3. Post token request, store the returned token into cache.
+     * @param callback The {@link AuthenticationCallback} to deliver the result back.
+     */
     void getToken(final AuthenticationCallback callback) {
         final CallbackHandler callbackHandler = new CallbackHandler(getHandler(), callback);
         mRequestId = callback.hashCode();
@@ -87,15 +110,51 @@ abstract class BaseRequest {
                 }
             }
         });
-        // getToken is doing:
-        // 1. preTokenRequest. 1) for interactive request, preToken is launching the web ui. The end result should be
-        // auth code or error result 2) for silent request, preToken is doing cache lookup. If there is a valid AT
-        // returned, we should return the AT. If there is a RT returned, we should use it to token acquisition.
-        // 2. performTokenRequest. Use either auth code or RT found in the preTokenRequest to get a new token,.
-        // 3. Post token request, store the returned token into cache.
     }
 
-    AuthenticationResult sentTokenRequest() throws AuthenticationException {
+    /**
+     * Get the decorated scopes. Will combine the input scope and the reserved scope. If client id is provided as scope,
+     * it will be removed from the combined scopes. If policy is provided, email and profile will be removed.
+     * @param inputScopes The input scopes to decorate.
+     * @return The combined scopes.
+     */
+    Set<String> getDecoratedScope(final Set<String> inputScopes) {
+        final Set<String> scopes = new TreeSet<>(inputScopes);
+        final Set<String> reservedScopes = getReservedScopesAsSet();
+        scopes.addAll(reservedScopes);
+        scopes.remove(mAuthRequestParameters.getClientId());
+
+        // For B2C scenario, policy will be provided. We don't send email and profile as scopes.
+        if (!MSALUtils.isEmpty(mAuthRequestParameters.getPolicy())) {
+            scopes.remove(OauthConstants.Oauth2Value.SCOPE_EMAIL);
+            scopes.remove(OauthConstants.Oauth2Value.SCOPE_PROFILE);
+        }
+
+        return scopes;
+    }
+
+    /**
+     * Validate the input scopes. The input scope cannot have reserved scopes, if client id is provided as the scope it
+     * should be a single scope.
+     * @param inputScopes The input set of scope to validate.
+     */
+    void validateInputScopes(final Set<String> inputScopes) {
+        final Set<String> scopes = new HashSet<>(inputScopes);
+        final Set<String> reservedScopes = getReservedScopesAsSet();
+        // fail if the input scopes contains the reserved scopes.
+        // retainAll removes all the objects that are not contained in the reserved scopes.
+        if (!scopes.retainAll(reservedScopes)) {
+            throw new IllegalArgumentException("Reserved scopes "
+                    + OauthConstants.Oauth2Value.RESERVED_SCOPES.toString() + " cannot be provided as scopes.");
+        }
+
+        // client id can only be provided as a single scope.
+        if (inputScopes.contains(mAuthRequestParameters.getClientId()) && inputScopes.size() != 1) {
+            throw new IllegalArgumentException("Client id can only be provided as single scope.");
+        }
+    }
+
+    private AuthenticationResult sentTokenRequest() throws AuthenticationException {
         final Oauth2Client oauth2Client = new Oauth2Client();
 
         oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID,
@@ -135,7 +194,7 @@ abstract class BaseRequest {
         return new AuthenticationResult(tokenResponse);
     }
 
-    void storeTokenIntoCache(final AuthenticationResult authenticationResult) {
+    private void storeTokenIntoCache(final AuthenticationResult authenticationResult) {
         // TODO: do something.
     }
 
@@ -147,39 +206,8 @@ abstract class BaseRequest {
         return mHandler;
     }
 
-    Set<String> getDecoratedScope(final Set<String> inputScopes) {
-        final Set<String> scopes = new TreeSet<>(inputScopes);
-        final Set<String> reservedScopes = getReservedScopesAsSet();
-        scopes.addAll(reservedScopes);
-        scopes.remove(mAuthRequestParameters.getClientId());
-
-        // For B2C scenario, policy will be provided. We don't send email and profile as scopes.
-        if (!MSALUtils.isEmpty(mAuthRequestParameters.getPolicy())) {
-            scopes.remove(OauthConstants.Oauth2Value.SCOPE_EMAIL);
-            scopes.remove(OauthConstants.Oauth2Value.SCOPE_PROFILE);
-        }
-
-        return scopes;
-    }
-
     private Set<String> getReservedScopesAsSet() {
         return new TreeSet<>(Arrays.asList(OauthConstants.Oauth2Value.RESERVED_SCOPES));
-    }
-
-    void validateInputScopes(final Set<String> inputScopes) {
-        final Set<String> scopes = new HashSet<>(inputScopes);
-        final Set<String> reservedScopes = getReservedScopesAsSet();
-        // fail if the input scopes contains the reserved scopes.
-        // retainAll removes all the objects that are not contained in the reserved scopes.
-        if (!scopes.retainAll(reservedScopes)) {
-            throw new IllegalArgumentException("Reserved scopes "
-                    + OauthConstants.Oauth2Value.RESERVED_SCOPES.toString() + " cannot be provided as scopes.");
-        }
-
-        // client id can only be provided as a single scope.
-        if (inputScopes.contains(mAuthRequestParameters.getClientId()) && inputScopes.size() != 1) {
-            throw new IllegalArgumentException("Client id can only be provided as single scope.");
-        }
     }
 
     private static class CallbackHandler {

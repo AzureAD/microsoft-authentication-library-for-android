@@ -24,19 +24,28 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
+import android.app.Instrumentation;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
+import android.support.annotation.UiThread;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.AndroidTestCase;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -44,6 +53,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Test for {@link InteractiveRequest}.
@@ -55,6 +66,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     static final String POLICY = "signin signup";
     static final UUID CORRELATION_ID = UUID.randomUUID();
     static final String LOGIN_HINT = "test@test.onmicrosoft.com";
+    static final int TREAD_DELAY_TIME = 10;
 
     private Context mAppContext;
     private String mRedirectUri;
@@ -67,6 +79,12 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         mAppContext = InstrumentationRegistry.getContext().getApplicationContext();
         mRedirectUri = "msauth-client-id://" + mAppContext.getPackageName();
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        super.tearDown();
+        HttpUrlConnectionFactory.clearMockedConnectionQueue();
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -156,6 +174,243 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         verifyCommonQueryString(queryStrings);
     }
 
+    /**
+     * Verify when auth code is successfully returned, result is delivered correctly.
+     */
+    @Test
+    public void testGetTokenCodeSuccessfullyReturned() throws IOException, InterruptedException {
+        final Activity testActivity = Mockito.mock(Activity.class);
+        Mockito.when(testActivity.getPackageName()).thenReturn(mAppContext.getPackageName());
+        Mockito.when(testActivity.getApplicationContext()).thenReturn(mAppContext);
+
+        // mock http call
+        mockSuccessHttpRequestCall();
+
+        final BaseRequest request = createInteractiveRequest(testActivity);
+        final CountDownLatch resultLock = new CountDownLatch(1);
+        request.getToken(new AuthenticationCallback() {
+            @Override
+            public void onSuccess(AuthenticationResult authenticationResult) {
+                Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getToken()));
+                resultLock.countDown();
+            }
+
+            @Override
+            public void onError(AuthenticationException exception) {
+                fail();
+            }
+
+            @Override
+            public void onCancel() {
+                fail();
+            }
+        });
+
+        // having the thread delayed for preTokenRequest to finish. Here we mock the
+        // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
+        resultLock.await(TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
+
+        final Intent resultIntent = new Intent();
+        resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri + "?code=1234");
+        InteractiveRequest.onActivityResult(Constants.UIRequest.BROWSER_FLOW,
+                Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
+
+        resultLock.await();
+
+        // verify that startActivityResult is called
+        verifyStartActivityForResultCalled(testActivity);
+    }
+
+    /**
+     * Verify auth code is returned successfully but token request with code fails.
+     */
+    @Test
+    public void testAuthCodeReturnedTokenRequestFailed() throws IOException, InterruptedException {
+        final Activity testActivity = Mockito.mock(Activity.class);
+        Mockito.when(testActivity.getPackageName()).thenReturn(mAppContext.getPackageName());
+        Mockito.when(testActivity.getApplicationContext()).thenReturn(mAppContext);
+
+        // mock http call
+        final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithFailureResponse(
+                HttpURLConnection.HTTP_BAD_REQUEST, AndroidTestUtil.getErrorResponseMessage("invalid_request"));
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
+
+        final BaseRequest request = createInteractiveRequest(testActivity);
+        final CountDownLatch resultLock = new CountDownLatch(1);
+        request.getToken(new AuthenticationCallback() {
+            @Override
+            public void onSuccess(AuthenticationResult authenticationResult) {
+                fail();
+            }
+
+            @Override
+            public void onError(AuthenticationException exception) {
+                assertTrue(MSALError.OAUTH_ERROR.equals(exception.getErrorCode()));
+                assertTrue(exception.getMessage().contains("invalid_request"));
+                resultLock.countDown();
+            }
+
+            @Override
+            public void onCancel() {
+                fail();
+            }
+        });
+
+        // having the thread delayed for preTokenRequest to finish. Here we mock the
+        // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
+        resultLock.await(TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
+
+        final Intent resultIntent = new Intent();
+        resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri + "?code=1234");
+        InteractiveRequest.onActivityResult(Constants.UIRequest.BROWSER_FLOW,
+                Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
+
+        resultLock.await();
+
+        // verify that startActivityResult is called
+        verifyStartActivityForResultCalled(testActivity);
+    }
+
+    @Test
+    public void testGetAuthTokenUserCancelWithBackButton()
+            throws IOException, InterruptedException {
+        final Activity testActivity = Mockito.mock(Activity.class);
+        Mockito.when(testActivity.getPackageName()).thenReturn(mAppContext.getPackageName());
+        Mockito.when(testActivity.getApplicationContext()).thenReturn(mAppContext);
+
+        // mock http call
+        mockSuccessHttpRequestCall();
+
+        final BaseRequest request = createInteractiveRequest(testActivity);
+        final CountDownLatch resultLock = new CountDownLatch(1);
+        request.getToken(new AuthenticationCallback() {
+            @Override
+            public void onSuccess(AuthenticationResult authenticationResult) {
+                fail();
+            }
+
+            @Override
+            public void onError(AuthenticationException exception) {
+                fail();
+            }
+
+            @Override
+            public void onCancel() {
+                resultLock.countDown();
+            }
+        });
+
+        // having the thread delayed for preTokenRequest to finish. Here we mock the
+        // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
+        resultLock.await(TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
+
+        InteractiveRequest.onActivityResult(Constants.UIRequest.BROWSER_FLOW,
+                Constants.UIResponse.CANCEL, new Intent());
+
+        resultLock.await();
+
+        // verify that startActivityResult is called
+        verifyStartActivityForResultCalled(testActivity);
+    }
+
+    /**
+     * Verify that user cancel is sent back if user click on the cancel button on the sign page.
+     */
+    @Test
+    public void testGetTokenUserCancelWithCancelInSignInPage() throws IOException,
+            InterruptedException {
+        final Activity testActivity = Mockito.mock(Activity.class);
+        Mockito.when(testActivity.getPackageName()).thenReturn(mAppContext.getPackageName());
+        Mockito.when(testActivity.getApplicationContext()).thenReturn(mAppContext);
+
+        // mock http call
+        mockSuccessHttpRequestCall();
+
+        final BaseRequest request = createInteractiveRequest(testActivity);
+        final CountDownLatch resultLock = new CountDownLatch(1);
+        request.getToken(new AuthenticationCallback() {
+            @Override
+            public void onSuccess(AuthenticationResult authenticationResult) {
+                fail();
+            }
+
+            @Override
+            public void onError(AuthenticationException exception) {
+                fail();
+            }
+
+            @Override
+            public void onCancel() {
+                resultLock.countDown();
+            }
+        });
+
+        // having the thread delayed for preTokenRequest to finish. Here we mock the
+        // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
+        resultLock.await(TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
+
+        final Intent resultIntent = new Intent();
+        resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
+                + "?error=access_denied&error_subcode=cancel");
+        InteractiveRequest.onActivityResult(Constants.UIRequest.BROWSER_FLOW,
+                Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
+
+        resultLock.await();
+
+        // verify that startActivityResult is called
+        verifyStartActivityForResultCalled(testActivity);
+    }
+
+    /**
+     * Verify exception is handled back if receiving error in the redirect.
+     */
+    @Test
+    public void testGetTokenAuthCodeUrlContainError() throws IOException, InterruptedException {
+        final Activity testActivity = Mockito.mock(Activity.class);
+        Mockito.when(testActivity.getPackageName()).thenReturn(mAppContext.getPackageName());
+        Mockito.when(testActivity.getApplicationContext()).thenReturn(mAppContext);
+
+        // mock http call
+        mockSuccessHttpRequestCall();
+
+        final BaseRequest request = createInteractiveRequest(testActivity);
+        final CountDownLatch resultLock = new CountDownLatch(1);
+        request.getToken(new AuthenticationCallback() {
+            @Override
+            public void onSuccess(final AuthenticationResult authenticationResult) {
+                fail();
+            }
+
+            @Override
+            public void onError(final AuthenticationException exception) {
+                assertTrue(MSALError.AUTH_FAILED.equals(exception.getErrorCode()));
+                assertTrue(exception.getMessage().equals("access_denied;some_error"));
+                resultLock.countDown();
+            }
+
+            @Override
+            public void onCancel() {
+                fail();
+            }
+        });
+
+        // having the thread delayed for preTokenRequest to finish. Here we mock the
+        // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
+        resultLock.await(TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
+
+        final Intent resultIntent = new Intent();
+        resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
+                + "?error=access_denied&error_subcode=some_error");
+        InteractiveRequest.onActivityResult(Constants.UIRequest.BROWSER_FLOW,
+                Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
+
+        resultLock.await();
+
+        // verify that startActivityResult is called
+        verifyStartActivityForResultCalled(testActivity);
+    }
+
     private AuthenticationRequestParameters getAuthenticationParams(final String policy, final UIOptions uiOptions) {
         return new AuthenticationRequestParameters(new Authority(AUTHORITY, false), new TokenCache(), getScopes(),
                 CLIENT_ID, mRedirectUri, policy, true, LOGIN_HINT, "", uiOptions, CORRELATION_ID, new Settings());
@@ -201,5 +456,30 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                 OauthConstants.Oauth2Parameters.RESPONSE_TYPE)));
         assertTrue(CORRELATION_ID.toString().equals(queryStrings.get(OauthConstants.OauthHeader.CORRELATION_ID)));
         assertTrue(LOGIN_HINT.equals(queryStrings.get(OauthConstants.Oauth2Parameters.LOGIN_HINT)));
+    }
+
+    private void mockSuccessHttpRequestCall() throws IOException {
+        final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(
+                AndroidTestUtil.getSuccessResponse());
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
+    }
+
+    private BaseRequest createInteractiveRequest(final Activity testActivity) {
+        return new InteractiveRequest(testActivity, getAuthenticationParams(
+                "", UIOptions.FORCE_LOGIN), null);
+    }
+
+    private void verifyStartActivityForResultCalled(final Activity testActivity) {
+        Mockito.verify(testActivity).startActivityForResult(Mockito.argThat(new ArgumentMatcher<Intent>() {
+            @Override
+            public boolean matches(Object argument) {
+                if (((Intent) argument).getStringExtra(Constants.REQUEST_URL_KEY) != null) {
+                    return true;
+                }
+
+                return false;
+            }
+        }), Mockito.eq(Constants.UIRequest.BROWSER_FLOW));
     }
 }
