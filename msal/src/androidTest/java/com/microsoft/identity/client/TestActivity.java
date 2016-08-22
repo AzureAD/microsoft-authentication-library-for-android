@@ -24,50 +24,70 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
 
-import java.util.concurrent.CountDownLatch;
+import org.mockito.Mockito;
 
 /**
  * Test activity for testing purpose.
  */
 public class TestActivity extends Activity {
+    private static final String ACTIVITY_TO_LAUNCH = "extraActivityIntentToLaunch";
+    private static int REQUEST_CODE = 1234;
+    private static int sResultCode;
+    private static Intent sResultData;
 
-    private final CountDownLatch mSignal;
-    private int mRequestCode = 0;
-    private final String mPackageName;
+    public static Intent createIntent(final Context context, final Intent activityIntentToLaunch) {
+        final Intent intent = new Intent(context, TestActivity.class);
+        intent.putExtra(ACTIVITY_TO_LAUNCH, activityIntentToLaunch);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-    public TestActivity(final CountDownLatch signal, final String packageName) {
-        mSignal = signal;
-        mPackageName = packageName;
-    }
-
-    public TestActivity() {
-        mSignal = null;
-        mPackageName = null;
-    }
-
-    @Override
-    public void startActivityForResult(final Intent intent, int requestCode) {
-        mRequestCode = requestCode;
-        mSignal.countDown();
+        return intent;
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, final Intent data) {
-        InteractiveRequest.onActivityResult(requestCode, resultCode, data);
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != REQUEST_CODE) {
+            return;
+        }
+
+        sResultCode = resultCode;
+        sResultData = data;
     }
 
     @Override
-    public String getPackageName() {
-        return mPackageName;
+    public void onCreate(final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        if (savedInstanceState == null) {
+            sResultCode = 0;
+            sResultData = null;
+            final Intent activityToLaunch = getIntent().getParcelableExtra(ACTIVITY_TO_LAUNCH);
+            startActivityForResult(activityToLaunch, REQUEST_CODE);
+        }
     }
 
-    int getRequestCode() {
-        return mRequestCode;
+    static int getResultCode() {
+        return sResultCode;
     }
 
-    boolean isLockReleased() {
-        return mSignal.getCount() == 0;
+    static Intent getResultData() {
+        return sResultData;
+    }
+
+    private static class MockActivityContext extends ContextWrapper {
+        MockActivityContext(final Context context) {
+            super(context);
+        }
+
+        @Override
+        public PackageManager getPackageManager() {
+            return Mockito.mock(PackageManager.class);
+        }
     }
 }

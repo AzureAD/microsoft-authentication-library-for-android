@@ -16,6 +16,13 @@
         <uses-library android:name="android.test.runner" />
 
         <activity
+            android:name="com.microsoft.identity.client.AuthenticationActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize">
+        </activity>
+        <activity android:name="com.microsoft.identity.client.TestActivity">
+        </activity>
+
+        <activity
             android:name="com.microsoft.identity.client.CustomTabActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

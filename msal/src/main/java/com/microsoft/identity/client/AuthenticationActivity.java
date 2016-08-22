@@ -71,7 +71,7 @@ public final class AuthenticationActivity extends Activity {
         // does). If the chrome package doesn't contain the support, we'll use chrome to launch the UI.
         if (MSALUtils.getChromePackage(this.getApplicationContext()) != null) {
             final CustomTabFragment fragment = new CustomTabFragment();
-            fragment. setRetainInstance(true);
+            fragment.setRetainInstance(true);
 
             final FragmentManager fragmentManager = this.getFragmentManager();
             fragmentManager.beginTransaction().add(fragment, TAG).commit();
@@ -91,6 +91,17 @@ public final class AuthenticationActivity extends Activity {
         returnToCaller(Constants.UIResponse.AUTH_CODE_COMPLETE,
                 resultIntent);
     }
+    /**
+     * Return the error back to caller.
+     * @param resultCode The result code to return back.
+     * @param data {@link Intent} contains the detailed result.
+     */
+    void returnToCaller(final int resultCode, final Intent data) {
+        data.putExtra(Constants.REQUEST_ID, mRequestId);
+
+        setResult(resultCode, data);
+        this.finish();
+    }
 
     /**
      * Cancels the auth request.
@@ -108,12 +119,5 @@ public final class AuthenticationActivity extends Activity {
         errorIntent.putExtra(Constants.UIResponse.ERROR_CODE, errorCode);
         errorIntent.putExtra(Constants.UIResponse.ERROR_DESCRIPTION, errorDescription);
         returnToCaller(Constants.UIResponse.AUTH_CODE_ERROR, errorIntent);
-    }
-
-    private void returnToCaller(final int resultCode, final Intent data) {
-        data.putExtra(Constants.REQUEST_ID, mRequestId);
-
-        setResult(resultCode, data);
-        this.finish();
     }
 }

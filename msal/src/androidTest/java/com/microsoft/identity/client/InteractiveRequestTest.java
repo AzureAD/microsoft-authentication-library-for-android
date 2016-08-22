@@ -75,7 +75,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     public void setUp() throws Exception{
         super.setUp();
         InstrumentationRegistry.getContext().getCacheDir();
-        System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
+        System.setProperty("dexmaker.dexcache",
+                InstrumentationRegistry.getContext().getCacheDir().getPath());
 
         mAppContext = InstrumentationRegistry.getContext().getApplicationContext();
         mRedirectUri = "msauth-client-id://" + mAppContext.getPackageName();
@@ -458,7 +459,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         assertTrue(LOGIN_HINT.equals(queryStrings.get(OauthConstants.Oauth2Parameters.LOGIN_HINT)));
     }
 
-    private void mockSuccessHttpRequestCall() throws IOException {
+    static void mockSuccessHttpRequestCall() throws IOException {
         final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(
                 AndroidTestUtil.getSuccessResponse());
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
