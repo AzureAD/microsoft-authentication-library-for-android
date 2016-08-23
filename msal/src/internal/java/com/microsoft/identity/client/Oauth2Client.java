@@ -40,7 +40,7 @@ import java.util.UUID;
 
 /**
  * MSAL internal class for handling the interaction with {@link HttpRequest}, parse the JSON response and create
- * {@link TokenResponse};
+ * {@link TokenResponse}.
  */
 final class Oauth2Client {
     private static final String TAG = Oauth2Client.class.getSimpleName();
@@ -112,8 +112,8 @@ final class Oauth2Client {
 
     private void verifyCorrelationIdInResponseHeaders(final Map<String, List<String>> responseHeader,
                                                       final UUID correlationIdInRequest) {
-        if (responseHeader == null ||
-                !responseHeader.containsKey(OauthConstants.OauthHeader.CORRELATION_ID_IN_RESPONSE)) {
+        if (responseHeader == null
+                || !responseHeader.containsKey(OauthConstants.OauthHeader.CORRELATION_ID_IN_RESPONSE)) {
             // TODO: Looger.w(TAG, "response doesn't contain headers or header doesn't include correlation id");
             return;
         }
@@ -129,10 +129,12 @@ final class Oauth2Client {
         if (!MSALUtils.isEmpty(correlationIdInHeader)) {
             try {
                 final UUID correlationId = UUID.fromString(correlationIdInHeader);
+                //CHECKSTYLE:OFF: checkstyle:EmptyBlock
                 if (!correlationId.equals(correlationIdInRequest)) {
                     // TODO: Logger.warn(TAG, "Correlation id is not matching");
                 }
-            } catch(final IllegalArgumentException e) {
+            } catch (final IllegalArgumentException e) {
+                //CHECKSTYLE:ON: checkstyle:EmptyBlock
                 //  UUID.fromString throws IllegalArgumentException if {@code uuid} is not formatted correctly.
                 // TODO: Logger.e(TAG, "", e);
             }

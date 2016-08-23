@@ -48,6 +48,7 @@ final class HttpRequest {
     private static final String HOST = "Host";
     /** The waiting time before doing retry to prevent hitting the server immediately failure. */
     private static final int RETRY_TIME_WAITING_PERIOD_MSEC = 1000;
+    private static final int STREAM_BUFFER_SIZE = 1024;
     
     static final int CONNECT_TIME_OUT_MSEC = 30000;
     static final int READ_TIME_OUT_MSEC = 30000;
@@ -246,7 +247,7 @@ final class HttpRequest {
     private static String convertStreamToString(final InputStream inputStream) throws IOException {
         try {
             final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-            final char[] buffer = new char[1024];
+            final char[] buffer = new char[STREAM_BUFFER_SIZE];
             final StringBuilder stringBuilder = new StringBuilder();
             int charsRead;
             while ((charsRead = reader.read(buffer)) > -1) {
@@ -271,7 +272,9 @@ final class HttpRequest {
 
         try {
             stream.close();
+            //CHECKSTYLE:OFF: checkstyle:EmptyBlock
         } catch (final IOException e) {
+            //CHECKSTYLE:ON: checkstyle:EmptyBlock
             // swallow error in this case
             // TODO: log the error
             // Logger.e(TAG, "Encounter IO exception when trying to close the stream", e);
@@ -295,7 +298,9 @@ final class HttpRequest {
     private void waitBeforeRetry() {
         try {
             Thread.sleep(RETRY_TIME_WAITING_PERIOD_MSEC);
+            //CHECKSTYLE:OFF: checkstyle:EmptyBlock
         } catch (final InterruptedException interrupted) {
+            //CHECKSTYLE:ON: checkstyle:EmptyBlock
             // Swallow the exception here since we don't want to fail if error happens when having the thread hanging.
             // TODO: Logger.i(TAG, "Fail the have the thread waiting for 1 second before doing the retry")
         }

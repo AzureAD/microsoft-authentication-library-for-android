@@ -54,6 +54,10 @@ public final class Settings {
         return mEnableHardwareAcceleration;
     }
 
+    /**
+     * Disable the custom tab loading. TODO: remove, for testing purpose. Keep for now.
+     * @param disableCustomTab True if disable the custom tab, false otherwise.
+     */
     public void setDisableCustomTab(final boolean disableCustomTab) {
         mDisableCustomTab = disableCustomTab;
     }

@@ -43,7 +43,6 @@ public final class AuthenticationActivity extends Activity {
     private String mRequestUrl;
 
     private int mRequestId;
-    private String mRedirectUri;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -61,7 +60,6 @@ public final class AuthenticationActivity extends Activity {
 
         mRequestUrl = data.getStringExtra(Constants.REQUEST_URL_KEY);
         mRequestId = data.getIntExtra(Constants.REQUEST_ID, 0);
-        mRedirectUri = data.getStringExtra(Constants.REDIRECT_INTENT);
         if (MSALUtils.isEmpty(mRequestUrl)) {
             sendError(Constants.MSALError.INVALID_REQUEST, "Request url is not set on the intent");
             return;
@@ -82,7 +80,7 @@ public final class AuthenticationActivity extends Activity {
     }
 
     @Override
-    protected final void onNewIntent(Intent intent) {
+    protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         final String url = intent.getStringExtra(Constants.CUSTOM_TAB_REDIRECT);
 

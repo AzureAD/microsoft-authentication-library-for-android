@@ -44,12 +44,14 @@ final class AuthenticationRequestParameters {
     private final UUID mCorrelationId;
     private final Settings mSettings;
 
+    /**
+     * Creates new {@link AuthenticationRequestParameters}.
+     */
     AuthenticationRequestParameters(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
                                     final String clientId, final String redirectUri, final String policy,
                                     final boolean restrictToSingleUser, final String loginHint,
                                     final String extraQueryParam, final UIOptions uiOptions, final UUID correlationId,
                                     final Settings settings) {
-
         // Every acquireToken API call should contain correlation id.
         if (correlationId == null) {
             throw new IllegalArgumentException("correlationId");

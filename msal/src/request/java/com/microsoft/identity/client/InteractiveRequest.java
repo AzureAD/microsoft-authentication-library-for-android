@@ -45,8 +45,8 @@ final class InteractiveRequest extends BaseRequest {
     private final Set<String> mAdditionalScope = new HashSet<>();
 
     static final String DISABLE_CHROMETAB = "disablechrometab";
-    static AuthorizationResult sAuthorizationResult;
-    static CountDownLatch sResultLock = new CountDownLatch(1);
+    private static AuthorizationResult sAuthorizationResult;
+    private static CountDownLatch sResultLock = new CountDownLatch(1);
 
     private final Activity mActivity;
 
@@ -80,7 +80,7 @@ final class InteractiveRequest extends BaseRequest {
         mLoadFromCache = false;
     }
 
-    final synchronized void preTokenRequest() throws MSALUserCancelException, AuthenticationException{
+    synchronized void preTokenRequest() throws MSALUserCancelException, AuthenticationException {
         final String authorizeUri;
         try {
             authorizeUri = getAuthorizationUri();
@@ -108,13 +108,16 @@ final class InteractiveRequest extends BaseRequest {
             if (sResultLock.getCount() == 0) {
                 sResultLock = new CountDownLatch(1);
             }
+
             sResultLock.await();
+            //CHECKSTYLE:OFF: checkstyle:EmptyBlock
         } catch (final InterruptedException e) {
             // TODO: logging.
         }
 
         if (sAuthorizationResult == null) {
             // TODO: throw unknown error
+            //CHECKSTYLE:ON: checkstyle:EmptyBlock
         }
 
         switch (sAuthorizationResult.getAuthorizationStatus()) {
@@ -136,12 +139,7 @@ final class InteractiveRequest extends BaseRequest {
         }
     }
 
-    private boolean resolveIntent(final Intent intent) {
-        final ResolveInfo resolveInfo = mContext.getPackageManager().resolveActivity(intent, 0);
-        return resolveInfo != null;
-    }
-
-    final void setAdditionalRequestBody(final Oauth2Client oauth2Client) {
+    void setAdditionalRequestBody(final Oauth2Client oauth2Client) {
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.GRANT_TYPE,
                 OauthConstants.Oauth2GrantType.AUTHORIZATION_CODE);
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.CODE, sAuthorizationResult.getAuthCode());
@@ -155,6 +153,11 @@ final class InteractiveRequest extends BaseRequest {
 
         return String.format("%s?%s", mAuthRequestParameters.getAuthority().getAuthorityUrl() + DEFAULT_AUTHORIZE_ENDPOINT,
                 queryString);
+    }
+
+    private boolean resolveIntent(final Intent intent) {
+        final ResolveInfo resolveInfo = mContext.getPackageManager().resolveActivity(intent, 0);
+        return resolveInfo != null;
     }
 
     private String buildQueryParameter(final Map<String, String> requestParameters) throws UnsupportedEncodingException {
@@ -224,7 +227,7 @@ final class InteractiveRequest extends BaseRequest {
         }
     }
 
-    synchronized static void onActivityResult(int requestCode, int resultCode, final Intent data) {
+    static synchronized void onActivityResult(int requestCode, int resultCode, final Intent data) {
         if (requestCode != Constants.UIRequest.BROWSER_FLOW) {
             sAuthorizationResult = AuthorizationResult.getAuthorizationResultWithInvalidServerResponse();
         } else {
@@ -236,6 +239,7 @@ final class InteractiveRequest extends BaseRequest {
     }
 
     private static void processRedirectContainingAuthorizationResult(int resultCode, final Intent data) {
+        //CHECKSTYLE:OFF: checkstyle:EmptyBlock
         if (data == null) {
             // TODO: set authorizationResult
         } else {
@@ -246,6 +250,7 @@ final class InteractiveRequest extends BaseRequest {
                 sAuthorizationResult = AuthorizationResult.parseAuthorizationResponse(url);
             } else if (resultCode == Constants.UIResponse.AUTH_CODE_ERROR) {
                 // TODO: handle to code error case.
+                //CHECKSTYLE:ON: checkstyle:EmptyBlock
             }
         }
     }

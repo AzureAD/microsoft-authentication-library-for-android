@@ -49,6 +49,7 @@ public final class AuthenticationResultTest {
     static final Date EXPIRES_ON = new Date();
     static final String TOKEN_TYPE = "token type";
     static final String SCOPE = "scope1 scope2 scope3";
+    static final int SCOPE_LENGTH = 3;
     static final int TIME_OFFSET = 50;
 
     /**
@@ -88,7 +89,7 @@ public final class AuthenticationResultTest {
         final AuthenticationResult authenticationResult = new AuthenticationResult(tokenResponse);
         final String[] scopeArray = authenticationResult.getScope();
         Assert.assertNotNull(scopeArray);
-        Assert.assertTrue(scopeArray.length == 3);
+        Assert.assertTrue(scopeArray.length == SCOPE_LENGTH);
         Set<String> scopeSet = new HashSet<>(Arrays.asList(scopeArray));
         Assert.assertTrue(scopeSet.contains("scope1"));
         Assert.assertTrue(scopeSet.contains("scope2"));

@@ -11,11 +11,13 @@ android checkstyle
 -->
 <module name="Checker">
   <module name="SuppressWarningsFilter"/>
+  <module name="SuppressionCommentFilter" />
   <module name="SuppressionFilter">
     <property name="file" value="${checkstyleConfigDir}/suppressions.xml"/>
   </module>
   <property name="severity" value="warning"/>
   <module name="TreeWalker">
+    <module name="FileContentsHolder"/>
     <module name="SuppressWarningsHolder" />
     <property name="tabWidth" value="4"/>
     <module name="JavadocMethod">
@@ -55,7 +57,7 @@ android checkstyle
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     <module name="ParameterNumber">
-      <property name="max" value="10"/>
+      <property name="max" value="12"/>
     </module>
     <module name="EmptyForIteratorPad"/>
     <module name="MethodParamPad"/>
@@ -113,7 +115,6 @@ android checkstyle
       <property name="format" value="^[m][a-zA-Z0-9]*$"/>
     </module>
   </module>
-  <module name="JavadocPackage"/>
   <module name="NewlineAtEndOfFile">
     <property name="severity" value="ignore"/>
     <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>

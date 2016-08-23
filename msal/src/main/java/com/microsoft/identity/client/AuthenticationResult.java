@@ -68,7 +68,7 @@ public final class AuthenticationResult {
      * Constructor to create {@link AuthenticationResult} with {@link TokenCacheItem}.
      * @param tokenCacheItem
      */
-    AuthenticationResult(final TokenCacheItem tokenCacheItem) { }
+    AuthenticationResult(final TokenCacheItem tokenCacheItem) { } // NOPMD
 
     /**
      * @return The token, could be access token or id token.

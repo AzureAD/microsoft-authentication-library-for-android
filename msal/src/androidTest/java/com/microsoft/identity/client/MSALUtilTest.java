@@ -57,6 +57,8 @@ import java.util.Set;
 @RunWith(AndroidJUnit4.class)
 @SmallTest
 public final class MSALUtilTest {
+    static final int EXPECTED_SINGLE_SCOPE_SIZE = 1;
+    static final int EXPECTED_MULTI_SCOPE_SIZE = 3;
     @Test
     public void testNullMessage() {
         Assert.assertTrue(MSALUtils.isEmpty(null));
@@ -94,7 +96,9 @@ public final class MSALUtilTest {
         try {
             MSALUtils.extractJsonObjectIntoMap("test");
             Assert.fail("Expect Json exception");
+            //CHECKSTYLE:OFF: checkstyle:EmptyBlock
         } catch (final JSONException e) {
+            //CHECKSTYLE:ON: checkstyle:EmptyBlock
         }
     }
 
@@ -148,20 +152,20 @@ public final class MSALUtilTest {
         final String singleScope = "scope";
         final Set<String> singleScopeSet = MSALUtils.getScopesAsSet(singleScope);
         Assert.assertNotNull(singleScopeSet);
-        Assert.assertTrue(singleScopeSet.size() == 1);
+        Assert.assertTrue(singleScopeSet.size() == EXPECTED_SINGLE_SCOPE_SIZE);
         Assert.assertTrue(singleScopeSet.contains(singleScope));
 
         // Verify if the scopes array has multiple space in the input string, it's corretly converted into the set.
         final String singleScopeWithTrailingSpace = singleScope + "   ";
         final Set<String> singleScopeSetWithTrailingSpace = MSALUtils.getScopesAsSet(singleScopeWithTrailingSpace);
         Assert.assertNotNull(singleScopeSetWithTrailingSpace);
-        Assert.assertTrue(singleScopeSetWithTrailingSpace.size() == 1);
+        Assert.assertTrue(singleScopeSetWithTrailingSpace.size() == EXPECTED_SINGLE_SCOPE_SIZE);
         Assert.assertTrue(singleScopeSetWithTrailingSpace.contains(singleScope));
 
         final String multipleScopesInput = "scope1 scope2  scope3  ";
         final Set<String> multipleScopesSet = MSALUtils.getScopesAsSet(multipleScopesInput);
         Assert.assertNotNull(multipleScopesSet);
-        Assert.assertTrue(multipleScopesSet.size() == 3);
+        Assert.assertTrue(multipleScopesSet.size() == EXPECTED_MULTI_SCOPE_SIZE);
         Assert.assertTrue(multipleScopesSet.contains("scope1"));
         Assert.assertTrue(multipleScopesSet.contains("scope2"));
         Assert.assertTrue(multipleScopesSet.contains("scope3"));
@@ -219,17 +223,17 @@ public final class MSALUtilTest {
                 Matchers.eq(0))).thenReturn(null);
         Assert.assertNull(MSALUtils.getChromePackageWithCustomTabSupport(mockedContext));
 
-        final List<ResolveInfo> resolveInfos = new ArrayList<>();
+        final List<ResolveInfo> resolvedInfos = new ArrayList<>();
         Mockito.when(mockedContext.getPackageManager()).thenReturn(mockedPackageManager);
         Mockito.when(mockedPackageManager.queryIntentServices(Matchers.any(Intent.class),
-                Matchers.eq(0))).thenReturn(resolveInfos);
+                Matchers.eq(0))).thenReturn(resolvedInfos);
 
         // If custom tab service exists, but it's not belonging to chrome package
         final ResolveInfo mockedResolveInfo = Mockito.mock(ResolveInfo.class);
         final ServiceInfo mockedServiceInfo = Mockito.mock(ServiceInfo.class);
         mockedServiceInfo.packageName = "some package but not chrome";
         mockedResolveInfo.serviceInfo = mockedServiceInfo;
-        resolveInfos.add(mockedResolveInfo);
+        resolvedInfos.add(mockedResolveInfo);
         Assert.assertNull(MSALUtils.getChromePackageWithCustomTabSupport(mockedContext));
 
         // If multiple packages have custom tab support, and chrome package also has the support
@@ -237,7 +241,7 @@ public final class MSALUtilTest {
         final ServiceInfo mockedServiceInfoForChrome = Mockito.mock(ServiceInfo.class);
         mockedServiceInfoForChrome.packageName = MSALUtils.CHROME_PACKAGES[0];
         mockedResolveInfoForChrome.serviceInfo = mockedServiceInfoForChrome;
-        resolveInfos.add(mockedResolveInfoForChrome);
+        resolvedInfos.add(mockedResolveInfoForChrome);
         final String chromePackageNameWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(mockedContext);
         Assert.assertNotNull(chromePackageNameWithCustomTabSupport);
         Assert.assertTrue(chromePackageNameWithCustomTabSupport.equals(MSALUtils.CHROME_PACKAGES[0]));
@@ -254,7 +258,7 @@ public final class MSALUtilTest {
         // no chrome package exists
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
         Mockito.when(mockedContext.getPackageManager()).thenReturn(mockedPackageManager);
-        for (int i = 0; i< MSALUtils.CHROME_PACKAGES.length; i++) {
+        for (int i = 0; i < MSALUtils.CHROME_PACKAGES.length; i++) {
             Mockito.when(mockedPackageManager.getPackageInfo(Matchers.refEq(MSALUtils.CHROME_PACKAGES[i]),
                     Matchers.eq(PackageManager.GET_ACTIVITIES))).thenThrow(PackageManager.NameNotFoundException.class);
         }

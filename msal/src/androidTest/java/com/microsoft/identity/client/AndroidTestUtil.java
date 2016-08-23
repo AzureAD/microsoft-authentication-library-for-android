@@ -48,6 +48,13 @@ public final class AndroidTestUtil {
     static final String HOME_OBJECT_ID = "some.home.objid";
     static final String ACCESS_TOKEN = "access_token";
 
+    /**
+     * Private to prevent util class from being initiated.
+     */
+    private AndroidTestUtil() {
+        // Leave as blank intentionally.
+    }
+
     static final String TEST_IDTOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik1uQ19WWmNBVGZNNXBPWWlKSE1iYTlnb0VLWSJ9.eyJhdWQiOiI"
             + "1YTQzNDY5MS1jY2IyLTRmZDEtYjk3Yi1iNjRiY2ZiYzAzZmMiLCJpc3MiOiJodHRwczovL2xvZ2luLm1pY3Jvc29mdG9ubGluZS5jb20vMDI4N2Y5NjMtMmQ3M"
             + "i00MzYzLTllM2EtNTcwNWM1YjBmMDMxL3YyLjAiLCJpYXQiOjE0NzE0OTczMTYsIm5iZiI6MTQ3MTQ5NzMxNiwiZXhwIjoxNDcxNTAxMjE2LCJuYW1lIjoiTW"

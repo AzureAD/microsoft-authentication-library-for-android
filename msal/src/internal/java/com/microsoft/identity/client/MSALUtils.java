@@ -56,7 +56,11 @@ import java.util.TreeSet;
  * Internal Util class for MSAL.
  */
 public final class MSALUtils {
+    /**
+     * The encoding scheme the sdk uses.
+     */
     public static final String ENCODING_UTF8 = "UTF_8";
+
     /** Default access token expiration time in seconds. */
     public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
 
@@ -116,7 +120,7 @@ public final class MSALUtils {
      * If the input jsonString is empty or blank, it't not in the correct json format, JsonException will be thrown.
      */
     static Map<String, String> extractJsonObjectIntoMap(final String jsonString)
-            throws JSONException{
+            throws JSONException {
 
         final JSONObject jsonObject = new JSONObject(jsonString);
         final Iterator<String> keyIterator = jsonObject.keys();
@@ -229,7 +233,7 @@ public final class MSALUtils {
     /**
      * CHROME_PACKAGES array contains all the chrome packages that is currently available on play store, we always check
      * the chrome packages in the order of 1)the currently stable one com.android.chrome 2) beta version com.chrome.beta
-     * 3) the dev version com.chrome.dev
+     * 3) the dev version com.chrome.dev.
      * @param context The app context that is used to check the chrome packages.
      * @return The chrome package name that exists on the device.
      */
@@ -245,7 +249,9 @@ public final class MSALUtils {
                 packageManager.getPackageInfo(CHROME_PACKAGES[i], PackageManager.GET_ACTIVITIES);
                 installedChromePackage = CHROME_PACKAGES[i];
                 break;
+                //CHECKSTYLE:OFF: checkstyle:EmptyBlock
             } catch (final PackageManager.NameNotFoundException e) {
+                //CHECKSTYLE:ON: checkstyle:EmptyBlock
                 // swallow this exception. If the package is not existed, the exception will be thrown.
             }
         }
@@ -283,7 +289,9 @@ public final class MSALUtils {
                 if (!MSALUtils.isEmpty(key) && !MSALUtils.isEmpty(value)) {
                     decodedUrlMap.put(key, value);
                 }
+                //CHECKSTYLE:OFF: checkstyle:EmptyBlock
             } catch (final UnsupportedEncodingException e) {
+                //CHECKSTYLE:ON: checkstyle:EmptyBlock
                 // TODO: log here.
             }
         }

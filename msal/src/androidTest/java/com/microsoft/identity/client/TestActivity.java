@@ -37,7 +37,7 @@ import org.mockito.Mockito;
  */
 public class TestActivity extends Activity {
     private static final String ACTIVITY_TO_LAUNCH = "extraActivityIntentToLaunch";
-    private static int REQUEST_CODE = 1234;
+    private static final int REQUEST_CODE = 1234;
     private static int sResultCode;
     private static Intent sResultData;
 

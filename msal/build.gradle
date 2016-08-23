@@ -1,6 +1,8 @@
 apply plugin: 'com.android.library'
 apply plugin: 'jacoco'
 apply plugin: 'checkstyle'
+apply plugin: 'pmd'
+apply plugin: 'findbugs'
 
 android {
     compileSdkVersion 23
@@ -27,7 +29,8 @@ android {
     }
 
     lintOptions {
-        abortOnError false
+        abortOnError true
+        disable 'OldTargetApi'
     }
 
     sourceSets {
@@ -79,7 +82,7 @@ def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
 ext.checkstyleConfigDir = "$configDir/checkstyle"
 
 checkstyle {
-    ignoreFailures = true
+    ignoreFailures = false
     reportsDir = file("$project.buildDir/outputs/")
 }
 
@@ -93,3 +96,23 @@ task checkstyle(type: Checkstyle) {
     exclude '**/gen/**'
     classpath = files()
 }
+
+pmd {
+    ignoreFailures = false
+    reportsDir = file("$project.buildDir/outputs/")
+}
+
+task pmd(type: Pmd) {
+    description 'Run pmd'
+    group 'verification'
+
+    ruleSets = ["java-basic", "java-braces", "java-strings", "java-unusedcode"]
+    source = fileTree('src/main/java')
+
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+
+assembleDebug.dependsOn 'checkstyle', 'pmd', 'lint', 'jacocoTestReport'

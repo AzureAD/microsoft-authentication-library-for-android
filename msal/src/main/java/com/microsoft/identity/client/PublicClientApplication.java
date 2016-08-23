@@ -40,7 +40,7 @@ import java.util.UUID;
  * Entry point for developer to create the public native application, and make API call to get token.
  */
 public final class PublicClientApplication {
-    private static final String TAG = PublicClientApplication.class.getSimpleName();
+    private static final String TAG = PublicClientApplication.class.getSimpleName(); //NOPMD
 
     private static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common/";
     private static final String CLIENT_ID_META_DATA = "com.microsoft.identity.client.ClientId";
@@ -86,6 +86,9 @@ public final class PublicClientApplication {
         mSettings = new Settings();
     }
 
+    /**
+     * @return The current version for the sdk.
+     */
     public static String getSdkVersion() {
         return "1.0.0";
     }
@@ -106,10 +109,10 @@ public final class PublicClientApplication {
      * tenant. And the sdk will 1) fail when loading the cache and it finds more than one entry with distinct unique
      * id. 2) fail when adding entry to the cache and the entry has a different unique id than the one in the cache
      * 3) cache look up
-     * @param restrictTosingleUser
+     * @param restrictToSingleUser True if the application is on single user mode, false otherwise.
      */
-    public void setRestrictToSingleUser(final boolean restrictTosingleUser) {
-        mRestrictToSingleUser = restrictTosingleUser;
+    public void setRestrictToSingleUser(final boolean restrictToSingleUser) {
+        mRestrictToSingleUser = restrictToSingleUser;
     }
 
     /**
@@ -139,6 +142,13 @@ public final class PublicClientApplication {
         return null;
     }
 
+    /**
+     * The sdk requires calling app to pass in the {@link Activity} which <b> MUST </b> call this method to get the auth
+     * code handled back correctly.
+     * @param requestCode The request code for interactive request.
+     * @param resultCode The result code for the request to get auth code.
+     * @param data {@link Intent} either contains the url with auth code as query string or the errors.
+     */
     public void handleInteractiveRequestRedirect(int requestCode, int resultCode, final Intent data) {
         InteractiveRequest.onActivityResult(requestCode, resultCode, data);
     }
@@ -147,6 +157,7 @@ public final class PublicClientApplication {
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
      * Default value for {@link UIOptions} is {@link UIOptions#SELECT_ACCOUNT}.
+     * @param scopes An array of scopes to acquire token for.
      * @param callback The {@link AuthenticationCallback} to receive the result back.
      *                 1) If user cancels the flow by pressing the device back button, the result will be sent
      *                 back via {@link AuthenticationCallback#onCancel()}.
@@ -196,7 +207,7 @@ public final class PublicClientApplication {
      */
     public void acquireToken(final String[] scopes, final String loginHint, final UIOptions uiOptions,
                              final String extraQueryParams, final AuthenticationCallback callback) {
-        acquireTokenInteractively(scopes, loginHint, uiOptions == null? UIOptions.SELECT_ACCOUNT : uiOptions,
+        acquireTokenInteractively(scopes, loginHint, uiOptions == null ? UIOptions.SELECT_ACCOUNT : uiOptions,
                 extraQueryParams, null, "", "", callback);
     }
 
@@ -228,29 +239,44 @@ public final class PublicClientApplication {
 
     // Silent call APIs.
     /**
-     * TODO: add javadoc
-     * @param scopes
-     * @param callback
+     * Perform acquire token silent call. If there is a valid AT in the cache, the sdk will return the silent AT; If
+     * no valid AT exists, the sdk will try to find a RT and use the RT to get a new access token. If RT does not exist
+     * or it fails to use RT for a new AT, exception will be sent back via callback.
+     * @param scopes The array of scopes to silently get the token for.
+     * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                                               sent back via {@link AuthenticationCallback#onSuccess(AuthenticationResult)}.
+     *                                               Failure case will be sent back via {
+     *                                               @link AuthenticationCallback#onError(AuthenticationException)}.
      */
     public void acquireTokenSilentAsync(final String[] scopes, final AuthenticationCallback callback) { }
 
     /**
-     * TODO: add javadoc
-     * @param scopes
-     * @param user
-     * @param callback
+     * Perform acquire token silent call. If there is a valid AT in the cache, the sdk will return the silent AT; If
+     * no valid AT exists, the sdk will try to find a RT and use the RT to get a new access token. If RT does not exist
+     * or it fails to use RT for a new AT, exception will be sent back via callback.
+     * @param scopes The array of scopes to silently get the token for.
+     * @param user {@link User} represents the user to silently be signed in.
+     * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                                               sent back via {@link AuthenticationCallback#onSuccess(AuthenticationResult)}.
+     *                                               Failure case will be sent back via {
+     *                                               @link AuthenticationCallback#onError(AuthenticationException)}.
      */
     public void acquireTokenSilentAsync(final String[] scopes, final User user,
-                                        final AuthenticationCallback callback) {}
+                                        final AuthenticationCallback callback) { }
 
     /**
-     * TODO: add java doc
-     * @param scopes
-     * @param user
-     * @param authority
-     * @param policy
-     * @param forceRefresh
-     * @param callback
+     * Perform acquire token silent call. If there is a valid AT in the cache, the sdk will return the silent AT; If
+     * no valid AT exists, the sdk will try to find a RT and use the RT to get a new access token. If RT does not exist
+     * or it fails to use RT for a new AT, exception will be sent back via callback.
+     * @param scopes The array of scopes to silently get the token for.
+     * @param user {@link User} represents the user to silently be signed in.
+     * @param authority (Optional) The alternate authority to get the token for. If not set, will use the default authority.
+     * @param policy (Optional) The policy to set for auth request. The sdk will talk to b2c service if policy is set.
+     * @param forceRefresh True if the request is forced to refresh, false otherwise.
+     * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                                               sent back via {@link AuthenticationCallback#onSuccess(AuthenticationResult)}.
+     *                                               Failure case will be sent back via {
+     *                                               @link AuthenticationCallback#onError(AuthenticationException)}.
      */
     public void acquireTokenSilentAsync(final String[] scopes, final User user, final String authority,
                                         final String policy, final boolean forceRefresh,
@@ -258,12 +284,11 @@ public final class PublicClientApplication {
 
     /**
      * Keep this method internal only to make it easy for MS apps to do serialize/deserialize on the family tokens.
-     * @return
+     * @return The {@link TokenCache} that is used to persist token items for the running app.
      */
     TokenCache getTokenCache() {
         return mTokenCache;
     }
-
 
     private void loadMetaDataFromManifest() {
         final ApplicationInfo applicationInfo;

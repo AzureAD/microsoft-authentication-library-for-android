@@ -1,12 +1,7 @@
 package com.microsoft.identity.client;
 
-import android.app.Instrumentation;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.os.Bundle;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
@@ -16,21 +11,17 @@ import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 /**
  * Tests for {@link AuthenticationActivity}.
  */
 @RunWith(AndroidJUnit4.class)
 public final class AuthenticationActivityTest {
-    private static int REQUEST_ID = 1234;
+    private static final int REQUEST_ID = 1234;
     private Context mAppContext;
     private String mRedirectUri;
 
-    public ActivityTestRule mTestActivityRule = new ActivityTestRule<>(TestActivity.class,
+    private final ActivityTestRule mTestActivityRule = new ActivityTestRule<>(TestActivity.class,
             true, false);
     @Before
     public void setUp() {

@@ -34,12 +34,12 @@ import android.support.customtabs.CustomTabsIntent;
  * Fragment embedded in {@link AuthenticationActivity} to launch the chrome custom tab.
  */
 public final class CustomTabFragment extends Fragment {
-    private static final String TAG = CustomTabFragment.class.getSimpleName();
+    private static final String TAG = CustomTabFragment.class.getSimpleName(); //NOPMD
     private boolean mRestarted;
     private String mRequestUrl;
 
     @Override
-    public final void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         mRestarted = savedInstanceState != null;
@@ -50,7 +50,7 @@ public final class CustomTabFragment extends Fragment {
     }
 
     @Override
-    public final void onResume() {
+    public void onResume() {
         super.onResume();
 
         if (mRestarted) {
@@ -76,13 +76,12 @@ public final class CustomTabFragment extends Fragment {
             final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
             browserIntent.setPackage(MSALUtils.getChromePackage(this.getActivity().getApplicationContext()));
             browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
-//            browserIntent.putExtra(Browser.EXTRA_APPLICATION_ID, "com.microsoft.identity.client");
             this.getActivity().startActivity(browserIntent);
         }
     }
 
     @Override
-    public final void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
         outState.putString(Constants.REQUEST_URL_KEY, mRequestUrl);

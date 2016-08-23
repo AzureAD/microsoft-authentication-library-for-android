@@ -135,7 +135,7 @@ final class AuthorizationResult {
             return null;
         }
 
-        final byte[] stateBytes = Base64.decode(encodedState, Base64.NO_PADDING |Base64.URL_SAFE);
+        final byte[] stateBytes = Base64.decode(encodedState, Base64.NO_PADDING | Base64.URL_SAFE);
         return new String(stateBytes);
     }
 

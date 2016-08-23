@@ -42,7 +42,7 @@ final class Authority {
     Authority(final String authorityUrl, final boolean validateAuthority) {
 
         try {
-            mAuthorityUrl = new URL(authorityUrl.endsWith("/") ? authorityUrl.substring(0, authorityUrl.length() -1)
+            mAuthorityUrl = new URL(authorityUrl.endsWith("/") ? authorityUrl.substring(0, authorityUrl.length() - 1)
                     : authorityUrl);
         } catch (final MalformedURLException e) {
             throw new IllegalArgumentException("malformed authority url.");
@@ -52,7 +52,9 @@ final class Authority {
             throw new IllegalArgumentException("Invalid protocol for the authority url.");
         }
 
+        //CHECKSTYLE:OFF: checkstyle:EmptyBlock
         if (validateAuthority) {
+            //CHECKSTYLE:ON: checkstyle:EmptyBlock
             // TODO: perform authority validation. Authority validation needs network call, consider using async task
             // to perform the valiation.
         }

@@ -620,14 +620,14 @@ public final class HttpRequestTest {
     /**
      * Send http get request.
      */
-    final HttpResponse sendHttpGet() throws IOException, RetryableException {
+    HttpResponse sendHttpGet() throws IOException, RetryableException {
         return HttpRequest.sendGet(Util.getValidRequestUrl(), Collections.<String, String>emptyMap());
     }
 
     /**
      * Send http post request.
      */
-    final HttpResponse sendHttpPost() throws IOException, RetryableException {
+    HttpResponse sendHttpPost() throws IOException, RetryableException {
         return HttpRequest.sendPost(Util.getValidRequestUrl(), Collections.<String, String>emptyMap(),
                 "SomeRequestMessage".getBytes(), "application/x-www-form-urlencoded");
     }

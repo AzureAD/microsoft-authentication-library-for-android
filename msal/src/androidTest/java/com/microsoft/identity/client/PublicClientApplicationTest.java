@@ -1,7 +1,6 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
-import android.app.Application;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
@@ -14,7 +13,6 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.AndroidTestCase;
 
-import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -23,8 +21,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
-import org.mockito.internal.matchers.Null;
-import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -46,7 +42,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     private static final String[] SCOPE = {"scope1", "scope2"};
 
     @Before
-    public void setUp() throws Exception{
+    public void setUp() throws Exception {
         super.setUp();
         InstrumentationRegistry.getContext().getCacheDir();
         System.setProperty("dexmaker.dexcache",
