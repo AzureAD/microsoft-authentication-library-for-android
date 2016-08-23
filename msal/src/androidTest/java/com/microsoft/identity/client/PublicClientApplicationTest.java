@@ -58,11 +58,17 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
     }
 
+    /**
+     * Verify correct exception is thrown if activity is not provided.
+     */
     @Test (expected = IllegalArgumentException.class)
     public void testActivityNull() {
         new PublicClientApplication(null);
     }
 
+    /**
+     * Verify correct exception is thrown if client id is not set in the manifest.
+     */
     @Test(expected = IllegalArgumentException.class)
     public void testClientIdNotInManifest() throws PackageManager.NameNotFoundException {
         final ApplicationInfo applicationInfo = Mockito.mock(ApplicationInfo.class);
@@ -81,6 +87,9 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         new PublicClientApplication(mockedActivity);
     }
 
+    /**
+     * Verify correct exception is thrown if cannot retrieve package info.
+     */
     @Test(expected = IllegalArgumentException.class)
     public void testApplicationInfoIsNull() throws PackageManager.NameNotFoundException {
         final Context context = new MockActivityContext(mAppContext);
@@ -95,6 +104,9 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         new PublicClientApplication(mockedActivity);
     }
 
+    /**
+     * Verify correct exception is thrown if {@link CustomTabActivity} does not have the correct intent-filer.
+     */
     @Test(expected = IllegalStateException.class)
     public void testNoCustomTabSchemeConfigured() throws PackageManager.NameNotFoundException {
         final Context context = new MockActivityContext(mAppContext);
@@ -103,6 +115,9 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         new PublicClientApplication(getActivity(context));
     }
 
+    /**
+     * Verify correct exception is thrown if meta-data is null.
+     */
     @Test(expected = IllegalArgumentException.class)
     public void testMetaDataIsNull() throws PackageManager.NameNotFoundException {
         final ApplicationInfo applicationInfo = Mockito.mock(ApplicationInfo.class);
@@ -121,114 +136,224 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         new PublicClientApplication(mockedActivity);
     }
 
+    /**
+     * Verify correct exception is thrown if callback is not provided.
+     */
     @Test (expected = IllegalArgumentException.class)
     public void testCallBackEmpty() throws PackageManager.NameNotFoundException {
         final Context context = new MockActivityContext(mAppContext);
         mockPackageManagerWithClientId(context, false);
         mockHasCustomTabRedirect(context);
 
-
         final PublicClientApplication application = new PublicClientApplication(getActivity(context));
         application.acquireToken(SCOPE, null);
     }
 
+    /**
+     * Verify {@link PublicClientApplication#acquireToken(String[], AuthenticationCallback)}.
+     */
     @Test
     public void testAcquireTokenSuccess() throws PackageManager.NameNotFoundException, IOException,
             InterruptedException {
-        final Context context = new MockActivityContext(mAppContext);
-        mockPackageManagerWithClientId(context, false);
-        mockHasCustomTabRedirect(context);
-        mockAuthenticationActivityResolvable(context);
+        new GetTokenBaseTestCase() {
 
-        InteractiveRequestTest.mockSuccessHttpRequestCall();
-
-        final CountDownLatch resultLock = new CountDownLatch(1);
-        final PublicClientApplication application = new PublicClientApplication(getActivity(context));
-        application.acquireToken(SCOPE, new AuthenticationCallback() {
             @Override
-            public void onSuccess(AuthenticationResult authenticationResult) {
-                Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getToken()));
-                resultLock.countDown();
+            void mockHttpRequest() throws IOException {
+                InteractiveRequestTest.mockSuccessHttpRequestCall();
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
-                fail("Unexpected Error");
+            void makeAcquireTokenCall(PublicClientApplication publicClientApplication,
+                                      final CountDownLatch releaseLock) {
+                publicClientApplication.acquireToken(SCOPE, new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(AuthenticationResult authenticationResult) {
+                        Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getToken()));
+                        releaseLock.countDown();
+                    }
+
+                    @Override
+                    public void onError(AuthenticationException exception) {
+                        fail("Unexpected Error");
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        fail("Unexpected Cancel");
+                    }
+                });
             }
 
             @Override
-            public void onCancel() {
-                fail("Unexpected Cancel");
+            String getFinalAuthUrl() {
+                return mRedirectUri + "?code=1234";
             }
-        });
-
-        // having the thread delayed for preTokenRequest to finish. Here we mock the
-        // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
-        resultLock.await(InteractiveRequestTest.TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
-
-        final Intent resultIntent = new Intent();
-        resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri + "?code=1234");
-        InteractiveRequest.onActivityResult(Constants.UIRequest.BROWSER_FLOW,
-                Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
-
-        resultLock.await();
+        }.performTest();
     }
 
+    /**
+     * Verify {@link PublicClientApplication#acquireToken(String[], String, UIOptions, String, String[],
+     * String, String, AuthenticationCallback)}. Also check if authority is set on the manifest, we read the authority
+     * from manifest meta-data.
+     */
     @Test
     public void testAuthoritySetInManifestGetTokenFailed()
             throws PackageManager.NameNotFoundException, IOException, InterruptedException {
-        final Context context = new MockActivityContext(mAppContext);
-        mockPackageManagerWithClientId(context, true);
-        mockHasCustomTabRedirect(context);
-        mockAuthenticationActivityResolvable(context);
+        new GetTokenBaseTestCase() {
 
-        // mock http call
-        final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithFailureResponse(
+            @Override
+            protected boolean isSetAlternateAuthority() {
+                return true;
+            }
+
+            @Override
+            void mockHttpRequest() throws IOException {
+                final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithFailureResponse(
                 HttpURLConnection.HTTP_BAD_REQUEST, AndroidTestUtil.getErrorResponseMessage("invalid_request"));
-        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
-        HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
-
-        final CountDownLatch resultLock = new CountDownLatch(1);
-        final Activity testActivity = getActivity(context);
-        final PublicClientApplication application = new PublicClientApplication(testActivity);
-        application.acquireToken(SCOPE, "somehint", new AuthenticationCallback() {
-            @Override
-            public void onSuccess(AuthenticationResult authenticationResult) {
-                fail();
+                Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+                HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
-                assertTrue(MSALError.OAUTH_ERROR.equals(exception.getErrorCode()));
-                assertTrue(exception.getMessage().contains("invalid_request"));
-                resultLock.countDown();
+            void makeAcquireTokenCall(PublicClientApplication publicClientApplication,
+                                      final CountDownLatch releaseLock) {
+                publicClientApplication.acquireToken(SCOPE, "somehint", new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(AuthenticationResult authenticationResult) {
+                        fail();
+                    }
+
+                    @Override
+                    public void onError(AuthenticationException exception) {
+                        assertTrue(MSALError.OAUTH_ERROR.equals(exception.getErrorCode()));
+                        assertTrue(exception.getMessage().contains("invalid_request"));
+                        releaseLock.countDown();
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        fail();
+                    }
+                });
             }
 
             @Override
-            public void onCancel() {
-                fail();
+            String getFinalAuthUrl() {
+                return mRedirectUri + "?code=1234";
             }
-        });
 
-        // having the thread delayed for preTokenRequest to finish. Here we mock the
-        // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
-        resultLock.await(InteractiveRequestTest.TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
+            @Override
+            protected void performAdditionalVerify(Activity testActivity) {
+                Mockito.verify(testActivity).startActivityForResult(Mockito.argThat(
+                        new ArgumentMatcher<Intent>() {
+                            @Override
+                            public boolean matches(Object argument) {
+                                final String data = ((Intent) argument).getStringExtra(Constants.REQUEST_URL_KEY);
+                                return data.startsWith(ALTERNATE_AUTHORITY);
+                            }
+                        }), Matchers.eq(Constants.UIRequest.BROWSER_FLOW));
+            }
+        }.performTest();
+    }
 
-        final Intent resultIntent = new Intent();
-        resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri + "?code=1234");
-        InteractiveRequest.onActivityResult(Constants.UIRequest.BROWSER_FLOW,
-                Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
+    /**
+     * Verify {@link PublicClientApplication#acquireToken(String[], String, UIOptions, String, AuthenticationCallback)}.
+     */
+    @Test
+    public void testGetTokenWithExtraQueryParam()
+            throws PackageManager.NameNotFoundException, IOException, InterruptedException {
+        new GetTokenBaseTestCase() {
 
-        resultLock.await();
+            @Override
+            void mockHttpRequest() throws IOException {
+                // do nothing. The intention for this test is the callback receives cancel if returned url contains
+                // cancel error.
+            }
 
-        Mockito.verify(testActivity).startActivityForResult(Mockito.argThat(
-                new ArgumentMatcher<Intent>() {
+            @Override
+            void makeAcquireTokenCall(PublicClientApplication publicClientApplication,
+                                      final CountDownLatch releaseLock) {
+                publicClientApplication.acquireToken(SCOPE, "somehint", UIOptions.FORCE_LOGIN, "extra=param",
+                        new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(AuthenticationResult authenticationResult) {
+                        fail("unexpected success result");
+                    }
+
+                    @Override
+                    public void onError(AuthenticationException exception) {
+                        fail("Unexpected Error");
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        releaseLock.countDown();
+                    }
+                });
+            }
+
+            @Override
+            String getFinalAuthUrl() {
+                return mRedirectUri + "?error=access_denied&error_subcode=cancel";
+            }
+
+            @Override
+            protected void performAdditionalVerify(Activity testActivity) {
+                Mockito.verify(testActivity).startActivityForResult(Mockito.argThat(new ArgumentMatcher<Intent>() {
                     @Override
                     public boolean matches(Object argument) {
-                        final String data = ((Intent) argument).getStringExtra(Constants.REQUEST_URL_KEY);
-                        return data.startsWith(ALTERNATE_AUTHORITY);
+                        if (((Intent) argument).getStringExtra(Constants.REQUEST_URL_KEY) != null) {
+                            return true;
+                        }
+
+                        return false;
                     }
-                }), Matchers.eq(Constants.UIRequest.BROWSER_FLOW));
+                }), Mockito.eq(Constants.UIRequest.BROWSER_FLOW));
+            }
+        }.performTest();
+    }
+
+    /**
+     * Verify {@link PublicClientApplication#acquireToken(String[], String, UIOptions, String, AuthenticationCallback)}.
+     */
+    @Test
+    public void testGetTokenWithPolicy() throws PackageManager.NameNotFoundException, IOException,
+            InterruptedException {
+        new GetTokenBaseTestCase() {
+
+            @Override
+            void mockHttpRequest() throws IOException {
+                InteractiveRequestTest.mockSuccessHttpRequestCall();
+            }
+
+            @Override
+            void makeAcquireTokenCall(PublicClientApplication publicClientApplication,
+                                      final CountDownLatch releaseLock) {
+                publicClientApplication.acquireToken(SCOPE, "", UIOptions.FORCE_LOGIN, null, null, null, "singin",
+                        new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(AuthenticationResult authenticationResult) {
+                        Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getToken()));
+                        releaseLock.countDown();
+                    }
+
+                    @Override
+                    public void onError(AuthenticationException exception) {
+                        fail("Unexpected Error");
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        fail("Unexpected Cancel");
+                    }
+                });
+            }
+
+            @Override
+            String getFinalAuthUrl() {
+                return mRedirectUri + "?code=1234";
+            }
+        }.performTest();
     }
 
     private void mockPackageManagerWithClientId(final Context context,
@@ -286,6 +411,49 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         @Override
         public PackageManager getPackageManager() {
             return mPackageManager;
+        }
+    }
+
+    abstract class GetTokenBaseTestCase {
+
+        abstract void mockHttpRequest() throws IOException;
+
+        abstract void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
+                                           final CountDownLatch releaseLock);
+
+        abstract String getFinalAuthUrl();
+
+        protected boolean isSetAlternateAuthority() {
+            return false;
+        }
+
+        protected void performAdditionalVerify(final Activity testActivity) { }
+
+        public void performTest() throws PackageManager.NameNotFoundException, IOException, InterruptedException {
+            final Context context = new MockActivityContext(mAppContext);
+            mockPackageManagerWithClientId(context, isSetAlternateAuthority());
+            mockHasCustomTabRedirect(context);
+            mockAuthenticationActivityResolvable(context);
+
+            mockHttpRequest();
+
+            final CountDownLatch resultLock = new CountDownLatch(1);
+            final Activity testActivity = getActivity(context);
+            final PublicClientApplication application = new PublicClientApplication(testActivity);
+            makeAcquireTokenCall(application, resultLock);
+
+            // having the thread delayed for preTokenRequest to finish. Here we mock the
+            // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
+            resultLock.await(InteractiveRequestTest.TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
+
+            final Intent resultIntent = new Intent();
+            resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, getFinalAuthUrl());
+            InteractiveRequest.onActivityResult(Constants.UIRequest.BROWSER_FLOW,
+                    Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
+
+            resultLock.await();
+
+            performAdditionalVerify(testActivity);
         }
     }
 }

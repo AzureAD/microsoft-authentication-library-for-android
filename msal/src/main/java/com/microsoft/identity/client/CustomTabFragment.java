@@ -68,6 +68,7 @@ public final class CustomTabFragment extends Fragment {
         final boolean isCustomTabDisabled = getActivity().getIntent().getBooleanExtra(InteractiveRequest.DISABLE_CHROMETAB, false);
         mRequestUrl =  getActivity().getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
 
+        // TODO: remove the check for custom tab is disabled.
         if (chromePackageWithCustomTabSupport != null && !isCustomTabDisabled) {
             final CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder().build();
             customTabsIntent.intent.setPackage(MSALUtils.getChromePackageWithCustomTabSupport(this.getActivity()));
