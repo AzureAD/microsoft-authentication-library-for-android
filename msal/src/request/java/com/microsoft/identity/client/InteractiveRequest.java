@@ -29,11 +29,10 @@ import android.content.pm.ResolveInfo;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -44,7 +43,7 @@ final class InteractiveRequest extends BaseRequest {
     private static final String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/v2.0/authorize";
     private final Set<String> mAdditionalScope = new HashSet<>();
 
-    static final String DISABLE_CHROMETAB = "disablechrometab";
+    static final String DISABLE_CHROMETAB = "disablechrometab";// TODO: remove it
     private static AuthorizationResult sAuthorizationResult;
     private static CountDownLatch sResultLock = new CountDownLatch(1);
 
@@ -90,10 +89,9 @@ final class InteractiveRequest extends BaseRequest {
 
         final Intent intentToLaunch = new Intent(mContext, AuthenticationActivity.class);
         intentToLaunch.putExtra(Constants.REQUEST_URL_KEY, authorizeUri);
-        intentToLaunch.putExtra(Constants.REDIRECT_INTENT, mAuthRequestParameters.getRedirectUri());
         intentToLaunch.putExtra(Constants.REQUEST_ID, mRequestId);
         if (mAuthRequestParameters.getSettings().getDisableCustomTab()) {
-            intentToLaunch.putExtra(DISABLE_CHROMETAB, true);
+            intentToLaunch.putExtra(DISABLE_CHROMETAB, true); // TODO: remove. all the apps will use chrome custom tab by default if available.
         }
 
         // TODO: put a request id.
@@ -115,31 +113,10 @@ final class InteractiveRequest extends BaseRequest {
             // TODO: logging.
         }
 
-        if (sAuthorizationResult == null) {
-            // TODO: throw unknown error
-            //CHECKSTYLE:ON: checkstyle:EmptyBlock
-        }
-
-        switch (sAuthorizationResult.getAuthorizationStatus()) {
-            case USER_CANCEL:
-                throw new MSALUserCancelException();
-            case PROTOCOL_ERROR:
-                if (sAuthorizationResult.getSubError().equalsIgnoreCase(OauthConstants.Authorize.CANCEL)) {
-                    throw new MSALUserCancelException();
-                } else {
-                    throw new AuthenticationException(MSALError.AUTH_FAILED,
-                            sAuthorizationResult.getError() + ";" + sAuthorizationResult.getSubError());
-                }
-            case UNKNOWN:
-                throw new AuthenticationException(MSALError.AUTH_FAILED,
-                        sAuthorizationResult.getError() + ";" + sAuthorizationResult.getSubError());
-            default:
-                // Happy path, continue the process to use code for new access token.
-                return;
-        }
+        processAuthorizationResult(sAuthorizationResult);
     }
 
-    void setAdditionalRequestBody(final Oauth2Client oauth2Client) {
+    void setAdditionalOauthParameters(final Oauth2Client oauth2Client) {
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.GRANT_TYPE,
                 OauthConstants.Oauth2GrantType.AUTHORIZATION_CODE);
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.CODE, sAuthorizationResult.getAuthCode());
@@ -148,25 +125,10 @@ final class InteractiveRequest extends BaseRequest {
     }
 
     String getAuthorizationUri() throws UnsupportedEncodingException {
-        final Map<String, String> requestParameters = createRequestParameters();
-        final String queryString = buildQueryParameter(requestParameters);
+        String authorizationUrl = MSALUtils.getAuthorizationUrl(
+                mAuthRequestParameters.getAuthority().getAuthorityUrl().toString(),
+                DEFAULT_AUTHORIZE_ENDPOINT, createRequestParameters());
 
-        return String.format("%s?%s", mAuthRequestParameters.getAuthority().getAuthorityUrl() + DEFAULT_AUTHORIZE_ENDPOINT,
-                queryString);
-    }
-
-    private boolean resolveIntent(final Intent intent) {
-        final ResolveInfo resolveInfo = mContext.getPackageManager().resolveActivity(intent, 0);
-        return resolveInfo != null;
-    }
-
-    private String buildQueryParameter(final Map<String, String> requestParameters) throws UnsupportedEncodingException {
-        final Set<String> queryParameterSet = new TreeSet<>();
-        for (Map.Entry<String, String> entry : requestParameters.entrySet()) {
-            queryParameterSet.add(entry.getKey() + "=" + MSALUtils.urlEncode(entry.getValue()));
-        }
-
-        String queryString = queryParameterSet.isEmpty() ? "" : MSALUtils.convertSetToString(queryParameterSet, "&");
         final String extraQP = mAuthRequestParameters.getExtraQueryParam();
         if (!MSALUtils.isEmpty(extraQP)) {
             String parsedQP = extraQP;
@@ -174,16 +136,21 @@ final class InteractiveRequest extends BaseRequest {
                 parsedQP = "&" + parsedQP;
             }
 
-            queryString += parsedQP;
+            authorizationUrl += parsedQP;
         }
 
-        return  queryString;
+        return authorizationUrl;
+    }
+
+    private boolean resolveIntent(final Intent intent) {
+        final ResolveInfo resolveInfo = mContext.getPackageManager().resolveActivity(intent, 0);
+        return resolveInfo != null;
     }
 
     private Map<String, String> createRequestParameters() {
-        final Map<String, String> requestParameters = new TreeMap<>();
+        final Map<String, String> requestParameters = new HashMap<>();
 
-        final Set<String> scopes = new TreeSet<>(mAuthRequestParameters.getScope());
+        final Set<String> scopes = new HashSet<>(mAuthRequestParameters.getScope());
         scopes.addAll(mAdditionalScope);
         final Set<String> requestedScopes = getDecoratedScope(scopes);
         requestParameters.put(OauthConstants.Oauth2Parameters.SCOPE,
@@ -228,31 +195,39 @@ final class InteractiveRequest extends BaseRequest {
     }
 
     static synchronized void onActivityResult(int requestCode, int resultCode, final Intent data) {
-        if (requestCode != Constants.UIRequest.BROWSER_FLOW) {
-            sAuthorizationResult = AuthorizationResult.getAuthorizationResultWithInvalidServerResponse();
-        } else {
-            // check it is the same request.
-            processRedirectContainingAuthorizationResult(resultCode, data);
-        }
-
-        sResultLock.countDown();
-    }
-
-    private static void processRedirectContainingAuthorizationResult(int resultCode, final Intent data) {
-        //CHECKSTYLE:OFF: checkstyle:EmptyBlock
-        if (data == null) {
-            // TODO: set authorizationResult
-        } else {
-            if (resultCode == Constants.UIResponse.CANCEL) {
-                sAuthorizationResult = AuthorizationResult.getAuthorizationResultWithUserCancel();
-            } else if (resultCode == Constants.UIResponse.AUTH_CODE_COMPLETE) {
-                final String url = data.getStringExtra(Constants.AUTHORIZATION_FINAL_URL);
-                sAuthorizationResult = AuthorizationResult.parseAuthorizationResponse(url);
-            } else if (resultCode == Constants.UIResponse.AUTH_CODE_ERROR) {
-                // TODO: handle to code error case.
-                //CHECKSTYLE:ON: checkstyle:EmptyBlock
+        try {
+            if (requestCode != Constants.UIRequest.BROWSER_FLOW) {
+                throw new IllegalStateException("Unknown request code");
             }
+
+            // check it is the same request.
+            sAuthorizationResult = AuthorizationResult.create(resultCode, data);
+        } finally {
+            sResultLock.countDown();
         }
     }
 
+    private static void processAuthorizationResult(final AuthorizationResult authorizationResult)
+            throws MSALUserCancelException, AuthenticationException {
+        if (authorizationResult == null) {
+            // TODO: throw unknown error
+            //CHECKSTYLE:ON: checkstyle:EmptyBlock
+        }
+
+        switch (authorizationResult.getAuthorizationStatus()) {
+            case USER_CANCEL:
+                throw new MSALUserCancelException();
+            case FAIL:
+                // TODO: if clicking on the cancel button in the signin page, we get sub_error with the returned url,
+                // however we cannot take dependency on the sub_error. Then how do we know user click on the cancel button
+                // and that's actually a cancel request? Is server going to return some error code that we can use?
+                throw new AuthenticationException(MSALError.AUTH_FAILED, authorizationResult.getError() + ";"
+                        + authorizationResult.getErrorDescription());
+            case SUCCESS:
+                // Happy path, continue the process to use code for new access token.
+                return;
+            default:
+                throw new IllegalStateException("Unknown status code");
+        }
+    }
 }

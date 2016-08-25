@@ -54,14 +54,14 @@ public final class AuthorizationResultTest {
     @Test
     public void testResponseUriWithError() {
         final String responseUri = REDIRECT_URI + "?" + OauthConstants.Authorize.ERROR + "=" + ERROR_MESSAGE + "&"
-                + OauthConstants.Authorize.ERROR_SUBCODE + "=" + OauthConstants.Authorize.CANCEL;
+                + OauthConstants.Authorize.ERROR_DESCRIPTION + "=" + OauthConstants.Authorize.CANCEL;
         final AuthorizationResult authorizationResult = AuthorizationResult.parseAuthorizationResponse(responseUri);
 
         Assert.assertNotNull(authorizationResult);
-        Assert.assertTrue(AuthorizationResult.AuthorizationStatus.PROTOCOL_ERROR.equals(
+        Assert.assertTrue(AuthorizationResult.AuthorizationStatus.FAIL.equals(
                 authorizationResult.getAuthorizationStatus()));
         Assert.assertTrue(ERROR_MESSAGE.equals(authorizationResult.getError()));
-        Assert.assertNotNull(OauthConstants.Authorize.CANCEL.equals(authorizationResult.getSubError()));
+        Assert.assertTrue(OauthConstants.Authorize.CANCEL.equalsIgnoreCase(authorizationResult.getErrorDescription()));
     }
 
     @Test
@@ -70,9 +70,9 @@ public final class AuthorizationResultTest {
         final AuthorizationResult authorizationResult = AuthorizationResult.parseAuthorizationResponse(responseUri);
 
         Assert.assertNotNull(authorizationResult);
-        Assert.assertTrue(AuthorizationResult.AuthorizationStatus.UNKNOWN.equals(authorizationResult.getAuthorizationStatus()));
+        Assert.assertTrue(AuthorizationResult.AuthorizationStatus.FAIL.equals(authorizationResult.getAuthorizationStatus()));
         Assert.assertTrue(Constants.MSALError.AUTHORIZATION_FAILED.equals(authorizationResult.getError()));
-        Assert.assertTrue(Constants.MSALErrorMessage.AUTHORIZATION_SERVER_INVALID_RESPONSE.equals(authorizationResult.getSubError()));
+        Assert.assertTrue(Constants.MSALErrorMessage.AUTHORIZATION_SERVER_INVALID_RESPONSE.equals(authorizationResult.getErrorDescription()));
     }
 
     @Test
@@ -80,6 +80,6 @@ public final class AuthorizationResultTest {
         final AuthorizationResult authorizationResult = AuthorizationResult.getAuthorizationResultWithUserCancel();
         Assert.assertTrue(AuthorizationResult.AuthorizationStatus.USER_CANCEL.equals(authorizationResult.getAuthorizationStatus()));
         Assert.assertTrue(Constants.MSALError.USER_CANCEL.equals(authorizationResult.getError()));
-        Assert.assertTrue(Constants.MSALErrorMessage.USER_CANCELLED_FLOW.equals(authorizationResult.getSubError()));
+        Assert.assertTrue(Constants.MSALErrorMessage.USER_CANCELLED_FLOW.equals(authorizationResult.getErrorDescription()));
     }
 }

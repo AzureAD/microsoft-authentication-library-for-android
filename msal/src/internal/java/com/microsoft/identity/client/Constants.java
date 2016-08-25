@@ -24,7 +24,7 @@
 package com.microsoft.identity.client;
 
 /**
- * Created by weij on 8/11/2016.
+ * MSAL internal class for constants.
  */
 final class Constants {
 
@@ -38,8 +38,6 @@ final class Constants {
     public static final String CUSTOM_TAB_REDIRECT = "com.microsoft.identity.customtab.redirect";
 
     public static final String AUTHORIZATION_FINAL_URL = "com.microsoft.identity.client.finalUrl";
-
-    public static final String REDIRECT_INTENT = "com.microsoft.identity:redirect";
 
     static final class UIRequest {
         static final int BROWSER_FLOW = 1001;
@@ -68,5 +66,6 @@ final class Constants {
         static final String AUTHORIZATION_FAILED = "authorization_failed";
         static final String USER_CANCEL = "user_cancelled";
         static final String INVALID_REQUEST = "invalid_request";
+        static final String CHROME_NOT_INSTLLED = "chrome_not_installed";
     }
 }

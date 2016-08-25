@@ -35,7 +35,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 
 /**
@@ -82,16 +81,10 @@ final class Oauth2Client {
     }
 
     URL getTokenEndpoint(final URL authorityUrl) throws UnsupportedEncodingException {
-        final Set<String> queryStringSet = new HashSet<>();
-        for (final Map.Entry<String, String> entry : mQueryParameters.entrySet()) {
-            queryStringSet.add(entry.getKey() + "=" + MSALUtils.urlEncode(entry.getValue()));
-        }
-
-        final String queryString = queryStringSet.isEmpty() ? "" : "?" + MSALUtils.convertSetToString(queryStringSet, "&");
         final URL tokenEndpoint;
         try {
-            tokenEndpoint = new URL(authorityUrl.toString() + DEFAULT_TOKEN_ENDPOINT
-                    + queryString);
+            tokenEndpoint = new URL(MSALUtils.getAuthorizationUrl(authorityUrl.toString(),
+                    DEFAULT_TOKEN_ENDPOINT, mQueryParameters));
         } catch (final MalformedURLException e) {
             throw new IllegalArgumentException("Malformed authority URL");
         }
@@ -100,7 +93,7 @@ final class Oauth2Client {
     }
 
     private byte[] buildRequestMessage(final Map<String, String> bodyParameters) throws UnsupportedEncodingException {
-        final Set<String> requestBodyEntries = new TreeSet<>();
+        final Set<String> requestBodyEntries = new HashSet<>();
         final Set<Map.Entry<String, String>> bodyEntries = bodyParameters.entrySet();
         for (Map.Entry<String, String> bodyEntry : bodyEntries) {
             requestBodyEntries.add(bodyEntry.getKey() + "=" + MSALUtils.urlEncode(bodyEntry.getValue()));

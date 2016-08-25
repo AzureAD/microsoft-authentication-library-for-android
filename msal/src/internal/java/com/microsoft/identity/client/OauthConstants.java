@@ -78,6 +78,7 @@ final class OauthConstants {
 
     static final class Authorize {
         static final String ERROR = "error";
+        static final String ERROR_DESCRIPTION = "error_description";
         static final String ERROR_SUBCODE = "error_subcode";
         static final String CANCEL = "cancel";
     }

@@ -62,6 +62,10 @@ final class AuthenticationRequestParameters {
             throw new IllegalArgumentException("scope");
         }
 
+        if (tokenCache == null) {
+            throw new IllegalArgumentException("tokenCache");
+        }
+
         mAuthority = authority;
         mTokenCache = tokenCache;
         mScope.addAll(scope);

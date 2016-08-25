@@ -45,6 +45,8 @@ public final class PublicClientApplication {
     private static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common/";
     private static final String CLIENT_ID_META_DATA = "com.microsoft.identity.client.ClientId";
     private static final String AUTHORITY_META_DATA = "com.microsoft.identity.client.Authority";
+    private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
+    private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
 
     private final Context mAppContext;
     private final Activity mActivity;
@@ -81,6 +83,10 @@ public final class PublicClientApplication {
         mRedirectUri = createRedirectUri(mClientId);
 
         validateInputParameters();
+
+        // Since network request is sent from the sdk, if calling app doesn't declare the internet permission in the
+        // manifest, we cannot make the network call.
+        checkInternetPermission();
 
         mTokenCache = new TokenCache();
         mSettings = new Settings();
@@ -333,6 +339,16 @@ public final class PublicClientApplication {
         if (!MSALUtils.hasCustomTabRedirectActivity(mAppContext, mRedirectUri)) {
             throw new IllegalStateException("App doesn't have the correct configuration for "
                     + CustomTabActivity.class.getSimpleName() + ".");
+        }
+    }
+
+    private void checkInternetPermission() {
+        final PackageManager packageManager = mAppContext.getPackageManager();
+        if (packageManager.checkPermission(INTERNET_PERMISSION, mAppContext.getPackageName())
+                != PackageManager.PERMISSION_GRANTED
+                || packageManager.checkPermission(ACCESS_NETWORK_STATE_PERMISSION, mAppContext.getPackageName())
+                != PackageManager.PERMISSION_GRANTED) {
+            throw new IllegalStateException("android.permission.Internet or android.permission.ACCESS_NETWORK_STATE is missing");
         }
     }
 

@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -60,7 +59,7 @@ abstract class BaseRequest {
      * Abstract method to set the additional body parameters for specific request.
      * @param oauth2Client
      */
-    abstract void setAdditionalRequestBody(final Oauth2Client oauth2Client);
+    abstract void setAdditionalOauthParameters(final Oauth2Client oauth2Client);
 
     /**
      * Constructor for abstract {@link BaseRequest}.
@@ -77,9 +76,6 @@ abstract class BaseRequest {
         }
 
         validateInputScopes(authenticationRequestParameters.getScope());
-
-        mLoadFromCache = authenticationRequestParameters.getTokenCache() != null;
-        mStoreIntoCache = mLoadFromCache;
     }
 
     /**
@@ -93,20 +89,19 @@ abstract class BaseRequest {
      * @param callback The {@link AuthenticationCallback} to deliver the result back.
      */
     void getToken(final AuthenticationCallback callback) {
-        final CallbackHandler callbackHandler = new CallbackHandler(getHandler(), callback);
         mRequestId = callback.hashCode();
         THREAD_EXECUTOR.execute(new Runnable() {
             @Override
             public void run() {
                 try {
                     preTokenRequest();
-                    final AuthenticationResult authenticationResult = sentTokenRequest();
+                    final AuthenticationResult authenticationResult = performTokenRequest();
                     storeTokenIntoCache(authenticationResult);
-                    callbackHandler.onSuccess(authenticationResult);
+                    callbackOnSuccess(callback, authenticationResult);
                 } catch (final MSALUserCancelException userCancelException) {
-                    callbackHandler.onCancel();
+                    callbackOnCancel(callback);
                 } catch (final AuthenticationException authenticationException) {
-                    callbackHandler.onError(authenticationException);
+                    callbackOnError(callback, authenticationException);
                 }
             }
         });
@@ -119,7 +114,7 @@ abstract class BaseRequest {
      * @return The combined scopes.
      */
     Set<String> getDecoratedScope(final Set<String> inputScopes) {
-        final Set<String> scopes = new TreeSet<>(inputScopes);
+        final Set<String> scopes = new HashSet<>(inputScopes);
         final Set<String> reservedScopes = getReservedScopesAsSet();
         scopes.addAll(reservedScopes);
         scopes.remove(mAuthRequestParameters.getClientId());
@@ -154,22 +149,9 @@ abstract class BaseRequest {
         }
     }
 
-    private AuthenticationResult sentTokenRequest() throws AuthenticationException {
+    private AuthenticationResult performTokenRequest() throws AuthenticationException {
         final Oauth2Client oauth2Client = new Oauth2Client();
-
-        oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID,
-                mAuthRequestParameters.getCorrelationId().toString());
-
-        // add query parameter, policy is added as qp
-        if (!MSALUtils.isEmpty(mAuthRequestParameters.getPolicy())) {
-            oauth2Client.addQueryParameter(OauthConstants.Oauth2Parameters.POLICY, mAuthRequestParameters.getPolicy());
-        }
-
-        // add body parameters
-        oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.CLIENT_ID, mAuthRequestParameters.getClientId());
-        final String scope = MSALUtils.convertSetToString(getDecoratedScope(mAuthRequestParameters.getScope()), " ");
-        oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.SCOPE, scope);
-        setAdditionalRequestBody(oauth2Client);
+        buildRequestParameters(oauth2Client);
 
         final TokenResponse tokenResponse;
         try {
@@ -206,61 +188,52 @@ abstract class BaseRequest {
         return mHandler;
     }
 
-    private Set<String> getReservedScopesAsSet() {
-        return new TreeSet<>(Arrays.asList(OauthConstants.Oauth2Value.RESERVED_SCOPES));
+    private void buildRequestParameters(final Oauth2Client oauth2Client) {
+        oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID,
+                mAuthRequestParameters.getCorrelationId().toString());
+
+        // add query parameter, policy is added as qp
+        if (!MSALUtils.isEmpty(mAuthRequestParameters.getPolicy())) {
+            oauth2Client.addQueryParameter(OauthConstants.Oauth2Parameters.POLICY, mAuthRequestParameters.getPolicy());
+        }
+
+        // add body parameters
+        oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.CLIENT_ID, mAuthRequestParameters.getClientId());
+        final String scope = MSALUtils.convertSetToString(getDecoratedScope(mAuthRequestParameters.getScope()), " ");
+        oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.SCOPE, scope);
+        setAdditionalOauthParameters(oauth2Client);
     }
 
-    private static class CallbackHandler {
-        private final Handler mReferenceHandler;
-        private final AuthenticationCallback mCallback;
+    private Set<String> getReservedScopesAsSet() {
+        return new HashSet<>(Arrays.asList(OauthConstants.Oauth2Value.RESERVED_SCOPES));
+    }
 
-        public CallbackHandler(final Handler referenceHandler,
-                               final AuthenticationCallback callback) {
-            if (callback == null) {
-                throw new IllegalArgumentException("callback is null");
+    private void callbackOnSuccess(final AuthenticationCallback callback,
+                                   final AuthenticationResult result) {
+        getHandler().post(new Runnable() {
+            @Override
+            public void run() {
+                callback.onSuccess(result);
             }
+        });
+    }
 
-            mReferenceHandler = referenceHandler;
-            mCallback = callback;
-        }
-
-        public void onSuccess(final AuthenticationResult result) {
-            if (mReferenceHandler != null) {
-                mReferenceHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        mCallback.onSuccess(result);
-                    }
-                });
-            } else {
-                mCallback.onSuccess(result);
+    private void callbackOnCancel(final AuthenticationCallback callback) {
+        getHandler().post(new Runnable() {
+            @Override
+            public void run() {
+                callback.onCancel();
             }
-        }
+        });
+    }
 
-        public void onError(final AuthenticationException exception) {
-            if (mReferenceHandler != null) {
-                mReferenceHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        mCallback.onError(exception);
-                    }
-                });
-            } else {
-                mCallback.onError(exception);
+    private void callbackOnError(final AuthenticationCallback callback,
+                                 final AuthenticationException authenticationException) {
+        getHandler().post(new Runnable() {
+            @Override
+            public void run() {
+                callback.onError(authenticationException);
             }
-        }
-
-        public void onCancel() {
-            if (mReferenceHandler != null) {
-                mReferenceHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        mCallback.onCancel();
-                    }
-                });
-            } else {
-                mCallback.onCancel();
-            }
-        }
+        });
     }
 }

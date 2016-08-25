@@ -33,7 +33,7 @@ public final class AuthenticationActivityTest {
     public void testIntentWithNoRequestUri() {
         final Intent intent = new Intent(mAppContext, AuthenticationActivity.class);
         intent.putExtra(Constants.REQUEST_ID, REQUEST_ID);
-        intent.putExtra(Constants.REDIRECT_INTENT, mRedirectUri);
+
         mTestActivityRule.launchActivity(TestActivity.createIntent(mAppContext, intent));
 
         Assert.assertTrue(TestActivity.getResultCode() == Constants.UIResponse.AUTH_CODE_ERROR);

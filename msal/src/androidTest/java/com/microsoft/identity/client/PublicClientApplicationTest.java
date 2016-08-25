@@ -16,6 +16,7 @@ import android.test.AndroidTestCase;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
@@ -139,7 +140,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     /**
      * Verify correct exception is thrown if callback is not provided.
      */
-    @Test (expected = IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testCallBackEmpty() throws PackageManager.NameNotFoundException {
         final Context context = new MockActivityContext(mAppContext);
         mockPackageManagerWithClientId(context, false);
@@ -147,6 +148,18 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
         final PublicClientApplication application = new PublicClientApplication(getActivity(context));
         application.acquireToken(SCOPE, null);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testInternetPermissionMissing() throws PackageManager.NameNotFoundException {
+        final Context context = new MockActivityContext(mAppContext);
+        final PackageManager packageManager = context.getPackageManager();
+        mockPackageManagerWithClientId(context, false);
+        mockHasCustomTabRedirect(context);
+        Mockito.when(packageManager.checkPermission(Mockito.refEq("android.permission.INTERNET"),
+                Mockito.refEq(mAppContext.getPackageName()))).thenReturn(PackageManager.PERMISSION_DENIED);
+
+        new PublicClientApplication(getActivity(context));
     }
 
     /**
@@ -259,6 +272,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     /**
      * Verify {@link PublicClientApplication#acquireToken(String[], String, UIOptions, String, AuthenticationCallback)}.
      */
+    // TODO: suppress the test. The purpose is that the API call will eventually send back the cancel to caller.
+    @Ignore
     @Test
     public void testGetTokenWithExtraQueryParam()
             throws PackageManager.NameNotFoundException, IOException, InterruptedException {

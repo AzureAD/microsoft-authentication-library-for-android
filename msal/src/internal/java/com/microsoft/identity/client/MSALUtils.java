@@ -50,7 +50,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.TreeSet;
 
 /**
  * Internal Util class for MSAL.
@@ -158,7 +157,7 @@ public final class MSALUtils {
         }
 
         final String[] scopeArray = scopes.toLowerCase(Locale.US).split(" ");
-        final Set<String> resultSet = new TreeSet<>();
+        final Set<String> resultSet = new HashSet<>();
         for (int i = 0; i < scopeArray.length; i++) {
             if (!MSALUtils.isEmpty(scopeArray[i])) {
                 resultSet.add(scopeArray[i]);
@@ -320,5 +319,19 @@ public final class MSALUtils {
         }
 
         return stringBuilder.toString();
+    }
+
+    static final String getAuthorizationUrl(final String url, final String endpoint,
+                                            final Map<String, String> requestParams)
+            throws UnsupportedEncodingException {
+        final Set<String> queryParamsSet = new HashSet<>();
+        for (Map.Entry<String, String> entry : requestParams.entrySet()) {
+            queryParamsSet.add(entry.getKey() + "=" + urlEncode(entry.getValue()));
+        }
+
+        final String queryString = queryParamsSet.isEmpty() ? ""
+                : convertSetToString(queryParamsSet, "&");
+
+        return String.format("%s?%s", url + endpoint, queryString);
     }
 }

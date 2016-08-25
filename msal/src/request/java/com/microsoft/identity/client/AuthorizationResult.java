@@ -23,6 +23,7 @@
 
 package com.microsoft.identity.client;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.util.Base64;
 
@@ -36,22 +37,42 @@ final class AuthorizationResult {
     private final String mAuthCode;
     private final AuthorizationStatus mAuthorizationStatus;
     private final String mError;
-    private final String mSubError;
+    private final String mErrorDescription;
 
     private AuthorizationResult(final String authCode) {
         mAuthorizationStatus = AuthorizationStatus.SUCCESS;
         mAuthCode = authCode;
 
         mError = null;
-        mSubError = null;
+        mErrorDescription = null;
     }
 
-    private AuthorizationResult(final AuthorizationStatus status, final String error, final String subError) {
+    private AuthorizationResult(final AuthorizationStatus status, final String error, final String errorDescription) {
         mAuthorizationStatus = status;
         mError = error;
-        mSubError = subError;
+        mErrorDescription = errorDescription;
 
         mAuthCode = null;
+    }
+
+    public static AuthorizationResult create(int resultCode, final Intent data) {
+        if (data == null) {
+            return new AuthorizationResult(AuthorizationStatus.FAIL,
+                    Constants.MSALError.AUTHORIZATION_FAILED, "receives null intent");
+        }
+
+        if (resultCode == Constants.UIResponse.CANCEL) {
+            return AuthorizationResult.getAuthorizationResultWithUserCancel();
+        } else if (resultCode == Constants.UIResponse.AUTH_CODE_COMPLETE) {
+            final String url = data.getStringExtra(Constants.AUTHORIZATION_FINAL_URL);
+            return AuthorizationResult.parseAuthorizationResponse(url);
+        } else if (resultCode == Constants.UIResponse.AUTH_CODE_ERROR) {
+            // TODO: handle to code error case.
+            //CHECKSTYLE:ON: checkstyle:EmptyBlock
+        }
+
+        return new AuthorizationResult(AuthorizationStatus.FAIL,
+                Constants.MSALError.AUTHORIZATION_FAILED, "Unknown result code" + resultCode);
     }
 
     public static AuthorizationResult parseAuthorizationResponse(final String returnUri) {
@@ -71,11 +92,11 @@ final class AuthorizationResult {
                 authorizationResult = new AuthorizationResult(urlParameters.get(OauthConstants.Oauth2Parameters.CODE));
             } else if (urlParameters.containsKey(OauthConstants.Authorize.ERROR)) {
                 final String error = urlParameters.get(OauthConstants.Authorize.ERROR);
-                final String subError = urlParameters.get(OauthConstants.Authorize.ERROR_SUBCODE);
+                final String errorDescription = urlParameters.get(OauthConstants.Authorize.ERROR_DESCRIPTION);
 
                 // TODO: finalize the error handling.
-                authorizationResult = new AuthorizationResult(AuthorizationStatus.PROTOCOL_ERROR, error,
-                        subError);
+                authorizationResult = new AuthorizationResult(AuthorizationStatus.FAIL, error,
+                        errorDescription);
             } else {
                 authorizationResult = getAuthorizationResultWithInvalidServerResponse();
             }
@@ -105,19 +126,14 @@ final class AuthorizationResult {
         return mError;
     }
 
-    /**
-     * @return The sub error code in the query string of the redirect if applicable.
-     */
-    String getSubError() {
-        return mSubError;
-    }
+    String getErrorDescription() { return mErrorDescription; }
 
     /**
      * @return {@link AuthorizationResult} with invalid server response when the query string in redirect doesn't contain
      * either code or error.
      */
     static AuthorizationResult getAuthorizationResultWithInvalidServerResponse() {
-        return new AuthorizationResult(AuthorizationStatus.UNKNOWN, Constants.MSALError.AUTHORIZATION_FAILED,
+        return new AuthorizationResult(AuthorizationStatus.FAIL, Constants.MSALError.AUTHORIZATION_FAILED,
                 Constants.MSALErrorMessage.AUTHORIZATION_SERVER_INVALID_RESPONSE);
     }
 
@@ -156,11 +172,12 @@ final class AuthorizationResult {
         /**
          * Returned URI contains error.
          */
-        PROTOCOL_ERROR,
+        FAIL,
 
-        INVALID_REQUEST,
-
-        UNKNOWN
+        /**
+         * AuthenticationActivity detects the invalid request.
+         */
+        INVALID_REQUEST
         //TODO:  Investigate how chrome tab returns http timeout error
     }
 }

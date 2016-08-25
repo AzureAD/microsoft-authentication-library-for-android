@@ -9,6 +9,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.AdditionalMatchers;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
@@ -19,8 +20,8 @@ import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 
 /**
@@ -112,21 +113,31 @@ public final class Oauth2ClientTest {
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(outputStream);
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
-        final Set<String> expectedRequestMessageSet = new TreeSet<>();
-        expectedRequestMessageSet.add(OauthConstants.Oauth2Parameters.GRANT_TYPE + "=" + MSALUtils.urlEncode(
-                OauthConstants.Oauth2GrantType.AUTHORIZATION_CODE));
-        expectedRequestMessageSet.add(OauthConstants.Oauth2Parameters.CODE + "=" + MSALUtils.urlEncode(AUTH_CODE));
-        expectedRequestMessageSet.add(OauthConstants.Oauth2Parameters.CLIENT_ID + "=" + MSALUtils.urlEncode(CLIENT_ID));
-
-        final String expectedRequestMessage = MSALUtils.convertSetToString(expectedRequestMessageSet, "&");
-
         try {
             final TokenResponse response = oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY).getAuthorityUrl());
             // Verify common headers
             verifyMockConnectionHasCommonHeaders(mockedConnection);
 
             // Verify body parameters
-            Mockito.verify(outputStream).write(AdditionalMatchers.aryEq(expectedRequestMessage.getBytes(MSALUtils.ENCODING_UTF8)));
+            Mockito.verify(outputStream).write(Mockito.argThat(new ArgumentMatcher<byte[]>() {
+                @Override
+                public boolean matches(Object argument) {
+                    final String message = new String((byte[]) argument);
+                    if (message == null) {
+                        return false;
+                    }
+
+                    final Map<String, String> decodeUrlMap = MSALUtils.decodeUrlToMap(message, "&");
+                    if (decodeUrlMap.get(OauthConstants.Oauth2Parameters.GRANT_TYPE).equalsIgnoreCase(
+                            OauthConstants.Oauth2GrantType.AUTHORIZATION_CODE)
+                            && decodeUrlMap.get(OauthConstants.Oauth2Parameters.CODE).equalsIgnoreCase(AUTH_CODE)
+                            && decodeUrlMap.get(OauthConstants.Oauth2Parameters.CLIENT_ID).equalsIgnoreCase(CLIENT_ID)) {
+                        return true;
+                    }
+
+                    return false;
+                }
+            }));
 
             // verify response
             Assert.assertNotNull(response);
