@@ -26,6 +26,7 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
+import android.util.Base64;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
@@ -40,10 +41,9 @@ import java.util.concurrent.CountDownLatch;
  * tab or fall back to webview if custom tab is not available).
  */
 final class InteractiveRequest extends BaseRequest {
-    private static final String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/v2.0/authorize";
     private final Set<String> mAdditionalScope = new HashSet<>();
 
-    static final String DISABLE_CHROMETAB = "disablechrometab";// TODO: remove it
+    static final String DISABLE_CHROMETAB = "disablechrometab"; // TODO: remove it
     private static AuthorizationResult sAuthorizationResult;
     private static CountDownLatch sResultLock = new CountDownLatch(1);
 
@@ -82,7 +82,7 @@ final class InteractiveRequest extends BaseRequest {
     synchronized void preTokenRequest() throws MSALUserCancelException, AuthenticationException {
         final String authorizeUri;
         try {
-            authorizeUri = getAuthorizationUri();
+            authorizeUri = appendQueryStringToAuthorizeEndpoint();
         } catch (final UnsupportedEncodingException e) {
             throw new AuthenticationException(MSALError.UNSUPPORTED_ENCODING, e.getMessage(), e);
         }
@@ -124,10 +124,10 @@ final class InteractiveRequest extends BaseRequest {
                 mAuthRequestParameters.getRedirectUri());
     }
 
-    String getAuthorizationUri() throws UnsupportedEncodingException {
-        String authorizationUrl = MSALUtils.getAuthorizationUrl(
-                mAuthRequestParameters.getAuthority().getAuthorityUrl().toString(),
-                DEFAULT_AUTHORIZE_ENDPOINT, createRequestParameters());
+    String appendQueryStringToAuthorizeEndpoint() throws UnsupportedEncodingException {
+        String authorizationUrl = MSALUtils.appendQueryParameterToUrl(
+                mAuthRequestParameters.getAuthority().getAuthorizeEndpoint(),
+                createRequestParameters());
 
         final String extraQP = mAuthRequestParameters.getExtraQueryParam();
         if (!MSALUtils.isEmpty(extraQP)) {
@@ -147,7 +147,7 @@ final class InteractiveRequest extends BaseRequest {
         return resolveInfo != null;
     }
 
-    private Map<String, String> createRequestParameters() {
+    private Map<String, String> createRequestParameters() throws UnsupportedEncodingException {
         final Map<String, String> requestParameters = new HashMap<>();
 
         final Set<String> scopes = new HashSet<>(mAuthRequestParameters.getScope());
@@ -180,6 +180,9 @@ final class InteractiveRequest extends BaseRequest {
 
         addUiOptionToRequestParameters(requestParameters);
 
+        // append state in the query parameters
+        requestParameters.put(OauthConstants.Oauth2Parameters.STATE, encodeProtocolState());
+
         return requestParameters;
     }
 
@@ -192,6 +195,14 @@ final class InteractiveRequest extends BaseRequest {
         } else if (uiOptions == UIOptions.ACT_AS_CURRENT_USER) {
             requestParameters.put(OauthConstants.Oauth2Parameters.RESTRICT_TO_HINT, "true");
         }
+    }
+
+    public String encodeProtocolState() throws UnsupportedEncodingException {
+        final String state = String.format("a=%s&r=%s", MSALUtils.urlEncode(
+                mAuthRequestParameters.getAuthority().getAuthorityUrl()),
+                MSALUtils.urlEncode(MSALUtils.convertSetToString(
+                        mAuthRequestParameters.getScope(), " ")));
+        return Base64.encodeToString(state.getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 
     static synchronized void onActivityResult(int requestCode, int resultCode, final Intent data) {
@@ -207,7 +218,7 @@ final class InteractiveRequest extends BaseRequest {
         }
     }
 
-    private static void processAuthorizationResult(final AuthorizationResult authorizationResult)
+    private void processAuthorizationResult(final AuthorizationResult authorizationResult)
             throws MSALUserCancelException, AuthenticationException {
         if (authorizationResult == null) {
             // TODO: throw unknown error
@@ -224,10 +235,38 @@ final class InteractiveRequest extends BaseRequest {
                 throw new AuthenticationException(MSALError.AUTH_FAILED, authorizationResult.getError() + ";"
                         + authorizationResult.getErrorDescription());
             case SUCCESS:
+                // verify if the state is the same as the one we send
+                verifyStateInResponse(authorizationResult.getState());
+
                 // Happy path, continue the process to use code for new access token.
                 return;
             default:
                 throw new IllegalStateException("Unknown status code");
         }
+    }
+
+    private void verifyStateInResponse(final String stateInResponse) throws AuthenticationException {
+        final String decodeState = decodeState(stateInResponse);
+        final Map<String, String> stateMap = MSALUtils.decodeUrlToMap(decodeState, "&");
+
+        if (stateMap.size() != 2
+                || !mAuthRequestParameters.getAuthority().getAuthorityUrl().equals(stateMap.get("a"))) {
+            throw new AuthenticationException(MSALError.AUTH_FAILED, Constants.MSALErrorMessage.STATE_NOT_THE_SAME);
+        }
+
+        final Set<String> scopesInState = MSALUtils.getScopesAsSet(stateMap.get("r"));
+        final Set<String> scopesInRequest = mAuthRequestParameters.getScope();
+        if (scopesInState.size() != scopesInRequest.size() && !scopesInState.containsAll(scopesInRequest)) {
+            throw new AuthenticationException(MSALError.AUTH_FAILED, Constants.MSALErrorMessage.STATE_NOT_THE_SAME);
+        }
+    }
+
+    private String decodeState(final String encodedState) {
+        if (MSALUtils.isEmpty(encodedState)) {
+            return null;
+        }
+
+        final byte[] stateBytes = Base64.decode(encodedState, Base64.NO_PADDING | Base64.URL_SAFE);
+        return new String(stateBytes);
     }
 }

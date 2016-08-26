@@ -38,20 +38,23 @@ import java.util.Map;
  * Internal class for the the returned JSON response from token endpoint.
  */
 final class TokenResponse {
-    private String mAccessToken;
-    private String mRawIdToken;
-    private String mRefreshToken;
-    private Date mExpiresOn;
-    private Date mExtendedExpiresOn;
-    private Date mIdTokenExpiresOn;
-    private String mScope;
-    private String mTokenType;
-    private String mFoCI;
-    private String mError;
-    private String mErrorDescription;
-    private String[] mErrorCodes;
+    private final String mAccessToken;
+    private final String mRawIdToken;
+    private final String mRefreshToken;
+    private final Date mExpiresOn;
+    private final Date mExtendedExpiresOn;
+    private final Date mIdTokenExpiresOn;
+    private final String mScope;
+    private final String mTokenType;
+    private final String mFoCI;
+    private final String mError;
+    private final String mErrorDescription;
+    private final String[] mErrorCodes;
     private final Map<String, String> mAdditionalData = new HashMap<>();
 
+    /**
+     * Create token response with token when token is returned.
+     */
     public TokenResponse(final String accessToken, final String rawIdToken, final String refreshToken,
                          final Date expiresOn, final Date idTokenExpiresOn, final Date extendedExpiresOn,
                          final String scope, final String tokenType, final String foCI) {
@@ -66,127 +69,128 @@ final class TokenResponse {
         mFoCI = foCI;
         mError = null;
         mErrorDescription = null;
+        mErrorCodes = null;
     }
 
+    /**
+     * Creates token response with error returned in the server JSON response.
+     */
     public TokenResponse(final String error, final String errorDescription, String[] errorCodes) {
         mError = error;
         mErrorDescription = errorDescription;
         mErrorCodes = errorCodes;
 
         mAccessToken = null;
+        mRefreshToken = null;
         mRawIdToken = null;
         mExpiresOn = null;
+        mIdTokenExpiresOn = null;
         mExtendedExpiresOn = null;
         mScope = null;
         mTokenType = null;
         mFoCI = null;
     }
 
-    public void setAccessToken(final String accessToken) {
-        mAccessToken = accessToken;
-    }
-
+    /**
+     * @return The access token.
+     */
     public String getAccessToken() {
         return mAccessToken;
     }
 
-    public void setRawIdToken(final String rawIdToken) {
-        mRawIdToken = rawIdToken;
-    }
-
+    /**
+     * @return The raw id token.
+     */
     public String getRawIdToken() {
         return mRawIdToken;
     }
 
-    public void setRefreshToken(final String refreshToken) {
-        mRefreshToken = refreshToken;
-    }
-
+    /**
+     * @return The refresh token.
+     */
     public String getRefreshToken() {
         return mRefreshToken;
     }
 
-    public void setExpiresOn(final Date expiresOn) {
-        mExpiresOn = expiresOn;
-    }
-
+    /**
+     * @return Expires for the access token.
+     */
     public Date getExpiresOn() {
         return mExpiresOn;
     }
 
-    public void setIdTokenExpiresOn(final Date idTokenExpiresOn) {
-        mIdTokenExpiresOn = idTokenExpiresOn;
-    }
-
+    /**
+     * @return Expires on for the id token.
+     */
     public Date getIdTokenExpiresOn() {
         return mIdTokenExpiresOn;
     }
 
-    public void setExtendedExpiresOn(final Date extendedExpiresOn) {
-        mExtendedExpiresOn = extendedExpiresOn;
-    }
-
+    /**
+     * @return Extended expires on for the access token.
+     */
     public Date getExtendedExpiresOn() {
         return mExtendedExpiresOn;
     }
 
-    public void setScope(final String scope) {
-        mScope = scope;
-    }
-
+    /**
+     * @return Scopes returned in the server response.
+     */
     public String getScope() {
         return mScope;
     }
 
-    public void setTokenType(final String tokenType) {
-        mTokenType = tokenType;
-    }
-
+    /**
+     * @return The token type.
+     */
     public String getTokenType() {
         return mTokenType;
     }
 
-    public void setFamilyClientId(final String foCI) {
-        mFoCI = foCI;
-    }
-
+    /**
+     * @return Family client id.
+     */
     public String getFamilyClientId() {
         return mFoCI;
     }
 
-    public void setError(final String error) {
-        mError = error;
-    }
-
+    /**
+     * @return Error represents the error in the JSON response.
+     */
     public String getError() {
         return mError;
     }
 
-    public void setErrorDescription(final String errorDescription) {
-        mErrorDescription = errorDescription;
-    }
-
+    /**
+     * @return Error descriptions representing the error_description.
+     */
     public String getErrorDescription() {
         return mErrorDescription;
     }
 
-    public void setErrorCodes(final String[] errorCodes) {
-        mErrorCodes = errorCodes;
-    }
-
+    /**
+     * @return Array of error codes.
+     */
     public String[] getErrorCodes() {
         return mErrorCodes;
     }
 
+    /**
+     * Set additional data returned in the server response.
+     * @param additionalData The additional data in the JSON response.
+     */
     public void setAdditionalData(final Map<String, String> additionalData) {
         mAdditionalData.putAll(additionalData);
     }
 
+    /**
+     * @return The additional data returned from server.
+     */
     public Map<String, String> getAdditionalData() {
         return mAdditionalData;
     }
 
-    static TokenResponse createTokenResponseWithError(final Map<String, String> responseItems) throws JSONException {
+    static TokenResponse createErrorTokenResponse(final Map<String, String> responseItems) throws JSONException {
         final String error = responseItems.get(TokenResponseClaim.ERROR);
         final String errorDescription = responseItems.get(TokenResponseClaim.ERROR_DESCRIPTION);
 

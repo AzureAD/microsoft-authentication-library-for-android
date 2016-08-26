@@ -18,7 +18,7 @@
         </activity>
 
         <activity
-            android:name="com.microsoft.identity.client.CustomTabActivity"
+            android:name="com.microsoft.identity.client.BrowserTabActivity"
             android:exported="true">
         </activity>
     </application>

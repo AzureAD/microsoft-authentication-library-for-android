@@ -187,14 +187,14 @@ public final class MSALUtilTest {
                 Matchers.eq(PackageManager.GET_RESOLVED_FILTER))).thenReturn(Collections.<ResolveInfo>emptyList());
         Assert.assertFalse(MSALUtils.hasCustomTabRedirectActivity(mockedContext, url));
 
-        // resolve info list contains single item, and the activity name is CustomTabActivity class name.
+        // resolve info list contains single item, and the activity name is BrowserTabActivity class name.
         final List<ResolveInfo> resolveInfos = new ArrayList<>();
         Mockito.when(mockedPackageManager.queryIntentActivities(Matchers.any(Intent.class),
                 Matchers.eq(PackageManager.GET_RESOLVED_FILTER))).thenReturn(resolveInfos);
 
         final ResolveInfo mockedResolveInfo1 = Mockito.mock(ResolveInfo.class);
         final ActivityInfo mockedActivityInfo1 = Mockito.mock(ActivityInfo.class);
-        mockedActivityInfo1.name = CustomTabActivity.class.getName();
+        mockedActivityInfo1.name = BrowserTabActivity.class.getName();
         mockedResolveInfo1.activityInfo = mockedActivityInfo1;
         resolveInfos.add(mockedResolveInfo1);
         Assert.assertTrue(MSALUtils.hasCustomTabRedirectActivity(mockedContext, url));

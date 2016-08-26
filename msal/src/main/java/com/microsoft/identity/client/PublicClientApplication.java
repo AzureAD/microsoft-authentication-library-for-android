@@ -42,11 +42,11 @@ import java.util.UUID;
 public final class PublicClientApplication {
     private static final String TAG = PublicClientApplication.class.getSimpleName(); //NOPMD
 
-    private static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common/";
     private static final String CLIENT_ID_META_DATA = "com.microsoft.identity.client.ClientId";
     private static final String AUTHORITY_META_DATA = "com.microsoft.identity.client.Authority";
     private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
+    private static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common/";
 
     private final Context mAppContext;
     private final Activity mActivity;
@@ -338,7 +338,7 @@ public final class PublicClientApplication {
 
         if (!MSALUtils.hasCustomTabRedirectActivity(mAppContext, mRedirectUri)) {
             throw new IllegalStateException("App doesn't have the correct configuration for "
-                    + CustomTabActivity.class.getSimpleName() + ".");
+                    + BrowserTabActivity.class.getSimpleName() + ".");
         }
     }
 

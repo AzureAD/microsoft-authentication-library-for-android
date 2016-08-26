@@ -27,7 +27,8 @@ import java.util.Date;
 import java.util.Set;
 
 /**
- * Created by weij on 8/2/2016.
+ * MSAL success authentication result. When auth succeed, token will be wrapped into the
+ * {@link AuthenticationResult} and sent back through the {@link AuthenticationCallback}.
  */
 public final class AuthenticationResult {
 
@@ -43,6 +44,13 @@ public final class AuthenticationResult {
      * @param tokenResponse
      */
     AuthenticationResult(final TokenResponse tokenResponse) throws AuthenticationException {
+        if (!MSALUtils.isEmpty(tokenResponse.getRawIdToken())) {
+            mIdToken = tokenResponse.getRawIdToken();
+            final IdToken idToken = new IdToken(mIdToken);
+            mTenantId = idToken.getTenantId();
+            mUser = new User(idToken);
+        }
+
         // If both access token and id token is returned, mToken is set with access token.
         // If access token is not returned but id token is returned, mToken is set with id token.
         if (!MSALUtils.isEmpty(tokenResponse.getAccessToken())) {
@@ -51,13 +59,6 @@ public final class AuthenticationResult {
         } else if (!MSALUtils.isEmpty(tokenResponse.getRawIdToken())) {
             mToken = tokenResponse.getRawIdToken();
             mExpiresOn = tokenResponse.getIdTokenExpiresOn();
-        }
-
-        if (!MSALUtils.isEmpty(tokenResponse.getRawIdToken())) {
-            mIdToken = tokenResponse.getRawIdToken();
-            final IdToken idToken = new IdToken(mIdToken);
-            mTenantId = idToken.getTenantId();
-            mUser = new User(idToken);
         }
 
         final Set<String> returnedScopesInSet = MSALUtils.getScopesAsSet(tokenResponse.getScope());
@@ -71,7 +72,8 @@ public final class AuthenticationResult {
     AuthenticationResult(final TokenCacheItem tokenCacheItem) { } // NOPMD
 
     /**
-     * @return The token, could be access token or id token.
+     * @return The token, could be access token or id token. If client id is the single scope that
+     * is used for token acquisition, id token will be the only one returned.
      */
     public String getToken() {
         return mToken;

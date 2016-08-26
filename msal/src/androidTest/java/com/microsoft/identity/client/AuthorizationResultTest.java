@@ -43,7 +43,7 @@ public final class AuthorizationResultTest {
 
     @Test
     public void testResponseUriWithCode() {
-        final String responseUri = REDIRECT_URI + "?code=" + AUTH_CODE;
+        final String responseUri = REDIRECT_URI + "?state=some_state&code=" + AUTH_CODE;
         final AuthorizationResult authorizationResult = AuthorizationResult.parseAuthorizationResponse(responseUri);
 
         Assert.assertNotNull(authorizationResult);

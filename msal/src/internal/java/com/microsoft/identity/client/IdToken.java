@@ -34,14 +34,14 @@ import java.util.Map;
  * MSAL internal class that represents the id token.
  */
 final class IdToken {
-    private String mIssuer;
-    private String mObjectId;
-    private String mSubject;
-    private String mTenantId;
-    private String mVersion;
-    private String mPreferredName;
-    private String mName;
-    private String mHomeObjectId;
+    private final String mIssuer;
+    private final String mObjectId;
+    private final String mSubject;
+    private final String mTenantId;
+    private final String mVersion;
+    private final String mPreferredName;
+    private final String mName;
+    private final String mHomeObjectId;
 
     /**
      * Constructor to create a new {@link IdToken}. Will parse the raw id token.
@@ -126,7 +126,7 @@ final class IdToken {
         }
     }
 
-    static class IdTokenClaim {
+    private static class IdTokenClaim {
         static final String ISSUER = "iss";
         static final String OBJECT_ID = "oid";
         static final String SUBJECT = "sub";

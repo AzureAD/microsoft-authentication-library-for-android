@@ -86,7 +86,7 @@ public final class TokenResponseTest {
         failureResponseItem.put(EXTRA_DATA_1, EXTRA_DATA_1);
         failureResponseItem.put(EXTRA_DATA_1, EXTRA_DATA_2);
 
-        final TokenResponse failureResponse = TokenResponse.createTokenResponseWithError(failureResponseItem);
+        final TokenResponse failureResponse = TokenResponse.createErrorTokenResponse(failureResponseItem);
         Assert.assertTrue(ERROR.equals(failureResponse.getError()));
         Assert.assertTrue(ERROR_DESCRIPTION.equals(failureResponse.getErrorDescription()));
         Assert.assertTrue(failureResponse.getErrorCodes().length == 2);

@@ -25,7 +25,6 @@ package com.microsoft.identity.client;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.util.Base64;
 
 import java.util.Map;
 
@@ -35,13 +34,15 @@ import java.util.Map;
 final class AuthorizationResult {
 
     private final String mAuthCode;
+    private final String mState;
     private final AuthorizationStatus mAuthorizationStatus;
     private final String mError;
     private final String mErrorDescription;
 
-    private AuthorizationResult(final String authCode) {
+    private AuthorizationResult(final String authCode, final String state) {
         mAuthorizationStatus = AuthorizationStatus.SUCCESS;
         mAuthCode = authCode;
+        mState = state;
 
         mError = null;
         mErrorDescription = null;
@@ -53,6 +54,7 @@ final class AuthorizationResult {
         mErrorDescription = errorDescription;
 
         mAuthCode = null;
+        mState = null;
     }
 
     public static AuthorizationResult create(int resultCode, final Intent data) {
@@ -66,6 +68,7 @@ final class AuthorizationResult {
         } else if (resultCode == Constants.UIResponse.AUTH_CODE_COMPLETE) {
             final String url = data.getStringExtra(Constants.AUTHORIZATION_FINAL_URL);
             return AuthorizationResult.parseAuthorizationResponse(url);
+            //CHECKSTYLE:OFF: checkstyle:EmptyBlock
         } else if (resultCode == Constants.UIResponse.AUTH_CODE_ERROR) {
             // TODO: handle to code error case.
             //CHECKSTYLE:ON: checkstyle:EmptyBlock
@@ -84,12 +87,15 @@ final class AuthorizationResult {
             authorizationResult = getAuthorizationResultWithInvalidServerResponse();
         } else {
             final Map<String, String> urlParameters = MSALUtils.decodeUrlToMap(result, "&");
-//            if (!urlParameters.containsKey("state")) {
-//                authorizationResult = getAuthorizationResultWithInvalidServerResponse();
-//            }else
-            // TODO: append state
             if (urlParameters.containsKey(OauthConstants.TokenResponseClaim.CODE)) {
-                authorizationResult = new AuthorizationResult(urlParameters.get(OauthConstants.Oauth2Parameters.CODE));
+                final String state = urlParameters.get(OauthConstants.TokenResponseClaim.STATE);
+                if (MSALUtils.isEmpty(state)) {
+                    authorizationResult = new AuthorizationResult(AuthorizationStatus.FAIL, Constants.MSALError.AUTHORIZATION_FAILED,
+                            Constants.MSALErrorMessage.STATE_NOT_RETURNED);
+                } else {
+                    authorizationResult = new AuthorizationResult(urlParameters.get(
+                            OauthConstants.Oauth2Parameters.CODE), state);
+                }
             } else if (urlParameters.containsKey(OauthConstants.Authorize.ERROR)) {
                 final String error = urlParameters.get(OauthConstants.Authorize.ERROR);
                 final String errorDescription = urlParameters.get(OauthConstants.Authorize.ERROR_DESCRIPTION);
@@ -113,6 +119,13 @@ final class AuthorizationResult {
     }
 
     /**
+     * @return The state returned in the authorize redirect with code.
+     */
+    String getState() {
+        return mState;
+    }
+
+    /**
      * @return The {@link AuthorizationStatus} indicating the auth status for the request sent to authorize endopoint.
      */
     AuthorizationStatus getAuthorizationStatus() {
@@ -126,7 +139,9 @@ final class AuthorizationResult {
         return mError;
     }
 
-    String getErrorDescription() { return mErrorDescription; }
+    String getErrorDescription() {
+        return mErrorDescription;
+    }
 
     /**
      * @return {@link AuthorizationResult} with invalid server response when the query string in redirect doesn't contain
@@ -144,15 +159,6 @@ final class AuthorizationResult {
     static AuthorizationResult getAuthorizationResultWithUserCancel() {
         return new AuthorizationResult(AuthorizationStatus.USER_CANCEL, Constants.MSALError.USER_CANCEL,
                 Constants.MSALErrorMessage.USER_CANCELLED_FLOW);
-    }
-
-    private String decodeState(final String encodedState) {
-        if (MSALUtils.isEmpty(encodedState)) {
-            return null;
-        }
-
-        final byte[] stateBytes = Base64.decode(encodedState, Base64.NO_PADDING | Base64.URL_SAFE);
-        return new String(stateBytes);
     }
 
     /**

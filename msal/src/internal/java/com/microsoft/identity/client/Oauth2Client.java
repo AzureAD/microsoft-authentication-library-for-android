@@ -43,8 +43,9 @@ import java.util.UUID;
  */
 final class Oauth2Client {
     private static final String TAG = Oauth2Client.class.getSimpleName();
+    private static final String POST_ACCEPT_HEADER = "Accept";
+    private static final String POST_ACCEPT_HEADER_VALUE = "application/json";
 
-    static final String DEFAULT_TOKEN_ENDPOINT = "/oauth2/v2.0/token";
     static final String POST_CONTENT_TYPE = "application/x-www-form-urlencoded";
 
     private final Map<String, String> mBodyParameters = new HashMap<>();
@@ -63,15 +64,13 @@ final class Oauth2Client {
         mHeader.put(key, value);
     }
 
-    TokenResponse getToken(final URL authorityUrl) throws IOException, RetryableException,
+    TokenResponse getToken(final Authority authority) throws IOException, RetryableException,
             AuthenticationException {
-        final URL tokenEndpoint = getTokenEndpoint(authorityUrl);
-        addHeader("Accept", "application/json");
+        final URL tokenEndpoint = appendQueryParamToTokenEndpoint(authority);
+        addHeader(POST_ACCEPT_HEADER, POST_ACCEPT_HEADER_VALUE);
 
         final HttpResponse response = HttpRequest.sendPost(tokenEndpoint, mHeader,
                 buildRequestMessage(mBodyParameters), POST_CONTENT_TYPE);
-
-        // TODO: device auth challenge should be handled here.
 
         final UUID correlationIdInRequest = UUID.fromString(mHeader.get(
                 OauthConstants.OauthHeader.CORRELATION_ID));
@@ -80,16 +79,16 @@ final class Oauth2Client {
         return parseRawResponseToTokenResponse(response);
     }
 
-    URL getTokenEndpoint(final URL authorityUrl) throws UnsupportedEncodingException {
-        final URL tokenEndpoint;
+    URL appendQueryParamToTokenEndpoint(final Authority authority) throws UnsupportedEncodingException {
+        final URL tokenEndpointWithQueryString;
         try {
-            tokenEndpoint = new URL(MSALUtils.getAuthorizationUrl(authorityUrl.toString(),
-                    DEFAULT_TOKEN_ENDPOINT, mQueryParameters));
+            tokenEndpointWithQueryString = new URL(MSALUtils.appendQueryParameterToUrl(
+                    authority.getTokenEndpoint(), mQueryParameters));
         } catch (final MalformedURLException e) {
             throw new IllegalArgumentException("Malformed authority URL");
         }
 
-        return tokenEndpoint;
+        return tokenEndpointWithQueryString;
     }
 
     private byte[] buildRequestMessage(final Map<String, String> bodyParameters) throws UnsupportedEncodingException {
@@ -143,7 +142,7 @@ final class Oauth2Client {
         try {
             final Map<String, String> responseItems = MSALUtils.extractJsonObjectIntoMap(response.getBody());
             if (response.getStatusCode() != HttpURLConnection.HTTP_OK) {
-                return TokenResponse.createTokenResponseWithError(responseItems);
+                return TokenResponse.createErrorTokenResponse(responseItems);
             } else {
                 return TokenResponse.createSuccessTokenResponse(responseItems);
             }

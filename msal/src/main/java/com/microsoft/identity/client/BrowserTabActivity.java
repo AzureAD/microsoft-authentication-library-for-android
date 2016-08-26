@@ -32,7 +32,7 @@ import android.os.Bundle;
  * endpoint. This activity has to be exposed by "android:exported=true", and intent filter has to be declared in the
  * manifest for the activity. When chrome custom tab is launched, and we're redirected back with the redirect
  * uri(with this being said, the redirect has to be unique across apps), the os will fire an intent with the redirect,
- * and the CustomTabActivity will be launched.
+ * and the BrowserTabActivity will be launched.
  * &lt intent-filter>
  *     &lt action android:name="android.intent.action.VIEW" />
  *
@@ -42,11 +42,11 @@ import android.os.Bundle;
  *     The target activity allows itself to be started by a web browser to display data.
  *     &lt category android:name="android.intent.category.BROWSABLE" />
  *
- *     CustomTabActivity will be launched when matching the custom url scheme.
+ *     BrowserTabActivity will be launched when matching the custom url scheme.
  *     &lt data android:scheme="msauth-clientid" android:host="appPackageName" />
  * &lt /intent-filter>
  */
-public final class CustomTabActivity extends Activity {
+public final class BrowserTabActivity extends Activity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Set;
 
 /**
  * Util class for instrumentation tests.
@@ -107,5 +108,12 @@ public final class AndroidTestUtil {
         }
 
         return "{" + errorDescription + "}";
+    }
+
+    static String encodeProtocolState(final String authority, final Set<String> scopes)
+            throws UnsupportedEncodingException {
+        String state = String.format("a=%s&r=%s", MSALUtils.urlEncode(authority),
+                MSALUtils.urlEncode(MSALUtils.convertSetToString(scopes, " ")));
+        return Base64.encodeToString(state.getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 }

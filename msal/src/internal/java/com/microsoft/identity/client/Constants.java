@@ -44,15 +44,15 @@ final class Constants {
     }
 
     static final class UIResponse {
-        public static final int CANCEL = 2001;
+        static final int CANCEL = 2001;
 
-        public static final int AUTH_CODE_ERROR = 2002;
+        static final int AUTH_CODE_ERROR = 2002;
 
-        public static final int AUTH_CODE_COMPLETE = 2003;
+        static final int AUTH_CODE_COMPLETE = 2003;
 
-        public static final String ERROR_CODE = "error_code";
+        static final String ERROR_CODE = "error_code";
 
-        public static final String ERROR_DESCRIPTION = "error_description";
+        static final String ERROR_DESCRIPTION = "error_description";
     }
 
     static final class MSALErrorMessage {
@@ -60,6 +60,10 @@ final class Constants {
                 + "response.";
 
         static final String USER_CANCELLED_FLOW = "User pressed device back button to cancel the flow.";
+
+        static final String STATE_NOT_THE_SAME = "Returned state from authorize endpoint is not the same as the one sent";
+
+        static final String STATE_NOT_RETURNED = "State is not returned";
     }
 
     static final class MSALError {

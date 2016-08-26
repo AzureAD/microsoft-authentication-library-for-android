@@ -41,6 +41,7 @@ final class OauthConstants {
         static final String RESTRICT_TO_HINT = "restrict_to_hint";
         static final String POLICY = "p";
         static final String HAS_CHROME = "haschrome";
+        static final String STATE = "state";
     }
 
     static final class Oauth2ResponseType {
@@ -98,5 +99,6 @@ final class OauthConstants {
         static final String ERROR_DESCRIPTION = "error_description";
         static final String ERROR_CODES = "error_codes";
         static final String CORRELATION_ID = "correlation_id";
+        static final String STATE = "state";
     }
 }

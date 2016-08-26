@@ -48,9 +48,9 @@ public final class Oauth2ClientTest {
         final Oauth2Client oauth2Client = getOauth2ClientWithCorrelationIdInTheHeader();
         oauth2Client.addQueryParameter(OauthConstants.Oauth2Parameters.POLICY, "p1 p2");
 
-        final URL tokenEndpoint = oauth2Client.getTokenEndpoint(getAuthority(
-                AndroidTestUtil.DEFAULT_AUTHORITY).getAuthorityUrl());
-        final String expectedUrl = AndroidTestUtil.DEFAULT_AUTHORITY + Oauth2Client.DEFAULT_TOKEN_ENDPOINT + "?p=p1+p2";
+        final URL tokenEndpoint = oauth2Client.appendQueryParamToTokenEndpoint(getAuthority(
+                AndroidTestUtil.DEFAULT_AUTHORITY));
+        final String expectedUrl = AndroidTestUtil.DEFAULT_AUTHORITY + Authority.DEFAULT_TOKEN_ENDPOINT + "?p=p1+p2";
 
         Assert.assertTrue(tokenEndpoint.toString().equals(expectedUrl));
     }
@@ -79,7 +79,7 @@ public final class Oauth2ClientTest {
         final String expectedRequestMessage = MSALUtils.convertSetToString(expectedRequestMessageSet, "&");
 
         try {
-            final TokenResponse response = oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY).getAuthorityUrl());
+            final TokenResponse response = oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
             // Verify common headers
             verifyMockConnectionHasCommonHeaders(mockedConnection);
 
@@ -114,7 +114,7 @@ public final class Oauth2ClientTest {
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
         try {
-            final TokenResponse response = oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY).getAuthorityUrl());
+            final TokenResponse response = oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
             // Verify common headers
             verifyMockConnectionHasCommonHeaders(mockedConnection);
 
@@ -162,7 +162,7 @@ public final class Oauth2ClientTest {
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
         try {
-            oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY).getAuthorityUrl());
+            oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
             Assert.fail();
         } catch (final AuthenticationException e) {
             Assert.assertNotNull(e.getCause());
@@ -183,7 +183,7 @@ public final class Oauth2ClientTest {
         HttpUrlConnectionFactory.addMockedConnection(getMockedConnectionWithSocketTimeout());
 
         try {
-            oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY).getAuthorityUrl());
+            oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
             Assert.fail();
         } catch (final RetryableException e) {
             Assert.assertNotNull(e.getCause());
@@ -208,7 +208,7 @@ public final class Oauth2ClientTest {
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
         try {
-            oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY).getAuthorityUrl());
+            oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
             Assert.fail();
         } catch (final RetryableException e) {
             Assert.assertNotNull(e.getCause());

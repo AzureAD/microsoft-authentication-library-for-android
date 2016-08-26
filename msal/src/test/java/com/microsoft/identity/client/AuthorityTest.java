@@ -30,6 +30,7 @@ import org.junit.Test;
  * Unit test for {@link Authority}.
  */
 public final class AuthorityTest {
+
     @Test(expected = IllegalArgumentException.class)
     public void testAuthorityStartWithHttp() {
         new Authority("http://test.com", false);
@@ -42,7 +43,24 @@ public final class AuthorityTest {
 
     @Test
     public void testAuthorityWithTrailingSlash() {
-        final Authority authority = new Authority("https://login.microsoftonline.com/common/", false);
+        final String authorityWithTrailingSlash = "https://login.microsoftonline.com/common/";
+        final Authority authority = new Authority(authorityWithTrailingSlash, false);
         Assert.assertFalse(authority.getAuthorityUrl().toString().endsWith("/"));
+
+        Assert.assertTrue(authority.getAuthorizeEndpoint().equals(authority.getAuthorityUrl()
+                + Authority.DEFAULT_AUTHORIZE_ENDPOINT));
+        Assert.assertTrue(authority.getTokenEndpoint().equals(authority.getAuthorityUrl() + Authority.DEFAULT_TOKEN_ENDPOINT));
     }
+
+    @Test
+    public void testAuthorityWithoutTrailingSlash() {
+        final String authorityWithoutTrailingSlash = "https://login.microsoftonline.com/common";
+        final Authority authority = new Authority(authorityWithoutTrailingSlash, false);
+
+        Assert.assertTrue(authority.getAuthorizeEndpoint().equals(authorityWithoutTrailingSlash
+                + Authority.DEFAULT_AUTHORIZE_ENDPOINT));
+        Assert.assertTrue(authority.getTokenEndpoint().equals(authorityWithoutTrailingSlash
+                + Authority.DEFAULT_TOKEN_ENDPOINT));
+    }
+
 }

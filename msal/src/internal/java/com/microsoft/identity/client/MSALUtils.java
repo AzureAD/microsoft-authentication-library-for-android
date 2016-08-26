@@ -54,7 +54,7 @@ import java.util.StringTokenizer;
 /**
  * Internal Util class for MSAL.
  */
-public final class MSALUtils {
+final class MSALUtils {
     /**
      * The encoding scheme the sdk uses.
      */
@@ -178,14 +178,14 @@ public final class MSALUtils {
         intent.addCategory(Intent.CATEGORY_DEFAULT);
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
         intent.setDataAndNormalize(Uri.parse(url));
-        final List<ResolveInfo> resolveInfos = packageManager.queryIntentActivities(intent,
+        final List<ResolveInfo> resolveInfoList = packageManager.queryIntentActivities(intent,
                 PackageManager.GET_RESOLVED_FILTER);
 
         // resolve info list will never be null, if no matching activities are found, empty list will be returned.
         boolean hasActivity = false;
-        for (ResolveInfo info : resolveInfos) {
+        for (ResolveInfo info : resolveInfoList) {
             ActivityInfo activityInfo = info.activityInfo;
-            if (activityInfo.name.equals(CustomTabActivity.class.getName())) {
+            if (activityInfo.name.equals(BrowserTabActivity.class.getName())) {
                 hasActivity = true;
             } else {
                 // another application is listening for this url scheme, don't open
@@ -237,12 +237,12 @@ public final class MSALUtils {
      * @return The chrome package name that exists on the device.
      */
     static String getChromePackage(final Context context) {
-        if (context.getPackageManager() == null) {
+        final PackageManager packageManager = context.getPackageManager();
+        if (packageManager == null) {
             return null;
         }
 
         String installedChromePackage = null;
-        final PackageManager packageManager = context.getPackageManager();
         for (int i = 0; i < CHROME_PACKAGES.length; i++) {
             try {
                 packageManager.getPackageInfo(CHROME_PACKAGES[i], PackageManager.GET_ACTIVITIES);
@@ -321,8 +321,8 @@ public final class MSALUtils {
         return stringBuilder.toString();
     }
 
-    static final String getAuthorizationUrl(final String url, final String endpoint,
-                                            final Map<String, String> requestParams)
+    static String appendQueryParameterToUrl(final String url,
+                                                  final Map<String, String> requestParams)
             throws UnsupportedEncodingException {
         final Set<String> queryParamsSet = new HashSet<>();
         for (Map.Entry<String, String> entry : requestParams.entrySet()) {
@@ -332,6 +332,6 @@ public final class MSALUtils {
         final String queryString = queryParamsSet.isEmpty() ? ""
                 : convertSetToString(queryParamsSet, "&");
 
-        return String.format("%s?%s", url + endpoint, queryString);
+        return String.format("%s?%s", url, queryString);
     }
 }

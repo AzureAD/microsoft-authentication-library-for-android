@@ -31,8 +31,10 @@ import java.net.URL;
  */
 final class Authority {
     private static final String TAG = Authority.class.getSimpleName();
-
     private static final String HTTPS_PROTOCOL = "https";
+
+    static final String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/v2.0/authorize";
+    static final String DEFAULT_TOKEN_ENDPOINT = "/oauth2/v2.0/token";
     private final URL mAuthorityUrl;
 
     /**
@@ -60,10 +62,21 @@ final class Authority {
         }
     }
 
+    String getAuthorityUrl() {
+        return mAuthorityUrl.toString();
+    }
+
     /**
-     * @return The authority url.
+     * @return Authorize endpoint.
      */
-    URL getAuthorityUrl() {
-        return mAuthorityUrl;
+    String getAuthorizeEndpoint() {
+        return mAuthorityUrl.toString() + DEFAULT_AUTHORIZE_ENDPOINT;
+    }
+
+    /**
+     * @return Token endpoint.
+     */
+    String getTokenEndpoint() {
+        return mAuthorityUrl.toString() + DEFAULT_TOKEN_ENDPOINT;
     }
 }

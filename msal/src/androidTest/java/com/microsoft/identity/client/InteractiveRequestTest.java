@@ -30,6 +30,7 @@ import android.net.Uri;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.AndroidTestCase;
+import android.util.Base64;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -77,6 +78,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         mAppContext = InstrumentationRegistry.getContext().getApplicationContext();
         mRedirectUri = "msauth-client-id://" + mAppContext.getPackageName();
+        HttpUrlConnectionFactory.clearMockedConnectionQueue();
     }
 
     @After
@@ -145,7 +147,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     public void testGetAuthorizationUriWithPolicyUIOptionIsActAsCurrentUser() throws UnsupportedEncodingException {
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
                 getAuthenticationParams(POLICY, UIOptions.ACT_AS_CURRENT_USER), null);
-        final String actualAuthorizationUri = interactiveRequest.getAuthorizationUri();
+        final String actualAuthorizationUri = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
         final Uri authorityUrl = Uri.parse(actualAuthorizationUri);
         Map<String, String> queryStrings = MSALUtils.decodeUrlToMap(authorityUrl.getQuery(), "&");
 
@@ -160,7 +162,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         final String[] additionalScope = {"additionalScope"};
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
                 getAuthenticationParams("", UIOptions.FORCE_LOGIN), additionalScope);
-        final String actualAuthorizationUri = interactiveRequest.getAuthorizationUri();
+        final String actualAuthorizationUri = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
         final Uri authorityUrl = Uri.parse(actualAuthorizationUri);
         Map<String, String> queryStrings = MSALUtils.decodeUrlToMap(authorityUrl.getQuery(), "&");
 
@@ -209,7 +211,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         resultLock.await(TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
 
         final Intent resultIntent = new Intent();
-        resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri + "?code=1234");
+        resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
+                + "?code=1234&state=" + AndroidTestUtil.encodeProtocolState(AUTHORITY, getScopes()));
         InteractiveRequest.onActivityResult(Constants.UIRequest.BROWSER_FLOW,
                 Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
 
@@ -260,7 +263,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         resultLock.await(TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
 
         final Intent resultIntent = new Intent();
-        resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri + "?code=1234");
+        resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri + "?code=1234&state="
+                + AndroidTestUtil.encodeProtocolState(AUTHORITY, getScopes()));
         InteractiveRequest.onActivityResult(Constants.UIRequest.BROWSER_FLOW,
                 Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
 
@@ -422,7 +426,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                 request.getToken(new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
-
+                        fail("Unexpected Success");
                     }
 
                     @Override
@@ -434,14 +438,111 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
                     @Override
                     public void onCancel() {
-
+                        fail("Unexpected cancel");
                     }
                 });
             }
 
             @Override
-            String getErrorUrl() {
+            String getFinalUrl() {
                 return "?error=access_denied&error_description=some_error_description";
+            }
+        }.performTest();
+    }
+
+    @Test
+    public void testStateInResponseAuthorityIsDifferent() throws IOException, InterruptedException {
+        new GetTokenAuthCodeUrlContainsErrorBaseTestCase() {
+            @Override
+            void makeAcquireTokenCall(final CountDownLatch countDownLatch, BaseRequest request) {
+                request.getToken(new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(AuthenticationResult authenticationResult) {
+                        fail("unexpected success");
+                    }
+
+                    @Override
+                    public void onError(AuthenticationException exception) {
+                        assertTrue(MSALError.AUTH_FAILED.equals(exception.getErrorCode()));
+                        assertTrue(Constants.MSALErrorMessage.STATE_NOT_THE_SAME.equals(exception.getMessage()));
+                        countDownLatch.countDown();
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        fail("unexpected failure");
+                    }
+                });
+            }
+
+            @Override
+            String getFinalUrl() throws UnsupportedEncodingException {
+                return "?code=1234&state=" + AndroidTestUtil.encodeProtocolState("https://someauthority.com", getScopes());
+            }
+        }.performTest();
+    }
+
+    @Test
+    public void testStateInResponseNotContainAuthority() throws IOException, InterruptedException {
+        new GetTokenAuthCodeUrlContainsErrorBaseTestCase() {
+            @Override
+            void makeAcquireTokenCall(final CountDownLatch countDownLatch, BaseRequest request) {
+                request.getToken(new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(AuthenticationResult authenticationResult) {
+                        fail("unexpected success");
+                    }
+
+                    @Override
+                    public void onError(AuthenticationException exception) {
+                        assertTrue(MSALError.AUTH_FAILED.equals(exception.getErrorCode()));
+                        assertTrue(Constants.MSALErrorMessage.STATE_NOT_THE_SAME.equals(exception.getMessage()));
+                        countDownLatch.countDown();
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        fail("unexpected failure");
+                    }
+                });
+            }
+
+            @Override
+            String getFinalUrl() throws UnsupportedEncodingException {
+                return "?code=1234&state=" + Base64.encodeToString(MSALUtils.urlEncode(
+                        MSALUtils.convertSetToString(getScopes(), " ")).getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
+            }
+        }.performTest();
+    }
+
+    @Test
+    public void testStateNotInTheResponse() throws IOException, InterruptedException {
+        new GetTokenAuthCodeUrlContainsErrorBaseTestCase() {
+            @Override
+            void makeAcquireTokenCall(final CountDownLatch countDownLatch, BaseRequest request) {
+                request.getToken(new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(AuthenticationResult authenticationResult) {
+                        fail("unexpected success");
+                    }
+
+                    @Override
+                    public void onError(AuthenticationException exception) {
+                        assertTrue(MSALError.AUTH_FAILED.equals(exception.getErrorCode()));
+                        assertTrue(exception.getMessage().contains(Constants.MSALErrorMessage.STATE_NOT_RETURNED));
+                        countDownLatch.countDown();
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        fail("unexpected failure");
+                    }
+                });
+            }
+
+            @Override
+            String getFinalUrl() throws UnsupportedEncodingException {
+                return "?code=1234";
             }
         }.performTest();
     }
@@ -509,11 +610,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         Mockito.verify(testActivity).startActivityForResult(Mockito.argThat(new ArgumentMatcher<Intent>() {
             @Override
             public boolean matches(Object argument) {
-                if (((Intent) argument).getStringExtra(Constants.REQUEST_URL_KEY) != null) {
-                    return true;
-                }
-
-                return false;
+                return ((Intent) argument).getStringExtra(Constants.REQUEST_URL_KEY) != null;
             }
         }), Mockito.eq(Constants.UIRequest.BROWSER_FLOW));
     }
@@ -525,7 +622,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         abstract void makeAcquireTokenCall(final CountDownLatch countDownLatch, final BaseRequest request);
 
-        abstract String getErrorUrl();
+        abstract String getFinalUrl() throws UnsupportedEncodingException;
 
         final void performTest() throws IOException, InterruptedException {
             final Activity testActivity = Mockito.mock(Activity.class);
@@ -545,7 +642,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
             final Intent resultIntent = new Intent();
             resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
-                    + getErrorUrl());
+                    + getFinalUrl());
             InteractiveRequest.onActivityResult(Constants.UIRequest.BROWSER_FLOW,
                     Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
 

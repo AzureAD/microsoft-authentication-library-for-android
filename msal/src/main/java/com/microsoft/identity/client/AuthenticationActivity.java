@@ -24,7 +24,6 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
-import android.app.FragmentManager;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -128,22 +127,22 @@ public final class AuthenticationActivity extends Activity {
     }
 
     /**
-     * Return the error back to caller.
-     * @param resultCode The result code to return back.
-     * @param data {@link Intent} contains the detailed result.
-     */
-    void returnToCaller(final int resultCode, final Intent data) {
-        data.putExtra(Constants.REQUEST_ID, mRequestId);
-
-        setResult(resultCode, data);
-        this.finish();
-    }
-
-    /**
      * Cancels the auth request.
      */
     void cancelRequest() {
         returnToCaller(Constants.UIResponse.CANCEL, new Intent());
+    }
+
+    /**
+     * Return the error back to caller.
+     * @param resultCode The result code to return back.
+     * @param data {@link Intent} contains the detailed result.
+     */
+    private void returnToCaller(final int resultCode, final Intent data) {
+        data.putExtra(Constants.REQUEST_ID, mRequestId);
+
+        setResult(resultCode, data);
+        this.finish();
     }
 
     /**

@@ -155,10 +155,11 @@ abstract class BaseRequest {
 
         final TokenResponse tokenResponse;
         try {
-            tokenResponse = oauth2Client.getToken(mAuthRequestParameters.getAuthority().getAuthorityUrl());
+            tokenResponse = oauth2Client.getToken(mAuthRequestParameters.getAuthority());
         } catch (final RetryableException retryableException) {
             if (mLoadFromCache) {
-                // TODO: Resilency feature for silent flow. we need to check if
+                // TODO: Resiliency feature for silent flow. we need to check if extended_expires_on
+                // feature is turned on
                 return null;
             } else {
                 throw new AuthenticationException(MSALError.SERVER_ERROR, retryableException.getMessage(),
@@ -168,7 +169,9 @@ abstract class BaseRequest {
             throw new AuthenticationException(MSALError.AUTH_FAILED, "Auth failed with the error " + e.getMessage(), e);
         }
 
-        if (MSALUtils.isEmpty(tokenResponse.getAccessToken())) {
+        // If client id is the only scope, id token will be returned instead of access token.
+        if (MSALUtils.isEmpty(tokenResponse.getAccessToken())
+                && MSALUtils.isEmpty(tokenResponse.getRawIdToken())) {
             throw new AuthenticationException(MSALError.OAUTH_ERROR, "ErrorCode: " + tokenResponse.getError()
                     + "; ErrorDescription: " + tokenResponse.getErrorDescription());
         }

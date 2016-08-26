@@ -25,8 +25,11 @@ import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -39,6 +42,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     private Context mAppContext;
     private String mRedirectUri;
     private static final String CLIENT_ID = "client-id";
+    private static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
     private static final String ALTERNATE_AUTHORITY = "https://login.microsoftonline.com/alternateAuthority";
     private static final String[] SCOPE = {"scope1", "scope2"};
 
@@ -106,7 +110,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     /**
-     * Verify correct exception is thrown if {@link CustomTabActivity} does not have the correct intent-filer.
+     * Verify correct exception is thrown if {@link BrowserTabActivity} does not have the correct intent-filer.
      */
     @Test(expected = IllegalStateException.class)
     public void testNoCustomTabSchemeConfigured() throws PackageManager.NameNotFoundException {
@@ -198,8 +202,9 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             }
 
             @Override
-            String getFinalAuthUrl() {
-                return mRedirectUri + "?code=1234";
+            String getFinalAuthUrl() throws UnsupportedEncodingException {
+                return mRedirectUri + "?code=1234&state=" + AndroidTestUtil.encodeProtocolState(
+                        DEFAULT_AUTHORITY, new HashSet<>(Arrays.asList(SCOPE)));
             }
         }.performTest();
     }
@@ -251,8 +256,9 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             }
 
             @Override
-            String getFinalAuthUrl() {
-                return mRedirectUri + "?code=1234";
+            String getFinalAuthUrl() throws UnsupportedEncodingException {
+                return mRedirectUri + "?code=1234&state=" + AndroidTestUtil.encodeProtocolState(
+                        ALTERNATE_AUTHORITY, new HashSet<>(Arrays.asList(SCOPE)));
             }
 
             @Override
@@ -365,8 +371,9 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             }
 
             @Override
-            String getFinalAuthUrl() {
-                return mRedirectUri + "?code=1234";
+            String getFinalAuthUrl() throws UnsupportedEncodingException {
+                return mRedirectUri + "?code=1234&state=" + AndroidTestUtil.encodeProtocolState(
+                        DEFAULT_AUTHORITY, new HashSet<>(Arrays.asList(SCOPE)));
             }
         }.performTest();
     }
@@ -397,7 +404,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
         final ResolveInfo mockedResolveInfo1 = Mockito.mock(ResolveInfo.class);
         final ActivityInfo mockedActivityInfo1 = Mockito.mock(ActivityInfo.class);
-        mockedActivityInfo1.name = CustomTabActivity.class.getName();
+        mockedActivityInfo1.name = BrowserTabActivity.class.getName();
         mockedResolveInfo1.activityInfo = mockedActivityInfo1;
         resolveInfos.add(mockedResolveInfo1);
     }
@@ -436,7 +443,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         abstract void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
                                            final CountDownLatch releaseLock);
 
-        abstract String getFinalAuthUrl();
+        abstract String getFinalAuthUrl() throws UnsupportedEncodingException;
 
         protected boolean isSetAlternateAuthority() {
             return false;
