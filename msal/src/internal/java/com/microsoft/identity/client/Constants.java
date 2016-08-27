@@ -39,10 +39,6 @@ final class Constants {
 
     public static final String AUTHORIZATION_FINAL_URL = "com.microsoft.identity.client.finalUrl";
 
-    static final class UIRequest {
-        static final int BROWSER_FLOW = 1001;
-    }
-
     static final class UIResponse {
         static final int CANCEL = 2001;
 

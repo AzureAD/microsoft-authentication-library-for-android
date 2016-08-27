@@ -209,17 +209,17 @@ final class MSALUtils {
         }
 
         final Intent customTabServiceIntent = new Intent(CUSTOM_TABS_SERVICE_ACTION);
-        final List<ResolveInfo> resolveInfos = context.getPackageManager().queryIntentServices(
+        final List<ResolveInfo> resolveInfoList = context.getPackageManager().queryIntentServices(
                 customTabServiceIntent, 0);
 
         // queryIntentServices could return null or an empty list if no matching service existed.
-        if (resolveInfos == null || resolveInfos.isEmpty()) {
+        if (resolveInfoList == null || resolveInfoList.isEmpty()) {
             // TODO: add logs
             return null;
         }
 
         final Set<String> chromePackage = new HashSet<>(Arrays.asList(CHROME_PACKAGES));
-        for (final ResolveInfo resolveInfo : resolveInfos) {
+        for (final ResolveInfo resolveInfo : resolveInfoList) {
             final ServiceInfo serviceInfo = resolveInfo.serviceInfo;
             if (serviceInfo != null && chromePackage.contains(serviceInfo.packageName)) {
                 return serviceInfo.packageName;

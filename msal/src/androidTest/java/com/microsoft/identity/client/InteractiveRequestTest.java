@@ -213,7 +213,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         final Intent resultIntent = new Intent();
         resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
                 + "?code=1234&state=" + AndroidTestUtil.encodeProtocolState(AUTHORITY, getScopes()));
-        InteractiveRequest.onActivityResult(Constants.UIRequest.BROWSER_FLOW,
+        InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
                 Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
 
         resultLock.await();
@@ -265,7 +265,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         final Intent resultIntent = new Intent();
         resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri + "?code=1234&state="
                 + AndroidTestUtil.encodeProtocolState(AUTHORITY, getScopes()));
-        InteractiveRequest.onActivityResult(Constants.UIRequest.BROWSER_FLOW,
+        InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
                 Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
 
         resultLock.await();
@@ -307,7 +307,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
         resultLock.await(TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
 
-        InteractiveRequest.onActivityResult(Constants.UIRequest.BROWSER_FLOW,
+        InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
                 Constants.UIResponse.CANCEL, new Intent());
 
         resultLock.await();
@@ -359,7 +359,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         final Intent resultIntent = new Intent();
         resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
                 + "?error=access_denied&error_subcode=cancel");
-        InteractiveRequest.onActivityResult(Constants.UIRequest.BROWSER_FLOW,
+        InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
                 Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
 
         resultLock.await();
@@ -409,7 +409,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         final Intent resultIntent = new Intent();
         resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
                 + "?error=access_denied&other_error=other_error");
-        InteractiveRequest.onActivityResult(Constants.UIRequest.BROWSER_FLOW,
+        InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
                 Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
 
         resultLock.await();
@@ -612,7 +612,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
             public boolean matches(Object argument) {
                 return ((Intent) argument).getStringExtra(Constants.REQUEST_URL_KEY) != null;
             }
-        }), Mockito.eq(Constants.UIRequest.BROWSER_FLOW));
+        }), Mockito.eq(InteractiveRequest.BROWSER_FLOW));
     }
 
     /**
@@ -643,7 +643,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
             final Intent resultIntent = new Intent();
             resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
                     + getFinalUrl());
-            InteractiveRequest.onActivityResult(Constants.UIRequest.BROWSER_FLOW,
+            InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
                     Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
 
             resultLock.await();

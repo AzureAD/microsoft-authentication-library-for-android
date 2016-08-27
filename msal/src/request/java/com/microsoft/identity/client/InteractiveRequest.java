@@ -44,6 +44,7 @@ final class InteractiveRequest extends BaseRequest {
     private final Set<String> mAdditionalScope = new HashSet<>();
 
     static final String DISABLE_CHROMETAB = "disablechrometab"; // TODO: remove it
+    static final int BROWSER_FLOW = 1001;
     private static AuthorizationResult sAuthorizationResult;
     private static CountDownLatch sResultLock = new CountDownLatch(1);
 
@@ -100,7 +101,7 @@ final class InteractiveRequest extends BaseRequest {
             throw new AuthenticationException();
         }
 
-        mActivity.startActivityForResult(intentToLaunch, Constants.UIRequest.BROWSER_FLOW);
+        mActivity.startActivityForResult(intentToLaunch, BROWSER_FLOW);
         // lock the thread until onActivityResult release the lock.
         try {
             if (sResultLock.getCount() == 0) {
@@ -207,7 +208,7 @@ final class InteractiveRequest extends BaseRequest {
 
     static synchronized void onActivityResult(int requestCode, int resultCode, final Intent data) {
         try {
-            if (requestCode != Constants.UIRequest.BROWSER_FLOW) {
+            if (requestCode != BROWSER_FLOW) {
                 throw new IllegalStateException("Unknown request code");
             }
 

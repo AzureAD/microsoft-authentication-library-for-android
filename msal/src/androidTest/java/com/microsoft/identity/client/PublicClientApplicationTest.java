@@ -270,7 +270,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                                 final String data = ((Intent) argument).getStringExtra(Constants.REQUEST_URL_KEY);
                                 return data.startsWith(ALTERNATE_AUTHORITY);
                             }
-                        }), Matchers.eq(Constants.UIRequest.BROWSER_FLOW));
+                        }), Matchers.eq(InteractiveRequest.BROWSER_FLOW));
             }
         }.performTest();
     }
@@ -329,7 +329,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
                         return false;
                     }
-                }), Mockito.eq(Constants.UIRequest.BROWSER_FLOW));
+                }), Mockito.eq(InteractiveRequest.BROWSER_FLOW));
             }
         }.performTest();
     }
@@ -470,7 +470,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
             final Intent resultIntent = new Intent();
             resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, getFinalAuthUrl());
-            InteractiveRequest.onActivityResult(Constants.UIRequest.BROWSER_FLOW,
+            InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
                     Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
 
             resultLock.await();
