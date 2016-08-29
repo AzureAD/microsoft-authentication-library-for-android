@@ -28,7 +28,28 @@ package com.microsoft.identity.client;
  */
 public enum MSALError {
     /** Encounter network error and retry fails with 500/503/504. */
-    RETRY_FAILED_WITH_SERVER_ERROR("Retry failed with 500/503/504");
+    RETRY_FAILED_WITH_SERVER_ERROR("Retry failed with 500/503/504"),
+
+    /** Indicates the general server error for post request to token endpoint. */
+    SERVER_ERROR("Server error"),
+
+    /** Indicates the error when failing to parse the returned id token. */
+    IDTOKEN_PARSING_FAILURE("Fail to parse Id token"),
+
+    /** Indicates the the encoding scheme is not supported. */
+    UNSUPPORTED_ENCODING("Encoding is not supported"),
+
+    /** Indicates the failure to parse the returned JSON response. */
+    JSON_PARSE_FAILURE("Failed to parse the Json response"),
+
+    /** Indicates the general error for authentication failure. */
+    AUTH_FAILED("Authentication failed"),
+
+    /** Indicates the general error for post request to token endpoint fails with oauth error. */
+    OAUTH_ERROR("Auth failed with oath error"),
+
+    /** Indicates the general error for silent request fails. */
+    INTERACTION_REQUIRED("Silent request failed, interaction required");
 
     private String mErrorDescription;
 

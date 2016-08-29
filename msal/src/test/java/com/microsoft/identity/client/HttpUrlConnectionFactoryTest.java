@@ -62,14 +62,15 @@ public final class HttpUrlConnectionFactoryTest {
         final HttpURLConnection thirdMockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.addMockedConnection(thirdMockedConnection);
 
-        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 3);
+        final int connectionQueueCount = 3;
+        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == connectionQueueCount);
         Assert.assertTrue(HttpUrlConnectionFactory.createHttpURLConnection(
                 Util.getValidRequestUrl()).equals(firstMockedConnection));
-        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
+        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == connectionQueueCount - 1);
 
         Assert.assertTrue(HttpUrlConnectionFactory.createHttpURLConnection(
                 Util.getValidRequestUrl()).equals(secondMockedConnection));
-        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 1);
+        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == connectionQueueCount - 2);
     }
 
     @Test

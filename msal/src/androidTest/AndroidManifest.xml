@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.microsoft.identity.msal"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk android:minSdkVersion="16"
+         android:targetSdkVersion="23"  />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:label="@string/app_name"
+        android:allowBackup="false" >
+        <uses-library android:name="android.test.runner" />
+
+        <activity
+            android:name="com.microsoft.identity.client.AuthenticationActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize">
+        </activity>
+        <activity android:name="com.microsoft.identity.client.TestActivity">
+        </activity>
+
+        <activity
+            android:name="com.microsoft.identity.client.BrowserTabActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="msauth-client-id"
+                      android:host="com.microsoft.identity.msal.test" />
+            </intent-filter>
+        </activity>
+
+        <meta-data
+            android:name="com.microsoft.identity.client.ClientId"
+            android:value="client-id"/>
+        
+    </application>
+
+</manifest>
