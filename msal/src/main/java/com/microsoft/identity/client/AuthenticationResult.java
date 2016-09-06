@@ -66,10 +66,30 @@ public final class AuthenticationResult {
     }
 
     /**
-     * Constructor to create {@link AuthenticationResult} with {@link TokenCacheItem}.
+     * Constructor to create {@link AuthenticationResult} with {@link AccessTokenCacheItem}.
      * @param tokenCacheItem
      */
-    AuthenticationResult(final TokenCacheItem tokenCacheItem) { } // NOPMD
+    AuthenticationResult(final AccessTokenCacheItem tokenCacheItem) throws AuthenticationException {
+        if (!MSALUtils.isEmpty(tokenCacheItem.getRawIdToken())) {
+            mIdToken = tokenCacheItem.getRawIdToken();
+            final IdToken idToken = new IdToken(mIdToken);
+            mUser = new User(idToken);
+        }
+
+        // If both access token and id token is returned, mToken is set with access token.
+        // If access token is not returned but id token is returned, mToken is set with id token.
+        if (!MSALUtils.isEmpty(tokenCacheItem.getAccessToken())) {
+            mToken = tokenCacheItem.getAccessToken();
+            mExpiresOn = tokenCacheItem.getExpiresOn();
+        } else if (!MSALUtils.isEmpty(tokenCacheItem.getRawIdToken())) {
+            mToken = tokenCacheItem.getRawIdToken();
+            mExpiresOn = tokenCacheItem.getIdTokenExpiresOn();
+        }
+
+        mTenantId = tokenCacheItem.getTenantId();
+        final Set<String> returnedScopesInSet = tokenCacheItem.getScope();
+        mScope = returnedScopesInSet.toArray(new String[returnedScopesInSet.size()]);
+    }
 
     /**
      * @return The token, could be access token or id token. If client id is the single scope that

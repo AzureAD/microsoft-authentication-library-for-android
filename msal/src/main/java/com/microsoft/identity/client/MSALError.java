@@ -49,7 +49,13 @@ public enum MSALError {
     OAUTH_ERROR("Auth failed with oath error"),
 
     /** Indicates the general error for silent request fails. */
-    INTERACTION_REQUIRED("Silent request failed, interaction required");
+    INTERACTION_REQUIRED("Silent request failed, interaction required"),
+
+    /** Indicates that there are multiple cache entries found in the cache. */
+    MULTIPLE_CACHE_ENTRY_FOUND("multiple cache entries found"),
+
+    /** Indicates that device is not connected to the network. */
+    DEVICE_CONNECTION_NOT_AVAILABLE("Device network connection not available");
 
     private String mErrorDescription;
 

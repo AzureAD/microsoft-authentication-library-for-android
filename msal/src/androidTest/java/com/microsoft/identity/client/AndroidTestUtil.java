@@ -30,6 +30,9 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Set;
 
 /**
@@ -37,6 +40,7 @@ import java.util.Set;
  */
 public final class AndroidTestUtil {
     static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
+    static final int TOKEN_EXPIRATION_IN_MINUTES = 60;
 
     static final String AUDIENCE = "audience-for-testing";
     static final String TENANT_ID = "6fd1f5cd-a94c-4335-889b-6c598e6d8048";
@@ -48,6 +52,7 @@ public final class AndroidTestUtil {
     static final String NAME = "test";
     static final String HOME_OBJECT_ID = "some.home.objid";
     static final String ACCESS_TOKEN = "access_token";
+    static final String REFRESH_TOKEN = "refresh_token";
 
     /**
      * Private to prevent util class from being initiated.
@@ -90,10 +95,25 @@ public final class AndroidTestUtil {
         return new URL(DEFAULT_AUTHORITY);
     }
 
-    static String getSuccessResponse() {
+    static String getSuccessResponseWithNoRefreshToken(final String idToken) {
+        final String tokenResponse = "{\"id_token\":\""
+                + idToken
+                + "\",\"access_token\":\"" + ACCESS_TOKEN + "\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"scope\":\"scope1 scope2\"}";
+        return tokenResponse;
+    }
+
+    static String getSuccessResponseWithNoAccessToken() {
         final String tokenResponse = "{\"id_token\":\""
                 + TEST_IDTOKEN
-                + "\",\"access_token\":\"" + ACCESS_TOKEN + "\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"scope\":\"scope1 scope2\"}";
+                + "\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"scope\":\"scope1 scope2\"}";
+        return tokenResponse;
+    }
+
+    static final String getSuccessResponse(final String idToken, final String scopes) {
+        final String tokenResponse = "{\"id_token\":\""
+                + idToken
+                + "\",\"access_token\":\"" + ACCESS_TOKEN + "\", \"token_type\":\"Bearer\",\"refresh_token\":\"" + REFRESH_TOKEN + "\","
+                + "\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"scope\":\"" + scopes + "\"}";
         return tokenResponse;
     }
 
@@ -115,5 +135,21 @@ public final class AndroidTestUtil {
         String state = String.format("a=%s&r=%s", MSALUtils.urlEncode(authority),
                 MSALUtils.urlEncode(MSALUtils.convertSetToString(scopes, " ")));
         return Base64.encodeToString(state.getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
+    }
+
+    static Date getExpiredDate() {
+        return getExpirationDate(-TOKEN_EXPIRATION_IN_MINUTES);
+    }
+
+    static Date getValidExpiresOn() {
+        return getExpirationDate(TOKEN_EXPIRATION_IN_MINUTES);
+    }
+
+    static Date getExpirationDate(int tokenExpiredDateInMinuite) {
+        final Calendar expiredTime = new GregorianCalendar();
+        // access token is only valid for a hour
+        expiredTime.add(Calendar.MINUTE, tokenExpiredDateInMinuite);
+
+        return expiredTime.getTime();
     }
 }

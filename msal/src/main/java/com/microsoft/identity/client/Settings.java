@@ -32,8 +32,6 @@ public final class Settings {
 
     private boolean mEnableHardwareAcceleration = true;
 
-    private boolean mDisableCustomTab = false;
-
     /**
      * Internal constructor to prevent the class from being instantiated externally.
      */
@@ -52,17 +50,5 @@ public final class Settings {
      */
     boolean getEnableHardwareAcceleration() {
         return mEnableHardwareAcceleration;
-    }
-
-    /**
-     * Disable the custom tab loading. TODO: remove, for testing purpose. Keep for now.
-     * @param disableCustomTab True if disable the custom tab, false otherwise.
-     */
-    public void setDisableCustomTab(final boolean disableCustomTab) {
-        mDisableCustomTab = disableCustomTab;
-    }
-
-    boolean getDisableCustomTab() {
-        return mDisableCustomTab;
     }
 }

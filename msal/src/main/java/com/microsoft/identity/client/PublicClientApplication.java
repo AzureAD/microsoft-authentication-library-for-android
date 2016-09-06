@@ -88,8 +88,8 @@ public final class PublicClientApplication {
         // manifest, we cannot make the network call.
         checkInternetPermission();
 
-        mTokenCache = new TokenCache();
         mSettings = new Settings();
+        mTokenCache = new TokenCache(mAppContext);
     }
 
     /**
@@ -254,7 +254,9 @@ public final class PublicClientApplication {
      *                                               Failure case will be sent back via {
      *                                               @link AuthenticationCallback#onError(AuthenticationException)}.
      */
-    public void acquireTokenSilentAsync(final String[] scopes, final AuthenticationCallback callback) { }
+    public void acquireTokenSilentAsync(final String[] scopes, final AuthenticationCallback callback) {
+        acquireTokenSilent(scopes, null, "", "", false, callback);
+    }
 
     /**
      * Perform acquire token silent call. If there is a valid AT in the cache, the sdk will return the silent AT; If
@@ -268,7 +270,9 @@ public final class PublicClientApplication {
      *                                               @link AuthenticationCallback#onError(AuthenticationException)}.
      */
     public void acquireTokenSilentAsync(final String[] scopes, final User user,
-                                        final AuthenticationCallback callback) { }
+                                        final AuthenticationCallback callback) {
+        acquireTokenSilent(scopes, user, "", "", false, callback);
+    }
 
     /**
      * Perform acquire token silent call. If there is a valid AT in the cache, the sdk will return the silent AT; If
@@ -286,7 +290,9 @@ public final class PublicClientApplication {
      */
     public void acquireTokenSilentAsync(final String[] scopes, final User user, final String authority,
                                         final String policy, final boolean forceRefresh,
-                                        final AuthenticationCallback callback) { }
+                                        final AuthenticationCallback callback) {
+        acquireTokenSilent(scopes, user, authority, policy, forceRefresh, callback);
+    }
 
     /**
      * Keep this method internal only to make it easy for MS apps to do serialize/deserialize on the family tokens.
@@ -319,9 +325,10 @@ public final class PublicClientApplication {
 
         // read client id from manifest
         final String clientId = applicationInfo.metaData.getString(CLIENT_ID_META_DATA);
-        if (!MSALUtils.isEmpty(clientId)) {
-            mClientId = clientId;
+        if (MSALUtils.isEmpty(clientId)) {
+            throw new IllegalArgumentException("clientId missing from manifest");
         }
+        mClientId = clientId;
 
         // TODO: Comment out for now. As discussed, redirect should be computed during runtime, developer needs to put
 //        final String redirectUri = applicationInfo.metaData.getString(REDIRECT_META_DATA);
@@ -332,10 +339,6 @@ public final class PublicClientApplication {
 
     // TODO: if no more input validation is needed, this could be moved back to the constructor.
     private void validateInputParameters() {
-        if (MSALUtils.isEmpty(mClientId)) {
-            throw new IllegalArgumentException("empty, null or blank client id.");
-        }
-
         if (!MSALUtils.hasCustomTabRedirectActivity(mAppContext, mRedirectUri)) {
             throw new IllegalStateException("App doesn't have the correct configuration for "
                     + BrowserTabActivity.class.getSimpleName() + ".");
@@ -376,6 +379,25 @@ public final class PublicClientApplication {
         request.getToken(callback);
     }
 
+    private void acquireTokenSilent(final String[] scopes, final User user, final String authority,
+                                    final String policy, final boolean forceRefresh,
+                                    final AuthenticationCallback callback) {
+        if (callback == null) {
+            throw new IllegalArgumentException("callback is null");
+        }
+
+        final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? mAuthority
+                : new Authority(authority, mValidateAuthority);
+        // set correlation if not developer didn't set it.
+        final UUID correlationId = UUID.randomUUID();
+        final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));
+        final AuthenticationRequestParameters requestParameters = AuthenticationRequestParameters.create(authorityForRequest, mTokenCache,
+                scopesAsSet, mClientId, policy, mRestrictToSingleUser, correlationId, mSettings);
+
+        final BaseRequest request = new SilentRequest(mAppContext, requestParameters, forceRefresh, user);
+        request.getToken(callback);
+    }
+
     private AuthenticationRequestParameters getRequestParameters(final String authority, final String[] scopes,
                                                                  final String loginHint, final String extraQueryParam,
                                                                  final String policy, final UIOptions uiOption) {
@@ -385,7 +407,7 @@ public final class PublicClientApplication {
         final UUID correlationId = UUID.randomUUID();
         final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));
 
-        return new AuthenticationRequestParameters(authorityForRequest, mTokenCache, scopesAsSet, mClientId,
+        return AuthenticationRequestParameters.create(authorityForRequest, mTokenCache, scopesAsSet, mClientId,
                 mRedirectUri, policy, mRestrictToSingleUser, loginHint, extraQueryParam, uiOption, correlationId, mSettings);
     }
 }

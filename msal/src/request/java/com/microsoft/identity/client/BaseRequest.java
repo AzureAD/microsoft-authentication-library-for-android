@@ -24,6 +24,8 @@
 package com.microsoft.identity.client;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Handler;
 
 import java.io.IOException;
@@ -38,15 +40,12 @@ import java.util.concurrent.Executors;
  */
 abstract class BaseRequest {
     private static final ExecutorService THREAD_EXECUTOR = Executors.newSingleThreadExecutor();
+    private Handler mHandler;
 
     protected final AuthenticationRequestParameters mAuthRequestParameters;
-
-    protected boolean mLoadFromCache;
-    protected boolean mStoreIntoCache;
-
-    private Handler mHandler;
     protected final Context mContext;
     protected int mRequestId;
+    protected TokenResponse mTokenResponse;
 
     /**
      * Abstract method, implemented by subclass for its own logic before the token request.
@@ -95,9 +94,9 @@ abstract class BaseRequest {
             public void run() {
                 try {
                     preTokenRequest();
-                    final AuthenticationResult authenticationResult = performTokenRequest();
-                    storeTokenIntoCache(authenticationResult);
-                    callbackOnSuccess(callback, authenticationResult);
+                    performTokenRequest();
+                    final AuthenticationResult result = postTokenRequest();
+                    callbackOnSuccess(callback, result);
                 } catch (final MSALUserCancelException userCancelException) {
                     callbackOnCancel(callback);
                 } catch (final AuthenticationException authenticationException) {
@@ -149,7 +148,13 @@ abstract class BaseRequest {
         }
     }
 
-    private AuthenticationResult performTokenRequest() throws AuthenticationException {
+    /**
+     * Perform the token request sent to token endpoint.
+     * @throws AuthenticationException If there is error happened in the request.
+     */
+    void performTokenRequest() throws AuthenticationException {
+        throwIfNetworkNotAvailable();
+
         final Oauth2Client oauth2Client = new Oauth2Client();
         buildRequestParameters(oauth2Client);
 
@@ -157,30 +162,52 @@ abstract class BaseRequest {
         try {
             tokenResponse = oauth2Client.getToken(mAuthRequestParameters.getAuthority());
         } catch (final RetryableException retryableException) {
-            if (mLoadFromCache) {
-                // TODO: Resiliency feature for silent flow. we need to check if extended_expires_on
-                // feature is turned on
-                return null;
-            } else {
-                throw new AuthenticationException(MSALError.SERVER_ERROR, retryableException.getMessage(),
-                        retryableException.getCause());
-            }
+            throw new AuthenticationException(MSALError.SERVER_ERROR, retryableException.getMessage(),
+                    retryableException.getCause());
         } catch (final IOException e) {
             throw new AuthenticationException(MSALError.AUTH_FAILED, "Auth failed with the error " + e.getMessage(), e);
         }
 
-        // If client id is the only scope, id token will be returned instead of access token.
-        if (MSALUtils.isEmpty(tokenResponse.getAccessToken())
-                && MSALUtils.isEmpty(tokenResponse.getRawIdToken())) {
-            throw new AuthenticationException(MSALError.OAUTH_ERROR, "ErrorCode: " + tokenResponse.getError()
-                    + "; ErrorDescription: " + tokenResponse.getErrorDescription());
-        }
-
-        return new AuthenticationResult(tokenResponse);
+        mTokenResponse = tokenResponse;
     }
 
-    private void storeTokenIntoCache(final AuthenticationResult authenticationResult) {
-        // TODO: do something.
+    /**
+     * Silent flow will check if there is already an access token returned. If
+     * so, return the stored token. Otherwise read the token response, and send Interaction_required back to calling app.
+     * Silent flow will also remove token if receiving invalid_grant from token endpoint.
+     * Interactive request will read the response, and send error back with code as oauth_error.
+     * @throws AuthenticationException
+     */
+    AuthenticationResult postTokenRequest() throws AuthenticationException {
+        storeTokenIntoCache();
+        return new AuthenticationResult(mTokenResponse);
+    }
+
+    /**
+     * @return True if either access token or id token is returned, false otherwise.
+     */
+    boolean isAccessTokenReturned() {
+        return !MSALUtils.isEmpty(mTokenResponse.getAccessToken()) || !MSALUtils.isEmpty(mTokenResponse.getRawIdToken());
+    }
+
+    /**
+     * Throw DEVICE_CONNECTION_NOT_AVAILABLE if device network connection is not available.
+     */
+    void throwIfNetworkNotAvailable() throws AuthenticationException {
+        final ConnectivityManager connectivityManager = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        final NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        if (networkInfo == null || !networkInfo.isConnected()) {
+            throw new AuthenticationException(MSALError.DEVICE_CONNECTION_NOT_AVAILABLE, "Device network connection is not available.");
+        }
+    }
+
+    /**
+     * Store the returned token into cache.
+     * @throws AuthenticationException If exception happens when saving token into cache.
+     */
+    private void storeTokenIntoCache() throws AuthenticationException {
+        mAuthRequestParameters.getTokenCache().saveTokenResponse(mAuthRequestParameters.getAuthority().getAuthorityUrl(),
+                mAuthRequestParameters.getClientId(), mAuthRequestParameters.getPolicy(), mTokenResponse);
     }
 
     private synchronized Handler getHandler() {
@@ -191,6 +218,10 @@ abstract class BaseRequest {
         return mHandler;
     }
 
+    /**
+     * Build request parameters, containing header, query parameters and request body.
+     * @param oauth2Client
+     */
     private void buildRequestParameters(final Oauth2Client oauth2Client) {
         oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID,
                 mAuthRequestParameters.getCorrelationId().toString());
