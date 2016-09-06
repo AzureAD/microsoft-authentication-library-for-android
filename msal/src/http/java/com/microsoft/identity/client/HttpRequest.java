@@ -162,6 +162,7 @@ final class HttpRequest {
     private HttpResponse executeHttpSend() throws IOException {
         final HttpURLConnection urlConnection = setupConnection();
         urlConnection.setRequestMethod(mRequestMethod);
+        setRequestBody(urlConnection, mRequestContent, mRequestContentType);
 
         InputStream responseStream = null;
         final HttpResponse response;
@@ -201,8 +202,6 @@ final class HttpRequest {
         urlConnection.setInstanceFollowRedirects(true);
         urlConnection.setUseCaches(false);
         urlConnection.setDoInput(true);
-
-        setRequestBody(urlConnection, mRequestContent, mRequestContentType);
 
         return urlConnection;
     }
