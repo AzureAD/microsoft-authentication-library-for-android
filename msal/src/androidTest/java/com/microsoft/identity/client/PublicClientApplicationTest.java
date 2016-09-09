@@ -29,6 +29,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -119,7 +120,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     @Test(expected = IllegalStateException.class)
     public void testNoCustomTabSchemeConfigured() throws PackageManager.NameNotFoundException {
         final Context context = new MockActivityContext(mAppContext);
-        mockPackageManagerWithClientId(context, false);
+        mockPackageManagerWithClientId(context, false, CLIENT_ID);
 
         new PublicClientApplication(getActivity(context));
     }
@@ -151,7 +152,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     @Test(expected = IllegalArgumentException.class)
     public void testCallBackEmpty() throws PackageManager.NameNotFoundException {
         final Context context = new MockActivityContext(mAppContext);
-        mockPackageManagerWithClientId(context, false);
+        mockPackageManagerWithClientId(context, false, CLIENT_ID);
         mockHasCustomTabRedirect(context);
 
         final PublicClientApplication application = new PublicClientApplication(getActivity(context));
@@ -162,12 +163,70 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     public void testInternetPermissionMissing() throws PackageManager.NameNotFoundException {
         final Context context = new MockActivityContext(mAppContext);
         final PackageManager packageManager = context.getPackageManager();
-        mockPackageManagerWithClientId(context, false);
+        mockPackageManagerWithClientId(context, false, CLIENT_ID);
         mockHasCustomTabRedirect(context);
         Mockito.when(packageManager.checkPermission(Mockito.refEq("android.permission.INTERNET"),
                 Mockito.refEq(mAppContext.getPackageName()))).thenReturn(PackageManager.PERMISSION_DENIED);
 
         new PublicClientApplication(getActivity(context));
+    }
+
+    /**
+     * Verify that users are correctly retrieved.
+     */
+    @Test
+    public void testGetUsers() throws UnsupportedEncodingException, AuthenticationException,
+            PackageManager.NameNotFoundException {
+        final PublicClientApplication application = new PublicClientApplication(getMockedActivity(CLIENT_ID));
+        assertTrue(application.getUsers().size() == 0);
+        // prepare token cache
+        // save token with Displayable as: Displayable1 UniqueId: UniqueId1 HomeObjectId: homeOID
+        final String displayable1 = "Displayable1";
+        final String uniqueId1 = "UniqueId1";
+        final String homeOid1 = "HomeOid1";
+        String idToken = getIdToken(displayable1, uniqueId1, homeOid1);
+
+        mTokenCache.saveTokenResponse(TokenLookupEngineTest.AUTHORITY, CLIENT_ID, "", getTokenResponse(idToken));
+
+        // prepare token cache for same client id, same displayable, uniqueId but different oid
+        final String homeOid2 = "HomeOid2";
+        idToken = getIdToken(displayable1, uniqueId1, homeOid2);
+        mTokenCache.saveTokenResponse(TokenLookupEngineTest.AUTHORITY, CLIENT_ID, "", getTokenResponse(idToken));
+
+        List<User> users = application.getUsers();
+        assertTrue(users.size() == 2);
+
+        // prepare token cache for same client id, different diplayable, uniqueid and oid
+        final String displayable3 = "Displayable3";
+        final String uniqueId3 = "UniqueId3";
+        final String homeOid3 = "HomeOid3";
+        idToken = getIdToken(displayable3, uniqueId3, homeOid3);
+        mTokenCache.saveTokenResponse(TokenLookupEngineTest.AUTHORITY, CLIENT_ID, "", getTokenResponse(idToken));
+
+        users = application.getUsers();
+        assertTrue(users.size()== 3);
+        final User userForDisplayable3 = application.getUser(displayable3);
+        assertNotNull(userForDisplayable3);
+        assertNotNull(userForDisplayable3.getTokenCache());
+        assertTrue(userForDisplayable3.getClientId().equals(CLIENT_ID));
+        assertTrue(userForDisplayable3.getDisplayableId().equals(displayable3));
+        assertTrue(userForDisplayable3.getUniqueId().equals(uniqueId3));
+        assertTrue(userForDisplayable3.getHomeObjectId().equals(homeOid3));
+
+        // prepare token cache for different client id, same displayable3 user
+        final String anotherClientId = "anotherClientId";
+        mTokenCache.saveTokenResponse(TokenLookupEngineTest.AUTHORITY, anotherClientId, "", getTokenResponse(idToken));
+        final PublicClientApplication anotherApplication = new PublicClientApplication(getMockedActivity(anotherClientId));
+        assertTrue(application.getUsers().size() == 3);
+        users = anotherApplication.getUsers();
+        assertTrue(users.size() == 1);
+        final User userForAnotherClient = anotherApplication.getUser(uniqueId3);
+        assertNotNull(userForAnotherClient);
+        assertTrue(userForAnotherClient.getClientId().equals(anotherClientId));
+        assertNotNull(userForAnotherClient.getTokenCache());
+        assertTrue(userForAnotherClient.getDisplayableId().equals(displayable3));
+        assertTrue(userForAnotherClient.getUniqueId().equals(uniqueId3));
+        assertTrue(userForAnotherClient.getHomeObjectId().equals(homeOid3));
     }
 
     /**
@@ -475,14 +534,24 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         silentLock.await();
     }
 
+    static String getIdToken(final String displayable, final String uniqueId, final String homeOid) throws UnsupportedEncodingException {
+        return AndroidTestUtil.createIdToken(AndroidTestUtil.AUDIENCE, AndroidTestUtil.ISSUER, AndroidTestUtil.NAME, uniqueId, displayable,
+                AndroidTestUtil.SUBJECT, AndroidTestUtil.TENANT_ID, AndroidTestUtil.VERSION, homeOid);
+    }
+
+    private TokenResponse getTokenResponse(final String idToken) {
+        return new TokenResponse(AndroidTestUtil.ACCESS_TOKEN, idToken, AndroidTestUtil.REFRESH_TOKEN, new Date(), new Date(),
+                new Date(), "scope", "Bearer", null);
+    }
+
     private void mockPackageManagerWithClientId(final Context context,
-                                                final boolean addAuthorityInManifest)
+                                                final boolean addAuthorityInManifest, final String clientId)
             throws PackageManager.NameNotFoundException {
         final PackageManager mockedPackageManager = context.getPackageManager();
         final ApplicationInfo applicationInfo = Mockito.mock(ApplicationInfo.class);
         // meta data is empty, no client id there.
         applicationInfo.metaData = new Bundle();
-        applicationInfo.metaData.putString("com.microsoft.identity.client.ClientId", CLIENT_ID);
+        applicationInfo.metaData.putString("com.microsoft.identity.client.ClientId", clientId);
         if (addAuthorityInManifest) {
             applicationInfo.metaData.putString("com.microsoft.identity.client.Authority", ALTERNATE_AUTHORITY);
         }
@@ -531,6 +600,15 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         return MSALUtils.convertSetToString(scopesInSet, " ");
     }
 
+    private Activity getMockedActivity(final String clientId) throws PackageManager.NameNotFoundException{
+        final Context context = new MockActivityContext(mAppContext);
+        mockPackageManagerWithClientId(context, false, clientId);
+        mockHasCustomTabRedirect(context);
+        mockAuthenticationActivityResolvable(context);
+
+        return getActivity(context);
+    }
+
     private static class MockActivityContext extends ContextWrapper {
         private final PackageManager mPackageManager;
         MockActivityContext(final Context context) {
@@ -566,7 +644,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
         public void performTest() throws PackageManager.NameNotFoundException, IOException, InterruptedException {
             final Context context = new MockActivityContext(mAppContext);
-            mockPackageManagerWithClientId(context, isSetAlternateAuthority());
+            mockPackageManagerWithClientId(context, isSetAlternateAuthority(), CLIENT_ID);
             mockHasCustomTabRedirect(context);
             mockAuthenticationActivityResolvable(context);
 

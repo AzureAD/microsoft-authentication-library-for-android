@@ -184,4 +184,17 @@ final class TokenCacheAccessor {
 
         return Collections.unmodifiableList(refreshTokenCacheItems);
     }
+
+    List<RefreshTokenCacheItem> getAllRefreshTokens(final String clientId) {
+        final List<RefreshTokenCacheItem> allRTs = getAllRefreshTokens();
+
+        final List<RefreshTokenCacheItem> allRTsForApp = new ArrayList<>(allRTs.size());
+        for (final RefreshTokenCacheItem refreshTokenCacheItem : allRTs) {
+            if (clientId.equals(refreshTokenCacheItem.getClientId())) {
+                allRTsForApp.add(refreshTokenCacheItem);
+            }
+        }
+
+        return Collections.unmodifiableList(allRTsForApp);
+    }
 }

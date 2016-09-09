@@ -25,7 +25,11 @@ package com.microsoft.identity.client;
 
 import android.content.Context;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * MSAL internal representation for token cache. MS first party apps can use the internal
@@ -107,9 +111,27 @@ public class TokenCache {
         mTokenCacheAccessor.removeAll();
     }
 
-    List<User> getUsers() {
-        // TODO: return a list of users.
-        return null;
+    /**
+     * An immutable list of signed-in users for the given client id.
+     * @param clientId The application client id that is used to retrieve for all the signed in users.
+     * @return The list of signed in users for the given client id.
+     * @throws AuthenticationException
+     */
+    List<User> getUsers(final String clientId) throws AuthenticationException {
+        if (MSALUtils.isEmpty(clientId)) {
+            throw new IllegalArgumentException("empty or null clientid");
+        }
+
+        final List<RefreshTokenCacheItem> allRefreshTokens = mTokenCacheAccessor.getAllRefreshTokens(clientId);
+        final Map<String, User> allUsers = new HashMap<>();
+        for (final RefreshTokenCacheItem item : allRefreshTokens) {
+            final User user = new User(new IdToken(item.getRawIdToken()));
+            user.setClientId(item.getClientId());
+            user.setTokenCache(this);
+            allUsers.put(item.getHomeObjectId(), user);
+        }
+
+        return Collections.unmodifiableList(new ArrayList<>(allUsers.values()));
     }
 
     /**

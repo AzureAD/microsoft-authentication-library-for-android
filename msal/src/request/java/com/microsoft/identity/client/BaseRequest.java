@@ -96,6 +96,7 @@ abstract class BaseRequest {
                     preTokenRequest();
                     performTokenRequest();
                     final AuthenticationResult result = postTokenRequest();
+                    updateUserForAuthenticationResult(result);
                     callbackOnSuccess(callback, result);
                 } catch (final MSALUserCancelException userCancelException) {
                     callbackOnCancel(callback);
@@ -208,6 +209,11 @@ abstract class BaseRequest {
     private void storeTokenIntoCache() throws AuthenticationException {
         mAuthRequestParameters.getTokenCache().saveTokenResponse(mAuthRequestParameters.getAuthority().getAuthorityUrl(),
                 mAuthRequestParameters.getClientId(), mAuthRequestParameters.getPolicy(), mTokenResponse);
+    }
+
+    private void updateUserForAuthenticationResult(final AuthenticationResult result) {
+        result.getUser().setClientId(mAuthRequestParameters.getClientId());
+        result.getUser().setTokenCache(mAuthRequestParameters.getTokenCache());
     }
 
     private synchronized Handler getHandler() {

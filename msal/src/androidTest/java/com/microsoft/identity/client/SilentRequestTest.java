@@ -138,6 +138,11 @@ public final class SilentRequestTest extends AndroidTestCase {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 assertTrue(ACCESS_TOKEN.equals(authenticationResult.getToken()));
+
+                verifyUserReturnedInResult(authenticationResult);
+
+                final TokenCache tokenCache = authenticationResult.getUser().getTokenCache();
+                assertTrue(tokenCache.getAllAccessTokens().size() == 1);
                 resultLock.countDown();
             }
 
@@ -171,6 +176,8 @@ public final class SilentRequestTest extends AndroidTestCase {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 assertTrue(expectedToken.equals(authenticationResult.getToken()));
+                verifyUserReturnedInResult(authenticationResult);
+                assertTrue(authenticationResult.getUser().getTokenCache().getAllAccessTokens().size() == 1);
                 resultLock.countDown();
             }
 
@@ -210,11 +217,15 @@ public final class SilentRequestTest extends AndroidTestCase {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getToken()));
-                final List<AccessTokenCacheItem> allATs = mTokenCache.getAllAccessTokens();
+
+                verifyUserReturnedInResult(authenticationResult);
+
+                final TokenCache cache = authenticationResult.getUser().getTokenCache();
+                final List<AccessTokenCacheItem> allATs = cache.getAllAccessTokens();
                 assertTrue(allATs.size() == 1);
                 assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(allATs.get(0).getAccessToken()));
 
-                final List<RefreshTokenCacheItem> allRTs = mTokenCache.getAllRefreshTokens();
+                final List<RefreshTokenCacheItem> allRTs = cache.getAllRefreshTokens();
                 assertTrue(allRTs.size() == 1);
                 assertTrue(AndroidTestUtil.REFRESH_TOKEN.equals(allRTs.get(0).getRefreshToken()));
                 resultLock.countDown();
@@ -254,19 +265,22 @@ public final class SilentRequestTest extends AndroidTestCase {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getToken()));
-                assertTrue(mTokenCache.getAllAccessTokens().size() == 2);
+                verifyUserReturnedInResult(authenticationResult);
+
+                final TokenCache cache = authenticationResult.getUser().getTokenCache();
+                assertTrue(cache.getAllAccessTokens().size() == 2);
 
                 final List<AccessTokenCacheItem> atForScope1 = mTokenCache.getAccessTokenItem(TokenCacheKey.createKeyForAT(
                         AndroidTestUtil.DEFAULT_AUTHORITY, TokenLookupEngineTest.CLIENT_ID, Collections.singleton(singleScope), mUser, ""));
                 assertTrue(atForScope1.size() == 1);
                 assertTrue(atForScope1.get(0).getAccessToken().equals(ACCESS_TOKEN));
 
-                final List<AccessTokenCacheItem> atForScope2 = mTokenCache.getAccessTokenItem(TokenCacheKey.createKeyForAT(
+                final List<AccessTokenCacheItem> atForScope2 = cache.getAccessTokenItem(TokenCacheKey.createKeyForAT(
                         AndroidTestUtil.DEFAULT_AUTHORITY, TokenLookupEngineTest.CLIENT_ID, Collections.singleton(anotherScope), mUser, ""));
                 assertTrue(atForScope2.size() == 1);
                 assertTrue(atForScope2.get(0).getAccessToken().equals(AndroidTestUtil.ACCESS_TOKEN));
 
-                final List<RefreshTokenCacheItem> allRTs = mTokenCache.getAllRefreshTokens();
+                final List<RefreshTokenCacheItem> allRTs = cache.getAllRefreshTokens();
                 assertTrue(allRTs.size() == 1);
                 assertTrue(AndroidTestUtil.REFRESH_TOKEN.equals(allRTs.get(0).getRefreshToken()));
                 resultLock.countDown();
@@ -403,6 +417,13 @@ public final class SilentRequestTest extends AndroidTestCase {
         resultLock.await();
         // verify that no rt existed in the cache
         assertTrue(mTokenCache.getAllRefreshTokens().size() == 1);
+    }
+
+    private void verifyUserReturnedInResult(final AuthenticationResult result) {
+        final User user = result.getUser();
+        assertNotNull(user);
+        assertTrue(user.getClientId().equals(TokenLookupEngineTest.CLIENT_ID));
+        assertNotNull(user.getTokenCache());
     }
 
     private AuthenticationRequestParameters getRequestParameters(final Set<String> scopes, final String policy) {

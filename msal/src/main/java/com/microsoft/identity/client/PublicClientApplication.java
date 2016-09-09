@@ -130,11 +130,12 @@ public final class PublicClientApplication {
     }
 
     /**
-     * Returns the list of signed in users.
+     * Returns the list of signed in users for the application.
      * @return Immutable List of all the signed in users.
+     * @throws AuthenticationException If failed to retrieve users from the cache.
      */
-    public List<User> getUsers() {
-        return null;
+    public List<User> getUsers() throws AuthenticationException {
+        return mTokenCache.getUsers(mClientId);
     }
 
     /**
@@ -143,8 +144,19 @@ public final class PublicClientApplication {
      * @param userIdentifier The user identifier, could be either displayable id or unique id.
      * @return The {@link User} matching the user identifier.
      */
-    public User getUser(final String userIdentifier) {
-        // TODO: add the implementation for returning specific user.
+    public User getUser(final String userIdentifier) throws AuthenticationException {
+        if (MSALUtils.isEmpty(userIdentifier)) {
+            throw new IllegalArgumentException("null, blank or empty user");
+        }
+
+        final List<User> allUsers = getUsers();
+        for (final User user : allUsers) {
+            if (userIdentifier.equals(user.getDisplayableId()) || userIdentifier.equals(user.getUniqueId())) {
+                return user;
+            }
+        }
+
+        // TODO: log no matching user exist.
         return null;
     }
 

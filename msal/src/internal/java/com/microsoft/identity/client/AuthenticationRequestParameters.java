@@ -69,12 +69,8 @@ final class AuthenticationRequestParameters {
         mTokenCache = tokenCache;
         mScope.addAll(scope);
         mClientId = clientId;
-//        mRedirectUri = redirectUri;
         mPolicy = policy;
         mRestrictToSingleUser = restrictToSingleUser;
-//        mLoginHint = loginHint;
-//        mExtraQueryParam = extraQueryParam;
-//        mUIOption = uiOptions;
         mCorrelationId = correlationId;
         mSettings = settings;
     }
