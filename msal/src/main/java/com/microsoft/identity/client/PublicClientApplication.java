@@ -173,7 +173,7 @@ public final class PublicClientApplication {
      *                 {@link AuthenticationCallback#onError(AuthenticationException)}.
      */
     public void acquireToken(final String[] scopes, final AuthenticationCallback callback) {
-        acquireTokenInteractively(scopes, "", UIOptions.SELECT_ACCOUNT, "", null, "", "", callback);
+        acquireTokenInteractive(scopes, "", UIOptions.SELECT_ACCOUNT, "", null, "", "", callback);
     }
 
     /**
@@ -192,7 +192,7 @@ public final class PublicClientApplication {
      */
     public void acquireToken(final String[] scopes, final String loginHint,
                              final AuthenticationCallback callback) {
-        acquireTokenInteractively(scopes, loginHint, UIOptions.SELECT_ACCOUNT, "", null, "", "", callback);
+        acquireTokenInteractive(scopes, loginHint, UIOptions.SELECT_ACCOUNT, "", null, "", "", callback);
     }
 
     /**
@@ -213,7 +213,7 @@ public final class PublicClientApplication {
      */
     public void acquireToken(final String[] scopes, final String loginHint, final UIOptions uiOptions,
                              final String extraQueryParams, final AuthenticationCallback callback) {
-        acquireTokenInteractively(scopes, loginHint, uiOptions == null ? UIOptions.SELECT_ACCOUNT : uiOptions,
+        acquireTokenInteractive(scopes, loginHint, uiOptions == null ? UIOptions.SELECT_ACCOUNT : uiOptions,
                 extraQueryParams, null, "", "", callback);
     }
 
@@ -239,7 +239,7 @@ public final class PublicClientApplication {
     public void acquireToken(final String[] scopes, final String loginHint, final UIOptions uiOptions,
                              final String extraQueryParams, final String[] additionalScope, final String authority,
                              final String policy, final AuthenticationCallback callback) {
-        acquireTokenInteractively(scopes, loginHint, uiOptions == null ? UIOptions.SELECT_ACCOUNT : uiOptions,
+        acquireTokenInteractive(scopes, loginHint, uiOptions == null ? UIOptions.SELECT_ACCOUNT : uiOptions,
                 extraQueryParams, additionalScope, authority, policy, callback);
     }
 
@@ -364,10 +364,10 @@ public final class PublicClientApplication {
     }
 
 
-    private void acquireTokenInteractively(final String[] scopes, final String loginHint, final UIOptions uiOptions,
-                                           final String extraQueryParams, final String[] additionalScope,
-                                           final String authority, final String policy,
-                                           final AuthenticationCallback callback) {
+    private void acquireTokenInteractive(final String[] scopes, final String loginHint, final UIOptions uiOptions,
+                                         final String extraQueryParams, final String[] additionalScope,
+                                         final String authority, final String policy,
+                                         final AuthenticationCallback callback) {
         if (callback == null) {
             throw new IllegalArgumentException("callback is null");
         }
