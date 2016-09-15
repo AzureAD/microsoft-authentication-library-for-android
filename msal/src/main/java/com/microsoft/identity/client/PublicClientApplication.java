@@ -312,9 +312,9 @@ public final class PublicClientApplication {
         // read authority from manifest.
         final String authority = applicationInfo.metaData.getString(AUTHORITY_META_DATA);
         if (!MSALUtils.isEmpty(authority)) {
-            mAuthority = new Authority(authority, mValidateAuthority);
+            mAuthority = Authority.createAuthority(authority, mValidateAuthority); //new Authority(authority, mValidateAuthority);
         } else {
-            mAuthority = new Authority(DEFAULT_AUTHORITY, mValidateAuthority);
+            mAuthority = Authority.createAuthority(DEFAULT_AUTHORITY, mValidateAuthority); //new Authority(DEFAULT_AUTHORITY, mValidateAuthority);
         }
 
         // read client id from manifest
@@ -380,7 +380,7 @@ public final class PublicClientApplication {
                                                                  final String loginHint, final String extraQueryParam,
                                                                  final String policy, final UIOptions uiOption) {
         final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? mAuthority
-                : new Authority(authority, mValidateAuthority);
+                : Authority.createAuthority(authority, mValidateAuthority); //new Authority(authority, mValidateAuthority);
         // set correlation if not developer didn't set it.
         final UUID correlationId = UUID.randomUUID();
         final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));

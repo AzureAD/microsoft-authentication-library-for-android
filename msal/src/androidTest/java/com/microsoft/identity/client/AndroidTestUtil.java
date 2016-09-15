@@ -116,4 +116,13 @@ public final class AndroidTestUtil {
                 MSALUtils.urlEncode(MSALUtils.convertSetToString(scopes, " ")));
         return Base64.encodeToString(state.getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
     }
+
+    static String getSuccessTenantDiscoveryResponse(final String authorizeEndpoint, final String tokenEndpoint) {
+        return "{\"authorization_endpoint\":\"" + authorizeEndpoint + "\",\"token_endpoint\":\"" + tokenEndpoint+ "\""
+                + ",\"issuer\":\"some issuer\"}";
+    }
+
+    static String getSuccessInstanceDiscoveryResponse(final String tenantDiscoveryEnpdoint) {
+        return "{\"tenant_discovery_endpoint\":\"" + tenantDiscoveryEnpdoint + "\"}";
+    }
 }

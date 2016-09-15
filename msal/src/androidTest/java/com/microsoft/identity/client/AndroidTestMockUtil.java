@@ -69,4 +69,20 @@ public final class AndroidTestMockUtil {
         Mockito.doNothing().when(mockedConnection).setDoInput(Mockito.anyBoolean());
         return mockedConnection;
     }
+
+    static void mockSuccessInstanceDiscovery(final String tenantDiscoveryEndpoint) throws IOException {
+        final HttpURLConnection mockedConnection = getMockedConnectionWithSuccessResponse(
+                AndroidTestUtil.getSuccessInstanceDiscoveryResponse(tenantDiscoveryEndpoint));
+        HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
+    }
+
+    static void mockFailedGetRequest(int statusCode, final String errorResponse) throws IOException {
+        final HttpURLConnection mockedConnection = getMockedConnectionWithFailureResponse(statusCode, errorResponse);
+        HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
+    }
+
+    static void mockSuccessTenantDiscovery(final String authorizeEndpoint, final String tokenEndpoint) throws IOException {
+        final HttpURLConnection mockedConnection = getMockedConnectionWithSuccessResponse(AndroidTestUtil.getSuccessTenantDiscoveryResponse(authorizeEndpoint, tokenEndpoint));
+        HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
+    }
 }

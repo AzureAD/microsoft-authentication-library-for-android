@@ -27,6 +27,8 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -43,8 +45,8 @@ import java.util.UUID;
  */
 final class Oauth2Client {
     private static final String TAG = Oauth2Client.class.getSimpleName();
-    private static final String POST_ACCEPT_HEADER = "Accept";
-    private static final String POST_ACCEPT_HEADER_VALUE = "application/json";
+    private static final String HEADER_ACCEPT = "Accept";
+    private static final String HEADER_ACCEPT_VALUE = "application/json";
 
     static final String POST_CONTENT_TYPE = "application/x-www-form-urlencoded";
 
@@ -64,31 +66,107 @@ final class Oauth2Client {
         mHeader.put(key, value);
     }
 
+    /**
+     * Send post request to get token with the given authority. Authority will hold the token endpoint.
+     */
     TokenResponse getToken(final Authority authority) throws IOException, RetryableException,
             AuthenticationException {
-        final URL tokenEndpoint = appendQueryParamToTokenEndpoint(authority);
-        addHeader(POST_ACCEPT_HEADER, POST_ACCEPT_HEADER_VALUE);
 
-        final HttpResponse response = HttpRequest.sendPost(tokenEndpoint, mHeader,
-                buildRequestMessage(mBodyParameters), POST_CONTENT_TYPE);
-
-        final UUID correlationIdInRequest = UUID.fromString(mHeader.get(
-                OauthConstants.OauthHeader.CORRELATION_ID));
-        verifyCorrelationIdInResponseHeaders(response.getHeaders(), correlationIdInRequest);
-
-        return parseRawResponseToTokenResponse(response);
+        return executeHttpRequest(HttpRequest.REQUEST_METHOD_POST, authority.getTokenEndpoint(), TokenResponse.class);
     }
 
-    URL appendQueryParamToTokenEndpoint(final Authority authority) throws UnsupportedEncodingException {
-        final URL tokenEndpointWithQueryString;
+    /**
+     * Discover the AAD instance with the given instance discovery endpoint.
+     */
+    InstanceDiscoveryResponse discoveryAADInstance(final URL instanceDiscoveryEndpoint) throws IOException,
+            RetryableException, AuthenticationException {
+
+        return executeHttpRequest(HttpRequest.REQUEST_METHOD_GET, instanceDiscoveryEndpoint.toString(), InstanceDiscoveryResponse.class);
+    }
+
+    /**
+     * Perform tenant discovery to get authorize endpoint and token endpoint.
+     */
+    TenantDiscoveryResponse discoverEndpoints(final URL openIdConfigurationEndpoint) throws IOException,
+            RetryableException, AuthenticationException {
+
+        return executeHttpRequest(HttpRequest.REQUEST_METHOD_GET, openIdConfigurationEndpoint.toString(), TenantDiscoveryResponse.class);
+    }
+
+    /**
+     * Execute the http request.
+     */
+    private <T extends BaseOauth2Response> T executeHttpRequest(final String requestMethod, final String endpoint, final Class clazz)
+            throws IOException, RetryableException, AuthenticationException {
+        // append query parameter to the endpoint first
+        final URL endpointWithQP;
         try {
-            tokenEndpointWithQueryString = new URL(MSALUtils.appendQueryParameterToUrl(
-                    authority.getTokenEndpoint(), mQueryParameters));
+            endpointWithQP = new URL(MSALUtils.appendQueryParameterToUrl(endpoint, mQueryParameters));
         } catch (final MalformedURLException e) {
-            throw new IllegalArgumentException("Malformed authority URL");
+            throw new IllegalArgumentException("Malformed endpoint url " + e.getMessage());
         }
 
-        return tokenEndpointWithQueryString;
+        // add common headers
+        addHeader(HEADER_ACCEPT, HEADER_ACCEPT_VALUE);
+        addHeader(OauthConstants.OauthHeader.CORRELATION_ID_IN_RESPONSE, "true");
+
+        final HttpResponse response;
+        if (HttpRequest.REQUEST_METHOD_GET.equals(requestMethod)) {
+            response = HttpRequest.sendGet(endpointWithQP, mHeader);
+        } else {
+            response = HttpRequest.sendPost(endpointWithQP, mHeader,
+                    buildRequestMessage(mBodyParameters), POST_CONTENT_TYPE);
+        }
+
+        return parseRawResponse(response, clazz);
+    }
+
+    private <T extends BaseOauth2Response> T parseRawResponse(final HttpResponse httpResponse, final Class clazz) throws AuthenticationException {
+        // verify the correlation id in the httpResponse headers before parsing the httpResponse body.
+        verifyCorrelationIdInResponseHeaders(httpResponse);
+
+        final Map<String, String> responseItems = getResponseItems(httpResponse);
+
+
+        if (httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK) {
+            return (T) BaseOauth2Response.createSuccessResponse(responseItems);
+        }
+
+        final BaseOauth2Response errorResponse;
+        try {
+            errorResponse= BaseOauth2Response.createErrorResponse(responseItems);
+        } catch (final JSONException e) {
+            throw new AuthenticationException(MSALError.JSON_PARSE_FAILURE, "Fail to parse Json", e);
+        }
+
+        try {
+            final Constructor<T> constructor = clazz.getDeclaredConstructor(BaseOauth2Response.class);
+            return constructor.newInstance(errorResponse);
+        } catch (final NoSuchMethodException e) {
+            throw new IllegalArgumentException("Unable to find generic type constructor.");
+        } catch (final IllegalAccessException e) {
+            throw new IllegalArgumentException("Unable to create new instance.");
+        } catch (final InstantiationException e) {
+            throw new IllegalArgumentException("Unable to create new instance.");
+        } catch (final InvocationTargetException e) {
+            throw new IllegalArgumentException("Unable to create new instance.");
+        }
+    }
+
+    private Map<String, String> getResponseItems(final HttpResponse response) throws AuthenticationException {
+        if (MSALUtils.isEmpty(response.getBody())) {
+            // TODO: Discuss in this case, should we create a concrete error with status code, indicating it's server error.
+            throw new AuthenticationException(MSALError.SERVER_ERROR, "statusCode: " + response.getStatusCode());
+        }
+
+        final Map<String, String> responseItems;
+        try {
+            responseItems = MSALUtils.extractJsonObjectIntoMap(response.getBody());
+        } catch (final JSONException e) {
+            throw new AuthenticationException(MSALError.JSON_PARSE_FAILURE, "Fail to parse JSON", e);
+        }
+
+        return responseItems;
     }
 
     private byte[] buildRequestMessage(final Map<String, String> bodyParameters) throws UnsupportedEncodingException {
@@ -102,8 +180,11 @@ final class Oauth2Client {
         return requestMessage.getBytes(MSALUtils.ENCODING_UTF8);
     }
 
-    private void verifyCorrelationIdInResponseHeaders(final Map<String, List<String>> responseHeader,
-                                                      final UUID correlationIdInRequest) {
+    private void verifyCorrelationIdInResponseHeaders(final HttpResponse response) {
+        final UUID correlationIdInRequest = UUID.fromString(mHeader.get(
+                OauthConstants.OauthHeader.CORRELATION_ID));
+
+        final Map<String, List<String>> responseHeader = response.getHeaders();
         if (responseHeader == null
                 || !responseHeader.containsKey(OauthConstants.OauthHeader.CORRELATION_ID_IN_RESPONSE)) {
             // TODO: Looger.w(TAG, "response doesn't contain headers or header doesn't include correlation id");
@@ -130,24 +211,6 @@ final class Oauth2Client {
                 //  UUID.fromString throws IllegalArgumentException if {@code uuid} is not formatted correctly.
                 // TODO: Logger.e(TAG, "", e);
             }
-        }
-    }
-
-    private TokenResponse parseRawResponseToTokenResponse(final HttpResponse response) throws AuthenticationException {
-        if (MSALUtils.isEmpty(response.getBody())) {
-            // TODO: Discuss in this case, should we create a concrete error with status code, indicating it's server error.
-            throw new AuthenticationException(MSALError.SERVER_ERROR, "statusCode: " + response.getStatusCode());
-        }
-
-        try {
-            final Map<String, String> responseItems = MSALUtils.extractJsonObjectIntoMap(response.getBody());
-            if (response.getStatusCode() != HttpURLConnection.HTTP_OK) {
-                return TokenResponse.createErrorTokenResponse(responseItems);
-            } else {
-                return TokenResponse.createSuccessTokenResponse(responseItems);
-            }
-        } catch (final JSONException e) {
-            throw new AuthenticationException(MSALError.JSON_PARSE_FAILURE, "Fail to parse Json", e);
         }
     }
 }

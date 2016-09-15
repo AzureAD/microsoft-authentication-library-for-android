@@ -94,6 +94,8 @@ abstract class BaseRequest {
             @Override
             public void run() {
                 try {
+                    // perform authority validation before doing any token request
+                    mAuthRequestParameters.getAuthority().validateAuthorityAndPerformTenantDiscovery(mAuthRequestParameters.getCorrelationId());
                     preTokenRequest();
                     final AuthenticationResult authenticationResult = performTokenRequest();
                     storeTokenIntoCache(authenticationResult);
