@@ -38,17 +38,16 @@ abstract class Authority {
     private static final String HTTPS_PROTOCOL = "https";
     private static final ConcurrentMap<String, Authority> VALIDATED_AUTHORITY = new ConcurrentHashMap<>();
 
-    private boolean mIsAuthorityValidated = false;
     static final String DEFAULT_OPENID_CONFIGURATION_ENDPOINT = "/v2.0/.well-known/openid-configuration";
     // default_authorize_endpoint is used for instance discovery sent as query parameter for instance discovery.
     static final String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/v2.0/authorize";
 
+    private boolean mIsAuthorityValidated = false;
     final URL mAuthorityUrl;
     final boolean mValidateAuthority;
 
     String mAuthorizationEndpoint;
     String mTokenEndpoint;
-
     AuthorityType mAuthorityType;
 
     /**
@@ -91,6 +90,8 @@ abstract class Authority {
             return VALIDATED_AUTHORITY.get(authority.toString());
         }
 
+        // TODO: when figuring out how to do instance discovery for ADFS and b2c, should create corresponding concrete
+        // Authority class. 
         return new AADAuthority(authority, validateAuthority);
     }
 
