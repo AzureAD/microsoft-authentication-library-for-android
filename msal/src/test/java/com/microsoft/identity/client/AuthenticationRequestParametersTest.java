@@ -11,7 +11,7 @@ import java.util.UUID;
  * Tests for {@link AuthenticationRequestParameters}.
  */
 public final class AuthenticationRequestParametersTest {
-    static final Authority AUTHORITY = new Authority(Util.VALID_AUTHORITY, false);
+    static final Authority AUTHORITY = Authority.createAuthority(Util.VALID_AUTHORITY, false);
     static final TokenCache TOKEN_CACHE = new TokenCache();
     static final Set<String> SCOPE = new HashSet<>();
     static final String CLIENT_ID = "some-client-id";
@@ -36,7 +36,7 @@ public final class AuthenticationRequestParametersTest {
     public void testAuthenticationRequestParameterHappyPath() {
         final AuthenticationRequestParameters authRequestParameter = new AuthenticationRequestParameters(AUTHORITY, TOKEN_CACHE,
                 SCOPE, CLIENT_ID, REDIRECT_URI, "", true, LOGIN_HINT, "", UIOptions.SELECT_ACCOUNT, CORRELATION_ID, SETTINGS);
-        Assert.assertTrue(authRequestParameter.getAuthority().getAuthorityUrl().toString().equals(Util.VALID_AUTHORITY));
+        Assert.assertTrue(authRequestParameter.getAuthority().getAuthority().toString().equals(Util.VALID_AUTHORITY));
         Assert.assertTrue(authRequestParameter.getScope().isEmpty());
         Assert.assertTrue(authRequestParameter.getClientId().equals(CLIENT_ID));
         Assert.assertTrue(authRequestParameter.getRedirectUri().equals(REDIRECT_URI));

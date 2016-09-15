@@ -45,6 +45,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     private static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
     private static final String ALTERNATE_AUTHORITY = "https://login.microsoftonline.com/alternateAuthority";
     private static final String[] SCOPE = {"scope1", "scope2"};
+    private static final String DEFAULT_TOKEN_ENDPOINT = "/oauth2/v2.0/token";
 
     @Before
     public void setUp() throws Exception {
@@ -456,6 +457,11 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             mockPackageManagerWithClientId(context, isSetAlternateAuthority());
             mockHasCustomTabRedirect(context);
             mockAuthenticationActivityResolvable(context);
+
+            if (isSetAlternateAuthority()) {
+               AndroidTestMockUtil.mockSuccessTenantDiscovery(ALTERNATE_AUTHORITY + Authority.DEFAULT_AUTHORIZE_ENDPOINT,
+                       ALTERNATE_AUTHORITY + DEFAULT_TOKEN_ENDPOINT);
+            }
 
             mockHttpRequest();
 

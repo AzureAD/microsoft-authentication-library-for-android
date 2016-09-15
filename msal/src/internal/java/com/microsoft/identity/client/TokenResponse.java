@@ -25,19 +25,14 @@ package com.microsoft.identity.client;
 
 import com.microsoft.identity.client.OauthConstants.TokenResponseClaim;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
  * Internal class for the the returned JSON response from token endpoint.
  */
-final class TokenResponse {
+final class TokenResponse extends BaseOauth2Response {
     private final String mAccessToken;
     private final String mRawIdToken;
     private final String mRefreshToken;
@@ -47,9 +42,6 @@ final class TokenResponse {
     private final String mScope;
     private final String mTokenType;
     private final String mFoCI;
-    private final String mError;
-    private final String mErrorDescription;
-    private final String[] mErrorCodes;
     private final Map<String, String> mAdditionalData = new HashMap<>();
 
     /**
@@ -58,6 +50,8 @@ final class TokenResponse {
     public TokenResponse(final String accessToken, final String rawIdToken, final String refreshToken,
                          final Date expiresOn, final Date idTokenExpiresOn, final Date extendedExpiresOn,
                          final String scope, final String tokenType, final String foCI) {
+        // success response: error, errorDescription and errorCodes are all null
+        super(null, null, null);
         mAccessToken = accessToken;
         mRawIdToken = rawIdToken;
         mRefreshToken = refreshToken;
@@ -67,18 +61,13 @@ final class TokenResponse {
         mScope = scope;
         mTokenType = tokenType;
         mFoCI = foCI;
-        mError = null;
-        mErrorDescription = null;
-        mErrorCodes = null;
     }
 
     /**
      * Creates token response with error returned in the server JSON response.
      */
     public TokenResponse(final String error, final String errorDescription, String[] errorCodes) {
-        mError = error;
-        mErrorDescription = errorDescription;
-        mErrorCodes = errorCodes;
+        super(error, errorDescription, errorCodes);
 
         mAccessToken = null;
         mRefreshToken = null;
@@ -89,6 +78,10 @@ final class TokenResponse {
         mScope = null;
         mTokenType = null;
         mFoCI = null;
+    }
+
+    public TokenResponse(final BaseOauth2Response baseOauth2Response) {
+        this(baseOauth2Response.getError(), baseOauth2Response.getErrorDescription(), baseOauth2Response.getErrorCodes());
     }
 
     /**
@@ -155,27 +148,6 @@ final class TokenResponse {
     }
 
     /**
-     * @return Error represents the error in the JSON response.
-     */
-    public String getError() {
-        return mError;
-    }
-
-    /**
-     * @return Error descriptions representing the error_description.
-     */
-    public String getErrorDescription() {
-        return mErrorDescription;
-    }
-
-    /**
-     * @return Array of error codes.
-     */
-    public String[] getErrorCodes() {
-        return mErrorCodes;
-    }
-
-    /**
      * Set additional data returned in the server response.
      * @param additionalData The additional data in the JSON response.
      */
@@ -188,22 +160,6 @@ final class TokenResponse {
      */
     public Map<String, String> getAdditionalData() {
         return mAdditionalData;
-    }
-
-    static TokenResponse createErrorTokenResponse(final Map<String, String> responseItems) throws JSONException {
-        final String error = responseItems.get(TokenResponseClaim.ERROR);
-        final String errorDescription = responseItems.get(TokenResponseClaim.ERROR_DESCRIPTION);
-
-        final JSONArray errorCodesJsonArray = new JSONArray(responseItems.get(TokenResponseClaim.ERROR_CODES));
-        final List<String> errorCodesList = new ArrayList<>();
-        for (int i = 0; i < errorCodesJsonArray.length(); i++) {
-            final String errorCode = errorCodesJsonArray.getString(i);
-            errorCodesList.add(errorCode);
-        }
-
-        // TODO: read additional data for error response?
-
-        return new TokenResponse(error, errorDescription, errorCodesList.toArray(new String[errorCodesList.size()]));
     }
 
     static TokenResponse createSuccessTokenResponse(final Map<String, String> responseItems) {

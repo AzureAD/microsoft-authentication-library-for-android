@@ -200,7 +200,7 @@ final class InteractiveRequest extends BaseRequest {
 
     public String encodeProtocolState() throws UnsupportedEncodingException {
         final String state = String.format("a=%s&r=%s", MSALUtils.urlEncode(
-                mAuthRequestParameters.getAuthority().getAuthorityUrl()),
+                mAuthRequestParameters.getAuthority().getAuthority()),
                 MSALUtils.urlEncode(MSALUtils.convertSetToString(
                         mAuthRequestParameters.getScope(), " ")));
         return Base64.encodeToString(state.getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
@@ -251,7 +251,7 @@ final class InteractiveRequest extends BaseRequest {
         final Map<String, String> stateMap = MSALUtils.decodeUrlToMap(decodeState, "&");
 
         if (stateMap.size() != 2
-                || !mAuthRequestParameters.getAuthority().getAuthorityUrl().equals(stateMap.get("a"))) {
+                || !mAuthRequestParameters.getAuthority().getAuthority().equals(stateMap.get("a"))) {
             throw new AuthenticationException(MSALError.AUTH_FAILED, Constants.MSALErrorMessage.STATE_NOT_THE_SAME);
         }
 

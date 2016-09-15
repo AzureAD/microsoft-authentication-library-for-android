@@ -49,7 +49,13 @@ public enum MSALError {
     OAUTH_ERROR("Auth failed with oath error"),
 
     /** Indicates the general error for silent request fails. */
-    INTERACTION_REQUIRED("Silent request failed, interaction required");
+    INTERACTION_REQUIRED("Silent request failed, interaction required"),
+
+    /** Indicates the failure for authority validation */
+    AUTHORITY_VALIDATION_FAILED("Authority validation failed"),
+
+    /** Indicates the failure for tenant discovery. */
+    TENANT_DISCOVERY_FAILED("Tenant discovery failed");
 
     private String mErrorDescription;
 
