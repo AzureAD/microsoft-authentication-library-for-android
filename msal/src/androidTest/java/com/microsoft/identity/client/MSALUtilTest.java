@@ -32,6 +32,7 @@ import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.SmallTest;
+import android.util.Base64;
 
 import org.json.JSONException;
 import org.junit.Assert;
@@ -307,5 +308,18 @@ public final class MSALUtilTest {
         final String result = MSALUtils.convertSetToString(new HashSet<>(input), " ");
 
         Assert.assertTrue(result.equals("scope1 scope2"));
+    }
+
+    @Test
+    public void testBase64Encode() throws UnsupportedEncodingException {
+        String stringToEncode = "a+b@c.com";
+        Assert.assertTrue(base64Decode(MSALUtils.base64EncodeToString(stringToEncode)).equals(stringToEncode));
+
+        stringToEncode = "a$c@b.com";
+        Assert.assertTrue(base64Decode(MSALUtils.base64EncodeToString(stringToEncode)).equals(stringToEncode));
+    }
+
+    private String base64Decode(final String encodedString) throws UnsupportedEncodingException {
+        return new String(Base64.decode(encodedString.getBytes(MSALUtils.ENCODING_UTF8), Base64.NO_PADDING | Base64.URL_SAFE));
     }
 }

@@ -125,6 +125,38 @@ public final class TokenCacheTest extends AndroidTestCase {
     }
 
     /**
+     * Verify that tokens are retrieved correctly if displayable id contains special character.
+     */
+    @Test
+    public void testGetTokenWithUserContainSpecialCharacter() throws UnsupportedEncodingException, AuthenticationException {
+        final String scope = "scope";
+        final String displayableId = "a$$b+c%3$*c_d#^d@contoso.com";
+        final String idToken = AndroidTestUtil.getRawIdToken(displayableId, UNIQUE_ID, HOME_OID);
+        final User user = new User(new IdToken(idToken));
+
+        final TokenResponse response = new TokenResponse(ACCESS_TOKEN, idToken, REFRESH_TOKEN, AndroidTestUtil.getValidExpiresOn(),
+                AndroidTestUtil.getValidExpiresOn(), AndroidTestUtil.getExpirationDate(AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES * 2),
+                scope, "Bearer", null);
+
+        mTokenCache.saveTokenResponse(AUTHORITY, CLIENT_ID, "", new SuccessTokenResponse(response));
+
+        // save another token for default user
+        mTokenCache.saveTokenResponse(AUTHORITY, CLIENT_ID, "", getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN,
+                scope, AndroidTestUtil.getValidExpiresOn()));
+
+        // verify the access token is saved
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(scope), "");
+
+        assertTrue(mTokenCache.getAllAccessTokens().size() == 2);
+
+        final TokenCacheItem tokenCacheItem = mTokenCache.findAccessToken(requestParameters, user);
+        assertNotNull(tokenCacheItem);
+        assertTrue(ACCESS_TOKEN.equals(tokenCacheItem.getToken()));
+        assertTrue(idToken.equals(tokenCacheItem.getRawIdToken()));
+        assertTrue(displayableId.equals(tokenCacheItem.getDisplayableId()));
+    }
+
+    /**
      * Verify that token is correctly when cache key contains policy.
      */
     @Test

@@ -23,6 +23,7 @@
 
 package com.microsoft.identity.client;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
@@ -35,8 +36,7 @@ import java.util.TreeSet;
 final class TokenCacheKey {
     private final String mAuthority;
     private final String mClientId;
-    // scope is treeSet to guarantee the order of the scopes when converting to string.
-    private final Set<String> mScope = new TreeSet<>();
+    private final TreeSet<String> mScope = new TreeSet<>();
     private final String mDisplayableId;
     private final String mUniqueId;
     private final String mHomeObjectId;
@@ -51,12 +51,10 @@ final class TokenCacheKey {
                   final String uniqueId, final String homeObjectId, final String policy) {
         // TODO: remove the authority from cache key for refresh token entry. Discuss with the team on whether we need authority as the key.
         // All the tokens issued by AAD is cross tenant, ADFS 2016 should work the same as AAD, and client id.
-//        if (MSALUtils.isEmpty(authority)) {
-//            throw new IllegalArgumentException("authority");
-//        }
+        // TODO: add the authority type. Will add once the Authority PR is merged.
 
         if (MSALUtils.isEmpty(clientId)) {
-            throw new IllegalArgumentException("clientid");
+            throw new IllegalArgumentException("clientId");
         }
 
         mAuthority = MSALUtils.isEmpty(authority) ? "" : authority.toLowerCase(Locale.US);
@@ -107,8 +105,9 @@ final class TokenCacheKey {
         final StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(mAuthority + "$");
         stringBuilder.append(mClientId + "$");
+        // scope is treeSet to guarantee the order of the scopes when converting to string.
         stringBuilder.append(MSALUtils.convertSetToString(mScope, " ") + "$");
-        stringBuilder.append(mDisplayableId + "$");
+        stringBuilder.append(getEncodedDisplayableId(mDisplayableId) + "$");
         stringBuilder.append(mUniqueId + "$");
         stringBuilder.append(mHomeObjectId + "$");
         stringBuilder.append(mPolicy);
@@ -140,5 +139,17 @@ final class TokenCacheKey {
         }
 
         return mPolicy.equalsIgnoreCase(item.getPolicy());
+    }
+
+    private String getEncodedDisplayableId(final String displayableIdToEncode) {
+        String displayableId;
+        try {
+            displayableId = MSALUtils.base64EncodeToString(displayableIdToEncode);
+        } catch (final UnsupportedEncodingException ignore) {
+            // TODO: add a log message
+            displayableId = displayableIdToEncode;
+        }
+
+        return displayableId;
     }
 }

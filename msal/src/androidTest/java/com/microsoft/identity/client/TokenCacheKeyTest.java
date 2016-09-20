@@ -92,7 +92,7 @@ public final class TokenCacheKeyTest {
     @Test
     public void testAccessTokenKeyCreationWithUser() throws UnsupportedEncodingException, AuthenticationException {
         final TokenCacheKey accessTokenCacheKey = TokenCacheKey.createKeyForAT(AUTHORITY, CLIENT_ID, getScopes(), getUser(), POLICY);
-        Assert.assertTrue(accessTokenCacheKey.toString().equals(AUTHORITY + "$" + CLIENT_ID + "$" + "scope1 scope2$" + DISPLAYABLE + "$"
+        Assert.assertTrue(accessTokenCacheKey.toString().equals(AUTHORITY + "$" + CLIENT_ID + "$" + "scope1 scope2$" + getEncodedDisplayableId(DISPLAYABLE) + "$"
                 + UNIQUE_ID + "$" + HOME_OBJECT_ID + "$" + POLICY));
     }
 
@@ -118,14 +118,14 @@ public final class TokenCacheKeyTest {
         final TokenCacheKey accessTokenCacheKey = TokenCacheKey.createKeyForAT(AUTHORITY.toUpperCase(Locale.US), CLIENT_ID.toUpperCase(Locale.US), getScopes(),
                 user, POLICY.toUpperCase(Locale.US));
 
-        Assert.assertTrue(accessTokenCacheKey.toString().equals(AUTHORITY + "$" + CLIENT_ID + "$" + "scope1 scope2$" + DISPLAYABLE + "$"
+        Assert.assertTrue(accessTokenCacheKey.toString().equals(AUTHORITY + "$" + CLIENT_ID + "$" + "scope1 scope2$" + getEncodedDisplayableId(DISPLAYABLE) + "$"
                 + UNIQUE_ID + "$" + HOME_OBJECT_ID + "$" + POLICY));
     }
 
     @Test
     public void testRefreshTokenKeyCreation() throws UnsupportedEncodingException, AuthenticationException {
         final TokenCacheKey refreshTokenCacheKey = TokenCacheKey.createKeyForRT(CLIENT_ID, getUser(), POLICY);
-        Assert.assertTrue(refreshTokenCacheKey.toString().equals("$" + CLIENT_ID + "$" + "$" + DISPLAYABLE + "$"
+        Assert.assertTrue(refreshTokenCacheKey.toString().equals("$" + CLIENT_ID + "$" + "$" + getEncodedDisplayableId(DISPLAYABLE) + "$"
                 + UNIQUE_ID + "$" + HOME_OBJECT_ID + "$" + POLICY));
     }
 
@@ -138,7 +138,7 @@ public final class TokenCacheKeyTest {
         final BaseTokenCacheItem item = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, POLICY, new SuccessTokenResponse(response));
 
 
-        Assert.assertTrue(TokenCacheKey.extractKeyForRT(item).toString().equals("" + "$" + CLIENT_ID + "$" + "$" + DISPLAYABLE + "$"
+        Assert.assertTrue(TokenCacheKey.extractKeyForRT(item).toString().equals("" + "$" + CLIENT_ID + "$" + "$" + getEncodedDisplayableId(DISPLAYABLE) + "$"
                 + UNIQUE_ID + "$" + HOME_OBJECT_ID + "$" + POLICY));
     }
 
@@ -155,5 +155,16 @@ public final class TokenCacheKeyTest {
         final IdToken idToken = new IdToken(rawIdToken);
 
         return new User(idToken);
+    }
+
+    private String getEncodedDisplayableId(final String displayableIdToEncode) {
+        String displayableId;
+        try {
+            displayableId = MSALUtils.base64EncodeToString(displayableIdToEncode);
+        } catch (final UnsupportedEncodingException ignore) {
+            displayableId = "";
+        }
+
+        return displayableId;
     }
 }
