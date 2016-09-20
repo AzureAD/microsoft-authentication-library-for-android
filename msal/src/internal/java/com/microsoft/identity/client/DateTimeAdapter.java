@@ -50,27 +50,11 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
             DateFormat.DEFAULT);
 
     private final DateFormat mISO8601Format = buildIso8601Format();
-    private final DateFormat mEnUs24HourFormat = buildEnUs24HourDateFormat();
-    private final DateFormat mLocal24HourFormat = buildLocal24HourDateFormat();
 
     private static DateFormat buildIso8601Format() {
         DateFormat iso8601Format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
         iso8601Format.setTimeZone(TimeZone.getTimeZone("UTC"));
         return iso8601Format;
-    }
-    
-    /**
-     * Add new en-us date format for parsing date string if it doesn't contain AM/PM.
-     */
-    private static DateFormat buildEnUs24HourDateFormat() {
-        return new SimpleDateFormat("MMM dd, yyyy HH:mm:ss", Locale.US);
-    }
-    
-    /**
-     * Add new local date format when parsing date string if it doesn't contain AM/PM.
-     */
-    private static DateFormat buildLocal24HourDateFormat() {
-        return new SimpleDateFormat("MMM dd, yyyy HH:mm:ss", Locale.getDefault());
     }
 
     /**
@@ -89,42 +73,13 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
         String jsonString = json.getAsString();
 
         // Datetime string is serialized with iso8601 format by default, should
-        // always try to deserialize with iso8601. But to support the backward
-        // compatibility, we also need to deserialize with old format if failing
-        // with iso8601. 
+        // always try to deserialize with iso8601.
         try {
             return mISO8601Format.parse(jsonString);
         } catch (final ParseException ignored) {
 //            Logger.v(TAG, "Cannot parse with ISO8601, try again with local format.");
+            throw new JsonParseException("Could not parse date: " + jsonString);
         }
-        
-        // fallback logic for old date format parsing. 
-        try {
-            return mLocalFormat.parse(jsonString);
-        } catch (final ParseException ignored) {
-//            Logger.v(TAG, "Cannot parse with local format, try again with local 24 hour format.");
-        }
-        
-        try {
-            return mLocal24HourFormat.parse(jsonString);
-        } catch (final ParseException ignored) {
-//            Logger.v(TAG, "Cannot parse with local 24 hour format, try again with en us format.");
-        }
-
-        try {
-            return mEnUsFormat.parse(jsonString);
-        } catch (final ParseException ignored) {
-//            Logger.v(TAG, "Cannot parse with en us format, try again with en us 24 hour format.");
-        }
-
-        try {
-            return mEnUs24HourFormat.parse(jsonString);
-        } catch (final ParseException e) {
-//            Logger.e(TAG, "Could not parse date: " + e.getMessage(), "",
-//                    ADALError.DATE_PARSING_FAILURE, e);
-        }
-
-        throw new JsonParseException("Could not parse date: " + jsonString);
     }
 
     /**

@@ -24,83 +24,37 @@
 package com.microsoft.identity.client;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
- * MSAL Internal abstract class to represent the {@link TokenCacheItem}.
+ * MSAL internal class for representing the access token cache item.
  */
-abstract class TokenCacheItem {
-    final String mAuthority;
-    final String mClientId;
-    final Set<String> mScope = new HashSet<>();
-    String mUniqueId;
-    String mHomeObjectId;
-    String mDisplayableId;
-    String mTenantId;
-    final String mPolicy;
-    String mRawIdToken;
-    Date mIdTokenExpiresOn;
+final class TokenCacheItem extends BaseTokenCacheItem {
+
+    private final String mToken;
+    private final Date mExpiresOn;
 
     /**
-     * Constructor for creating the token cache item.
+     * Constructor for creating the {@link TokenCacheItem}.
      */
-    TokenCacheItem(final String authority, final String clientId, final String policy, final TokenResponse response)
-            throws AuthenticationException{
-        if (!MSALUtils.isEmpty(response.getRawIdToken())) {
-            final IdToken idToken = new IdToken(response.getRawIdToken());
-            final User user = new User(idToken);
-            mUniqueId = user.getUniqueId();
-            mDisplayableId = user.getDisplayableId();
-            mHomeObjectId = user.getHomeObjectId();
-            mRawIdToken = response.getRawIdToken();
-            mIdTokenExpiresOn = response.getIdTokenExpiresOn();
-            mTenantId = idToken.getTenantId();
-        }
+    TokenCacheItem(final String authority, final String clientId, final String policy, final SuccessTokenResponse response) throws AuthenticationException {
+        super(authority, clientId, policy, response);
 
-        mAuthority = authority;
-        mClientId = clientId;
-        mPolicy = policy;
-        mScope.addAll(MSALUtils.getScopesAsSet(response.getScope()));
+        mToken = response.getToken();
+        mExpiresOn = response.getExpiresOn();
+
     }
 
-    String getAuthority() {
-        return mAuthority;
+    /**
+     * @return The token. Could either be access token or id token.
+     */
+    String getToken() {
+        return mToken;
     }
 
-    String getClientId() {
-        return mClientId;
-    }
-
-    Set<String> getScope() {
-        return mScope;
-    }
-
-    String getUniqueId() {
-        return mUniqueId;
-    }
-
-    String getDisplayableId() {
-        return mDisplayableId;
-    }
-
-    String getHomeObjectId() {
-        return mHomeObjectId;
-    }
-
-    String getRawIdToken() {
-        return mRawIdToken;
-    }
-
-    Date getIdTokenExpiresOn() {
-        return mIdTokenExpiresOn;
-    }
-
-    String getTenantId() {
-        return mTenantId;
-    }
-
-    String getPolicy() {
-        return mPolicy;
+    /**
+     * @return The expires on. Could either be access token expires on or id token expires on.
+     */
+    Date getExpiresOn() {
+        return mExpiresOn;
     }
 }

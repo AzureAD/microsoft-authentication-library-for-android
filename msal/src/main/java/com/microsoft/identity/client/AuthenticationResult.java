@@ -43,52 +43,31 @@ public final class AuthenticationResult {
      * Constructor to create {@link AuthenticationResult} with {@link TokenResponse}.
      * @param tokenResponse
      */
-    AuthenticationResult(final TokenResponse tokenResponse) throws AuthenticationException {
-        if (!MSALUtils.isEmpty(tokenResponse.getRawIdToken())) {
-            mIdToken = tokenResponse.getRawIdToken();
-            final IdToken idToken = new IdToken(mIdToken);
-            mTenantId = idToken.getTenantId();
-            mUser = new User(idToken);
-        }
-
-        // If both access token and id token is returned, mToken is set with access token.
-        // If access token is not returned but id token is returned, mToken is set with id token.
-        if (!MSALUtils.isEmpty(tokenResponse.getAccessToken())) {
-            mToken = tokenResponse.getAccessToken();
-            mExpiresOn = tokenResponse.getExpiresOn();
-        } else if (!MSALUtils.isEmpty(tokenResponse.getRawIdToken())) {
-            mToken = tokenResponse.getRawIdToken();
-            mExpiresOn = tokenResponse.getIdTokenExpiresOn();
-        }
-
-        final Set<String> returnedScopesInSet = MSALUtils.getScopesAsSet(tokenResponse.getScope());
-        mScope = returnedScopesInSet.toArray(new String[returnedScopesInSet.size()]);
+    static AuthenticationResult create(final SuccessTokenResponse tokenResponse) throws AuthenticationException {
+        return new AuthenticationResult(tokenResponse.getToken(), tokenResponse.getExpiresOn(),
+                MSALUtils.getScopesAsSet(tokenResponse.getScope()), tokenResponse.getRawIdToken(),
+                tokenResponse.getUser(), tokenResponse.getTenantId());
     }
 
     /**
-     * Constructor to create {@link AuthenticationResult} with {@link AccessTokenCacheItem}.
+     * Constructor to create {@link AuthenticationResult} with {@link TokenCacheItem}.
      * @param tokenCacheItem
      */
-    AuthenticationResult(final AccessTokenCacheItem tokenCacheItem) throws AuthenticationException {
-        if (!MSALUtils.isEmpty(tokenCacheItem.getRawIdToken())) {
-            mIdToken = tokenCacheItem.getRawIdToken();
-            final IdToken idToken = new IdToken(mIdToken);
-            mUser = new User(idToken);
-        }
+    static AuthenticationResult create(final TokenCacheItem tokenCacheItem) throws AuthenticationException {
 
-        // If both access token and id token is returned, mToken is set with access token.
-        // If access token is not returned but id token is returned, mToken is set with id token.
-        if (!MSALUtils.isEmpty(tokenCacheItem.getAccessToken())) {
-            mToken = tokenCacheItem.getAccessToken();
-            mExpiresOn = tokenCacheItem.getExpiresOn();
-        } else if (!MSALUtils.isEmpty(tokenCacheItem.getRawIdToken())) {
-            mToken = tokenCacheItem.getRawIdToken();
-            mExpiresOn = tokenCacheItem.getIdTokenExpiresOn();
-        }
+        return new AuthenticationResult(tokenCacheItem.getToken(), tokenCacheItem.getExpiresOn(), tokenCacheItem.getScope(),
+                tokenCacheItem.getRawIdToken(), new User(new IdToken(tokenCacheItem.getRawIdToken())), tokenCacheItem.getTenantId());
+    }
 
-        mTenantId = tokenCacheItem.getTenantId();
-        final Set<String> returnedScopesInSet = tokenCacheItem.getScope();
-        mScope = returnedScopesInSet.toArray(new String[returnedScopesInSet.size()]);
+    AuthenticationResult(final String token, final Date expiresOn, final Set<String> scopes, final String rawIdToken,
+                         final User user, final String tenantId)
+            throws AuthenticationException {
+        mToken = token;
+        mExpiresOn = expiresOn;
+        mIdToken = rawIdToken;
+        mUser = user;
+        mTenantId = tenantId;
+        mScope = scopes.toArray(new String[scopes.size()]);
     }
 
     /**

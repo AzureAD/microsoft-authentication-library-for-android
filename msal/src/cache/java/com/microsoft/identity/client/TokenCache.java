@@ -26,7 +26,9 @@ package com.microsoft.identity.client;
 import android.content.Context;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +39,7 @@ import java.util.Map;
  * to implement SSO. To prevent confusions among external apps, we don't expose these two methods.
  */
 public class TokenCache {
+    private static final int DEFAULT_EXPIRATION_BUFFER = 300;
     private final TokenCacheAccessor mTokenCacheAccessor;
 
     /**
@@ -50,12 +53,12 @@ public class TokenCache {
     /**
      * Save the token response into cache.
      */
-    void saveTokenResponse(final String authority, final String clientId, final String policy, final TokenResponse response)
+    void saveTokenResponse(final String authority, final String clientId, final String policy, final SuccessTokenResponse response)
             throws AuthenticationException {
 
         // create the access token cache item
-        final AccessTokenCacheItem accessTokenCacheItem = new AccessTokenCacheItem(authority, clientId, policy, response);
-        mTokenCacheAccessor.saveAccessToken(accessTokenCacheItem);
+        final TokenCacheItem tokenCacheItem = new TokenCacheItem(authority, clientId, policy, response);
+        mTokenCacheAccessor.saveAccessToken(tokenCacheItem);
 
         // if server returns the refresh token back, save it in the cache.
         if (!MSALUtils.isEmpty(response.getRefreshToken())) {
@@ -65,11 +68,65 @@ public class TokenCache {
     }
 
     /**
+     * Find access token matching authority, clientid, scope, user and policy in the cache.
+     * @param requestParam The {@link AuthenticationRequestParameters} containing the request data to get the token for.
+     * @param user The {@link User} to get the token for.
+     * @return The {@link TokenCacheItem} stored in the cache, could be NULL if there is no access token or there are
+     * multiple access token token items in the cache.
+     */
+    TokenCacheItem findAccessToken(final AuthenticationRequestParameters requestParam, final User user) {
+        final TokenCacheKey key = TokenCacheKey.createKeyForAT(requestParam.getAuthority().getAuthorityUrl(),
+                requestParam.getClientId(), requestParam.getScope(), user, requestParam.getPolicy());
+        final List<TokenCacheItem> tokenCacheItems = getAccessTokenItem(key);
+
+        if (tokenCacheItems.isEmpty()) {
+            // TODO: log access token not found
+            return null;
+        }
+
+        // TODO: If user is not provided for silent request, and there is only one item found in the cache. Should we return it?
+        if (tokenCacheItems.size() > 1) {
+            // TODO: log there are multiple access tokens found, don't know which one to use.
+            return null;
+        }
+
+        // Access token lookup needs to be a strict match. In the JSON response from token endpoint, server only returns the scope
+        // the developer requires the token for. We store the token separately for considerations i.e. MFA.
+        final TokenCacheItem tokenCacheItem = tokenCacheItems.get(0);
+        if (!isExpired(tokenCacheItem.getExpiresOn())) {
+            return tokenCacheItem;
+        }
+
+        //TODO: log the access token found is expired.
+        return null;
+    }
+
+    // All the token AAD returns are multi-scopes. MSAL only support ADFS 2016, which issues multi-scope RT.
+    RefreshTokenCacheItem findRefreshToken(final AuthenticationRequestParameters requestParam, final User user)
+            throws AuthenticationException {
+        final TokenCacheKey key = TokenCacheKey.createKeyForRT(requestParam.getClientId(), user, requestParam.getPolicy());
+        final List<RefreshTokenCacheItem> refreshTokenCacheItems = getRefreshTokenItem(key);
+
+        if (refreshTokenCacheItems.size() == 0) {
+            // TODO: no RT returned
+            return null;
+        }
+
+        // User info already provided, if there are multiple items found will throw since we don't what
+        // is the one we should use.
+        if (refreshTokenCacheItems.size() > 1) {
+            throw new AuthenticationException(MSALError.MULTIPLE_CACHE_ENTRY_FOUND);
+        }
+
+        return refreshTokenCacheItems.get(0);
+    }
+
+    /**
      * Get all the access token item with given key.
      * @param key The {@link TokenCacheKey} used to retrieve the access tokens.
-     * @return The list of found {@link AccessTokenCacheItem}s.
+     * @return The list of found {@link TokenCacheItem}s.
      */
-    List<AccessTokenCacheItem> getAccessTokenItem(final TokenCacheKey key) {
+    List<TokenCacheItem> getAccessTokenItem(final TokenCacheKey key) {
         return mTokenCacheAccessor.getAccessToken(key);
     }
 
@@ -84,16 +141,16 @@ public class TokenCache {
 
     /**
      * Delete refresh token items.
-     * @param rtItem
+     * @param rtItem The item to delete.
      */
-    void deleteRT(final TokenCacheItem rtItem) {
+    void deleteRT(final BaseTokenCacheItem rtItem) {
         mTokenCacheAccessor.deleteRefreshToken(rtItem);
     }
 
     /**
-     * @return All the {@link AccessTokenCacheItem}s in the cache.
+     * @return All the {@link TokenCacheItem}s in the cache.
      */
-    List<AccessTokenCacheItem> getAllAccessTokens() {
+    List<TokenCacheItem> getAllAccessTokens() {
         return mTokenCacheAccessor.getAllAccessTokens();
     }
 
@@ -102,13 +159,6 @@ public class TokenCache {
      */
     List<RefreshTokenCacheItem> getAllRefreshTokens() {
         return mTokenCacheAccessor.getAllRefreshTokens();
-    }
-
-    /**
-     * Remove all the tokens in the cache.
-     */
-    void removeAll() {
-        mTokenCacheAccessor.removeAll();
     }
 
     /**
@@ -122,7 +172,7 @@ public class TokenCache {
             throw new IllegalArgumentException("empty or null clientid");
         }
 
-        final List<RefreshTokenCacheItem> allRefreshTokens = mTokenCacheAccessor.getAllRefreshTokens(clientId);
+        final List<RefreshTokenCacheItem> allRefreshTokens = mTokenCacheAccessor.getAllRefreshTokensForGivenClientId(clientId);
         final Map<String, User> allUsers = new HashMap<>();
         for (final RefreshTokenCacheItem item : allRefreshTokens) {
             final User user = new User(new IdToken(item.getRawIdToken()));
@@ -141,6 +191,7 @@ public class TokenCache {
      * return it as a serialized blob.
      * @param user
      * @return
+     * TODO: add the functionality to find the tokens matching the given user and return the serialize blob.
      */
     String serialize(final User user) {
         return "";
@@ -151,8 +202,21 @@ public class TokenCache {
      *
      * The sdk will deserialize the input blob into the token cache item and save it into cache.
      * @param serializedBlob
+     * TODO: add the functionality to take in the serialized blob and add the item into the cache.
      */
     void deserialize(final String serializedBlob) {
 
+    }
+
+    /**
+     * @param expiresOn The expires on to check for.
+     * @return True if the given date is already expired, false otherwise.
+     */
+    private boolean isExpired(final Date expiresOn) {
+        final Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.SECOND, DEFAULT_EXPIRATION_BUFFER);
+        final Date validity = calendar.getTime();
+
+        return expiresOn != null && expiresOn.before(validity);
     }
 }

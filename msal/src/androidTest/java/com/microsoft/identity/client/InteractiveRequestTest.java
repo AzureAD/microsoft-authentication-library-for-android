@@ -97,7 +97,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     public void tearDown() throws Exception {
         super.tearDown();
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
-        mTokenCache.removeAll();
+        AndroidTestUtil.removeAllTokens(mAppContext);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -661,7 +661,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
     private AuthenticationRequestParameters getAuthenticationParams(final String policy, final UIOptions uiOptions) {
         return AuthenticationRequestParameters.create(new Authority(AUTHORITY, false), new TokenCache(mAppContext), getScopes(),
-                CLIENT_ID, mRedirectUri, policy, true, LOGIN_HINT, "", uiOptions, CORRELATION_ID, new Settings());
+                CLIENT_ID, mRedirectUri, policy, true, LOGIN_HINT, "", uiOptions, CORRELATION_ID);
     }
 
     private AuthenticationRequestParameters getAuthRequestParameters(final Set<String> scopes,
@@ -669,7 +669,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                                                                      final String loginHint,
                                                                      final UIOptions uiOptions) {
         return AuthenticationRequestParameters.create(new Authority(AUTHORITY, false), mTokenCache, scopes,
-                CLIENT_ID, redirectUri, POLICY, true, loginHint, "", uiOptions, CORRELATION_ID, new Settings());
+                CLIENT_ID, redirectUri, POLICY, true, loginHint, "", uiOptions, CORRELATION_ID);
     }
 
     private Set<String> getScopes() {

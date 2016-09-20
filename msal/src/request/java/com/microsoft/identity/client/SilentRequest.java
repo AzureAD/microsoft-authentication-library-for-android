@@ -45,18 +45,18 @@ final class SilentRequest extends BaseRequest {
 
     @Override
     void preTokenRequest() throws AuthenticationException {
-        final TokenLookupEngine tokenLookupEngine = new TokenLookupEngine(mAuthRequestParameters, mUser);
+        final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
 
         // lookup AT first.
         if (!mForceRefresh) {
-            final AccessTokenCacheItem accessTokenCacheItem = tokenLookupEngine.getAccessToken();
-            if (accessTokenCacheItem != null) {
-                mAuthResult = new AuthenticationResult(accessTokenCacheItem);
+            final TokenCacheItem tokenCacheItem = tokenCache.findAccessToken(mAuthRequestParameters, mUser);
+            if (tokenCacheItem != null) {
+                mAuthResult = AuthenticationResult.create(tokenCacheItem);
                 return;
             }
         }
 
-        mRefreshTokenCacheItem = tokenLookupEngine.getRefreshToken();
+        mRefreshTokenCacheItem = tokenCache.findRefreshToken(mAuthRequestParameters, mUser);
         if (mRefreshTokenCacheItem == null) {
             throw new AuthenticationException(MSALError.INTERACTION_REQUIRED, "RT not found");
         }
@@ -77,7 +77,7 @@ final class SilentRequest extends BaseRequest {
      * @throws AuthenticationException
      */
     @Override
-    final void performTokenRequest() throws AuthenticationException {
+    void performTokenRequest() throws AuthenticationException {
         // There is an access token returned, don't perform any token request. PostTokenRequest will the stored valid
         // access token.
         if (mAuthResult != null) {

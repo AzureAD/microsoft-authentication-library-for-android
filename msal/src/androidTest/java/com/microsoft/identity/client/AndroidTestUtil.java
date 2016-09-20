@@ -23,6 +23,9 @@
 
 package com.microsoft.identity.client;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Base64;
 
 import java.io.ByteArrayInputStream;
@@ -109,7 +112,7 @@ public final class AndroidTestUtil {
         return tokenResponse;
     }
 
-    static final String getSuccessResponse(final String idToken, final String scopes) {
+    static String getSuccessResponse(final String idToken, final String scopes) {
         final String tokenResponse = "{\"id_token\":\""
                 + idToken
                 + "\",\"access_token\":\"" + ACCESS_TOKEN + "\", \"token_type\":\"Bearer\",\"refresh_token\":\"" + REFRESH_TOKEN + "\","
@@ -151,5 +154,25 @@ public final class AndroidTestUtil {
         expiredTime.add(Calendar.MINUTE, tokenExpiredDateInMinuite);
 
         return expiredTime.getTime();
+    }
+
+    static void removeAllTokens(final Context appContext) {
+        final SharedPreferences accessTokenSharedPreference  = appContext.getSharedPreferences("com.microsoft.identity.client.token",
+                Activity.MODE_PRIVATE);
+        final SharedPreferences.Editor accessTokenSharedPreferenceEditor = accessTokenSharedPreference.edit();
+        accessTokenSharedPreferenceEditor.clear();
+        accessTokenSharedPreferenceEditor.apply();
+
+        final SharedPreferences refreshTokenSharedPreference = appContext.getSharedPreferences("com.microsoft.identity.client.refreshToken",
+                Activity.MODE_PRIVATE);
+        final SharedPreferences.Editor refreshTokenSharedPreferenceEditor = refreshTokenSharedPreference.edit();
+        refreshTokenSharedPreferenceEditor.clear();
+        refreshTokenSharedPreferenceEditor.apply();
+    }
+
+    static String getRawIdToken(final String displaybleId, final String uniqueId, final String homeOID)
+            throws UnsupportedEncodingException {
+        return AndroidTestUtil.createIdToken(AUDIENCE, ISSUER, NAME, uniqueId, displaybleId, SUBJECT, TENANT_ID,
+                VERSION, homeOID);
     }
 }

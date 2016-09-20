@@ -38,7 +38,6 @@ final class AuthenticationRequestParameters {
     private final String mPolicy;
     private final boolean mRestrictToSingleUser;
     private final UUID mCorrelationId;
-    private final Settings mSettings;
 
     private String mRedirectUri;
     private String mLoginHint;
@@ -50,7 +49,7 @@ final class AuthenticationRequestParameters {
      */
     private AuthenticationRequestParameters(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
                                             final String clientId, final String policy, final boolean restrictToSingleUser,
-                                            final UUID correlationId, final Settings settings) {
+                                            final UUID correlationId) {
         // Every acquireToken API call should contain correlation id.
         if (correlationId == null) {
             throw new IllegalArgumentException("correlationId");
@@ -72,16 +71,14 @@ final class AuthenticationRequestParameters {
         mPolicy = policy;
         mRestrictToSingleUser = restrictToSingleUser;
         mCorrelationId = correlationId;
-        mSettings = settings;
     }
 
     static AuthenticationRequestParameters create(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
                                                   final String clientId, final String redirectUri, final String policy,
                                                   final boolean restrictToSingleUser, final String loginHint,
-                                                  final String extraQueryParam, final UIOptions uiOptions, final UUID correlationId,
-                                                  final Settings settings) {
+                                                  final String extraQueryParam, final UIOptions uiOptions, final UUID correlationId) {
         final AuthenticationRequestParameters requestParameters = new AuthenticationRequestParameters(authority, tokenCache, scope,
-                clientId, policy, restrictToSingleUser, correlationId, settings);
+                clientId, policy, restrictToSingleUser, correlationId);
         requestParameters.setRedirectUri(redirectUri);
         requestParameters.setLoginHint(loginHint);
         requestParameters.setExtraQueryParam(extraQueryParam);
@@ -92,9 +89,9 @@ final class AuthenticationRequestParameters {
 
     static AuthenticationRequestParameters create(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
                                                   final String clientId, final String policy, final boolean restrictToSingleUser,
-                                                  final UUID correlationid, final Settings settings) {
+                                                  final UUID correlationId) {
         return new AuthenticationRequestParameters(authority, tokenCache, scope, clientId, policy, restrictToSingleUser,
-                correlationid, settings);
+                correlationId);
     }
 
     Authority getAuthority() {
@@ -155,9 +152,5 @@ final class AuthenticationRequestParameters {
 
     UUID getCorrelationId() {
         return mCorrelationId;
-    }
-
-    Settings getSettings() {
-        return mSettings;
     }
 }

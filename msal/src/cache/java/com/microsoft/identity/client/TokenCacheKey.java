@@ -80,7 +80,7 @@ final class TokenCacheKey {
         return new TokenCacheKey("", clientId, new HashSet<String>(), user, policy);
     }
 
-    static TokenCacheKey extractKeyForAT(final TokenCacheItem tokenCacheItem) {
+    static TokenCacheKey extractKeyForAT(final BaseTokenCacheItem tokenCacheItem) {
         if (tokenCacheItem == null) {
             throw new NullPointerException("token cache item is null");
         }
@@ -89,8 +89,8 @@ final class TokenCacheKey {
                 tokenCacheItem.getUniqueId(), tokenCacheItem.getHomeObjectId(), tokenCacheItem.getPolicy());
     }
 
-    static TokenCacheKey extractKeyForRT(final TokenCacheItem tokenCacheItem) {
-        if(tokenCacheItem == null) {
+    static TokenCacheKey extractKeyForRT(final BaseTokenCacheItem tokenCacheItem) {
+        if (tokenCacheItem == null) {
             throw new NullPointerException("tokencacheItem null");
         }
 
@@ -121,7 +121,7 @@ final class TokenCacheKey {
      * key, if user is passed in, user needs to be match.
      * For refresh token cache item, every RT is multi-scope, no need to check for the scope intersection.
      */
-     boolean matches(final TokenCacheItem item) {
+     boolean matches(final BaseTokenCacheItem item) {
         return mClientId.equalsIgnoreCase(item.getClientId())
                 && (MSALUtils.isEmpty(mAuthority) || mAuthority.equalsIgnoreCase(item.getAuthority()))
                 && (MSALUtils.isEmpty(mUniqueId) || mUniqueId.equalsIgnoreCase(item.getUniqueId()))
@@ -130,11 +130,11 @@ final class TokenCacheKey {
                 && isPolicyMatch(item);
     }
 
-    boolean isScopeEqual(final TokenCacheItem item) {
+    boolean isScopeEqual(final BaseTokenCacheItem item) {
         return mScope.size() == item.getScope().size() && mScope.containsAll(item.getScope());
     }
 
-    private boolean isPolicyMatch(final TokenCacheItem item) {
+    private boolean isPolicyMatch(final BaseTokenCacheItem item) {
         if (MSALUtils.isEmpty(mPolicy)) {
             return MSALUtils.isEmpty(item.getPolicy());
         }

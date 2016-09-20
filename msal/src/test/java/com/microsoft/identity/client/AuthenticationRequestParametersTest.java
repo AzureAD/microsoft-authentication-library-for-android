@@ -17,26 +17,25 @@ public final class AuthenticationRequestParametersTest {
     static final Set<String> SCOPE = new HashSet<>();
     static final String CLIENT_ID = "some-client-id";
     static final String REDIRECT_URI = "some://redirect.uri";
-    static final Settings SETTINGS = new Settings();
     static final String LOGIN_HINT = "someLoginHint";
     static final UUID CORRELATION_ID = UUID.randomUUID();
 
     @Test(expected = IllegalArgumentException.class)
     public void testNullCorrelationId() {
         AuthenticationRequestParameters.create(AUTHORITY, TOKEN_CACHE, SCOPE, CLIENT_ID, REDIRECT_URI, "", true, LOGIN_HINT, "",
-                UIOptions.SELECT_ACCOUNT, null, SETTINGS);
+                UIOptions.SELECT_ACCOUNT, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testNullScope() {
         AuthenticationRequestParameters.create(AUTHORITY, TOKEN_CACHE, null, CLIENT_ID, REDIRECT_URI, "", true, LOGIN_HINT, "",
-                UIOptions.SELECT_ACCOUNT, CORRELATION_ID, SETTINGS);
+                UIOptions.SELECT_ACCOUNT, CORRELATION_ID);
     }
 
     @Test
     public void testAuthenticationRequestParameterHappyPath() {
         final AuthenticationRequestParameters authRequestParameter = AuthenticationRequestParameters.create(AUTHORITY, TOKEN_CACHE,
-                SCOPE, CLIENT_ID, REDIRECT_URI, "", true, LOGIN_HINT, "", UIOptions.SELECT_ACCOUNT, CORRELATION_ID, SETTINGS);
+                SCOPE, CLIENT_ID, REDIRECT_URI, "", true, LOGIN_HINT, "", UIOptions.SELECT_ACCOUNT, CORRELATION_ID);
         Assert.assertTrue(authRequestParameter.getAuthority().getAuthorityUrl().toString().equals(Util.VALID_AUTHORITY));
         Assert.assertTrue(authRequestParameter.getScope().isEmpty());
         Assert.assertTrue(authRequestParameter.getClientId().equals(CLIENT_ID));

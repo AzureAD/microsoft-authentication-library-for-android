@@ -43,9 +43,8 @@ import java.util.Map;
 final class TokenCacheAccessor {
     private static final String TAG = TokenCacheAccessor.class.getSimpleName();
 
-    private static final String SHARED_PREFERENCE_NAME = "com.microsoft.identity.client";
-    private static final String ACCESS_TOKEN_SUFFIX = ".accessToken";
-    private static final String REFRESH_TOKEN_SUFFIX = ".refreshToken";
+    private static final String ACCESS_TOKEN_SHARED_PREFERENCE = "com.microsoft.identity.client.token";
+    private static final String REFRESH_TOKEN_SHARED_PREFERENCE = "com.microsoft.identity.client.refreshToken";
 
     private final Context mContext;
     private final SharedPreferences mAccessTokenSharedPreference;
@@ -66,9 +65,9 @@ final class TokenCacheAccessor {
 
         mContext = context;
 
-        mAccessTokenSharedPreference = mContext.getSharedPreferences(SHARED_PREFERENCE_NAME + ACCESS_TOKEN_SUFFIX,
+        mAccessTokenSharedPreference = mContext.getSharedPreferences(ACCESS_TOKEN_SHARED_PREFERENCE,
                 Activity.MODE_PRIVATE);
-        mRefreshTokenSharedPreference = mContext.getSharedPreferences(SHARED_PREFERENCE_NAME + REFRESH_TOKEN_SUFFIX,
+        mRefreshTokenSharedPreference = mContext.getSharedPreferences(REFRESH_TOKEN_SHARED_PREFERENCE,
                 Activity.MODE_PRIVATE);
 
         if (mAccessTokenSharedPreference == null || mRefreshTokenSharedPreference == null) {
@@ -79,7 +78,7 @@ final class TokenCacheAccessor {
     /**
      * When storing access token, the key needs to be a strict match.
      */
-    void saveAccessToken(final AccessTokenCacheItem accessToken) {
+    void saveAccessToken(final TokenCacheItem accessToken) {
         final TokenCacheKey key = TokenCacheKey.extractKeyForAT(accessToken);
         final Editor editor = mAccessTokenSharedPreference.edit();
         editor.putString(key.toString(), mGson.toJson(accessToken));
@@ -101,13 +100,13 @@ final class TokenCacheAccessor {
      * is provided, it also has to be matched. Scope in the cached access token item has to be the exact same with the
      * scopes in the lookup key.
      */
-    List<AccessTokenCacheItem> getAccessToken(final TokenCacheKey tokenCacheKey) {
+    List<TokenCacheItem> getAccessToken(final TokenCacheKey tokenCacheKey) {
         final Map<String, String> accessTokens = (Map<String, String>) mAccessTokenSharedPreference.getAll();
-        final List<AccessTokenCacheItem> foundATs = new ArrayList<>();
+        final List<TokenCacheItem> foundATs = new ArrayList<>();
         for (final String accessTokenValue: accessTokens.values()) {
-            final AccessTokenCacheItem accessTokenCacheItem = mGson.fromJson(accessTokenValue, AccessTokenCacheItem.class);
-            if (tokenCacheKey.matches(accessTokenCacheItem) && tokenCacheKey.isScopeEqual(accessTokenCacheItem)) {
-                foundATs.add(accessTokenCacheItem);
+            final TokenCacheItem tokenCacheItem = mGson.fromJson(accessTokenValue, TokenCacheItem.class);
+            if (tokenCacheKey.matches(tokenCacheItem) && tokenCacheKey.isScopeEqual(tokenCacheItem)) {
+                foundATs.add(tokenCacheItem);
             }
         }
 
@@ -117,8 +116,8 @@ final class TokenCacheAccessor {
     /**
      * For refresh token item, all the RTs are multi-scope. If authority, clientid, policy and user (if applicable)
      * are matched, try to use the RT.
-     * @param tokenCacheKey
-     * @return
+     * @param tokenCacheKey The {@link TokenCacheKey} that is used to find refresh tokens.
+     * @return The List of refresh tokens matching the given key.
      */
     List<RefreshTokenCacheItem> getRefreshToken(final TokenCacheKey tokenCacheKey) {
         final Map<String, String> refreshTokens = (Map<String, String>) mRefreshTokenSharedPreference.getAll();
@@ -134,10 +133,10 @@ final class TokenCacheAccessor {
     }
 
     /**
-     * Delete the refreh token item.
-     * @param rtItem The {@link TokenCacheItem} to remove.
+     * Delete the refresh token item.
+     * @param rtItem The {@link BaseTokenCacheItem} to remove.
      */
-    void deleteRefreshToken(final TokenCacheItem rtItem) {
+    void deleteRefreshToken(final BaseTokenCacheItem rtItem) {
         final String key = TokenCacheKey.extractKeyForRT(rtItem).toString();
         final Editor editor = mRefreshTokenSharedPreference.edit();
         editor.remove(key);
@@ -145,30 +144,17 @@ final class TokenCacheAccessor {
     }
 
     /**
-     * Remove all the tokens from cache.
+     * @return Immutable List of all the {@link TokenCacheItem}s.
      */
-    void removeAll() {
-        final Editor accessTokenSharedPreferenceEditor = mAccessTokenSharedPreference.edit();
-        accessTokenSharedPreferenceEditor.clear();
-        accessTokenSharedPreferenceEditor.apply();
-
-        final Editor refreshTokenSharedPreferenceEditor = mRefreshTokenSharedPreference.edit();
-        refreshTokenSharedPreferenceEditor.clear();
-        refreshTokenSharedPreferenceEditor.apply();
-    }
-
-    /**
-     * @return Immutable List of all the {@link AccessTokenCacheItem}s.
-     */
-    List<AccessTokenCacheItem> getAllAccessTokens() {
+    List<TokenCacheItem> getAllAccessTokens() {
         final Map<String, String> allAT = (Map<String, String>) mAccessTokenSharedPreference.getAll();
-        final List<AccessTokenCacheItem> accessTokenCacheItems = new ArrayList<>(allAT.size());
+        final List<TokenCacheItem> tokenCacheItems = new ArrayList<>(allAT.size());
         for (final String accessTokenValue : allAT.values()) {
-            final AccessTokenCacheItem accessTokenCacheItem = mGson.fromJson(accessTokenValue, AccessTokenCacheItem.class);
-            accessTokenCacheItems.add(accessTokenCacheItem);
+            final TokenCacheItem tokenCacheItem = mGson.fromJson(accessTokenValue, TokenCacheItem.class);
+            tokenCacheItems.add(tokenCacheItem);
         }
 
-        return Collections.unmodifiableList(accessTokenCacheItems);
+        return Collections.unmodifiableList(tokenCacheItems);
     }
 
     /**
@@ -185,7 +171,12 @@ final class TokenCacheAccessor {
         return Collections.unmodifiableList(refreshTokenCacheItems);
     }
 
-    List<RefreshTokenCacheItem> getAllRefreshTokens(final String clientId) {
+    /**
+     *
+     * @param clientId The client id to query the refresh token.
+     * @return Immutable List of the {@link RefreshTokenCacheItem}s matching the given client id.
+     */
+    List<RefreshTokenCacheItem> getAllRefreshTokensForGivenClientId(final String clientId) {
         final List<RefreshTokenCacheItem> allRTs = getAllRefreshTokens();
 
         final List<RefreshTokenCacheItem> allRTsForApp = new ArrayList<>(allRTs.size());

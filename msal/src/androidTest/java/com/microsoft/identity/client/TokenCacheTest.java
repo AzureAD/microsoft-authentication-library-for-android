@@ -23,6 +23,7 @@
 
 package com.microsoft.identity.client;
 
+import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.AndroidTestCase;
@@ -39,10 +40,10 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Tests for {@link TokenLookupEngine}.
+ * Tests for {@link TokenCache}.
  */
 @RunWith(AndroidJUnit4.class)
-public final class TokenLookupEngineTest extends AndroidTestCase {
+public final class TokenCacheTest extends AndroidTestCase {
     static final String AUTHORITY = "https://login.microsoftonline.com/common";
     static final String CLIENT_ID = "some-client-id";
     static final String DISPLAYABLE = "some-displayable-id";
@@ -52,7 +53,8 @@ public final class TokenLookupEngineTest extends AndroidTestCase {
     static final String REFRESH_TOKEN = "some refresh token";
 
     private TokenCache mTokenCache;
-    private User mUser;
+    private User mDefaultUser;
+    private Context mAppContext;
 
     @Before
     public void setUp() throws Exception {
@@ -60,14 +62,12 @@ public final class TokenLookupEngineTest extends AndroidTestCase {
         System.setProperty("dexmaker.dexcache",
                 InstrumentationRegistry.getContext().getCacheDir().getPath());
 
-        mTokenCache = new TokenCache(InstrumentationRegistry.getContext());
+        mAppContext = InstrumentationRegistry.getContext();
+        mTokenCache = new TokenCache(mAppContext);
         // make sure the tests start with a clean state.
-        mTokenCache.removeAll();
+        AndroidTestUtil.removeAllTokens(mAppContext);
 
-        mUser = new User();
-        mUser.setDisplayableId(DISPLAYABLE);
-        mUser.setUniqueId(UNIQUE_ID);
-        mUser.setHomeObjectId(HOME_OID);
+        mDefaultUser = getDefaultUser();
     }
 
     @After
@@ -75,7 +75,7 @@ public final class TokenLookupEngineTest extends AndroidTestCase {
         super.tearDown();
 
         // clear the state left by the tests.
-        mTokenCache.removeAll();
+        AndroidTestUtil.removeAllTokens(mAppContext);
     }
 
     /**
@@ -89,9 +89,9 @@ public final class TokenLookupEngineTest extends AndroidTestCase {
                 singleScope, AndroidTestUtil.getExpiredDate()));
 
         // access token is already expired, verify that the access token is not returned.
-        final TokenLookupEngine tokenLookupEngine = getTokenLookupEngine(Collections.singleton(singleScope), "");
-        assertNull(tokenLookupEngine.getAccessToken());
-        final RefreshTokenCacheItem refreshTokenCacheItem = tokenLookupEngine.getRefreshToken();
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope), "");
+        assertNull(mTokenCache.findAccessToken(requestParameters, mDefaultUser));
+        final RefreshTokenCacheItem refreshTokenCacheItem = mTokenCache.findRefreshToken(requestParameters, mDefaultUser);
         assertNotNull(refreshTokenCacheItem);
         assertTrue(refreshTokenCacheItem.getRefreshToken().equals(REFRESH_TOKEN));
     }
@@ -102,24 +102,30 @@ public final class TokenLookupEngineTest extends AndroidTestCase {
         mTokenCache.saveTokenResponse(AUTHORITY, CLIENT_ID, "", getTokenResponseForDefaultUser(ACCESS_TOKEN, "",
                 singleScope, AndroidTestUtil.getValidExpiresOn()));
 
-        final TokenLookupEngine tokenLookupEngine = getTokenLookupEngine(Collections.singleton(singleScope), "");
-        assertTrue(ACCESS_TOKEN.equals(tokenLookupEngine.getAccessToken().getAccessToken()));
-        assertNull(tokenLookupEngine.getRefreshToken());
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope), "");
+        assertTrue(ACCESS_TOKEN.equals(mTokenCache.findAccessToken(requestParameters, mDefaultUser).getToken()));
+        assertNull(mTokenCache.findRefreshToken(requestParameters, mDefaultUser));
     }
 
+    /**
+     * Verify that if access token is not returned in the token response but id token is returned, id token will be stored as
+     * token.
+     */
     @Test
-    public void testGetTokenWithReopnseNotContainingAT() throws UnsupportedEncodingException, AuthenticationException {
+    public void testGetTokenWithResponseNotContainingAT() throws UnsupportedEncodingException, AuthenticationException {
         final String singleScope = "scope";
         mTokenCache.saveTokenResponse(AUTHORITY, CLIENT_ID, "", getTokenResponseForDefaultUser("", "",
                 singleScope, AndroidTestUtil.getValidExpiresOn()));
 
-        final TokenLookupEngine tokenLookupEngine = getTokenLookupEngine(Collections.singleton(singleScope), "");
-        assertTrue(MSALUtils.isEmpty(tokenLookupEngine.getAccessToken().getAccessToken()));
-        assertNull(tokenLookupEngine.getRefreshToken());
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope), "");
+        final String accessToken = mTokenCache.findAccessToken(requestParameters, mDefaultUser).getToken();
+        assertNotNull(accessToken);
+        assertTrue(accessToken.equals(getDefaultIdToken()));
+        assertNull(mTokenCache.findRefreshToken(requestParameters, mDefaultUser));
     }
 
     /**
-     * Verify that scenario that lookup engine with policy.
+     * Verify that token is correctly when cache key contains policy.
      */
     @Test
     public void testGetTokenWithPolicy() throws AuthenticationException, UnsupportedEncodingException {
@@ -130,28 +136,29 @@ public final class TokenLookupEngineTest extends AndroidTestCase {
                 singleScope, AndroidTestUtil.getValidExpiresOn()));
 
         // asks a token with no policy
-        TokenLookupEngine tokenLookupEngine = getTokenLookupEngine(Collections.singleton(singleScope), "");
-        assertNull(tokenLookupEngine.getAccessToken());
-        assertNull(tokenLookupEngine.getRefreshToken());
+        final AuthenticationRequestParameters requestParametersWithoutPolicy = getRequestParameters(Collections.singleton(
+                singleScope), "");
+        assertNull(mTokenCache.findAccessToken(requestParametersWithoutPolicy, mDefaultUser));
+        assertNull(mTokenCache.findRefreshToken(requestParametersWithoutPolicy, mDefaultUser));
 
         // asks the token with policy
-        tokenLookupEngine = getTokenLookupEngine(Collections.singleton(singleScope), policy);
-        assertNotNull(tokenLookupEngine.getAccessToken());
-        assertNotNull(tokenLookupEngine.getRefreshToken());
-        mTokenCache.removeAll();
+        final AuthenticationRequestParameters requestParametersWithPolicy = getRequestParameters(Collections.singleton(
+                singleScope), policy);
+        assertNotNull(mTokenCache.findAccessToken(requestParametersWithPolicy, mDefaultUser));
+        assertNotNull(mTokenCache.findRefreshToken(requestParametersWithPolicy, mDefaultUser));
+        AndroidTestUtil.removeAllTokens(mAppContext);
 
         // save a token without policy
         mTokenCache.saveTokenResponse(AUTHORITY, CLIENT_ID, "", getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN,
                 singleScope, AndroidTestUtil.getValidExpiresOn()));
 
         // asks a token with scope
-        tokenLookupEngine = getTokenLookupEngine(Collections.singleton(singleScope), policy);
-        assertNull(tokenLookupEngine.getAccessToken());
-        assertNull(tokenLookupEngine.getRefreshToken());
+        assertNull(mTokenCache.findAccessToken(requestParametersWithPolicy, mDefaultUser));
+        assertNull(mTokenCache.findRefreshToken(requestParametersWithPolicy, mDefaultUser));
     }
 
     /**
-     * Verify that access token return when no user is passed for lookup engine.
+     * Verify that access token return when no user is passed for lookup.
      */
     @Test
     public void testGetTokenNoUser() throws UnsupportedEncodingException, AuthenticationException {
@@ -159,9 +166,9 @@ public final class TokenLookupEngineTest extends AndroidTestCase {
         mTokenCache.saveTokenResponse(AUTHORITY, CLIENT_ID, "", getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN,
                 scope1, AndroidTestUtil.getValidExpiresOn()));
 
-        final TokenLookupEngine lookupEngine = new TokenLookupEngine(getRequestParameters(Collections.singleton(scope1), ""), null);
-        assertNotNull(lookupEngine.getAccessToken());
-        assertNotNull(lookupEngine.getRefreshToken());
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(scope1), "");
+        assertNotNull(mTokenCache.findAccessToken(requestParameters, null));
+        assertNotNull(mTokenCache.findRefreshToken(requestParameters, null));
 
         // add another access token entry into cache for same user with scope1 and scope2
         final String scope2 = "scope2";
@@ -169,18 +176,18 @@ public final class TokenLookupEngineTest extends AndroidTestCase {
                 scope1 + " " + scope2, AndroidTestUtil.getValidExpiresOn()));
 
         // verify token is returned for scope1
-        assertNotNull(lookupEngine.getAccessToken());
-        assertNotNull(lookupEngine.getRefreshToken());
+        assertNotNull(mTokenCache.findAccessToken(requestParameters, null));
+        assertNotNull(mTokenCache.findRefreshToken(requestParameters, null));
 
         // add a token for different user for scope1
-        final TokenResponse response = getTokenResponseForDifferentUser(scope1, AndroidTestUtil.getExpirationDate(
+        final SuccessTokenResponse response = getTokenResponseForDifferentUser(scope1, AndroidTestUtil.getExpirationDate(
                 AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES));
         mTokenCache.saveTokenResponse(AUTHORITY, CLIENT_ID, "", response);
 
         //verify that no token is returned
-        assertNull(lookupEngine.getAccessToken());
+        assertNull(mTokenCache.findAccessToken(requestParameters, null));
         try {
-            lookupEngine.getRefreshToken();
+            mTokenCache.findRefreshToken(requestParameters, null);
             fail();
         } catch (final AuthenticationException e) {
             assertTrue(e.getErrorCode().equals(MSALError.MULTIPLE_CACHE_ENTRY_FOUND));
@@ -202,39 +209,49 @@ public final class TokenLookupEngineTest extends AndroidTestCase {
         mTokenCache.saveTokenResponse(AUTHORITY, CLIENT_ID, "", getTokenResponseForDifferentUser(scope, expirationDate));
 
         // retrieve token for default user1
-        final TokenLookupEngine lookupEngine = getTokenLookupEngine(Collections.singleton(scope), "");
-        final AccessTokenCacheItem accessTokenCacheItem = lookupEngine.getAccessToken();
-        assertNotNull(accessTokenCacheItem);
-        verifyUserReturnedFromCacheIsDefaultUser(accessTokenCacheItem);
-        assertTrue(accessTokenCacheItem.getAccessToken().equals(ACCESS_TOKEN));
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(scope), "");
+        final TokenCacheItem tokenCacheItem = mTokenCache.findAccessToken(requestParameters, mDefaultUser);
+        assertNotNull(tokenCacheItem);
+        verifyUserReturnedFromCacheIsDefaultUser(tokenCacheItem);
+        assertTrue(tokenCacheItem.getToken().equals(ACCESS_TOKEN));
 
-        final RefreshTokenCacheItem refreshTokenCacheItem = lookupEngine.getRefreshToken();
+        final RefreshTokenCacheItem refreshTokenCacheItem = mTokenCache.findRefreshToken(requestParameters, mDefaultUser);
         assertNotNull(refreshTokenCacheItem.getRefreshToken());
         verifyUserReturnedFromCacheIsDefaultUser(refreshTokenCacheItem);
         assertTrue(refreshTokenCacheItem.getRefreshToken().equals(REFRESH_TOKEN));
     }
 
-    private void verifyUserReturnedFromCacheIsDefaultUser(final TokenCacheItem item) {
+    private void verifyUserReturnedFromCacheIsDefaultUser(final BaseTokenCacheItem item) {
         assertTrue(item.getUniqueId().equals(UNIQUE_ID));
         assertTrue(item.getDisplayableId().equals(DISPLAYABLE));
         assertTrue(item.getHomeObjectId().equals(HOME_OID));
     }
 
-    static TokenResponse getTokenResponseForDefaultUser(final String accessToken, final String refreshToken, final String scopesInResponse,
-                                                         final Date expiresOn) throws UnsupportedEncodingException {
+    static SuccessTokenResponse getTokenResponseForDefaultUser(final String accessToken,
+                                                               final String refreshToken, final String scopesInResponse,
+                                                               final Date expiresOn)
+            throws UnsupportedEncodingException, AuthenticationException {
         final String idToken = getDefaultIdToken();
 
-        return new TokenResponse(accessToken, idToken, refreshToken, expiresOn,
+        final TokenResponse response = new TokenResponse(accessToken, idToken, refreshToken, expiresOn,
                 expiresOn, AndroidTestUtil.getExpirationDate(AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES * 2), scopesInResponse, "Bearer", null);
-    }
+        return new SuccessTokenResponse(response);
+    };
 
-    static TokenResponse getTokenResponseForDifferentUser(final String scopesInResponse, final Date expiresOn)
+    static SuccessTokenResponse getTokenResponseForDifferentUser(final String scopesInResponse, final Date expiresOn)
             throws UnsupportedEncodingException, AuthenticationException {
         final String idToken = AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", "other user", "other displayable", "sub", "tenant",
                 "version", "other homeOID");
 
-        return new TokenResponse("access_token", idToken, "refreshToken", expiresOn, expiresOn,
+        final TokenResponse response = new TokenResponse("access_token", idToken, "refreshToken", expiresOn, expiresOn,
                 AndroidTestUtil.getExpirationDate(AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES * 2), scopesInResponse, "Bearer", null);
+
+        return new SuccessTokenResponse(response);
+    }
+
+    static User getDefaultUser() throws UnsupportedEncodingException, AuthenticationException {
+        final IdToken idToken = new IdToken(getDefaultIdToken());
+        return new User(idToken);
     }
 
     static String getDefaultIdToken() throws UnsupportedEncodingException {
@@ -242,14 +259,8 @@ public final class TokenLookupEngineTest extends AndroidTestCase {
                 "version", HOME_OID);
     }
 
-    private TokenLookupEngine getTokenLookupEngine(final Set<String> scopes, final String policy) {
-        final AuthenticationRequestParameters requestParameters =  getRequestParameters(scopes, policy);
-
-        return new TokenLookupEngine(requestParameters, mUser);
-    }
-
     private AuthenticationRequestParameters getRequestParameters(final Set<String> scopes, final String policy) {
         return AuthenticationRequestParameters.create(new Authority(AUTHORITY, false),
-                mTokenCache, scopes, CLIENT_ID, "some redirect", policy, true, "", "", UIOptions.SELECT_ACCOUNT, UUID.randomUUID(), new Settings());
+                mTokenCache, scopes, CLIENT_ID, "some redirect", policy, true, "", "", UIOptions.SELECT_ACCOUNT, UUID.randomUUID());
     }
 }

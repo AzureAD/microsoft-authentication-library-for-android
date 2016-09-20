@@ -47,13 +47,13 @@ public final class TokenCacheKeyTest {
     // TODO: add ignore for now. If everybody agrees on not putting authority as the key for rt entry, remove the test.
     @Ignore
     @Test(expected = IllegalArgumentException.class)
-    public void testAccessTokenKeyCreationNoAuthority() {
-        TokenCacheKey.createKeyForAT(null, CLIENT_ID, getScopes(), new User(), POLICY);
+    public void testAccessTokenKeyCreationNoAuthority() throws UnsupportedEncodingException, AuthenticationException {
+        TokenCacheKey.createKeyForAT(null, CLIENT_ID, getScopes(), getUser(), POLICY);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testAccessTokenKeyCreationNoClientId() {
-        TokenCacheKey.createKeyForAT(AUTHORITY, null, getScopes(), new User(), POLICY);
+    public void testAccessTokenKeyCreationNoClientId() throws UnsupportedEncodingException, AuthenticationException {
+        TokenCacheKey.createKeyForAT(AUTHORITY, null, getScopes(), getUser(), POLICY);
     }
 
     @Test(expected = NullPointerException.class)
@@ -81,20 +81,23 @@ public final class TokenCacheKeyTest {
     }
 
     @Test
-    public void testAccessTokenKeyCreationWithEmptyUser() {
-        final TokenCacheKey accessTokenCacheKey = TokenCacheKey.createKeyForAT(AUTHORITY, CLIENT_ID, getScopes(), new User(), POLICY);
+    public void testAccessTokenKeyCreationWithEmptyUser() throws UnsupportedEncodingException, AuthenticationException {
+        final String rawIdToken = AndroidTestUtil.createIdToken(AndroidTestUtil.AUDIENCE, AndroidTestUtil.ISSUER, AndroidTestUtil.NAME,
+                "", "", "", AndroidTestUtil.TENANT_ID, AndroidTestUtil.VERSION, "");
+        final IdToken idToken = new IdToken(rawIdToken);
+        final TokenCacheKey accessTokenCacheKey = TokenCacheKey.createKeyForAT(AUTHORITY, CLIENT_ID, getScopes(), new User(idToken), POLICY);
         Assert.assertTrue(accessTokenCacheKey.toString().equals(AUTHORITY + "$" + CLIENT_ID + "$" + "scope1 scope2$" + "$$$" + POLICY));
     }
 
     @Test
-    public void testAccessTokenKeyCreationWithUser() {
+    public void testAccessTokenKeyCreationWithUser() throws UnsupportedEncodingException, AuthenticationException {
         final TokenCacheKey accessTokenCacheKey = TokenCacheKey.createKeyForAT(AUTHORITY, CLIENT_ID, getScopes(), getUser(), POLICY);
         Assert.assertTrue(accessTokenCacheKey.toString().equals(AUTHORITY + "$" + CLIENT_ID + "$" + "scope1 scope2$" + DISPLAYABLE + "$"
                 + UNIQUE_ID + "$" + HOME_OBJECT_ID + "$" + POLICY));
     }
 
     @Test
-    public void testAccessTokenKeyWithDifferentOrderOfScopes() {
+    public void testAccessTokenKeyWithDifferentOrderOfScopes() throws UnsupportedEncodingException, AuthenticationException {
         final TokenCacheKey accessTokenCacheKey = TokenCacheKey.createKeyForAT(AUTHORITY, CLIENT_ID, getScopes(), getUser(), POLICY);
 
         final Set<String> scopesInDifferentOrder = new HashSet<>();
@@ -107,21 +110,20 @@ public final class TokenCacheKeyTest {
     }
 
     @Test
-    public void testAccessTokenKeyCreationSavedWithLowerCase() {
-        final User user = new User();
-        user.setDisplayableId(DISPLAYABLE.toUpperCase(Locale.US));
-        user.setHomeObjectId(HOME_OBJECT_ID.toUpperCase(Locale.US));
-        user.setUniqueId(UNIQUE_ID.toUpperCase(Locale.US));
+    public void testAccessTokenKeyCreationSavedWithLowerCase() throws UnsupportedEncodingException, AuthenticationException {
+        final String rawIdToken = AndroidTestUtil.getRawIdToken(DISPLAYABLE.toUpperCase(Locale.US), UNIQUE_ID.toUpperCase(Locale.US),
+                HOME_OBJECT_ID.toUpperCase(Locale.US));
+        final User user = new User(new IdToken(rawIdToken));
 
         final TokenCacheKey accessTokenCacheKey = TokenCacheKey.createKeyForAT(AUTHORITY.toUpperCase(Locale.US), CLIENT_ID.toUpperCase(Locale.US), getScopes(),
-                getUser(), POLICY.toUpperCase(Locale.US));
+                user, POLICY.toUpperCase(Locale.US));
 
         Assert.assertTrue(accessTokenCacheKey.toString().equals(AUTHORITY + "$" + CLIENT_ID + "$" + "scope1 scope2$" + DISPLAYABLE + "$"
                 + UNIQUE_ID + "$" + HOME_OBJECT_ID + "$" + POLICY));
     }
 
     @Test
-    public void testRefreshTokenKeyCreation() {
+    public void testRefreshTokenKeyCreation() throws UnsupportedEncodingException, AuthenticationException {
         final TokenCacheKey refreshTokenCacheKey = TokenCacheKey.createKeyForRT(CLIENT_ID, getUser(), POLICY);
         Assert.assertTrue(refreshTokenCacheKey.toString().equals("$" + CLIENT_ID + "$" + "$" + DISPLAYABLE + "$"
                 + UNIQUE_ID + "$" + HOME_OBJECT_ID + "$" + POLICY));
@@ -133,7 +135,7 @@ public final class TokenCacheKeyTest {
                 "version", HOME_OBJECT_ID);
         final TokenResponse response = new TokenResponse("access_token", idToken, "refresh_token", new Date(), new Date(), new Date(),
                 MSALUtils.convertSetToString(getScopes(), " "), "Bearer", null);
-        final TokenCacheItem item = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, POLICY, response);
+        final BaseTokenCacheItem item = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, POLICY, new SuccessTokenResponse(response));
 
 
         Assert.assertTrue(TokenCacheKey.extractKeyForRT(item).toString().equals("" + "$" + CLIENT_ID + "$" + "$" + DISPLAYABLE + "$"
@@ -148,12 +150,10 @@ public final class TokenCacheKeyTest {
         return scopes;
     }
 
-    private User getUser() {
-        final User user = new User();
-        user.setDisplayableId(DISPLAYABLE);
-        user.setHomeObjectId(HOME_OBJECT_ID);
-        user.setUniqueId(UNIQUE_ID);
+    private User getUser() throws UnsupportedEncodingException, AuthenticationException {
+        final String rawIdToken = AndroidTestUtil.getRawIdToken(DISPLAYABLE, UNIQUE_ID, HOME_OBJECT_ID);
+        final IdToken idToken = new IdToken(rawIdToken);
 
-        return user;
+        return new User(idToken);
     }
 }

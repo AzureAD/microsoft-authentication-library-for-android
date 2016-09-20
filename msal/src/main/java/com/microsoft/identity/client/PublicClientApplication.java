@@ -54,7 +54,6 @@ public final class PublicClientApplication {
     private Authority mAuthority;
     private String mClientId;
     private final TokenCache mTokenCache;
-    private final Settings mSettings;
     private String mRedirectUri;
 
     private boolean mValidateAuthority = true;
@@ -88,7 +87,6 @@ public final class PublicClientApplication {
         // manifest, we cannot make the network call.
         checkInternetPermission();
 
-        mSettings = new Settings();
         mTokenCache = new TokenCache(mAppContext);
     }
 
@@ -122,14 +120,6 @@ public final class PublicClientApplication {
     }
 
     /**
-     * @return {@link Settings} for customizing the authentication per application base. Developer will get the Settings
-     * object and can call individual setter to customize the authentication setting.
-     */
-    public Settings getMSALCustomizedSetting() {
-        return mSettings;
-    }
-
-    /**
      * Returns the list of signed in users for the application.
      * @return Immutable List of all the signed in users.
      * @throws AuthenticationException If failed to retrieve users from the cache.
@@ -143,10 +133,11 @@ public final class PublicClientApplication {
      * unique id.
      * @param userIdentifier The user identifier, could be either displayable id or unique id.
      * @return The {@link User} matching the user identifier.
+     * @throws AuthenticationException if error happens when retrieving users from the cache.
      */
     public User getUser(final String userIdentifier) throws AuthenticationException {
         if (MSALUtils.isEmpty(userIdentifier)) {
-            throw new IllegalArgumentException("null, blank or empty user");
+            throw new IllegalArgumentException("invalid userIdentifier");
         }
 
         final List<User> allUsers = getUsers();
@@ -324,7 +315,7 @@ public final class PublicClientApplication {
         }
 
         if (applicationInfo == null || applicationInfo.metaData == null) {
-            throw new IllegalArgumentException("No meta-data existed");
+            throw new IllegalArgumentException("No meta-data exists");
         }
 
         // read authority from manifest.
@@ -338,7 +329,7 @@ public final class PublicClientApplication {
         // read client id from manifest
         final String clientId = applicationInfo.metaData.getString(CLIENT_ID_META_DATA);
         if (MSALUtils.isEmpty(clientId)) {
-            throw new IllegalArgumentException("clientId missing from manifest");
+            throw new IllegalArgumentException("client id missing from manifest");
         }
         mClientId = clientId;
 
@@ -404,7 +395,7 @@ public final class PublicClientApplication {
         final UUID correlationId = UUID.randomUUID();
         final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));
         final AuthenticationRequestParameters requestParameters = AuthenticationRequestParameters.create(authorityForRequest, mTokenCache,
-                scopesAsSet, mClientId, policy, mRestrictToSingleUser, correlationId, mSettings);
+                scopesAsSet, mClientId, policy, mRestrictToSingleUser, correlationId);
 
         final BaseRequest request = new SilentRequest(mAppContext, requestParameters, forceRefresh, user);
         request.getToken(callback);
@@ -420,6 +411,6 @@ public final class PublicClientApplication {
         final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));
 
         return AuthenticationRequestParameters.create(authorityForRequest, mTokenCache, scopesAsSet, mClientId,
-                mRedirectUri, policy, mRestrictToSingleUser, loginHint, extraQueryParam, uiOption, correlationId, mSettings);
+                mRedirectUri, policy, mRestrictToSingleUser, loginHint, extraQueryParam, uiOption, correlationId);
     }
 }

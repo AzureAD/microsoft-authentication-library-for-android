@@ -48,6 +48,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     private static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
     private static final String ALTERNATE_AUTHORITY = "https://login.microsoftonline.com/alternateAuthority";
     private static final String[] SCOPE = {"scope1", "scope2"};
+    private static final int EXPECTED_USER_SIZE = 3;
 
     @Before
     public void setUp() throws Exception {
@@ -65,7 +66,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     public void tearDown() throws Exception {
         super.tearDown();
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
-        mTokenCache.removeAll();
+        AndroidTestUtil.removeAllTokens(mAppContext);
     }
 
     /**
@@ -186,12 +187,12 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         final String homeOid1 = "HomeOid1";
         String idToken = getIdToken(displayable1, uniqueId1, homeOid1);
 
-        mTokenCache.saveTokenResponse(TokenLookupEngineTest.AUTHORITY, CLIENT_ID, "", getTokenResponse(idToken));
+        mTokenCache.saveTokenResponse(TokenCacheTest.AUTHORITY, CLIENT_ID, "", getTokenResponse(idToken));
 
         // prepare token cache for same client id, same displayable, uniqueId but different oid
         final String homeOid2 = "HomeOid2";
         idToken = getIdToken(displayable1, uniqueId1, homeOid2);
-        mTokenCache.saveTokenResponse(TokenLookupEngineTest.AUTHORITY, CLIENT_ID, "", getTokenResponse(idToken));
+        mTokenCache.saveTokenResponse(TokenCacheTest.AUTHORITY, CLIENT_ID, "", getTokenResponse(idToken));
 
         List<User> users = application.getUsers();
         assertTrue(users.size() == 2);
@@ -201,10 +202,10 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         final String uniqueId3 = "UniqueId3";
         final String homeOid3 = "HomeOid3";
         idToken = getIdToken(displayable3, uniqueId3, homeOid3);
-        mTokenCache.saveTokenResponse(TokenLookupEngineTest.AUTHORITY, CLIENT_ID, "", getTokenResponse(idToken));
+        mTokenCache.saveTokenResponse(TokenCacheTest.AUTHORITY, CLIENT_ID, "", getTokenResponse(idToken));
 
         users = application.getUsers();
-        assertTrue(users.size()== 3);
+        assertTrue(users.size() == EXPECTED_USER_SIZE);
         final User userForDisplayable3 = application.getUser(displayable3);
         assertNotNull(userForDisplayable3);
         assertNotNull(userForDisplayable3.getTokenCache());
@@ -215,9 +216,9 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
         // prepare token cache for different client id, same displayable3 user
         final String anotherClientId = "anotherClientId";
-        mTokenCache.saveTokenResponse(TokenLookupEngineTest.AUTHORITY, anotherClientId, "", getTokenResponse(idToken));
+        mTokenCache.saveTokenResponse(TokenCacheTest.AUTHORITY, anotherClientId, "", getTokenResponse(idToken));
         final PublicClientApplication anotherApplication = new PublicClientApplication(getMockedActivity(anotherClientId));
-        assertTrue(application.getUsers().size() == 3);
+        assertTrue(application.getUsers().size() == EXPECTED_USER_SIZE);
         users = anotherApplication.getUsers();
         assertTrue(users.size() == 1);
         final User userForAnotherClient = anotherApplication.getUser(uniqueId3);
@@ -504,13 +505,11 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         final PublicClientApplication application = new PublicClientApplication(activity);
 
         // prepare token in the cache
-        mTokenCache.saveTokenResponse(AndroidTestUtil.DEFAULT_AUTHORITY, CLIENT_ID, "", TokenLookupEngineTest.getTokenResponseForDefaultUser(
+        mTokenCache.saveTokenResponse(AndroidTestUtil.DEFAULT_AUTHORITY, CLIENT_ID, "", TokenCacheTest.getTokenResponseForDefaultUser(
                 AndroidTestUtil.ACCESS_TOKEN, AndroidTestUtil.REFRESH_TOKEN, "scope1 scope2", AndroidTestUtil.getExpiredDate()));
 
-        final User user = new User();
-        user.setDisplayableId("another Displayable");
-        user.setUniqueId("another uniqueId");
-        user.setHomeObjectId("another homeobj");
+        final IdToken idToken = new IdToken(AndroidTestUtil.getRawIdToken("another Displayable", "another uniqueId", "another homeobj"));
+        final User user = new User(idToken);
 
         final CountDownLatch silentLock = new CountDownLatch(1);
         application.acquireTokenSilentAsync(new String[]{"scope1", "scope2"}, user, new AuthenticationCallback() {
@@ -539,9 +538,10 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                 AndroidTestUtil.SUBJECT, AndroidTestUtil.TENANT_ID, AndroidTestUtil.VERSION, homeOid);
     }
 
-    private TokenResponse getTokenResponse(final String idToken) {
-        return new TokenResponse(AndroidTestUtil.ACCESS_TOKEN, idToken, AndroidTestUtil.REFRESH_TOKEN, new Date(), new Date(),
+    private SuccessTokenResponse getTokenResponse(final String idToken) throws AuthenticationException {
+        final TokenResponse response = new TokenResponse(AndroidTestUtil.ACCESS_TOKEN, idToken, AndroidTestUtil.REFRESH_TOKEN, new Date(), new Date(),
                 new Date(), "scope", "Bearer", null);
+        return new SuccessTokenResponse(response);
     }
 
     private void mockPackageManagerWithClientId(final Context context,
@@ -600,7 +600,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         return MSALUtils.convertSetToString(scopesInSet, " ");
     }
 
-    private Activity getMockedActivity(final String clientId) throws PackageManager.NameNotFoundException{
+    private Activity getMockedActivity(final String clientId) throws PackageManager.NameNotFoundException {
         final Context context = new MockActivityContext(mAppContext);
         mockPackageManagerWithClientId(context, false, clientId);
         mockHasCustomTabRedirect(context);

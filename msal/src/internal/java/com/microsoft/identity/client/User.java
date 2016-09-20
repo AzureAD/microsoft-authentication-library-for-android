@@ -36,13 +36,6 @@ public class User {
     private TokenCache mTokenCache;
 
     /**
-     * Internal empty constructor for user.
-     */
-    User() {
-        // Make package visible for testing purpose and prevent User class from being initiated from outside.
-    }
-
-    /**
      * Internal constructor to create {@link User} from the {@link IdToken}.
      * @param idToken
      */
