@@ -302,8 +302,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                 final User user = authenticationResult.getUser();
                 assertTrue(user.getClientId().equals(CLIENT_ID));
                 assertNotNull(user.getTokenCache());
-                assertTrue(user.getTokenCache().getAllAccessTokens().size() == 1);
-                assertTrue(user.getTokenCache().getAllRefreshTokens().size() == 0);
+                assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 1);
+                assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 0);
                 resultLock.countDown();
             }
 

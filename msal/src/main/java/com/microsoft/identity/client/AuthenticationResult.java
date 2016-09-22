@@ -32,42 +32,12 @@ import java.util.Set;
  */
 public final class AuthenticationResult {
 
-    private String mToken;
-    private Date mExpiresOn;
-    private String mTenantId;
+    private final TokenCacheItem mTokenCacheItem;
     private User mUser;
-    private String mIdToken;
-    private String[] mScope;
 
-    /**
-     * Constructor to create {@link AuthenticationResult} with {@link TokenResponse}.
-     * @param tokenResponse
-     */
-    static AuthenticationResult create(final SuccessTokenResponse tokenResponse) throws AuthenticationException {
-        return new AuthenticationResult(tokenResponse.getToken(), tokenResponse.getExpiresOn(),
-                MSALUtils.getScopesAsSet(tokenResponse.getScope()), tokenResponse.getRawIdToken(),
-                tokenResponse.getUser(), tokenResponse.getTenantId());
-    }
-
-    /**
-     * Constructor to create {@link AuthenticationResult} with {@link TokenCacheItem}.
-     * @param tokenCacheItem
-     */
-    static AuthenticationResult create(final TokenCacheItem tokenCacheItem) throws AuthenticationException {
-
-        return new AuthenticationResult(tokenCacheItem.getToken(), tokenCacheItem.getExpiresOn(), tokenCacheItem.getScope(),
-                tokenCacheItem.getRawIdToken(), new User(new IdToken(tokenCacheItem.getRawIdToken())), tokenCacheItem.getTenantId());
-    }
-
-    AuthenticationResult(final String token, final Date expiresOn, final Set<String> scopes, final String rawIdToken,
-                         final User user, final String tenantId)
-            throws AuthenticationException {
-        mToken = token;
-        mExpiresOn = expiresOn;
-        mIdToken = rawIdToken;
-        mUser = user;
-        mTenantId = tenantId;
-        mScope = scopes.toArray(new String[scopes.size()]);
+    AuthenticationResult(final TokenCacheItem tokenCacheItem) throws AuthenticationException {
+        mTokenCacheItem = tokenCacheItem;
+        mUser = new User(new IdToken(tokenCacheItem.getRawIdToken()));
     }
 
     /**
@@ -75,7 +45,7 @@ public final class AuthenticationResult {
      * is used for token acquisition, id token will be the only one returned.
      */
     public String getToken() {
-        return mToken;
+        return mTokenCacheItem.getToken();
     }
 
     /**
@@ -84,7 +54,7 @@ public final class AuthenticationResult {
      * service.
      */
     public Date getExpiresOn() {
-        return mExpiresOn;
+        return mTokenCacheItem.getExpiresOn();
     }
 
     /**
@@ -92,7 +62,7 @@ public final class AuthenticationResult {
      * returned by the service.
      */
     public String getTenantId() {
-        return mTenantId;
+        return mTokenCacheItem.getTenantId();
     }
 
     /**
@@ -106,15 +76,15 @@ public final class AuthenticationResult {
     /**
      * @return The raw Id token returned from service. Could be null if it's not returned.
      */
-    // TODO: remove should we return? if Id token is signed, we shouldn't return it.
     public String getIdToken() {
-        return mIdToken;
+        return mTokenCacheItem.getRawIdToken();
     }
 
     /**
      * @return The scope values returned from the service.
      */
     public String[] getScope() {
-        return mScope;
+        final Set<String> scopes = mTokenCacheItem.getScope();
+        return scopes.toArray(new String[scopes.size()]);
     }
 }

@@ -43,7 +43,7 @@ abstract class BaseTokenCacheItem {
     /**
      * Constructor for creating the token cache item.
      */
-    BaseTokenCacheItem(final String authority, final String clientId, final String policy, final SuccessTokenResponse response)
+    BaseTokenCacheItem(final String authority, final String clientId, final String policy, final TokenResponse response)
             throws AuthenticationException {
         if (!MSALUtils.isEmpty(response.getRawIdToken())) {
             final IdToken idToken = new IdToken(response.getRawIdToken());

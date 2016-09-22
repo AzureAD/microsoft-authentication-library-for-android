@@ -100,17 +100,21 @@ final class TokenCacheKey {
         return Collections.unmodifiableSet(mScope);
     }
 
+    /**
+     * {@inheritDoc}
+     * Cache key will be delimited by $, each individual attribute put on the cachekey will be base64 encoded.
+     */
     @Override
-     public String toString() {
+    public String toString() {
         final StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(mAuthority + "$");
-        stringBuilder.append(mClientId + "$");
+        stringBuilder.append(getEncodedString(mAuthority) + "$");
+        stringBuilder.append(getEncodedString(mClientId) + "$");
         // scope is treeSet to guarantee the order of the scopes when converting to string.
-        stringBuilder.append(MSALUtils.convertSetToString(mScope, " ") + "$");
-        stringBuilder.append(getEncodedDisplayableId(mDisplayableId) + "$");
-        stringBuilder.append(mUniqueId + "$");
-        stringBuilder.append(mHomeObjectId + "$");
-        stringBuilder.append(mPolicy);
+        stringBuilder.append(getEncodedString(MSALUtils.convertSetToString(mScope, " ")) + "$");
+        stringBuilder.append(getEncodedString(mDisplayableId) + "$");
+        stringBuilder.append(getEncodedString(mUniqueId) + "$");
+        stringBuilder.append(getEncodedString(mHomeObjectId) + "$");
+        stringBuilder.append(getEncodedString(mPolicy));
 
         return stringBuilder.toString();
     }
@@ -141,15 +145,15 @@ final class TokenCacheKey {
         return mPolicy.equalsIgnoreCase(item.getPolicy());
     }
 
-    private String getEncodedDisplayableId(final String displayableIdToEncode) {
-        String displayableId;
+    private String getEncodedString(final String stringToEncode) {
+        String based64EncodedString;
         try {
-            displayableId = MSALUtils.base64EncodeToString(displayableIdToEncode);
+            based64EncodedString = MSALUtils.base64EncodeToString(stringToEncode);
         } catch (final UnsupportedEncodingException ignore) {
             // TODO: add a log message
-            displayableId = displayableIdToEncode;
+            based64EncodedString = stringToEncode;
         }
 
-        return displayableId;
+        return based64EncodedString;
     }
 }

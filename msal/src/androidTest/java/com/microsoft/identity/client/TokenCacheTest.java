@@ -138,7 +138,7 @@ public final class TokenCacheTest extends AndroidTestCase {
                 AndroidTestUtil.getValidExpiresOn(), AndroidTestUtil.getExpirationDate(AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES * 2),
                 scope, "Bearer", null);
 
-        mTokenCache.saveTokenResponse(AUTHORITY, CLIENT_ID, "", new SuccessTokenResponse(response));
+        mTokenCache.saveTokenResponse(AUTHORITY, CLIENT_ID, "", response);
 
         // save another token for default user
         mTokenCache.saveTokenResponse(AUTHORITY, CLIENT_ID, "", getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN,
@@ -147,7 +147,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         // verify the access token is saved
         final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(scope), "");
 
-        assertTrue(mTokenCache.getAllAccessTokens().size() == 2);
+        assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 2);
 
         final TokenCacheItem tokenCacheItem = mTokenCache.findAccessToken(requestParameters, user);
         assertNotNull(tokenCacheItem);
@@ -212,7 +212,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         assertNotNull(mTokenCache.findRefreshToken(requestParameters, null));
 
         // add a token for different user for scope1
-        final SuccessTokenResponse response = getTokenResponseForDifferentUser(scope1, AndroidTestUtil.getExpirationDate(
+        final TokenResponse response = getTokenResponseForDifferentUser(scope1, AndroidTestUtil.getExpirationDate(
                 AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES));
         mTokenCache.saveTokenResponse(AUTHORITY, CLIENT_ID, "", response);
 
@@ -259,26 +259,22 @@ public final class TokenCacheTest extends AndroidTestCase {
         assertTrue(item.getHomeObjectId().equals(HOME_OID));
     }
 
-    static SuccessTokenResponse getTokenResponseForDefaultUser(final String accessToken,
-                                                               final String refreshToken, final String scopesInResponse,
-                                                               final Date expiresOn)
+    static TokenResponse getTokenResponseForDefaultUser(final String accessToken, final String refreshToken,
+                                                        final String scopesInResponse, final Date expiresOn)
             throws UnsupportedEncodingException, AuthenticationException {
         final String idToken = getDefaultIdToken();
 
-        final TokenResponse response = new TokenResponse(accessToken, idToken, refreshToken, expiresOn,
+        return new TokenResponse(accessToken, idToken, refreshToken, expiresOn,
                 expiresOn, AndroidTestUtil.getExpirationDate(AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES * 2), scopesInResponse, "Bearer", null);
-        return new SuccessTokenResponse(response);
     };
 
-    static SuccessTokenResponse getTokenResponseForDifferentUser(final String scopesInResponse, final Date expiresOn)
+    static TokenResponse getTokenResponseForDifferentUser(final String scopesInResponse, final Date expiresOn)
             throws UnsupportedEncodingException, AuthenticationException {
         final String idToken = AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", "other user", "other displayable", "sub", "tenant",
                 "version", "other homeOID");
 
-        final TokenResponse response = new TokenResponse("access_token", idToken, "refreshToken", expiresOn, expiresOn,
+        return new TokenResponse("access_token", idToken, "refreshToken", expiresOn, expiresOn,
                 AndroidTestUtil.getExpirationDate(AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES * 2), scopesInResponse, "Bearer", null);
-
-        return new SuccessTokenResponse(response);
     }
 
     static User getDefaultUser() throws UnsupportedEncodingException, AuthenticationException {

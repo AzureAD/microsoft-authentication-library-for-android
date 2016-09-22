@@ -36,12 +36,15 @@ import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Set;
 
 /**
  * Util class for instrumentation tests.
  */
 public final class AndroidTestUtil {
+    private static String ACCESS_TOKEN_SHARED_PREFERENCE = "com.microsoft.identity.client.token";
+    private static String REFRESH_TOKEN_SHARED_PREFERENCE = "com.microsoft.identity.client.refreshToken";
     static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
     static final int TOKEN_EXPIRATION_IN_MINUTES = 60;
 
@@ -108,7 +111,7 @@ public final class AndroidTestUtil {
     static String getSuccessResponseWithNoAccessToken() {
         final String tokenResponse = "{\"id_token\":\""
                 + TEST_IDTOKEN
-                + "\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"scope\":\"scope1 scope2\"}";
+                + "\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\"scope1 scope2\"}";
         return tokenResponse;
     }
 
@@ -116,7 +119,7 @@ public final class AndroidTestUtil {
         final String tokenResponse = "{\"id_token\":\""
                 + idToken
                 + "\",\"access_token\":\"" + ACCESS_TOKEN + "\", \"token_type\":\"Bearer\",\"refresh_token\":\"" + REFRESH_TOKEN + "\","
-                + "\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"scope\":\"" + scopes + "\"}";
+                + "\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\"" + scopes + "\"}";
         return tokenResponse;
     }
 
@@ -157,22 +160,40 @@ public final class AndroidTestUtil {
     }
 
     static void removeAllTokens(final Context appContext) {
-        final SharedPreferences accessTokenSharedPreference  = appContext.getSharedPreferences("com.microsoft.identity.client.token",
-                Activity.MODE_PRIVATE);
+        final SharedPreferences accessTokenSharedPreference = getAccessTokenSharedPreference(appContext);
         final SharedPreferences.Editor accessTokenSharedPreferenceEditor = accessTokenSharedPreference.edit();
         accessTokenSharedPreferenceEditor.clear();
         accessTokenSharedPreferenceEditor.apply();
 
-        final SharedPreferences refreshTokenSharedPreference = appContext.getSharedPreferences("com.microsoft.identity.client.refreshToken",
-                Activity.MODE_PRIVATE);
+        final SharedPreferences refreshTokenSharedPreference = getRefreshTokenSharedPreference(appContext);
         final SharedPreferences.Editor refreshTokenSharedPreferenceEditor = refreshTokenSharedPreference.edit();
         refreshTokenSharedPreferenceEditor.clear();
         refreshTokenSharedPreferenceEditor.apply();
+    }
+
+    static List<TokenCacheItem> getAllAccessTokens(final Context appContext) {
+        final TokenCacheAccessor accessor = new TokenCacheAccessor(appContext);
+        return accessor.getAllAccessTokens();
+    }
+
+    static List<RefreshTokenCacheItem> getAllRefreshTokens(final Context appContext) {
+        final TokenCacheAccessor accessor = new TokenCacheAccessor(appContext);
+        return accessor.getAllRefreshTokens();
     }
 
     static String getRawIdToken(final String displaybleId, final String uniqueId, final String homeOID)
             throws UnsupportedEncodingException {
         return AndroidTestUtil.createIdToken(AUDIENCE, ISSUER, NAME, uniqueId, displaybleId, SUBJECT, TENANT_ID,
                 VERSION, homeOID);
+    }
+
+    static SharedPreferences getAccessTokenSharedPreference(final Context appContext) {
+        return appContext.getSharedPreferences(ACCESS_TOKEN_SHARED_PREFERENCE,
+                Activity.MODE_PRIVATE);
+    }
+
+    static SharedPreferences getRefreshTokenSharedPreference(final Context appContext) {
+        return appContext.getSharedPreferences(REFRESH_TOKEN_SHARED_PREFERENCE,
+                Activity.MODE_PRIVATE);
     }
 }

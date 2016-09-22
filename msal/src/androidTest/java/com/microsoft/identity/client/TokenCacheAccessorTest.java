@@ -337,12 +337,11 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         return user;
     }
 
-    private SuccessTokenResponse getTokenResponse(final String accessToken, final String refreshToken, final Set<String> scopes,
-                                                  final String idToken)
+    private TokenResponse getTokenResponse(final String accessToken, final String refreshToken, final Set<String> scopes,
+                                           final String idToken)
             throws UnsupportedEncodingException, AuthenticationException {
-        final TokenResponse tokenResponse = new TokenResponse(accessToken, idToken, refreshToken, new Date(), new Date(), new Date(),
+        return new TokenResponse(accessToken, idToken, refreshToken, new Date(), new Date(), new Date(),
                 MSALUtils.convertSetToString(scopes, " "), "Bearer", null);
-        return new SuccessTokenResponse(tokenResponse);
     }
 
     private String getIdTokenWithDefaultUser() throws UnsupportedEncodingException {

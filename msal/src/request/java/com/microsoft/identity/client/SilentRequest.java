@@ -51,7 +51,7 @@ final class SilentRequest extends BaseRequest {
         if (!mForceRefresh) {
             final TokenCacheItem tokenCacheItem = tokenCache.findAccessToken(mAuthRequestParameters, mUser);
             if (tokenCacheItem != null) {
-                mAuthResult = AuthenticationResult.create(tokenCacheItem);
+                mAuthResult = new AuthenticationResult(tokenCacheItem);
                 return;
             }
         }

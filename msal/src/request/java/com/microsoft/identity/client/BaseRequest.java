@@ -180,9 +180,9 @@ abstract class BaseRequest {
      * @throws AuthenticationException
      */
     AuthenticationResult postTokenRequest() throws AuthenticationException {
-        final SuccessTokenResponse response = new SuccessTokenResponse(mTokenResponse);
-        storeTokenIntoCache(response);
-        return AuthenticationResult.create(response);
+        storeTokenIntoCache(mTokenResponse);
+        return new AuthenticationResult(new TokenCacheItem(mAuthRequestParameters.getAuthority().getAuthorityUrl(),
+                mAuthRequestParameters.getClientId(), mAuthRequestParameters.getPolicy(), mTokenResponse));
     }
 
     /**
@@ -207,7 +207,7 @@ abstract class BaseRequest {
      * Store the returned token into cache.
      * @throws AuthenticationException If exception happens when saving token into cache.
      */
-    private void storeTokenIntoCache(final SuccessTokenResponse response) throws AuthenticationException {
+    private void storeTokenIntoCache(final TokenResponse response) throws AuthenticationException {
         mAuthRequestParameters.getTokenCache().saveTokenResponse(mAuthRequestParameters.getAuthority().getAuthorityUrl(),
                 mAuthRequestParameters.getClientId(), mAuthRequestParameters.getPolicy(), response);
     }

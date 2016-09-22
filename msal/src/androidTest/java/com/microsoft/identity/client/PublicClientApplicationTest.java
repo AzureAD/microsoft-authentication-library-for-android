@@ -281,8 +281,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
                         assertTrue(authenticationResult.getToken().equals(AndroidTestUtil.ACCESS_TOKEN));
-                        assertTrue(mTokenCache.getAllAccessTokens().size() == 2);
-                        assertTrue(mTokenCache.getAllRefreshTokens().size() == 1);
+                        assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 2);
+                        assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 1);
                         silentResultLock.countDown();
                     }
 
@@ -479,8 +479,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
                         assertTrue(authenticationResult.getToken().equals(AndroidTestUtil.ACCESS_TOKEN));
-                        assertTrue(mTokenCache.getAllAccessTokens().size() == 2);
-                        assertTrue(mTokenCache.getAllRefreshTokens().size() == 1);
+                        assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 2);
+                        assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 1);
                         silentResultLock.countDown();
                     }
 
@@ -538,10 +538,9 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                 AndroidTestUtil.SUBJECT, AndroidTestUtil.TENANT_ID, AndroidTestUtil.VERSION, homeOid);
     }
 
-    private SuccessTokenResponse getTokenResponse(final String idToken) throws AuthenticationException {
-        final TokenResponse response = new TokenResponse(AndroidTestUtil.ACCESS_TOKEN, idToken, AndroidTestUtil.REFRESH_TOKEN, new Date(), new Date(),
+    private TokenResponse getTokenResponse(final String idToken) throws AuthenticationException {
+        return new TokenResponse(AndroidTestUtil.ACCESS_TOKEN, idToken, AndroidTestUtil.REFRESH_TOKEN, new Date(), new Date(),
                 new Date(), "scope", "Bearer", null);
-        return new SuccessTokenResponse(response);
     }
 
     private void mockPackageManagerWithClientId(final Context context,

@@ -80,11 +80,10 @@ public final class TokenCacheItemTest {
         return scopes;
     }
 
-    static SuccessTokenResponse getTokenResponse(final String accessToken, final String refreshToken)
+    static TokenResponse getTokenResponse(final String accessToken, final String refreshToken)
             throws UnsupportedEncodingException, AuthenticationException {
-        final TokenResponse response = new TokenResponse(accessToken, getIdToken(), refreshToken, new Date(), new Date(), new Date(),
+        return new TokenResponse(accessToken, getIdToken(), refreshToken, new Date(), new Date(), new Date(),
                 MSALUtils.convertSetToString(getScopes(), " "), "Bearer", null);
-        return new SuccessTokenResponse(response);
     }
 
     static String getIdToken() throws UnsupportedEncodingException {

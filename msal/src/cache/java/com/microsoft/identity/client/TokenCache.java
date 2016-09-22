@@ -53,7 +53,7 @@ public class TokenCache {
     /**
      * Save the token response into cache.
      */
-    void saveTokenResponse(final String authority, final String clientId, final String policy, final SuccessTokenResponse response)
+    void saveTokenResponse(final String authority, final String clientId, final String policy, final TokenResponse response)
             throws AuthenticationException {
 
         // create the access token cache item
@@ -77,7 +77,7 @@ public class TokenCache {
     TokenCacheItem findAccessToken(final AuthenticationRequestParameters requestParam, final User user) {
         final TokenCacheKey key = TokenCacheKey.createKeyForAT(requestParam.getAuthority().getAuthorityUrl(),
                 requestParam.getClientId(), requestParam.getScope(), user, requestParam.getPolicy());
-        final List<TokenCacheItem> tokenCacheItems = getAccessTokenItem(key);
+        final List<TokenCacheItem> tokenCacheItems = mTokenCacheAccessor.getAccessToken(key);
 
         if (tokenCacheItems.isEmpty()) {
             // TODO: log access token not found
@@ -105,7 +105,7 @@ public class TokenCache {
     RefreshTokenCacheItem findRefreshToken(final AuthenticationRequestParameters requestParam, final User user)
             throws AuthenticationException {
         final TokenCacheKey key = TokenCacheKey.createKeyForRT(requestParam.getClientId(), user, requestParam.getPolicy());
-        final List<RefreshTokenCacheItem> refreshTokenCacheItems = getRefreshTokenItem(key);
+        final List<RefreshTokenCacheItem> refreshTokenCacheItems = mTokenCacheAccessor.getRefreshToken(key);
 
         if (refreshTokenCacheItems.size() == 0) {
             // TODO: no RT returned
@@ -122,43 +122,11 @@ public class TokenCache {
     }
 
     /**
-     * Get all the access token item with given key.
-     * @param key The {@link TokenCacheKey} used to retrieve the access tokens.
-     * @return The list of found {@link TokenCacheItem}s.
-     */
-    List<TokenCacheItem> getAccessTokenItem(final TokenCacheKey key) {
-        return mTokenCacheAccessor.getAccessToken(key);
-    }
-
-    /**
-     * Get all the refresh token items with given key.
-     * @param key The {@link TokenCacheKey} used to retrieve the refresh tokens.
-     * @return The list of found {@link RefreshTokenCacheItem}s.
-     */
-    List<RefreshTokenCacheItem> getRefreshTokenItem(final TokenCacheKey key) {
-        return mTokenCacheAccessor.getRefreshToken(key);
-    }
-
-    /**
      * Delete refresh token items.
      * @param rtItem The item to delete.
      */
     void deleteRT(final BaseTokenCacheItem rtItem) {
         mTokenCacheAccessor.deleteRefreshToken(rtItem);
-    }
-
-    /**
-     * @return All the {@link TokenCacheItem}s in the cache.
-     */
-    List<TokenCacheItem> getAllAccessTokens() {
-        return mTokenCacheAccessor.getAllAccessTokens();
-    }
-
-    /**
-     * @return All the {@link RefreshTokenCacheItem}s in the cache.
-     */
-    List<RefreshTokenCacheItem> getAllRefreshTokens() {
-        return mTokenCacheAccessor.getAllRefreshTokens();
     }
 
     /**
@@ -169,7 +137,7 @@ public class TokenCache {
      */
     List<User> getUsers(final String clientId) throws AuthenticationException {
         if (MSALUtils.isEmpty(clientId)) {
-            throw new IllegalArgumentException("empty or null clientid");
+            throw new IllegalArgumentException("empty or null clientId");
         }
 
         final List<RefreshTokenCacheItem> allRefreshTokens = mTokenCacheAccessor.getAllRefreshTokensForGivenClientId(clientId);

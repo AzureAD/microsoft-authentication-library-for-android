@@ -30,18 +30,22 @@ import java.util.Date;
  */
 final class TokenCacheItem extends BaseTokenCacheItem {
 
-    private final String mToken;
-    private final Date mExpiresOn;
+    private String mToken;
+    private Date mExpiresOn;
 
     /**
      * Constructor for creating the {@link TokenCacheItem}.
      */
-    TokenCacheItem(final String authority, final String clientId, final String policy, final SuccessTokenResponse response) throws AuthenticationException {
+    TokenCacheItem(final String authority, final String clientId, final String policy, final TokenResponse response) throws AuthenticationException {
         super(authority, clientId, policy, response);
 
-        mToken = response.getToken();
-        mExpiresOn = response.getExpiresOn();
-
+        if (!MSALUtils.isEmpty(response.getAccessToken())) {
+            mToken = response.getAccessToken();
+            mExpiresOn = response.getExpiresOn();
+        } else if (!MSALUtils.isEmpty(response.getRawIdToken())) {
+            mToken = response.getRawIdToken();
+            mExpiresOn = response.getIdTokenExpiresOn();
+        }
     }
 
     /**
