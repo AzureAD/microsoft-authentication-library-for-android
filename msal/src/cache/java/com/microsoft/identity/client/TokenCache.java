@@ -51,15 +51,24 @@ public class TokenCache {
     }
 
     /**
-     * Save the token response into cache.
+     * Create {@link TokenCacheItem} from {@link TokenResponse} and save it into cache.
+     * @throws AuthenticationException if error happens when creating the {@link TokenCacheItem}.
      */
-    void saveTokenResponse(final String authority, final String clientId, final String policy, final TokenResponse response)
+    TokenCacheItem saveAccessToken(final String authority, final String clientId, final String policy, final TokenResponse response)
             throws AuthenticationException {
-
         // create the access token cache item
         final TokenCacheItem tokenCacheItem = new TokenCacheItem(authority, clientId, policy, response);
         mTokenCacheAccessor.saveAccessToken(tokenCacheItem);
 
+        return tokenCacheItem;
+    }
+
+    /**
+     * Create {@link RefreshTokenCacheItem} from {@link TokenResponse} and save it into cache.
+     * @throws AuthenticationException if error happens when creating the {@link RefreshTokenCacheItem}.
+     */
+    void saveRefreshToken(final String authority, final String clientId, final String policy, final TokenResponse response)
+            throws AuthenticationException {
         // if server returns the refresh token back, save it in the cache.
         if (!MSALUtils.isEmpty(response.getRefreshToken())) {
             final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(authority, clientId, policy, response);

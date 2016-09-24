@@ -180,9 +180,13 @@ abstract class BaseRequest {
      * @throws AuthenticationException
      */
     AuthenticationResult postTokenRequest() throws AuthenticationException {
-        storeTokenIntoCache(mTokenResponse);
-        return new AuthenticationResult(new TokenCacheItem(mAuthRequestParameters.getAuthority().getAuthorityUrl(),
-                mAuthRequestParameters.getClientId(), mAuthRequestParameters.getPolicy(), mTokenResponse));
+        final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
+        final TokenCacheItem tokenCacheItem = tokenCache.saveAccessToken(mAuthRequestParameters.getAuthority().getAuthorityUrl(),
+                mAuthRequestParameters.getClientId(), mAuthRequestParameters.getPolicy(), mTokenResponse);
+        tokenCache.saveRefreshToken(mAuthRequestParameters.getAuthority().getAuthorityUrl(), mAuthRequestParameters.getClientId(),
+                mAuthRequestParameters.getPolicy(), mTokenResponse);
+
+        return new AuthenticationResult(tokenCacheItem);
     }
 
     /**
@@ -201,15 +205,6 @@ abstract class BaseRequest {
         if (networkInfo == null || !networkInfo.isConnected()) {
             throw new AuthenticationException(MSALError.DEVICE_CONNECTION_NOT_AVAILABLE, "Device network connection is not available.");
         }
-    }
-
-    /**
-     * Store the returned token into cache.
-     * @throws AuthenticationException If exception happens when saving token into cache.
-     */
-    private void storeTokenIntoCache(final TokenResponse response) throws AuthenticationException {
-        mAuthRequestParameters.getTokenCache().saveTokenResponse(mAuthRequestParameters.getAuthority().getAuthorityUrl(),
-                mAuthRequestParameters.getClientId(), mAuthRequestParameters.getPolicy(), response);
     }
 
     private void updateUserForAuthenticationResult(final AuthenticationResult result) {

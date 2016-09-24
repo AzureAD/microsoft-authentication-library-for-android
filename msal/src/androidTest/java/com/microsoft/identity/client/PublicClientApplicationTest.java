@@ -187,12 +187,12 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         final String homeOid1 = "HomeOid1";
         String idToken = getIdToken(displayable1, uniqueId1, homeOid1);
 
-        mTokenCache.saveTokenResponse(TokenCacheTest.AUTHORITY, CLIENT_ID, "", getTokenResponse(idToken));
+        saveTokenResponse(mTokenCache, TokenCacheTest.AUTHORITY, CLIENT_ID, "", getTokenResponse(idToken));
 
         // prepare token cache for same client id, same displayable, uniqueId but different oid
         final String homeOid2 = "HomeOid2";
         idToken = getIdToken(displayable1, uniqueId1, homeOid2);
-        mTokenCache.saveTokenResponse(TokenCacheTest.AUTHORITY, CLIENT_ID, "", getTokenResponse(idToken));
+        saveTokenResponse(mTokenCache, TokenCacheTest.AUTHORITY, CLIENT_ID, "", getTokenResponse(idToken));
 
         List<User> users = application.getUsers();
         assertTrue(users.size() == 2);
@@ -202,7 +202,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         final String uniqueId3 = "UniqueId3";
         final String homeOid3 = "HomeOid3";
         idToken = getIdToken(displayable3, uniqueId3, homeOid3);
-        mTokenCache.saveTokenResponse(TokenCacheTest.AUTHORITY, CLIENT_ID, "", getTokenResponse(idToken));
+        saveTokenResponse(mTokenCache, TokenCacheTest.AUTHORITY, CLIENT_ID, "", getTokenResponse(idToken));
 
         users = application.getUsers();
         assertTrue(users.size() == EXPECTED_USER_SIZE);
@@ -216,7 +216,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
         // prepare token cache for different client id, same displayable3 user
         final String anotherClientId = "anotherClientId";
-        mTokenCache.saveTokenResponse(TokenCacheTest.AUTHORITY, anotherClientId, "", getTokenResponse(idToken));
+        saveTokenResponse(mTokenCache, TokenCacheTest.AUTHORITY, anotherClientId, "", getTokenResponse(idToken));
         final PublicClientApplication anotherApplication = new PublicClientApplication(getMockedActivity(anotherClientId));
         assertTrue(application.getUsers().size() == EXPECTED_USER_SIZE);
         users = anotherApplication.getUsers();
@@ -505,7 +505,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         final PublicClientApplication application = new PublicClientApplication(activity);
 
         // prepare token in the cache
-        mTokenCache.saveTokenResponse(AndroidTestUtil.DEFAULT_AUTHORITY, CLIENT_ID, "", TokenCacheTest.getTokenResponseForDefaultUser(
+        saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY, CLIENT_ID, "", TokenCacheTest.getTokenResponseForDefaultUser(
                 AndroidTestUtil.ACCESS_TOKEN, AndroidTestUtil.REFRESH_TOKEN, "scope1 scope2", AndroidTestUtil.getExpiredDate()));
 
         final IdToken idToken = new IdToken(AndroidTestUtil.getRawIdToken("another Displayable", "another uniqueId", "another homeobj"));
@@ -541,6 +541,12 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     private TokenResponse getTokenResponse(final String idToken) throws AuthenticationException {
         return new TokenResponse(AndroidTestUtil.ACCESS_TOKEN, idToken, AndroidTestUtil.REFRESH_TOKEN, new Date(), new Date(),
                 new Date(), "scope", "Bearer", null);
+    }
+
+    static void saveTokenResponse(final TokenCache tokenCache, final String authority, final String clientId,
+                                  final String policy, final TokenResponse response) throws AuthenticationException {
+        tokenCache.saveAccessToken(authority, clientId, policy, response);
+        tokenCache.saveRefreshToken(authority, clientId, policy, response);
     }
 
     private void mockPackageManagerWithClientId(final Context context,
