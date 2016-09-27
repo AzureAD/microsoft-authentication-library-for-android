@@ -25,13 +25,9 @@ package com.microsoft.identity.client;
 
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.SmallTest;
-
 import junit.framework.Assert;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -132,7 +128,7 @@ public final class AuthenticationResultTest {
     }
 
     @Test
-    public void testHomeOidNotReturned() throws UnsupportedEncodingException, AuthenticationException {
+    public void testHomeOidNotReturned() throws AuthenticationException {
         final String uniqueId = "unique";
         final TokenResponse tokenResponse = new TokenResponse(null, PublicClientApplicationTest.getIdToken("displayable",
                 uniqueId, ""), REFRESH_TOKEN, new Date(), new Date(), new Date(), SCOPE, TOKEN_TYPE, null);

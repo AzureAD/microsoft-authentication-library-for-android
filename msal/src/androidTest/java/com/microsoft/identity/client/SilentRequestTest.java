@@ -36,7 +36,6 @@ import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.util.Arrays;
 import java.util.Collections;
@@ -125,7 +124,7 @@ public final class SilentRequestTest extends AndroidTestCase {
      * Verify that valid access token is successfully returned.
      */
     @Test
-    public void testValidAccessTokenInTheCache() throws UnsupportedEncodingException, AuthenticationException, InterruptedException {
+    public void testValidAccessTokenInTheCache() throws AuthenticationException, InterruptedException {
         final String singleScope = "scope1";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY, TokenCacheTest.CLIENT_ID, "",
                 TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn()));
@@ -164,7 +163,7 @@ public final class SilentRequestTest extends AndroidTestCase {
      * Verify that if the access token item in the cache does not contain access_token, id token will be returned instead.
      */
     @Test
-    public void testSavedTokenInCacheNotHaveAccessToken() throws UnsupportedEncodingException, AuthenticationException, InterruptedException {
+    public void testSavedTokenInCacheNotHaveAccessToken() throws AuthenticationException, InterruptedException {
         final String singleScope = "scope1";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY, TokenCacheTest.CLIENT_ID, "",
                 TokenCacheTest.getTokenResponseForDefaultUser("", REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn()));

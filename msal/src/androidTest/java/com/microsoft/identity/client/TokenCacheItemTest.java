@@ -26,7 +26,6 @@ package com.microsoft.identity.client;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -48,7 +47,7 @@ public final class TokenCacheItemTest {
     private static final String TENANT_ID = "tenant";
 
     @Test
-    public void testAccessTokenItemCreation() throws UnsupportedEncodingException, AuthenticationException {
+    public void testAccessTokenItemCreation() throws AuthenticationException {
         final TokenCacheItem item = new TokenCacheItem(AUTHORITY, CLIENT_ID, POLICY, getTokenResponse(ACCESS_TOKEN, ""));
         Assert.assertTrue(item instanceof TokenCacheItem);
         Assert.assertTrue(item.getAuthority().equals(AUTHORITY));
@@ -67,7 +66,7 @@ public final class TokenCacheItemTest {
     }
 
     @Test
-    public void testRefreshTokenCreation() throws UnsupportedEncodingException, AuthenticationException {
+    public void testRefreshTokenCreation() throws AuthenticationException {
         final RefreshTokenCacheItem item = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, POLICY, getTokenResponse("", REFRESH_TOKEN));
         Assert.assertTrue(item.getRefreshToken().equals(REFRESH_TOKEN));
     }
@@ -81,12 +80,12 @@ public final class TokenCacheItemTest {
     }
 
     static TokenResponse getTokenResponse(final String accessToken, final String refreshToken)
-            throws UnsupportedEncodingException, AuthenticationException {
+            throws AuthenticationException {
         return new TokenResponse(accessToken, getIdToken(), refreshToken, new Date(), new Date(), new Date(),
                 MSALUtils.convertSetToString(getScopes(), " "), "Bearer", null);
     }
 
-    static String getIdToken() throws UnsupportedEncodingException {
+    static String getIdToken() {
         return AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", UNIQUE_ID, DISPLAYABLE, "sub", TENANT_ID,
                 "version", HOME_OBJECT_ID);
     }

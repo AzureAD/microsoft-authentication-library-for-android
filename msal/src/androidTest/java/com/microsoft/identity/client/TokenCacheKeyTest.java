@@ -27,7 +27,6 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Locale;
@@ -47,12 +46,12 @@ public final class TokenCacheKeyTest {
     // TODO: add ignore for now. If everybody agrees on not putting authority as the key for rt entry, remove the test.
     @Ignore
     @Test(expected = IllegalArgumentException.class)
-    public void testAccessTokenKeyCreationNoAuthority() throws UnsupportedEncodingException, AuthenticationException {
+    public void testAccessTokenKeyCreationNoAuthority() throws AuthenticationException {
         TokenCacheKey.createKeyForAT(null, CLIENT_ID, getScopes(), getUser(), POLICY);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testAccessTokenKeyCreationNoClientId() throws UnsupportedEncodingException, AuthenticationException {
+    public void testAccessTokenKeyCreationNoClientId() throws AuthenticationException {
         TokenCacheKey.createKeyForAT(AUTHORITY, null, getScopes(), getUser(), POLICY);
     }
 
@@ -68,8 +67,8 @@ public final class TokenCacheKeyTest {
     @Test
     public void testAccessTokenKeyCreationNoUser() {
         final TokenCacheKey accessTokenCacheKey = TokenCacheKey.createKeyForAT(AUTHORITY, CLIENT_ID, getScopes(), null, POLICY);
-        Assert.assertTrue(accessTokenCacheKey.toString().equals(getEncodedString(AUTHORITY) + "$" + getEncodedString(CLIENT_ID)
-                + "$" + getEncodedString("scope1 scope2") + "$$$$" + getEncodedString(POLICY)));
+        Assert.assertTrue(accessTokenCacheKey.toString().equals(MSALUtils.base64EncodeToString(AUTHORITY) + "$" + MSALUtils.base64EncodeToString(CLIENT_ID)
+                + "$" + MSALUtils.base64EncodeToString("scope1 scope2") + "$$$$" + MSALUtils.base64EncodeToString(POLICY)));
     }
 
     /**
@@ -78,29 +77,29 @@ public final class TokenCacheKeyTest {
     @Test
     public void testAccessTokenKeyCreationNoUserNoPolicy() {
         final TokenCacheKey accessTokenCacheKey = TokenCacheKey.createKeyForAT(AUTHORITY, CLIENT_ID, getScopes(), null, "");
-        Assert.assertTrue(accessTokenCacheKey.toString().equals(getEncodedString(AUTHORITY) + "$" + getEncodedString(CLIENT_ID) + "$"
-                + getEncodedString("scope1 scope2") + "$$$$"));
+        Assert.assertTrue(accessTokenCacheKey.toString().equals(MSALUtils.base64EncodeToString(AUTHORITY) + "$" + MSALUtils.base64EncodeToString(CLIENT_ID) + "$"
+                + MSALUtils.base64EncodeToString("scope1 scope2") + "$$$$"));
     }
 
     @Test
-    public void testAccessTokenKeyCreationWithEmptyUser() throws UnsupportedEncodingException, AuthenticationException {
+    public void testAccessTokenKeyCreationWithEmptyUser() throws AuthenticationException {
         final String rawIdToken = AndroidTestUtil.createIdToken(AndroidTestUtil.AUDIENCE, AndroidTestUtil.ISSUER, AndroidTestUtil.NAME,
                 "", "", "", AndroidTestUtil.TENANT_ID, AndroidTestUtil.VERSION, "");
         final IdToken idToken = new IdToken(rawIdToken);
         final TokenCacheKey accessTokenCacheKey = TokenCacheKey.createKeyForAT(AUTHORITY, CLIENT_ID, getScopes(), new User(idToken), POLICY);
-        Assert.assertTrue(accessTokenCacheKey.toString().equals(getEncodedString(AUTHORITY) + "$" + getEncodedString(CLIENT_ID) + "$"
-                + getEncodedString("scope1 scope2") + "$$$$" + getEncodedString(POLICY)));
+        Assert.assertTrue(accessTokenCacheKey.toString().equals(MSALUtils.base64EncodeToString(AUTHORITY) + "$" + MSALUtils.base64EncodeToString(CLIENT_ID) + "$"
+                + MSALUtils.base64EncodeToString("scope1 scope2") + "$$$$" + MSALUtils.base64EncodeToString(POLICY)));
     }
 
     @Test
-    public void testAccessTokenKeyCreationWithUser() throws UnsupportedEncodingException, AuthenticationException {
+    public void testAccessTokenKeyCreationWithUser() throws AuthenticationException {
         final TokenCacheKey accessTokenCacheKey = TokenCacheKey.createKeyForAT(AUTHORITY, CLIENT_ID, getScopes(), getUser(), POLICY);
-        Assert.assertTrue(accessTokenCacheKey.toString().equals(getEncodedString(AUTHORITY) + "$" + getEncodedString(CLIENT_ID) + "$" + getEncodedString("scope1 scope2") + "$" + getEncodedString(DISPLAYABLE) + "$"
-                + getEncodedString(UNIQUE_ID) + "$" + getEncodedString(HOME_OBJECT_ID) + "$" + getEncodedString(POLICY)));
+        Assert.assertTrue(accessTokenCacheKey.toString().equals(MSALUtils.base64EncodeToString(AUTHORITY) + "$" + MSALUtils.base64EncodeToString(CLIENT_ID) + "$" + MSALUtils.base64EncodeToString("scope1 scope2") + "$"
+                + MSALUtils.base64EncodeToString(DISPLAYABLE) + "$" + MSALUtils.base64EncodeToString(UNIQUE_ID) + "$" + MSALUtils.base64EncodeToString(HOME_OBJECT_ID) + "$" + MSALUtils.base64EncodeToString(POLICY)));
     }
 
     @Test
-    public void testAccessTokenKeyWithDifferentOrderOfScopes() throws UnsupportedEncodingException, AuthenticationException {
+    public void testAccessTokenKeyWithDifferentOrderOfScopes() throws AuthenticationException {
         final TokenCacheKey accessTokenCacheKey = TokenCacheKey.createKeyForAT(AUTHORITY, CLIENT_ID, getScopes(), getUser(), POLICY);
 
         final Set<String> scopesInDifferentOrder = new HashSet<>();
@@ -113,7 +112,7 @@ public final class TokenCacheKeyTest {
     }
 
     @Test
-    public void testAccessTokenKeyCreationSavedWithLowerCase() throws UnsupportedEncodingException, AuthenticationException {
+    public void testAccessTokenKeyCreationSavedWithLowerCase() throws AuthenticationException {
         final String rawIdToken = AndroidTestUtil.getRawIdToken(DISPLAYABLE.toUpperCase(Locale.US), UNIQUE_ID.toUpperCase(Locale.US),
                 HOME_OBJECT_ID.toUpperCase(Locale.US));
         final User user = new User(new IdToken(rawIdToken));
@@ -121,19 +120,20 @@ public final class TokenCacheKeyTest {
         final TokenCacheKey accessTokenCacheKey = TokenCacheKey.createKeyForAT(AUTHORITY.toUpperCase(Locale.US), CLIENT_ID.toUpperCase(Locale.US), getScopes(),
                 user, POLICY.toUpperCase(Locale.US));
 
-        Assert.assertTrue(accessTokenCacheKey.toString().equals(getEncodedString(AUTHORITY) + "$" + getEncodedString(CLIENT_ID) + "$" + getEncodedString("scope1 scope2") + "$" + getEncodedString(DISPLAYABLE) + "$"
-                + getEncodedString(UNIQUE_ID) + "$" + getEncodedString(HOME_OBJECT_ID) + "$" + getEncodedString(POLICY)));
+        Assert.assertTrue(accessTokenCacheKey.toString().equals(MSALUtils.base64EncodeToString(AUTHORITY) + "$" + MSALUtils.base64EncodeToString(CLIENT_ID) + "$"
+                + MSALUtils.base64EncodeToString("scope1 scope2") + "$" + MSALUtils.base64EncodeToString(DISPLAYABLE) + "$" + MSALUtils.base64EncodeToString(UNIQUE_ID)
+                + "$" + MSALUtils.base64EncodeToString(HOME_OBJECT_ID) + "$" + MSALUtils.base64EncodeToString(POLICY)));
     }
 
     @Test
-    public void testRefreshTokenKeyCreation() throws UnsupportedEncodingException, AuthenticationException {
+    public void testRefreshTokenKeyCreation() throws AuthenticationException {
         final TokenCacheKey refreshTokenCacheKey = TokenCacheKey.createKeyForRT(CLIENT_ID, getUser(), POLICY);
-        Assert.assertTrue(refreshTokenCacheKey.toString().equals("$" + getEncodedString(CLIENT_ID) + "$" + "$" + getEncodedString(DISPLAYABLE) + "$"
-                + getEncodedString(UNIQUE_ID) + "$" + getEncodedString(HOME_OBJECT_ID) + "$" + getEncodedString(POLICY)));
+        Assert.assertTrue(refreshTokenCacheKey.toString().equals("$" + MSALUtils.base64EncodeToString(CLIENT_ID) + "$" + "$" + MSALUtils.base64EncodeToString(DISPLAYABLE) + "$"
+                + MSALUtils.base64EncodeToString(UNIQUE_ID) + "$" + MSALUtils.base64EncodeToString(HOME_OBJECT_ID) + "$" + MSALUtils.base64EncodeToString(POLICY)));
     }
 
     @Test
-    public void testRefreshTokenKeyExtractionFromTokenCacheItem() throws AuthenticationException, UnsupportedEncodingException {
+    public void testRefreshTokenKeyExtractionFromTokenCacheItem() throws AuthenticationException {
         final String idToken = AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", UNIQUE_ID, DISPLAYABLE, "sub", "tenant",
                 "version", HOME_OBJECT_ID);
         final TokenResponse response = new TokenResponse("access_token", idToken, "refresh_token", new Date(), new Date(), new Date(),
@@ -141,8 +141,9 @@ public final class TokenCacheKeyTest {
         final BaseTokenCacheItem item = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, POLICY, response);
 
 
-        Assert.assertTrue(TokenCacheKey.extractKeyForRT(item).toString().equals("" + "$" + getEncodedString(CLIENT_ID) + "$" + "$" + getEncodedString(DISPLAYABLE) + "$"
-                + getEncodedString(UNIQUE_ID) + "$" + getEncodedString(HOME_OBJECT_ID) + "$" + getEncodedString(POLICY)));
+        Assert.assertTrue(TokenCacheKey.extractKeyForRT(item).toString().equals("" + "$" + MSALUtils.base64EncodeToString(CLIENT_ID) + "$" + "$"
+                + MSALUtils.base64EncodeToString(DISPLAYABLE) + "$" + MSALUtils.base64EncodeToString(UNIQUE_ID) + "$"
+                + MSALUtils.base64EncodeToString(HOME_OBJECT_ID) + "$" + MSALUtils.base64EncodeToString(POLICY)));
     }
 
     private Set<String> getScopes() {
@@ -153,21 +154,10 @@ public final class TokenCacheKeyTest {
         return scopes;
     }
 
-    private User getUser() throws UnsupportedEncodingException, AuthenticationException {
+    private User getUser() throws AuthenticationException {
         final String rawIdToken = AndroidTestUtil.getRawIdToken(DISPLAYABLE, UNIQUE_ID, HOME_OBJECT_ID);
         final IdToken idToken = new IdToken(rawIdToken);
 
         return new User(idToken);
-    }
-
-    private String getEncodedString(final String messageToEncode) {
-        String encodedString;
-        try {
-            encodedString = MSALUtils.base64EncodeToString(messageToEncode);
-        } catch (final UnsupportedEncodingException ignore) {
-            encodedString = "";
-        }
-
-        return encodedString;
     }
 }

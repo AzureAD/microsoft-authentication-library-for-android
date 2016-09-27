@@ -176,8 +176,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
      * Verify that users are correctly retrieved.
      */
     @Test
-    public void testGetUsers() throws UnsupportedEncodingException, AuthenticationException,
-            PackageManager.NameNotFoundException {
+    public void testGetUsers() throws AuthenticationException, PackageManager.NameNotFoundException {
         final PublicClientApplication application = new PublicClientApplication(getMockedActivity(CLIENT_ID));
         assertTrue(application.getUsers().size() == 0);
         // prepare token cache
@@ -405,7 +404,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             }
 
             @Override
-            String getFinalAuthUrl() {
+            String getFinalAuthUrl() throws UnsupportedEncodingException {
                 return mRedirectUri + "?error=access_denied&error_subcode=cancel";
             }
 
@@ -499,7 +498,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     @Test
-    public void testSilentRequestFailure() throws UnsupportedEncodingException, AuthenticationException, InterruptedException {
+    public void testSilentRequestFailure() throws AuthenticationException, InterruptedException {
         final Activity activity = Mockito.mock(Activity.class);
         Mockito.when(activity.getApplicationContext()).thenReturn(mAppContext);
         final PublicClientApplication application = new PublicClientApplication(activity);
@@ -533,7 +532,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         silentLock.await();
     }
 
-    static String getIdToken(final String displayable, final String uniqueId, final String homeOid) throws UnsupportedEncodingException {
+    static String getIdToken(final String displayable, final String uniqueId, final String homeOid) {
         return AndroidTestUtil.createIdToken(AndroidTestUtil.AUDIENCE, AndroidTestUtil.ISSUER, AndroidTestUtil.NAME, uniqueId, displayable,
                 AndroidTestUtil.SUBJECT, AndroidTestUtil.TENANT_ID, AndroidTestUtil.VERSION, homeOid);
     }
@@ -634,7 +633,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         abstract void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
                                            final CountDownLatch releaseLock);
 
-        abstract String getFinalAuthUrl() throws UnsupportedEncodingException;
+        abstract String getFinalAuthUrl() throws UnsupportedEncodingException ;
 
         protected boolean isSetAlternateAuthority() {
             return false;

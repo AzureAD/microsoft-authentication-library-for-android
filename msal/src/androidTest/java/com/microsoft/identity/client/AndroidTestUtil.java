@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -80,7 +81,7 @@ public final class AndroidTestUtil {
     static String createIdToken(final String audience, final String issuer, final String name,
                                 final String objectId, final String preferredName,
                                 final String subject, final String tenantId, final String version,
-                                final String homeObjectId) throws UnsupportedEncodingException {
+                                final String homeObjectId) {
         final String idTokenHeader = "{\"typ\":\"JWT\",\"alg\":\"RS256\"}";
         final String claims = "{\"aud\":\"" + audience + "\",\"iss\":\"" + issuer
                 + "\",\"ver\":\"" + version + "\",\"tid\":\"" + tenantId + "\",\"oid\":\"" + objectId
@@ -88,8 +89,8 @@ public final class AndroidTestUtil {
                 + "\",\"home_oid\":\"" + homeObjectId + "\",\"name\":\"" + name + "\"}";
 
         return String.format("%s.%s.", new String(Base64.encode(idTokenHeader.getBytes(
-                MSALUtils.ENCODING_UTF8), Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE)),
-                new String(Base64.encode(claims.getBytes(MSALUtils.ENCODING_UTF8),
+                Charset.forName(MSALUtils.ENCODING_UTF8)), Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE)),
+                new String(Base64.encode(claims.getBytes(Charset.forName(MSALUtils.ENCODING_UTF8)),
                         Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE)));
     }
 
@@ -136,11 +137,10 @@ public final class AndroidTestUtil {
         return "{" + errorDescription + "}";
     }
 
-    static String encodeProtocolState(final String authority, final Set<String> scopes)
-            throws UnsupportedEncodingException {
+    static String encodeProtocolState(final String authority, final Set<String> scopes) throws UnsupportedEncodingException {
         String state = String.format("a=%s&r=%s", MSALUtils.urlEncode(authority),
                 MSALUtils.urlEncode(MSALUtils.convertSetToString(scopes, " ")));
-        return Base64.encodeToString(state.getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
+        return Base64.encodeToString(state.getBytes(Charset.forName("UTF-8")), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 
     static Date getExpiredDate() {
@@ -181,8 +181,7 @@ public final class AndroidTestUtil {
         return accessor.getAllRefreshTokens();
     }
 
-    static String getRawIdToken(final String displaybleId, final String uniqueId, final String homeOID)
-            throws UnsupportedEncodingException {
+    static String getRawIdToken(final String displaybleId, final String uniqueId, final String homeOID) {
         return AndroidTestUtil.createIdToken(AUDIENCE, ISSUER, NAME, uniqueId, displaybleId, SUBJECT, TENANT_ID,
                 VERSION, homeOID);
     }

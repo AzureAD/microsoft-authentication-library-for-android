@@ -42,6 +42,7 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -311,7 +312,7 @@ public final class MSALUtilTest {
     }
 
     @Test
-    public void testBase64Encode() throws UnsupportedEncodingException {
+    public void testBase64Encode() {
         String stringToEncode = "a+b@c.com";
         Assert.assertTrue(base64Decode(MSALUtils.base64EncodeToString(stringToEncode)).equals(stringToEncode));
 
@@ -319,7 +320,7 @@ public final class MSALUtilTest {
         Assert.assertTrue(base64Decode(MSALUtils.base64EncodeToString(stringToEncode)).equals(stringToEncode));
     }
 
-    private String base64Decode(final String encodedString) throws UnsupportedEncodingException {
-        return new String(Base64.decode(encodedString.getBytes(MSALUtils.ENCODING_UTF8), Base64.NO_PADDING | Base64.URL_SAFE));
+    private String base64Decode(final String encodedString) {
+        return new String(Base64.decode(encodedString.getBytes(Charset.forName(MSALUtils.ENCODING_UTF8)), Base64.NO_PADDING | Base64.URL_SAFE));
     }
 }

@@ -23,7 +23,6 @@
 
 package com.microsoft.identity.client;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
@@ -107,14 +106,14 @@ final class TokenCacheKey {
     @Override
     public String toString() {
         final StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(getEncodedString(mAuthority) + "$");
-        stringBuilder.append(getEncodedString(mClientId) + "$");
+        stringBuilder.append(MSALUtils.base64EncodeToString(mAuthority) + "$");
+        stringBuilder.append(MSALUtils.base64EncodeToString(mClientId) + "$");
         // scope is treeSet to guarantee the order of the scopes when converting to string.
-        stringBuilder.append(getEncodedString(MSALUtils.convertSetToString(mScope, " ")) + "$");
-        stringBuilder.append(getEncodedString(mDisplayableId) + "$");
-        stringBuilder.append(getEncodedString(mUniqueId) + "$");
-        stringBuilder.append(getEncodedString(mHomeObjectId) + "$");
-        stringBuilder.append(getEncodedString(mPolicy));
+        stringBuilder.append(MSALUtils.base64EncodeToString(MSALUtils.convertSetToString(mScope, " ")) + "$");
+        stringBuilder.append(MSALUtils.base64EncodeToString(mDisplayableId) + "$");
+        stringBuilder.append(MSALUtils.base64EncodeToString(mUniqueId) + "$");
+        stringBuilder.append(MSALUtils.base64EncodeToString(mHomeObjectId) + "$");
+        stringBuilder.append(MSALUtils.base64EncodeToString(mPolicy));
 
         return stringBuilder.toString();
     }
@@ -143,17 +142,5 @@ final class TokenCacheKey {
         }
 
         return mPolicy.equalsIgnoreCase(item.getPolicy());
-    }
-
-    private String getEncodedString(final String stringToEncode) {
-        String based64EncodedString;
-        try {
-            based64EncodedString = MSALUtils.base64EncodeToString(stringToEncode);
-        } catch (final UnsupportedEncodingException ignore) {
-            // TODO: add a log message
-            based64EncodedString = stringToEncode;
-        }
-
-        return based64EncodedString;
     }
 }

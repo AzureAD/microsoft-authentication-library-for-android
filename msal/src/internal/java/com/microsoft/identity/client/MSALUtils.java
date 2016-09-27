@@ -38,6 +38,7 @@ import org.json.JSONObject;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
@@ -323,7 +324,7 @@ final class MSALUtils {
     }
 
     static String appendQueryParameterToUrl(final String url,
-                                                  final Map<String, String> requestParams)
+                                            final Map<String, String> requestParams)
             throws UnsupportedEncodingException {
         final Set<String> queryParamsSet = new HashSet<>();
         for (Map.Entry<String, String> entry : requestParams.entrySet()) {
@@ -336,7 +337,7 @@ final class MSALUtils {
         return String.format("%s?%s", url, queryString);
     }
 
-    static String base64EncodeToString(final String message) throws UnsupportedEncodingException {
-        return  Base64.encodeToString(message.getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
+    static String base64EncodeToString(final String message) {
+        return  Base64.encodeToString(message.getBytes(Charset.forName(ENCODING_UTF8)), Base64.NO_PADDING);
     }
 }

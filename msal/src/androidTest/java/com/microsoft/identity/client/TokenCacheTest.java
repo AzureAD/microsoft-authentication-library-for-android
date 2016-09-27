@@ -33,7 +33,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
@@ -82,7 +81,7 @@ public final class TokenCacheTest extends AndroidTestCase {
      * Verify that expired AT is not returned.
      */
     @Test
-    public void testGetAccessTokenForExpiredItem() throws UnsupportedEncodingException, AuthenticationException {
+    public void testGetAccessTokenForExpiredItem() throws AuthenticationException {
         // prepare an expired AT item in the cache
         final String singleScope = "scope";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, "",
@@ -97,7 +96,7 @@ public final class TokenCacheTest extends AndroidTestCase {
     }
 
     @Test
-    public void testGetTokenWithResponseNotContainingRT() throws UnsupportedEncodingException, AuthenticationException {
+    public void testGetTokenWithResponseNotContainingRT() throws AuthenticationException {
         final String singleScope = "scope";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, "",
                 getTokenResponseForDefaultUser(ACCESS_TOKEN, "", singleScope, AndroidTestUtil.getValidExpiresOn()));
@@ -112,7 +111,7 @@ public final class TokenCacheTest extends AndroidTestCase {
      * token.
      */
     @Test
-    public void testGetTokenWithResponseNotContainingAT() throws UnsupportedEncodingException, AuthenticationException {
+    public void testGetTokenWithResponseNotContainingAT() throws  AuthenticationException {
         final String singleScope = "scope";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, "", getTokenResponseForDefaultUser("", "",
                 singleScope, AndroidTestUtil.getValidExpiresOn()));
@@ -128,7 +127,7 @@ public final class TokenCacheTest extends AndroidTestCase {
      * Verify that tokens are retrieved correctly if displayable id contains special character.
      */
     @Test
-    public void testGetTokenWithUserContainSpecialCharacter() throws UnsupportedEncodingException, AuthenticationException {
+    public void testGetTokenWithUserContainSpecialCharacter() throws AuthenticationException {
         final String scope = "scope";
         final String displayableId = "a$$b+c%3$*c_d#^d@contoso.com";
         final String idToken = AndroidTestUtil.getRawIdToken(displayableId, UNIQUE_ID, HOME_OID);
@@ -160,7 +159,7 @@ public final class TokenCacheTest extends AndroidTestCase {
      * Verify that token is correctly when cache key contains policy.
      */
     @Test
-    public void testGetTokenWithPolicy() throws AuthenticationException, UnsupportedEncodingException {
+    public void testGetTokenWithPolicy() throws AuthenticationException {
         // prepare a valid AT item stored with policy in the cache
         final String singleScope = "scope";
         final String policy = "some policy";
@@ -193,7 +192,7 @@ public final class TokenCacheTest extends AndroidTestCase {
      * Verify that access token return when no user is passed for lookup.
      */
     @Test
-    public void testGetTokenNoUser() throws UnsupportedEncodingException, AuthenticationException {
+    public void testGetTokenNoUser() throws AuthenticationException {
         final String scope1 = "scope1";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, "", getTokenResponseForDefaultUser(
                 ACCESS_TOKEN, REFRESH_TOKEN, scope1, AndroidTestUtil.getValidExpiresOn()));
@@ -230,7 +229,7 @@ public final class TokenCacheTest extends AndroidTestCase {
      * Verify that access token is correctly returned for cache with multiple user.
      */
     @Test
-    public void testGetTokenWithMultipleUser() throws UnsupportedEncodingException, AuthenticationException {
+    public void testGetTokenWithMultipleUser() throws AuthenticationException {
         final String scope = "scope1";
         final Date expirationDate = AndroidTestUtil.getExpirationDate(AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES);
         // save token for default user with scope1
@@ -262,7 +261,7 @@ public final class TokenCacheTest extends AndroidTestCase {
 
     static TokenResponse getTokenResponseForDefaultUser(final String accessToken, final String refreshToken,
                                                         final String scopesInResponse, final Date expiresOn)
-            throws UnsupportedEncodingException, AuthenticationException {
+            throws AuthenticationException {
         final String idToken = getDefaultIdToken();
 
         return new TokenResponse(accessToken, idToken, refreshToken, expiresOn,
@@ -270,7 +269,7 @@ public final class TokenCacheTest extends AndroidTestCase {
     };
 
     static TokenResponse getTokenResponseForDifferentUser(final String scopesInResponse, final Date expiresOn)
-            throws UnsupportedEncodingException, AuthenticationException {
+            throws AuthenticationException {
         final String idToken = AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", "other user", "other displayable", "sub", "tenant",
                 "version", "other homeOID");
 
@@ -278,12 +277,12 @@ public final class TokenCacheTest extends AndroidTestCase {
                 AndroidTestUtil.getExpirationDate(AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES * 2), scopesInResponse, "Bearer", null);
     }
 
-    static User getDefaultUser() throws UnsupportedEncodingException, AuthenticationException {
+    static User getDefaultUser() throws AuthenticationException {
         final IdToken idToken = new IdToken(getDefaultIdToken());
         return new User(idToken);
     }
 
-    static String getDefaultIdToken() throws UnsupportedEncodingException {
+    static String getDefaultIdToken() {
         return AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", UNIQUE_ID, DISPLAYABLE, "sub", "tenant",
                 "version", HOME_OID);
     }

@@ -31,8 +31,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.UnsupportedEncodingException;
-
 /**
  * Instrumentation tests for {@link IdToken}.
  */
@@ -130,7 +128,7 @@ public final class IdTokenTest {
     }
 
     @Test
-    public void testIdTokenHappyPath() throws UnsupportedEncodingException {
+    public void testIdTokenHappyPath() {
         // Id token with invalid signature part, we don't do any signature validation today. As long as the id token
         // contains a valid payload, we'll successfully parse it.
         final String rawIdToken = AndroidTestUtil.createIdToken(
