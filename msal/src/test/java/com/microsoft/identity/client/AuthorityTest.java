@@ -62,5 +62,4 @@ public final class AuthorityTest {
         Assert.assertTrue(authority.getTokenEndpoint().equals(authorityWithoutTrailingSlash
                 + Authority.DEFAULT_TOKEN_ENDPOINT));
     }
-
 }

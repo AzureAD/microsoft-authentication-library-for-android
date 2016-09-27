@@ -25,12 +25,8 @@ package com.microsoft.identity.client;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
-
-import org.mockito.Mockito;
 
 /**
  * Test activity for testing purpose.
@@ -78,16 +74,5 @@ public class TestActivity extends Activity {
 
     static Intent getResultData() {
         return sResultData;
-    }
-
-    private static class MockActivityContext extends ContextWrapper {
-        MockActivityContext(final Context context) {
-            super(context);
-        }
-
-        @Override
-        public PackageManager getPackageManager() {
-            return Mockito.mock(PackageManager.class);
-        }
     }
 }

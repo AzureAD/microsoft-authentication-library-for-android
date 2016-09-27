@@ -23,31 +23,42 @@
 
 package com.microsoft.identity.client;
 
+import java.util.Date;
+
 /**
- * MSAL internal representation for token cache. MS first party apps can use the internal
- * {@link TokenCache#serialize(User)} and {@link TokenCache#deserialize(String)} to import and export family tokens
- * to implement SSO. To prevent confusions among external apps, we don't expose these two methods.
+ * MSAL internal class for representing the access token cache item.
  */
-class TokenCache {
+final class TokenCacheItem extends BaseTokenCacheItem {
+
+    private String mToken;
+    private Date mExpiresOn;
+
     /**
-     * Internal API for the SDK to serialize the family token cache item for the given user.
-     *
-     * The sdk will look up family token cache item with the given user id, and serialize the token cache item and
-     * return it as a serialized blob.
-     * @param user
-     * @return
+     * Constructor for creating the {@link TokenCacheItem}.
      */
-    String serialize(final User user) {
-        return "";
+    TokenCacheItem(final String authority, final String clientId, final String policy, final TokenResponse response) throws AuthenticationException {
+        super(authority, clientId, policy, response);
+
+        if (!MSALUtils.isEmpty(response.getAccessToken())) {
+            mToken = response.getAccessToken();
+            mExpiresOn = response.getExpiresOn();
+        } else if (!MSALUtils.isEmpty(response.getRawIdToken())) {
+            mToken = response.getRawIdToken();
+            mExpiresOn = response.getIdTokenExpiresOn();
+        }
     }
 
     /**
-     * Internal API for the sdk to take in the serialized blob and save it into the cache.
-     *
-     * The sdk will deserialize the input blob into the token cache item and save it into cache.
-     * @param serializedBlob
+     * @return The token. Could either be access token or id token.
      */
-    void deserialize(final String serializedBlob) {
+    String getToken() {
+        return mToken;
+    }
 
+    /**
+     * @return The expires on. Could either be access token expires on or id token expires on.
+     */
+    Date getExpiresOn() {
+        return mExpiresOn;
     }
 }

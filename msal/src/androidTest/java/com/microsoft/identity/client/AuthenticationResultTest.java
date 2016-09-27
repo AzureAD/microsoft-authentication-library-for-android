@@ -25,12 +25,9 @@ package com.microsoft.identity.client;
 
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.SmallTest;
-
 import junit.framework.Assert;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -57,10 +54,11 @@ public final class AuthenticationResultTest {
      */
     @Test
     public void testTokenResponseContainEmptyScope() throws AuthenticationException {
-        final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, "", REFRESH_TOKEN, EXPIRES_ON, EXPIRES_ON,
-                EXPIRES_ON, "", TOKEN_TYPE, null);
+        final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, AndroidTestUtil.TEST_IDTOKEN, REFRESH_TOKEN,
+                EXPIRES_ON, EXPIRES_ON, EXPIRES_ON, "", TOKEN_TYPE, null);
 
-        final AuthenticationResult authenticationResult = new AuthenticationResult(tokenResponse);
+        final AuthenticationResult authenticationResult = new AuthenticationResult(new TokenCacheItem(null, null, null,
+                tokenResponse));
         verifyScopeIsEmpty(authenticationResult);
     }
 
@@ -69,10 +67,11 @@ public final class AuthenticationResultTest {
      */
     @Test
     public void testTokenResponseContainNullScope() throws AuthenticationException {
-        final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, "", REFRESH_TOKEN, EXPIRES_ON, EXPIRES_ON,
-                EXPIRES_ON, null, TOKEN_TYPE, null);
+        final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, AndroidTestUtil.TEST_IDTOKEN, REFRESH_TOKEN,
+                EXPIRES_ON, EXPIRES_ON, EXPIRES_ON, null, TOKEN_TYPE, null);
 
-        final AuthenticationResult authenticationResult = new AuthenticationResult(tokenResponse);
+        final AuthenticationResult authenticationResult = new AuthenticationResult(new TokenCacheItem(null, null, null,
+                tokenResponse));
         verifyScopeIsEmpty(authenticationResult);
     }
 
@@ -83,10 +82,11 @@ public final class AuthenticationResultTest {
     @Test
     public void testTokenResponseContainsScopeWithTrailingSpace() throws AuthenticationException {
         final String scopes = " scope1 scope2  scope3   ";
-        final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, "", REFRESH_TOKEN, EXPIRES_ON, EXPIRES_ON,
-                EXPIRES_ON, scopes, TOKEN_TYPE, null);
+        final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, AndroidTestUtil.TEST_IDTOKEN, REFRESH_TOKEN,
+                EXPIRES_ON, EXPIRES_ON, EXPIRES_ON, scopes, TOKEN_TYPE, null);
 
-        final AuthenticationResult authenticationResult = new AuthenticationResult(tokenResponse);
+        final AuthenticationResult authenticationResult = new AuthenticationResult(new TokenCacheItem(null, null, null,
+                tokenResponse));
         final String[] scopeArray = authenticationResult.getScope();
         Assert.assertNotNull(scopeArray);
         Assert.assertTrue(scopeArray.length == SCOPE_LENGTH);
@@ -106,7 +106,7 @@ public final class AuthenticationResultTest {
 
         final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, AndroidTestUtil.TEST_IDTOKEN,
                 REFRESH_TOKEN, expiresOn, idTokenExpiresOn, EXPIRES_ON, SCOPE, TOKEN_TYPE, null);
-        final AuthenticationResult authenticationResult = new AuthenticationResult(tokenResponse);
+        final AuthenticationResult authenticationResult = new AuthenticationResult(new TokenCacheItem(null, null, null, tokenResponse));
         Assert.assertTrue(authenticationResult.getToken().equals(ACCESS_TOKEN));
         Assert.assertTrue(authenticationResult.getExpiresOn().equals(expiresOn));
     }
@@ -121,10 +121,22 @@ public final class AuthenticationResultTest {
         final Date idTokenExpiresOn = getExpiresOn(-TIME_OFFSET);
         final TokenResponse tokenResponse = new TokenResponse(null, AndroidTestUtil.TEST_IDTOKEN,
                 REFRESH_TOKEN, expiresOn, idTokenExpiresOn, EXPIRES_ON, SCOPE, TOKEN_TYPE, null);
-        final AuthenticationResult authenticationResult = new AuthenticationResult(tokenResponse);
+        final AuthenticationResult authenticationResult = new AuthenticationResult(new TokenCacheItem(null, null, null, tokenResponse));
 
         Assert.assertTrue(authenticationResult.getToken().equals(AndroidTestUtil.TEST_IDTOKEN));
         Assert.assertTrue(authenticationResult.getExpiresOn().equals(idTokenExpiresOn));
+    }
+
+    @Test
+    public void testHomeOidNotReturned() throws AuthenticationException {
+        final String uniqueId = "unique";
+        final TokenResponse tokenResponse = new TokenResponse(null, PublicClientApplicationTest.getIdToken("displayable",
+                uniqueId, ""), REFRESH_TOKEN, new Date(), new Date(), new Date(), SCOPE, TOKEN_TYPE, null);
+        final AuthenticationResult result = new AuthenticationResult(new TokenCacheItem(null, null, null, tokenResponse));
+
+        final User user = result.getUser();
+        Assert.assertNotNull(user);
+        Assert.assertTrue(user.getHomeObjectId().equals(uniqueId));
     }
 
     private void verifyScopeIsEmpty(final AuthenticationResult authenticationResult) {
