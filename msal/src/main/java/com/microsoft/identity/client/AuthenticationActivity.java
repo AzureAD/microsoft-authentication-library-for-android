@@ -71,7 +71,7 @@ public final class AuthenticationActivity extends Activity {
         // does). If the chrome package doesn't contain the support, we'll use chrome to launch the UI.
         if (MSALUtils.getChromePackage(this.getApplicationContext()) == null) {
             // TODO: log that chrome is not installed, cannot prompt the UI.
-            sendError(Constants.MSALError.CHROME_NOT_INSTLLED, "Chrome is not installed on the device, cannot proceed with auth");
+            sendError(Constants.MSALError.CHROME_NOT_INSTALLED, "Chrome is not installed on the device, cannot proceed with auth");
         }
     }
 
