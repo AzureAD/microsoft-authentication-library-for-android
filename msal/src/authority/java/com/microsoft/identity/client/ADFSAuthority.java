@@ -26,6 +26,8 @@ package com.microsoft.identity.client;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashSet;
@@ -62,8 +64,19 @@ final class ADFSAuthority extends Authority {
             final DRSMetadata drsMetadata = loadDRSMetadata(correlationId);
             final WebFingerMetadata webFingerMetadata = loadWebFingerMetadata(correlationId, drsMetadata);
 
+            final URI authorityURI;
+
+            try {
+                authorityURI = mAuthorityUrl.toURI();
+            } catch (URISyntaxException e) {
+                throw new AuthenticationException(
+                        MSALError.AUTHORITY_VALIDATION_FAILED,
+                        "Authority URL/URI must be RFC 2396 compliant to use AD FS validation"
+                );
+            }
+
             // Verify trust
-            if (!ADFSWebFingerValidator.realmIsTrusted(mAuthorityUrl, webFingerMetadata)) {
+            if (!ADFSWebFingerValidator.realmIsTrusted(authorityURI, webFingerMetadata)) {
                 throw new AuthenticationException(MSALError.AUTHORITY_VALIDATION_FAILED);
             }
         }
