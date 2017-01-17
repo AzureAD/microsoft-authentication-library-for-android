@@ -76,4 +76,19 @@ public class ADFSWebFingerValidatorTest {
                 )
         );
     }
+
+    @Test
+    public void testRealmIsNotTrusted() throws URISyntaxException {
+        final URI testAuthority = new URI("https://fs.ngctest.nttest.microsoft.com/adfs/ls/");
+        WebFingerMetadata metadata = new WebFingerMetadata();
+        List<Link> links = new ArrayList<>();
+        metadata.setLinks(links);
+        Assert.assertEquals(
+                false,
+                ADFSWebFingerValidator.realmIsTrusted(
+                        testAuthority,
+                        metadata
+                )
+        );
+    }
 }
