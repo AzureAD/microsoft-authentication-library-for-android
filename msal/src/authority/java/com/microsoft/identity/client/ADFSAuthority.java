@@ -71,7 +71,7 @@ final class ADFSAuthority extends Authority {
         return getDefaultOpenIdConfigurationEndpoint();
     }
 
-    private WebFingerMetadata loadWebFingerMetadata(final UUID correlationId, final DRSMetadata drsMetadata) {
+    private WebFingerMetadata loadWebFingerMetadata(final UUID correlationId, final DRSMetadata drsMetadata) throws AuthenticationException {
         final WebFingerMetadataRequestor webFingerMetadataRequestor = new WebFingerMetadataRequestor();
         webFingerMetadataRequestor.setCorrelationId(correlationId);
         return webFingerMetadataRequestor.requestMetadata(
