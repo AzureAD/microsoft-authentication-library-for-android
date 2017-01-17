@@ -45,8 +45,7 @@ import java.util.UUID;
  */
 final class Oauth2Client {
     private static final String TAG = Oauth2Client.class.getSimpleName();
-    private static final String HEADER_ACCEPT = "Accept";
-    private static final String HEADER_ACCEPT_VALUE = "application/json";
+    private static final String HEADER_ACCEPT_VALUE = HttpConstants.MediaType.APPLICATION_JSON;
 
     static final String POST_CONTENT_TYPE = "application/x-www-form-urlencoded";
 
@@ -107,7 +106,7 @@ final class Oauth2Client {
         }
 
         // add common headers
-        addHeader(HEADER_ACCEPT, HEADER_ACCEPT_VALUE);
+        addHeader(HttpConstants.HeaderField.ACCEPT, HEADER_ACCEPT_VALUE);
         addHeader(OauthConstants.OauthHeader.CORRELATION_ID_IN_RESPONSE, "true");
 
         final HttpResponse response;
@@ -134,7 +133,7 @@ final class Oauth2Client {
 
         final BaseOauth2Response errorResponse;
         try {
-            errorResponse= BaseOauth2Response.createErrorResponse(responseItems);
+            errorResponse = BaseOauth2Response.createErrorResponse(responseItems);
         } catch (final JSONException e) {
             throw new AuthenticationException(MSALError.JSON_PARSE_FAILURE, "Fail to parse Json", e);
         }
