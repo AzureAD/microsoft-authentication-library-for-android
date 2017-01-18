@@ -23,6 +23,7 @@
 
 package com.microsoft.identity.client;
 
+import android.os.Build;
 import android.util.Log;
 
 import java.text.SimpleDateFormat;
@@ -55,11 +56,11 @@ import java.util.UUID;
  * </code>
  */
 public final class Logger {
-    private static Logger sInstance = null;
+    private static volatile Logger sInstance = null;
     static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     // Turn on the verbose level logging by default.
-    private LogLevel mLogLevel = LogLevel.VERBOSE;
+    private LogLevel mLogLevel = LogLevel.INFO;
     private ILogger mExternalLogger;
     private boolean mLogcatLogEnabled = true;
 
@@ -68,7 +69,11 @@ public final class Logger {
      */
     public static Logger getInstance() {
         if (sInstance == null) {
-            sInstance = new Logger();
+            synchronized (Logger.class) {
+                if (sInstance == null) {
+                    sInstance = new Logger();
+                }
+            }
         }
 
         return sInstance;
@@ -186,14 +191,24 @@ public final class Logger {
     }
 
     /**
-     * Wrap the log message, log message will be in the format of:
-     * UTC TimeString-CorrelationId-logMessage ver:
+     * Wrap the log message.
+     * If correlation id exists, log message will be in the format of :
+     * MSAL <msal_version> <platform> <platform_version> [<timestamp> - <correlation_id>] <log_message>
+     * If correlation id doesn't exist, log message will be in the format of:
+     * MSAL <msal_version> <platform> <platform_version> [<timestamp>] <log_message>
      */
     private String formatMessage(final UUID correlationId, final String message) {
         final String logMessage = MSALUtils.isEmpty(message) ? "N/A" : message;
 
-        return getUTCDateTimeAsString() + "-" + correlationId.toString() + "-" + logMessage
-                    + " ver: " + PublicClientApplication.getSdkVersion();
+        String formattedMessage = "MSAL " + PublicClientApplication.getSdkVersion() + " Android "
+                + Build.VERSION.SDK_INT + " [" + getUTCDateTimeAsString();
+        if (correlationId != null) {
+            formattedMessage += " - " + correlationId.toString();
+        }
+
+        formattedMessage += "] " + logMessage;
+
+        return formattedMessage;
     }
 
     private static String getUTCDateTimeAsString() {
@@ -211,33 +226,16 @@ public final class Logger {
          */
         ERROR,
         /**
-         * Warning level logging
+         * Warning level logging.
          */
         WARNING,
         /**
-         * Info level logging
+         * Info level logging.
          */
         INFO,
         /**
-         * Verbose level logging
+         * Verbose level logging.
          */
         VERBOSE
-    }
-
-    /**
-     * Interface for apps to configure the external logging and implement the callback to designate the customize
-     * place for where to output the log messages.
-     */
-    public interface ILogger {
-        /**
-         * Interface method for apps to hand off each log message as it's generated.
-         * @param tag The TAG for the log message. The SDK send the component name(the class where the
-         *            log is generated).
-         * @param logLevel The {@link LogLevel} for the generated message.
-         * @param message The detailed message. Will not contain any PII info.
-         * @param additionalMessage The additional message. May contain PII info. For error level
-         *                          logging, the stack trace will be appended in the additinal message.
-         */
-        void log(String tag, LogLevel logLevel, String message, String additionalMessage);
     }
 }

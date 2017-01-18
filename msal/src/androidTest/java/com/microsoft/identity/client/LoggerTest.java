@@ -23,6 +23,7 @@
 
 package com.microsoft.identity.client;
 
+import android.os.Build;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
@@ -46,24 +47,24 @@ public final class LoggerTest {
     static final String TAG = "someTestTag";
     static final String MESSAGE = "test message";
     static final String ADDITIONAL_MESSAGE = "additional test message";
-    static final LogResponse sLogResponse = new LogResponse();
+    static final LogResponse LOG_RESPONSE = new LogResponse();
 
     @BeforeClass
     public static void setUp() {
-        Logger.getInstance().setExternalLogger(new Logger.ILogger() {
+        Logger.getInstance().setExternalLogger(new ILogger() {
             @Override
             public void log(String tag, Logger.LogLevel logLevel, String message, String additionalMessage) {
-                sLogResponse.setTag(tag);
-                sLogResponse.setLogLevel(logLevel);
-                sLogResponse.setMessage(message);
-                sLogResponse.setAdditionalMessage(additionalMessage);
+                LOG_RESPONSE.setTag(tag);
+                LOG_RESPONSE.setLogLevel(logLevel);
+                LOG_RESPONSE.setMessage(message);
+                LOG_RESPONSE.setAdditionalMessage(additionalMessage);
             }
         });
     }
 
     @After
     public void tearDown() {
-        sLogResponse.reset();
+        LOG_RESPONSE.reset();
     }
 
     /**
@@ -74,34 +75,39 @@ public final class LoggerTest {
         // set as verbose level logging
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
         Logger.verbose(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessage(sLogResponse);
+        verifyLogMessage(LOG_RESPONSE);
 
         // log an empty message
         Logger.verbose(TAG, CORRELATION_ID, "", "");
-        Assert.assertTrue(sLogResponse.getMessage().contains("-" + CORRELATION_ID.toString() + "-N/A ver: "
-                + PublicClientApplication.getSdkVersion()));
-        Assert.assertTrue(sLogResponse.getAdditionalMessage().equals(""));
-        sLogResponse.reset();
+        verifyLogMessageFormat(LOG_RESPONSE, "N/A", CORRELATION_ID);
+        Assert.assertTrue(LOG_RESPONSE.getAdditionalMessage().equals(""));
+        LOG_RESPONSE.reset();
 
         // log null additional message
         Logger.verbose(TAG, CORRELATION_ID, MESSAGE, null);
-        Assert.assertTrue(sLogResponse.getAdditionalMessage().equals(""));
-        sLogResponse.reset();
+        Assert.assertTrue(LOG_RESPONSE.getAdditionalMessage().equals(""));
+        LOG_RESPONSE.reset();
 
         // verify info logs are generated
-        verifyLogMessageEmpty(sLogResponse);
+        verifyLogMessageEmpty(LOG_RESPONSE);
         Logger.info(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessage(sLogResponse);
+        verifyLogMessage(LOG_RESPONSE);
 
         // verify warning logs are generated
-        verifyLogMessageEmpty(sLogResponse);
+        verifyLogMessageEmpty(LOG_RESPONSE);
         Logger.warning(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessage(sLogResponse);
+        verifyLogMessage(LOG_RESPONSE);
 
         // verify error level logs are generated
-        verifyLogMessageEmpty(sLogResponse);
+        verifyLogMessageEmpty(LOG_RESPONSE);
         Logger.error(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE, null);
-        verifyLogMessage(sLogResponse);
+        verifyLogMessage(LOG_RESPONSE);
+
+        // verify the log message is correctly formatted when no correlation id exists.
+        Logger.verbose(TAG, null, MESSAGE, "");
+        verifyLogMessageFormat(LOG_RESPONSE, MESSAGE, null);
+        Assert.assertTrue(LOG_RESPONSE.getAdditionalMessage().equals(""));
+        LOG_RESPONSE.reset();
     }
 
     /**
@@ -115,19 +121,19 @@ public final class LoggerTest {
 
         // perform a verbose level logging, make sure callback doesn't get the log message
         Logger.verbose(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessageEmpty(sLogResponse);
+        verifyLogMessageEmpty(LOG_RESPONSE);
 
         // Do a info level logging
         Logger.info(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessage(sLogResponse);
+        verifyLogMessage(LOG_RESPONSE);
 
         // do a warning level logging
         Logger.warning(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessage(sLogResponse);
+        verifyLogMessage(LOG_RESPONSE);
 
         // do a error level logging
         Logger.error(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE, null);
-        verifyLogMessage(sLogResponse);
+        verifyLogMessage(LOG_RESPONSE);
     }
 
     /**
@@ -138,24 +144,24 @@ public final class LoggerTest {
         Logger.getInstance().setLogLevel(Logger.LogLevel.WARNING);
 
         // Perform verbose level logging
-        verifyLogMessageEmpty(sLogResponse);
+        verifyLogMessageEmpty(LOG_RESPONSE);
         Logger.verbose(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessageEmpty(sLogResponse);
+        verifyLogMessageEmpty(LOG_RESPONSE);
 
         // Perform info level logging
-        verifyLogMessageEmpty(sLogResponse);
+        verifyLogMessageEmpty(LOG_RESPONSE);
         Logger.info(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessageEmpty(sLogResponse);
+        verifyLogMessageEmpty(LOG_RESPONSE);
 
         // perform warning level logging
-        verifyLogMessageEmpty(sLogResponse);
+        verifyLogMessageEmpty(LOG_RESPONSE);
         Logger.warning(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessage(sLogResponse);
+        verifyLogMessage(LOG_RESPONSE);
 
         // perform error level logging
-        verifyLogMessageEmpty(sLogResponse);
+        verifyLogMessageEmpty(LOG_RESPONSE);
         Logger.error(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE, null);
-        verifyLogMessage(sLogResponse);
+        verifyLogMessage(LOG_RESPONSE);
     }
 
     /**
@@ -167,7 +173,7 @@ public final class LoggerTest {
         Logger.getInstance().setLogLevel(Logger.LogLevel.ERROR);
 
         // perform error log
-        verifyLogMessageEmpty(sLogResponse);
+        verifyLogMessageEmpty(LOG_RESPONSE);
         Throwable throwable = null;
         try {
             final String testString = null;
@@ -178,32 +184,40 @@ public final class LoggerTest {
         }
 
         Logger.error(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE, throwable);
-        Assert.assertTrue(sLogResponse.getAdditionalMessage().equals(ADDITIONAL_MESSAGE + ' ' + Log.getStackTraceString(throwable)));
-        verifyLogMessage(sLogResponse);
+        Assert.assertTrue(LOG_RESPONSE.getAdditionalMessage().equals(ADDITIONAL_MESSAGE + ' ' + Log.getStackTraceString(throwable)));
+        verifyLogMessage(LOG_RESPONSE);
 
         // perform warning level logging
-        verifyLogMessageEmpty(sLogResponse);
+        verifyLogMessageEmpty(LOG_RESPONSE);
         Logger.warning(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessageEmpty(sLogResponse);
+        verifyLogMessageEmpty(LOG_RESPONSE);
 
         // perform info level logging
-        verifyLogMessageEmpty(sLogResponse);
+        verifyLogMessageEmpty(LOG_RESPONSE);
         Logger.info(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessageEmpty(sLogResponse);
+        verifyLogMessageEmpty(LOG_RESPONSE);
 
         // perform verbose level logging
-        verifyLogMessageEmpty(sLogResponse);
+        verifyLogMessageEmpty(LOG_RESPONSE);
         Logger.verbose(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessageEmpty(sLogResponse);
+        verifyLogMessageEmpty(LOG_RESPONSE);
     }
 
     private void verifyLogMessage(final LogResponse response) {
         Assert.assertTrue(response.getTag().equals(TAG));
-        Assert.assertTrue(response.getMessage().contains("-" + CORRELATION_ID.toString() + "-" + MESSAGE
-                + " ver: " + PublicClientApplication.getSdkVersion()));
+        verifyLogMessageFormat(response, MESSAGE, CORRELATION_ID);
         Assert.assertTrue(response.getAdditionalMessage().contains(ADDITIONAL_MESSAGE));
 
         response.reset();
+    }
+
+    private void verifyLogMessageFormat(final LogResponse response, final String message, final UUID correlationId) {
+        Assert.assertTrue(response.getMessage().contains("MSAL " + PublicClientApplication.getSdkVersion() + " Android " + Build.VERSION.SDK_INT + " ["));
+        if (correlationId != null) {
+            Assert.assertTrue(response.getMessage().contains(" - " + correlationId.toString() + "] " + message));
+        } else {
+            Assert.assertTrue(response.getMessage().contains("] " + message));
+        }
     }
 
     private void verifyLogMessageEmpty(final LogResponse response) {
@@ -229,7 +243,7 @@ public final class LoggerTest {
             mLevel = null;
         }
 
-        void setTag (final String tag) {
+        void setTag(final String tag) {
             mTag = tag;
         }
 
