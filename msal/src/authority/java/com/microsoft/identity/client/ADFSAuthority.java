@@ -31,6 +31,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -40,7 +41,7 @@ final class ADFSAuthority extends Authority {
 
     private static final String UPN_DOMAIN_SUFFIX_DELIM = "@";
 
-    private static final Set<String> ADFS_VALIDATED_AUTHORITIES =
+    private final Set<String> mADFSValidatedAuthorities =
             Collections.synchronizedSet(new HashSet<String>());
 
     private final String mUserPrincipalName;
@@ -56,6 +57,34 @@ final class ADFSAuthority extends Authority {
         super(authorityUrl, validateAuthority);
         mAuthorityType = AuthorityType.ADFS;
         mUserPrincipalName = userPrincipalName;
+    }
+
+    boolean existsInValidatedAuthorityCache(final String userPrincipalName) {
+        if (StringExtensions.isNullOrBlank(userPrincipalName)) {
+            throw new IllegalArgumentException("userPrincipalName cannot be null or blank");
+        }
+
+        final Map<String, Authority> authorityMap = Authority.VALIDATED_AUTHORITY;
+
+        return authorityMap.containsKey(mAuthorizationEndpoint)
+                && authorityMap.get(mAuthorizationEndpoint) instanceof ADFSAuthority
+                && ((ADFSAuthority) authorityMap.get(mAuthorizationEndpoint))
+                .getADFSValidatedAuthorities()
+                .contains(getDomainFromUPN(userPrincipalName));
+    }
+
+    void addToValidatedAuthoritiesCache(final String userPrincipalName) {
+        ADFSAuthority adfsInstance = this;
+
+        if (Authority.VALIDATED_AUTHORITY.containsKey(mAuthorizationEndpoint)) {
+            adfsInstance = (ADFSAuthority) VALIDATED_AUTHORITY.get(mAuthorizationEndpoint);
+        }
+
+        adfsInstance
+                .getADFSValidatedAuthorities()
+                .add(getDomainFromUPN(userPrincipalName));
+
+        Authority.VALIDATED_AUTHORITY.replace(mAuthorizationEndpoint, adfsInstance);
     }
 
     @Override
@@ -84,6 +113,10 @@ final class ADFSAuthority extends Authority {
         return getDefaultOpenIdConfigurationEndpoint();
     }
 
+    public Set<String> getADFSValidatedAuthorities() {
+        return mADFSValidatedAuthorities;
+    }
+
     private WebFingerMetadata loadWebFingerMetadata(final UUID correlationId, final DRSMetadata drsMetadata) throws AuthenticationException {
         final WebFingerMetadataRequestor webFingerMetadataRequestor = new WebFingerMetadataRequestor();
         webFingerMetadataRequestor.setCorrelationId(correlationId);
@@ -95,7 +128,7 @@ final class ADFSAuthority extends Authority {
     private DRSMetadata loadDRSMetadata(final UUID correlationId) throws AuthenticationException {
         final DRSMetadataRequestor drsRequestor = new DRSMetadataRequestor();
         drsRequestor.setCorrelationId(correlationId);
-        return drsRequestor.requestMetadata(getDomain());
+        return drsRequestor.requestMetadata(getDomainFromUPN(mUserPrincipalName));
     }
 
     /**
@@ -104,11 +137,11 @@ final class ADFSAuthority extends Authority {
      * @return the domain suffix of the UPN
      */
     @Nullable
-    private String getDomain() {
+    private static String getDomainFromUPN(final String upn) {
         String suffix = null;
-        if (mUserPrincipalName != null) {
-            final int dIndex = mUserPrincipalName.lastIndexOf(UPN_DOMAIN_SUFFIX_DELIM);
-            suffix = DELIM_NOT_FOUND == dIndex ? null : mUserPrincipalName.substring(dIndex + 1);
+        if (upn != null) {
+            final int dIndex = upn.lastIndexOf(UPN_DOMAIN_SUFFIX_DELIM);
+            suffix = DELIM_NOT_FOUND == dIndex ? null : upn.substring(dIndex + 1);
         }
         return suffix;
     }
