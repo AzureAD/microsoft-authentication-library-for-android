@@ -35,6 +35,7 @@ import java.net.HttpURLConnection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RunWith(AndroidJUnit4.class)
 @SmallTest
@@ -105,15 +106,14 @@ public class DRSMetadataRequestorTest {
 
     @Test
     public void testParseMetadata() throws AuthenticationException {
+        final Map<String, List<String>> mockHeaders = new HashMap<>();
+        mockHeaders.put(HttpConstants.HeaderField.CONTENT_TYPE,
+                Collections.singletonList(HttpConstants.MediaType.APPLICATION_JSON));
+
         HttpResponse mockResponse = new HttpResponse(
                 HttpURLConnection.HTTP_OK,
                 RESPONSE,
-                new HashMap<String, List<String>>() {{
-                    put(
-                            HttpConstants.HeaderField.CONTENT_TYPE,
-                            Collections.singletonList(HttpConstants.MediaType.APPLICATION_JSON)
-                    );
-                }}
+                mockHeaders
         );
 
         DRSMetadata metadata = new DRSMetadataRequestor().parseMetadata(mockResponse);
