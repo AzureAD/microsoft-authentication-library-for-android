@@ -23,7 +23,7 @@
 
 package com.microsoft.identity.client;
 
-class StringExtensions {
+final class StringExtensions {
 
     private StringExtensions() {
         // Util class

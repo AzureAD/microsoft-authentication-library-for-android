@@ -15,7 +15,7 @@ abstract class AbstractMetadataRequestor<MetadataType, MetadataRequestOptions> {
     }
 
     /**
-     * Requests the specified {@link MetadataType}
+     * Requests the specified {@link MetadataType}.
      *
      * @param options parameters used for this request
      * @return the metadata
@@ -24,7 +24,7 @@ abstract class AbstractMetadataRequestor<MetadataType, MetadataRequestOptions> {
     abstract MetadataType requestMetadata(MetadataRequestOptions options) throws Exception;
 
     /**
-     * Deserializes {@link HttpResponse} objects into the specified {@link MetadataType}
+     * Deserializes {@link HttpResponse} objects into the specified {@link MetadataType}.
      *
      * @param response the response to deserialize
      * @return the metadata

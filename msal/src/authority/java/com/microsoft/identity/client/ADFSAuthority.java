@@ -132,7 +132,7 @@ final class ADFSAuthority extends Authority {
     }
 
     /**
-     * From the supplied UPN, get the domain
+     * From the supplied UPN, get the domain.
      *
      * @return the domain suffix of the UPN
      */
