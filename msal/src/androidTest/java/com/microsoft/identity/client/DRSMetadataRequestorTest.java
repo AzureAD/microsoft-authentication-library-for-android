@@ -94,7 +94,9 @@ public class DRSMetadataRequestorTest {
     @Test(expected = AuthenticationException.class)
     public void testRequestMetadataThrows() throws IOException, AuthenticationException {
         final HttpURLConnection mockedFailedConnection =
-                AndroidTestMockUtil.getMockedConnectionWithFailureResponse(400, "Bad Request");
+                AndroidTestMockUtil.getMockedConnectionWithFailureResponse(
+                        HttpURLConnection.HTTP_BAD_REQUEST, "Bad Request"
+                );
         HttpUrlConnectionFactory.addMockedConnection(mockedFailedConnection);
         DRSMetadataRequestor requestor = new DRSMetadataRequestor();
         // throws Exception (expected)
@@ -104,7 +106,7 @@ public class DRSMetadataRequestorTest {
     @Test
     public void testParseMetadata() throws AuthenticationException {
         HttpResponse mockResponse = new HttpResponse(
-                200,
+                HttpURLConnection.HTTP_OK,
                 RESPONSE,
                 new HashMap<String, List<String>>() {{
                     put(

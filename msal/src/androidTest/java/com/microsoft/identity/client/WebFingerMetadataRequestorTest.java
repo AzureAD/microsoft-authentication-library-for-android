@@ -26,9 +26,132 @@ package com.microsoft.identity.client;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.SmallTest;
 
+import org.junit.Assert;
+import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RunWith(AndroidJUnit4.class)
 @SmallTest
 public class WebFingerMetadataRequestorTest {
+
+    private static final String RESPONSE = "{\n"
+            +
+            "  \"subject\": \"https://fs.lindft6.com\",\n"
+            +
+            "  \"links\": [\n"
+            +
+            "    {\n"
+            +
+            "      \"rel\": \"http://schemas.microsoft.com/rel/trusted-realm\",\n"
+            +
+            "      \"href\": \"https://fs.lindft6.com\"\n"
+            +
+            "    }\n"
+            +
+            "  ]\n"
+            +
+            "}";
+
+    private static final String DOMAIN = "https://fs.lindft6.com";
+
+    private static final DRSMetadata DRS_METADATA = new DRSMetadata();
+
+    static {
+        IdentityProviderService identityProviderService = new IdentityProviderService();
+        identityProviderService.setPassiveAuthEndpoint(DOMAIN + "/adfs/ls");
+        DRS_METADATA.setIdentityProviderService(identityProviderService);
+    }
+
+    @Test
+    public void testRequestMetadata() throws IOException, AuthenticationException {
+        final HttpURLConnection mockedSuccessfulConnection = AndroidTestMockUtil
+                .getMockedConnectionWithSuccessResponse(RESPONSE);
+        HttpUrlConnectionFactory.addMockedConnection(mockedSuccessfulConnection);
+
+        WebFingerMetadataRequestor requestor = new WebFingerMetadataRequestor();
+
+        WebFingerMetadataRequestParameters parameters = new WebFingerMetadataRequestParameters(
+                new URL(DOMAIN),
+                DRS_METADATA
+        );
+
+        WebFingerMetadata metadata = requestor.requestMetadata(parameters);
+
+        Assert.assertEquals("https://fs.lindft6.com", metadata.getSubject());
+        Assert.assertNotNull(metadata.getLinks());
+        Assert.assertEquals(1, metadata.getLinks().size());
+        Assert.assertEquals(
+                "http://schemas.microsoft.com/rel/trusted-realm",
+                metadata.getLinks().get(0).getRel()
+        );
+        Assert.assertEquals(
+                "https://fs.lindft6.com",
+                metadata.getLinks().get(0).getHref()
+        );
+    }
+
+    @Test
+    public void testRequestMetadataThrows() throws IOException, AuthenticationException {
+        final HttpURLConnection mockedFailedConnection = AndroidTestMockUtil
+                .getMockedConnectionWithFailureResponse(HttpURLConnection.HTTP_BAD_REQUEST, RESPONSE);
+        HttpUrlConnectionFactory.addMockedConnection(mockedFailedConnection);
+
+        WebFingerMetadataRequestor requestor = new WebFingerMetadataRequestor();
+
+        WebFingerMetadataRequestParameters parameters = new WebFingerMetadataRequestParameters(
+                new URL(DOMAIN),
+                DRS_METADATA
+        );
+
+        try {
+            WebFingerMetadata metadata = requestor.requestMetadata(parameters);
+        } catch (AuthenticationException e) {
+            // should throw
+            return;
+        }
+    }
+
+    @Test
+    public void testParseMetadata() throws AuthenticationException {
+        final Map<String, List<String>> mockHeaders = new HashMap<>();
+        mockHeaders.put(HttpConstants.HeaderField.CONTENT_TYPE,
+                Collections.singletonList(HttpConstants.MediaType.APPLICATION_JSON));
+
+        HttpResponse response = new HttpResponse(
+                HttpURLConnection.HTTP_OK,
+                RESPONSE,
+                mockHeaders
+        );
+
+        WebFingerMetadata metadata = new WebFingerMetadataRequestor().parseMetadata(response);
+
+        Assert.assertEquals("https://fs.lindft6.com", metadata.getSubject());
+        Assert.assertNotNull(metadata.getLinks());
+        Assert.assertEquals(1, metadata.getLinks().size());
+        Assert.assertEquals(
+                "http://schemas.microsoft.com/rel/trusted-realm",
+                metadata.getLinks().get(0).getRel()
+        );
+        Assert.assertEquals(
+                "https://fs.lindft6.com",
+                metadata.getLinks().get(0).getHref()
+        );
+    }
+
+    @Test
+    public void testBuildWebFingerUrl() throws MalformedURLException {
+        final URL expected = new URL("https://fs.lindft6.com/.well-known/webfinger?resource=https://fs.lindft6.com");
+        final URL wfURL = WebFingerMetadataRequestor.buildWebFingerUrl(new URL(DOMAIN), DRS_METADATA);
+        Assert.assertEquals(expected, wfURL);
+    }
+
 }
