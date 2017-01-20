@@ -13,11 +13,7 @@ import java.util.UUID;
  */
 public final class AuthenticationRequestParametersTest {
     static final Authority AUTHORITY = Authority.createAuthority(Util.VALID_AUTHORITY, false);
-<<<<<<< HEAD
-    static final TokenCache TOKEN_CACHE = new TokenCache();
-=======
     static final TokenCache TOKEN_CACHE = Mockito.mock(TokenCache.class);
->>>>>>> dev
     static final Set<String> SCOPE = new HashSet<>();
     static final String CLIENT_ID = "some-client-id";
     static final String REDIRECT_URI = "some://redirect.uri";
