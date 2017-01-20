@@ -105,6 +105,10 @@ final class OauthConstants {
         static final String STATE = "state";
     }
 
+    static final class ErrorCode {
+        static final String INVALID_GRANT = "invalid_grant";
+    }
+
     static final class InstanceDiscoveryClaim {
         static final String TENANT_DISCOVERY_ENDPOINT = "tenant_discovery_endpoint";
     }

@@ -49,7 +49,7 @@ public final class Oauth2ClientTest {
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.REFRESH_TOKEN, REFRESH_TOKEN);
 
         final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(
-                AndroidTestUtil.getSuccessResponse());
+                AndroidTestUtil.getSuccessResponseWithNoRefreshToken(AndroidTestUtil.TEST_IDTOKEN));
         final OutputStream outputStream = Mockito.mock(OutputStream.class);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(outputStream);
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);

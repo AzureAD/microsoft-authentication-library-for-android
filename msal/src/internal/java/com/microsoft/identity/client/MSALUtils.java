@@ -30,6 +30,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.net.Uri;
+import android.util.Base64;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,6 +38,7 @@ import org.json.JSONObject;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
@@ -336,5 +338,9 @@ final class MSALUtils {
         }
 
         return String.format("%s?%s", url, convertSetToString(queryParamsSet, "&"));
+    }
+
+    static String base64EncodeToString(final String message) {
+        return  Base64.encodeToString(message.getBytes(Charset.forName(ENCODING_UTF8)), Base64.NO_PADDING);
     }
 }

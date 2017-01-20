@@ -32,51 +32,20 @@ import java.util.Set;
  */
 public final class AuthenticationResult {
 
-    private String mToken;
-    private Date mExpiresOn;
-    private String mTenantId;
+    private final TokenCacheItem mTokenCacheItem;
     private User mUser;
-    private String mIdToken;
-    private String[] mScope;
 
-    /**
-     * Constructor to create {@link AuthenticationResult} with {@link TokenResponse}.
-     * @param tokenResponse
-     */
-    AuthenticationResult(final TokenResponse tokenResponse) throws AuthenticationException {
-        if (!MSALUtils.isEmpty(tokenResponse.getRawIdToken())) {
-            mIdToken = tokenResponse.getRawIdToken();
-            final IdToken idToken = new IdToken(mIdToken);
-            mTenantId = idToken.getTenantId();
-            mUser = new User(idToken);
-        }
-
-        // If both access token and id token is returned, mToken is set with access token.
-        // If access token is not returned but id token is returned, mToken is set with id token.
-        if (!MSALUtils.isEmpty(tokenResponse.getAccessToken())) {
-            mToken = tokenResponse.getAccessToken();
-            mExpiresOn = tokenResponse.getExpiresOn();
-        } else if (!MSALUtils.isEmpty(tokenResponse.getRawIdToken())) {
-            mToken = tokenResponse.getRawIdToken();
-            mExpiresOn = tokenResponse.getIdTokenExpiresOn();
-        }
-
-        final Set<String> returnedScopesInSet = MSALUtils.getScopesAsSet(tokenResponse.getScope());
-        mScope = returnedScopesInSet.toArray(new String[returnedScopesInSet.size()]);
+    AuthenticationResult(final TokenCacheItem tokenCacheItem) throws AuthenticationException {
+        mTokenCacheItem = tokenCacheItem;
+        mUser = new User(new IdToken(tokenCacheItem.getRawIdToken()));
     }
-
-    /**
-     * Constructor to create {@link AuthenticationResult} with {@link TokenCacheItem}.
-     * @param tokenCacheItem
-     */
-    AuthenticationResult(final TokenCacheItem tokenCacheItem) { } // NOPMD
 
     /**
      * @return The token, could be access token or id token. If client id is the single scope that
      * is used for token acquisition, id token will be the only one returned.
      */
     public String getToken() {
-        return mToken;
+        return mTokenCacheItem.getToken();
     }
 
     /**
@@ -85,7 +54,7 @@ public final class AuthenticationResult {
      * service.
      */
     public Date getExpiresOn() {
-        return mExpiresOn;
+        return mTokenCacheItem.getExpiresOn();
     }
 
     /**
@@ -93,7 +62,7 @@ public final class AuthenticationResult {
      * returned by the service.
      */
     public String getTenantId() {
-        return mTenantId;
+        return mTokenCacheItem.getTenantId();
     }
 
     /**
@@ -107,15 +76,15 @@ public final class AuthenticationResult {
     /**
      * @return The raw Id token returned from service. Could be null if it's not returned.
      */
-    // TODO: remove should we return? if Id token is signed, we shouldn't return it.
     public String getIdToken() {
-        return mIdToken;
+        return mTokenCacheItem.getRawIdToken();
     }
 
     /**
      * @return The scope values returned from the service.
      */
     public String[] getScope() {
-        return mScope;
+        final Set<String> scopes = mTokenCacheItem.getScope();
+        return scopes.toArray(new String[scopes.size()]);
     }
 }

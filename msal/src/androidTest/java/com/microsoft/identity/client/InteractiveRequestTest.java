@@ -25,7 +25,12 @@ package com.microsoft.identity.client;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
@@ -39,6 +44,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -54,6 +60,8 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.mockito.Mockito.mock;
+
 /**
  * Test for {@link InteractiveRequest}.
  */
@@ -68,6 +76,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
     private Context mAppContext;
     private String mRedirectUri;
+    private TokenCache mTokenCache;
 
     @Before
     public void setUp() throws Exception {
@@ -76,8 +85,11 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         System.setProperty("dexmaker.dexcache",
                 InstrumentationRegistry.getContext().getCacheDir().getPath());
 
-        mAppContext = InstrumentationRegistry.getContext().getApplicationContext();
+        mAppContext = new MockContext(InstrumentationRegistry.getContext().getApplicationContext());
+        resolveAuthenticationActivity(mAppContext, true);
+        mockNetworkConnected(mAppContext, true);
         mRedirectUri = "msauth-client-id://" + mAppContext.getPackageName();
+        mTokenCache = new TokenCache(mAppContext);
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
     }
 
@@ -85,6 +97,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     public void tearDown() throws Exception {
         super.tearDown();
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
+        AndroidTestUtil.removeAllTokens(mAppContext);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -137,13 +150,6 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     @Test
-    public void testInteractiveRequestNotLoadFromCache() {
-        final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
-                getAuthRequestParameters(getScopes(), mRedirectUri, LOGIN_HINT, UIOptions.ACT_AS_CURRENT_USER), null);
-        Assert.assertFalse(interactiveRequest.mLoadFromCache);
-    }
-
-    @Test
     public void testGetAuthorizationUriWithPolicyUIOptionIsActAsCurrentUser() throws UnsupportedEncodingException {
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
                 getAuthenticationParams(POLICY, UIOptions.ACT_AS_CURRENT_USER), null);
@@ -174,6 +180,107 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         verifyCommonQueryString(queryStrings);
     }
 
+    @Test
+    public void testNetworkNotConnectedForUI() throws IOException, InterruptedException {
+        final Activity testActivity = Mockito.mock(Activity.class);
+        Mockito.when(testActivity.getPackageName()).thenReturn(mAppContext.getPackageName());
+        Mockito.when(testActivity.getApplicationContext()).thenReturn(mAppContext);
+
+        // mock http call
+        mockSuccessHttpRequestCall();
+
+        // turn off network
+        mockNetworkConnected(mAppContext, false);
+
+        final BaseRequest request = createInteractiveRequest(testActivity);
+        final CountDownLatch resultLock = new CountDownLatch(1);
+        request.getToken(new AuthenticationCallback() {
+            @Override
+            public void onSuccess(AuthenticationResult authenticationResult) {
+                fail();
+            }
+
+            @Override
+            public void onError(AuthenticationException exception) {
+                assertTrue(MSALError.DEVICE_CONNECTION_NOT_AVAILABLE.equals(exception.getErrorCode()));
+                resultLock.countDown();
+            }
+
+            @Override
+            public void onCancel() {
+                fail();
+            }
+        });
+
+        // having the thread delayed for preTokenRequest to finish. Here we mock the
+        // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
+        resultLock.await(TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
+
+        final Intent resultIntent = new Intent();
+        resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
+                + "?code=1234&state=" + AndroidTestUtil.encodeProtocolState(AUTHORITY, getScopes()));
+        InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
+                Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
+
+        resultLock.await();
+
+        // verify that startActivityResult is called
+        Mockito.verify(testActivity, Mockito.never()).startActivityForResult(Mockito.argThat(new ArgumentMatcher<Intent>() {
+            @Override
+            public boolean matches(Object argument) {
+                return ((Intent) argument).getStringExtra(Constants.REQUEST_URL_KEY) != null;
+            }
+        }), Mockito.eq(InteractiveRequest.BROWSER_FLOW));
+    }
+
+    @Test
+    public void testNetworkTurnedOffForTokenEndpoint() throws IOException, InterruptedException {
+        final Activity testActivity = Mockito.mock(Activity.class);
+        Mockito.when(testActivity.getPackageName()).thenReturn(mAppContext.getPackageName());
+        Mockito.when(testActivity.getApplicationContext()).thenReturn(mAppContext);
+
+        // mock http call
+        mockSuccessHttpRequestCall();
+
+        final BaseRequest request = createInteractiveRequest(testActivity);
+        final CountDownLatch resultLock = new CountDownLatch(1);
+        request.getToken(new AuthenticationCallback() {
+            @Override
+            public void onSuccess(AuthenticationResult authenticationResult) {
+                fail();
+            }
+
+            @Override
+            public void onError(AuthenticationException exception) {
+                assertTrue(MSALError.DEVICE_CONNECTION_NOT_AVAILABLE.equals(exception.getErrorCode()));
+                resultLock.countDown();
+            }
+
+            @Override
+            public void onCancel() {
+                fail();
+            }
+        });
+
+        // having the thread delayed for preTokenRequest to finish. Here we mock the
+        // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
+        resultLock.await(TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
+
+        final Intent resultIntent = new Intent();
+        resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
+                + "?code=1234&state=" + AndroidTestUtil.encodeProtocolState(AUTHORITY, getScopes()));
+
+        mockNetworkConnected(mAppContext, false);
+
+        InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
+                Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
+
+        resultLock.await();
+
+        // verify that startActivityResult is called
+        verifyStartActivityForResultCalled(testActivity);
+    }
+
     /**
      * Verify when auth code is successfully returned, result is delivered correctly.
      */
@@ -192,6 +299,11 @@ public final class InteractiveRequestTest extends AndroidTestCase {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getToken()));
+                final User user = authenticationResult.getUser();
+                assertTrue(user.getClientId().equals(CLIENT_ID));
+                assertNotNull(user.getTokenCache());
+                assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 1);
+                assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 0);
                 resultLock.countDown();
             }
 
@@ -552,16 +664,16 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     private AuthenticationRequestParameters getAuthenticationParams(final String policy, final UIOptions uiOptions) {
-        return new AuthenticationRequestParameters(Authority.createAuthority(AUTHORITY, false), new TokenCache(), getScopes(),
-                CLIENT_ID, mRedirectUri, policy, true, LOGIN_HINT, "", uiOptions, CORRELATION_ID, new Settings());
+        return AuthenticationRequestParameters.create(Authority.createAuthority(AUTHORITY, false), new TokenCache(mAppContext), getScopes(),
+                CLIENT_ID, mRedirectUri, policy, true, LOGIN_HINT, "", uiOptions, CORRELATION_ID);
     }
 
     private AuthenticationRequestParameters getAuthRequestParameters(final Set<String> scopes,
                                                                      final String redirectUri,
                                                                      final String loginHint,
                                                                      final UIOptions uiOptions) {
-        return new AuthenticationRequestParameters(Authority.createAuthority(AUTHORITY, false), new TokenCache(), scopes,
-                CLIENT_ID, redirectUri, POLICY, true, loginHint, "", uiOptions, CORRELATION_ID, new Settings());
+        return AuthenticationRequestParameters.create(Authority.createAuthority(AUTHORITY, false), new TokenCache(mAppContext), scopes,
+                CLIENT_ID, redirectUri, POLICY, true, loginHint, "", uiOptions, CORRELATION_ID);
     }
 
     private Set<String> getScopes() {
@@ -608,7 +720,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
     static void mockSuccessHttpRequestCall() throws IOException {
         final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(
-                AndroidTestUtil.getSuccessResponse());
+                AndroidTestUtil.getSuccessResponseWithNoRefreshToken(AndroidTestUtil.TEST_IDTOKEN));
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
     }
@@ -625,6 +737,20 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                 return ((Intent) argument).getStringExtra(Constants.REQUEST_URL_KEY) != null;
             }
         }), Mockito.eq(InteractiveRequest.BROWSER_FLOW));
+    }
+
+    private void resolveAuthenticationActivity(final Context mockedContext, boolean resolvable) {
+        final PackageManager mockedPackageManager = mockedContext.getPackageManager();
+        final ResolveInfo resolveInfo = resolvable ? Mockito.mock(ResolveInfo.class) : null;
+
+        Mockito.when(mockedPackageManager.resolveActivity(Matchers.any(Intent.class), Matchers.anyInt())).thenReturn(resolveInfo);
+    }
+
+    static void mockNetworkConnected(final Context mockedContext, boolean isConnected) {
+        final ConnectivityManager connectivityManager = (ConnectivityManager) mockedContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        final NetworkInfo mockedNetworkInfo = mock(NetworkInfo.class);
+        Mockito.when(mockedNetworkInfo.isConnected()).thenReturn(isConnected);
+        Mockito.when(connectivityManager.getActiveNetworkInfo()).thenReturn(mockedNetworkInfo);
     }
 
     /**
@@ -662,6 +788,42 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
             // verify that startActivityResult is called
             verifyStartActivityForResultCalled(testActivity);
+        }
+    }
+
+    static class MockContext extends ContextWrapper {
+        private PackageManager mPackageManager;
+        private boolean mIsConnectionAvailable = true;
+        private ConnectivityManager mConnectivityManager;
+
+        MockContext(final Context context) {
+            super(context);
+        }
+
+        @Override
+        public PackageManager getPackageManager() {
+            if (mPackageManager == null) {
+                mPackageManager = Mockito.mock(PackageManager.class);
+            }
+
+            return mPackageManager;
+        }
+
+        @Override
+        public Object getSystemService(String name) {
+            if (Context.CONNECTIVITY_SERVICE.equals(name)) {
+                if (mConnectivityManager == null) {
+                    mConnectivityManager = Mockito.mock(ConnectivityManager.class);
+                }
+
+                return mConnectivityManager;
+            }
+
+            return super.getSystemService(name);
+        }
+
+        public void setConnectionAvailable(boolean isConnectionAvaliable) {
+            mIsConnectionAvailable = isConnectionAvaliable;
         }
     }
 }

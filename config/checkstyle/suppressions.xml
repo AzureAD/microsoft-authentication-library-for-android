@@ -6,4 +6,5 @@
 <suppressions>
     <suppress checks="Javadoc.*" files=".*Test.java"/>
     <suppress checks="VisibilityModifierCheck" files="BaseRequest.java" />
+    <suppress checks="VisibilityModifierCheck" files="BaseTokenCacheItem.java" />
 </suppressions>

@@ -2,6 +2,7 @@ package com.microsoft.identity.client;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,30 +13,29 @@ import java.util.UUID;
  */
 public final class AuthenticationRequestParametersTest {
     static final Authority AUTHORITY = Authority.createAuthority(Util.VALID_AUTHORITY, false);
-    static final TokenCache TOKEN_CACHE = new TokenCache();
+    static final TokenCache TOKEN_CACHE = Mockito.mock(TokenCache.class);
     static final Set<String> SCOPE = new HashSet<>();
     static final String CLIENT_ID = "some-client-id";
     static final String REDIRECT_URI = "some://redirect.uri";
-    static final Settings SETTINGS = new Settings();
     static final String LOGIN_HINT = "someLoginHint";
     static final UUID CORRELATION_ID = UUID.randomUUID();
 
     @Test(expected = IllegalArgumentException.class)
     public void testNullCorrelationId() {
-        new AuthenticationRequestParameters(AUTHORITY, TOKEN_CACHE, SCOPE, CLIENT_ID, REDIRECT_URI, "", true, LOGIN_HINT, "",
-                UIOptions.SELECT_ACCOUNT, null, SETTINGS);
+        AuthenticationRequestParameters.create(AUTHORITY, TOKEN_CACHE, SCOPE, CLIENT_ID, REDIRECT_URI, "", true, LOGIN_HINT, "",
+                UIOptions.SELECT_ACCOUNT, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testNullScope() {
-        new AuthenticationRequestParameters(AUTHORITY, TOKEN_CACHE, null, CLIENT_ID, REDIRECT_URI, "", true, LOGIN_HINT, "",
-                UIOptions.SELECT_ACCOUNT, CORRELATION_ID, SETTINGS);
+        AuthenticationRequestParameters.create(AUTHORITY, TOKEN_CACHE, null, CLIENT_ID, REDIRECT_URI, "", true, LOGIN_HINT, "",
+                UIOptions.SELECT_ACCOUNT, CORRELATION_ID);
     }
 
     @Test
     public void testAuthenticationRequestParameterHappyPath() {
-        final AuthenticationRequestParameters authRequestParameter = new AuthenticationRequestParameters(AUTHORITY, TOKEN_CACHE,
-                SCOPE, CLIENT_ID, REDIRECT_URI, "", true, LOGIN_HINT, "", UIOptions.SELECT_ACCOUNT, CORRELATION_ID, SETTINGS);
+        final AuthenticationRequestParameters authRequestParameter = AuthenticationRequestParameters.create(AUTHORITY, TOKEN_CACHE,
+                SCOPE, CLIENT_ID, REDIRECT_URI, "", true, LOGIN_HINT, "", UIOptions.SELECT_ACCOUNT, CORRELATION_ID);
         Assert.assertTrue(authRequestParameter.getAuthority().getAuthority().toString().equals(Util.VALID_AUTHORITY));
         Assert.assertTrue(authRequestParameter.getScope().isEmpty());
         Assert.assertTrue(authRequestParameter.getClientId().equals(CLIENT_ID));

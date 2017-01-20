@@ -24,7 +24,19 @@
 package com.microsoft.identity.client;
 
 /**
- * Created by weij on 8/9/2016.
+ * MSAL internal class for representing an refresh token item.
  */
-final class TokenCacheItem {
+final class RefreshTokenCacheItem extends BaseTokenCacheItem {
+
+    private final String mRefreshToken;
+
+    RefreshTokenCacheItem(final String authority, final String clientId, final String policy, final TokenResponse response)
+            throws AuthenticationException {
+        super(authority, clientId, policy, response);
+        mRefreshToken = response.getRefreshToken();
+    }
+
+    String getRefreshToken() {
+        return mRefreshToken;
+    }
 }
