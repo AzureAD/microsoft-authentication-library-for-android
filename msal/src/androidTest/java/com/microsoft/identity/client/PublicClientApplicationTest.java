@@ -73,7 +73,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     /**
      * Verify correct exception is thrown if activity is not provided.
      */
-    @Test (expected = IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testActivityNull() {
         new PublicClientApplication(null);
     }
@@ -277,7 +277,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                 final String scopeForSilent = "scope3";
                 mockSuccessResponse(scopeForSilent);
 
-                application.acquireTokenSilentAsync(new String [] {scopeForSilent}, new AuthenticationCallback() {
+                application.acquireTokenSilentAsync(new String[]{scopeForSilent}, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
                         assertTrue(authenticationResult.getToken().equals(AndroidTestUtil.ACCESS_TOKEN));
@@ -475,7 +475,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                 final String silentRequestScope = "scope2";
                 mockSuccessResponse(silentRequestScope);
 
-                application.acquireTokenSilentAsync(new String [] {silentRequestScope}, mUser, null, "singin", true, new AuthenticationCallback() {
+                application.acquireTokenSilentAsync(new String[]{silentRequestScope}, mUser, null, "singin", true, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
                         assertTrue(authenticationResult.getToken().equals(AndroidTestUtil.ACCESS_TOKEN));
@@ -616,6 +616,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     private static class MockActivityContext extends ContextWrapper {
         private final PackageManager mPackageManager;
+
         MockActivityContext(final Context context) {
             super(context);
             mPackageManager = Mockito.mock(PackageManager.class);
@@ -634,13 +635,14 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         abstract void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
                                            final CountDownLatch releaseLock);
 
-        abstract String getFinalAuthUrl() throws UnsupportedEncodingException ;
+        abstract String getFinalAuthUrl() throws UnsupportedEncodingException;
 
         protected boolean isSetAlternateAuthority() {
             return false;
         }
 
-        protected void performAdditionalVerify(final Activity testActivity) { }
+        protected void performAdditionalVerify(final Activity testActivity) {
+        }
 
         protected void makeSilentRequest(final PublicClientApplication publicClientApplication, final CountDownLatch silentLock)
                 throws IOException, InterruptedException {
