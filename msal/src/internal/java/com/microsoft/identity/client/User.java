@@ -48,7 +48,7 @@ public class User {
 
         mDisplayableId = idToken.getPreferredName();
         // TODO: home object id is returned in client info.
-        mHomeObjectId = idToken.getHomeObjectId();
+        mHomeObjectId = MSALUtils.isEmpty(idToken.getHomeObjectId()) ? mUniqueId : idToken.getHomeObjectId();
         mName = idToken.getName();
         mIdentityProvider = idToken.getIssuer();
     }
@@ -84,12 +84,12 @@ public class User {
     /**
      * Sign out the user from the application. TODO: from all application or the single one?
      */
-    // TODO: what does the signout mean? where to put it? PublicClientApplication or User?
+    // TODO: For preview, signout will only be support regarding to delete token for the user in the cache.
     public void signOut() {
         // TODO: provide the signout function. Will clear the token cache for the particular user.
     }
 
-    // interanal methods provided
+    // internal methods provided
     /**
      * @return The client id of the application that the user is authenticated to.
      */

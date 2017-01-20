@@ -27,7 +27,7 @@ import android.util.Base64;
 
 import org.json.JSONException;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.Map;
 
 /**
@@ -105,10 +105,8 @@ final class IdToken {
         final byte[] data = Base64.decode(idTokenBody, Base64.URL_SAFE);
 
         try {
-            final String decodedBody = new String(data, MSALUtils.ENCODING_UTF8);
+            final String decodedBody = new String(data, Charset.forName(MSALUtils.ENCODING_UTF8));
             return MSALUtils.extractJsonObjectIntoMap(decodedBody);
-        } catch (final UnsupportedEncodingException e) {
-            throw new AuthenticationException(MSALError.UNSUPPORTED_ENCODING, e.getMessage(), e);
         } catch (final JSONException e) {
             throw new AuthenticationException(MSALError.JSON_PARSE_FAILURE, e.getMessage(), e);
         }

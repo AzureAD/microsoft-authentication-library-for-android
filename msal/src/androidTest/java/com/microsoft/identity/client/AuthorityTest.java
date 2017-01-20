@@ -61,14 +61,17 @@ public final class AuthorityTest {
         Authority.createAuthority("https://test.com", false);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testAuthorityContainFragment() {
-        Authority.createAuthority("https://test.com/abc#token=123", false);
+        final Authority authority = Authority.createAuthority("https://test.com/abc#token=123", false);
+        authority.equals("https://test.com/abc");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testAuthorityContainQP() {
-        Authority.createAuthority("https://login.windows.net/common?resource=2343&client_id=234", false);
+        final Authority authority = Authority.createAuthority(
+                "https://login.windows.net/common?resource=2343&client_id=234", false);
+        authority.equals("https://login.windows.net/common");
     }
 
     @Test
@@ -76,13 +79,13 @@ public final class AuthorityTest {
         final String authorityWithTrailingSlash = TEST_AUTHORITY + "/";
         final Authority authority = Authority.createAuthority(authorityWithTrailingSlash, false);
 
-        Assert.assertFalse(authority.getAuthorityUrl().toString().endsWith("/"));
+        Assert.assertFalse(authority.getAuthority().toString().endsWith("/"));
 
         // mock tenant discovery response
         AndroidTestMockUtil.mockSuccessTenantDiscovery(AUTHORIZE_ENDPOINT, TOKEN_ENDPOINT);
 
         try {
-            authority.validateAuthorityAndPerformTenantDiscovery(UUID.randomUUID());
+            authority.resolveEndpoints(UUID.randomUUID());
         } catch (AuthenticationException e) {
             Assert.fail();
         }
@@ -98,7 +101,7 @@ public final class AuthorityTest {
         // mock tenant discovery response
         AndroidTestMockUtil.mockSuccessTenantDiscovery(AUTHORIZE_ENDPOINT, TOKEN_ENDPOINT);
         try {
-            authority.validateAuthorityAndPerformTenantDiscovery(UUID.randomUUID());
+            authority.resolveEndpoints(UUID.randomUUID());
         } catch (AuthenticationException e) {
             Assert.fail();
         }
@@ -145,7 +148,7 @@ public final class AuthorityTest {
         AndroidTestMockUtil.mockSuccessTenantDiscovery(AUTHORIZE_ENDPOINT, TOKEN_ENDPOINT);
 
         try {
-            authority.validateAuthorityAndPerformTenantDiscovery(UUID.randomUUID());
+            authority.resolveEndpoints(UUID.randomUUID());
         } catch (AuthenticationException e) {
             Assert.fail();
         }
@@ -157,7 +160,7 @@ public final class AuthorityTest {
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
 
         try {
-            authority.validateAuthorityAndPerformTenantDiscovery(UUID.randomUUID());
+            authority.resolveEndpoints(UUID.randomUUID());
         } catch (AuthenticationException e) {
             Assert.fail();
         }
@@ -168,7 +171,7 @@ public final class AuthorityTest {
         // create new authority with the same authority url again
         final Authority authority2 = Authority.createAuthority(TEST_AUTHORITY, true);
         try {
-            authority2.validateAuthorityAndPerformTenantDiscovery(UUID.randomUUID());
+            authority2.resolveEndpoints(UUID.randomUUID());
         } catch (AuthenticationException e) {
             Assert.fail();
         }
@@ -188,7 +191,7 @@ public final class AuthorityTest {
         AndroidTestMockUtil.mockFailedGetRequest(HttpURLConnection.HTTP_BAD_REQUEST,
                 AndroidTestUtil.getErrorResponseMessage("invalid_request"));
         try {
-            authority.validateAuthorityAndPerformTenantDiscovery(UUID.randomUUID());
+            authority.resolveEndpoints(UUID.randomUUID());
             Assert.fail();
         } catch (final AuthenticationException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.AUTHORITY_VALIDATION_FAILED));
@@ -205,7 +208,7 @@ public final class AuthorityTest {
 
         AndroidTestMockUtil.mockFailedGetRequest(HttpURLConnection.HTTP_BAD_REQUEST, "some_failure_response");
         try {
-            authority.validateAuthorityAndPerformTenantDiscovery(UUID.randomUUID());
+            authority.resolveEndpoints(UUID.randomUUID());
             Assert.fail();
         } catch (final AuthenticationException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.JSON_PARSE_FAILURE));
@@ -223,7 +226,7 @@ public final class AuthorityTest {
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
         try {
-            authority.validateAuthorityAndPerformTenantDiscovery(UUID.randomUUID());
+            authority.resolveEndpoints(UUID.randomUUID());
             Assert.fail();
         } catch (final AuthenticationException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.SERVER_ERROR));
@@ -243,7 +246,7 @@ public final class AuthorityTest {
         // mock tenant discovery failed
         AndroidTestMockUtil.mockFailedGetRequest(HttpURLConnection.HTTP_BAD_REQUEST, AndroidTestUtil.getErrorResponseMessage("invalid_instance"));
         try {
-            authority.validateAuthorityAndPerformTenantDiscovery(UUID.randomUUID());
+            authority.resolveEndpoints(UUID.randomUUID());
             Assert.fail();
         } catch (final AuthenticationException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.TENANT_DISCOVERY_FAILED));
@@ -261,7 +264,7 @@ public final class AuthorityTest {
         // mock tenant discovery failed
         AndroidTestMockUtil.mockFailedGetRequest(HttpURLConnection.HTTP_BAD_REQUEST, "some error");
         try {
-            authority.validateAuthorityAndPerformTenantDiscovery(UUID.randomUUID());
+            authority.resolveEndpoints(UUID.randomUUID());
             Assert.fail();
         } catch (final AuthenticationException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.JSON_PARSE_FAILURE));
@@ -281,7 +284,7 @@ public final class AuthorityTest {
         HttpUrlConnectionFactory.addMockedConnection(mockedConnectionWithTimeout);
         HttpUrlConnectionFactory.addMockedConnection(mockedConnectionWithTimeout);
         try {
-            authority.validateAuthorityAndPerformTenantDiscovery(UUID.randomUUID());
+            authority.resolveEndpoints(UUID.randomUUID());
             Assert.fail();
         } catch (final AuthenticationException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.SERVER_ERROR));

@@ -36,7 +36,7 @@ android {
     sourceSets {
         main {
             manifest.srcFile 'src/main/AndroidManifest.xml'
-            java.srcDirs = ['src/main/java', 'src/http/java', 'src/internal/java', 'src/request/java', 'src/authority/java']
+            java.srcDirs = ['src/main/java', 'src/http/java', 'src/internal/java', 'src/request/java', 'src/cache/java', 'src/authority/java']
         }
     }
 }
@@ -64,6 +64,7 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:23.4.0'
     compile 'com.android.support:customtabs:23.3.0'
+    compile 'com.google.code.gson:gson:2.2.4'
 
     // test dependencies
     testCompile 'junit:junit:4.12'

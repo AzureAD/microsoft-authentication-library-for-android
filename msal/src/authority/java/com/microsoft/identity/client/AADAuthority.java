@@ -49,7 +49,8 @@ final class AADAuthority extends Authority {
             "login-us.microsoftonline.com" // Microsoft Azure US government
     };
 
-    private static final Set<String> TRUSTED_HOST_LIST = Collections.synchronizedSet(new HashSet<>(Arrays.asList(TRUSTED_HOSTS)));
+    private static final Set<String> TRUSTED_HOST_SET = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList(TRUSTED_HOSTS)));
 
     /**
      * Constructor for creating the {@link AADAuthority}.
@@ -61,7 +62,7 @@ final class AADAuthority extends Authority {
 
     @Override
     String performInstanceDiscovery(final UUID correlationId) throws AuthenticationException {
-        if (!mValidateAuthority || TRUSTED_HOST_LIST.contains(mAuthorityUrl.getAuthority())) {
+        if (!mValidateAuthority || TRUSTED_HOST_SET.contains(mAuthorityUrl.getAuthority())) {
             return getDefaultOpenIdConfigurationEndpoint();
         }
 
@@ -76,7 +77,7 @@ final class AADAuthority extends Authority {
             response = oauth2Client.discoveryAADInstance(new URL(AAD_INSTANCE_DISCOVERY_ENDPOINT));
         } catch (final MalformedURLException e) {
             // instance discovery endpoint is hard-coded, if it's ever going wrong, should be found during runtime
-            throw new IllegalArgumentException("Malformed URL for instance discovery endpoint.");
+            throw new AuthenticationException(MSALError.SERVER_ERROR, "Malformed URL for instance discovery endpoint.", e);
         } catch (final RetryableException retryableException) {
             throw new AuthenticationException(MSALError.SERVER_ERROR, retryableException.getMessage(),
                     retryableException.getCause());
@@ -85,9 +86,8 @@ final class AADAuthority extends Authority {
         }
 
         if (!MSALUtils.isEmpty(response.getError())) {
-            final String error = response.getError();
-            final String errorDescription = response.getErrorDescription();
-            throw new AuthenticationException(MSALError.AUTHORITY_VALIDATION_FAILED, "ErrorCode: " + error + ";ErrorDescription: " + errorDescription);
+            throw new AuthenticationException(MSALError.AUTHORITY_VALIDATION_FAILED, "ErrorCode: " + response.getError()
+                    + ";ErrorDescription: " + response.getErrorDescription());
         }
 
         return response.getTenantDiscoveryEndpoint();

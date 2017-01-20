@@ -36,13 +36,13 @@ import java.util.concurrent.ConcurrentMap;
 abstract class Authority {
     private static final String TAG = Authority.class.getSimpleName();
     private static final String HTTPS_PROTOCOL = "https";
+
     static final ConcurrentMap<String, Authority> VALIDATED_AUTHORITY = new ConcurrentHashMap<>();
 
     static final String DEFAULT_OPENID_CONFIGURATION_ENDPOINT = "/v2.0/.well-known/openid-configuration";
     // default_authorize_endpoint is used for instance discovery sent as query parameter for instance discovery.
     static final String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/v2.0/authorize";
 
-    private boolean mIsAuthorityValidated = false;
     final URL mAuthorityUrl;
     final boolean mValidateAuthority;
 
@@ -69,30 +69,27 @@ abstract class Authority {
     static Authority createAuthority(final String authorityUrl, boolean validateAuthority) {
         final URL authority;
         try {
-            authority = new URL(authorityUrl.endsWith("/") ? authorityUrl.substring(0, authorityUrl.length() - 1)
-                    : authorityUrl);
-
+            authority = new URL(authorityUrl);
         } catch (final MalformedURLException e) {
-            throw new IllegalArgumentException("malformed authority url.");
+            throw new IllegalArgumentException("malformed authority url.", e);
         }
 
         if (!HTTPS_PROTOCOL.equalsIgnoreCase(authority.getProtocol())) {
             throw new IllegalArgumentException("Invalid protocol for the authority url.");
         }
 
-        // Authority has to be in the format of https://Instance/tenant/somepath
-        if (!MSALUtils.isEmpty(authority.getQuery()) || !MSALUtils.isEmpty(authority.getRef())
-                || MSALUtils.isEmpty(authority.getPath())) {
+        if (MSALUtils.isEmpty(authority.getPath())) {
             throw new IllegalArgumentException("Invalid authority url");
         }
 
-        if (VALIDATED_AUTHORITY.containsKey(authority.toString())) {
-            return VALIDATED_AUTHORITY.get(authority.toString());
+        final URL updatedAuthority = updateAuthority(authority);
+        if (VALIDATED_AUTHORITY.containsKey(updatedAuthority.toString())) {
+            return VALIDATED_AUTHORITY.get(updatedAuthority.toString());
         }
 
         // TODO: when figuring out how to do instance discovery for ADFS and b2c, should create corresponding concrete
-        // Authority class. 
-        return new AADAuthority(authority, validateAuthority);
+        // Authority class.
+        return new AADAuthority(updatedAuthority, validateAuthority);
     }
 
     /**
@@ -103,8 +100,8 @@ abstract class Authority {
      * @param correlationId Correlation id for the authority validation and tenant discovery.
      * @throws AuthenticationException If error happens during authority or tenant discovery.
      */
-    void validateAuthorityAndPerformTenantDiscovery(final UUID correlationId) throws AuthenticationException {
-        if (mIsAuthorityValidated) {
+    void resolveEndpoints(final UUID correlationId) throws AuthenticationException {
+        if (isAuthorityValidated()) {
             // TODO: log that authority has already been validated
             return;
         }
@@ -116,7 +113,7 @@ abstract class Authority {
             oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID, correlationId.toString());
             tenantDiscoveryResponse = oauth2Client.discoverEndpoints(new URL(openIdConfigurationEndpoint));
         } catch (final MalformedURLException e) {
-            throw new IllegalArgumentException("malformed openid configuration endpoint");
+            throw new AuthenticationException(MSALError.SERVER_ERROR, "malformed openid configuration endpoint", e);
         } catch (final RetryableException retryableException) {
             throw new AuthenticationException(MSALError.SERVER_ERROR, retryableException.getMessage(), retryableException.getCause());
         } catch (final IOException ioException) {
@@ -132,15 +129,15 @@ abstract class Authority {
         mAuthorizationEndpoint = tenantDiscoveryResponse.getAuthorizationEndpoint();
         mTokenEndpoint = tenantDiscoveryResponse.getTokenEndpoint();
 
-        mIsAuthorityValidated = true;
         VALIDATED_AUTHORITY.put(mAuthorityUrl.toString(), this);
     }
 
     /**
      * Constructor for the {@link Authority}.
      * @param authorityUrl The string representation for the authority url.
+     * @param validateAuthority True if authority validation is set to be true, false otherwise.
      */
-     protected Authority(final URL authorityUrl, final boolean validateAuthority) {
+    protected Authority(final URL authorityUrl, final boolean validateAuthority) {
         mAuthorityUrl = authorityUrl;
         mValidateAuthority = validateAuthority;
     }
@@ -148,7 +145,7 @@ abstract class Authority {
     /**
      * @return The String value for authority url.
      */
-    String getAuthorityUrl() {
+    String getAuthority() {
         return mAuthorityUrl.toString();
     }
 
@@ -175,6 +172,28 @@ abstract class Authority {
     }
 
     /**
+     * @return True if the authority is already validated.
+     */
+    boolean isAuthorityValidated() {
+        return VALIDATED_AUTHORITY.containsKey(mAuthorityUrl.toString());
+    }
+
+    private static URL updateAuthority(final URL authority) {
+        final String path = authority.getPath().replaceFirst("/", "");
+        int indexOfSecondPath = path.indexOf("/");
+        final String firstPath = path.substring(0, indexOfSecondPath == -1 ? path.length() : indexOfSecondPath);
+        final String updatedAuthorityUrl = String.format("https://%s/%s", authority.getHost(), firstPath);
+        final URL updatedAuthority;
+        try {
+            updatedAuthority = new URL(updatedAuthorityUrl);
+        } catch (final MalformedURLException e) {
+            throw new IllegalArgumentException("Malformed updated authority url.", e);
+        }
+
+        return updatedAuthority;
+    }
+
+    /**
      * The Authority type.
      */
     enum AuthorityType {
@@ -186,5 +205,7 @@ abstract class Authority {
          * Authority is an instance of ADFS authority
          */
         ADFS
+
+        //TODO: add B2C authority type
     }
 }

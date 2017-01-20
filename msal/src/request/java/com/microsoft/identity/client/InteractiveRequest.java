@@ -50,6 +50,12 @@ final class InteractiveRequest extends BaseRequest {
 
     private final Activity mActivity;
 
+    /**
+     * Constructor for {@link InteractiveRequest}.
+     * @param activity {@link Activity} used to launch the {@link AuthenticationActivity}.
+     * @param authRequestParameters {@link AuthenticationRequestParameters} that is holding all the parameters for oauth request.
+     * @param additionalScope An array of additional scopes.
+     */
     InteractiveRequest(final Activity activity, final AuthenticationRequestParameters authRequestParameters,
                        final String[] additionalScope) {
         super(activity.getApplicationContext(), authRequestParameters);
@@ -75,11 +81,12 @@ final class InteractiveRequest extends BaseRequest {
             throw new IllegalArgumentException(
                     "loginhint has to be provided if setting UI option as ACT_AS_CURRENT_USER");
         }
-
-        // For interactive request, don't look up from cache. Inter
-        mLoadFromCache = false;
     }
 
+    /**
+     * Pre token request. Launch either chrome custom tab or chrome to get the auth code back.
+     */
+    @Override
     synchronized void preTokenRequest() throws MSALUserCancelException, AuthenticationException {
         final String authorizeUri;
         try {
@@ -91,15 +98,14 @@ final class InteractiveRequest extends BaseRequest {
         final Intent intentToLaunch = new Intent(mContext, AuthenticationActivity.class);
         intentToLaunch.putExtra(Constants.REQUEST_URL_KEY, authorizeUri);
         intentToLaunch.putExtra(Constants.REQUEST_ID, mRequestId);
-        if (mAuthRequestParameters.getSettings().getDisableCustomTab()) {
-            intentToLaunch.putExtra(DISABLE_CHROMETAB, true); // TODO: remove. all the apps will use chrome custom tab by default if available.
-        }
 
         // TODO: put a request id.
         if (!resolveIntent(intentToLaunch)) {
             // TODO: what is the exception to throw
             throw new AuthenticationException();
         }
+
+        throwIfNetworkNotAvailable();
 
         mActivity.startActivityForResult(intentToLaunch, BROWSER_FLOW);
         // lock the thread until onActivityResult release the lock.
@@ -117,12 +123,36 @@ final class InteractiveRequest extends BaseRequest {
         processAuthorizationResult(sAuthorizationResult);
     }
 
+    @Override
     void setAdditionalOauthParameters(final Oauth2Client oauth2Client) {
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.GRANT_TYPE,
                 OauthConstants.Oauth2GrantType.AUTHORIZATION_CODE);
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.CODE, sAuthorizationResult.getAuthCode());
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.REDIRECT_URI,
                 mAuthRequestParameters.getRedirectUri());
+    }
+
+    @Override
+    AuthenticationResult postTokenRequest() throws AuthenticationException {
+        if (!isAccessTokenReturned()) {
+            throw new AuthenticationException(MSALError.OAUTH_ERROR, ""
+                    + "ErrorCode: " + mTokenResponse.getError() + "; ErrorDescription: " + mTokenResponse.getErrorDescription());
+        }
+
+        return super.postTokenRequest();
+    }
+
+    static synchronized void onActivityResult(int requestCode, int resultCode, final Intent data) {
+        try {
+            if (requestCode != BROWSER_FLOW) {
+                throw new IllegalStateException("Unknown request code");
+            }
+
+            // check it is the same request.
+            sAuthorizationResult = AuthorizationResult.create(resultCode, data);
+        } finally {
+            sResultLock.countDown();
+        }
     }
 
     String appendQueryStringToAuthorizeEndpoint() throws UnsupportedEncodingException {
@@ -198,25 +228,12 @@ final class InteractiveRequest extends BaseRequest {
         }
     }
 
-    public String encodeProtocolState() throws UnsupportedEncodingException {
+    private String encodeProtocolState() throws UnsupportedEncodingException {
         final String state = String.format("a=%s&r=%s", MSALUtils.urlEncode(
-                mAuthRequestParameters.getAuthority().getAuthorityUrl()),
+                mAuthRequestParameters.getAuthority().getAuthority()),
                 MSALUtils.urlEncode(MSALUtils.convertSetToString(
                         mAuthRequestParameters.getScope(), " ")));
         return Base64.encodeToString(state.getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
-    }
-
-    static synchronized void onActivityResult(int requestCode, int resultCode, final Intent data) {
-        try {
-            if (requestCode != BROWSER_FLOW) {
-                throw new IllegalStateException("Unknown request code");
-            }
-
-            // check it is the same request.
-            sAuthorizationResult = AuthorizationResult.create(resultCode, data);
-        } finally {
-            sResultLock.countDown();
-        }
     }
 
     private void processAuthorizationResult(final AuthorizationResult authorizationResult)
@@ -251,7 +268,7 @@ final class InteractiveRequest extends BaseRequest {
         final Map<String, String> stateMap = MSALUtils.decodeUrlToMap(decodeState, "&");
 
         if (stateMap.size() != 2
-                || !mAuthRequestParameters.getAuthority().getAuthorityUrl().equals(stateMap.get("a"))) {
+                || !mAuthRequestParameters.getAuthority().getAuthority().equals(stateMap.get("a"))) {
             throw new AuthenticationException(MSALError.AUTH_FAILED, Constants.MSALErrorMessage.STATE_NOT_THE_SAME);
         }
 

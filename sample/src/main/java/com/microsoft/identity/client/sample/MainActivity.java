@@ -36,6 +36,7 @@ import com.microsoft.identity.client.AuthenticationException;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.UIOptions;
+import com.microsoft.identity.client.User;
 
 public class MainActivity extends Activity {
 
@@ -43,6 +44,7 @@ public class MainActivity extends Activity {
     private static String[] SCOPES = new String [] {"User.Read"};
 
     private Handler mHandler;
+    private static User sUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +57,7 @@ public class MainActivity extends Activity {
         buttonForInteractiveRequest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                callAcquireToken(SCOPES, UIOptions.FORCE_LOGIN, null, null, null, null, false);
+                callAcquireToken(SCOPES, UIOptions.FORCE_LOGIN, null, null, null, null);
             }
         });
 
@@ -63,7 +65,15 @@ public class MainActivity extends Activity {
         buttonForLaunchingChrome.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                callAcquireToken(SCOPES, UIOptions.FORCE_LOGIN, null, null, null, null, true);
+                callAcquireToken(SCOPES, UIOptions.FORCE_LOGIN, null, null, null, null);
+            }
+        });
+
+        final Button buttonForSilentFlow = (Button) findViewById(R.id.AcquireTokenSilentForR1);
+        buttonForSilentFlow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                callAcquireTokenSilent(SCOPES, null, true);
             }
         });
     }
@@ -75,13 +85,13 @@ public class MainActivity extends Activity {
 
 
     private void callAcquireToken(final String[] scopes, final UIOptions uiOptions, final String loginHint,
-                                  final String policy, final String extraQueryParam, final String[] additionalScope, boolean disableCustomTab) {
-        mApplication.getMSALCustomizedSetting().setDisableCustomTab(disableCustomTab);
+                                  final String policy, final String extraQueryParam, final String[] additionalScope) {
         mApplication.acquireToken(scopes, loginHint, uiOptions, extraQueryParam, additionalScope,
                 null, policy, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult o) {
                         showMessage("Receive Success Response " + o.getToken());
+                        sUser = o.getUser();
                     }
 
                     @Override
@@ -94,6 +104,26 @@ public class MainActivity extends Activity {
                         showMessage("User cancelled the flow.");
                     }
                 });
+    }
+
+    private void callAcquireTokenSilent(final String[] scopes, final String policy, boolean forceRefresh) {
+        mApplication.acquireTokenSilentAsync(scopes, sUser, null, policy, forceRefresh, new AuthenticationCallback() {
+
+            @Override
+            public void onSuccess(AuthenticationResult authenticationResult) {
+                showMessage("Receive Success Response for silent request: " + authenticationResult.getToken());
+            }
+
+            @Override
+            public void onError(AuthenticationException exception) {
+                showMessage("Receive Failure Response for silent request: " + exception.getMessage());
+            }
+
+            @Override
+            public void onCancel() {
+                showMessage("User cancelled the flow.");
+            }
+        });
     }
 
     private void showMessage(final String msg) {

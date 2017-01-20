@@ -45,6 +45,7 @@ import java.util.UUID;
  */
 final class Oauth2Client {
     private static final String TAG = Oauth2Client.class.getSimpleName();
+    private static final String HEADER_ACCEPT = HttpConstants.HeaderField.ACCEPT;
     private static final String HEADER_ACCEPT_VALUE = HttpConstants.MediaType.APPLICATION_JSON;
 
     static final String POST_CONTENT_TYPE = "application/x-www-form-urlencoded";
@@ -102,11 +103,11 @@ final class Oauth2Client {
         try {
             endpointWithQP = new URL(MSALUtils.appendQueryParameterToUrl(endpoint, mQueryParameters));
         } catch (final MalformedURLException e) {
-            throw new IllegalArgumentException("Malformed endpoint url " + e.getMessage());
+            throw new AuthenticationException(MSALError.SERVER_ERROR, "Malformed endpoint url " + e.getMessage(), e);
         }
 
         // add common headers
-        addHeader(HttpConstants.HeaderField.ACCEPT, HEADER_ACCEPT_VALUE);
+        addHeader(HEADER_ACCEPT, HEADER_ACCEPT_VALUE);
         addHeader(OauthConstants.OauthHeader.CORRELATION_ID_IN_RESPONSE, "true");
 
         final HttpResponse response;
@@ -124,7 +125,7 @@ final class Oauth2Client {
         // verify the correlation id in the httpResponse headers before parsing the httpResponse body.
         verifyCorrelationIdInResponseHeaders(httpResponse);
 
-        final Map<String, String> responseItems = getResponseItems(httpResponse);
+        final Map<String, String> responseItems = parseResponseItems(httpResponse);
 
 
         if (httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK) {
@@ -133,7 +134,7 @@ final class Oauth2Client {
 
         final BaseOauth2Response errorResponse;
         try {
-            errorResponse = BaseOauth2Response.createErrorResponse(responseItems);
+            errorResponse= BaseOauth2Response.createErrorResponse(responseItems);
         } catch (final JSONException e) {
             throw new AuthenticationException(MSALError.JSON_PARSE_FAILURE, "Fail to parse Json", e);
         }
@@ -142,17 +143,17 @@ final class Oauth2Client {
             final Constructor<T> constructor = clazz.getDeclaredConstructor(BaseOauth2Response.class);
             return constructor.newInstance(errorResponse);
         } catch (final NoSuchMethodException e) {
-            throw new IllegalArgumentException("Unable to find generic type constructor.");
+            throw new IllegalArgumentException("Unable to find generic type constructor.", e);
         } catch (final IllegalAccessException e) {
-            throw new IllegalArgumentException("Unable to create new instance.");
+            throw new IllegalArgumentException("Unable to create new instance.", e);
         } catch (final InstantiationException e) {
-            throw new IllegalArgumentException("Unable to create new instance.");
+            throw new IllegalArgumentException("Unable to create new instance.", e);
         } catch (final InvocationTargetException e) {
-            throw new IllegalArgumentException("Unable to create new instance.");
+            throw new IllegalArgumentException("Unable to create new instance.", e);
         }
     }
 
-    private Map<String, String> getResponseItems(final HttpResponse response) throws AuthenticationException {
+    private Map<String, String> parseResponseItems(final HttpResponse response) throws AuthenticationException {
         if (MSALUtils.isEmpty(response.getBody())) {
             // TODO: Discuss in this case, should we create a concrete error with status code, indicating it's server error.
             throw new AuthenticationException(MSALError.SERVER_ERROR, "statusCode: " + response.getStatusCode());
@@ -186,7 +187,7 @@ final class Oauth2Client {
         final Map<String, List<String>> responseHeader = response.getHeaders();
         if (responseHeader == null
                 || !responseHeader.containsKey(OauthConstants.OauthHeader.CORRELATION_ID_IN_RESPONSE)) {
-            // TODO: Looger.w(TAG, "response doesn't contain headers or header doesn't include correlation id");
+            // TODO: Logger.w(TAG, "response doesn't contain headers or header doesn't include correlation id");
             return;
         }
 

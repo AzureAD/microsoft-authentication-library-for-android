@@ -35,23 +35,21 @@ final class AuthenticationRequestParameters {
     private final TokenCache mTokenCache;
     private final Set<String> mScope = new HashSet<>();
     private final String mClientId;
-    private final String mRedirectUri;
     private final String mPolicy;
     private final boolean mRestrictToSingleUser;
-    private final String mLoginHint;
-    private final String mExtraQueryParam;
-    private final UIOptions mUIOption;
     private final UUID mCorrelationId;
-    private final Settings mSettings;
+
+    private String mRedirectUri;
+    private String mLoginHint;
+    private String mExtraQueryParam;
+    private UIOptions mUIOption;
 
     /**
      * Creates new {@link AuthenticationRequestParameters}.
      */
-    AuthenticationRequestParameters(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
-                                    final String clientId, final String redirectUri, final String policy,
-                                    final boolean restrictToSingleUser, final String loginHint,
-                                    final String extraQueryParam, final UIOptions uiOptions, final UUID correlationId,
-                                    final Settings settings) {
+    private AuthenticationRequestParameters(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
+                                            final String clientId, final String policy, final boolean restrictToSingleUser,
+                                            final UUID correlationId) {
         // Every acquireToken API call should contain correlation id.
         if (correlationId == null) {
             throw new IllegalArgumentException("correlationId");
@@ -70,14 +68,30 @@ final class AuthenticationRequestParameters {
         mTokenCache = tokenCache;
         mScope.addAll(scope);
         mClientId = clientId;
-        mRedirectUri = redirectUri;
         mPolicy = policy;
         mRestrictToSingleUser = restrictToSingleUser;
-        mLoginHint = loginHint;
-        mExtraQueryParam = extraQueryParam;
-        mUIOption = uiOptions;
         mCorrelationId = correlationId;
-        mSettings = settings;
+    }
+
+    static AuthenticationRequestParameters create(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
+                                                  final String clientId, final String redirectUri, final String policy,
+                                                  final boolean restrictToSingleUser, final String loginHint,
+                                                  final String extraQueryParam, final UIOptions uiOptions, final UUID correlationId) {
+        final AuthenticationRequestParameters requestParameters = new AuthenticationRequestParameters(authority, tokenCache, scope,
+                clientId, policy, restrictToSingleUser, correlationId);
+        requestParameters.setRedirectUri(redirectUri);
+        requestParameters.setLoginHint(loginHint);
+        requestParameters.setExtraQueryParam(extraQueryParam);
+        requestParameters.setUIOption(uiOptions);
+
+        return requestParameters;
+    }
+
+    static AuthenticationRequestParameters create(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
+                                                  final String clientId, final String policy, final boolean restrictToSingleUser,
+                                                  final UUID correlationId) {
+        return new AuthenticationRequestParameters(authority, tokenCache, scope, clientId, policy, restrictToSingleUser,
+                correlationId);
     }
 
     Authority getAuthority() {
@@ -88,7 +102,7 @@ final class AuthenticationRequestParameters {
         return mTokenCache;
     }
 
-    Set getScope() {
+    Set<String> getScope() {
         return mScope;
     }
 
@@ -98,6 +112,10 @@ final class AuthenticationRequestParameters {
 
     String getRedirectUri() {
         return mRedirectUri;
+    }
+
+    private void setRedirectUri(final String redirectUri) {
+        mRedirectUri = redirectUri;
     }
 
     String getPolicy() {
@@ -112,19 +130,27 @@ final class AuthenticationRequestParameters {
         return mLoginHint;
     }
 
+    private void setLoginHint(final String loginHint) {
+        mLoginHint = loginHint;
+    }
+
     String getExtraQueryParam() {
         return mExtraQueryParam;
+    }
+
+    private void setExtraQueryParam(final String extraQueryParam) {
+        mExtraQueryParam = extraQueryParam;
     }
 
     UIOptions getUIOption() {
         return mUIOption;
     }
 
-    UUID getCorrelationId() {
-        return mCorrelationId;
+    private void setUIOption(final UIOptions uiOption) {
+        mUIOption = uiOption;
     }
 
-    Settings getSettings() {
-        return mSettings;
+    UUID getCorrelationId() {
+        return mCorrelationId;
     }
 }
