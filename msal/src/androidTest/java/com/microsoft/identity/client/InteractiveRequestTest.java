@@ -72,7 +72,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     static final String POLICY = "signin signup";
     static final UUID CORRELATION_ID = UUID.randomUUID();
     static final String LOGIN_HINT = "test@test.onmicrosoft.com";
-    static final int TREAD_DELAY_TIME = 10;
+    static final int TREAD_DELAY_TIME = 20;
 
     private Context mAppContext;
     private String mRedirectUri;
@@ -394,6 +394,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         Mockito.when(testActivity.getApplicationContext()).thenReturn(mAppContext);
 
         // mock http call
+        AndroidTestMockUtil.mockSuccessTenantDiscovery(getExpectedAuthorizeEndpoint(), getExpectedTokenEndpoint());
         mockSuccessHttpRequestCall();
 
         final BaseRequest request = createInteractiveRequest(testActivity);
@@ -426,6 +427,9 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         // verify that startActivityResult is called
         verifyStartActivityForResultCalled(testActivity);
+
+        // Verify that there is still one http url connection left in the queue
+        assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 1);
     }
 
     /**
@@ -660,7 +664,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     private AuthenticationRequestParameters getAuthenticationParams(final String policy, final UIOptions uiOptions) {
-        return AuthenticationRequestParameters.create(new Authority(AUTHORITY, false), new TokenCache(mAppContext), getScopes(),
+        return AuthenticationRequestParameters.create(Authority.createAuthority(AUTHORITY, false), new TokenCache(mAppContext), getScopes(),
                 CLIENT_ID, mRedirectUri, policy, true, LOGIN_HINT, "", uiOptions, CORRELATION_ID);
     }
 
@@ -668,7 +672,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                                                                      final String redirectUri,
                                                                      final String loginHint,
                                                                      final UIOptions uiOptions) {
-        return AuthenticationRequestParameters.create(new Authority(AUTHORITY, false), mTokenCache, scopes,
+        return AuthenticationRequestParameters.create(Authority.createAuthority(AUTHORITY, false), new TokenCache(mAppContext), scopes,
                 CLIENT_ID, redirectUri, POLICY, true, loginHint, "", uiOptions, CORRELATION_ID);
     }
 
@@ -704,6 +708,14 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                 OauthConstants.Oauth2Parameters.RESPONSE_TYPE)));
         assertTrue(CORRELATION_ID.toString().equals(queryStrings.get(OauthConstants.OauthHeader.CORRELATION_ID)));
         assertTrue(LOGIN_HINT.equals(queryStrings.get(OauthConstants.Oauth2Parameters.LOGIN_HINT)));
+    }
+
+    private String getExpectedAuthorizeEndpoint() {
+        return AUTHORITY + Authority.DEFAULT_AUTHORIZE_ENDPOINT;
+    }
+
+    private String getExpectedTokenEndpoint() {
+        return AUTHORITY + Authority.DEFAULT_AUTHORIZE_ENDPOINT;
     }
 
     static void mockSuccessHttpRequestCall() throws IOException {

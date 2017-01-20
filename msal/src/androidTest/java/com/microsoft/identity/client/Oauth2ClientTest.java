@@ -15,10 +15,8 @@ import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -38,21 +36,6 @@ public final class Oauth2ClientTest {
     @After
     public void tearDown() {
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
-    }
-
-    /**
-     * Verify the url is correctly constructed if adding query parameter.
-     */
-    @Test
-    public void testOauthClientWithQueryParam() throws UnsupportedEncodingException {
-        final Oauth2Client oauth2Client = getOauth2ClientWithCorrelationIdInTheHeader();
-        oauth2Client.addQueryParameter(OauthConstants.Oauth2Parameters.POLICY, "p1 p2");
-
-        final URL tokenEndpoint = oauth2Client.appendQueryParamToTokenEndpoint(getAuthority(
-                AndroidTestUtil.DEFAULT_AUTHORITY));
-        final String expectedUrl = AndroidTestUtil.DEFAULT_AUTHORITY + Authority.DEFAULT_TOKEN_ENDPOINT + "?p=p1+p2";
-
-        Assert.assertTrue(tokenEndpoint.toString().equals(expectedUrl));
     }
 
     /**
@@ -222,7 +205,7 @@ public final class Oauth2ClientTest {
     // TODO: add test for correlation id is not the same as what's sent in the header.
 
     private Authority getAuthority(final String authorityUrl) {
-        return new Authority(authorityUrl, false);
+        return Authority.createAuthority(authorityUrl, false);
     }
 
     private void addCommonBodyParameters(final Oauth2Client oauth2Client) {

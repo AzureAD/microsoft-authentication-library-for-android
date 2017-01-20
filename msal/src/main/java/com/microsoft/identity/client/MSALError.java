@@ -55,7 +55,13 @@ public enum MSALError {
     MULTIPLE_CACHE_ENTRY_FOUND("multiple cache entries found"),
 
     /** Indicates that device is not connected to the network. */
-    DEVICE_CONNECTION_NOT_AVAILABLE("Device network connection not available");
+    DEVICE_CONNECTION_NOT_AVAILABLE("Device network connection not available"), 
+
+    /** Indicates the failure for authority validation */
+    AUTHORITY_VALIDATION_FAILED("Authority validation failed"),
+
+    /** Indicates the failure for tenant discovery. */
+    TENANT_DISCOVERY_FAILED("Tenant discovery failed");
 
     private String mErrorDescription;
 

@@ -84,6 +84,13 @@ final class OauthConstants {
         static final String CANCEL = "cancel";
     }
 
+    static final class BaseOauth2ResponseClaim {
+        static final String ERROR = "error";
+        static final String ERROR_DESCRIPTION = "error_description";
+        static final String ERROR_CODES = "error_codes";
+        static final String CORRELATION_ID = "correlation_id";
+    }
+
     static final class TokenResponseClaim {
         static final String CODE = "code";
         static final String TOKEN_TYPE = "token_type";
@@ -95,14 +102,19 @@ final class OauthConstants {
         static final String EXPIRES_IN = "expires_in";
         static final String ID_TOKEN_EXPIRES_IN = "id_token_expires_in";
         static final String EXTENDED_EXPIRES_IN = "ext_expires_in";
-        static final String ERROR = "error";
-        static final String ERROR_DESCRIPTION = "error_description";
-        static final String ERROR_CODES = "error_codes";
-        static final String CORRELATION_ID = "correlation_id";
         static final String STATE = "state";
     }
 
     static final class ErrorCode {
         static final String INVALID_GRANT = "invalid_grant";
+    }
+
+    static final class InstanceDiscoveryClaim {
+        static final String TENANT_DISCOVERY_ENDPOINT = "tenant_discovery_endpoint";
+    }
+
+    static final class TenantDiscoveryClaim {
+        static final String AUTHORIZATION_ENDPOINT = "authorization_endpoint";
+        static final String TOKEN_ENDPOINT = "token_endpoint";
     }
 }

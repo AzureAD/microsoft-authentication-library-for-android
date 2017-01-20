@@ -195,4 +195,13 @@ public final class AndroidTestUtil {
         return appContext.getSharedPreferences(REFRESH_TOKEN_SHARED_PREFERENCE,
                 Activity.MODE_PRIVATE);
     }
+
+    static String getSuccessTenantDiscoveryResponse(final String authorizeEndpoint, final String tokenEndpoint) {
+        return "{\"authorization_endpoint\":\"" + authorizeEndpoint + "\",\"token_endpoint\":\"" + tokenEndpoint+ "\""
+                + ",\"issuer\":\"some issuer\"}";
+    }
+
+    static String getSuccessInstanceDiscoveryResponse(final String tenantDiscoveryEnpdoint) {
+        return "{\"tenant_discovery_endpoint\":\"" + tenantDiscoveryEnpdoint + "\"}";
+    }
 }

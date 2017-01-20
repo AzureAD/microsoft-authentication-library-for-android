@@ -93,6 +93,8 @@ abstract class BaseRequest {
             @Override
             public void run() {
                 try {
+                    // perform authority validation before doing any token request
+                    mAuthRequestParameters.getAuthority().resolveEndpoints(mAuthRequestParameters.getCorrelationId());
                     preTokenRequest();
                     performTokenRequest();
                     final AuthenticationResult result = postTokenRequest();
@@ -181,9 +183,9 @@ abstract class BaseRequest {
      */
     AuthenticationResult postTokenRequest() throws AuthenticationException {
         final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
-        final TokenCacheItem tokenCacheItem = tokenCache.saveAccessToken(mAuthRequestParameters.getAuthority().getAuthorityUrl(),
+        final TokenCacheItem tokenCacheItem = tokenCache.saveAccessToken(mAuthRequestParameters.getAuthority().getAuthority(),
                 mAuthRequestParameters.getClientId(), mAuthRequestParameters.getPolicy(), mTokenResponse);
-        tokenCache.saveRefreshToken(mAuthRequestParameters.getAuthority().getAuthorityUrl(), mAuthRequestParameters.getClientId(),
+        tokenCache.saveRefreshToken(mAuthRequestParameters.getAuthority().getAuthority(), mAuthRequestParameters.getClientId(),
                 mAuthRequestParameters.getPolicy(), mTokenResponse);
 
         return new AuthenticationResult(tokenCacheItem);

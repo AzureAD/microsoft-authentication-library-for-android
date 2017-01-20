@@ -323,18 +323,21 @@ final class MSALUtils {
         return stringBuilder.toString();
     }
 
-    static String appendQueryParameterToUrl(final String url,
-                                            final Map<String, String> requestParams)
+    /**
+     * Append parameter to the url. If the no query parameters, return the url originally passed in.
+     */
+    static String appendQueryParameterToUrl(final String url, final Map<String, String> requestParams)
             throws UnsupportedEncodingException {
+        if (requestParams.isEmpty()) {
+            return url;
+        }
+
         final Set<String> queryParamsSet = new HashSet<>();
         for (Map.Entry<String, String> entry : requestParams.entrySet()) {
             queryParamsSet.add(entry.getKey() + "=" + urlEncode(entry.getValue()));
         }
 
-        final String queryString = queryParamsSet.isEmpty() ? ""
-                : convertSetToString(queryParamsSet, "&");
-
-        return String.format("%s?%s", url, queryString);
+        return String.format("%s?%s", url, convertSetToString(queryParamsSet, "&"));
     }
 
     static String base64EncodeToString(final String message) {

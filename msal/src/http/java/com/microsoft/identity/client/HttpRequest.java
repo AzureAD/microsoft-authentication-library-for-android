@@ -43,13 +43,13 @@ final class HttpRequest {
     // static constant variables
     private static final String TAG = HttpRequest.class.getSimpleName();
 
-    private static final String REQUEST_METHOD_GET = "GET";
-    private static final String REQUEST_METHOD_POST = "POST";
     private static final String HOST = "Host";
     /** The waiting time before doing retry to prevent hitting the server immediately failure. */
     private static final int RETRY_TIME_WAITING_PERIOD_MSEC = 1000;
     private static final int STREAM_BUFFER_SIZE = 1024;
-    
+
+    static final String REQUEST_METHOD_GET = "GET";
+    static final String REQUEST_METHOD_POST = "POST";
     static final int CONNECT_TIME_OUT_MSEC = 30000;
     static final int READ_TIME_OUT_MSEC = 30000;
 

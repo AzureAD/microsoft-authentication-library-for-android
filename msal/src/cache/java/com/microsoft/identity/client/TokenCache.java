@@ -84,7 +84,7 @@ public class TokenCache {
      * multiple access token token items in the cache.
      */
     TokenCacheItem findAccessToken(final AuthenticationRequestParameters requestParam, final User user) {
-        final TokenCacheKey key = TokenCacheKey.createKeyForAT(requestParam.getAuthority().getAuthorityUrl(),
+        final TokenCacheKey key = TokenCacheKey.createKeyForAT(requestParam.getAuthority().getAuthority(),
                 requestParam.getClientId(), requestParam.getScope(), user, requestParam.getPolicy());
         final List<TokenCacheItem> tokenCacheItems = mTokenCacheAccessor.getAccessToken(key);
 

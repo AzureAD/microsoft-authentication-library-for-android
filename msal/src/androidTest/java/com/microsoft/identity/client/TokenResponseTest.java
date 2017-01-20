@@ -80,13 +80,13 @@ public final class TokenResponseTest {
     @Test
     public void testTokenResponseWithFailureResponse() throws JSONException {
         final Map<String, String> failureResponseItem = new HashMap<>();
-        failureResponseItem.put(OauthConstants.TokenResponseClaim.ERROR, ERROR);
-        failureResponseItem.put(OauthConstants.TokenResponseClaim.ERROR_DESCRIPTION, ERROR_DESCRIPTION);
-        failureResponseItem.put(OauthConstants.TokenResponseClaim.ERROR_CODES, ERROR_CODES);
+        failureResponseItem.put(OauthConstants.BaseOauth2ResponseClaim.ERROR, ERROR);
+        failureResponseItem.put(OauthConstants.BaseOauth2ResponseClaim.ERROR_DESCRIPTION, ERROR_DESCRIPTION);
+        failureResponseItem.put(OauthConstants.BaseOauth2ResponseClaim.ERROR_CODES, ERROR_CODES);
         failureResponseItem.put(EXTRA_DATA_1, EXTRA_DATA_1);
         failureResponseItem.put(EXTRA_DATA_1, EXTRA_DATA_2);
 
-        final TokenResponse failureResponse = TokenResponse.createErrorTokenResponse(failureResponseItem);
+        final TokenResponse failureResponse = new TokenResponse(BaseOauth2Response.createErrorResponse(failureResponseItem));
         Assert.assertTrue(ERROR.equals(failureResponse.getError()));
         Assert.assertTrue(ERROR_DESCRIPTION.equals(failureResponse.getErrorDescription()));
         Assert.assertTrue(failureResponse.getErrorCodes().length == 2);
