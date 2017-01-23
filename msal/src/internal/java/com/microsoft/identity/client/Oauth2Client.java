@@ -134,7 +134,7 @@ final class Oauth2Client {
 
         final BaseOauth2Response errorResponse;
         try {
-            errorResponse= BaseOauth2Response.createErrorResponse(responseItems);
+            errorResponse = BaseOauth2Response.createErrorResponse(responseItems);
         } catch (final JSONException e) {
             throw new AuthenticationException(MSALError.JSON_PARSE_FAILURE, "Fail to parse Json", e);
         }

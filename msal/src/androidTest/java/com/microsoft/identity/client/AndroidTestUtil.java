@@ -44,8 +44,8 @@ import java.util.Set;
  * Util class for instrumentation tests.
  */
 public final class AndroidTestUtil {
-    private static String ACCESS_TOKEN_SHARED_PREFERENCE = "com.microsoft.identity.client.token";
-    private static String REFRESH_TOKEN_SHARED_PREFERENCE = "com.microsoft.identity.client.refreshToken";
+    private static final String ACCESS_TOKEN_SHARED_PREFERENCE = "com.microsoft.identity.client.token";
+    private static final String REFRESH_TOKEN_SHARED_PREFERENCE = "com.microsoft.identity.client.refreshToken";
     static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
     static final int TOKEN_EXPIRATION_IN_MINUTES = 60;
 
@@ -197,7 +197,7 @@ public final class AndroidTestUtil {
     }
 
     static String getSuccessTenantDiscoveryResponse(final String authorizeEndpoint, final String tokenEndpoint) {
-        return "{\"authorization_endpoint\":\"" + authorizeEndpoint + "\",\"token_endpoint\":\"" + tokenEndpoint+ "\""
+        return "{\"authorization_endpoint\":\"" + authorizeEndpoint + "\",\"token_endpoint\":\"" + tokenEndpoint + "\""
                 + ",\"issuer\":\"some issuer\"}";
     }
 

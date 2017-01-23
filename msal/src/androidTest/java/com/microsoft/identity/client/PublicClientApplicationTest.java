@@ -634,7 +634,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         abstract void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
                                            final CountDownLatch releaseLock);
 
-        abstract String getFinalAuthUrl() throws UnsupportedEncodingException ;
+        abstract String getFinalAuthUrl() throws UnsupportedEncodingException;
 
         protected boolean isSetAlternateAuthority() {
             return false;

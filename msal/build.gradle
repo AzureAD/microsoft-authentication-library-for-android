@@ -2,15 +2,14 @@ apply plugin: 'com.android.library'
 apply plugin: 'jacoco'
 apply plugin: 'checkstyle'
 apply plugin: 'pmd'
-apply plugin: 'findbugs'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
 
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 23
+        minSdkVersion 21
+        targetSdkVersion 25
         versionCode 1
         versionName "1.0.0"
         project.archivesBaseName = "msal"
@@ -62,8 +61,8 @@ task jacocoTestReport(type: JacocoReport, dependsOn: 'testDebugUnitTest') {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:23.4.0'
-    compile 'com.android.support:customtabs:23.3.0'
+    compile 'com.android.support:appcompat-v7:25.1.0'
+    compile 'com.android.support:customtabs:25.1.0'
     compile 'com.google.code.gson:gson:2.2.4'
 
     // test dependencies
@@ -116,4 +115,8 @@ task pmd(type: Pmd) {
     }
 }
 
-assembleDebug.dependsOn 'checkstyle', 'pmd', 'lint', 'jacocoTestReport'
+tasks.whenTaskAdded { task ->
+    if (task.name == 'assembleDebug' || task.name == 'assembleRelease') {
+        task.dependsOn 'checkstyle', 'pmd', 'lint', 'jacocoTestReport'
+    }
+}
