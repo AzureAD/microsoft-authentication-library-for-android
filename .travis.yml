@@ -1,0 +1,30 @@
+# ./travis.yml for MSAL android
+
+language: android
+
+jdk:
+  - oraclejdk8
+
+android:
+  components:
+    # Travis has a bug that we need to workaround to use sdk 25
+    # https://github.com/travis-ci/travis-ci/issues/6059
+    - tools
+    - tools
+    - platform-tools
+    - build-tools-25.0.2
+    - android-25
+    - extra
+    - extra-android-m2repository
+    - extra-google-m2repository
+
+env:
+    matrix:
+      - ANDROID_SDKS=android-25 ANDROID_TARGET=android-25
+
+before_install:
+  - chmod +x gradlew
+
+script:
+  - cd $PWD
+  - ./gradlew clean build --info

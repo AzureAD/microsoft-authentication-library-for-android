@@ -24,7 +24,6 @@
 package com.microsoft.identity.client;
 
 import android.support.test.runner.AndroidJUnit4;
-import android.test.suitebuilder.annotation.SmallTest;
 
 import junit.framework.Assert;
 
@@ -42,7 +41,6 @@ import java.util.Map;
  * Tests for {@link TokenResponse}.
  */
 @RunWith(AndroidJUnit4.class)
-@SmallTest
 public final class TokenResponseTest {
     static final String ACCESS_TOKEN = "some access token";
     static final String REFRESH_TOKEN = "some refresh token";

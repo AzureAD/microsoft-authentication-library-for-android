@@ -201,7 +201,7 @@ abstract class Authority {
          */
         AAD,
         /**
-         * Authority is an instance of ADFS authority
+         * Authority is an instance of ADFS authority.
          */
         ADFS
 

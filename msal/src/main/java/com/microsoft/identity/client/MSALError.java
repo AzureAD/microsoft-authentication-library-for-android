@@ -57,7 +57,7 @@ public enum MSALError {
     /** Indicates that device is not connected to the network. */
     DEVICE_CONNECTION_NOT_AVAILABLE("Device network connection not available"), 
 
-    /** Indicates the failure for authority validation */
+    /** Indicates the failure for authority validation. */
     AUTHORITY_VALIDATION_FAILED("Authority validation failed"),
 
     /** Indicates the failure for tenant discovery. */
