@@ -194,7 +194,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         final BaseRequest request = createInteractiveRequest(testActivity);
         final CountDownLatch resultLock = new CountDownLatch(1);
-        request.getToken(new AuthenticationCallback() {
+        request.getToken(null, new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 fail();
@@ -244,7 +244,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         final BaseRequest request = createInteractiveRequest(testActivity);
         final CountDownLatch resultLock = new CountDownLatch(1);
-        request.getToken(new AuthenticationCallback() {
+        request.getToken(null, new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 fail();
@@ -295,7 +295,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         final BaseRequest request = createInteractiveRequest(testActivity);
         final CountDownLatch resultLock = new CountDownLatch(1);
-        request.getToken(new AuthenticationCallback() {
+        request.getToken(null, new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getToken()));
@@ -351,7 +351,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         final BaseRequest request = createInteractiveRequest(testActivity);
         final CountDownLatch resultLock = new CountDownLatch(1);
-        request.getToken(new AuthenticationCallback() {
+        request.getToken(null, new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 fail();
@@ -399,7 +399,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         final BaseRequest request = createInteractiveRequest(testActivity);
         final CountDownLatch resultLock = new CountDownLatch(1);
-        request.getToken(new AuthenticationCallback() {
+        request.getToken(null, new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 fail();
@@ -451,7 +451,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         final BaseRequest request = createInteractiveRequest(testActivity);
         final CountDownLatch resultLock = new CountDownLatch(1);
-        request.getToken(new AuthenticationCallback() {
+        request.getToken(null, new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 fail();
@@ -498,7 +498,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         final BaseRequest request = createInteractiveRequest(testActivity);
         final CountDownLatch resultLock = new CountDownLatch(1);
-        request.getToken(new AuthenticationCallback() {
+        request.getToken(null, new AuthenticationCallback() {
             @Override
             public void onSuccess(final AuthenticationResult authenticationResult) {
                 fail();
@@ -539,7 +539,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         new GetTokenAuthCodeUrlContainsErrorBaseTestCase() {
             @Override
             void makeAcquireTokenCall(final CountDownLatch countDownLatch, BaseRequest request) {
-                request.getToken(new AuthenticationCallback() {
+                request.getToken(null, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
                         fail("Unexpected Success");
@@ -571,7 +571,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         new GetTokenAuthCodeUrlContainsErrorBaseTestCase() {
             @Override
             void makeAcquireTokenCall(final CountDownLatch countDownLatch, BaseRequest request) {
-                request.getToken(new AuthenticationCallback() {
+                request.getToken(null, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
                         fail("unexpected success");
@@ -603,7 +603,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         new GetTokenAuthCodeUrlContainsErrorBaseTestCase() {
             @Override
             void makeAcquireTokenCall(final CountDownLatch countDownLatch, BaseRequest request) {
-                request.getToken(new AuthenticationCallback() {
+                request.getToken(null, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
                         fail("unexpected success");
@@ -636,7 +636,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         new GetTokenAuthCodeUrlContainsErrorBaseTestCase() {
             @Override
             void makeAcquireTokenCall(final CountDownLatch countDownLatch, BaseRequest request) {
-                request.getToken(new AuthenticationCallback() {
+                request.getToken(null, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
                         fail("unexpected success");
@@ -664,7 +664,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     private AuthenticationRequestParameters getAuthenticationParams(final String policy, final UIOptions uiOptions) {
-        return AuthenticationRequestParameters.create(Authority.createAuthority(AUTHORITY, false, null), new TokenCache(mAppContext), getScopes(),
+        return AuthenticationRequestParameters.create(Authority.createAuthority(AUTHORITY, false), new TokenCache(mAppContext), getScopes(),
                 CLIENT_ID, mRedirectUri, policy, true, LOGIN_HINT, "", uiOptions, CORRELATION_ID);
     }
 
@@ -672,7 +672,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                                                                      final String redirectUri,
                                                                      final String loginHint,
                                                                      final UIOptions uiOptions) {
-        return AuthenticationRequestParameters.create(Authority.createAuthority(AUTHORITY, false, null), new TokenCache(mAppContext), scopes,
+        return AuthenticationRequestParameters.create(Authority.createAuthority(AUTHORITY, false), new TokenCache(mAppContext), scopes,
                 CLIENT_ID, redirectUri, POLICY, true, loginHint, "", uiOptions, CORRELATION_ID);
     }
 

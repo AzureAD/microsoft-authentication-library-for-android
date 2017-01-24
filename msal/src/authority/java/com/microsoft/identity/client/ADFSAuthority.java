@@ -44,24 +44,20 @@ final class ADFSAuthority extends Authority {
     private final Set<String> mADFSValidatedAuthorities =
             Collections.synchronizedSet(new HashSet<String>());
 
-    private final String mUserPrincipalName;
-
     /**
      * Constructor for the {@link Authority}.
      *
      * @param authorityUrl      The string representation for the authority url.
      * @param validateAuthority Validate authority before sending token request
-     * @param userPrincipalName TODO document
      */
-    protected ADFSAuthority(final URL authorityUrl, final boolean validateAuthority, final String userPrincipalName) {
+    protected ADFSAuthority(final URL authorityUrl, final boolean validateAuthority) {
         super(authorityUrl, validateAuthority);
         mAuthorityType = AuthorityType.ADFS;
-        mUserPrincipalName = userPrincipalName;
     }
 
     @Override
-    boolean existsInValidatedAuthorityCache() {
-        if (StringExtensions.isNullOrBlank(mUserPrincipalName)) {
+    boolean existsInValidatedAuthorityCache(final String userPrincipalName) {
+        if (StringExtensions.isNullOrBlank(userPrincipalName)) {
             throw new IllegalArgumentException("userPrincipalName cannot be null or blank");
         }
 
@@ -71,11 +67,11 @@ final class ADFSAuthority extends Authority {
                 && authorityMap.get(mAuthorizationEndpoint) instanceof ADFSAuthority
                 && ((ADFSAuthority) authorityMap.get(mAuthorizationEndpoint))
                 .getADFSValidatedAuthorities()
-                .contains(getDomainFromUPN(mUserPrincipalName));
+                .contains(getDomainFromUPN(userPrincipalName));
     }
 
     @Override
-    void addToValidatedAuthorityCache() {
+    void addToValidatedAuthorityCache(final String userPrincipalName) {
         ADFSAuthority adfsInstance = this;
 
         if (Authority.VALIDATED_AUTHORITY.containsKey(mAuthorizationEndpoint)) {
@@ -84,15 +80,15 @@ final class ADFSAuthority extends Authority {
 
         adfsInstance
                 .getADFSValidatedAuthorities()
-                .add(getDomainFromUPN(mUserPrincipalName));
+                .add(getDomainFromUPN(userPrincipalName));
 
         Authority.VALIDATED_AUTHORITY.replace(mAuthorizationEndpoint, adfsInstance);
     }
 
     @Override
-    String performInstanceDiscovery(final UUID correlationId) throws AuthenticationException {
+    String performInstanceDiscovery(final UUID correlationId, final String userPrincipalName) throws AuthenticationException {
         if (mValidateAuthority) {
-            final DRSMetadata drsMetadata = loadDRSMetadata(correlationId);
+            final DRSMetadata drsMetadata = loadDRSMetadata(correlationId, userPrincipalName);
             final WebFingerMetadata webFingerMetadata = loadWebFingerMetadata(correlationId, drsMetadata);
 
             final URI authorityURI;
@@ -127,10 +123,10 @@ final class ADFSAuthority extends Authority {
         );
     }
 
-    private DRSMetadata loadDRSMetadata(final UUID correlationId) throws AuthenticationException {
+    private DRSMetadata loadDRSMetadata(final UUID correlationId, final String userPrincipalName) throws AuthenticationException {
         final DRSMetadataRequestor drsRequestor = new DRSMetadataRequestor();
         drsRequestor.setCorrelationId(correlationId);
-        return drsRequestor.requestMetadata(getDomainFromUPN(mUserPrincipalName));
+        return drsRequestor.requestMetadata(getDomainFromUPN(userPrincipalName));
     }
 
     /**

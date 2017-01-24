@@ -58,14 +58,14 @@ abstract class Authority {
      * @return The tenant discovery endpoint.
      * @throws AuthenticationException if error happens during the instance discovery.
      */
-    abstract String performInstanceDiscovery(final UUID correlationId) throws AuthenticationException;
+    abstract String performInstanceDiscovery(final UUID correlationId, final String userPrincipalName) throws AuthenticationException;
 
     /**
      * @return True if the authority is already validated.
      */
-    abstract boolean existsInValidatedAuthorityCache();
+    abstract boolean existsInValidatedAuthorityCache(final String userPrincipalName);
 
-    abstract void addToValidatedAuthorityCache();
+    abstract void addToValidatedAuthorityCache(final String userPrincipalName);
 
     /**
      * Create the detailed authority. If the authority url string is for AAD, will create the {@link AADAuthority}, otherwise
@@ -73,10 +73,9 @@ abstract class Authority {
      *
      * @param authorityUrl      The authority url used to create the {@link Authority}.
      * @param validateAuthority True if performing authority validation, false otherwise.
-     * @param userPrincipalName
      * @return The {@link Authority} instance.
      */
-    static Authority createAuthority(final String authorityUrl, final boolean validateAuthority, String userPrincipalName) {
+    static Authority createAuthority(final String authorityUrl, final boolean validateAuthority) {
         final URL authority;
         try {
             authority = new URL(authorityUrl);
@@ -98,7 +97,7 @@ abstract class Authority {
         // Authority class.
 
         if (MSALUtils.isADFSAuthority(updatedAuthority)) {
-            return new ADFSAuthority(updatedAuthority, validateAuthority, userPrincipalName);
+            return new ADFSAuthority(updatedAuthority, validateAuthority);
         }
 
         return new AADAuthority(updatedAuthority, validateAuthority);
@@ -111,10 +110,11 @@ abstract class Authority {
      * authority, we'll do tenant discovery.
      *
      * @param correlationId Correlation id for the authority validation and tenant discovery.
+     * @param userPrincipalName
      * @throws AuthenticationException If error happens during authority or tenant discovery.
      */
-    void resolveEndpoints(final UUID correlationId) throws AuthenticationException {
-        if (existsInValidatedAuthorityCache()) {
+    void resolveEndpoints(final UUID correlationId, final String userPrincipalName) throws AuthenticationException {
+        if (existsInValidatedAuthorityCache(userPrincipalName)) {
             // TODO: log that authority has already been validated
             Authority preValidatedAuthority = VALIDATED_AUTHORITY.get(mAuthorityUrl.toString());
             mAuthorizationEndpoint = preValidatedAuthority.mAuthorizationEndpoint;
@@ -123,7 +123,7 @@ abstract class Authority {
         }
 
         final TenantDiscoveryResponse tenantDiscoveryResponse;
-        final String openIdConfigurationEndpoint = performInstanceDiscovery(correlationId);
+        final String openIdConfigurationEndpoint = performInstanceDiscovery(correlationId, userPrincipalName);
         try {
             final Oauth2Client oauth2Client = new Oauth2Client();
             oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID, correlationId.toString());
@@ -145,7 +145,7 @@ abstract class Authority {
         mAuthorizationEndpoint = tenantDiscoveryResponse.getAuthorizationEndpoint();
         mTokenEndpoint = tenantDiscoveryResponse.getTokenEndpoint();
 
-        addToValidatedAuthorityCache();
+        addToValidatedAuthorityCache(userPrincipalName);
     }
 
     /**

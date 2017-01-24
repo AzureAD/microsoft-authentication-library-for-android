@@ -321,9 +321,9 @@ public final class PublicClientApplication {
         // read authority from manifest.
         final String authority = applicationInfo.metaData.getString(AUTHORITY_META_DATA);
         if (!MSALUtils.isEmpty(authority)) {
-            mAuthority = Authority.createAuthority(authority, mValidateAuthority, null);
+            mAuthority = Authority.createAuthority(authority, mValidateAuthority);
         } else {
-            mAuthority = Authority.createAuthority(DEFAULT_AUTHORITY, mValidateAuthority, null);
+            mAuthority = Authority.createAuthority(DEFAULT_AUTHORITY, mValidateAuthority);
         }
 
         // read client id from manifest
@@ -379,7 +379,7 @@ public final class PublicClientApplication {
                 extraQueryParams, policy, uiOptions);
 
         final BaseRequest request = new InteractiveRequest(mActivity, requestParameters, additionalScope);
-        request.getToken(callback);
+        request.getToken(null, callback);
     }
 
     private void acquireTokenSilent(final String[] scopes, final User user, final String authority,
@@ -390,7 +390,7 @@ public final class PublicClientApplication {
         }
 
         final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? mAuthority
-                : Authority.createAuthority(authority, mValidateAuthority, null);
+                : Authority.createAuthority(authority, mValidateAuthority);
         // set correlation if not developer didn't set it.
         final UUID correlationId = UUID.randomUUID();
         final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));
@@ -398,14 +398,14 @@ public final class PublicClientApplication {
                 scopesAsSet, mClientId, policy, mRestrictToSingleUser, correlationId);
 
         final BaseRequest request = new SilentRequest(mAppContext, requestParameters, forceRefresh, user);
-        request.getToken(callback);
+        request.getToken(null, callback);
     }
 
     private AuthenticationRequestParameters getRequestParameters(final String authority, final String[] scopes,
                                                                  final String loginHint, final String extraQueryParam,
                                                                  final String policy, final UIOptions uiOption) {
         final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? mAuthority
-                : Authority.createAuthority(authority, mValidateAuthority, null);
+                : Authority.createAuthority(authority, mValidateAuthority);
         // set correlation if not developer didn't set it.
         final UUID correlationId = UUID.randomUUID();
         final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));

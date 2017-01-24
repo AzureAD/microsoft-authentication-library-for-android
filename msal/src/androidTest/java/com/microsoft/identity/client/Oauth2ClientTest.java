@@ -205,7 +205,7 @@ public final class Oauth2ClientTest {
     // TODO: add test for correlation id is not the same as what's sent in the header.
 
     private Authority getAuthority(final String authorityUrl) {
-        return Authority.createAuthority(authorityUrl, false, null);
+        return Authority.createAuthority(authorityUrl, false);
     }
 
     private void addCommonBodyParameters(final Oauth2Client oauth2Client) {

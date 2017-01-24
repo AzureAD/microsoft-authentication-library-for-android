@@ -61,7 +61,7 @@ final class AADAuthority extends Authority {
     }
 
     @Override
-    String performInstanceDiscovery(final UUID correlationId) throws AuthenticationException {
+    String performInstanceDiscovery(final UUID correlationId, final String userPrincipalName) throws AuthenticationException {
         if (!mValidateAuthority || TRUSTED_HOST_SET.contains(mAuthorityUrl.getAuthority())) {
             return getDefaultOpenIdConfigurationEndpoint();
         }
@@ -94,12 +94,12 @@ final class AADAuthority extends Authority {
     }
 
     @Override
-    boolean existsInValidatedAuthorityCache() {
+    boolean existsInValidatedAuthorityCache(final String userPrincipalName) {
         return VALIDATED_AUTHORITY.containsKey(mAuthorityUrl.toString());
     }
 
     @Override
-    void addToValidatedAuthorityCache() {
+    void addToValidatedAuthorityCache(final String userPrincipalName) {
         VALIDATED_AUTHORITY.put(mAuthorityUrl.toString(), this);
     }
 }

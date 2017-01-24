@@ -85,16 +85,17 @@ abstract class BaseRequest {
      * If there is a RT returned, we should use it to token acquisition.
      * 2. performTokenRequest. Use either auth code or RT found in the preTokenRequest to get a new token.
      * 3. Post token request, store the returned token into cache.
+     * @param userPrincipalName
      * @param callback The {@link AuthenticationCallback} to deliver the result back.
      */
-    void getToken(final AuthenticationCallback callback) {
+    void getToken(final String userPrincipalName, final AuthenticationCallback callback) {
         mRequestId = callback.hashCode();
         THREAD_EXECUTOR.execute(new Runnable() {
             @Override
             public void run() {
                 try {
                     // perform authority validation before doing any token request
-                    mAuthRequestParameters.getAuthority().resolveEndpoints(mAuthRequestParameters.getCorrelationId());
+                    mAuthRequestParameters.getAuthority().resolveEndpoints(mAuthRequestParameters.getCorrelationId(), userPrincipalName);
                     preTokenRequest();
                     performTokenRequest();
                     final AuthenticationResult result = postTokenRequest();
