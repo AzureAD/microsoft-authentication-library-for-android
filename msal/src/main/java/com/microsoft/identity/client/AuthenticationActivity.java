@@ -24,10 +24,12 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.customtabs.CustomTabsIntent;
+import android.support.customtabs.CustomTabsClient;
+import android.support.customtabs.CustomTabsServiceConnection;
 
 /**
  * Custom tab requires the device to have a browser with custom tab support, chrome with version >= 45 comes with the
@@ -43,6 +45,9 @@ public final class AuthenticationActivity extends Activity {
     private String mRequestUrl;
     private int mRequestId;
     private boolean mRestarted;
+    private CustomTabsServiceConnection mCustomTabsServiceConnection;
+    private String chromePackageWithCustomTabSupport;
+    private boolean isCustomTabDisabled;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -72,11 +77,32 @@ public final class AuthenticationActivity extends Activity {
         if (MSALUtils.getChromePackage(this.getApplicationContext()) == null) {
             // TODO: log that chrome is not installed, cannot prompt the UI.
             sendError(Constants.MSALError.CHROME_NOT_INSTALLED, "Chrome is not installed on the device, cannot proceed with auth");
+            return;
+        }
+
+        chromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(
+                this.getApplicationContext());
+        isCustomTabDisabled = this.getIntent().getBooleanExtra(InteractiveRequest.DISABLE_CHROMETAB, false);
+        mRequestUrl = this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
+
+        if (useCustomTabs()) {
+            mCustomTabsServiceConnection = new CustomTabsServiceConnection() {
+                @Override
+                public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
+
+                }
+
+                @Override
+                public void onServiceDisconnected(ComponentName componentName) {
+
+                }
+            };
         }
     }
 
     /**
      * OnNewIntent will be called before onResume.
+     *
      * @param intent
      */
     @Override
@@ -101,22 +127,22 @@ public final class AuthenticationActivity extends Activity {
 
         mRestarted = true;
 
-        final String chromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(
-                this.getApplicationContext());
-        final boolean isCustomTabDisabled = this.getIntent().getBooleanExtra(InteractiveRequest.DISABLE_CHROMETAB, false);
-        mRequestUrl =  this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
-
         // TODO: remove the check for custom tab is disabled.
-        if (chromePackageWithCustomTabSupport != null && !isCustomTabDisabled) {
-            final CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder().build();
-            customTabsIntent.intent.setPackage(MSALUtils.getChromePackageWithCustomTabSupport(this));
-            customTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
+        if (useCustomTabs()) {
+            // TODO launch the url
+//            final CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder().build();
+//            customTabsIntent.intent.setPackage(MSALUtils.getChromePackageWithCustomTabSupport(this));
+//            customTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
         } else {
             final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
             browserIntent.setPackage(MSALUtils.getChromePackage(this.getApplicationContext()));
             browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
             this.startActivity(browserIntent);
         }
+    }
+
+    private boolean useCustomTabs() {
+        return chromePackageWithCustomTabSupport != null && !isCustomTabDisabled;
     }
 
     @Override
@@ -135,8 +161,9 @@ public final class AuthenticationActivity extends Activity {
 
     /**
      * Return the error back to caller.
+     *
      * @param resultCode The result code to return back.
-     * @param data {@link Intent} contains the detailed result.
+     * @param data       {@link Intent} contains the detailed result.
      */
     private void returnToCaller(final int resultCode, final Intent data) {
         data.putExtra(Constants.REQUEST_ID, mRequestId);
@@ -147,7 +174,8 @@ public final class AuthenticationActivity extends Activity {
 
     /**
      * Send error back to caller with the error description.
-     * @param errorCode The error code to send back.
+     *
+     * @param errorCode        The error code to send back.
      * @param errorDescription The error description to send back.
      */
     private void sendError(final String errorCode, final String errorDescription) {
