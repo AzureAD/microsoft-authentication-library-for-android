@@ -48,36 +48,36 @@ public final class AuthorityTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testAuthorityStartWithHttp() {
-        Authority.createAuthority("http://test.com", false);
+        Authority.createAuthority("http://test.com", false, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testAuthorityStartWithNonHttpProtocol() {
-        Authority.createAuthority("file://test.com", false);
+        Authority.createAuthority("file://test.com", false, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testAuthorityNotContainPath() {
-        Authority.createAuthority("https://test.com", false);
+        Authority.createAuthority("https://test.com", false, null);
     }
 
     @Test
     public void testAuthorityContainFragment() {
-        final Authority authority = Authority.createAuthority("https://test.com/abc#token=123", false);
+        final Authority authority = Authority.createAuthority("https://test.com/abc#token=123", false, null);
         authority.equals("https://test.com/abc");
     }
 
     @Test
     public void testAuthorityContainQP() {
         final Authority authority = Authority.createAuthority(
-                "https://login.windows.net/common?resource=2343&client_id=234", false);
+                "https://login.windows.net/common?resource=2343&client_id=234", false, null);
         authority.equals("https://login.windows.net/common");
     }
 
     @Test
     public void testAuthorityWithTrailingSlash() throws IOException {
         final String authorityWithTrailingSlash = TEST_AUTHORITY + "/";
-        final Authority authority = Authority.createAuthority(authorityWithTrailingSlash, false);
+        final Authority authority = Authority.createAuthority(authorityWithTrailingSlash, false, null);
 
         Assert.assertFalse(authority.getAuthority().toString().endsWith("/"));
 
@@ -96,7 +96,7 @@ public final class AuthorityTest {
 
     @Test
     public void testAuthorityWithoutTrailingSlash() throws IOException {
-        final Authority authority = Authority.createAuthority(TEST_AUTHORITY, false);
+        final Authority authority = Authority.createAuthority(TEST_AUTHORITY, false, null);
 
         // mock tenant discovery response
         AndroidTestMockUtil.mockSuccessTenantDiscovery(AUTHORIZE_ENDPOINT, TOKEN_ENDPOINT);
@@ -114,19 +114,19 @@ public final class AuthorityTest {
     public void testAuthorityValidationWithTrustedHost() {
         // make sure no mocked connection in the queue
         Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
-        final Authority authorityAzure1 = Authority.createAuthority("https://login.windows.net/sometenant", true);
+        final Authority authorityAzure1 = Authority.createAuthority("https://login.windows.net/sometenant", true, null);
         performAuthorityValidationAndVerify(authorityAzure1);
 
-        final Authority authorityAzure2 = Authority.createAuthority("https://login.microsoftonline.com/sometenant", true);
+        final Authority authorityAzure2 = Authority.createAuthority("https://login.microsoftonline.com/sometenant", true, null);
         performAuthorityValidationAndVerify(authorityAzure2);
 
-        final Authority authorityChina = Authority.createAuthority("https://login.chinacloudapi.cn/sometenant", true);
+        final Authority authorityChina = Authority.createAuthority("https://login.chinacloudapi.cn/sometenant", true, null);
         performAuthorityValidationAndVerify(authorityChina);
 
-        final Authority authorityGermany = Authority.createAuthority("https://login.microsoftonline.de/sometenant", true);
+        final Authority authorityGermany = Authority.createAuthority("https://login.microsoftonline.de/sometenant", true, null);
         performAuthorityValidationAndVerify(authorityGermany);
 
-        final Authority authorityUSGovernment = Authority.createAuthority("https://login-us.microsoftonline.com/sometenant", true);
+        final Authority authorityUSGovernment = Authority.createAuthority("https://login-us.microsoftonline.com/sometenant", true, null);
         performAuthorityValidationAndVerify(authorityUSGovernment);
     }
 
@@ -141,7 +141,7 @@ public final class AuthorityTest {
 
     @Test
     public void testAuthorityValidation() throws IOException {
-        final Authority authority = Authority.createAuthority(TEST_AUTHORITY, true);
+        final Authority authority = Authority.createAuthority(TEST_AUTHORITY, true, null);
 
         // mock success instance discovery
         AndroidTestMockUtil.mockSuccessInstanceDiscovery(TENANT_DISCOVERY_ENDPOINT);
@@ -169,7 +169,7 @@ public final class AuthorityTest {
         Assert.assertTrue(authority.getTokenEndpoint().equals(TOKEN_ENDPOINT));
 
         // create new authority with the same authority url again
-        final Authority authority2 = Authority.createAuthority(TEST_AUTHORITY, true);
+        final Authority authority2 = Authority.createAuthority(TEST_AUTHORITY, true, null);
         try {
             authority2.resolveEndpoints(UUID.randomUUID());
         } catch (AuthenticationException e) {
@@ -186,7 +186,7 @@ public final class AuthorityTest {
     @Test
     public void testInstanceDiscoveryFailed() throws IOException {
         final String authorityString = "https://some.authority/endpoint";
-        final Authority authority = Authority.createAuthority(authorityString, true);
+        final Authority authority = Authority.createAuthority(authorityString, true, null);
 
         AndroidTestMockUtil.mockFailedGetRequest(HttpURLConnection.HTTP_BAD_REQUEST,
                 AndroidTestUtil.getErrorResponseMessage("invalid_request"));
@@ -204,7 +204,7 @@ public final class AuthorityTest {
     @Test
     public void testInstanceDiscoveryNonJsonResponse() throws IOException {
         final String authorityString = "https://some.authority/endpoint";
-        final Authority authority = Authority.createAuthority(authorityString, true);
+        final Authority authority = Authority.createAuthority(authorityString, true, null);
 
         AndroidTestMockUtil.mockFailedGetRequest(HttpURLConnection.HTTP_BAD_REQUEST, "some_failure_response");
         try {
@@ -218,7 +218,7 @@ public final class AuthorityTest {
     @Test
     public void testInstanceDiscoveryFailedWithTimeout() throws IOException {
         final String authorityString = "https://some.authority/endpoint";
-        final Authority authority = Authority.createAuthority(authorityString, true);
+        final Authority authority = Authority.createAuthority(authorityString, true, null);
 
         // mock that instance discovery failed with timeout
         final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithSocketTimeout();
@@ -238,7 +238,7 @@ public final class AuthorityTest {
     @Test
     public void testTenantDiscoveryFailed() throws IOException {
         final String authorityString = "https://some.authority/endpoint";
-        final Authority authority = Authority.createAuthority(authorityString, true);
+        final Authority authority = Authority.createAuthority(authorityString, true, null);
 
         // mock instance discovery succeed
         AndroidTestMockUtil.mockSuccessInstanceDiscovery(TENANT_DISCOVERY_ENDPOINT);
@@ -256,7 +256,7 @@ public final class AuthorityTest {
     @Test
     public void testTenantDiscoveryFailedWithInvalidJsonResponse() throws IOException {
         final String authorityString = "https://some.authority/endpoint";
-        final Authority authority = Authority.createAuthority(authorityString, true);
+        final Authority authority = Authority.createAuthority(authorityString, true, null);
 
         // mock instance discovery succeed
         AndroidTestMockUtil.mockSuccessInstanceDiscovery(TENANT_DISCOVERY_ENDPOINT);
@@ -274,7 +274,7 @@ public final class AuthorityTest {
     @Test
     public void testTenantDiscoveryFailedWithTimeout() throws IOException {
         final String authorityString = "https://some.authority/endpoint";
-        final Authority authority = Authority.createAuthority(authorityString, true);
+        final Authority authority = Authority.createAuthority(authorityString, true, null);
 
         // mock instance discovery succeed
         AndroidTestMockUtil.mockSuccessInstanceDiscovery(TENANT_DISCOVERY_ENDPOINT);

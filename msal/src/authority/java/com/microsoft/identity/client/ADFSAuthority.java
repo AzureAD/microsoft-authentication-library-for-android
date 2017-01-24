@@ -59,8 +59,9 @@ final class ADFSAuthority extends Authority {
         mUserPrincipalName = userPrincipalName;
     }
 
-    boolean existsInValidatedAuthorityCache(final String userPrincipalName) {
-        if (StringExtensions.isNullOrBlank(userPrincipalName)) {
+    @Override
+    boolean existsInValidatedAuthorityCache() {
+        if (StringExtensions.isNullOrBlank(mUserPrincipalName)) {
             throw new IllegalArgumentException("userPrincipalName cannot be null or blank");
         }
 
@@ -70,10 +71,11 @@ final class ADFSAuthority extends Authority {
                 && authorityMap.get(mAuthorizationEndpoint) instanceof ADFSAuthority
                 && ((ADFSAuthority) authorityMap.get(mAuthorizationEndpoint))
                 .getADFSValidatedAuthorities()
-                .contains(getDomainFromUPN(userPrincipalName));
+                .contains(getDomainFromUPN(mUserPrincipalName));
     }
 
-    void addToValidatedAuthoritiesCache(final String userPrincipalName) {
+    @Override
+    void addToValidatedAuthorityCache() {
         ADFSAuthority adfsInstance = this;
 
         if (Authority.VALIDATED_AUTHORITY.containsKey(mAuthorizationEndpoint)) {
@@ -82,7 +84,7 @@ final class ADFSAuthority extends Authority {
 
         adfsInstance
                 .getADFSValidatedAuthorities()
-                .add(getDomainFromUPN(userPrincipalName));
+                .add(getDomainFromUPN(mUserPrincipalName));
 
         Authority.VALIDATED_AUTHORITY.replace(mAuthorizationEndpoint, adfsInstance);
     }

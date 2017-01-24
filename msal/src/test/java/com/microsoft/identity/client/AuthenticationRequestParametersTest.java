@@ -12,7 +12,7 @@ import java.util.UUID;
  * Tests for {@link AuthenticationRequestParameters}.
  */
 public final class AuthenticationRequestParametersTest {
-    static final Authority AUTHORITY = Authority.createAuthority(Util.VALID_AUTHORITY, false);
+    static final Authority AUTHORITY = Authority.createAuthority(Util.VALID_AUTHORITY, false, null);
     static final TokenCache TOKEN_CACHE = Mockito.mock(TokenCache.class);
     static final Set<String> SCOPE = new HashSet<>();
     static final String CLIENT_ID = "some-client-id";

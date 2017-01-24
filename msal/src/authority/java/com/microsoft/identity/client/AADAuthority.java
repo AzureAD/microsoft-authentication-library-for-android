@@ -92,4 +92,14 @@ final class AADAuthority extends Authority {
 
         return response.getTenantDiscoveryEndpoint();
     }
+
+    @Override
+    boolean existsInValidatedAuthorityCache() {
+        return VALIDATED_AUTHORITY.containsKey(mAuthorityUrl.toString());
+    }
+
+    @Override
+    void addToValidatedAuthorityCache() {
+        VALIDATED_AUTHORITY.put(mAuthorityUrl.toString(), this);
+    }
 }

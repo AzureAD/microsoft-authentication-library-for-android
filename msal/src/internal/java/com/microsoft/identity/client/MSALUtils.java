@@ -36,6 +36,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -62,7 +63,9 @@ final class MSALUtils {
      */
     public static final String ENCODING_UTF8 = "UTF_8";
 
-    /** Default access token expiration time in seconds. */
+    /**
+     * Default access token expiration time in seconds.
+     */
     public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
 
     private static final String CUSTOM_TABS_SERVICE_ACTION =
@@ -77,7 +80,8 @@ final class MSALUtils {
     /**
      * Private constructor to prevent Util class from being initiated.
      */
-    private MSALUtils() { }
+    private MSALUtils() {
+    }
 
     /**
      * To improve test-ability with local Junit. Android.jar used for local Junit doesn't have a default implementation
@@ -90,6 +94,7 @@ final class MSALUtils {
     /**
      * Translate the given string into the application/x-www-form-urlencoded using the utf_8 encoding scheme(The World
      * Wide Web Consortium Recommendation states that UTF-8 should be used. Not doing so may introduce incompatibilites.).
+     *
      * @param stringToEncode The String to encode.
      * @return The url encoded string.
      * @throws UnsupportedEncodingException If the named encoding is not supported.
@@ -104,6 +109,7 @@ final class MSALUtils {
 
     /**
      * Perform URL decode on the given source.
+     *
      * @param source The String to decode for.
      * @return The decoded string.
      * @throws UnsupportedEncodingException If encoding is not supported.
@@ -137,6 +143,7 @@ final class MSALUtils {
 
     /**
      * Calculate expires on based on given exipres in. Data will hold date in milliseconds.
+     *
      * @param expiresIn The given expires in that is used to calculate the expires on.
      * @return The date that the token will be expired.
      */
@@ -150,6 +157,7 @@ final class MSALUtils {
 
     /**
      * Converts the given string of scopes into set. The input String of scopes is delimited by " ".
+     *
      * @param scopes The scopes in the format of string, delimited by " ".
      * @return Converted scopes in the format of set.
      */
@@ -202,6 +210,7 @@ final class MSALUtils {
     /**
      * Check if the chrome package with custom tab support is available on the device, and return the package name if
      * available.
+     *
      * @param context The app {@link Context} to check for the package existence.
      * @return The available package name for chrome. Will return null if no chrome package existed on the device.
      */
@@ -235,6 +244,7 @@ final class MSALUtils {
      * CHROME_PACKAGES array contains all the chrome packages that is currently available on play store, we always check
      * the chrome packages in the order of 1)the currently stable one com.android.chrome 2) beta version com.chrome.beta
      * 3) the dev version com.chrome.dev.
+     *
      * @param context The app context that is used to check the chrome packages.
      * @return The chrome package name that exists on the device.
      */
@@ -262,7 +272,8 @@ final class MSALUtils {
 
     /**
      * Decode the given url, and convert it into map with the given delimiter.
-     * @param url The url to decode for.
+     *
+     * @param url       The url to decode for.
      * @param delimiter The delimiter used to parse the url string.
      * @return The Map of the items decoded with the given delimiter.
      */
@@ -302,7 +313,8 @@ final class MSALUtils {
 
     /**
      * Convert the given set of scopes into the string with the provided delimiter.
-     * @param inputSet The Set of scopes to convert.
+     *
+     * @param inputSet  The Set of scopes to convert.
      * @param delimiter The delimiter used to construct the scopes in the format of String.
      * @return The converted scopes in the format of String.
      */
@@ -341,6 +353,13 @@ final class MSALUtils {
     }
 
     static String base64EncodeToString(final String message) {
-        return  Base64.encodeToString(message.getBytes(Charset.forName(ENCODING_UTF8)), Base64.NO_PADDING);
+        return Base64.encodeToString(message.getBytes(Charset.forName(ENCODING_UTF8)), Base64.NO_PADDING);
+    }
+
+    static boolean isADFSAuthority(URL authorizationEndpoint) {
+        // similar to ADAL.NET
+        String path = authorizationEndpoint.getPath();
+        return !StringExtensions.isNullOrBlank(path)
+                && path.toLowerCase(Locale.ENGLISH).equals("/adfs");
     }
 }
