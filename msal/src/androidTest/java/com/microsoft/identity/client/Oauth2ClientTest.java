@@ -72,7 +72,7 @@ public final class Oauth2ClientTest {
             // verify response
             Assert.assertNotNull(response);
             Assert.assertTrue(response.getAccessToken().equals(AndroidTestUtil.ACCESS_TOKEN));
-        } catch (final RetryableException | IOException  | AuthenticationException e) {
+        } catch (final RetryableException | IOException | AuthenticationException e) {
             Assert.fail("Unexpected Exception.");
         }
     }
@@ -205,7 +205,9 @@ public final class Oauth2ClientTest {
     // TODO: add test for correlation id is not the same as what's sent in the header.
 
     private Authority getAuthority(final String authorityUrl) {
-        return Authority.createAuthority(authorityUrl, false);
+        final Authority authority = Authority.createAuthority(authorityUrl, false);
+        authority.mTokenEndpoint = "https://login.microsoftonline.com/oauth2/v2.0/token";
+        return authority;
     }
 
     private void addCommonBodyParameters(final Oauth2Client oauth2Client) {
