@@ -56,7 +56,7 @@ import java.util.UUID;
  * </code>
  */
 public final class Logger {
-    private static volatile Logger sInstance = null;
+    private static final Logger INSTANCE = new Logger();
     static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     // Turn on the verbose level logging by default.
@@ -68,15 +68,7 @@ public final class Logger {
      * @return The single instance for {@link Logger}.
      */
     public static Logger getInstance() {
-        if (sInstance == null) {
-            synchronized (Logger.class) {
-                if (sInstance == null) {
-                    sInstance = new Logger();
-                }
-            }
-        }
-
-        return sInstance;
+        return INSTANCE;
     }
 
     /**
@@ -148,20 +140,20 @@ public final class Logger {
             return;
         }
 
-        // if throwable is not null, append the throwable stacktrace in the additional message.
-        final StringBuilder updatedAdditionalMessage = new StringBuilder();
-        updatedAdditionalMessage.append(MSALUtils.isEmpty(additionalMessage) ? "" : additionalMessage);
+        final String updatedAdditionalMessage = MSALUtils.isEmpty(additionalMessage) ? "" : additionalMessage;
+        final StringBuilder logMessage = new StringBuilder();
+        logMessage.append(formatMessage(correlationId, message));
+
+        // Adding stacktrace to message
         if (throwable != null) {
-            updatedAdditionalMessage.append(' ').append(Log.getStackTraceString(throwable));
+            logMessage.append(' ').append(Log.getStackTraceString(throwable));
         }
 
-        // wrap the message in the format of UTC timestring-correlationid-message ver:
-        final String logMessage = formatMessage(correlationId, message);
         if (mLogcatLogEnabled) {
-            sendLogcatLogs(tag, logLevel, logMessage, updatedAdditionalMessage.toString());
+            sendLogcatLogs(tag, logLevel, logMessage.toString(), updatedAdditionalMessage);
         }
 
-        mExternalLogger.log(tag, logLevel, logMessage, updatedAdditionalMessage.toString());
+        mExternalLogger.log(tag, logLevel, logMessage.toString(), updatedAdditionalMessage);
     }
 
     /**

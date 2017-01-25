@@ -75,11 +75,11 @@ public final class LoggerTest {
         // set as verbose level logging
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
         Logger.verbose(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessage(LOG_RESPONSE);
+        verifyLogMessage(LOG_RESPONSE, null);
 
         // log an empty message
         Logger.verbose(TAG, CORRELATION_ID, "", "");
-        verifyLogMessageFormat(LOG_RESPONSE, "N/A", CORRELATION_ID);
+        verifyLogMessageFormat(LOG_RESPONSE, "N/A", CORRELATION_ID, null);
         Assert.assertTrue(LOG_RESPONSE.getAdditionalMessage().equals(""));
         LOG_RESPONSE.reset();
 
@@ -91,21 +91,21 @@ public final class LoggerTest {
         // verify info logs are generated
         verifyLogMessageEmpty(LOG_RESPONSE);
         Logger.info(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessage(LOG_RESPONSE);
+        verifyLogMessage(LOG_RESPONSE, null);
 
         // verify warning logs are generated
         verifyLogMessageEmpty(LOG_RESPONSE);
         Logger.warning(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessage(LOG_RESPONSE);
+        verifyLogMessage(LOG_RESPONSE, null);
 
         // verify error level logs are generated
         verifyLogMessageEmpty(LOG_RESPONSE);
         Logger.error(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE, null);
-        verifyLogMessage(LOG_RESPONSE);
+        verifyLogMessage(LOG_RESPONSE, null);
 
         // verify the log message is correctly formatted when no correlation id exists.
         Logger.verbose(TAG, null, MESSAGE, "");
-        verifyLogMessageFormat(LOG_RESPONSE, MESSAGE, null);
+        verifyLogMessageFormat(LOG_RESPONSE, MESSAGE, null, null);
         Assert.assertTrue(LOG_RESPONSE.getAdditionalMessage().equals(""));
         LOG_RESPONSE.reset();
     }
@@ -125,15 +125,15 @@ public final class LoggerTest {
 
         // Do a info level logging
         Logger.info(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessage(LOG_RESPONSE);
+        verifyLogMessage(LOG_RESPONSE, null);
 
         // do a warning level logging
         Logger.warning(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessage(LOG_RESPONSE);
+        verifyLogMessage(LOG_RESPONSE, null);
 
         // do a error level logging
         Logger.error(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE, null);
-        verifyLogMessage(LOG_RESPONSE);
+        verifyLogMessage(LOG_RESPONSE, null);
     }
 
     /**
@@ -156,12 +156,12 @@ public final class LoggerTest {
         // perform warning level logging
         verifyLogMessageEmpty(LOG_RESPONSE);
         Logger.warning(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessage(LOG_RESPONSE);
+        verifyLogMessage(LOG_RESPONSE, null);
 
         // perform error level logging
         verifyLogMessageEmpty(LOG_RESPONSE);
         Logger.error(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE, null);
-        verifyLogMessage(LOG_RESPONSE);
+        verifyLogMessage(LOG_RESPONSE, null);
     }
 
     /**
@@ -184,8 +184,8 @@ public final class LoggerTest {
         }
 
         Logger.error(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE, throwable);
-        Assert.assertTrue(LOG_RESPONSE.getAdditionalMessage().equals(ADDITIONAL_MESSAGE + ' ' + Log.getStackTraceString(throwable)));
-        verifyLogMessage(LOG_RESPONSE);
+        Assert.assertTrue(LOG_RESPONSE.getAdditionalMessage().equals(ADDITIONAL_MESSAGE));
+        verifyLogMessage(LOG_RESPONSE, throwable);
 
         // perform warning level logging
         verifyLogMessageEmpty(LOG_RESPONSE);
@@ -203,21 +203,30 @@ public final class LoggerTest {
         verifyLogMessageEmpty(LOG_RESPONSE);
     }
 
-    private void verifyLogMessage(final LogResponse response) {
+    private void verifyLogMessage(final LogResponse response, final Throwable throwable) {
         Assert.assertTrue(response.getTag().equals(TAG));
-        verifyLogMessageFormat(response, MESSAGE, CORRELATION_ID);
+        verifyLogMessageFormat(response, MESSAGE, CORRELATION_ID, throwable);
         Assert.assertTrue(response.getAdditionalMessage().contains(ADDITIONAL_MESSAGE));
 
         response.reset();
     }
 
-    private void verifyLogMessageFormat(final LogResponse response, final String message, final UUID correlationId) {
+    private void verifyLogMessageFormat(final LogResponse response, final String message, final UUID correlationId,
+                                        final Throwable throwable) {
         Assert.assertTrue(response.getMessage().contains("MSAL " + PublicClientApplication.getSdkVersion() + " Android " + Build.VERSION.SDK_INT + " ["));
         if (correlationId != null) {
-            Assert.assertTrue(response.getMessage().contains(" - " + correlationId.toString() + "] " + message));
+            Assert.assertTrue(response.getMessage().contains(" - " + correlationId.toString() + "] " + message + getStackTrace(throwable)));
         } else {
-            Assert.assertTrue(response.getMessage().contains("] " + message));
+            Assert.assertTrue(response.getMessage().contains("] " + message + getStackTrace(throwable)));
         }
+    }
+
+    private String getStackTrace(final Throwable throwable) {
+        if (throwable != null) {
+            return " " + Log.getStackTraceString(throwable);
+        }
+
+        return "";
     }
 
     private void verifyLogMessageEmpty(final LogResponse response) {
