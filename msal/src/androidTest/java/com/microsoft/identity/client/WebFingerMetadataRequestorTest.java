@@ -43,7 +43,7 @@ import java.util.Map;
 @SmallTest
 public class WebFingerMetadataRequestorTest {
 
-    private static final String RESPONSE = "{\n"
+    static final String RESPONSE = "{\n"
             +
             "  \"subject\": \"https://fs.lindft6.com\",\n"
             +
