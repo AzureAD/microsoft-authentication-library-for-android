@@ -23,15 +23,21 @@
 
 package com.microsoft.identity.client;
 
+import android.support.test.runner.AndroidJUnit4;
+
 import junit.framework.Assert;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.UUID;
 
+@RunWith(AndroidJUnit4.class)
 public class ADFSAuthorityTest {
 
     final String testUPN = "user.name@foo.com";
@@ -41,11 +47,23 @@ public class ADFSAuthorityTest {
     @Before
     public void setUp() {
         try {
+            initializeAuthority();
+            HttpURLConnection mockDrsConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(DRSMetadataRequestorTest.RESPONSE);
+            HttpURLConnection mockWebFinger = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(WebFingerMetadataRequestorTest.RESPONSE);
+            HttpUrlConnectionFactory.addMockedConnection(mockDrsConnection);
+            HttpUrlConnectionFactory.addMockedConnection(mockWebFinger);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void initializeAuthority() {
+        try {
             adfsAuthority = new ADFSAuthority(
                     new URL("https://fs.ngctest.nttest.microsoft.com/adfs/ls/"),
                     true
             );
-            adfsAuthority.mAuthorizationEndpoint = "https://fs.lindft6.com/adfs/oauth2/authorize";
+            adfsAuthority.mAuthorizationEndpoint = "https://fs.ngctest.nttest.microsoft.com/adfs/oauth2/authorize";
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
@@ -64,36 +82,58 @@ public class ADFSAuthorityTest {
 
     @Test
     public void testPerformInstanceDiscovery() {
-        // TODO
+        try {
+            final ADFSAuthority authority = new ADFSAuthority(
+                    new URL("https://fs.lindft6.com/adfs/ls/"),
+                    true
+            );
+            Assert.assertEquals(
+                    "https://fs.lindft6.com/adfs/.well-known/openid-configuration",
+                    authority.performInstanceDiscovery(UUID.randomUUID(), testUPN)
+            );
+        } catch (AuthenticationException | MalformedURLException e) {
+            Assert.fail();
+        }
     }
 
     @Test
     public void testPerformInstanceDiscoveryThrowsWhenURLnvalid() {
         try {
             adfsAuthority = new ADFSAuthority(
-                    new URL("Not a valid URL"),
-                    false
+                    new URL("file:/Users/RFC2396 noncompliant"),
+                    true
             );
             adfsAuthority.performInstanceDiscovery(UUID.randomUUID(), testUPN);
         } catch (MalformedURLException e) {
             Assert.fail();
         } catch (AuthenticationException e) {
             // NOOP: expected
+            return;
         }
+        Assert.fail();
     }
 
     @Test
     public void testGetDomainFromUPN() {
-        // TODO
+        Assert.assertEquals(
+                "foo.com",
+                ADFSAuthority.getDomainFromUPN(testUPN)
+        );
     }
 
     @Test
     public void testGetDomainFromUPNReturnsNullWhenInvalid() {
-        // TODO
+        Assert.assertNull(
+                ADFSAuthority.getDomainFromUPN("user_no_domain")
+        );
     }
 
     @Test
     public void testGetDefaultOpenIdConfigurationEndpoint() {
-        // TODO
+        Assert
+                .assertEquals(
+                        "https://fs.ngctest.nttest.microsoft.com/adfs/.well-known/openid-configuration",
+                        adfsAuthority.getDefaultOpenIdConfigurationEndpoint()
+                );
     }
 }
