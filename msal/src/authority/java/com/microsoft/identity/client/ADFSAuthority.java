@@ -82,7 +82,7 @@ final class ADFSAuthority extends Authority {
                 .getADFSValidatedAuthorities()
                 .add(getDomainFromUPN(userPrincipalName));
 
-        Authority.VALIDATED_AUTHORITY.replace(mAuthorizationEndpoint, adfsInstance);
+        Authority.VALIDATED_AUTHORITY.put(mAuthorizationEndpoint, adfsInstance);
     }
 
     @Override
@@ -135,7 +135,7 @@ final class ADFSAuthority extends Authority {
      * @return the domain suffix of the UPN
      */
     @Nullable
-    private static String getDomainFromUPN(final String upn) {
+    static String getDomainFromUPN(final String upn) {
         String suffix = null;
         if (upn != null) {
             final int dIndex = upn.lastIndexOf(UPN_DOMAIN_SUFFIX_DELIM);
