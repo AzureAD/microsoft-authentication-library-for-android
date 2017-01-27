@@ -41,7 +41,7 @@ import java.util.Map;
 @SmallTest
 public class DRSMetadataRequestorTest {
 
-    private static final String RESPONSE = "{\n"
+    static final String RESPONSE = "{\n"
             +
             "  \"DeviceRegistrationService\": {\n"
             +
