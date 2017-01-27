@@ -75,7 +75,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
      */
     private DRSMetadata requestOnPrem(final String domain)
             throws UnknownHostException, AuthenticationException {
-        // TODO Logger.v(TAG, "Requesting DRS discovery (on-prem)");
+        Logger.verbose(TAG, getCorrelationId(), "Requesting DRS discovery (on-prem)", null);
         return requestDrsDiscoveryInternal(ON_PREM, domain);
     }
 
@@ -88,7 +88,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
      *                                 or the trust cannot be verified
      */
     private DRSMetadata requestCloud(final String domain) throws AuthenticationException {
-        // TODO Logger.v(TAG, "Requesting DRS discovery (cloud)");
+        Logger.verbose(TAG, getCorrelationId(), "Requesting DRS discovery (cloud)", null);
         try {
             return requestDrsDiscoveryInternal(CLOUD, domain);
         } catch (UnknownHostException e) {
@@ -166,7 +166,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
 
         final String requestUrlStr = requestUrl.toString();
 
-        //TODO Logger.v(TAG, "Requestor will use DRS url: " + requestUrlStr);
+        Logger.verbose(TAG, getCorrelationId(), "Requestor will use DRS url: " + requestUrlStr, null);
 
         return requestUrlStr;
     }

@@ -50,7 +50,7 @@ class WebFingerMetadataRequestor
 
         final URL domain = webFingerMetadataRequestParameters.getDomain();
         final DRSMetadata drsMetadata = webFingerMetadataRequestParameters.getDrsMetadata();
-        //TODO Logger.v(TAG, "Validating authority for auth endpoint: " + domain.toString());
+        Logger.verbose(TAG, null, "Validating authority for auth endpoint: " + domain.toString(), null);
         try {
             // create the URL
             URL webFingerUrl = buildWebFingerUrl(domain, drsMetadata);
