@@ -49,8 +49,8 @@ public class ADFSAuthorityTest {
     public void setUp() {
         try {
             initializeAuthority();
-            HttpURLConnection mockDrsConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(DRSMetadataRequestorTest.RESPONSE);
-            HttpURLConnection mockWebFinger = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(WebFingerMetadataRequestorTest.RESPONSE);
+            final HttpURLConnection mockDrsConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(DRSMetadataRequestorTest.RESPONSE);
+            final HttpURLConnection mockWebFinger = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(WebFingerMetadataRequestorTest.RESPONSE);
             HttpUrlConnectionFactory.addMockedConnection(mockDrsConnection);
             HttpUrlConnectionFactory.addMockedConnection(mockWebFinger);
         } catch (IOException e) {
