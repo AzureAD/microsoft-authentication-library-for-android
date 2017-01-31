@@ -132,10 +132,9 @@ public class ADFSAuthorityTest {
 
     @Test
     public void testGetDefaultOpenIdConfigurationEndpoint() {
-        Assert
-                .assertEquals(
-                        "https://fs.ngctest.nttest.microsoft.com/adfs/.well-known/openid-configuration",
-                        adfsAuthority.getDefaultOpenIdConfigurationEndpoint()
-                );
+        Assert.assertEquals(
+                "https://fs.ngctest.nttest.microsoft.com/adfs/.well-known/openid-configuration",
+                adfsAuthority.getDefaultOpenIdConfigurationEndpoint()
+        );
     }
 }
