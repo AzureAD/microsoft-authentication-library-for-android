@@ -66,9 +66,11 @@ final class ADFSAuthority extends Authority {
 
         final Map<String, Authority> authorityMap = Authority.VALIDATED_AUTHORITY;
 
-        return authorityMap.containsKey(mAuthorizationEndpoint)
-                && authorityMap.get(mAuthorizationEndpoint) instanceof ADFSAuthority
-                && ((ADFSAuthority) authorityMap.get(mAuthorizationEndpoint))
+        final String authorityUrlStr = mAuthorityUrl.toString();
+
+        return authorityMap.containsKey(authorityUrlStr)
+                && authorityMap.get(authorityUrlStr) instanceof ADFSAuthority
+                && ((ADFSAuthority) authorityMap.get(authorityUrlStr))
                 .getADFSValidatedAuthorities()
                 .contains(getDomainFromUPN(userPrincipalName));
     }
@@ -77,15 +79,17 @@ final class ADFSAuthority extends Authority {
     void addToValidatedAuthorityCache(final String userPrincipalName) {
         ADFSAuthority adfsInstance = this;
 
-        if (Authority.VALIDATED_AUTHORITY.containsKey(mAuthorizationEndpoint)) {
-            adfsInstance = (ADFSAuthority) VALIDATED_AUTHORITY.get(mAuthorizationEndpoint);
+        final String authorityUrlStr = mAuthorityUrl.toString();
+
+        if (Authority.VALIDATED_AUTHORITY.containsKey(authorityUrlStr)) {
+            adfsInstance = (ADFSAuthority) VALIDATED_AUTHORITY.get(authorityUrlStr);
         }
 
         adfsInstance
                 .getADFSValidatedAuthorities()
                 .add(getDomainFromUPN(userPrincipalName));
 
-        Authority.VALIDATED_AUTHORITY.put(mAuthorizationEndpoint, adfsInstance);
+        Authority.VALIDATED_AUTHORITY.put(authorityUrlStr, adfsInstance);
     }
 
     @Override
