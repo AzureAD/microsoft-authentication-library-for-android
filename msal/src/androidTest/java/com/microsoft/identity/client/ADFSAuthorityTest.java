@@ -27,6 +27,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import junit.framework.Assert;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,6 +56,11 @@ public class ADFSAuthorityTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @After
+    public void tearDown() {
+        HttpUrlConnectionFactory.clearMockedConnectionQueue();
     }
 
     private void initializeAuthority() throws MalformedURLException {
