@@ -379,7 +379,7 @@ public final class PublicClientApplication {
                 extraQueryParams, policy, uiOptions);
 
         final BaseRequest request = new InteractiveRequest(mActivity, requestParameters, additionalScope);
-        request.getToken(null, callback);
+        request.getToken(callback);
     }
 
     private void acquireTokenSilent(final String[] scopes, final User user, final String authority,
@@ -398,7 +398,7 @@ public final class PublicClientApplication {
                 scopesAsSet, mClientId, policy, mRestrictToSingleUser, correlationId);
 
         final BaseRequest request = new SilentRequest(mAppContext, requestParameters, forceRefresh, user);
-        request.getToken(null, callback);
+        request.getToken(callback);
     }
 
     private AuthenticationRequestParameters getRequestParameters(final String authority, final String[] scopes,

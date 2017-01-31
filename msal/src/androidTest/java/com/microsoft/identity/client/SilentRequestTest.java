@@ -99,7 +99,7 @@ public final class SilentRequestTest extends AndroidTestCase {
 
         final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope), ""), false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
-        request.getToken(null, new AuthenticationCallback() {
+        request.getToken(new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 fail();
@@ -132,7 +132,7 @@ public final class SilentRequestTest extends AndroidTestCase {
         final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope), "");
         final BaseRequest request = new SilentRequest(mAppContext, requestParameters, false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
-        request.getToken(null, new AuthenticationCallback() {
+        request.getToken(new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 assertTrue(ACCESS_TOKEN.equals(authenticationResult.getToken()));
@@ -172,7 +172,7 @@ public final class SilentRequestTest extends AndroidTestCase {
         final BaseRequest request = new SilentRequest(mAppContext, requestParameters, false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
         final String expectedToken = TokenCacheTest.getDefaultIdToken();
-        request.getToken(null, new AuthenticationCallback() {
+        request.getToken(new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 assertTrue(expectedToken.equals(authenticationResult.getToken()));
@@ -215,7 +215,7 @@ public final class SilentRequestTest extends AndroidTestCase {
         final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope), "");
         final BaseRequest request = new SilentRequest(mAppContext, requestParameters, false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
-        request.getToken(null, new AuthenticationCallback() {
+        request.getToken(new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getToken()));
@@ -268,7 +268,7 @@ public final class SilentRequestTest extends AndroidTestCase {
         final CountDownLatch resultLock = new CountDownLatch(1);
 
         assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
-        request.getToken(null, new AuthenticationCallback() {
+        request.getToken(new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 assertTrue(ACCESS_TOKEN.equals(authenticationResult.getToken()));
@@ -307,7 +307,7 @@ public final class SilentRequestTest extends AndroidTestCase {
         final AuthenticationRequestParameters requestParametersWithAnotherScope = getRequestParameters(Collections.singleton(anotherScope), "");
         final BaseRequest request = new SilentRequest(mAppContext, requestParametersWithAnotherScope, false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
-        request.getToken(null, new AuthenticationCallback() {
+        request.getToken(new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getToken()));
@@ -361,7 +361,7 @@ public final class SilentRequestTest extends AndroidTestCase {
 
         final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope), ""), false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
-        request.getToken(null, new AuthenticationCallback() {
+        request.getToken(new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 fail();
@@ -397,7 +397,7 @@ public final class SilentRequestTest extends AndroidTestCase {
         assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 1);
         final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope), ""), true, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
-        request.getToken(null, new AuthenticationCallback() {
+        request.getToken(new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 fail();
@@ -440,7 +440,7 @@ public final class SilentRequestTest extends AndroidTestCase {
         assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 1);
         final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope), ""), true, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
-        request.getToken(null, new AuthenticationCallback() {
+        request.getToken(new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 fail();
