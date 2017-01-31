@@ -41,7 +41,7 @@ abstract class AbstractMetadataRequestor<MetadataType, MetadataRequestOptions> {
      * Requests the specified {@link MetadataType}.
      *
      * @param options parameters used for this request
-     * @return the metadata
+     * @return <MetadataType> metadata of the parameterized type
      * @throws Exception if the metadata fails to load/deserialize
      */
     abstract MetadataType requestMetadata(MetadataRequestOptions options) throws Exception;
