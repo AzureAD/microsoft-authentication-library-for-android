@@ -57,16 +57,12 @@ public class ADFSAuthorityTest {
         }
     }
 
-    private void initializeAuthority() {
-        try {
-            adfsAuthority = new ADFSAuthority(
-                    new URL("https://fs.ngctest.nttest.microsoft.com/adfs/ls/"),
-                    true
-            );
-            adfsAuthority.mAuthorizationEndpoint = "https://fs.ngctest.nttest.microsoft.com/adfs/oauth2/authorize";
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
+    private void initializeAuthority() throws MalformedURLException {
+        adfsAuthority = new ADFSAuthority(
+                new URL("https://fs.ngctest.nttest.microsoft.com/adfs/ls/"),
+                true
+        );
+        adfsAuthority.mAuthorizationEndpoint = "https://fs.ngctest.nttest.microsoft.com/adfs/oauth2/authorize";
     }
 
     @Test
