@@ -359,7 +359,7 @@ final class MSALUtils {
     static boolean isADFSAuthority(URL authorizationEndpoint) {
         // similar to ADAL.NET
         String path = authorizationEndpoint.getPath();
-        return !StringExtensions.isNullOrBlank(path)
+        return !MSALUtils.isEmpty(path)
                 && path.toLowerCase(Locale.ENGLISH).equals("/adfs");
     }
 }

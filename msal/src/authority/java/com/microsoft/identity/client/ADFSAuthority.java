@@ -57,7 +57,7 @@ final class ADFSAuthority extends Authority {
 
     @Override
     boolean existsInValidatedAuthorityCache(final String userPrincipalName) {
-        if (StringExtensions.isNullOrBlank(userPrincipalName)) {
+        if (MSALUtils.isEmpty(userPrincipalName)) {
             throw new IllegalArgumentException("userPrincipalName cannot be null or blank");
         }
 
