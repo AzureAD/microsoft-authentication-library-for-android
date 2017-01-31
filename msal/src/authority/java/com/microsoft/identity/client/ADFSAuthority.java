@@ -35,6 +35,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * MSAL internal class for representing the ADFS authority.
+ */
 final class ADFSAuthority extends Authority {
 
     private static final int DELIM_NOT_FOUND = -1;
