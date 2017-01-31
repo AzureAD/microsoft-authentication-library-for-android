@@ -118,7 +118,7 @@ final class ADFSAuthority extends Authority {
         return getDefaultOpenIdConfigurationEndpoint();
     }
 
-    public Set<String> getADFSValidatedAuthorities() {
+    Set<String> getADFSValidatedAuthorities() {
         return mADFSValidatedAuthorities;
     }
 
