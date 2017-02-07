@@ -84,8 +84,7 @@ public final class AuthenticationActivity extends Activity {
             return;
         }
 
-        chromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(
-                this.getApplicationContext());
+        chromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(getApplicationContext());
         isCustomTabDisabled = this.getIntent().getBooleanExtra(InteractiveRequest.DISABLE_CHROMETAB, false);
         mRequestUrl = this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
 
@@ -111,7 +110,7 @@ public final class AuthenticationActivity extends Activity {
 
             CustomTabsClient.bindCustomTabsService(
                     this,
-                    MSALUtils.getChromePackageWithCustomTabSupport(this),
+                    chromePackageWithCustomTabSupport,
                     mCustomTabsServiceConnection
             );
 
@@ -150,7 +149,7 @@ public final class AuthenticationActivity extends Activity {
 
         // TODO: remove the check for custom tab is disabled.
         if (useCustomTabs()) {
-            mCustomTabsIntent.intent.setPackage(MSALUtils.getChromePackageWithCustomTabSupport(this));
+            mCustomTabsIntent.intent.setPackage(chromePackageWithCustomTabSupport);
             mCustomTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
         } else {
             final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
