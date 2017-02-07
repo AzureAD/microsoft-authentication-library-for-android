@@ -108,15 +108,18 @@ public final class AuthenticationActivity extends Activity {
                 }
             };
 
+            // Initiate the service-bind action
             CustomTabsClient.bindCustomTabsService(
                     this,
                     chromePackageWithCustomTabSupport,
                     mCustomTabsServiceConnection
             );
 
+            // Create the Intent used to launch the Url
             mCustomTabsIntent = new CustomTabsIntent.Builder(mCustomTabsSession)
                     .setShowTitle(true)
                     .build();
+            mCustomTabsIntent.intent.setPackage(chromePackageWithCustomTabSupport);
         }
     }
 
@@ -149,7 +152,6 @@ public final class AuthenticationActivity extends Activity {
 
         // TODO: remove the check for custom tab is disabled.
         if (useCustomTabs()) {
-            mCustomTabsIntent.intent.setPackage(chromePackageWithCustomTabSupport);
             mCustomTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
         } else {
             final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
