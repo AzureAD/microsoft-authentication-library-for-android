@@ -37,6 +37,7 @@ public class User {
 
     /**
      * Internal constructor to create {@link User} from the {@link IdToken}.
+     *
      * @param idToken
      */
     User(final IdToken idToken) {
@@ -81,6 +82,7 @@ public class User {
     public String getIdentityProvider() {
         return mIdentityProvider;
     }
+
     /**
      * Sign out the user from the application. TODO: from all application or the single one?
      */
@@ -90,6 +92,7 @@ public class User {
     }
 
     // internal methods provided
+
     /**
      * @return The client id of the application that the user is authenticated to.
      */
@@ -111,6 +114,7 @@ public class User {
 
     /**
      * Used by developer to set the User object when doing the acquire token API call.
+     *
      * @param uniqueId
      */
     void setUniqueId(final String uniqueId) {
@@ -119,6 +123,7 @@ public class User {
 
     /**
      * Used by developer to set the User object when making acquire token API call.
+     *
      * @param displayableId
      */
     void setDisplayableId(final String displayableId) {
