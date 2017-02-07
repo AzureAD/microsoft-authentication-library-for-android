@@ -29,7 +29,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.customtabs.CustomTabsClient;
+import android.support.customtabs.CustomTabsIntent;
 import android.support.customtabs.CustomTabsServiceConnection;
+import android.support.customtabs.CustomTabsSession;
 
 /**
  * Custom tab requires the device to have a browser with custom tab support, chrome with version >= 45 comes with the
@@ -45,9 +47,11 @@ public final class AuthenticationActivity extends Activity {
     private String mRequestUrl;
     private int mRequestId;
     private boolean mRestarted;
-    private CustomTabsServiceConnection mCustomTabsServiceConnection;
     private String chromePackageWithCustomTabSupport;
     private boolean isCustomTabDisabled;
+    private CustomTabsClient mCustomTabsClient;
+    private CustomTabsSession mCustomTabsSession;
+    private CustomTabsIntent mCustomTabsIntent;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -86,17 +90,29 @@ public final class AuthenticationActivity extends Activity {
         mRequestUrl = this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
 
         if (useCustomTabs()) {
-            mCustomTabsServiceConnection = new CustomTabsServiceConnection() {
+            CustomTabsServiceConnection mCustomTabsServiceConnection = new CustomTabsServiceConnection() {
                 @Override
                 public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
-
+                    mCustomTabsClient = client;
+                    mCustomTabsClient.warmup(0L);
+                    mCustomTabsSession = mCustomTabsClient.newSession(null);
                 }
 
                 @Override
                 public void onServiceDisconnected(ComponentName componentName) {
-
+                    mCustomTabsClient = null;
                 }
             };
+
+            CustomTabsClient.bindCustomTabsService(
+                    this,
+                    MSALUtils.getChromePackageWithCustomTabSupport(this),
+                    mCustomTabsServiceConnection
+            );
+
+            mCustomTabsIntent = new CustomTabsIntent.Builder(mCustomTabsSession)
+                    .setShowTitle(true)
+                    .build();
         }
     }
 
@@ -130,9 +146,8 @@ public final class AuthenticationActivity extends Activity {
         // TODO: remove the check for custom tab is disabled.
         if (useCustomTabs()) {
             // TODO launch the url
-//            final CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder().build();
-//            customTabsIntent.intent.setPackage(MSALUtils.getChromePackageWithCustomTabSupport(this));
-//            customTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
+            mCustomTabsIntent.intent.setPackage(MSALUtils.getChromePackageWithCustomTabSupport(this));
+            mCustomTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
         } else {
             final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
             browserIntent.setPackage(MSALUtils.getChromePackage(this.getApplicationContext()));
