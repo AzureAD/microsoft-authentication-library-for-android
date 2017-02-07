@@ -96,6 +96,11 @@ public final class AuthenticationActivity extends Activity {
                     mCustomTabsClient = client;
                     mCustomTabsClient.warmup(0L);
                     mCustomTabsSession = mCustomTabsClient.newSession(null);
+                    mCustomTabsSession.mayLaunchUrl(
+                            Uri.parse(mRequestUrl),
+                            null, // reserved for future use
+                            null
+                    );
                 }
 
                 @Override
