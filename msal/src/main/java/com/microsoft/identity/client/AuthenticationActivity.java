@@ -150,7 +150,6 @@ public final class AuthenticationActivity extends Activity {
 
         // TODO: remove the check for custom tab is disabled.
         if (useCustomTabs()) {
-            // TODO launch the url
             mCustomTabsIntent.intent.setPackage(MSALUtils.getChromePackageWithCustomTabSupport(this));
             mCustomTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
         } else {
