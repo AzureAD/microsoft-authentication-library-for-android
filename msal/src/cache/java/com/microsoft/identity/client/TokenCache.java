@@ -204,4 +204,22 @@ public class TokenCache {
 
         return expiresOn != null && expiresOn.before(validity);
     }
+
+    /**
+     * Delete the refresh token associated with the supplied userId
+     *
+     * @param userId the id of the User whose refresh token should be deleted
+     */
+    void deleteRefreshTokenByUserId(final String userId) {
+        // TODO implement
+    }
+
+    /**
+     * Delete the access token associated with the supplied userId
+     *
+     * @param userId the id of the User whose access token should be deleted
+     */
+    void deleteAccessTokenByUserId(final String userId) {
+        // TODO implement
+    }
 }
