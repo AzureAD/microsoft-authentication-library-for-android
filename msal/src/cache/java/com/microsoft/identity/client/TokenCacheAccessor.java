@@ -56,6 +56,7 @@ final class TokenCacheAccessor {
 
     /**
      * Constructor for {@link TokenCacheAccessor}. Access token and refresh token will be stored separately.
+     *
      * @param context
      */
     TokenCacheAccessor(final Context context) {
@@ -103,7 +104,7 @@ final class TokenCacheAccessor {
     List<TokenCacheItem> getAccessToken(final TokenCacheKey tokenCacheKey) {
         final Map<String, String> accessTokens = (Map<String, String>) mAccessTokenSharedPreference.getAll();
         final List<TokenCacheItem> foundATs = new ArrayList<>();
-        for (final String accessTokenValue: accessTokens.values()) {
+        for (final String accessTokenValue : accessTokens.values()) {
             final TokenCacheItem tokenCacheItem = mGson.fromJson(accessTokenValue, TokenCacheItem.class);
             if (tokenCacheKey.matches(tokenCacheItem) && tokenCacheKey.isScopeEqual(tokenCacheItem)) {
                 foundATs.add(tokenCacheItem);
@@ -116,6 +117,7 @@ final class TokenCacheAccessor {
     /**
      * For refresh token item, all the RTs are multi-scope. If authority, clientid, policy and user (if applicable)
      * are matched, try to use the RT.
+     *
      * @param tokenCacheKey The {@link TokenCacheKey} that is used to find refresh tokens.
      * @return The List of refresh tokens matching the given key.
      */
@@ -133,14 +135,25 @@ final class TokenCacheAccessor {
     }
 
     /**
+     * Delete the access token item.
+     *
+     * @param atItem the {@link BaseTokenCacheItem} to remove.
+     */
+    void deleteAccessToken(final BaseTokenCacheItem atItem) {
+        final String key = TokenCacheKey.extractKeyForAT(atItem).toString();
+        final Editor editor = mAccessTokenSharedPreference.edit();
+        editor.remove(key).apply();
+    }
+
+    /**
      * Delete the refresh token item.
+     *
      * @param rtItem The {@link BaseTokenCacheItem} to remove.
      */
     void deleteRefreshToken(final BaseTokenCacheItem rtItem) {
         final String key = TokenCacheKey.extractKeyForRT(rtItem).toString();
         final Editor editor = mRefreshTokenSharedPreference.edit();
-        editor.remove(key);
-        editor.apply();
+        editor.remove(key).apply();
     }
 
     /**
@@ -172,7 +185,6 @@ final class TokenCacheAccessor {
     }
 
     /**
-     *
      * @param clientId The client id to query the refresh token.
      * @return Immutable List of the {@link RefreshTokenCacheItem}s matching the given client id.
      */

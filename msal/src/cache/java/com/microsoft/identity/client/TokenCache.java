@@ -211,7 +211,17 @@ public class TokenCache {
      * @param userId the id of the User whose refresh token should be deleted
      */
     void deleteRefreshTokenByUserId(final String userId) {
-        // TODO implement
+        // Grab all the refresh tokens
+        List<RefreshTokenCacheItem> refreshTokens = mTokenCacheAccessor.getAllRefreshTokens();
+
+        // Iterate over the Collection to find the refresh token matching our userId
+        for (RefreshTokenCacheItem refreshToken : refreshTokens) {
+            if (refreshToken.getUniqueId().equals(userId)) {
+                // delete this refresh token
+                mTokenCacheAccessor.deleteRefreshToken(refreshToken);
+                return;
+            }
+        }
     }
 
     /**
@@ -220,6 +230,15 @@ public class TokenCache {
      * @param userId the id of the User whose access token should be deleted
      */
     void deleteAccessTokenByUserId(final String userId) {
-        // TODO implement
+        // Grab all the access tokens
+        List<TokenCacheItem> accessTokens = mTokenCacheAccessor.getAllAccessTokens();
+
+        // Iterate over the Collection to find the access token matching our userId
+        for (TokenCacheItem accessToken : accessTokens) {
+            if (accessToken.getUniqueId().equals(userId)) {
+                mTokenCacheAccessor.deleteAccessToken(accessToken);
+                return;
+            }
+        }
     }
 }
