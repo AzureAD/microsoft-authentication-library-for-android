@@ -28,6 +28,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.customtabs.CustomTabsClient;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.customtabs.CustomTabsServiceConnection;
@@ -47,7 +48,7 @@ public final class AuthenticationActivity extends Activity {
     private String mRequestUrl;
     private int mRequestId;
     private boolean mRestarted;
-    private String chromePackageWithCustomTabSupport;
+    private String mChromePackageWithCustomTabSupport;
     private boolean isCustomTabDisabled;
     private CustomTabsClient mCustomTabsClient;
     private CustomTabsSession mCustomTabsSession;
@@ -84,12 +85,38 @@ public final class AuthenticationActivity extends Activity {
             return;
         }
 
-        chromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(getApplicationContext());
-        isCustomTabDisabled = this.getIntent().getBooleanExtra(InteractiveRequest.DISABLE_CHROMETAB, false);
+        mChromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(getApplicationContext());
         mRequestUrl = this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
         if (useCustomTabs()) {
-            CustomTabsServiceConnection mCustomTabsServiceConnection = new CustomTabsServiceConnection() {
+            warmUpCustomTabs();
+        }
+    }
+
+    private void warmUpCustomTabs() {
+        CustomTabsServiceConnection customTabsServiceConnection = createCustomTabsServiceConnection();
+
+        // Initiate the service-bind action
+        CustomTabsClient.bindCustomTabsService(
+                this,
+                mChromePackageWithCustomTabSupport,
+                customTabsServiceConnection
+        );
+
+        // Create the Intent used to launch the Url
+        mCustomTabsIntent = new CustomTabsIntent.Builder(mCustomTabsSession)
+                .setShowTitle(true)
+                .build();
+        mCustomTabsIntent.intent.setPackage(mChromePackageWithCustomTabSupport);
+    }
+
+    @NonNull
+    private CustomTabsServiceConnection createCustomTabsServiceConnection() {
+        return new CustomTabsServiceConnection() {
                 @Override
                 public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
                     mCustomTabsClient = client;
@@ -107,20 +134,6 @@ public final class AuthenticationActivity extends Activity {
                     mCustomTabsClient = null;
                 }
             };
-
-            // Initiate the service-bind action
-            CustomTabsClient.bindCustomTabsService(
-                    this,
-                    chromePackageWithCustomTabSupport,
-                    mCustomTabsServiceConnection
-            );
-
-            // Create the Intent used to launch the Url
-            mCustomTabsIntent = new CustomTabsIntent.Builder(mCustomTabsSession)
-                    .setShowTitle(true)
-                    .build();
-            mCustomTabsIntent.intent.setPackage(chromePackageWithCustomTabSupport);
-        }
     }
 
     /**
@@ -162,7 +175,7 @@ public final class AuthenticationActivity extends Activity {
     }
 
     private boolean useCustomTabs() {
-        return chromePackageWithCustomTabSupport != null && !isCustomTabDisabled;
+        return mChromePackageWithCustomTabSupport != null && !isCustomTabDisabled;
     }
 
     @Override

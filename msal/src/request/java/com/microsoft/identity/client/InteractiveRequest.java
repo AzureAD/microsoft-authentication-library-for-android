@@ -43,7 +43,6 @@ import java.util.concurrent.CountDownLatch;
 final class InteractiveRequest extends BaseRequest {
     private final Set<String> mAdditionalScope = new HashSet<>();
 
-    static final String DISABLE_CHROMETAB = "disablechrometab"; // TODO: remove it
     static final int BROWSER_FLOW = 1001;
     private static AuthorizationResult sAuthorizationResult;
     private static CountDownLatch sResultLock = new CountDownLatch(1);
