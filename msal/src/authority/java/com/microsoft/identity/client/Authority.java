@@ -64,6 +64,11 @@ abstract class Authority {
      */
     abstract boolean existsInValidatedAuthorityCache(final String userPrincipalName);
 
+    /**
+     * Adds this Authority to the {@link Authority#VALIDATED_AUTHORITY} cache
+     *
+     * @param userPrincipalName the UPN of the current user (if available)
+     */
     abstract void addToValidatedAuthorityCache(final String userPrincipalName);
 
     /**
@@ -108,7 +113,7 @@ abstract class Authority {
      * tenant discovery to get authorize and token endpoint. Developer could turn off authority validation, but for all the
      * authority, we'll do tenant discovery.
      *
-     * @param correlationId Correlation id for the authority validation and tenant discovery.
+     * @param correlationId     Correlation id for the authority validation and tenant discovery.
      * @param userPrincipalName
      * @throws AuthenticationException If error happens during authority or tenant discovery.
      */
