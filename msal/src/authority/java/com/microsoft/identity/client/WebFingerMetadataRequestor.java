@@ -85,8 +85,6 @@ class WebFingerMetadataRequestor
     WebFingerMetadata parseMetadata(final HttpResponse response) throws AuthenticationException {
         // Initialize the metadata container
         final WebFingerMetadata webFingerMetadata = new WebFingerMetadata();
-        final List<Link> links = new ArrayList<>();
-        webFingerMetadata.setLinks(links);
 
         final String responseBody = response.getBody();
 
@@ -117,7 +115,7 @@ class WebFingerMetadataRequestor
                 linkElement.setHref(jsonLink.getString(Link.JSON_KEY_HREF));
 
                 // Add this element to native container
-                links.add(linkElement);
+                webFingerMetadata.getLinks().add(linkElement);
             }
         } catch (JSONException e) {
             throw new AuthenticationException(MSALError.JSON_PARSE_FAILURE);

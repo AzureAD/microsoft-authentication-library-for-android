@@ -23,6 +23,7 @@
 
 package com.microsoft.identity.client;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -44,7 +45,7 @@ final class WebFingerMetadata {
     /**
      * @see <a href="https://tools.ietf.org/html/rfc7033#section-4.4.4">RFC-7033</a>
      */
-    private List<Link> mLinks;
+    private List<Link> mLinks = new ArrayList<>();
 
     /**
      * Gets the subject.
