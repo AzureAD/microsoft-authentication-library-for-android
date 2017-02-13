@@ -49,10 +49,11 @@ public final class AuthenticationActivity extends Activity {
     private int mRequestId;
     private boolean mRestarted;
     private String mChromePackageWithCustomTabSupport;
-    private boolean isCustomTabDisabled;
     private CustomTabsClient mCustomTabsClient;
     private CustomTabsSession mCustomTabsSession;
     private CustomTabsIntent mCustomTabsIntent;
+    private CustomTabsServiceConnection mCustomTabsServiceConnection;
+    private boolean mCustomTabsServiceIsBound;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -92,20 +93,28 @@ public final class AuthenticationActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        if (useCustomTabs()) {
-            warmUpCustomTabs();
+        warmUpCustomTabs();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mCustomTabsServiceIsBound) {
+            unbindService(mCustomTabsServiceConnection);
+            mCustomTabsServiceIsBound = false;
         }
     }
 
     private void warmUpCustomTabs() {
-        CustomTabsServiceConnection customTabsServiceConnection = createCustomTabsServiceConnection();
+        mCustomTabsServiceConnection = createCustomTabsServiceConnection();
 
         // Initiate the service-bind action
         CustomTabsClient.bindCustomTabsService(
                 this,
                 mChromePackageWithCustomTabSupport,
-                customTabsServiceConnection
+                mCustomTabsServiceConnection
         );
+        mCustomTabsServiceIsBound = true;
 
         // Create the Intent used to launch the Url
         mCustomTabsIntent = new CustomTabsIntent.Builder(mCustomTabsSession)
@@ -117,23 +126,23 @@ public final class AuthenticationActivity extends Activity {
     @NonNull
     private CustomTabsServiceConnection createCustomTabsServiceConnection() {
         return new CustomTabsServiceConnection() {
-                @Override
-                public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
-                    mCustomTabsClient = client;
-                    mCustomTabsClient.warmup(0L);
-                    mCustomTabsSession = mCustomTabsClient.newSession(null);
-                    mCustomTabsSession.mayLaunchUrl(
-                            Uri.parse(mRequestUrl),
-                            null, // reserved for future use
-                            null
-                    );
-                }
+            @Override
+            public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
+                mCustomTabsClient = client;
+                mCustomTabsClient.warmup(0L);
+                mCustomTabsSession = mCustomTabsClient.newSession(null);
+                mCustomTabsSession.mayLaunchUrl(
+                        Uri.parse(mRequestUrl),
+                        null, // reserved for future use
+                        null
+                );
+            }
 
-                @Override
-                public void onServiceDisconnected(ComponentName componentName) {
-                    mCustomTabsClient = null;
-                }
-            };
+            @Override
+            public void onServiceDisconnected(ComponentName componentName) {
+                mCustomTabsClient = null;
+            }
+        };
     }
 
     /**
@@ -163,19 +172,8 @@ public final class AuthenticationActivity extends Activity {
 
         mRestarted = true;
 
-        // TODO: remove the check for custom tab is disabled.
-        if (useCustomTabs()) {
-            mCustomTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
-        } else {
-            final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
-            browserIntent.setPackage(MSALUtils.getChromePackage(this.getApplicationContext()));
-            browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
-            this.startActivity(browserIntent);
-        }
-    }
+        mCustomTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
 
-    private boolean useCustomTabs() {
-        return mChromePackageWithCustomTabSupport != null && !isCustomTabDisabled;
     }
 
     @Override
