@@ -88,8 +88,8 @@ public class User {
      */
     // TODO: For preview, signout will only be support regarding to delete token for the user in the cache.
     public void signOut() {
-        mTokenCache.deleteRefreshTokenByUserId(mUniqueId);
-        mTokenCache.deleteAccessTokenByUserId(mUniqueId);
+        mTokenCache.deleteRefreshTokenByUser(this);
+        mTokenCache.deleteAccessTokenByUser(this);
     }
 
     // internal methods provided

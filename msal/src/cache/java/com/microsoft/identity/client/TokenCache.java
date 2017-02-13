@@ -206,39 +206,70 @@ public class TokenCache {
     }
 
     /**
-     * Delete the refresh token associated with the supplied userId
-     *
-     * @param userId the id of the User whose refresh token should be deleted
+     * Delegate to handle the deleting of {@link BaseTokenCacheItem}s
      */
-    void deleteRefreshTokenByUserId(final String userId) {
-        // Grab all the refresh tokens
-        final List<RefreshTokenCacheItem> refreshTokens = mTokenCacheAccessor.getAllRefreshTokens();
+    private interface DeleteTokenAction {
 
-        // Iterate over the Collection to find the refresh token matching our userId
-        for (RefreshTokenCacheItem refreshToken : refreshTokens) {
-            if (refreshToken.getUniqueId().equals(userId)) {
-                // delete this refresh token
-                mTokenCacheAccessor.deleteRefreshToken(refreshToken);
+        /**
+         * Deletes the supplied token
+         *
+         * @param target the {@link BaseTokenCacheItem} to delete
+         */
+        void deleteToken(final BaseTokenCacheItem target);
+    }
+
+    private void deleteTokenByUser(
+            final User user,
+            final List<? extends BaseTokenCacheItem> tokens,
+            final DeleteTokenAction delegate) {
+        for (BaseTokenCacheItem token : tokens) {
+            if (tokenClientIdMatchesUser(user, token)
+                    && tokenHomeObjectIdMatchesUser(user, token)) {
+                delegate.deleteToken(token);
                 return;
             }
         }
     }
 
-    /**
-     * Delete the access token associated with the supplied userId
-     *
-     * @param userId the id of the User whose access token should be deleted
-     */
-    void deleteAccessTokenByUserId(final String userId) {
-        // Grab all the access tokens
-        final List<TokenCacheItem> accessTokens = mTokenCacheAccessor.getAllAccessTokens();
+    private boolean tokenHomeObjectIdMatchesUser(final User user, final BaseTokenCacheItem token) {
+        return token.getHomeObjectId().equals(user.getHomeObjectId());
+    }
 
-        // Iterate over the Collection to find the access token matching our userId
-        for (TokenCacheItem accessToken : accessTokens) {
-            if (accessToken.getUniqueId().equals(userId)) {
-                mTokenCacheAccessor.deleteAccessToken(accessToken);
-                return;
-            }
-        }
+    private boolean tokenClientIdMatchesUser(final User user, final BaseTokenCacheItem token) {
+        return token.getClientId().equals(user.getClientId());
+    }
+
+    /**
+     * Delete the refresh token associated with the supplied {@link User}
+     *
+     * @param user the User whose refresh token should be deleted
+     */
+    void deleteRefreshTokenByUser(final User user) {
+        deleteTokenByUser(
+                user,
+                mTokenCacheAccessor.getAllRefreshTokens(),
+                new DeleteTokenAction() {
+                    @Override
+                    public void deleteToken(final BaseTokenCacheItem target) {
+                        mTokenCacheAccessor.deleteRefreshToken(target);
+                    }
+                });
+    }
+
+    /**
+     * Delete the access token associated with the supplied {@link User}
+     *
+     * @param user the User whose access token should be deleted
+     */
+    void deleteAccessTokenByUser(final User user) {
+        deleteTokenByUser(
+                user,
+                mTokenCacheAccessor.getAllAccessTokens(),
+                new DeleteTokenAction() {
+                    @Override
+                    public void deleteToken(final BaseTokenCacheItem target) {
+                        mTokenCacheAccessor.deleteAccessToken(target);
+                    }
+                });
     }
 }
