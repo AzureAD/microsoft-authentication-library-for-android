@@ -96,7 +96,6 @@ final class ADFSAuthority extends Authority {
         if (mValidateAuthority) {
             final DRSMetadata drsMetadata = loadDRSMetadata(correlationId, userPrincipalName);
             final WebFingerMetadata webFingerMetadata = loadWebFingerMetadata(correlationId, drsMetadata);
-
             final URI authorityURI;
 
             try {
