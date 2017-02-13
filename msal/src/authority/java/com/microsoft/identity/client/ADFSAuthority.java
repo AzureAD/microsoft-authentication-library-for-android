@@ -65,7 +65,6 @@ final class ADFSAuthority extends Authority {
         }
 
         final Map<String, Authority> authorityMap = Authority.VALIDATED_AUTHORITY;
-
         final String authorityUrlStr = mAuthorityUrl.toString();
 
         return authorityMap.containsKey(authorityUrlStr)
