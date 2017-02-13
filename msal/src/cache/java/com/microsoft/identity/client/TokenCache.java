@@ -212,7 +212,7 @@ public class TokenCache {
      */
     void deleteRefreshTokenByUserId(final String userId) {
         // Grab all the refresh tokens
-        List<RefreshTokenCacheItem> refreshTokens = mTokenCacheAccessor.getAllRefreshTokens();
+        final List<RefreshTokenCacheItem> refreshTokens = mTokenCacheAccessor.getAllRefreshTokens();
 
         // Iterate over the Collection to find the refresh token matching our userId
         for (RefreshTokenCacheItem refreshToken : refreshTokens) {
@@ -231,7 +231,7 @@ public class TokenCache {
      */
     void deleteAccessTokenByUserId(final String userId) {
         // Grab all the access tokens
-        List<TokenCacheItem> accessTokens = mTokenCacheAccessor.getAllAccessTokens();
+        final List<TokenCacheItem> accessTokens = mTokenCacheAccessor.getAllAccessTokens();
 
         // Iterate over the Collection to find the access token matching our userId
         for (TokenCacheItem accessToken : accessTokens) {
