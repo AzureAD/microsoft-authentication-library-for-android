@@ -114,7 +114,6 @@ public final class AuthenticationActivity extends Activity {
                 mChromePackageWithCustomTabSupport,
                 mCustomTabsServiceConnection
         );
-        mCustomTabsServiceIsBound = true;
 
         // Create the Intent used to launch the Url
         mCustomTabsIntent = new CustomTabsIntent.Builder(mCustomTabsSession)
@@ -128,6 +127,7 @@ public final class AuthenticationActivity extends Activity {
         return new CustomTabsServiceConnection() {
             @Override
             public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
+                mCustomTabsServiceIsBound = true;
                 mCustomTabsClient = client;
                 mCustomTabsClient.warmup(0L);
                 mCustomTabsSession = mCustomTabsClient.newSession(null);
