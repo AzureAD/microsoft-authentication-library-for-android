@@ -93,7 +93,9 @@ public final class AuthenticationActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        warmUpCustomTabs();
+        if (mChromePackageWithCustomTabSupport != null) {
+            warmUpCustomTabs();
+        }
     }
 
     @Override
@@ -167,8 +169,14 @@ public final class AuthenticationActivity extends Activity {
 
         mRestarted = true;
 
-        mCustomTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
-
+        if (mChromePackageWithCustomTabSupport != null) {
+            mCustomTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
+        } else {
+            final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
+            browserIntent.setPackage(MSALUtils.getChromePackage(this.getApplicationContext()));
+            browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
+            this.startActivity(browserIntent);
+        }
     }
 
     @Override
