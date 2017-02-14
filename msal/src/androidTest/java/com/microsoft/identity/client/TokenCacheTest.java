@@ -77,6 +77,64 @@ public final class TokenCacheTest extends AndroidTestCase {
         AndroidTestUtil.removeAllTokens(mAppContext);
     }
 
+    @Test
+    public void testDeleteRefreshTokenByUser() throws AuthenticationException {
+        // Add a refresh token to the cache for the default user
+        final String testScope = "scope";
+        final String emptyPolicy = "";
+        PublicClientApplicationTest.saveTokenResponse(
+                mTokenCache,
+                AUTHORITY,
+                CLIENT_ID,
+                emptyPolicy,
+                getTokenResponseForDefaultUser(
+                        ACCESS_TOKEN,
+                        REFRESH_TOKEN,
+                        testScope,
+                        AndroidTestUtil.getValidExpiresOn()
+                )
+        );
+        // Delete that token
+        mTokenCache.deleteRefreshTokenByUser(mDefaultUser);
+        // Verify that the cache is empty
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(
+                Collections.singleton(testScope),
+                emptyPolicy
+        );
+        assertNull(mTokenCache.findRefreshToken(requestParameters, mDefaultUser));
+    }
+
+    @Test
+    public void testDeleteRefreshTokenByUserClearsCorrectToken() {
+        // Add a refresh token to the cache that is not associated with the current user
+
+        // Add a refresh token to the cache for the default user
+
+        // Delete the default user's token
+
+        // Verify that that the cache still contains the other token
+    }
+
+    @Test
+    public void testDeleteAccessTokenByUser() {
+        // Add an access token to the cache for the default user
+
+        // Delete that token
+
+        // Verify that the cache is empty
+    }
+
+    @Test
+    public void testDeleteAccessTokenByUserClearsCorrectToken() {
+        // Add an access token to the cache that is not associated with the current user
+
+        // Add an access token to the cache for the default user
+
+        // Delete the default user's token
+
+        // Verify that that the cache still contains the other token
+    }
+
     /**
      * Verify that expired AT is not returned.
      */
@@ -111,7 +169,7 @@ public final class TokenCacheTest extends AndroidTestCase {
      * token.
      */
     @Test
-    public void testGetTokenWithResponseNotContainingAT() throws  AuthenticationException {
+    public void testGetTokenWithResponseNotContainingAT() throws AuthenticationException {
         final String singleScope = "scope";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, "", getTokenResponseForDefaultUser("", "",
                 singleScope, AndroidTestUtil.getValidExpiresOn()));
@@ -266,7 +324,7 @@ public final class TokenCacheTest extends AndroidTestCase {
 
         return new TokenResponse(accessToken, idToken, refreshToken, expiresOn,
                 expiresOn, AndroidTestUtil.getExpirationDate(AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES * 2), scopesInResponse, "Bearer", null);
-    };
+    }
 
     static TokenResponse getTokenResponseForDifferentUser(final String scopesInResponse, final Date expiresOn)
             throws AuthenticationException {
