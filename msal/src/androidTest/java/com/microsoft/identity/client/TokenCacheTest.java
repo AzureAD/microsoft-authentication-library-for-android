@@ -78,27 +78,37 @@ public final class TokenCacheTest extends AndroidTestCase {
         AndroidTestUtil.removeAllTokens(mAppContext);
     }
 
-    @Test
-    public void testDeleteRefreshTokenByUser() throws AuthenticationException {
-        // Add a refresh token to the cache for the default user
+    private AuthenticationRequestParameters addTokenForUser(final boolean useDefault) throws AuthenticationException {
         final String testScope = "scope";
         final String emptyPolicy = "";
+        // Prepare a TokenResponse for either the default of the 'different' User, by param
+        final TokenResponse tokenResponse = useDefault ?
+                getTokenResponseForDefaultUser(
+                        ACCESS_TOKEN,
+                        REFRESH_TOKEN,
+                        testScope,
+                        AndroidTestUtil.getValidExpiresOn()) : // otherwise...
+                getTokenResponseForDifferentUser(
+                        testScope,
+                        AndroidTestUtil.getValidExpiresOn()
+                );
         PublicClientApplicationTest.saveTokenResponse(
                 mTokenCache,
                 AUTHORITY,
                 CLIENT_ID,
                 emptyPolicy,
-                getTokenResponseForDefaultUser(
-                        ACCESS_TOKEN,
-                        REFRESH_TOKEN,
-                        testScope,
-                        AndroidTestUtil.getValidExpiresOn()
-                )
+                tokenResponse
         );
-        final AuthenticationRequestParameters requestParameters = getRequestParameters(
+        return getRequestParameters(
                 Collections.singleton(testScope),
                 emptyPolicy
         );
+    }
+
+    @Test
+    public void testDeleteRefreshTokenByUser() throws AuthenticationException {
+        // Add a refresh token to the cache for the default user
+        final AuthenticationRequestParameters requestParameters = addTokenForUser(true);
         // Verify token was inserted
         assertNotNull(mTokenCache.findRefreshToken(requestParameters, mDefaultUser));
         // Delete that token
@@ -108,14 +118,23 @@ public final class TokenCacheTest extends AndroidTestCase {
     }
 
     @Test
-    public void testDeleteRefreshTokenByUserClearsCorrectToken() {
+    public void testDeleteRefreshTokenByUserClearsCorrectToken() throws AuthenticationException {
         // Add a refresh token to the cache that is not associated with the current user
-
+        final AuthenticationRequestParameters differentUserParams = addTokenForUser(false);
         // Add a refresh token to the cache for the default user
-
+        addTokenForUser(true);
         // Delete the default user's token
-
+        mTokenCache.deleteRefreshTokenByUser(mDefaultUser);
         // Verify that that the cache still contains the other token
+        assertNotNull(
+                mTokenCache.findRefreshToken(
+                        differentUserParams,
+                        new User(
+                                new IdToken(getIdTokenForDifferentUser()
+                                )
+                        )
+                )
+        );
     }
 
     @Test
@@ -353,11 +372,24 @@ public final class TokenCacheTest extends AndroidTestCase {
 
     static TokenResponse getTokenResponseForDifferentUser(final String scopesInResponse, final Date expiresOn)
             throws AuthenticationException {
-        final String idToken = AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", "other user", "other displayable", "sub", "tenant",
-                "version", "other homeOID");
+        final String idToken = getIdTokenForDifferentUser();
 
         return new TokenResponse("access_token", idToken, "refreshToken", expiresOn, expiresOn,
                 AndroidTestUtil.getExpirationDate(AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES * 2), scopesInResponse, "Bearer", null);
+    }
+
+    static String getIdTokenForDifferentUser() {
+        return AndroidTestUtil.createIdToken(
+                AUTHORITY, // audience
+                "issuer", // issuer
+                "test user", // name
+                "other user", // object id
+                "other displayable", // preferredName
+                "sub", // subject
+                "tenant", // tenant id
+                "version", // version
+                "other homeOID" // home object id
+        );
     }
 
     static User getDefaultUser() throws AuthenticationException {
