@@ -138,45 +138,35 @@ public final class TokenCacheTest extends AndroidTestCase {
     }
 
     @Test
-    public void testDeleteRefreshTokenForCorrectUser() {
-        // Add some tokens for other users
-
-        // Add a token for the default User
-
-        // Delete the token for the default user
-
-        // Verify that the other tokens are present
-    }
-
-    @Test
-    public void testDeleteAccessTokenByUser() {
+    public void testDeleteAccessTokenByUser() throws AuthenticationException {
         // Add an access token to the cache for the default user
-
+        final AuthenticationRequestParameters defaultUserRequestParameters = addTokenForUser(true);
+        // Verify that token was inserted
+        assertNotNull(mTokenCache.findAccessToken(defaultUserRequestParameters, mDefaultUser));
         // Delete that token
-
-        // Verify that the cache is empty
+        mTokenCache.deleteAccessTokenByUser(mDefaultUser);
+        // Verify that the token is deleted
+        assertNull(mTokenCache.findAccessToken(defaultUserRequestParameters, mDefaultUser));
     }
 
     @Test
-    public void testDeleteAccessTokenByUserClearsCorrectToken() {
+    public void testDeleteAccessTokenByUserClearsCorrectToken() throws AuthenticationException {
         // Add an access token to the cache that is not associated with the current user
-
+        final AuthenticationRequestParameters differentUserParams = addTokenForUser(false);
         // Add an access token to the cache for the default user
-
+        addTokenForUser(true);
         // Delete the default user's token
-
+        mTokenCache.deleteAccessTokenByUser(mDefaultUser);
         // Verify that that the cache still contains the other token
-    }
-
-    @Test
-    public void testDeleteAccessTokenForCorrectUser() {
-        // Add some tokens for other Users
-
-        // Add a token for the default User
-
-        // Delete the token for the default User
-
-        // Verify that the other tokens are present
+        assertNotNull(
+                mTokenCache.findAccessToken(
+                        differentUserParams,
+                        new User(
+                                new IdToken(getIdTokenForDifferentUser()
+                                )
+                        )
+                )
+        );
     }
 
     /**
