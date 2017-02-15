@@ -67,6 +67,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         AndroidTestUtil.removeAllTokens(mAppContext);
 
         mDefaultUser = getDefaultUser();
+        mDefaultUser.setClientId(CLIENT_ID);
     }
 
     @After
@@ -94,13 +95,15 @@ public final class TokenCacheTest extends AndroidTestCase {
                         AndroidTestUtil.getValidExpiresOn()
                 )
         );
-        // Delete that token
-        mTokenCache.deleteRefreshTokenByUser(mDefaultUser);
-        // Verify that the cache is empty
         final AuthenticationRequestParameters requestParameters = getRequestParameters(
                 Collections.singleton(testScope),
                 emptyPolicy
         );
+        // Verify token was inserted
+        assertNotNull(mTokenCache.findRefreshToken(requestParameters, mDefaultUser));
+        // Delete that token
+        mTokenCache.deleteRefreshTokenByUser(mDefaultUser);
+        // Verify that the token is deleted
         assertNull(mTokenCache.findRefreshToken(requestParameters, mDefaultUser));
     }
 
@@ -113,6 +116,17 @@ public final class TokenCacheTest extends AndroidTestCase {
         // Delete the default user's token
 
         // Verify that that the cache still contains the other token
+    }
+
+    @Test
+    public void testDeleteRefreshTokenForCorrectUser() {
+        // Add some tokens for other users
+
+        // Add a token for the default User
+
+        // Delete the token for the default user
+
+        // Verify that the other tokens are present
     }
 
     @Test
@@ -133,6 +147,17 @@ public final class TokenCacheTest extends AndroidTestCase {
         // Delete the default user's token
 
         // Verify that that the cache still contains the other token
+    }
+
+    @Test
+    public void testDeleteAccessTokenForCorrectUser() {
+        // Add some tokens for other Users
+
+        // Add a token for the default User
+
+        // Delete the token for the default User
+
+        // Verify that the other tokens are present
     }
 
     /**
