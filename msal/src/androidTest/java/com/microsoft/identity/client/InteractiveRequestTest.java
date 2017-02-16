@@ -150,7 +150,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     @Test
-    public void testGetAuthorizationUriWithPolicyUIOptionIsActAsCurrentUser() throws UnsupportedEncodingException {
+    public void testGetAuthorizationUriWithPolicyUIOptionIsActAsCurrentUser() throws UnsupportedEncodingException, AuthenticationException {
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
                 getAuthenticationParams(POLICY, UIOptions.ACT_AS_CURRENT_USER), null);
         final String actualAuthorizationUri = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
@@ -164,7 +164,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     @Test
-    public void testGetAuthorizationUriNoPolicyUIOptionForceLogin() throws UnsupportedEncodingException {
+    public void testGetAuthorizationUriNoPolicyUIOptionForceLogin() throws UnsupportedEncodingException, AuthenticationException {
         final String[] additionalScope = {"additionalScope"};
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
                 getAuthenticationParams("", UIOptions.FORCE_LOGIN), additionalScope);
