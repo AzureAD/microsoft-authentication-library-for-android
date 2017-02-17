@@ -74,6 +74,20 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     static final String LOGIN_HINT = "test@test.onmicrosoft.com";
     static final int TREAD_DELAY_TIME = 20;
 
+    /**
+     * Min length of code_challenge Strings
+     *
+     * @see <a href="https://tools.ietf.org/html/rfc7636#section-4.1">RFC-7636</a>
+     */
+    private static final int CODE_CHALLENGE_LENGTH_MIN = 43;
+
+    /**
+     * Max length of code_challenge Strings
+     *
+     * @see <a href="https://tools.ietf.org/html/rfc7636#section-4.1">RFC-7636</a>
+     */
+    private static final int CODE_CHALLENGE_LENGTH_MAX = 128;
+
     private Context mAppContext;
     private String mRedirectUri;
     private TokenCache mTokenCache;
@@ -161,6 +175,21 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                 queryStrings.get(OauthConstants.Oauth2Parameters.SCOPE)));
         assertTrue("true".equals(queryStrings.get(OauthConstants.Oauth2Parameters.RESTRICT_TO_HINT)));
         verifyCommonQueryString(queryStrings);
+    }
+
+    @Test
+    public void testGetAuthorizationUriContainsPKCEChallenge() throws UnsupportedEncodingException, AuthenticationException {
+        final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
+                getAuthenticationParams(POLICY, UIOptions.ACT_AS_CURRENT_USER), null);
+        final String authUriStr = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
+        final Uri authorizationUri = Uri.parse(authUriStr);
+        final String codeChallenge = authorizationUri.getQueryParameter(OauthConstants.Oauth2Parameters.CODE_CHALLENGE);
+        final String codeChallengeMethod = authorizationUri.getQueryParameter(OauthConstants.Oauth2Parameters.CODE_CHALLENGE_METHOD);
+        assertNotNull(codeChallenge);
+        assertTrue(codeChallenge.length() >= CODE_CHALLENGE_LENGTH_MIN);
+        assertTrue(codeChallenge.length() <= CODE_CHALLENGE_LENGTH_MAX);
+        assertNotNull(codeChallengeMethod);
+        assertTrue(codeChallengeMethod.equals("S256"));
     }
 
     @Test
