@@ -25,19 +25,19 @@ package com.microsoft.identity.client;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * MSAL Internal class representing all the parameters set per request.
  */
 final class AuthenticationRequestParameters {
+    private static final String TAG = AuthenticationRequestParameters.class.getSimpleName();
+
     private final Authority mAuthority;
     private final TokenCache mTokenCache;
     private final Set<String> mScope = new HashSet<>();
     private final String mClientId;
     private final String mPolicy;
-    private final boolean mRestrictToSingleUser;
-    private final UUID mCorrelationId;
+    private final RequestContext mRequestContext;
 
     private String mRedirectUri;
     private String mLoginHint;
@@ -48,10 +48,9 @@ final class AuthenticationRequestParameters {
      * Creates new {@link AuthenticationRequestParameters}.
      */
     private AuthenticationRequestParameters(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
-                                            final String clientId, final String policy, final boolean restrictToSingleUser,
-                                            final UUID correlationId) {
+                                            final String clientId, final String policy, final RequestContext requestContext) {
         // Every acquireToken API call should contain correlation id.
-        if (correlationId == null) {
+        if (requestContext == null || requestContext.getCorrelationId() == null) {
             throw new IllegalArgumentException("correlationId");
         }
 
@@ -69,16 +68,15 @@ final class AuthenticationRequestParameters {
         mScope.addAll(scope);
         mClientId = clientId;
         mPolicy = policy;
-        mRestrictToSingleUser = restrictToSingleUser;
-        mCorrelationId = correlationId;
+        mRequestContext = requestContext;
     }
 
     static AuthenticationRequestParameters create(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
                                                   final String clientId, final String redirectUri, final String policy,
-                                                  final boolean restrictToSingleUser, final String loginHint,
-                                                  final String extraQueryParam, final UIOptions uiOptions, final UUID correlationId) {
+                                                  final String loginHint, final String extraQueryParam, final UIOptions uiOptions,
+                                                  final RequestContext requestContext) {
         final AuthenticationRequestParameters requestParameters = new AuthenticationRequestParameters(authority, tokenCache, scope,
-                clientId, policy, restrictToSingleUser, correlationId);
+                clientId, policy, requestContext);
         requestParameters.setRedirectUri(redirectUri);
         requestParameters.setLoginHint(loginHint);
         requestParameters.setExtraQueryParam(extraQueryParam);
@@ -88,10 +86,8 @@ final class AuthenticationRequestParameters {
     }
 
     static AuthenticationRequestParameters create(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
-                                                  final String clientId, final String policy, final boolean restrictToSingleUser,
-                                                  final UUID correlationId) {
-        return new AuthenticationRequestParameters(authority, tokenCache, scope, clientId, policy, restrictToSingleUser,
-                correlationId);
+                                                  final String clientId, final String policy, final RequestContext requestContext) {
+        return new AuthenticationRequestParameters(authority, tokenCache, scope, clientId, policy, requestContext);
     }
 
     Authority getAuthority() {
@@ -122,10 +118,6 @@ final class AuthenticationRequestParameters {
         return mPolicy;
     }
 
-    boolean getRestrictToSingleUser() {
-        return mRestrictToSingleUser;
-    }
-
     String getLoginHint() {
         return mLoginHint;
     }
@@ -150,7 +142,7 @@ final class AuthenticationRequestParameters {
         mUIOption = uiOption;
     }
 
-    UUID getCorrelationId() {
-        return mCorrelationId;
+    RequestContext getRequestContext() {
+        return mRequestContext;
     }
 }

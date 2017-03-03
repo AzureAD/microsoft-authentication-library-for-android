@@ -127,6 +127,8 @@ final class Oauth2Client {
 
         final Map<String, String> responseItems = parseResponseItems(httpResponse);
 
+        Logger.info(TAG, null, "Http response status code is: " + httpResponse.getStatusCode());
+        Logger.verbosePII(TAG, null, "HttpResponse body is: " + httpResponse.getBody());
 
         if (httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK) {
             return (T) BaseOauth2Response.createSuccessResponse(responseItems);
@@ -187,14 +189,14 @@ final class Oauth2Client {
         final Map<String, List<String>> responseHeader = response.getHeaders();
         if (responseHeader == null
                 || !responseHeader.containsKey(OauthConstants.OauthHeader.CORRELATION_ID_IN_RESPONSE)) {
-            // TODO: Logger.w(TAG, "response doesn't contain headers or header doesn't include correlation id");
+            Logger.warning(TAG, null, "Returned response doesn't have correlation id in the header.");
             return;
         }
 
         final List<String> correlationIdsInHeader = responseHeader.get(
                 OauthConstants.OauthHeader.CORRELATION_ID_IN_RESPONSE);
         if (correlationIdsInHeader == null || correlationIdsInHeader.size() == 0) {
-            // TODO: Logger.w(TAG, "Correlation id returned is empty");
+            Logger.warning(TAG, null, "Returned correlation id is empty.");
             return;
         }
 
@@ -204,12 +206,11 @@ final class Oauth2Client {
                 final UUID correlationId = UUID.fromString(correlationIdInHeader);
                 //CHECKSTYLE:OFF: checkstyle:EmptyBlock
                 if (!correlationId.equals(correlationIdInRequest)) {
-                    // TODO: Logger.warn(TAG, "Correlation id is not matching");
+                    Logger.warning(TAG, null, "Returned correlation is: " + correlationId + ", it doesn't match the sent in the "
+                            + "request: " + correlationIdInRequest);
                 }
             } catch (final IllegalArgumentException e) {
-                //CHECKSTYLE:ON: checkstyle:EmptyBlock
-                //  UUID.fromString throws IllegalArgumentException if {@code uuid} is not formatted correctly.
-                // TODO: Logger.e(TAG, "", e);
+                Logger.error(TAG, null, "Returned correlation id is not formatted correctly", e);
             }
         }
     }

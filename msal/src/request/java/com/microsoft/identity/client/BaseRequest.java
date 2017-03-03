@@ -39,8 +39,10 @@ import java.util.concurrent.Executors;
  * Base request class for handling either interactive request or silent request.
  */
 abstract class BaseRequest {
+    private static final String TAG = BaseRequest.class.getSimpleName();
     private static final ExecutorService THREAD_EXECUTOR = Executors.newSingleThreadExecutor();
     private Handler mHandler;
+    private final RequestContext mRequestContext;
 
     protected final AuthenticationRequestParameters mAuthRequestParameters;
     protected final Context mContext;
@@ -68,6 +70,7 @@ abstract class BaseRequest {
     BaseRequest(final Context appContext, final AuthenticationRequestParameters authenticationRequestParameters) {
         mContext = appContext;
         mAuthRequestParameters = authenticationRequestParameters;
+        mRequestContext = authenticationRequestParameters.getRequestContext();
 
         if (authenticationRequestParameters.getScope() == null
                 || authenticationRequestParameters.getScope().isEmpty()) {
@@ -94,15 +97,19 @@ abstract class BaseRequest {
             public void run() {
                 try {
                     // perform authority validation before doing any token request
-                    mAuthRequestParameters.getAuthority().resolveEndpoints(mAuthRequestParameters.getCorrelationId());
+                    mAuthRequestParameters.getAuthority().resolveEndpoints(mAuthRequestParameters.getRequestContext());
                     preTokenRequest();
                     performTokenRequest();
                     final AuthenticationResult result = postTokenRequest();
                     updateUserForAuthenticationResult(result);
                     callbackOnSuccess(callback, result);
                 } catch (final MSALUserCancelException userCancelException) {
+                    Logger.error(TAG, mAuthRequestParameters.getRequestContext(), "User cancelled the flow.",
+                            userCancelException);
                     callbackOnCancel(callback);
                 } catch (final AuthenticationException authenticationException) {
+                    Logger.error(TAG, mAuthRequestParameters.getRequestContext(), "Error occured during authentication.",
+                            authenticationException);
                     callbackOnError(callback, authenticationException);
                 }
             }
@@ -123,6 +130,8 @@ abstract class BaseRequest {
 
         // For B2C scenario, policy will be provided. We don't send email and profile as scopes.
         if (!MSALUtils.isEmpty(mAuthRequestParameters.getPolicy())) {
+            Logger.verbose(TAG, mRequestContext, "B2C scenario, remove email and "
+                    + "profile from reserved scopes");
             scopes.remove(OauthConstants.Oauth2Value.SCOPE_EMAIL);
             scopes.remove(OauthConstants.Oauth2Value.SCOPE_PROFILE);
         }
@@ -165,9 +174,13 @@ abstract class BaseRequest {
         try {
             tokenResponse = oauth2Client.getToken(mAuthRequestParameters.getAuthority());
         } catch (final RetryableException retryableException) {
+            Logger.error(TAG, mRequestContext, "Token request failed with network error.",
+                    retryableException);
             throw new AuthenticationException(MSALError.SERVER_ERROR, retryableException.getMessage(),
                     retryableException.getCause());
         } catch (final IOException e) {
+            Logger.error(TAG, mRequestContext, "Token request failed with error: "
+                    + e.getMessage(), e);
             throw new AuthenticationException(MSALError.AUTH_FAILED, "Auth failed with the error " + e.getMessage(), e);
         }
 
@@ -205,6 +218,7 @@ abstract class BaseRequest {
         final ConnectivityManager connectivityManager = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         final NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         if (networkInfo == null || !networkInfo.isConnected()) {
+            Logger.error(TAG, mRequestContext, "Network is not avaliable", null);
             throw new AuthenticationException(MSALError.DEVICE_CONNECTION_NOT_AVAILABLE, "Device network connection is not available.");
         }
     }
@@ -228,7 +242,7 @@ abstract class BaseRequest {
      */
     private void buildRequestParameters(final Oauth2Client oauth2Client) {
         oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID,
-                mAuthRequestParameters.getCorrelationId().toString());
+                mRequestContext.getCorrelationId().toString());
 
         // add query parameter, policy is added as qp
         if (!MSALUtils.isEmpty(mAuthRequestParameters.getPolicy())) {

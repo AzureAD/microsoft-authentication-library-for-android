@@ -35,8 +35,8 @@ public interface ILogger {
      *            log is generated).
      * @param logLevel The {@link Logger.LogLevel} for the generated message.
      * @param message The detailed message. Will not contain any PII info.
-     * @param additionalMessage The additional message. May contain PII info. For error level
-     *                          logging, the stack trace will be appended in the additinal message.
+     * @param containsPII True if the log message contains PII, false otherwise. If enablePII is not set
+     *                    on the {@link Logger},
      */
-    void log(String tag, Logger.LogLevel logLevel, String message, String additionalMessage);
+    void log(String tag, Logger.LogLevel logLevel, String message, boolean containsPII);
 }

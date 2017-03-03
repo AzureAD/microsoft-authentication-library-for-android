@@ -190,7 +190,7 @@ final class InteractiveRequest extends BaseRequest {
         requestParameters.put(OauthConstants.Oauth2Parameters.REDIRECT_URI, mAuthRequestParameters.getRedirectUri());
         requestParameters.put(OauthConstants.Oauth2Parameters.RESPONSE_TYPE, OauthConstants.Oauth2ResponseType.CODE);
         requestParameters.put(OauthConstants.OauthHeader.CORRELATION_ID,
-                mAuthRequestParameters.getCorrelationId().toString());
+                mAuthRequestParameters.getRequestContext().getCorrelationId().toString());
         requestParameters.putAll(PlatformIdHelper.getPlatformIdParameters());
 
         if (!MSALUtils.isEmpty(mAuthRequestParameters.getPolicy())) {

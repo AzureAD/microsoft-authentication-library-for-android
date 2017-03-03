@@ -26,7 +26,6 @@ package com.microsoft.identity.client;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -52,11 +51,11 @@ abstract class Authority {
     /**
      * Perform instance discovery to get the tenant discovery endpoint. If it's a valid authority url, tenant discovery
      * endpoint will be return, otherwise exception will be thrown.
-     * @param correlationId The correlation id used to do instance discovery.
+     * @param requestContext The {@link RequestContext} for the instance discovery request.
      * @return The tenant discovery endpoint.
      * @throws AuthenticationException if error happens during the instance discovery.
      */
-    abstract String performInstanceDiscovery(final UUID correlationId) throws AuthenticationException;
+    abstract String performInstanceDiscovery(final RequestContext requestContext) throws AuthenticationException;
 
     /**
      * Create the detailed authority. If the authority url string is for AAD, will create the {@link AADAuthority}, otherwise
@@ -96,20 +95,20 @@ abstract class Authority {
      * endpoint will be returned otherwise exception will be thrown. Returned tenant discovery endpoint will be used for
      * tenant discovery to get authorize and token endpoint. Developer could turn off authority validation, but for all the
      * authority, we'll do tenant discovery.
-     * @param correlationId Correlation id for the authority validation and tenant discovery.
+     * @param requestContext {@link RequestContext} for the authority validation and tenant discovery.
      * @throws AuthenticationException If error happens during authority or tenant discovery.
      */
-    void resolveEndpoints(final UUID correlationId) throws AuthenticationException {
+    void resolveEndpoints(final RequestContext requestContext) throws AuthenticationException {
         if (isAuthorityValidated()) {
             // TODO: log that authority has already been validated
             return;
         }
 
         final TenantDiscoveryResponse tenantDiscoveryResponse;
-        final String openIdConfigurationEndpoint = performInstanceDiscovery(correlationId);
+        final String openIdConfigurationEndpoint = performInstanceDiscovery(requestContext);
         try {
             final Oauth2Client oauth2Client = new Oauth2Client();
-            oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID, correlationId.toString());
+            oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID, requestContext.getCorrelationId().toString());
             tenantDiscoveryResponse = oauth2Client.discoverEndpoints(new URL(openIdConfigurationEndpoint));
         } catch (final MalformedURLException e) {
             throw new AuthenticationException(MSALError.SERVER_ERROR, "malformed openid configuration endpoint", e);

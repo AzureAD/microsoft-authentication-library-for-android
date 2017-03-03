@@ -34,6 +34,8 @@ import java.util.Map;
  * Abstract class to representing the common attributes among TokenResponse, InstanceDiscoveryResponse and TenantDiscoveryResponse.
  */
 class BaseOauth2Response {
+    private static final String TAG = BaseOauth2Response.class.getSimpleName();
+
     private final String mError;
     private final String mErrorDescription;
     private final String[] mErrorCodes;
@@ -84,10 +86,13 @@ class BaseOauth2Response {
 
     static BaseOauth2Response createSuccessResponse(final Map<String, String> responseItems) {
         if (responseItems.get(OauthConstants.InstanceDiscoveryClaim.TENANT_DISCOVERY_ENDPOINT) != null) {
+            Logger.info(TAG, null, "Instance discovery succeeded.");
             return InstanceDiscoveryResponse.createSuccessInstanceDiscoveryResponse(responseItems);
         } else if (responseItems.get(OauthConstants.TenantDiscoveryClaim.AUTHORIZATION_ENDPOINT) != null) {
+            Logger.info(TAG, null, "Tenant discovery succeeded.");
             return TenantDiscoveryResponse.createSuccessTenantDiscoveryResponse(responseItems);
         } else {
+            Logger.info(TAG, null, "Token is returned successfully.");
             return TokenResponse.createSuccessTokenResponse(responseItems);
         }
     }

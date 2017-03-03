@@ -38,7 +38,9 @@ import java.util.Map;
  * {@link TokenCache#serialize(User)} and {@link TokenCache#deserialize(String)} to import and export family tokens
  * to implement SSO. To prevent confusions among external apps, we don't expose these two methods.
  */
-public class TokenCache {
+class TokenCache {
+    private static final String TAG = TokenCache.class.getSimpleName();
+
     private static final int DEFAULT_EXPIRATION_BUFFER = 300;
     private final TokenCacheAccessor mTokenCacheAccessor;
 
@@ -56,7 +58,10 @@ public class TokenCache {
      */
     TokenCacheItem saveAccessToken(final String authority, final String clientId, final String policy, final TokenResponse response)
             throws AuthenticationException {
+        // TODO: Check if authority, clientId and scope are PII. If so, logPII otherwise append them in the message.
         // create the access token cache item
+        Logger.info(TAG, null, "Save access token into cache. Token saved with authority: " + authority
+                + "; Client Id: " + clientId + "; Scopes: " + response.getScope());
         final TokenCacheItem tokenCacheItem = new TokenCacheItem(authority, clientId, policy, response);
         mTokenCacheAccessor.saveAccessToken(tokenCacheItem);
 
@@ -71,6 +76,8 @@ public class TokenCache {
             throws AuthenticationException {
         // if server returns the refresh token back, save it in the cache.
         if (!MSALUtils.isEmpty(response.getRefreshToken())) {
+            Logger.info(TAG, null, "Save refresh token into cache. Refresh saved with authority: " + authority
+                    + "; Client Id: " + clientId);
             final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(authority, clientId, policy, response);
             mTokenCacheAccessor.saveRefreshToken(refreshTokenCacheItem);
         }
@@ -90,6 +97,7 @@ public class TokenCache {
 
         if (tokenCacheItems.isEmpty()) {
             // TODO: log access token not found
+            Logger.info(TAG, null, "No access is found");
             return null;
         }
 
@@ -160,31 +168,7 @@ public class TokenCache {
 
         return Collections.unmodifiableList(new ArrayList<>(allUsers.values()));
     }
-
-    /**
-     * Internal API for the SDK to serialize the family token cache item for the given user.
-     *
-     * The sdk will look up family token cache item with the given user id, and serialize the token cache item and
-     * return it as a serialized blob.
-     * @param user
-     * @return
-     * TODO: add the functionality to find the tokens matching the given user and return the serialize blob.
-     */
-    String serialize(final User user) {
-        return "";
-    }
-
-    /**
-     * Internal API for the sdk to take in the serialized blob and save it into the cache.
-     *
-     * The sdk will deserialize the input blob into the token cache item and save it into cache.
-     * @param serializedBlob
-     * TODO: add the functionality to take in the serialized blob and add the item into the cache.
-     */
-    void deserialize(final String serializedBlob) {
-
-    }
-
+    
     /**
      * @param expiresOn The expires on to check for.
      * @return True if the given date is already expired, false otherwise.

@@ -53,11 +53,11 @@ public final class PublicClientApplication {
 
     private Authority mAuthority;
     private String mClientId;
+    private String mComponent;
     private final TokenCache mTokenCache;
     private String mRedirectUri;
 
     private boolean mValidateAuthority = true;
-    private boolean mRestrictToSingleUser = false;
 
     /**
      * Constructor for {@link PublicClientApplication}.
@@ -88,6 +88,7 @@ public final class PublicClientApplication {
         checkInternetPermission();
 
         mTokenCache = new TokenCache(mAppContext);
+        Logger.info(TAG, null, "Create new public client application.");
     }
 
     /**
@@ -108,15 +109,14 @@ public final class PublicClientApplication {
     }
 
     /**
-     * Set the restrictToSingleUser. Default value is false.
-     * If set, it means the sdk will only allow single unique id in the cache, which also means single user for single
-     * tenant. And the sdk will 1) fail when loading the cache and it finds more than one entry with distinct unique
-     * id. 2) fail when adding entry to the cache and the entry has a different unique id than the one in the cache
-     * 3) cache look up
-     * @param restrictToSingleUser True if the application is on single user mode, false otherwise.
+     * App developer can specify the string identifier to identify the component that consumes MSAL.
+     * This is intended for libraries that consume MSAL that are embedded in apps that might also be using MSAL
+     * as well, so for logging or telemetry app or library developers will be able to differentiate MSAL usage
+     * by the app from MSAL usage by component libraries.
+     * @param component The component identifier string passed into MSAL when creating the application object
      */
-    public void setRestrictToSingleUser(final boolean restrictToSingleUser) {
-        mRestrictToSingleUser = restrictToSingleUser;
+    public void setComponent(final String component) {
+        mComponent = component;
     }
 
     /**
@@ -378,6 +378,7 @@ public final class PublicClientApplication {
         final AuthenticationRequestParameters requestParameters = getRequestParameters(authority, scopes, loginHint,
                 extraQueryParams, policy, uiOptions);
 
+        Logger.info(TAG, requestParameters.getRequestContext(), "Preparing a new interactive request");
         final BaseRequest request = new InteractiveRequest(mActivity, requestParameters, additionalScope);
         request.getToken(callback);
     }
@@ -392,11 +393,12 @@ public final class PublicClientApplication {
         final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? mAuthority
                 : Authority.createAuthority(authority, mValidateAuthority);
         // set correlation if not developer didn't set it.
-        final UUID correlationId = UUID.randomUUID();
+        final RequestContext requestContext = new RequestContext(UUID.randomUUID(), mComponent);
         final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));
         final AuthenticationRequestParameters requestParameters = AuthenticationRequestParameters.create(authorityForRequest, mTokenCache,
-                scopesAsSet, mClientId, policy, mRestrictToSingleUser, correlationId);
+                scopesAsSet, mClientId, policy, requestContext);
 
+        Logger.info(TAG, requestContext, "Preparing a new silent request");
         final BaseRequest request = new SilentRequest(mAppContext, requestParameters, forceRefresh, user);
         request.getToken(callback);
     }
@@ -411,6 +413,6 @@ public final class PublicClientApplication {
         final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));
 
         return AuthenticationRequestParameters.create(authorityForRequest, mTokenCache, scopesAsSet, mClientId,
-                mRedirectUri, policy, mRestrictToSingleUser, loginHint, extraQueryParam, uiOption, correlationId);
+                mRedirectUri, policy, loginHint, extraQueryParam, uiOption, new RequestContext(correlationId, mComponent));
     }
 }

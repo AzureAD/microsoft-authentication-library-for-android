@@ -47,9 +47,12 @@ import android.os.Bundle;
  * &lt /intent-filter>
  */
 public final class BrowserTabActivity extends Activity {
+    private static final String TAG = BrowserTabActivity.class.getSimpleName();
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Logger.info(TAG, null, "BrowserTabActivity onCreate: received redirect from system webview.");
 
         final Intent intent = new Intent(this, AuthenticationActivity.class);
         intent.putExtra(Constants.CUSTOM_TAB_REDIRECT, getIntent().getDataString());
