@@ -39,7 +39,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerializer<Date> {
+final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerializer<Date> {
 
     private static final String TAG = "DateTimeAdapter";
 
@@ -58,18 +58,10 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
     }
 
     /**
-     * Default constructor for {@link DateTimeAdapter}.
-     */
-    public DateTimeAdapter() {
-        // Default constructor, intentionally empty.
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
-    public synchronized Date deserialize(JsonElement json, Type typeOfT,
-            JsonDeserializationContext context) throws JsonParseException {
+    public synchronized Date deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         String jsonString = json.getAsString();
 
         // Datetime string is serialized with iso8601 format by default, should
@@ -77,7 +69,12 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
         try {
             return mISO8601Format.parse(jsonString);
         } catch (final ParseException ignored) {
-//            Logger.v(TAG, "Cannot parse with ISO8601, try again with local format.");
+            Logger.verbose(
+                    TAG,
+                    null, // no correlationId
+                    "Cannot parse with ISO8601, try again with local format.",
+                    null // no additional msg
+            );
             throw new JsonParseException("Could not parse date: " + jsonString);
         }
     }
@@ -86,8 +83,7 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
      * {@inheritDoc}
      */
     @Override
-    public synchronized JsonElement serialize(Date src, Type typeOfSrc,
-            JsonSerializationContext context) {
+    public synchronized JsonElement serialize(Date src, Type typeOfSrc, JsonSerializationContext context) {
         return new JsonPrimitive(mISO8601Format.format(src));
     }
 }
