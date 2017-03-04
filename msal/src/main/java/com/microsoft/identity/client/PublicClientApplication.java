@@ -147,7 +147,8 @@ public final class PublicClientApplication {
             }
         }
 
-        // TODO: log no matching user exist.
+        Logger.info(TAG, null, "No user found matching the given user identifier.");
+        Logger.infoPII(TAG, null, "Given user identifier is: " + userIdentifier);
         return null;
     }
 

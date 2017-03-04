@@ -71,6 +71,9 @@ final class AuthenticationRequestParameters {
         mRequestContext = requestContext;
     }
 
+    /**
+     * Creates the {@link AuthenticationRequestParameters} with all the given parameters.
+     */
     static AuthenticationRequestParameters create(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
                                                   final String clientId, final String redirectUri, final String policy,
                                                   final String loginHint, final String extraQueryParam, final UIOptions uiOptions,
@@ -85,6 +88,9 @@ final class AuthenticationRequestParameters {
         return requestParameters;
     }
 
+    /**
+     * Creates the {@link AuthenticationRequestParameters} with all the given parameters.
+     */
     static AuthenticationRequestParameters create(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
                                                   final String clientId, final String policy, final RequestContext requestContext) {
         return new AuthenticationRequestParameters(authority, tokenCache, scope, clientId, policy, requestContext);

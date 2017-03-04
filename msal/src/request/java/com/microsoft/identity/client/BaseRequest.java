@@ -100,15 +100,18 @@ abstract class BaseRequest {
                     mAuthRequestParameters.getAuthority().resolveEndpoints(mAuthRequestParameters.getRequestContext());
                     preTokenRequest();
                     performTokenRequest();
+
                     final AuthenticationResult result = postTokenRequest();
                     updateUserForAuthenticationResult(result);
+
+                    Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Token request succeeds.");
                     callbackOnSuccess(callback, result);
                 } catch (final MSALUserCancelException userCancelException) {
                     Logger.error(TAG, mAuthRequestParameters.getRequestContext(), "User cancelled the flow.",
                             userCancelException);
                     callbackOnCancel(callback);
                 } catch (final AuthenticationException authenticationException) {
-                    Logger.error(TAG, mAuthRequestParameters.getRequestContext(), "Error occured during authentication.",
+                    Logger.error(TAG, mAuthRequestParameters.getRequestContext(), "Error occurred during authentication.",
                             authenticationException);
                     callbackOnError(callback, authenticationException);
                 }
@@ -218,7 +221,7 @@ abstract class BaseRequest {
         final ConnectivityManager connectivityManager = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         final NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         if (networkInfo == null || !networkInfo.isConnected()) {
-            Logger.error(TAG, mRequestContext, "Network is not avaliable", null);
+            Logger.error(TAG, mRequestContext, "No active network is available on the device.", null);
             throw new AuthenticationException(MSALError.DEVICE_CONNECTION_NOT_AVAILABLE, "Device network connection is not available.");
         }
     }

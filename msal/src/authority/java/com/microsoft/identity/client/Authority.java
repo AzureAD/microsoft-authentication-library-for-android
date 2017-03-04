@@ -99,8 +99,9 @@ abstract class Authority {
      * @throws AuthenticationException If error happens during authority or tenant discovery.
      */
     void resolveEndpoints(final RequestContext requestContext) throws AuthenticationException {
+        Logger.info(TAG, requestContext, "Perform authority validation and tenant discovery.");
         if (isAuthorityValidated()) {
-            // TODO: log that authority has already been validated
+            Logger.info(TAG, requestContext, "Authority has been validated.");
             return;
         }
 

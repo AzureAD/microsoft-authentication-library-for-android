@@ -101,6 +101,7 @@ final class HttpRequest {
             throws IOException, RetryableException {
         final HttpRequest httpRequest = new HttpRequest(requestUrl, requestHeaders, REQUEST_METHOD_POST,
                 requestContent, requestContentType);
+        Logger.verbose(TAG, null, "Sending Http Post request.");
         return httpRequest.send();
     }
 
@@ -112,6 +113,8 @@ final class HttpRequest {
     public static HttpResponse sendGet(final URL requestUrl, final Map<String, String> requestHeaders)
             throws IOException, RetryableException {
         final HttpRequest httpRequest = new HttpRequest(requestUrl, requestHeaders, REQUEST_METHOD_GET);
+
+        Logger.verbose(TAG, null, "Sending Http Get request.");
         return httpRequest.send();
     }
 
@@ -181,6 +184,7 @@ final class HttpRequest {
 
             final int statusCode = urlConnection.getResponseCode();
             final String responseBody = responseStream == null ? "" : convertStreamToString(responseStream);
+            Logger.verbose(TAG, null, "Returned status code is: " + statusCode);
             response = new HttpResponse(statusCode, responseBody, urlConnection.getHeaderFields());
         } finally {
             safeCloseStream(responseStream);

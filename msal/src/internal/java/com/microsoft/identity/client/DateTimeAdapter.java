@@ -39,16 +39,12 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
+/**
+ * Internal class to serialize the date into the same format.
+ */
 final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerializer<Date> {
 
     private static final String TAG = "DateTimeAdapter";
-
-    private final DateFormat mEnUsFormat = DateFormat.getDateTimeInstance(DateFormat.DEFAULT,
-            DateFormat.DEFAULT, Locale.US);
-
-    private final DateFormat mLocalFormat = DateFormat.getDateTimeInstance(DateFormat.DEFAULT,
-            DateFormat.DEFAULT);
-
     private final DateFormat mISO8601Format = buildIso8601Format();
 
     private static DateFormat buildIso8601Format() {
@@ -71,9 +67,8 @@ final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerializer<Da
         } catch (final ParseException ignored) {
             Logger.verbose(
                     TAG,
-                    null, // no correlationId
-                    "Cannot parse with ISO8601, try again with local format.",
-                    null // no additional msg
+                    null, // no request context
+                    "Cannot parse with ISO8601, try again with local format."
             );
             throw new JsonParseException("Could not parse date: " + jsonString);
         }
