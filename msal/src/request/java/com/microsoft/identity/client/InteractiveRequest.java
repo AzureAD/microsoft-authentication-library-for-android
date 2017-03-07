@@ -330,6 +330,10 @@ final class InteractiveRequest extends BaseRequest {
              * "code_challenge_method" value must be set either to "S256" or
              * a value defined by a cryptographically secure
              * "code_challenge_method" extension. In this implementation "S256" is used.
+             * <p>
+             * Example for the S256 code_challenge_method
+             *
+             * @see <a href="https://tools.ietf.org/html/rfc7636#page-17">RFC-7636</a>
              */
             enum ChallengeMethod {
                 S256
