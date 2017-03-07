@@ -321,7 +321,15 @@ final class InteractiveRequest extends BaseRequest {
 
             /**
              * The client creates a code challenge derived from the code
-             * verifier by using one of the following transformations
+             * verifier by using one of the following transformations.
+             * <p>
+             * Sophisticated attack scenarios allow the attacker to
+             * observe requests (in addition to responses) to the
+             * authorization endpoint.  The attacker is, however, not able to
+             * act as a man in the middle. To mitigate this,
+             * "code_challenge_method" value must be set either to "S256" or
+             * a value defined by a cryptographically secure
+             * "code_challenge_method" extension. In this implementation "S256" is used.
              */
             enum ChallengeMethod {
                 S256
