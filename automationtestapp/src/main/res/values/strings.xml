@@ -37,4 +37,7 @@
     <string name="done">Done</string>
     <string name="invalidate_frt">Invalidate FRT</string>
     <string name="expire_at_and_invalidate_rt">Expire AT and Invalidate RT</string>
+    <string name="get_users">Get Users</string>
+    <string name="user_homeobjectid">User.homeObjectId</string>
+    <string name="sign_out">Sign Out</string>
 </resources>
