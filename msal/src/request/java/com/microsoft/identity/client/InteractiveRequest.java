@@ -135,6 +135,7 @@ final class InteractiveRequest extends BaseRequest {
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.CODE, sAuthorizationResult.getAuthCode());
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.REDIRECT_URI,
                 mAuthRequestParameters.getRedirectUri());
+        // Adding code verifier per PKCE spec. See https://tools.ietf.org/html/rfc7636
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.CODE_VERIFIER, mPKCEChallenge.codeVerifier);
     }
 
