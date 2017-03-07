@@ -342,6 +342,12 @@ final class InteractiveRequest extends BaseRequest {
             /**
              * A cryptographically random string that is used to correlate the
              * authorization request to the token request.
+             * <p>
+             * code-verifier = 43*128unreserved
+             * where...
+             * unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
+             * ALPHA = %x41-5A / %x61-7A
+             * DIGIT = %x30-39
              */
             final String codeVerifier;
 
