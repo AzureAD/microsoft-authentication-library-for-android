@@ -95,8 +95,10 @@ class TokenCache {
         if (tokenCacheItems.isEmpty()) {
             Logger.info(TAG, requestParam.getRequestContext(), "No access is found for scopes: "
                     + MSALUtils.convertSetToString(requestParam.getScope(), " "));
-            Logger.infoPII(TAG, requestParam.getRequestContext(), "User displayable: " + user.getDisplayableId()
-                    + " ;User home object id: " + user.getHomeObjectId());
+            if (user != null) {
+                Logger.infoPII(TAG, requestParam.getRequestContext(), "User displayable: " + user.getDisplayableId()
+                        + " ;User home object id: " + user.getHomeObjectId());
+            }
             return null;
         }
 

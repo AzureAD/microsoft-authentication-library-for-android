@@ -105,7 +105,6 @@ public final class AuthenticationActivity extends Activity {
 
         final String chromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(
                 this.getApplicationContext());
-        final boolean isCustomTabDisabled = this.getIntent().getBooleanExtra(InteractiveRequest.DISABLE_CHROMETAB, false);
         mRequestUrl =  this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
 
         Logger.infoPII(TAG, null, "Request to launch is: " + mRequestUrl);
