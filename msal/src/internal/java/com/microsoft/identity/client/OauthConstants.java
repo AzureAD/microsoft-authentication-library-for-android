@@ -42,6 +42,9 @@ final class OauthConstants {
         static final String POLICY = "p";
         static final String HAS_CHROME = "haschrome";
         static final String STATE = "state";
+        static final String CODE_CHALLENGE = "code_challenge";
+        static final String CODE_VERIFIER = "code_verifier";
+        static final String CODE_CHALLENGE_METHOD = "code_challenge_method";
     }
 
     static final class Oauth2ResponseType {
