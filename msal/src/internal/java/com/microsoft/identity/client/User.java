@@ -37,6 +37,7 @@ public class User {
 
     /**
      * Internal constructor to create {@link User} from the {@link IdToken}.
+     *
      * @param idToken
      */
     User(final IdToken idToken) {
@@ -81,15 +82,18 @@ public class User {
     public String getIdentityProvider() {
         return mIdentityProvider;
     }
+
     /**
      * Sign out the user from the application. TODO: from all application or the single one?
      */
     // TODO: For preview, signout will only be support regarding to delete token for the user in the cache.
     public void signOut() {
-        // TODO: provide the signout function. Will clear the token cache for the particular user.
+        mTokenCache.deleteRefreshTokenByUser(this);
+        mTokenCache.deleteAccessTokenByUser(this);
     }
 
     // internal methods provided
+
     /**
      * @return The client id of the application that the user is authenticated to.
      */
@@ -111,6 +115,7 @@ public class User {
 
     /**
      * Used by developer to set the User object when doing the acquire token API call.
+     *
      * @param uniqueId
      */
     void setUniqueId(final String uniqueId) {
@@ -119,6 +124,7 @@ public class User {
 
     /**
      * Used by developer to set the User object when making acquire token API call.
+     *
      * @param displayableId
      */
     void setDisplayableId(final String displayableId) {

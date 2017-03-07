@@ -44,6 +44,7 @@ public class TokenCache {
 
     /**
      * Constructor for {@link TokenCache}.
+     *
      * @param context The application context.
      */
     TokenCache(final Context context) {
@@ -52,6 +53,7 @@ public class TokenCache {
 
     /**
      * Create {@link TokenCacheItem} from {@link TokenResponse} and save it into cache.
+     *
      * @throws AuthenticationException if error happens when creating the {@link TokenCacheItem}.
      */
     TokenCacheItem saveAccessToken(final String authority, final String clientId, final String policy, final TokenResponse response)
@@ -65,6 +67,7 @@ public class TokenCache {
 
     /**
      * Create {@link RefreshTokenCacheItem} from {@link TokenResponse} and save it into cache.
+     *
      * @throws AuthenticationException if error happens when creating the {@link RefreshTokenCacheItem}.
      */
     void saveRefreshToken(final String authority, final String clientId, final String policy, final TokenResponse response)
@@ -78,8 +81,9 @@ public class TokenCache {
 
     /**
      * Find access token matching authority, clientid, scope, user and policy in the cache.
+     *
      * @param requestParam The {@link AuthenticationRequestParameters} containing the request data to get the token for.
-     * @param user The {@link User} to get the token for.
+     * @param user         The {@link User} to get the token for.
      * @return The {@link TokenCacheItem} stored in the cache, could be NULL if there is no access token or there are
      * multiple access token token items in the cache.
      */
@@ -132,6 +136,7 @@ public class TokenCache {
 
     /**
      * Delete refresh token items.
+     *
      * @param rtItem The item to delete.
      */
     void deleteRT(final BaseTokenCacheItem rtItem) {
@@ -140,6 +145,7 @@ public class TokenCache {
 
     /**
      * An immutable list of signed-in users for the given client id.
+     *
      * @param clientId The application client id that is used to retrieve for all the signed in users.
      * @return The list of signed in users for the given client id.
      * @throws AuthenticationException
@@ -163,24 +169,26 @@ public class TokenCache {
 
     /**
      * Internal API for the SDK to serialize the family token cache item for the given user.
-     *
+     * <p>
      * The sdk will look up family token cache item with the given user id, and serialize the token cache item and
      * return it as a serialized blob.
+     *
      * @param user
      * @return
-     * TODO: add the functionality to find the tokens matching the given user and return the serialize blob.
      */
+    // TODO: add the functionality to find the tokens matching the given user and return the serialize blob.
     String serialize(final User user) {
         return "";
     }
 
     /**
      * Internal API for the sdk to take in the serialized blob and save it into the cache.
-     *
+     * <p>
      * The sdk will deserialize the input blob into the token cache item and save it into cache.
+     *
      * @param serializedBlob
-     * TODO: add the functionality to take in the serialized blob and add the item into the cache.
      */
+    // TODO: add the functionality to take in the serialized blob and add the item into the cache.
     void deserialize(final String serializedBlob) {
 
     }
@@ -195,5 +203,73 @@ public class TokenCache {
         final Date validity = calendar.getTime();
 
         return expiresOn != null && expiresOn.before(validity);
+    }
+
+    /**
+     * Delegate to handle the deleting of {@link BaseTokenCacheItem}s
+     */
+    private interface DeleteTokenAction {
+
+        /**
+         * Deletes the supplied token
+         *
+         * @param target the {@link BaseTokenCacheItem} to delete
+         */
+        void deleteToken(final BaseTokenCacheItem target);
+    }
+
+    private void deleteTokenByUser(
+            final User user,
+            final List<? extends BaseTokenCacheItem> tokens,
+            final DeleteTokenAction delegate) {
+        for (BaseTokenCacheItem token : tokens) {
+            if (tokenClientIdMatchesUser(user, token)
+                    && tokenHomeObjectIdMatchesUser(user, token)) {
+                delegate.deleteToken(token);
+                return;
+            }
+        }
+    }
+
+    private boolean tokenHomeObjectIdMatchesUser(final User user, final BaseTokenCacheItem token) {
+        return token.getHomeObjectId().equals(user.getHomeObjectId());
+    }
+
+    private boolean tokenClientIdMatchesUser(final User user, final BaseTokenCacheItem token) {
+        return token.getClientId().equals(user.getClientId());
+    }
+
+    /**
+     * Delete the refresh token associated with the supplied {@link User}
+     *
+     * @param user the User whose refresh token should be deleted
+     */
+    void deleteRefreshTokenByUser(final User user) {
+        deleteTokenByUser(
+                user,
+                mTokenCacheAccessor.getAllRefreshTokens(),
+                new DeleteTokenAction() {
+                    @Override
+                    public void deleteToken(final BaseTokenCacheItem target) {
+                        mTokenCacheAccessor.deleteRefreshToken(target);
+                    }
+                });
+    }
+
+    /**
+     * Delete the access token associated with the supplied {@link User}
+     *
+     * @param user the User whose access token should be deleted
+     */
+    void deleteAccessTokenByUser(final User user) {
+        deleteTokenByUser(
+                user,
+                mTokenCacheAccessor.getAllAccessTokens(),
+                new DeleteTokenAction() {
+                    @Override
+                    public void deleteToken(final BaseTokenCacheItem target) {
+                        mTokenCacheAccessor.deleteAccessToken(target);
+                    }
+                });
     }
 }
