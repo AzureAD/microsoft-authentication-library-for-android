@@ -41,55 +41,55 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View view) {
             switch (view.getId()) {
                 case acquireToken:
-                    acquireToken();
+                    onAcquireTokenClicked();
                     break;
                 case acquireTokenSilent:
-                    acquireTokenSilent();
+                    onAcquireTokenSilentClicked();
                     break;
                 case expireAccessToken:
-                    expireAccessToken();
+                    onExpireAccessTokenClicked();
                     break;
                 case invalidateRefreshToken:
-                    invalidateRefreshToken();
+                    onInvalidateRefreshTokenClicked();
                     break;
                 case invalidateFamilyRefreshToken:
-                    invalidateFamilyRefreshToken();
+                    onInvalidateFamilyRefreshTokenClicked();
                     break;
                 case readCache:
-                    readCache();
+                    onReadCacheClicked();
                     break;
                 case clearCache:
-                    clearCache();
+                    onClearCacheClicked();
                     break;
             }
         }
     };
 
-    private void acquireToken() {
+    private void onAcquireTokenClicked() {
         // TODO
     }
 
-    private void acquireTokenSilent() {
+    private void onAcquireTokenSilentClicked() {
         // TODO
     }
 
-    private void expireAccessToken() {
+    private void onExpireAccessTokenClicked() {
         // TODO
     }
 
-    private void invalidateRefreshToken() {
+    private void onInvalidateRefreshTokenClicked() {
         // TODO
     }
 
-    private void invalidateFamilyRefreshToken() {
+    private void onInvalidateFamilyRefreshTokenClicked() {
         // TODO
     }
 
-    private void readCache() {
+    private void onReadCacheClicked() {
         // TODO
     }
 
-    private void clearCache() {
+    private void onClearCacheClicked() {
         // TODO
     }
 }
