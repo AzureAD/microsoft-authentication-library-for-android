@@ -29,12 +29,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 
 import static com.microsoft.aad.automation.testapp.R.id.acquireToken;
 import static com.microsoft.aad.automation.testapp.R.id.acquireTokenSilent;
 import static com.microsoft.aad.automation.testapp.R.id.clearCache;
-import static com.microsoft.aad.automation.testapp.R.id.et_userHomeId;
 import static com.microsoft.aad.automation.testapp.R.id.expireAccessToken;
 import static com.microsoft.aad.automation.testapp.R.id.getUsers;
 import static com.microsoft.aad.automation.testapp.R.id.invalidateRefreshToken;
@@ -57,14 +55,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             signout
     };
 
-    private EditText mUserHomeObjectId;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(activity_main);
-
-        mUserHomeObjectId = (EditText) findViewById(et_userHomeId);
 
         for (int viewId : sButtonIds) {
             findViewById(viewId).setOnClickListener(this);
@@ -83,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case acquireTokenSilent:
             case expireAccessToken:
             case invalidateRefreshToken:
+            case signout:
                 launchAuthenticationInfoActivity(view.getId());
                 break;
             case readCache:
@@ -93,9 +88,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case getUsers:
                 onGetUsersClicked();
-                break;
-            case signout:
-                onSignOutClicked();
                 break;
             default:
                 throw new IllegalStateException("Click event not matched to an action");
@@ -117,11 +109,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void onGetUsersClicked() {
-        // TODO
-    }
-
-    private void onSignOutClicked() {
-        final String userHomeObjectId = mUserHomeObjectId.getText().toString();
         // TODO
     }
 }
