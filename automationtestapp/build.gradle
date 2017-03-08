@@ -49,5 +49,4 @@ android {
 dependencies {
     compile project(':msal')
     compile 'com.android.support:appcompat-v7:25.2.0'
-    compile 'com.android.support.constraint:constraint-layout:1.0.0-alpha9'
 }
