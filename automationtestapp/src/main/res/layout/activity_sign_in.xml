@@ -1,4 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
   ~ // Copyright (c) Microsoft Corporation.
   ~ // All rights reserved.
   ~ //
@@ -21,26 +23,28 @@
   ~ // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
   ~ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   ~ // THE SOFTWARE.
--->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.microsoft.aad.automation.testapp">
+  -->
 
-    <application
-        android:name=".AndroidAutomationApp"
-        android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:weightSum="1">
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".SignInActivity" />
-        <activity android:name=".ResultActivity"></activity>
-    </application>
+    <EditText
+        android:id="@+id/requestInfo"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_weight="1"
+        android:backgroundTint="@color/colorPrimaryDark"
+        android:hint="@string/enter_signin_info" />
 
-</manifest>
+    <Button
+        android:id="@+id/requestGo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/buttonColor"
+        android:text="@string/go" />
+</LinearLayout>

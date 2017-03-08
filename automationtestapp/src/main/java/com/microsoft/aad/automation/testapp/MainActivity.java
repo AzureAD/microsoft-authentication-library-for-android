@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.automation.testapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -30,20 +31,19 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.microsoft.testapp.R;
+import static com.microsoft.aad.automation.testapp.R.id.acquireToken;
+import static com.microsoft.aad.automation.testapp.R.id.acquireTokenSilent;
+import static com.microsoft.aad.automation.testapp.R.id.clearCache;
+import static com.microsoft.aad.automation.testapp.R.id.et_userHomeId;
+import static com.microsoft.aad.automation.testapp.R.id.expireAccessToken;
+import static com.microsoft.aad.automation.testapp.R.id.getUsers;
+import static com.microsoft.aad.automation.testapp.R.id.invalidateFamilyRefreshToken;
+import static com.microsoft.aad.automation.testapp.R.id.invalidateRefreshToken;
+import static com.microsoft.aad.automation.testapp.R.id.readCache;
+import static com.microsoft.aad.automation.testapp.R.id.signout;
+import static com.microsoft.aad.automation.testapp.R.layout.activity_main;
 
-import static com.microsoft.testapp.R.id.acquireToken;
-import static com.microsoft.testapp.R.id.acquireTokenSilent;
-import static com.microsoft.testapp.R.id.clearCache;
-import static com.microsoft.testapp.R.id.et_userHomeId;
-import static com.microsoft.testapp.R.id.expireAccessToken;
-import static com.microsoft.testapp.R.id.getUsers;
-import static com.microsoft.testapp.R.id.invalidateFamilyRefreshToken;
-import static com.microsoft.testapp.R.id.invalidateRefreshToken;
-import static com.microsoft.testapp.R.id.readCache;
-import static com.microsoft.testapp.R.id.signout;
-
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
 
@@ -64,75 +64,51 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(activity_main);
 
         mUserHomeObjectId = (EditText) findViewById(et_userHomeId);
 
         for (int viewId : sButtonIds) {
-            findViewById(viewId).setOnClickListener(mClickListener);
+            findViewById(viewId).setOnClickListener(this);
         }
     }
 
-    View.OnClickListener mClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            if (view instanceof Button) {
-                Button clicked = (Button) view;
-                Log.v(LOG_TAG, "Clicked: [" + clicked.getText() + "]");
-            }
-
-            switch (view.getId()) {
-                case acquireToken:
-                    onAcquireTokenClicked();
-                    break;
-                case acquireTokenSilent:
-                    onAcquireTokenSilentClicked();
-                    break;
-                case expireAccessToken:
-                    onExpireAccessTokenClicked();
-                    break;
-                case invalidateRefreshToken:
-                    onInvalidateRefreshTokenClicked();
-                    break;
-                case invalidateFamilyRefreshToken:
-                    onInvalidateFamilyRefreshTokenClicked();
-                    break;
-                case readCache:
-                    onReadCacheClicked();
-                    break;
-                case clearCache:
-                    onClearCacheClicked();
-                    break;
-                case getUsers:
-                    onGetUsersClicked();
-                    break;
-                case signout:
-                    onSignOutClicked();
-                    break;
-                default:
-                    throw new IllegalStateException("Click event not matched to an action");
-            }
+    @Override
+    public void onClick(View view) {
+        if (view instanceof Button) {
+            Button clicked = (Button) view;
+            Log.v(LOG_TAG, "Clicked: [" + clicked.getText() + "]");
         }
-    };
 
-    private void onAcquireTokenClicked() {
-        // TODO
+        switch (view.getId()) {
+            case acquireToken:
+            case acquireTokenSilent:
+            case expireAccessToken:
+            case invalidateRefreshToken:
+            case invalidateFamilyRefreshToken:
+                launchAuthenticationInfoActivity(view.getId());
+                break;
+            case readCache:
+                onReadCacheClicked();
+                break;
+            case clearCache:
+                onClearCacheClicked();
+                break;
+            case getUsers:
+                onGetUsersClicked();
+                break;
+            case signout:
+                onSignOutClicked();
+                break;
+            default:
+                throw new IllegalStateException("Click event not matched to an action");
+        }
     }
 
-    private void onAcquireTokenSilentClicked() {
-        // TODO
-    }
-
-    private void onExpireAccessTokenClicked() {
-        // TODO
-    }
-
-    private void onInvalidateRefreshTokenClicked() {
-        // TODO
-    }
-
-    private void onInvalidateFamilyRefreshTokenClicked() {
-        // TODO
+    private void launchAuthenticationInfoActivity(int flowCode) {
+        final Intent intent = new Intent(this, SignInActivity.class);
+        intent.putExtra(SignInActivity.FLOW_CODE, flowCode);
+        startActivity(intent);
     }
 
     private void onReadCacheClicked() {
