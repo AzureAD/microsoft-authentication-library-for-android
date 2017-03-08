@@ -184,9 +184,9 @@ abstract class BaseRequest {
     AuthenticationResult postTokenRequest() throws AuthenticationException {
         final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
         final TokenCacheItem tokenCacheItem = tokenCache.saveAccessToken(mAuthRequestParameters.getAuthority().getAuthority(),
-                mAuthRequestParameters.getClientId(), mAuthRequestParameters.getPolicy(), mTokenResponse);
+                mAuthRequestParameters.getClientId(), mTokenResponse);
         tokenCache.saveRefreshToken(mAuthRequestParameters.getAuthority().getAuthority(), mAuthRequestParameters.getClientId(),
-                mAuthRequestParameters.getPolicy(), mTokenResponse);
+                mTokenResponse);
 
         return new AuthenticationResult(tokenCacheItem);
     }

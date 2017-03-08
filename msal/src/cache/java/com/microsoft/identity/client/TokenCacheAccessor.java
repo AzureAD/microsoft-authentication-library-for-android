@@ -105,7 +105,7 @@ final class TokenCacheAccessor {
         final List<TokenCacheItem> foundATs = new ArrayList<>();
         for (final String accessTokenValue: accessTokens.values()) {
             final TokenCacheItem tokenCacheItem = mGson.fromJson(accessTokenValue, TokenCacheItem.class);
-            if (tokenCacheKey.matches(tokenCacheItem) && tokenCacheKey.isScopeEqual(tokenCacheItem)) {
+            if (tokenCacheKey.matches(tokenCacheItem)) {
                 foundATs.add(tokenCacheItem);
             }
         }
@@ -130,6 +130,13 @@ final class TokenCacheAccessor {
         }
 
         return foundRTs;
+    }
+
+    void deleteAccessToken(final BaseTokenCacheItem atItem) {
+        final String key = TokenCacheKey.extractKeyForAT(atItem).toString();
+        final Editor editor = mAccessTokenSharedPreference.edit();
+        editor.remove(key);
+        editor.apply();
     }
 
     /**
@@ -187,5 +194,17 @@ final class TokenCacheAccessor {
         }
 
         return Collections.unmodifiableList(allRTsForApp);
+    }
+
+    List<TokenCacheItem> getAllAccessTokensForGivenClientId(final String clientId) {
+        final List<TokenCacheItem> allATs = getAllAccessTokens();
+        final List<TokenCacheItem> allATsForApp = new ArrayList<>(allATs.size());
+        for (final TokenCacheItem accessTokenCacheItem : allATs) {
+            if (clientId.equals(accessTokenCacheItem.getClientId())) {
+                allATsForApp.add(accessTokenCacheItem);
+            }
+        }
+
+        return Collections.unmodifiableList(allATsForApp);
     }
 }

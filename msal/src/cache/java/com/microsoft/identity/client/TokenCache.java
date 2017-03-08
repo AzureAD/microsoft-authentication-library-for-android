@@ -54,12 +54,20 @@ public class TokenCache {
      * Create {@link TokenCacheItem} from {@link TokenResponse} and save it into cache.
      * @throws AuthenticationException if error happens when creating the {@link TokenCacheItem}.
      */
-    TokenCacheItem saveAccessToken(final String authority, final String clientId, final String policy, final TokenResponse response)
+    TokenCacheItem saveAccessToken(final String authority, final String clientId, final TokenResponse response)
             throws AuthenticationException {
         // create the access token cache item
-        final TokenCacheItem tokenCacheItem = new TokenCacheItem(authority, clientId, policy, response);
-        mTokenCacheAccessor.saveAccessToken(tokenCacheItem);
+        final TokenCacheItem tokenCacheItem = new TokenCacheItem(authority, clientId, response);
 
+        // check for intersection and delete all the cache entries with intersecting scopes.
+        final List<TokenCacheItem> accessTokenItems = mTokenCacheAccessor.getAllAccessTokensForGivenClientId(clientId);
+        for (final TokenCacheItem accessTokenItem : accessTokenItems) {
+            if (MSALUtils.isScopeIntersects(tokenCacheItem.getScope(), accessTokenItem.getScope())) {
+                mTokenCacheAccessor.deleteAccessToken(accessTokenItem);
+            }
+        }
+
+        mTokenCacheAccessor.saveAccessToken(tokenCacheItem);
         return tokenCacheItem;
     }
 
@@ -67,11 +75,11 @@ public class TokenCache {
      * Create {@link RefreshTokenCacheItem} from {@link TokenResponse} and save it into cache.
      * @throws AuthenticationException if error happens when creating the {@link RefreshTokenCacheItem}.
      */
-    void saveRefreshToken(final String authority, final String clientId, final String policy, final TokenResponse response)
+    void saveRefreshToken(final String authority, final String clientId, final TokenResponse response)
             throws AuthenticationException {
         // if server returns the refresh token back, save it in the cache.
         if (!MSALUtils.isEmpty(response.getRefreshToken())) {
-            final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(authority, clientId, policy, response);
+            final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(authority, clientId, response);
             mTokenCacheAccessor.saveRefreshToken(refreshTokenCacheItem);
         }
     }
@@ -85,7 +93,7 @@ public class TokenCache {
      */
     TokenCacheItem findAccessToken(final AuthenticationRequestParameters requestParam, final User user) {
         final TokenCacheKey key = TokenCacheKey.createKeyForAT(requestParam.getAuthority().getAuthority(),
-                requestParam.getClientId(), requestParam.getScope(), user, requestParam.getPolicy());
+                requestParam.getClientId(), requestParam.getScope(), user);
         final List<TokenCacheItem> tokenCacheItems = mTokenCacheAccessor.getAccessToken(key);
 
         if (tokenCacheItems.isEmpty()) {
@@ -113,7 +121,7 @@ public class TokenCache {
     // All the token AAD returns are multi-scopes. MSAL only support ADFS 2016, which issues multi-scope RT.
     RefreshTokenCacheItem findRefreshToken(final AuthenticationRequestParameters requestParam, final User user)
             throws AuthenticationException {
-        final TokenCacheKey key = TokenCacheKey.createKeyForRT(requestParam.getClientId(), user, requestParam.getPolicy());
+        final TokenCacheKey key = TokenCacheKey.createKeyForRT(requestParam.getClientId(), user);
         final List<RefreshTokenCacheItem> refreshTokenCacheItems = mTokenCacheAccessor.getRefreshToken(key);
 
         if (refreshTokenCacheItems.size() == 0) {

@@ -30,9 +30,9 @@ final class RefreshTokenCacheItem extends BaseTokenCacheItem {
 
     private final String mRefreshToken;
 
-    RefreshTokenCacheItem(final String authority, final String clientId, final String policy, final TokenResponse response)
+    RefreshTokenCacheItem(final String authority, final String clientId, final TokenResponse response)
             throws AuthenticationException {
-        super(authority, clientId, policy, response);
+        super(authority, clientId, response);
         mRefreshToken = response.getRefreshToken();
     }
 

@@ -84,7 +84,7 @@ public final class TokenCacheTest extends AndroidTestCase {
     public void testGetAccessTokenForExpiredItem() throws AuthenticationException {
         // prepare an expired AT item in the cache
         final String singleScope = "scope";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, "",
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID,
                 getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getExpiredDate()));
 
         // access token is already expired, verify that the access token is not returned.
@@ -98,7 +98,7 @@ public final class TokenCacheTest extends AndroidTestCase {
     @Test
     public void testGetTokenWithResponseNotContainingRT() throws AuthenticationException {
         final String singleScope = "scope";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, "",
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID,
                 getTokenResponseForDefaultUser(ACCESS_TOKEN, "", singleScope, AndroidTestUtil.getValidExpiresOn()));
 
         final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope), "");
@@ -113,7 +113,7 @@ public final class TokenCacheTest extends AndroidTestCase {
     @Test
     public void testGetTokenWithResponseNotContainingAT() throws  AuthenticationException {
         final String singleScope = "scope";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, "", getTokenResponseForDefaultUser("", "",
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, getTokenResponseForDefaultUser("", "",
                 singleScope, AndroidTestUtil.getValidExpiresOn()));
 
         final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope), "");
@@ -137,10 +137,10 @@ public final class TokenCacheTest extends AndroidTestCase {
                 AndroidTestUtil.getValidExpiresOn(), AndroidTestUtil.getExpirationDate(AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES * 2),
                 scope, "Bearer", null);
 
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, "", response);
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, response);
 
         // save another token for default user
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, "",
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID,
                 getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, scope, AndroidTestUtil.getValidExpiresOn()));
 
         // verify the access token is saved
@@ -163,7 +163,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         // prepare a valid AT item stored with policy in the cache
         final String singleScope = "scope";
         final String policy = "some policy";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, policy, getTokenResponseForDefaultUser(
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, getTokenResponseForDefaultUser(
                 ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn()));
 
         // asks a token with no policy
@@ -180,7 +180,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         AndroidTestUtil.removeAllTokens(mAppContext);
 
         // save a token without policy
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, "", getTokenResponseForDefaultUser(
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, getTokenResponseForDefaultUser(
                 ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn()));
 
         // asks a token with scope
@@ -194,7 +194,7 @@ public final class TokenCacheTest extends AndroidTestCase {
     @Test
     public void testGetTokenNoUser() throws AuthenticationException {
         final String scope1 = "scope1";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, "", getTokenResponseForDefaultUser(
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, getTokenResponseForDefaultUser(
                 ACCESS_TOKEN, REFRESH_TOKEN, scope1, AndroidTestUtil.getValidExpiresOn()));
 
         final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(scope1), "");
@@ -203,7 +203,7 @@ public final class TokenCacheTest extends AndroidTestCase {
 
         // add another access token entry into cache for same user with scope1 and scope2
         final String scope2 = "scope2";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, "", getTokenResponseForDefaultUser(
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, getTokenResponseForDefaultUser(
                 ACCESS_TOKEN, REFRESH_TOKEN, scope1 + " " + scope2, AndroidTestUtil.getValidExpiresOn()));
 
         // verify token is returned for scope1
@@ -213,7 +213,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         // add a token for different user for scope1
         final TokenResponse response = getTokenResponseForDifferentUser(scope1, AndroidTestUtil.getExpirationDate(
                 AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES));
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, "", response);
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, response);
 
         //verify that no token is returned
         assertNull(mTokenCache.findAccessToken(requestParameters, null));
@@ -233,11 +233,11 @@ public final class TokenCacheTest extends AndroidTestCase {
         final String scope = "scope1";
         final Date expirationDate = AndroidTestUtil.getExpirationDate(AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES);
         // save token for default user with scope1
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, "", getTokenResponseForDefaultUser(
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, getTokenResponseForDefaultUser(
                 ACCESS_TOKEN, REFRESH_TOKEN, scope, expirationDate));
 
         // save token for another user with scope1
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, "",
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID,
                 getTokenResponseForDifferentUser(scope, expirationDate));
 
         // retrieve token for default user1

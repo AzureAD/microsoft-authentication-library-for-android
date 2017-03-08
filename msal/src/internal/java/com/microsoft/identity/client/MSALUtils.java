@@ -343,4 +343,17 @@ final class MSALUtils {
     static String base64EncodeToString(final String message) {
         return  Base64.encodeToString(message.getBytes(Charset.forName(ENCODING_UTF8)), Base64.NO_PADDING);
     }
+
+    /**
+     * @return True if there is an intersection between the scopes stored in the token cache key and the request scopes.
+     */
+    static boolean isScopeIntersects(final Set<String> scopes, final Set<String> otherScopes) {
+        for (final String scope: otherScopes) {
+            if (scopes.contains(scope)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
