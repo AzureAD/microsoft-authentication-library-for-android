@@ -80,6 +80,9 @@ final class TokenCacheAccessor {
      */
     void saveAccessToken(final TokenCacheItem accessToken) {
         final TokenCacheKey key = TokenCacheKey.extractKeyForAT(accessToken);
+        Logger.verbose(TAG, null, "Save access token into cache.");
+        Logger.verbosePII(TAG, null, "Access token is saved with key: " + key);
+
         final Editor editor = mAccessTokenSharedPreference.edit();
         editor.putString(key.toString(), mGson.toJson(accessToken));
         editor.apply();
@@ -90,6 +93,9 @@ final class TokenCacheAccessor {
      */
     void saveRefreshToken(final RefreshTokenCacheItem refreshToken) {
         final TokenCacheKey key = TokenCacheKey.extractKeyForRT(refreshToken);
+        Logger.verbose(TAG, null, "Save refresh token into cache.");
+        Logger.verbosePII(TAG, null, "Refresh token is saved with key: " + key);
+
         final Editor editor = mRefreshTokenSharedPreference.edit();
         editor.putString(key.toString(), mGson.toJson(refreshToken));
         editor.apply();
@@ -110,6 +116,8 @@ final class TokenCacheAccessor {
             }
         }
 
+        Logger.verbose(TAG, null, "Retrieve access tokens for the given cache key.");
+        Logger.verbosePII(TAG, null, "Key used to retrieve access tokens is: " + tokenCacheKey);
         return foundATs;
     }
 
@@ -129,6 +137,8 @@ final class TokenCacheAccessor {
             }
         }
 
+        Logger.verbose(TAG, null, "Retrieve refresh tokens for the given cache key");
+        Logger.verbosePII(TAG, null, "Key used to retrieve refresh tokens is: " + tokenCacheKey);
         return foundRTs;
     }
 
@@ -145,6 +155,9 @@ final class TokenCacheAccessor {
      */
     void deleteRefreshToken(final BaseTokenCacheItem rtItem) {
         final String key = TokenCacheKey.extractKeyForRT(rtItem).toString();
+        Logger.verbose(TAG, null, "Remove the given refresh token item.");
+        Logger.verbosePII(TAG, null, "Refresh token is deleted with key: " + key);
+
         final Editor editor = mRefreshTokenSharedPreference.edit();
         editor.remove(key);
         editor.apply();
@@ -161,6 +174,7 @@ final class TokenCacheAccessor {
             tokenCacheItems.add(tokenCacheItem);
         }
 
+        Logger.verbose(TAG, null, "Retrieve all the access tokens from cache, the number of access tokens returned is: " + tokenCacheItems.size());
         return Collections.unmodifiableList(tokenCacheItems);
     }
 
@@ -175,6 +189,7 @@ final class TokenCacheAccessor {
             refreshTokenCacheItems.add(refreshTokenCacheItem);
         }
 
+        Logger.verbose(TAG, null, "Retrieve all the refresh tokens, the number of refresh tokens returned is: " + refreshTokenCacheItems.size());
         return Collections.unmodifiableList(refreshTokenCacheItems);
     }
 
@@ -193,6 +208,7 @@ final class TokenCacheAccessor {
             }
         }
 
+        Logger.verbose(TAG, null, "Retrieve all the refresh tokens for given client id: " + clientId + "; Returned refresh token number is " + allRTsForApp.size());
         return Collections.unmodifiableList(allRTsForApp);
     }
 

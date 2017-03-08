@@ -477,7 +477,8 @@ public final class SilentRequestTest extends AndroidTestCase {
 
     private AuthenticationRequestParameters getRequestParameters(final Set<String> scopes, final String policy) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(AndroidTestUtil.DEFAULT_AUTHORITY, false),
-                mTokenCache, scopes, TokenCacheTest.CLIENT_ID, "some redirect", policy, true, "", "", UIOptions.SELECT_ACCOUNT, UUID.randomUUID());
+                mTokenCache, scopes, TokenCacheTest.CLIENT_ID, "some redirect", policy, "", "", UIOptions.SELECT_ACCOUNT,
+                new RequestContext(UUID.randomUUID(), ""));
     }
 
     private void mockFailureResponse(final String errorCode) throws IOException {

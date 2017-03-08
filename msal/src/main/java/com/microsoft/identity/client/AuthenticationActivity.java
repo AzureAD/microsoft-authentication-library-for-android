@@ -61,6 +61,7 @@ public final class AuthenticationActivity extends Activity {
 
         // If activity is killed by the os, savedInstance will be the saved bundle.
         if (savedInstanceState != null) {
+            Logger.verbose(TAG, null, "AuthenticationActivity is re-created after killed by the os.");
             mRestarted = true;
             return;
         }
@@ -81,7 +82,7 @@ public final class AuthenticationActivity extends Activity {
         // We'll use custom tab if the chrome installed on the device comes with custom tab support(on 45 and above it
         // does). If the chrome package doesn't contain the support, we'll use chrome to launch the UI.
         if (MSALUtils.getChromePackage(this.getApplicationContext()) == null) {
-            // TODO: log that chrome is not installed, cannot prompt the UI.
+            Logger.info(TAG, null, "Chrome is not installed on the device, cannot continue with auth.");
             sendError(Constants.MSALError.CHROME_NOT_INSTALLED, "Chrome is not installed on the device, cannot proceed with auth");
             return;
         }
@@ -150,6 +151,7 @@ public final class AuthenticationActivity extends Activity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        Logger.info(TAG, null, "onNewIntent is called, received redirect from system webview.");
         final String url = intent.getStringExtra(Constants.CUSTOM_TAB_REDIRECT);
 
         final Intent resultIntent = new Intent();
@@ -169,9 +171,18 @@ public final class AuthenticationActivity extends Activity {
 
         mRestarted = true;
 
-        if (mChromePackageWithCustomTabSupport != null) {
-            mCustomTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
+        final String chromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(
+                this.getApplicationContext());
+        mRequestUrl =  this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
+
+        Logger.infoPII(TAG, null, "Request to launch is: " + mRequestUrl);
+        if (chromePackageWithCustomTabSupport != null) {
+            Logger.info(TAG, null, "ChromeCustomTab support is available, launching chrome tab.");
+            final CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder().build();
+            customTabsIntent.intent.setPackage(MSALUtils.getChromePackageWithCustomTabSupport(this));
+            customTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
         } else {
+            Logger.info(TAG, null, "Chrome tab support is not available, launching chrome browser.");
             final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
             browserIntent.setPackage(MSALUtils.getChromePackage(this.getApplicationContext()));
             browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
@@ -190,6 +201,7 @@ public final class AuthenticationActivity extends Activity {
      * Cancels the auth request.
      */
     void cancelRequest() {
+        Logger.verbose(TAG, null, "Cancel the authentication request.");
         returnToCaller(Constants.UIResponse.CANCEL, new Intent());
     }
 
@@ -200,6 +212,7 @@ public final class AuthenticationActivity extends Activity {
      * @param data       {@link Intent} contains the detailed result.
      */
     private void returnToCaller(final int resultCode, final Intent data) {
+        Logger.info(TAG, null, "Return to caller with resultCode: " + resultCode + "; requestId: " + mRequestId);
         data.putExtra(Constants.REQUEST_ID, mRequestId);
 
         setResult(resultCode, data);
@@ -213,6 +226,8 @@ public final class AuthenticationActivity extends Activity {
      * @param errorDescription The error description to send back.
      */
     private void sendError(final String errorCode, final String errorDescription) {
+        Logger.info(TAG, null, "Sending error back to the caller, errorCode: " + errorCode + "; errorDescription"
+                + errorDescription);
         final Intent errorIntent = new Intent();
         errorIntent.putExtra(Constants.UIResponse.ERROR_CODE, errorCode);
         errorIntent.putExtra(Constants.UIResponse.ERROR_DESCRIPTION, errorDescription);

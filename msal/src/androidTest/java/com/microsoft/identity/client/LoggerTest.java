@@ -44,20 +44,22 @@ import java.util.UUID;
 @SmallTest
 public final class LoggerTest {
     static final UUID CORRELATION_ID = UUID.randomUUID();
+    static final String COMPONENT_NAME = "test component";
     static final String TAG = "someTestTag";
     static final String MESSAGE = "test message";
-    static final String ADDITIONAL_MESSAGE = "additional test message";
     static final LogResponse LOG_RESPONSE = new LogResponse();
+    static final RequestContext REQUEST_CONTEXT_WITH_COMPONENT = new RequestContext(CORRELATION_ID, COMPONENT_NAME);
+    static final RequestContext REQUEST_CONTEXT_NO_COMPONENT = new RequestContext(CORRELATION_ID, null);
 
     @BeforeClass
     public static void setUp() {
         Logger.getInstance().setExternalLogger(new ILogger() {
             @Override
-            public void log(String tag, Logger.LogLevel logLevel, String message, String additionalMessage) {
+            public void log(String tag, Logger.LogLevel logLevel, String message, boolean containsPII) {
                 LOG_RESPONSE.setTag(tag);
                 LOG_RESPONSE.setLogLevel(logLevel);
                 LOG_RESPONSE.setMessage(message);
-                LOG_RESPONSE.setAdditionalMessage(additionalMessage);
+                LOG_RESPONSE.setContainsPII(containsPII);
             }
         });
     }
@@ -65,6 +67,7 @@ public final class LoggerTest {
     @After
     public void tearDown() {
         LOG_RESPONSE.reset();
+        Logger.getInstance().setEnablePII(false);
     }
 
     /**
@@ -74,39 +77,61 @@ public final class LoggerTest {
     public void testVerboseLevelLogging() {
         // set as verbose level logging
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
-        Logger.verbose(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessage(LOG_RESPONSE, null);
 
-        // log an empty message
-        Logger.verbose(TAG, CORRELATION_ID, "", "");
-        verifyLogMessageFormat(LOG_RESPONSE, "N/A", CORRELATION_ID, null);
-        Assert.assertTrue(LOG_RESPONSE.getAdditionalMessage().equals(""));
+        Logger.verbose(TAG, REQUEST_CONTEXT_WITH_COMPONENT, MESSAGE);
+        verifyLogMessage(REQUEST_CONTEXT_WITH_COMPONENT, LOG_RESPONSE, false, MESSAGE, null);
         LOG_RESPONSE.reset();
 
-        // log null additional message
-        Logger.verbose(TAG, CORRELATION_ID, MESSAGE, null);
-        Assert.assertTrue(LOG_RESPONSE.getAdditionalMessage().equals(""));
+        // test verbose with PII
+        Logger.verbosePII(TAG, REQUEST_CONTEXT_NO_COMPONENT, MESSAGE);
+        verifyLogMessageEmpty(LOG_RESPONSE);
+        LOG_RESPONSE.reset();
+
+        // log an empty message
+        Logger.verbose(TAG, REQUEST_CONTEXT_WITH_COMPONENT, "");
+        verifyLogMessageFormat(LOG_RESPONSE, "N/A", REQUEST_CONTEXT_WITH_COMPONENT, null);
         LOG_RESPONSE.reset();
 
         // verify info logs are generated
         verifyLogMessageEmpty(LOG_RESPONSE);
-        Logger.info(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessage(LOG_RESPONSE, null);
+        Logger.info(TAG, REQUEST_CONTEXT_WITH_COMPONENT, MESSAGE);
+        verifyLogMessage(REQUEST_CONTEXT_WITH_COMPONENT, LOG_RESPONSE, false, MESSAGE, null);
+
+        verifyLogMessageEmpty(LOG_RESPONSE);
+        Logger.infoPII(TAG, REQUEST_CONTEXT_NO_COMPONENT, MESSAGE);
+        verifyLogMessageEmpty(LOG_RESPONSE);
 
         // verify warning logs are generated
         verifyLogMessageEmpty(LOG_RESPONSE);
-        Logger.warning(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessage(LOG_RESPONSE, null);
+        Logger.warning(TAG, REQUEST_CONTEXT_WITH_COMPONENT, MESSAGE);
+        verifyLogMessage(REQUEST_CONTEXT_WITH_COMPONENT, LOG_RESPONSE, false, MESSAGE, null);
+
+        verifyLogMessageEmpty(LOG_RESPONSE);
+        Logger.warningPII(TAG, REQUEST_CONTEXT_NO_COMPONENT, MESSAGE);
+        verifyLogMessageEmpty(LOG_RESPONSE);
 
         // verify error level logs are generated
         verifyLogMessageEmpty(LOG_RESPONSE);
-        Logger.error(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE, null);
-        verifyLogMessage(LOG_RESPONSE, null);
+        Logger.error(TAG, REQUEST_CONTEXT_WITH_COMPONENT, MESSAGE, null);
+        verifyLogMessage(REQUEST_CONTEXT_WITH_COMPONENT, LOG_RESPONSE, false, MESSAGE, null);
+
+        verifyLogMessageEmpty(LOG_RESPONSE);
+        Logger.errorPII(TAG, REQUEST_CONTEXT_WITH_COMPONENT, MESSAGE, null);
+        verifyLogMessageEmpty(LOG_RESPONSE);
 
         // verify the log message is correctly formatted when no correlation id exists.
-        Logger.verbose(TAG, null, MESSAGE, "");
+        final RequestContext requestContext = new RequestContext(null, COMPONENT_NAME);
+        Logger.verbose(TAG, new RequestContext(null, COMPONENT_NAME), MESSAGE);
+        verifyLogMessageFormat(LOG_RESPONSE, MESSAGE, requestContext, null);
+
+        // verify the log message is correctly formatted when no request context exists.
+        Logger.verbose(TAG, null, MESSAGE);
         verifyLogMessageFormat(LOG_RESPONSE, MESSAGE, null, null);
-        Assert.assertTrue(LOG_RESPONSE.getAdditionalMessage().equals(""));
+
+        // verify the log message is correctly formatted when neither correlation nor component exists
+        final RequestContext requestContextNoCorrelationNoComponent = new RequestContext(null, null);
+        Logger.verbose(TAG, requestContextNoCorrelationNoComponent, MESSAGE);
+        verifyLogMessageFormat(LOG_RESPONSE, MESSAGE, requestContextNoCorrelationNoComponent, null);
         LOG_RESPONSE.reset();
     }
 
@@ -120,20 +145,52 @@ public final class LoggerTest {
         Logger.getInstance().setLogLevel(Logger.LogLevel.INFO);
 
         // perform a verbose level logging, make sure callback doesn't get the log message
-        Logger.verbose(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
+        Logger.verbose(TAG, REQUEST_CONTEXT_WITH_COMPONENT, MESSAGE);
         verifyLogMessageEmpty(LOG_RESPONSE);
 
         // Do a info level logging
-        Logger.info(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessage(LOG_RESPONSE, null);
+        Logger.info(TAG, REQUEST_CONTEXT_WITH_COMPONENT, MESSAGE);
+        verifyLogMessage(REQUEST_CONTEXT_WITH_COMPONENT, LOG_RESPONSE, false, MESSAGE, null);
+
+        // since no PII is turned on, no log mesaage should be logged.
+        Logger.infoPII(TAG, REQUEST_CONTEXT_NO_COMPONENT, MESSAGE);
+        verifyLogMessageEmpty(LOG_RESPONSE);
 
         // do a warning level logging
-        Logger.warning(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessage(LOG_RESPONSE, null);
+        Logger.warning(TAG, REQUEST_CONTEXT_WITH_COMPONENT, MESSAGE);
+        verifyLogMessage(REQUEST_CONTEXT_WITH_COMPONENT, LOG_RESPONSE, false, MESSAGE, null);
+
+        Logger.warningPII(TAG, REQUEST_CONTEXT_NO_COMPONENT, MESSAGE);
+        verifyLogMessageEmpty(LOG_RESPONSE);
 
         // do a error level logging
-        Logger.error(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE, null);
-        verifyLogMessage(LOG_RESPONSE, null);
+        Logger.error(TAG, REQUEST_CONTEXT_WITH_COMPONENT, MESSAGE, null);
+        verifyLogMessage(REQUEST_CONTEXT_WITH_COMPONENT, LOG_RESPONSE, false, MESSAGE, null);
+
+        Logger.errorPII(TAG, REQUEST_CONTEXT_NO_COMPONENT, MESSAGE, null);
+        verifyLogMessageEmpty(LOG_RESPONSE);
+    }
+
+    @Test
+    public void testEnablePII() {
+        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
+        Logger.getInstance().setEnablePII(true);
+
+        verifyLogMessageEmpty(LOG_RESPONSE);
+        Logger.verbosePII(TAG, REQUEST_CONTEXT_WITH_COMPONENT, MESSAGE);
+        verifyLogMessage(REQUEST_CONTEXT_WITH_COMPONENT, LOG_RESPONSE, true, MESSAGE, null);
+
+        verifyLogMessageEmpty(LOG_RESPONSE);
+        Logger.infoPII(TAG, REQUEST_CONTEXT_NO_COMPONENT, MESSAGE);
+        verifyLogMessage(REQUEST_CONTEXT_NO_COMPONENT, LOG_RESPONSE, true, MESSAGE, null);
+
+        verifyLogMessageEmpty(LOG_RESPONSE);
+        Logger.warningPII(TAG, REQUEST_CONTEXT_WITH_COMPONENT, MESSAGE);
+        verifyLogMessage(REQUEST_CONTEXT_WITH_COMPONENT, LOG_RESPONSE, true, MESSAGE, null);
+
+        verifyLogMessageEmpty(LOG_RESPONSE);
+        Logger.errorPII(TAG, REQUEST_CONTEXT_NO_COMPONENT, MESSAGE, null);
+        verifyLogMessage(REQUEST_CONTEXT_NO_COMPONENT, LOG_RESPONSE, true, MESSAGE, null);
     }
 
     /**
@@ -145,23 +202,23 @@ public final class LoggerTest {
 
         // Perform verbose level logging
         verifyLogMessageEmpty(LOG_RESPONSE);
-        Logger.verbose(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
+        Logger.verbose(TAG, REQUEST_CONTEXT_WITH_COMPONENT, MESSAGE);
         verifyLogMessageEmpty(LOG_RESPONSE);
 
         // Perform info level logging
         verifyLogMessageEmpty(LOG_RESPONSE);
-        Logger.info(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
+        Logger.info(TAG, REQUEST_CONTEXT_WITH_COMPONENT, MESSAGE);
         verifyLogMessageEmpty(LOG_RESPONSE);
 
         // perform warning level logging
         verifyLogMessageEmpty(LOG_RESPONSE);
-        Logger.warning(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
-        verifyLogMessage(LOG_RESPONSE, null);
+        Logger.warning(TAG, REQUEST_CONTEXT_WITH_COMPONENT, MESSAGE);
+        verifyLogMessage(REQUEST_CONTEXT_WITH_COMPONENT, LOG_RESPONSE, false, MESSAGE, null);
 
         // perform error level logging
         verifyLogMessageEmpty(LOG_RESPONSE);
-        Logger.error(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE, null);
-        verifyLogMessage(LOG_RESPONSE, null);
+        Logger.error(TAG, REQUEST_CONTEXT_NO_COMPONENT, MESSAGE, null);
+        verifyLogMessage(REQUEST_CONTEXT_NO_COMPONENT, LOG_RESPONSE, false, MESSAGE, null);
     }
 
     /**
@@ -183,39 +240,46 @@ public final class LoggerTest {
             throwable = e;
         }
 
-        Logger.error(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE, throwable);
-        Assert.assertTrue(LOG_RESPONSE.getAdditionalMessage().equals(ADDITIONAL_MESSAGE));
-        verifyLogMessage(LOG_RESPONSE, throwable);
+        Logger.error(TAG, REQUEST_CONTEXT_WITH_COMPONENT, MESSAGE, throwable);
+        verifyLogMessage(REQUEST_CONTEXT_WITH_COMPONENT, LOG_RESPONSE, false, MESSAGE, throwable);
 
         // perform warning level logging
         verifyLogMessageEmpty(LOG_RESPONSE);
-        Logger.warning(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
+        Logger.warning(TAG, REQUEST_CONTEXT_WITH_COMPONENT, MESSAGE);
         verifyLogMessageEmpty(LOG_RESPONSE);
 
         // perform info level logging
         verifyLogMessageEmpty(LOG_RESPONSE);
-        Logger.info(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
+        Logger.info(TAG, REQUEST_CONTEXT_WITH_COMPONENT, MESSAGE);
         verifyLogMessageEmpty(LOG_RESPONSE);
 
         // perform verbose level logging
         verifyLogMessageEmpty(LOG_RESPONSE);
-        Logger.verbose(TAG, CORRELATION_ID, MESSAGE, ADDITIONAL_MESSAGE);
+        Logger.verbose(TAG, REQUEST_CONTEXT_WITH_COMPONENT, MESSAGE);
         verifyLogMessageEmpty(LOG_RESPONSE);
     }
 
-    private void verifyLogMessage(final LogResponse response, final Throwable throwable) {
+    private void verifyLogMessage(final RequestContext requestContext, final LogResponse response, boolean containsPII,
+                                  final String logMessage, final Throwable throwable) {
         Assert.assertTrue(response.getTag().equals(TAG));
-        verifyLogMessageFormat(response, MESSAGE, CORRELATION_ID, throwable);
-        Assert.assertTrue(response.getAdditionalMessage().contains(ADDITIONAL_MESSAGE));
+        verifyLogMessageFormat(response, logMessage, requestContext, throwable);
+        Assert.assertEquals(LOG_RESPONSE.containsPII(), containsPII);
 
         response.reset();
     }
 
-    private void verifyLogMessageFormat(final LogResponse response, final String message, final UUID correlationId,
+    private void verifyLogMessageFormat(final LogResponse response, final String message, final RequestContext requestContext,
                                         final Throwable throwable) {
         Assert.assertTrue(response.getMessage().contains("MSAL " + PublicClientApplication.getSdkVersion() + " Android " + Build.VERSION.SDK_INT + " ["));
-        if (correlationId != null) {
-            Assert.assertTrue(response.getMessage().contains(" - " + correlationId.toString() + "] " + message + getStackTrace(throwable)));
+        if (requestContext != null && (requestContext.getCorrelationId() != null || !MSALUtils.isEmpty(requestContext.getComponent()))) {
+            if (requestContext.getCorrelationId() != null && !MSALUtils.isEmpty(requestContext.getComponent())) {
+                Assert.assertTrue(response.getMessage().contains(" - " + requestContext.getCorrelationId().toString() + "] (" + requestContext.getComponent()
+                        + ") " + message + getStackTrace(throwable)));
+            } else if (requestContext.getCorrelationId() != null) {
+                Assert.assertTrue(response.getMessage().contains(" - " + requestContext.getCorrelationId().toString() + "] " + message + getStackTrace(throwable)));
+            } else {
+                Assert.assertTrue(response.getMessage().contains("] (" + requestContext.getComponent() + ") " + message + getStackTrace(throwable)));
+            }
         } else {
             Assert.assertTrue(response.getMessage().contains("] " + message + getStackTrace(throwable)));
         }
@@ -244,12 +308,14 @@ public final class LoggerTest {
         private String mMessage;
         private String mAdditionalMessage;
         private Logger.LogLevel mLevel;
+        private boolean mContainsPII;
 
         public void reset() {
             mTag = null;
             mMessage = null;
             mAdditionalMessage = null;
             mLevel = null;
+            mContainsPII = false;
         }
 
         void setTag(final String tag) {
@@ -282,6 +348,14 @@ public final class LoggerTest {
 
         Logger.LogLevel getLogLevel() {
             return mLevel;
+        }
+
+        void setContainsPII(final boolean containsPII) {
+            mContainsPII = containsPII;
+        }
+
+        boolean containsPII() {
+            return mContainsPII;
         }
     }
 }

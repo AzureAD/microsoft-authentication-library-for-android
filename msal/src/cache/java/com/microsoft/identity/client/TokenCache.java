@@ -34,11 +34,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * MSAL internal representation for token cache. MS first party apps can use the internal
- * {@link TokenCache#serialize(User)} and {@link TokenCache#deserialize(String)} to import and export family tokens
- * to implement SSO. To prevent confusions among external apps, we don't expose these two methods.
+ * MSAL internal representation for token cache.
  */
-public class TokenCache {
+class TokenCache {
+    private static final String TAG = TokenCache.class.getSimpleName();
+
     private static final int DEFAULT_EXPIRATION_BUFFER = 300;
     private final TokenCacheAccessor mTokenCacheAccessor;
 
@@ -57,6 +57,8 @@ public class TokenCache {
     TokenCacheItem saveAccessToken(final String authority, final String clientId, final TokenResponse response)
             throws AuthenticationException {
         // create the access token cache item
+        Logger.info(TAG, null, "Save access token into cache. Token saved with authority: " + authority
+                + "; Client Id: " + clientId + "; Scopes: " + response.getScope());
         final TokenCacheItem tokenCacheItem = new TokenCacheItem(authority, clientId, response);
 
         // check for intersection and delete all the cache entries with intersecting scopes.
@@ -79,6 +81,8 @@ public class TokenCache {
             throws AuthenticationException {
         // if server returns the refresh token back, save it in the cache.
         if (!MSALUtils.isEmpty(response.getRefreshToken())) {
+            Logger.info(TAG, null, "Save refresh token into cache. Refresh saved with authority: " + authority
+                    + "; Client Id: " + clientId);
             final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(authority, clientId, response);
             mTokenCacheAccessor.saveRefreshToken(refreshTokenCacheItem);
         }
@@ -97,13 +101,19 @@ public class TokenCache {
         final List<TokenCacheItem> tokenCacheItems = mTokenCacheAccessor.getAccessToken(key);
 
         if (tokenCacheItems.isEmpty()) {
-            // TODO: log access token not found
+            Logger.info(TAG, requestParam.getRequestContext(), "No access is found for scopes: "
+                    + MSALUtils.convertSetToString(requestParam.getScope(), " "));
+            if (user != null) {
+                Logger.infoPII(TAG, requestParam.getRequestContext(), "User displayable: " + user.getDisplayableId()
+                        + " ;User home object id: " + user.getHomeObjectId());
+            }
             return null;
         }
 
         // TODO: If user is not provided for silent request, and there is only one item found in the cache. Should we return it?
         if (tokenCacheItems.size() > 1) {
-            // TODO: log there are multiple access tokens found, don't know which one to use.
+            Logger.verbose(TAG, requestParam.getRequestContext(), "Multiple access tokens are returned, cannot "
+                    + "determine which one to return.");
             return null;
         }
 
@@ -114,7 +124,7 @@ public class TokenCache {
             return tokenCacheItem;
         }
 
-        //TODO: log the access token found is expired.
+        Logger.info(TAG, requestParam.getRequestContext(), "Access token is found but it's expired.");
         return null;
     }
 
@@ -125,7 +135,9 @@ public class TokenCache {
         final List<RefreshTokenCacheItem> refreshTokenCacheItems = mTokenCacheAccessor.getRefreshToken(key);
 
         if (refreshTokenCacheItems.size() == 0) {
-            // TODO: no RT returned
+            Logger.info(TAG, requestParam.getRequestContext(), "No RT was found for the given user.");
+            Logger.infoPII(TAG, requestParam.getRequestContext(), "The given user info is: " + user.getDisplayableId() + "; homeOid: "
+                    + user.getHomeObjectId());
             return null;
         }
 
@@ -143,6 +155,7 @@ public class TokenCache {
      * @param rtItem The item to delete.
      */
     void deleteRT(final BaseTokenCacheItem rtItem) {
+        Logger.info(TAG, null, "Removing refresh tokens from the cache.");
         mTokenCacheAccessor.deleteRefreshToken(rtItem);
     }
 
@@ -157,6 +170,7 @@ public class TokenCache {
             throw new IllegalArgumentException("empty or null clientId");
         }
 
+        Logger.verbose(TAG, null, "Retrieve users with the given client id: " + clientId);
         final List<RefreshTokenCacheItem> allRefreshTokens = mTokenCacheAccessor.getAllRefreshTokensForGivenClientId(clientId);
         final Map<String, User> allUsers = new HashMap<>();
         for (final RefreshTokenCacheItem item : allRefreshTokens) {
@@ -168,31 +182,7 @@ public class TokenCache {
 
         return Collections.unmodifiableList(new ArrayList<>(allUsers.values()));
     }
-
-    /**
-     * Internal API for the SDK to serialize the family token cache item for the given user.
-     *
-     * The sdk will look up family token cache item with the given user id, and serialize the token cache item and
-     * return it as a serialized blob.
-     * @param user
-     * @return
-     * TODO: add the functionality to find the tokens matching the given user and return the serialize blob.
-     */
-    String serialize(final User user) {
-        return "";
-    }
-
-    /**
-     * Internal API for the sdk to take in the serialized blob and save it into the cache.
-     *
-     * The sdk will deserialize the input blob into the token cache item and save it into cache.
-     * @param serializedBlob
-     * TODO: add the functionality to take in the serialized blob and add the item into the cache.
-     */
-    void deserialize(final String serializedBlob) {
-
-    }
-
+    
     /**
      * @param expiresOn The expires on to check for.
      * @return True if the given date is already expired, false otherwise.

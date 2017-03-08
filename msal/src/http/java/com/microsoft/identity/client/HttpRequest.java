@@ -101,6 +101,7 @@ final class HttpRequest {
             throws IOException, RetryableException {
         final HttpRequest httpRequest = new HttpRequest(requestUrl, requestHeaders, REQUEST_METHOD_POST,
                 requestContent, requestContentType);
+        Logger.verbose(TAG, null, "Sending Http Post request.");
         return httpRequest.send();
     }
 
@@ -112,6 +113,8 @@ final class HttpRequest {
     public static HttpResponse sendGet(final URL requestUrl, final Map<String, String> requestHeaders)
             throws IOException, RetryableException {
         final HttpRequest httpRequest = new HttpRequest(requestUrl, requestHeaders, REQUEST_METHOD_GET);
+
+        Logger.verbose(TAG, null, "Sending Http Get request.");
         return httpRequest.send();
     }
 
@@ -146,12 +149,14 @@ final class HttpRequest {
         } catch (final SocketTimeoutException socketTimeoutException) {
             // In android, network timeout is thrown as the SocketTimeOutException, we need to catch this and perform
             // retry. If retry also fails with timeout, the socketTimeoutException will be bubbled up
+            Logger.verbose(TAG, null, "Request timeout with SocketTimeoutException, will retry one more time.");
             waitBeforeRetry();
             return executeHttpSend();
         }
 
         if (isRetryableError(httpResponse.getStatusCode())) {
             // retry if we get 500/503/504
+            Logger.verbose(TAG, null, "Received retryable status code 500/503/504, will retry one more time.");
             waitBeforeRetry();
             return executeHttpSend();
         }
@@ -179,6 +184,7 @@ final class HttpRequest {
 
             final int statusCode = urlConnection.getResponseCode();
             final String responseBody = responseStream == null ? "" : convertStreamToString(responseStream);
+            Logger.verbose(TAG, null, "Returned status code is: " + statusCode);
             response = new HttpResponse(statusCode, responseBody, urlConnection.getHeaderFields());
         } finally {
             safeCloseStream(responseStream);
@@ -271,12 +277,8 @@ final class HttpRequest {
 
         try {
             stream.close();
-            //CHECKSTYLE:OFF: checkstyle:EmptyBlock
         } catch (final IOException e) {
-            //CHECKSTYLE:ON: checkstyle:EmptyBlock
-            // swallow error in this case
-            // TODO: log the error
-            // Logger.e(TAG, "Encounter IO exception when trying to close the stream", e);
+            Logger.error(TAG, null, "Encounter IO exception when trying to close the stream", e);
         }
     }
 
@@ -297,11 +299,8 @@ final class HttpRequest {
     private void waitBeforeRetry() {
         try {
             Thread.sleep(RETRY_TIME_WAITING_PERIOD_MSEC);
-            //CHECKSTYLE:OFF: checkstyle:EmptyBlock
         } catch (final InterruptedException interrupted) {
-            //CHECKSTYLE:ON: checkstyle:EmptyBlock
-            // Swallow the exception here since we don't want to fail if error happens when having the thread hanging.
-            // TODO: Logger.i(TAG, "Fail the have the thread waiting for 1 second before doing the retry")
+            Logger.info(TAG, null, "Fail the have the thread waiting for 1 second before doing the retry");
         }
     }
 }
