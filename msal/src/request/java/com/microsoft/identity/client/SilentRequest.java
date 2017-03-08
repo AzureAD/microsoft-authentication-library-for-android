@@ -30,6 +30,8 @@ import android.content.Context;
  * try to find a RT(all the RTs are multi-scoped), there will only be one entry per authority, clientid and user.
  */
 final class SilentRequest extends BaseRequest {
+    private static final String TAG = SilentRequest.class.getSimpleName();
+
     private RefreshTokenCacheItem mRefreshTokenCacheItem;
     private final boolean mForceRefresh;
     private final User mUser;
@@ -51,13 +53,17 @@ final class SilentRequest extends BaseRequest {
         if (!mForceRefresh) {
             final TokenCacheItem tokenCacheItem = tokenCache.findAccessToken(mAuthRequestParameters, mUser);
             if (tokenCacheItem != null) {
+                Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Access token is found, returning cached AT.");
                 mAuthResult = new AuthenticationResult(tokenCacheItem);
                 return;
             }
+        } else {
+            Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "ForceRefresh is set to true, skipping AT lookup.");
         }
 
         mRefreshTokenCacheItem = tokenCache.findRefreshToken(mAuthRequestParameters, mUser);
         if (mRefreshTokenCacheItem == null) {
+            Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "No refresh token item is found.");
             throw new AuthenticationException(MSALError.INTERACTION_REQUIRED, "RT not found");
         }
     }
@@ -127,6 +133,7 @@ final class SilentRequest extends BaseRequest {
     private void removeToken() {
         final String errorCode = mTokenResponse.getError();
         if (!OauthConstants.ErrorCode.INVALID_GRANT.equalsIgnoreCase(errorCode)) {
+            Logger.verbose(TAG, mAuthRequestParameters.getRequestContext(), "Received invalid_grant, removing refresh token");
             return;
         }
 

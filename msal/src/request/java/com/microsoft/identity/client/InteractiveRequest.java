@@ -44,6 +44,7 @@ import java.util.concurrent.CountDownLatch;
  * tab or fall back to webview if custom tab is not available).
  */
 final class InteractiveRequest extends BaseRequest {
+    private static final String TAG = InteractiveRequest.class.getSimpleName();
     private final Set<String> mAdditionalScope = new HashSet<>();
 
     static final int BROWSER_FLOW = 1001;
@@ -63,7 +64,6 @@ final class InteractiveRequest extends BaseRequest {
     InteractiveRequest(final Activity activity, final AuthenticationRequestParameters authRequestParameters,
                        final String[] additionalScope) {
         super(activity.getApplicationContext(), authRequestParameters);
-
         mActivity = activity;
 
         // validate redirect
@@ -94,6 +94,7 @@ final class InteractiveRequest extends BaseRequest {
     synchronized void preTokenRequest() throws MSALUserCancelException, AuthenticationException {
         final String authorizeUri;
         try {
+            Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Prepare authorize request uri for interactive flow.");
             authorizeUri = appendQueryStringToAuthorizeEndpoint();
         } catch (final UnsupportedEncodingException e) {
             throw new AuthenticationException(MSALError.UNSUPPORTED_ENCODING, e.getMessage(), e);
@@ -122,6 +123,8 @@ final class InteractiveRequest extends BaseRequest {
             //CHECKSTYLE:OFF: checkstyle:EmptyBlock
         } catch (final InterruptedException e) {
             // TODO: logging.
+            Logger.error(TAG, mAuthRequestParameters.getRequestContext(), "Fail to lock the thread for waiting for authorize"
+                    + " request to return.", e);
         }
 
         processAuthorizationResult(sAuthorizationResult);
@@ -149,6 +152,7 @@ final class InteractiveRequest extends BaseRequest {
     }
 
     static synchronized void onActivityResult(int requestCode, int resultCode, final Intent data) {
+        Logger.info(TAG, null, "Received request code is: " + requestCode + "; result code is: " + resultCode);
         try {
             if (requestCode != BROWSER_FLOW) {
                 throw new IllegalStateException("Unknown request code");
@@ -176,6 +180,7 @@ final class InteractiveRequest extends BaseRequest {
             authorizationUrl += parsedQP;
         }
 
+        Logger.infoPII(TAG, mAuthRequestParameters.getRequestContext(), "Request uri to authorize endpoint is: " + authorizationUrl);
         return authorizationUrl;
     }
 
@@ -196,7 +201,7 @@ final class InteractiveRequest extends BaseRequest {
         requestParameters.put(OauthConstants.Oauth2Parameters.REDIRECT_URI, mAuthRequestParameters.getRedirectUri());
         requestParameters.put(OauthConstants.Oauth2Parameters.RESPONSE_TYPE, OauthConstants.Oauth2ResponseType.CODE);
         requestParameters.put(OauthConstants.OauthHeader.CORRELATION_ID,
-                mAuthRequestParameters.getCorrelationId().toString());
+                mAuthRequestParameters.getRequestContext().getCorrelationId().toString());
         requestParameters.putAll(PlatformIdHelper.getPlatformIdParameters());
 
         if (!MSALUtils.isEmpty(mAuthRequestParameters.getPolicy())) {
@@ -257,11 +262,14 @@ final class InteractiveRequest extends BaseRequest {
     private void processAuthorizationResult(final AuthorizationResult authorizationResult)
             throws MSALUserCancelException, AuthenticationException {
         if (authorizationResult == null) {
+            Logger.error(TAG, mAuthRequestParameters.getRequestContext(), "Authorization result is null", null);
             // TODO: throw unknown error
             //CHECKSTYLE:ON: checkstyle:EmptyBlock
         }
 
-        switch (authorizationResult.getAuthorizationStatus()) {
+        final AuthorizationResult.AuthorizationStatus status = authorizationResult.getAuthorizationStatus();
+        Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Authorize request status is: " + status.toString());
+        switch (status) {
             case USER_CANCEL:
                 throw new MSALUserCancelException();
             case FAIL:
@@ -273,7 +281,6 @@ final class InteractiveRequest extends BaseRequest {
             case SUCCESS:
                 // verify if the state is the same as the one we send
                 verifyStateInResponse(authorizationResult.getState());
-
                 // Happy path, continue the process to use code for new access token.
                 return;
             default:

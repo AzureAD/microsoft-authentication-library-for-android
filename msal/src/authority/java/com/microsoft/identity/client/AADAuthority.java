@@ -30,12 +30,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * MSAL internal class for representing the AAD authority.
  */
 final class AADAuthority extends Authority {
+    private static final String TAG = AADAuthority.class.getSimpleName();
     private static final String AAD_INSTANCE_DISCOVERY_ENDPOINT = "https://login.windows.net/common/discovery/instance";
     private static final String API_VERSION = "api-version";
     private static final String API_VERSION_VALUE = "1.0";
@@ -61,15 +61,19 @@ final class AADAuthority extends Authority {
     }
 
     @Override
-    String performInstanceDiscovery(final UUID correlationId) throws AuthenticationException {
+    String performInstanceDiscovery(final RequestContext requestContext) throws AuthenticationException {
+        Logger.info(TAG, requestContext, "Passed in authority " + mAuthorityUrl.toString() + "is AAD authority. "
+                + "Start doing Instance discovery.");
         if (!mValidateAuthority || TRUSTED_HOST_SET.contains(mAuthorityUrl.getAuthority())) {
+            Logger.verbose(TAG, requestContext, "Authority validation is turned off or the passed-in authority is "
+                    + "in the trust list, skipping instance discovery.");
             return getDefaultOpenIdConfigurationEndpoint();
         }
 
         final Oauth2Client oauth2Client = new Oauth2Client();
         oauth2Client.addQueryParameter(API_VERSION, API_VERSION_VALUE);
         oauth2Client.addQueryParameter(AUTHORIZATION_ENDPOINT, mAuthorityUrl.toString() + DEFAULT_AUTHORIZE_ENDPOINT);
-        oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID, correlationId.toString());
+        oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID, requestContext.getCorrelationId().toString());
 
         // send instance discovery request
         final InstanceDiscoveryResponse response;
@@ -90,6 +94,8 @@ final class AADAuthority extends Authority {
                     + ";ErrorDescription: " + response.getErrorDescription());
         }
 
+        Logger.info(TAG, requestContext, "Instance discovery succeeded. Tenant discovery endpoint is: "
+                + response.getTenantDiscoveryEndpoint());
         return response.getTenantDiscoveryEndpoint();
     }
 }

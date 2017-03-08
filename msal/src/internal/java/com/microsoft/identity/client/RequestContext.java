@@ -23,20 +23,27 @@
 
 package com.microsoft.identity.client;
 
+import java.util.UUID;
 
 /**
- * Interface for apps to configure the external logging and implement the callback to designate the customize
- * place for where to output the log messages.
+ * MSAL internal class for representing the request context. It contains correlation id and
+ * component name.
  */
-public interface ILogger {
-    /**
-     * Interface method for apps to hand off each log message as it's generated.
-     * @param tag The TAG for the log message. The SDK send the component name(the class where the
-     *            log is generated).
-     * @param logLevel The {@link Logger.LogLevel} for the generated message.
-     * @param message The detailed message. Will not contain any PII info.
-     * @param containsPII True if the log message contains PII, false otherwise. If enablePII is not set
-     *                    on the {@link Logger},
-     */
-    void log(String tag, Logger.LogLevel logLevel, String message, boolean containsPII);
+
+final class RequestContext {
+    private final UUID mCorrelationId;
+    private final String mComponent;
+
+    RequestContext(final UUID correlationId, final String component) {
+        mCorrelationId = correlationId;
+        mComponent = component;
+    }
+
+    UUID getCorrelationId() {
+        return mCorrelationId;
+    }
+
+    String getComponent() {
+        return mComponent;
+    }
 }

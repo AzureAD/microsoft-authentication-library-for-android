@@ -32,6 +32,7 @@ import java.util.Map;
  * MSAL internal response for handling the result from authorize endpoint.
  */
 final class AuthorizationResult {
+    private static final String TAG = AuthorizationResult.class.getSimpleName();
 
     private final String mAuthCode;
     private final String mState;
@@ -64,6 +65,7 @@ final class AuthorizationResult {
         }
 
         if (resultCode == Constants.UIResponse.CANCEL) {
+            Logger.verbose(TAG, null, "User cancel the request in webview.");
             return AuthorizationResult.getAuthorizationResultWithUserCancel();
         } else if (resultCode == Constants.UIResponse.AUTH_CODE_COMPLETE) {
             final String url = data.getStringExtra(Constants.AUTHORIZATION_FINAL_URL);
@@ -84,21 +86,26 @@ final class AuthorizationResult {
 
         final AuthorizationResult authorizationResult;
         if (MSALUtils.isEmpty(result)) {
+            Logger.warning(TAG, null, "Invalid server response, empty query string from the webview redirect.");
             authorizationResult = getAuthorizationResultWithInvalidServerResponse();
         } else {
             final Map<String, String> urlParameters = MSALUtils.decodeUrlToMap(result, "&");
             if (urlParameters.containsKey(OauthConstants.TokenResponseClaim.CODE)) {
                 final String state = urlParameters.get(OauthConstants.TokenResponseClaim.STATE);
                 if (MSALUtils.isEmpty(state)) {
+                    Logger.warning(TAG, null, "State parameter is not returned from the webview redirect.");
                     authorizationResult = new AuthorizationResult(AuthorizationStatus.FAIL, Constants.MSALError.AUTHORIZATION_FAILED,
                             Constants.MSALErrorMessage.STATE_NOT_RETURNED);
                 } else {
+                    Logger.info(TAG, null, "Auth code is successfully returned from webview redirect.");
                     authorizationResult = new AuthorizationResult(urlParameters.get(
                             OauthConstants.Oauth2Parameters.CODE), state);
                 }
             } else if (urlParameters.containsKey(OauthConstants.Authorize.ERROR)) {
                 final String error = urlParameters.get(OauthConstants.Authorize.ERROR);
                 final String errorDescription = urlParameters.get(OauthConstants.Authorize.ERROR_DESCRIPTION);
+                Logger.info(TAG, null, "Error is returned from webview redirect, error: " + error + "; errorDescription: "
+                        + errorDescription);
 
                 // TODO: finalize the error handling.
                 authorizationResult = new AuthorizationResult(AuthorizationStatus.FAIL, error,
