@@ -45,7 +45,6 @@ import java.util.UUID;
 import static com.microsoft.aad.automation.testapp.R.id.acquireToken;
 import static com.microsoft.aad.automation.testapp.R.id.acquireTokenSilent;
 import static com.microsoft.aad.automation.testapp.R.id.expireAccessToken;
-import static com.microsoft.aad.automation.testapp.R.id.invalidateFamilyRefreshToken;
 import static com.microsoft.aad.automation.testapp.R.id.invalidateRefreshToken;
 import static com.microsoft.aad.automation.testapp.R.id.requestGo;
 import static com.microsoft.aad.automation.testapp.R.id.requestInfo;
@@ -116,8 +115,6 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
             case expireAccessToken:
                 break;
             case invalidateRefreshToken:
-                break;
-            case invalidateFamilyRefreshToken:
                 break;
             default:
                 throw new IllegalStateException("Undefined flow");

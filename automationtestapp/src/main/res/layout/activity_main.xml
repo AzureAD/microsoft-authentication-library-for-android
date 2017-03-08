@@ -69,13 +69,6 @@
         android:layout_height="wrap_content"
         android:text="@string/expire_at_and_invalidate_rt" />
 
-    <!-- invalidateFamilyRefreshToken Button -->
-    <Button
-        android:id="@+id/invalidateFamilyRefreshToken"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/invalidate_frt" />
-
     <!-- Button for read cache-->
     <Button
         android:id="@+id/readCache"

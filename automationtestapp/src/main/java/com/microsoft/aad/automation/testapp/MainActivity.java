@@ -37,7 +37,6 @@ import static com.microsoft.aad.automation.testapp.R.id.clearCache;
 import static com.microsoft.aad.automation.testapp.R.id.et_userHomeId;
 import static com.microsoft.aad.automation.testapp.R.id.expireAccessToken;
 import static com.microsoft.aad.automation.testapp.R.id.getUsers;
-import static com.microsoft.aad.automation.testapp.R.id.invalidateFamilyRefreshToken;
 import static com.microsoft.aad.automation.testapp.R.id.invalidateRefreshToken;
 import static com.microsoft.aad.automation.testapp.R.id.readCache;
 import static com.microsoft.aad.automation.testapp.R.id.signout;
@@ -52,7 +51,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             acquireTokenSilent,
             expireAccessToken,
             invalidateRefreshToken,
-            invalidateFamilyRefreshToken,
             readCache,
             clearCache,
             getUsers,
@@ -85,7 +83,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case acquireTokenSilent:
             case expireAccessToken:
             case invalidateRefreshToken:
-            case invalidateFamilyRefreshToken:
                 launchAuthenticationInfoActivity(view.getId());
                 break;
             case readCache:
