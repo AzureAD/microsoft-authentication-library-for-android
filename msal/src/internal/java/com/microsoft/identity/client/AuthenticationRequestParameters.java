@@ -36,7 +36,6 @@ final class AuthenticationRequestParameters {
     private final TokenCache mTokenCache;
     private final Set<String> mScope = new HashSet<>();
     private final String mClientId;
-    private final String mPolicy;
     private final RequestContext mRequestContext;
 
     private String mRedirectUri;
@@ -48,7 +47,7 @@ final class AuthenticationRequestParameters {
      * Creates new {@link AuthenticationRequestParameters}.
      */
     private AuthenticationRequestParameters(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
-                                            final String clientId, final String policy, final RequestContext requestContext) {
+                                            final String clientId, final RequestContext requestContext) {
         // Every acquireToken API call should contain correlation id.
         if (requestContext == null || requestContext.getCorrelationId() == null) {
             throw new IllegalArgumentException("correlationId");
@@ -67,7 +66,6 @@ final class AuthenticationRequestParameters {
         mTokenCache = tokenCache;
         mScope.addAll(scope);
         mClientId = clientId;
-        mPolicy = policy;
         mRequestContext = requestContext;
     }
 
@@ -75,11 +73,11 @@ final class AuthenticationRequestParameters {
      * Creates the {@link AuthenticationRequestParameters} with all the given parameters.
      */
     static AuthenticationRequestParameters create(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
-                                                  final String clientId, final String redirectUri, final String policy,
-                                                  final String loginHint, final String extraQueryParam, final UIOptions uiOptions,
+                                                  final String clientId, final String redirectUri, final String loginHint,
+                                                  final String extraQueryParam, final UIOptions uiOptions,
                                                   final RequestContext requestContext) {
         final AuthenticationRequestParameters requestParameters = new AuthenticationRequestParameters(authority, tokenCache, scope,
-                clientId, policy, requestContext);
+                clientId, requestContext);
         requestParameters.setRedirectUri(redirectUri);
         requestParameters.setLoginHint(loginHint);
         requestParameters.setExtraQueryParam(extraQueryParam);
@@ -92,8 +90,8 @@ final class AuthenticationRequestParameters {
      * Creates the {@link AuthenticationRequestParameters} with all the given parameters.
      */
     static AuthenticationRequestParameters create(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
-                                                  final String clientId, final String policy, final RequestContext requestContext) {
-        return new AuthenticationRequestParameters(authority, tokenCache, scope, clientId, policy, requestContext);
+                                                  final String clientId, final RequestContext requestContext) {
+        return new AuthenticationRequestParameters(authority, tokenCache, scope, clientId, requestContext);
     }
 
     Authority getAuthority() {
@@ -118,10 +116,6 @@ final class AuthenticationRequestParameters {
 
     private void setRedirectUri(final String redirectUri) {
         mRedirectUri = redirectUri;
-    }
-
-    String getPolicy() {
-        return mPolicy;
     }
 
     String getLoginHint() {

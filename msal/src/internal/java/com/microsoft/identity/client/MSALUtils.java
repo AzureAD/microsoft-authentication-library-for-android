@@ -356,4 +356,11 @@ final class MSALUtils {
 
         return false;
     }
+
+    /**
+     * @return True if the scopes stored in the token cache key contains all the requested scopes.
+     */
+    static boolean isScopeContains(final Set<String> scopes, final Set<String> otherScopes) {
+        return scopes.containsAll(otherScopes);
+    }
 }

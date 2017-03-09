@@ -78,7 +78,7 @@ final class TokenCacheAccessor {
     /**
      * When storing access token, the key needs to be a strict match.
      */
-    void saveAccessToken(final TokenCacheItem accessToken) {
+    void saveAccessToken(final AccessTokenCacheItem accessToken) {
         final TokenCacheKey key = TokenCacheKey.extractKeyForAT(accessToken);
         Logger.verbose(TAG, null, "Save access token into cache.");
         Logger.verbosePII(TAG, null, "Access token is saved with key: " + key);
@@ -106,13 +106,13 @@ final class TokenCacheAccessor {
      * is provided, it also has to be matched. Scope in the cached access token item has to be the exact same with the
      * scopes in the lookup key.
      */
-    List<TokenCacheItem> getAccessToken(final TokenCacheKey tokenCacheKey) {
+    List<AccessTokenCacheItem> getAccessToken(final TokenCacheKey tokenCacheKey) {
         final Map<String, String> accessTokens = (Map<String, String>) mAccessTokenSharedPreference.getAll();
-        final List<TokenCacheItem> foundATs = new ArrayList<>();
+        final List<AccessTokenCacheItem> foundATs = new ArrayList<>();
         for (final String accessTokenValue: accessTokens.values()) {
-            final TokenCacheItem tokenCacheItem = mGson.fromJson(accessTokenValue, TokenCacheItem.class);
-            if (tokenCacheKey.matches(tokenCacheItem)) {
-                foundATs.add(tokenCacheItem);
+            final AccessTokenCacheItem accessTokenCacheItem = mGson.fromJson(accessTokenValue, AccessTokenCacheItem.class);
+            if (tokenCacheKey.matches(accessTokenCacheItem) && accessTokenCacheItem.getScope().containsAll(tokenCacheKey.getScope())) {
+                foundATs.add(accessTokenCacheItem);
             }
         }
 
@@ -164,18 +164,18 @@ final class TokenCacheAccessor {
     }
 
     /**
-     * @return Immutable List of all the {@link TokenCacheItem}s.
+     * @return Immutable List of all the {@link AccessTokenCacheItem}s.
      */
-    List<TokenCacheItem> getAllAccessTokens() {
+    List<AccessTokenCacheItem> getAllAccessTokens() {
         final Map<String, String> allAT = (Map<String, String>) mAccessTokenSharedPreference.getAll();
-        final List<TokenCacheItem> tokenCacheItems = new ArrayList<>(allAT.size());
+        final List<AccessTokenCacheItem> accessTokenCacheItems = new ArrayList<>(allAT.size());
         for (final String accessTokenValue : allAT.values()) {
-            final TokenCacheItem tokenCacheItem = mGson.fromJson(accessTokenValue, TokenCacheItem.class);
-            tokenCacheItems.add(tokenCacheItem);
+            final AccessTokenCacheItem accessTokenCacheItem = mGson.fromJson(accessTokenValue, AccessTokenCacheItem.class);
+            accessTokenCacheItems.add(accessTokenCacheItem);
         }
 
-        Logger.verbose(TAG, null, "Retrieve all the access tokens from cache, the number of access tokens returned is: " + tokenCacheItems.size());
-        return Collections.unmodifiableList(tokenCacheItems);
+        Logger.verbose(TAG, null, "Retrieve all the access tokens from cache, the number of access tokens returned is: " + accessTokenCacheItems.size());
+        return Collections.unmodifiableList(accessTokenCacheItems);
     }
 
     /**
@@ -212,10 +212,10 @@ final class TokenCacheAccessor {
         return Collections.unmodifiableList(allRTsForApp);
     }
 
-    List<TokenCacheItem> getAllAccessTokensForGivenClientId(final String clientId) {
-        final List<TokenCacheItem> allATs = getAllAccessTokens();
-        final List<TokenCacheItem> allATsForApp = new ArrayList<>(allATs.size());
-        for (final TokenCacheItem accessTokenCacheItem : allATs) {
+    List<AccessTokenCacheItem> getAllAccessTokensForGivenClientId(final String clientId) {
+        final List<AccessTokenCacheItem> allATs = getAllAccessTokens();
+        final List<AccessTokenCacheItem> allATsForApp = new ArrayList<>(allATs.size());
+        for (final AccessTokenCacheItem accessTokenCacheItem : allATs) {
             if (clientId.equals(accessTokenCacheItem.getClientId())) {
                 allATsForApp.add(accessTokenCacheItem);
             }

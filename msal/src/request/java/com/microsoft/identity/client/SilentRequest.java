@@ -51,10 +51,10 @@ final class SilentRequest extends BaseRequest {
 
         // lookup AT first.
         if (!mForceRefresh) {
-            final TokenCacheItem tokenCacheItem = tokenCache.findAccessToken(mAuthRequestParameters, mUser);
-            if (tokenCacheItem != null) {
+            final AccessTokenCacheItem accessTokenCacheItem = tokenCache.findAccessToken(mAuthRequestParameters, mUser);
+            if (accessTokenCacheItem != null) {
                 Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Access token is found, returning cached AT.");
-                mAuthResult = new AuthenticationResult(tokenCacheItem);
+                mAuthResult = new AuthenticationResult(accessTokenCacheItem);
                 return;
             }
         } else {

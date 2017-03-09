@@ -65,7 +65,7 @@ public final class Logger {
     static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     // Turn on the verbose level logging by default.
-    private LogLevel mLogLevel = LogLevel.INFO;
+    private LogLevel mLogLevel = LogLevel.VERBOSE;
     private ILogger mExternalLogger;
     private boolean mLogcatLogEnabled = true;
     private boolean mEnablePII = false;

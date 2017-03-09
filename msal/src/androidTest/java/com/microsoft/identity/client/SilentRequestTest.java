@@ -91,13 +91,13 @@ public final class SilentRequestTest extends AndroidTestCase {
                         AndroidTestUtil.getExpiredDate()));
 
         final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(
-                AndroidTestUtil.getSuccessResponse(TokenCacheTest.getDefaultIdToken(), singleScope));
+                AndroidTestUtil.getSuccessResponse(TokenCacheTest.getDefaultIdToken(), AndroidTestUtil.ACCESS_TOKEN, singleScope));
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
         InteractiveRequestTest.mockNetworkConnected(mAppContext, false);
 
-        final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope), ""), false, mDefaultUser);
+        final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope)), false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
         request.getToken(new AuthenticationCallback() {
             @Override
@@ -129,18 +129,18 @@ public final class SilentRequestTest extends AndroidTestCase {
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY, TokenCacheTest.CLIENT_ID,
                 TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn()));
 
-        final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope), "");
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope));
         final BaseRequest request = new SilentRequest(mAppContext, requestParameters, false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
         request.getToken(new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
-                assertTrue(ACCESS_TOKEN.equals(authenticationResult.getToken()));
+                assertTrue(ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
 
                 verifyUserReturnedInResult(authenticationResult);
 
                 final TokenCache tokenCache = authenticationResult.getUser().getTokenCache();
-                assertTrue(tokenCache.findAccessToken(requestParameters, mDefaultUser).getToken().equals(ACCESS_TOKEN));
+                assertTrue(tokenCache.findAccessToken(requestParameters, mDefaultUser).getAccessToken().equals(ACCESS_TOKEN));
                 assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 1);
                 resultLock.countDown();
             }
@@ -166,19 +166,18 @@ public final class SilentRequestTest extends AndroidTestCase {
     public void testSavedTokenInCacheNotHaveAccessToken() throws AuthenticationException, InterruptedException {
         final String singleScope = "scope1";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY, TokenCacheTest.CLIENT_ID,
-                TokenCacheTest.getTokenResponseForDefaultUser("", REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn()));
+                TokenCacheTest.getTokenResponseForDefaultUser(AndroidTestUtil.ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn()));
 
-        final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope), "");
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope));
         final BaseRequest request = new SilentRequest(mAppContext, requestParameters, false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
-        final String expectedToken = TokenCacheTest.getDefaultIdToken();
         request.getToken(new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
-                assertTrue(expectedToken.equals(authenticationResult.getToken()));
+                assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
                 verifyUserReturnedInResult(authenticationResult);
                 assertTrue(authenticationResult.getUser().getTokenCache().findAccessToken(requestParameters,
-                        mDefaultUser).getToken().equals(expectedToken));
+                        mDefaultUser).getAccessToken().equals(AndroidTestUtil.ACCESS_TOKEN));
                 assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 1);
                 resultLock.countDown();
             }
@@ -208,22 +207,22 @@ public final class SilentRequestTest extends AndroidTestCase {
                 TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getExpiredDate()));
 
         final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(
-                AndroidTestUtil.getSuccessResponse(TokenCacheTest.getDefaultIdToken(), singleScope));
+                AndroidTestUtil.getSuccessResponse(TokenCacheTest.getDefaultIdToken(), AndroidTestUtil.ACCESS_TOKEN, singleScope));
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
-        final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope), "");
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope));
         final BaseRequest request = new SilentRequest(mAppContext, requestParameters, false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
         request.getToken(new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
-                assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getToken()));
+                assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
 
                 verifyUserReturnedInResult(authenticationResult);
 
                 final TokenCache cache = authenticationResult.getUser().getTokenCache();
-                assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(cache.findAccessToken(requestParameters, mDefaultUser).getToken()));
+                assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(cache.findAccessToken(requestParameters, mDefaultUser).getAccessToken()));
                 assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 1);
 
                 try {
@@ -264,14 +263,14 @@ public final class SilentRequestTest extends AndroidTestCase {
 
         final String[] requestedScope = new String[] {"email.read", "scope2", "user.read"};
         final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(new HashSet<>(Arrays.asList(
-                requestedScope)), ""), false, mDefaultUser);
+                requestedScope))), false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
 
         assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
         request.getToken(new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
-                assertTrue(ACCESS_TOKEN.equals(authenticationResult.getToken()));
+                assertTrue(ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
                 verifyUserReturnedInResult(authenticationResult);
 
                 resultLock.countDown();
@@ -300,17 +299,17 @@ public final class SilentRequestTest extends AndroidTestCase {
 
         final String anotherScope = "scope2";
         final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(
-                AndroidTestUtil.getSuccessResponse(TokenCacheTest.getDefaultIdToken(), anotherScope));
+                AndroidTestUtil.getSuccessResponse(TokenCacheTest.getDefaultIdToken(), AndroidTestUtil.ACCESS_TOKEN, anotherScope));
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
-        final AuthenticationRequestParameters requestParametersWithAnotherScope = getRequestParameters(Collections.singleton(anotherScope), "");
+        final AuthenticationRequestParameters requestParametersWithAnotherScope = getRequestParameters(Collections.singleton(anotherScope));
         final BaseRequest request = new SilentRequest(mAppContext, requestParametersWithAnotherScope, false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
         request.getToken(new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
-                assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getToken()));
+                assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
                 verifyUserReturnedInResult(authenticationResult);
 
                 final TokenCache cache = authenticationResult.getUser().getTokenCache();
@@ -320,9 +319,9 @@ public final class SilentRequestTest extends AndroidTestCase {
                         AndroidTestUtil.DEFAULT_AUTHORITY, TokenCacheTest.CLIENT_ID, Collections.singleton(singleScope), mDefaultUser).toString(), null));
                 // find token with the single scope1
                 // The access token for scope1 in the cache is no longer valid
-                assertNull(mTokenCache.findAccessToken(getRequestParameters(Collections.singleton(singleScope), ""), mDefaultUser));
+                assertNull(mTokenCache.findAccessToken(getRequestParameters(Collections.singleton(singleScope)), mDefaultUser));
 
-                assertTrue(cache.findAccessToken(requestParametersWithAnotherScope, mDefaultUser).getToken().equals(AndroidTestUtil.ACCESS_TOKEN));
+                assertTrue(cache.findAccessToken(requestParametersWithAnotherScope, mDefaultUser).getAccessToken().equals(AndroidTestUtil.ACCESS_TOKEN));
 
                 assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 1);
                 try {
@@ -357,9 +356,9 @@ public final class SilentRequestTest extends AndroidTestCase {
             InterruptedException, IOException {
         final String singleScope = "scope1";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY, TokenCacheTest.CLIENT_ID,
-                TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn()));
+                TokenCacheTest.getTokenResponseForDifferentUser(singleScope, AndroidTestUtil.getValidExpiresOn()));
 
-        final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope), ""), false, mDefaultUser);
+        final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope)), false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
         request.getToken(new AuthenticationCallback() {
             @Override
@@ -395,7 +394,7 @@ public final class SilentRequestTest extends AndroidTestCase {
         mockFailureResponse("invalid_grant");
 
         assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 1);
-        final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope), ""), true, mDefaultUser);
+        final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope)), true, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
         request.getToken(new AuthenticationCallback() {
             @Override
@@ -438,7 +437,7 @@ public final class SilentRequestTest extends AndroidTestCase {
         mockFailureResponse("invalid_request");
 
         assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 1);
-        final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope), ""), true, mDefaultUser);
+        final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope)), true, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
         request.getToken(new AuthenticationCallback() {
             @Override
@@ -475,9 +474,9 @@ public final class SilentRequestTest extends AndroidTestCase {
         assertNotNull(user.getTokenCache());
     }
 
-    private AuthenticationRequestParameters getRequestParameters(final Set<String> scopes, final String policy) {
+    private AuthenticationRequestParameters getRequestParameters(final Set<String> scopes) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(AndroidTestUtil.DEFAULT_AUTHORITY, false),
-                mTokenCache, scopes, TokenCacheTest.CLIENT_ID, "some redirect", policy, "", "", UIOptions.SELECT_ACCOUNT,
+                mTokenCache, scopes, TokenCacheTest.CLIENT_ID, "some redirect", "", "", UIOptions.SELECT_ACCOUNT,
                 new RequestContext(UUID.randomUUID(), ""));
     }
 

@@ -97,7 +97,7 @@ final class TokenCacheKey {
         stringBuilder.append(MSALUtils.base64EncodeToString(mClientId) + "$");
         // scope is treeSet to guarantee the order of the scopes when converting to string.
         stringBuilder.append(MSALUtils.base64EncodeToString(MSALUtils.convertSetToString(mScope, " ")) + "$");
-        stringBuilder.append(MSALUtils.base64EncodeToString(mHomeObjectId) + "$");
+        stringBuilder.append(MSALUtils.base64EncodeToString(mHomeObjectId));
 
         return stringBuilder.toString();
     }
@@ -110,14 +110,6 @@ final class TokenCacheKey {
      boolean matches(final BaseTokenCacheItem item) {
         return mClientId.equalsIgnoreCase(item.getClientId())
                 && (MSALUtils.isEmpty(mAuthority) || mAuthority.equalsIgnoreCase(item.getAuthority()))
-                && (MSALUtils.isEmpty(mHomeObjectId) || mHomeObjectId.equalsIgnoreCase(item.getHomeObjectId()))
-                && isScopeContains(item.getScope());
-    }
-
-    /**
-     * @return True if the scopes stored in the token cache key contains all the requested scopes.
-     */
-    boolean isScopeContains(final Set<String> otherScopes) {
-        return mScope.contains(otherScopes);
+                && mHomeObjectId.equalsIgnoreCase(item.getHomeObjectId());
     }
 }

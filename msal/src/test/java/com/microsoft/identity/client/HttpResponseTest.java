@@ -24,6 +24,7 @@
 package com.microsoft.identity.client;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import java.net.HttpURLConnection;
 import java.util.Collections;
@@ -35,6 +36,11 @@ import java.util.List;
 public final class HttpResponseTest {
 
     private static final String RESPONSE_BODY = "test response body";
+
+    @Before
+    public void setUp() {
+        Logger.getInstance().setEnableLogcatLog(false);
+    }
 
     @Test
     public void testHttpResponseWithNullBody() {

@@ -28,31 +28,26 @@ import java.util.Date;
 /**
  * MSAL internal class for representing the access token cache item.
  */
-final class TokenCacheItem extends BaseTokenCacheItem {
+final class AccessTokenCacheItem extends BaseTokenCacheItem {
 
-    private String mToken;
+    private String mAccessToken;
     private Date mExpiresOn;
 
     /**
-     * Constructor for creating the {@link TokenCacheItem}.
+     * Constructor for creating the {@link AccessTokenCacheItem}.
      */
-    TokenCacheItem(final String authority, final String clientId, final TokenResponse response) throws AuthenticationException {
+    AccessTokenCacheItem(final String authority, final String clientId, final TokenResponse response) throws AuthenticationException {
         super(authority, clientId, response);
 
-        if (!MSALUtils.isEmpty(response.getAccessToken())) {
-            mToken = response.getAccessToken();
-            mExpiresOn = response.getExpiresOn();
-        } else if (!MSALUtils.isEmpty(response.getRawIdToken())) {
-            mToken = response.getRawIdToken();
-            mExpiresOn = response.getIdTokenExpiresOn();
-        }
+        mAccessToken = response.getAccessToken();
+        mExpiresOn = response.getExpiresOn();
     }
 
     /**
      * @return The token. Could either be access token or id token.
      */
-    String getToken() {
-        return mToken;
+    String getAccessToken() {
+        return mAccessToken;
     }
 
     /**

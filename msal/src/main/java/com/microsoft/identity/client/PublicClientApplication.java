@@ -177,7 +177,7 @@ public final class PublicClientApplication {
      *                 {@link AuthenticationCallback#onError(AuthenticationException)}.
      */
     public void acquireToken(final String[] scopes, final AuthenticationCallback callback) {
-        acquireTokenInteractive(scopes, "", UIOptions.SELECT_ACCOUNT, "", null, "", "", callback);
+        acquireTokenInteractive(scopes, "", UIOptions.SELECT_ACCOUNT, "", null, "", callback);
     }
 
     /**
@@ -196,7 +196,7 @@ public final class PublicClientApplication {
      */
     public void acquireToken(final String[] scopes, final String loginHint,
                              final AuthenticationCallback callback) {
-        acquireTokenInteractive(scopes, loginHint, UIOptions.SELECT_ACCOUNT, "", null, "", "", callback);
+        acquireTokenInteractive(scopes, loginHint, UIOptions.SELECT_ACCOUNT, "", null, "", callback);
     }
 
     /**
@@ -218,7 +218,7 @@ public final class PublicClientApplication {
     public void acquireToken(final String[] scopes, final String loginHint, final UIOptions uiOptions,
                              final String extraQueryParams, final AuthenticationCallback callback) {
         acquireTokenInteractive(scopes, loginHint, uiOptions == null ? UIOptions.SELECT_ACCOUNT : uiOptions,
-                extraQueryParams, null, "", "", callback);
+                extraQueryParams, null, "", callback);
     }
 
     /**
@@ -231,7 +231,6 @@ public final class PublicClientApplication {
      * @param extraQueryParams Optional. The extra query parameter sent to authorize endpoint.
      * @param additionalScope Optional. The additional scope to consent for.
      * @param authority Should be set if developer wants to get token for a different authority url.
-     * @param policy Optional. The policy to set for auth request.
      * @param callback The {@link AuthenticationCallback} to receive the result back.
      *                 1) If user cancels the flow by pressing the device back button, the result will be sent
      *                 back via {@link AuthenticationCallback#onCancel()}.
@@ -242,26 +241,12 @@ public final class PublicClientApplication {
      */
     public void acquireToken(final String[] scopes, final String loginHint, final UIOptions uiOptions,
                              final String extraQueryParams, final String[] additionalScope, final String authority,
-                             final String policy, final AuthenticationCallback callback) {
+                             final AuthenticationCallback callback) {
         acquireTokenInteractive(scopes, loginHint, uiOptions == null ? UIOptions.SELECT_ACCOUNT : uiOptions,
-                extraQueryParams, additionalScope, authority, policy, callback);
+                extraQueryParams, additionalScope, authority, callback);
     }
 
     // Silent call APIs.
-    /**
-     * Perform acquire token silent call. If there is a valid AT in the cache, the sdk will return the silent AT; If
-     * no valid AT exists, the sdk will try to find a RT and use the RT to get a new access token. If RT does not exist
-     * or it fails to use RT for a new AT, exception will be sent back via callback.
-     * @param scopes The array of scopes to silently get the token for.
-     * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
-     *                                               sent back via {@link AuthenticationCallback#onSuccess(AuthenticationResult)}.
-     *                                               Failure case will be sent back via {
-     *                                               @link AuthenticationCallback#onError(AuthenticationException)}.
-     */
-    public void acquireTokenSilentAsync(final String[] scopes, final AuthenticationCallback callback) {
-        acquireTokenSilent(scopes, null, "", "", false, callback);
-    }
-
     /**
      * Perform acquire token silent call. If there is a valid AT in the cache, the sdk will return the silent AT; If
      * no valid AT exists, the sdk will try to find a RT and use the RT to get a new access token. If RT does not exist
@@ -275,7 +260,7 @@ public final class PublicClientApplication {
      */
     public void acquireTokenSilentAsync(final String[] scopes, final User user,
                                         final AuthenticationCallback callback) {
-        acquireTokenSilent(scopes, user, "", "", false, callback);
+        acquireTokenSilent(scopes, user, "", false, callback);
     }
 
     /**
@@ -285,7 +270,6 @@ public final class PublicClientApplication {
      * @param scopes The array of scopes to silently get the token for.
      * @param user {@link User} represents the user to silently be signed in.
      * @param authority (Optional) The alternate authority to get the token for. If not set, will use the default authority.
-     * @param policy (Optional) The policy to set for auth request. The sdk will talk to b2c service if policy is set.
      * @param forceRefresh True if the request is forced to refresh, false otherwise.
      * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
      *                                               sent back via {@link AuthenticationCallback#onSuccess(AuthenticationResult)}.
@@ -293,9 +277,9 @@ public final class PublicClientApplication {
      *                                               @link AuthenticationCallback#onError(AuthenticationException)}.
      */
     public void acquireTokenSilentAsync(final String[] scopes, final User user, final String authority,
-                                        final String policy, final boolean forceRefresh,
+                                        final boolean forceRefresh,
                                         final AuthenticationCallback callback) {
-        acquireTokenSilent(scopes, user, authority, policy, forceRefresh, callback);
+        acquireTokenSilent(scopes, user, authority, forceRefresh, callback);
     }
 
     /**
@@ -370,14 +354,13 @@ public final class PublicClientApplication {
 
     private void acquireTokenInteractive(final String[] scopes, final String loginHint, final UIOptions uiOptions,
                                          final String extraQueryParams, final String[] additionalScope,
-                                         final String authority, final String policy,
-                                         final AuthenticationCallback callback) {
+                                         final String authority, final AuthenticationCallback callback) {
         if (callback == null) {
             throw new IllegalArgumentException("callback is null");
         }
 
         final AuthenticationRequestParameters requestParameters = getRequestParameters(authority, scopes, loginHint,
-                extraQueryParams, policy, uiOptions);
+                extraQueryParams, uiOptions);
 
         Logger.info(TAG, requestParameters.getRequestContext(), "Preparing a new interactive request");
         final BaseRequest request = new InteractiveRequest(mActivity, requestParameters, additionalScope);
@@ -385,7 +368,7 @@ public final class PublicClientApplication {
     }
 
     private void acquireTokenSilent(final String[] scopes, final User user, final String authority,
-                                    final String policy, final boolean forceRefresh,
+                                    final boolean forceRefresh,
                                     final AuthenticationCallback callback) {
         if (callback == null) {
             throw new IllegalArgumentException("callback is null");
@@ -397,7 +380,7 @@ public final class PublicClientApplication {
         final RequestContext requestContext = new RequestContext(UUID.randomUUID(), mComponent);
         final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));
         final AuthenticationRequestParameters requestParameters = AuthenticationRequestParameters.create(authorityForRequest, mTokenCache,
-                scopesAsSet, mClientId, policy, requestContext);
+                scopesAsSet, mClientId, requestContext);
 
         Logger.info(TAG, requestContext, "Preparing a new silent request");
         final BaseRequest request = new SilentRequest(mAppContext, requestParameters, forceRefresh, user);
@@ -406,7 +389,7 @@ public final class PublicClientApplication {
 
     private AuthenticationRequestParameters getRequestParameters(final String authority, final String[] scopes,
                                                                  final String loginHint, final String extraQueryParam,
-                                                                 final String policy, final UIOptions uiOption) {
+                                                                 final UIOptions uiOption) {
         final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? mAuthority
                 : Authority.createAuthority(authority, mValidateAuthority);
         // set correlation if not developer didn't set it.
@@ -414,6 +397,6 @@ public final class PublicClientApplication {
         final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));
 
         return AuthenticationRequestParameters.create(authorityForRequest, mTokenCache, scopesAsSet, mClientId,
-                mRedirectUri, policy, loginHint, extraQueryParam, uiOption, new RequestContext(correlationId, mComponent));
+                mRedirectUri, loginHint, extraQueryParam, uiOption, new RequestContext(correlationId, mComponent));
     }
 }

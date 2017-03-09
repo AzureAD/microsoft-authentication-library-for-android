@@ -232,15 +232,20 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     /**
      * Verify {@link PublicClientApplication#acquireToken(String[], AuthenticationCallback)}.
+     * AcquireToken interactive call ask token for scope1 and scope2.
+     * AcquireTokenSilent call ask token for scope3. No access token will be found. Refresh token returned in the interactive
+     * request will be used for silent request. Since no intersection between {scope1, scope2} and {scope3}, there will be
+     * two access token entries in the cache.
      */
     @Test
     public void testAcquireTokenSuccess() throws PackageManager.NameNotFoundException, IOException,
             InterruptedException {
         new GetTokenBaseTestCase() {
+            private User mUser;
 
             @Override
             void mockHttpRequest() throws IOException {
-                mockSuccessResponse(convertScopesArrayToString(SCOPE));
+                mockSuccessResponse(convertScopesArrayToString(SCOPE), AndroidTestUtil.ACCESS_TOKEN);
             }
 
             @Override
@@ -249,7 +254,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                 publicClientApplication.acquireToken(SCOPE, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
-                        Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getToken()));
+                        Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
+                        mUser = authenticationResult.getUser();
                         releaseLock.countDown();
                     }
 
@@ -275,12 +281,12 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             protected void makeSilentRequest(final PublicClientApplication application, final CountDownLatch silentResultLock)
                     throws IOException, InterruptedException {
                 final String scopeForSilent = "scope3";
-                mockSuccessResponse(scopeForSilent);
+                mockSuccessResponse(scopeForSilent, AndroidTestUtil.ACCESS_TOKEN);
 
-                application.acquireTokenSilentAsync(new String [] {scopeForSilent}, new AuthenticationCallback() {
+                application.acquireTokenSilentAsync(new String [] {scopeForSilent}, mUser, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
-                        assertTrue(authenticationResult.getToken().equals(AndroidTestUtil.ACCESS_TOKEN));
+                        assertTrue(authenticationResult.getAccessToken().equals(AndroidTestUtil.ACCESS_TOKEN));
                         assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 2);
                         assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 1);
                         silentResultLock.countDown();
@@ -302,7 +308,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     /**
      * Verify {@link PublicClientApplication#acquireToken(String[], String, UIOptions, String, String[],
-     * String, String, AuthenticationCallback)}. Also check if authority is set on the manifest, we read the authority
+     * String, AuthenticationCallback)}. Also check if authority is set on the manifest, we read the authority
      * from manifest meta-data.
      */
     @Test
@@ -425,28 +431,33 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         }.performTest();
     }
 
+    // TODO: add tests for b2c. Policy will be part of the authority
+
     /**
      * Verify {@link PublicClientApplication#acquireToken(String[], String, UIOptions, String, AuthenticationCallback)}.
+     * AcquireToken asks token for {scope1, scope2}.
+     * AcquireTokenSilent asks for {scope2}. Since forcePrompt is set for the silent request, RT request will be sent. There is
+     * intersection, old entry will be removed. There will be only one access token left.
      */
     @Test
-    public void testGetTokenWithPolicy() throws PackageManager.NameNotFoundException, IOException,
+    public void testGetTokenWithScopeIntersection() throws PackageManager.NameNotFoundException, IOException,
             InterruptedException {
         new GetTokenBaseTestCase() {
             private User mUser;
 
             @Override
             void mockHttpRequest() throws IOException {
-                mockSuccessResponse(convertScopesArrayToString(SCOPE));
+                mockSuccessResponse(convertScopesArrayToString(SCOPE), AndroidTestUtil.ACCESS_TOKEN);
             }
 
             @Override
             void makeAcquireTokenCall(PublicClientApplication publicClientApplication,
                                       final CountDownLatch releaseLock) {
-                publicClientApplication.acquireToken(SCOPE, "", UIOptions.FORCE_LOGIN, null, null, null, "singin",
+                publicClientApplication.acquireToken(SCOPE, "", UIOptions.FORCE_LOGIN, null, null, null,
                         new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
-                        Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getToken()));
+                        Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
                         mUser = authenticationResult.getUser();
                         releaseLock.countDown();
                     }
@@ -473,13 +484,17 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             protected void makeSilentRequest(final PublicClientApplication application, final CountDownLatch silentResultLock)
                     throws IOException, InterruptedException {
                 final String silentRequestScope = "scope2";
-                mockSuccessResponse(silentRequestScope);
+                final String newAccessToken = "some new access token";
+                mockSuccessResponse(silentRequestScope, newAccessToken);
 
-                application.acquireTokenSilentAsync(new String [] {silentRequestScope}, mUser, null, "singin", true, new AuthenticationCallback() {
+                application.acquireTokenSilentAsync(new String [] {silentRequestScope}, mUser, null, true, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
-                        assertTrue(authenticationResult.getToken().equals(AndroidTestUtil.ACCESS_TOKEN));
-                        assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 2);
+                        assertTrue(authenticationResult.getAccessToken().equals(newAccessToken));
+
+                        final List<AccessTokenCacheItem> accessTokenItems = AndroidTestUtil.getAllAccessTokens(mAppContext);
+                        assertTrue(accessTokenItems.size() == 1);
+                        assertTrue(accessTokenItems.get(0).getAccessToken().equals(newAccessToken));
                         assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 1);
                         silentResultLock.countDown();
                     }
@@ -549,8 +564,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         tokenCache.saveRefreshToken(authority, clientId, response);
     }
 
-    private void mockPackageManagerWithClientId(final Context context,
-                                                final boolean addAuthorityInManifest, final String clientId)
+    private void mockPackageManagerWithClientId(final Context context, final boolean addAuthorityInManifest,
+                                                final String clientId)
             throws PackageManager.NameNotFoundException {
         final PackageManager mockedPackageManager = context.getPackageManager();
         final ApplicationInfo applicationInfo = Mockito.mock(ApplicationInfo.class);
@@ -593,9 +608,9 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         return mockedActivity;
     }
 
-    private void mockSuccessResponse(final String scopes) throws IOException {
+    private void mockSuccessResponse(final String scopes, final String accessToken) throws IOException {
         final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(
-                AndroidTestUtil.getSuccessResponse(AndroidTestUtil.TEST_IDTOKEN, scopes));
+                AndroidTestUtil.getSuccessResponse(AndroidTestUtil.TEST_IDTOKEN, accessToken, scopes));
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
     }
