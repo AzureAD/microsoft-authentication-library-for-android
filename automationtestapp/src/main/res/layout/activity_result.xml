@@ -44,9 +44,8 @@
         android:background="@color/buttonColor"
         android:text="@string/done" />
 
-
     <TextView
-        android:id="@+id/adalLogs"
+        android:id="@+id/resultLogs"
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
         android:layout_gravity="center_horizontal"

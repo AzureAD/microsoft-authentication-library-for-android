@@ -48,7 +48,7 @@ import static com.microsoft.aad.automation.testapp.R.id.expireAccessToken;
 import static com.microsoft.aad.automation.testapp.R.id.invalidateRefreshToken;
 import static com.microsoft.aad.automation.testapp.R.id.requestGo;
 import static com.microsoft.aad.automation.testapp.R.id.requestInfo;
-import static com.microsoft.aad.automation.testapp.R.id.signout;
+import static com.microsoft.aad.automation.testapp.R.id.signOut;
 import static com.microsoft.aad.automation.testapp.R.layout.activity_sign_in;
 
 public class SignInActivity extends AppCompatActivity implements View.OnClickListener {
@@ -117,7 +117,7 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
                 break;
             case invalidateRefreshToken:
                 break;
-            case signout:
+            case signOut:
                 break;
             default:
                 throw new IllegalStateException("Undefined flow");

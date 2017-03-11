@@ -37,7 +37,7 @@ import static com.microsoft.aad.automation.testapp.R.id.expireAccessToken;
 import static com.microsoft.aad.automation.testapp.R.id.getUsers;
 import static com.microsoft.aad.automation.testapp.R.id.invalidateRefreshToken;
 import static com.microsoft.aad.automation.testapp.R.id.readCache;
-import static com.microsoft.aad.automation.testapp.R.id.signout;
+import static com.microsoft.aad.automation.testapp.R.id.signOut;
 import static com.microsoft.aad.automation.testapp.R.layout.activity_main;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             readCache,
             clearCache,
             getUsers,
-            signout
+            signOut
     };
 
     @Override
@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case acquireTokenSilent:
             case expireAccessToken:
             case invalidateRefreshToken:
-            case signout:
+            case signOut:
                 launchAuthenticationInfoActivity(view.getId());
                 break;
             case readCache:
