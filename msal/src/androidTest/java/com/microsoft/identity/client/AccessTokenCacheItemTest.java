@@ -31,9 +31,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Tests for {@link TokenCacheItem} and {@link RefreshTokenCacheItem}.
+ * Tests for {@link AccessTokenCacheItem} and {@link RefreshTokenCacheItem}.
  */
-public final class TokenCacheItemTest {
+public final class AccessTokenCacheItemTest {
     private static final String AUTHORITY = "https://login.microsoftonline.com/common";
     private static final String CLIENT_ID = "some-client-id";
     private static final String POLICY = "signin";
@@ -48,8 +48,8 @@ public final class TokenCacheItemTest {
 
     @Test
     public void testAccessTokenItemCreation() throws AuthenticationException {
-        final TokenCacheItem item = new TokenCacheItem(AUTHORITY, CLIENT_ID, POLICY, getTokenResponse(ACCESS_TOKEN, ""));
-        Assert.assertTrue(item instanceof TokenCacheItem);
+        final AccessTokenCacheItem item = new AccessTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse(ACCESS_TOKEN, ""));
+        Assert.assertTrue(item instanceof AccessTokenCacheItem);
         Assert.assertTrue(item.getAuthority().equals(AUTHORITY));
         Assert.assertTrue(item.getClientId().equals(CLIENT_ID));
 
@@ -61,13 +61,12 @@ public final class TokenCacheItemTest {
         Assert.assertTrue(item.getUniqueId().equals(UNIQUE_ID));
         Assert.assertTrue(item.getHomeObjectId().equals(HOME_OBJECT_ID));
         Assert.assertTrue(item.getTenantId().equals(TENANT_ID));
-        Assert.assertTrue(item.getPolicy().equals(POLICY));
-        Assert.assertTrue(item.getToken().equals(ACCESS_TOKEN));
+        Assert.assertTrue(item.getAccessToken().equals(ACCESS_TOKEN));
     }
 
     @Test
     public void testRefreshTokenCreation() throws AuthenticationException {
-        final RefreshTokenCacheItem item = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, POLICY, getTokenResponse("", REFRESH_TOKEN));
+        final RefreshTokenCacheItem item = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("", REFRESH_TOKEN));
         Assert.assertTrue(item.getRefreshToken().equals(REFRESH_TOKEN));
     }
 

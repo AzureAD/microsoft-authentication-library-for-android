@@ -57,8 +57,7 @@ public final class AuthenticationResultTest {
         final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, AndroidTestUtil.TEST_IDTOKEN, REFRESH_TOKEN,
                 EXPIRES_ON, EXPIRES_ON, EXPIRES_ON, "", TOKEN_TYPE, null);
 
-        final AuthenticationResult authenticationResult = new AuthenticationResult(new TokenCacheItem(null, null, null,
-                tokenResponse));
+        final AuthenticationResult authenticationResult = new AuthenticationResult(new AccessTokenCacheItem(null, null, tokenResponse));
         verifyScopeIsEmpty(authenticationResult);
     }
 
@@ -70,8 +69,7 @@ public final class AuthenticationResultTest {
         final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, AndroidTestUtil.TEST_IDTOKEN, REFRESH_TOKEN,
                 EXPIRES_ON, EXPIRES_ON, EXPIRES_ON, null, TOKEN_TYPE, null);
 
-        final AuthenticationResult authenticationResult = new AuthenticationResult(new TokenCacheItem(null, null, null,
-                tokenResponse));
+        final AuthenticationResult authenticationResult = new AuthenticationResult(new AccessTokenCacheItem(null, null, tokenResponse));
         verifyScopeIsEmpty(authenticationResult);
     }
 
@@ -85,8 +83,7 @@ public final class AuthenticationResultTest {
         final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, AndroidTestUtil.TEST_IDTOKEN, REFRESH_TOKEN,
                 EXPIRES_ON, EXPIRES_ON, EXPIRES_ON, scopes, TOKEN_TYPE, null);
 
-        final AuthenticationResult authenticationResult = new AuthenticationResult(new TokenCacheItem(null, null, null,
-                tokenResponse));
+        final AuthenticationResult authenticationResult = new AuthenticationResult(new AccessTokenCacheItem(null, null, tokenResponse));
         final String[] scopeArray = authenticationResult.getScope();
         Assert.assertNotNull(scopeArray);
         Assert.assertTrue(scopeArray.length == SCOPE_LENGTH);
@@ -106,25 +103,9 @@ public final class AuthenticationResultTest {
 
         final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, AndroidTestUtil.TEST_IDTOKEN,
                 REFRESH_TOKEN, expiresOn, idTokenExpiresOn, EXPIRES_ON, SCOPE, TOKEN_TYPE, null);
-        final AuthenticationResult authenticationResult = new AuthenticationResult(new TokenCacheItem(null, null, null, tokenResponse));
-        Assert.assertTrue(authenticationResult.getToken().equals(ACCESS_TOKEN));
+        final AuthenticationResult authenticationResult = new AuthenticationResult(new AccessTokenCacheItem(null, null, tokenResponse));
+        Assert.assertTrue(authenticationResult.getAccessToken().equals(ACCESS_TOKEN));
         Assert.assertTrue(authenticationResult.getExpiresOn().equals(expiresOn));
-    }
-
-    /**
-     * Verify that if only Id token is returned, it will be returned as token in authenticationResult, idtoken expiresOn
-     * will also be returned.
-     */
-    @Test
-    public void testOnlyIdTokenReturned() throws AuthenticationException {
-        final Date expiresOn = getExpiresOn(TIME_OFFSET);
-        final Date idTokenExpiresOn = getExpiresOn(-TIME_OFFSET);
-        final TokenResponse tokenResponse = new TokenResponse(null, AndroidTestUtil.TEST_IDTOKEN,
-                REFRESH_TOKEN, expiresOn, idTokenExpiresOn, EXPIRES_ON, SCOPE, TOKEN_TYPE, null);
-        final AuthenticationResult authenticationResult = new AuthenticationResult(new TokenCacheItem(null, null, null, tokenResponse));
-
-        Assert.assertTrue(authenticationResult.getToken().equals(AndroidTestUtil.TEST_IDTOKEN));
-        Assert.assertTrue(authenticationResult.getExpiresOn().equals(idTokenExpiresOn));
     }
 
     @Test
@@ -132,7 +113,7 @@ public final class AuthenticationResultTest {
         final String uniqueId = "unique";
         final TokenResponse tokenResponse = new TokenResponse(null, PublicClientApplicationTest.getIdToken("displayable",
                 uniqueId, ""), REFRESH_TOKEN, new Date(), new Date(), new Date(), SCOPE, TOKEN_TYPE, null);
-        final AuthenticationResult result = new AuthenticationResult(new TokenCacheItem(null, null, null, tokenResponse));
+        final AuthenticationResult result = new AuthenticationResult(new AccessTokenCacheItem(null, null, tokenResponse));
 
         final User user = result.getUser();
         Assert.assertNotNull(user);

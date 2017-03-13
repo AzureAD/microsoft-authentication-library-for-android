@@ -57,9 +57,8 @@ final class OauthConstants {
     }
 
     static final class Oauth2Value {
-        static final String SCOPE_EMAIL = "email";
         static final String SCOPE_PROFILE = "profile";
-        static final String[] RESERVED_SCOPES = {"openid", SCOPE_EMAIL, SCOPE_PROFILE, "offline_access"};
+        static final String[] RESERVED_SCOPES = {"openid", SCOPE_PROFILE, "offline_access"};
     }
 
     static final class PromptValue {

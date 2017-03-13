@@ -204,10 +204,6 @@ final class InteractiveRequest extends BaseRequest {
                 mAuthRequestParameters.getRequestContext().getCorrelationId().toString());
         requestParameters.putAll(PlatformIdHelper.getPlatformIdParameters());
 
-        if (!MSALUtils.isEmpty(mAuthRequestParameters.getPolicy())) {
-            requestParameters.put(OauthConstants.Oauth2Parameters.POLICY, mAuthRequestParameters.getPolicy());
-        }
-
         if (!MSALUtils.isEmpty(mAuthRequestParameters.getLoginHint())) {
             requestParameters.put(OauthConstants.Oauth2Parameters.LOGIN_HINT, mAuthRequestParameters.getLoginHint());
         }

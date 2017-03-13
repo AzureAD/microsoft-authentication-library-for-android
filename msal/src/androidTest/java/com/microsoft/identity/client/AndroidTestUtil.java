@@ -116,10 +116,10 @@ public final class AndroidTestUtil {
         return tokenResponse;
     }
 
-    static String getSuccessResponse(final String idToken, final String scopes) {
+    static String getSuccessResponse(final String idToken, final String accessToken, final String scopes) {
         final String tokenResponse = "{\"id_token\":\""
                 + idToken
-                + "\",\"access_token\":\"" + ACCESS_TOKEN + "\", \"token_type\":\"Bearer\",\"refresh_token\":\"" + REFRESH_TOKEN + "\","
+                + "\",\"access_token\":\"" + accessToken + "\", \"token_type\":\"Bearer\",\"refresh_token\":\"" + REFRESH_TOKEN + "\","
                 + "\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\"" + scopes + "\"}";
         return tokenResponse;
     }
@@ -171,7 +171,7 @@ public final class AndroidTestUtil {
         refreshTokenSharedPreferenceEditor.apply();
     }
 
-    static List<TokenCacheItem> getAllAccessTokens(final Context appContext) {
+    static List<AccessTokenCacheItem> getAllAccessTokens(final Context appContext) {
         final TokenCacheAccessor accessor = new TokenCacheAccessor(appContext);
         return accessor.getAllAccessTokens();
     }

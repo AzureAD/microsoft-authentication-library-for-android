@@ -132,12 +132,12 @@ abstract class BaseRequest {
         scopes.remove(mAuthRequestParameters.getClientId());
 
         // For B2C scenario, policy will be provided. We don't send email and profile as scopes.
-        if (!MSALUtils.isEmpty(mAuthRequestParameters.getPolicy())) {
-            Logger.verbose(TAG, mRequestContext, "B2C scenario, remove email and "
-                    + "profile from reserved scopes");
-            scopes.remove(OauthConstants.Oauth2Value.SCOPE_EMAIL);
-            scopes.remove(OauthConstants.Oauth2Value.SCOPE_PROFILE);
-        }
+//        if (!MSALUtils.isEmpty(mAuthRequestParameters.getPolicy())) {
+//            Logger.verbose(TAG, mRequestContext, "B2C scenario, remove email and "
+//                    + "profile from reserved scopes");
+//            scopes.remove(OauthConstants.Oauth2Value.SCOPE_EMAIL);
+//            scopes.remove(OauthConstants.Oauth2Value.SCOPE_PROFILE);
+//        }
 
         return scopes;
     }
@@ -199,12 +199,12 @@ abstract class BaseRequest {
      */
     AuthenticationResult postTokenRequest() throws AuthenticationException {
         final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
-        final TokenCacheItem tokenCacheItem = tokenCache.saveAccessToken(mAuthRequestParameters.getAuthority().getAuthority(),
-                mAuthRequestParameters.getClientId(), mAuthRequestParameters.getPolicy(), mTokenResponse);
+        final AccessTokenCacheItem accessTokenCacheItem = tokenCache.saveAccessToken(mAuthRequestParameters.getAuthority().getAuthority(),
+                mAuthRequestParameters.getClientId(), mTokenResponse);
         tokenCache.saveRefreshToken(mAuthRequestParameters.getAuthority().getAuthority(), mAuthRequestParameters.getClientId(),
-                mAuthRequestParameters.getPolicy(), mTokenResponse);
+                mTokenResponse);
 
-        return new AuthenticationResult(tokenCacheItem);
+        return new AuthenticationResult(accessTokenCacheItem);
     }
 
     /**
@@ -246,11 +246,6 @@ abstract class BaseRequest {
     private void buildRequestParameters(final Oauth2Client oauth2Client) {
         oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID,
                 mRequestContext.getCorrelationId().toString());
-
-        // add query parameter, policy is added as qp
-        if (!MSALUtils.isEmpty(mAuthRequestParameters.getPolicy())) {
-            oauth2Client.addQueryParameter(OauthConstants.Oauth2Parameters.POLICY, mAuthRequestParameters.getPolicy());
-        }
 
         // add body parameters
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.CLIENT_ID, mAuthRequestParameters.getClientId());

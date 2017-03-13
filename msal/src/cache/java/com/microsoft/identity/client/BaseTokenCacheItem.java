@@ -37,13 +37,12 @@ abstract class BaseTokenCacheItem {
     String mHomeObjectId;
     String mDisplayableId;
     String mTenantId;
-    final String mPolicy;
     String mRawIdToken;
 
     /**
      * Constructor for creating the token cache item.
      */
-    BaseTokenCacheItem(final String authority, final String clientId, final String policy, final TokenResponse response)
+    BaseTokenCacheItem(final String authority, final String clientId, final TokenResponse response)
             throws AuthenticationException {
         if (!MSALUtils.isEmpty(response.getRawIdToken())) {
             final IdToken idToken = new IdToken(response.getRawIdToken());
@@ -57,7 +56,6 @@ abstract class BaseTokenCacheItem {
 
         mAuthority = authority;
         mClientId = clientId;
-        mPolicy = policy;
         mScope.addAll(MSALUtils.getScopesAsSet(response.getScope()));
     }
 
@@ -87,13 +85,5 @@ abstract class BaseTokenCacheItem {
 
     String getRawIdToken() {
         return mRawIdToken;
-    }
-
-    String getTenantId() {
-        return mTenantId;
-    }
-
-    String getPolicy() {
-        return mPolicy;
     }
 }

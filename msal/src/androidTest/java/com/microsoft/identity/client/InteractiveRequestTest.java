@@ -129,7 +129,6 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorScopeContainsReservedScope() {
         final Set<String> scopes = new HashSet<>();
-        scopes.add(OauthConstants.Oauth2Value.SCOPE_EMAIL);
         scopes.add(OauthConstants.Oauth2Value.SCOPE_PROFILE);
 
         new InteractiveRequest(Mockito.mock(Activity.class), getAuthRequestParameters(scopes, mRedirectUri,
@@ -171,7 +170,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         final Uri authorityUrl = Uri.parse(actualAuthorizationUri);
         Map<String, String> queryStrings = MSALUtils.decodeUrlToMap(authorityUrl.getQuery(), "&");
 
-        assertTrue(MSALUtils.convertSetToString(getExpectedScopes(true), " ").equals(
+        assertTrue(MSALUtils.convertSetToString(getExpectedScopes(), " ").equals(
                 queryStrings.get(OauthConstants.Oauth2Parameters.SCOPE)));
         assertTrue("true".equals(queryStrings.get(OauthConstants.Oauth2Parameters.RESTRICT_TO_HINT)));
         verifyCommonQueryString(queryStrings);
@@ -201,7 +200,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         final Uri authorityUrl = Uri.parse(actualAuthorizationUri);
         Map<String, String> queryStrings = MSALUtils.decodeUrlToMap(authorityUrl.getQuery(), "&");
 
-        final Set<String> expectedScopes = getExpectedScopes(false);
+        final Set<String> expectedScopes = getExpectedScopes();
         expectedScopes.add("additionalScope");
         assertTrue(MSALUtils.convertSetToString(expectedScopes, " ").equals(
                 queryStrings.get(OauthConstants.Oauth2Parameters.SCOPE)));
@@ -327,7 +326,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         request.getToken(new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
-                Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getToken()));
+                Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
                 final User user = authenticationResult.getUser();
                 assertTrue(user.getClientId().equals(CLIENT_ID));
                 assertNotNull(user.getTokenCache());
@@ -694,7 +693,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
     private AuthenticationRequestParameters getAuthenticationParams(final String policy, final UIOptions uiOptions) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(AUTHORITY, false), new TokenCache(mAppContext), getScopes(),
-                CLIENT_ID, mRedirectUri, policy, LOGIN_HINT, "", uiOptions, new RequestContext(CORRELATION_ID, ""));
+                CLIENT_ID, mRedirectUri, LOGIN_HINT, "", uiOptions, new RequestContext(CORRELATION_ID, ""));
     }
 
     private AuthenticationRequestParameters getAuthRequestParameters(final Set<String> scopes,
@@ -702,7 +701,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                                                                      final String loginHint,
                                                                      final UIOptions uiOptions) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(AUTHORITY, false), new TokenCache(mAppContext), scopes,
-                CLIENT_ID, redirectUri, POLICY, loginHint, "", uiOptions, new RequestContext(CORRELATION_ID, ""));
+                CLIENT_ID, redirectUri, loginHint, "", uiOptions, new RequestContext(CORRELATION_ID, ""));
     }
 
     private Set<String> getScopes() {
@@ -710,14 +709,9 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         return new HashSet<>(Arrays.asList(scopes));
     }
 
-    private Set<String> getExpectedScopes(boolean withPolicy) {
+    private Set<String> getExpectedScopes() {
         final Set<String> scopes = getScopes();
-        if (withPolicy) {
-            scopes.add("offline_access");
-            scopes.add("openid");
-        } else {
-            scopes.addAll(new HashSet<>(Arrays.asList(OauthConstants.Oauth2Value.RESERVED_SCOPES)));
-        }
+        scopes.addAll(new HashSet<>(Arrays.asList(OauthConstants.Oauth2Value.RESERVED_SCOPES)));
 
         return scopes;
     }

@@ -35,8 +35,8 @@ import java.util.concurrent.ConcurrentMap;
 abstract class Authority {
     private static final String TAG = Authority.class.getSimpleName();
     private static final String HTTPS_PROTOCOL = "https";
-    private static final ConcurrentMap<String, Authority> VALIDATED_AUTHORITY = new ConcurrentHashMap<>();
 
+    static final ConcurrentMap<String, Authority> VALIDATED_AUTHORITY = new ConcurrentHashMap<>();
     static final String DEFAULT_OPENID_CONFIGURATION_ENDPOINT = "/v2.0/.well-known/openid-configuration";
     // default_authorize_endpoint is used for instance discovery sent as query parameter for instance discovery.
     static final String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/v2.0/authorize";

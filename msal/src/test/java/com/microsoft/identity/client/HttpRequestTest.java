@@ -25,6 +25,7 @@ package com.microsoft.identity.client;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
@@ -39,6 +40,11 @@ import java.util.Collections;
  * Tests for {@link HttpRequest}.
  */
 public final class HttpRequestTest {
+    @Before
+    public void setUp() {
+        Logger.getInstance().setEnableLogcatLog(false);
+    }
+
     @After
     public void tearDown() {
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
