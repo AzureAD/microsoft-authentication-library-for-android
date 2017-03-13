@@ -451,7 +451,7 @@ public final class TokenCacheTest extends AndroidTestCase {
 
     private AuthenticationRequestParameters getRequestParameters(final Set<String> scopes, final String clientId) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(AUTHORITY, false),
-                mTokenCache, scopes, clientId, "some redirect", "", "", UIOptions.SELECT_ACCOUNT,
+                mTokenCache, scopes, clientId, "some redirect", "", "", UIBehavior.SELECT_ACCOUNT,
                 new RequestContext(UUID.randomUUID(), ""));
     }
 }

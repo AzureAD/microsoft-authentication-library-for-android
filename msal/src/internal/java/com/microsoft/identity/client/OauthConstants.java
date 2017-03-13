@@ -64,7 +64,7 @@ final class OauthConstants {
     static final class PromptValue {
         static final String LOGIN = "login";
         static final String SELECT_ACCOUNT = "select_account";
-        // TODO: what do we send for select_account and act_as_current_user?
+        static final String CONSENT = "consent";
     }
 
     /**
