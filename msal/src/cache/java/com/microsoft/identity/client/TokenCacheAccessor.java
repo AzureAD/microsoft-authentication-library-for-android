@@ -80,12 +80,13 @@ final class TokenCacheAccessor {
      */
     void saveAccessToken(final AccessTokenCacheItem accessToken) {
         final TokenCacheKey key = TokenCacheKey.extractKeyForAT(accessToken);
-        Logger.verbose(TAG, null, "Save access token into cache.");
-        Logger.verbosePII(TAG, null, "Access token is saved with key: " + key);
 
         final Editor editor = mAccessTokenSharedPreference.edit();
         editor.putString(key.toString(), mGson.toJson(accessToken));
         editor.apply();
+
+        Logger.verbose(TAG, null, "Access token is into cache.");
+        Logger.verbosePII(TAG, null, "Access token is saved with key: " + key);
     }
 
     /**
@@ -93,32 +94,13 @@ final class TokenCacheAccessor {
      */
     void saveRefreshToken(final RefreshTokenCacheItem refreshToken) {
         final TokenCacheKey key = TokenCacheKey.extractKeyForRT(refreshToken);
-        Logger.verbose(TAG, null, "Save refresh token into cache.");
-        Logger.verbosePII(TAG, null, "Refresh token is saved with key: " + key);
 
         final Editor editor = mRefreshTokenSharedPreference.edit();
         editor.putString(key.toString(), mGson.toJson(refreshToken));
         editor.apply();
-    }
 
-    /**
-     * For access token item, authority, clientid and policy(if applicable) has to be matched. If user
-     * is provided, it also has to be matched. Scope in the cached access token item has to be the exact same with the
-     * scopes in the lookup key.
-     */
-    List<AccessTokenCacheItem> getAccessToken(final TokenCacheKey tokenCacheKey) {
-        final Map<String, String> accessTokens = (Map<String, String>) mAccessTokenSharedPreference.getAll();
-        final List<AccessTokenCacheItem> foundATs = new ArrayList<>();
-        for (final String accessTokenValue: accessTokens.values()) {
-            final AccessTokenCacheItem accessTokenCacheItem = mGson.fromJson(accessTokenValue, AccessTokenCacheItem.class);
-            if (tokenCacheKey.matches(accessTokenCacheItem) && accessTokenCacheItem.getScope().containsAll(tokenCacheKey.getScope())) {
-                foundATs.add(accessTokenCacheItem);
-            }
-        }
-
-        Logger.verbose(TAG, null, "Retrieve access tokens for the given cache key.");
-        Logger.verbosePII(TAG, null, "Key used to retrieve access tokens is: " + tokenCacheKey);
-        return foundATs;
+        Logger.verbose(TAG, null, "Refresh token is successfully saved into cache.");
+        Logger.verbosePII(TAG, null, "Refresh token is saved with key: " + key);
     }
 
     /**

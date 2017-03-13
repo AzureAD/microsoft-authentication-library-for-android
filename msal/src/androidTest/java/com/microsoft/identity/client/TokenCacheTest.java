@@ -29,6 +29,7 @@ import android.support.test.runner.AndroidJUnit4;
 import android.test.AndroidTestCase;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -37,6 +38,7 @@ import org.junit.runner.RunWith;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -288,6 +290,53 @@ public final class TokenCacheTest extends AndroidTestCase {
         allScopes.add(scope3);
         final AccessTokenCacheItem accessTokenCacheItemForAllThreeScopes = mTokenCache.findAccessToken(getRequestParameters(allScopes, CLIENT_ID), getDefaultUser());
         assertNull(accessTokenCacheItemForAllThreeScopes);
+    }
+
+    /**
+     * Verify that access token is stored with the passed in cache key.
+     */
+    @Test
+    public void testSaveAT() throws AuthenticationException {
+        final String firstAT = "accessToken1";
+        final String secondAT = "accessToken2";
+
+        final Set<String> scopes = new HashSet<>();
+        scopes.add("scope1");
+
+        // save access token for user with scope1
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, getTokenResponseForDefaultUser(firstAT, "",
+                MSALUtils.convertSetToString(scopes, " "), AndroidTestUtil.getValidExpiresOn()));
+
+        // verify the access token is saved
+        final User user = getDefaultUser();
+        final TokenCacheKey keyForAT = TokenCacheKey.createKeyForAT(AUTHORITY, CLIENT_ID, scopes, user);
+        List<AccessTokenCacheItem> accessTokens = mTokenCache.getAccessToken(keyForAT);
+        assertTrue(accessTokens.size() == 1);
+        final AccessTokenCacheItem accessTokenCacheItem = accessTokens.get(0);
+        assertTrue(accessTokenCacheItem.getAccessToken().equals(firstAT));
+        assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 1);
+
+        // save another access token for the same user with scope1 and and scope2
+        scopes.add("scope2");
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, getTokenResponseForDefaultUser(secondAT, "",
+                MSALUtils.convertSetToString(scopes, " "), AndroidTestUtil.getValidExpiresOn()));
+
+        // verify there are two access token entries in the case
+        assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 1);
+
+        // verify the new access token is saved, there will be two separate items in the cache
+        final TokenCacheKey keyForAT2 = TokenCacheKey.createKeyForAT(AUTHORITY, CLIENT_ID, scopes, user);
+        accessTokens = mTokenCache.getAccessToken(keyForAT2);
+        assertTrue(accessTokens.size() == 1);
+        AccessTokenCacheItem accessTokenCacheItemToVerify = accessTokens.get(0);
+        assertTrue(accessTokenCacheItemToVerify.getAccessToken().equals(secondAT));
+
+        // if retrieve access token with keyForAT1, should still be able to get the access token back
+        // getAccessToken will check for scope contains. If the scope in the key contains all the scope in the item.
+        accessTokens = mTokenCache.getAccessToken(keyForAT);
+        Assert.assertTrue(accessTokens.size() == 1);
+        final AccessTokenCacheItem accessTokenForScope1and2 = accessTokens.get(0);
+        assertTrue(accessTokenForScope1and2.getAccessToken().equals(secondAT));
     }
 
     /**

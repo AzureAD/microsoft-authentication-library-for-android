@@ -57,7 +57,7 @@ class TokenCache {
     AccessTokenCacheItem saveAccessToken(final String authority, final String clientId, final TokenResponse response)
             throws AuthenticationException {
         // create the access token cache item
-        Logger.info(TAG, null, "Save access token into cache. Token saved with authority: " + authority
+        Logger.info(TAG, null, "Starting to Save access token into cache. Access token will be saved with authority: " + authority
                 + "; Client Id: " + clientId + "; Scopes: " + response.getScope());
         final AccessTokenCacheItem newAccessToken = new AccessTokenCacheItem(authority, clientId, response);
         final TokenCacheKey accessTokenCacheKey = TokenCacheKey.extractKeyForAT(newAccessToken);
@@ -82,7 +82,7 @@ class TokenCache {
             throws AuthenticationException {
         // if server returns the refresh token back, save it in the cache.
         if (!MSALUtils.isEmpty(response.getRefreshToken())) {
-            Logger.info(TAG, null, "Save refresh token into cache. Refresh token saved with authority: " + authority
+            Logger.info(TAG, null, "Starting to save refresh token into cache. Refresh token will be saved with authority: " + authority
                     + "; Client Id: " + clientId);
             final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(authority, clientId, response);
             mTokenCacheAccessor.saveRefreshToken(refreshTokenCacheItem);
@@ -99,7 +99,7 @@ class TokenCache {
     AccessTokenCacheItem findAccessToken(final AuthenticationRequestParameters requestParam, final User user) {
         final TokenCacheKey key = TokenCacheKey.createKeyForAT(requestParam.getAuthority().getAuthority(),
                 requestParam.getClientId(), requestParam.getScope(), user);
-        final List<AccessTokenCacheItem> accessTokenCacheItems = mTokenCacheAccessor.getAccessToken(key);
+        final List<AccessTokenCacheItem> accessTokenCacheItems = getAccessToken(key);
 
         if (accessTokenCacheItems.isEmpty()) {
             Logger.info(TAG, requestParam.getRequestContext(), "No access is found for scopes: "
@@ -118,8 +118,8 @@ class TokenCache {
             return null;
         }
 
-        // Access token lookup needs to be a strict match. In the JSON response from token endpoint, server only returns the scope
-        // the developer requires the token for. We store the token separately for considerations i.e. MFA.
+        // Since server may return us more scopes, for access token lookup, we need to check if the scope contains all the
+        // sopces in the request.
         final AccessTokenCacheItem accessTokenCacheItem = accessTokenCacheItems.get(0);
         if (!isExpired(accessTokenCacheItem.getExpiresOn())) {
             return accessTokenCacheItem;
@@ -127,6 +127,25 @@ class TokenCache {
 
         Logger.info(TAG, requestParam.getRequestContext(), "Access token is found but it's expired.");
         return null;
+    }
+
+    /**
+     * For access token item, authority, clientid and policy(if applicable) has to be matched. If user
+     * is provided, it also has to be matched. Scope in the cached access token item has to be the exact same with the
+     * scopes in the lookup key.
+     */
+    List<AccessTokenCacheItem> getAccessToken(final TokenCacheKey tokenCacheKey) {
+        final List<AccessTokenCacheItem> accessTokens = mTokenCacheAccessor.getAllAccessTokens();
+        final List<AccessTokenCacheItem> foundATs = new ArrayList<>();
+        for (final AccessTokenCacheItem accessTokenCacheItem: accessTokens) {
+            if (tokenCacheKey.matches(accessTokenCacheItem) && accessTokenCacheItem.getScope().containsAll(tokenCacheKey.getScope())) {
+                foundATs.add(accessTokenCacheItem);
+            }
+        }
+
+        Logger.verbose(TAG, null, "Retrieve access tokens for the given cache key.");
+        Logger.verbosePII(TAG, null, "Key used to retrieve access tokens is: " + tokenCacheKey);
+        return foundATs;
     }
 
     // All the token AAD returns are multi-scopes. MSAL only support ADFS 2016, which issues multi-scope RT.

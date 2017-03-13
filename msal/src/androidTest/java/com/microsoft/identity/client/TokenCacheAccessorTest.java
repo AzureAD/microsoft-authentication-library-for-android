@@ -29,7 +29,6 @@ import android.support.test.runner.AndroidJUnit4;
 import android.test.AndroidTestCase;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -80,8 +79,7 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
     }
 
     /**
-     * Verify that access token is stored with a strict match of the scopes, even if the token contains all the scopes for
-     * existing entry, we store as separate entry.
+     * Verify that access token is stored with the passed in cache key.
      */
     @Test
     public void testSaveAT() throws AuthenticationException {
@@ -98,11 +96,6 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         mAccessor.saveAccessToken(tokenCacheItem);
 
         // verify the access token is saved
-        final TokenCacheKey keyForAT = TokenCacheKey.createKeyForAT(AUTHORITY, CLIENT_ID, scopes, user);
-        List<AccessTokenCacheItem> accessTokens = mAccessor.getAccessToken(keyForAT);
-        assertTrue(accessTokens.size() == 1);
-        final AccessTokenCacheItem accessTokenCacheItem = accessTokens.get(0);
-        assertTrue(accessTokenCacheItem.getAccessToken().equals(firstAT));
         assertTrue(mAccessor.getAllAccessTokens().size() == 1);
 
         // save another access token for the same user with scope1 and and scope2
@@ -113,19 +106,6 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
 
         // verify there are two access token entries in the case
         assertTrue(mAccessor.getAllAccessTokens().size() == 2);
-
-        // verify the new access token is saved, there will be two separate items in the cache
-        final TokenCacheKey keyForAT2 = TokenCacheKey.createKeyForAT(AUTHORITY, CLIENT_ID, scopes, user);
-        accessTokens = mAccessor.getAccessToken(keyForAT2);
-        assertTrue(accessTokens.size() == 1);
-        AccessTokenCacheItem accessTokenCacheItemToVerify = accessTokens.get(0);
-        assertTrue(accessTokenCacheItemToVerify.getAccessToken().equals(secondAT));
-
-
-        // if retrieve access token with keyForAT1, should still be able to get the access token back
-        // getAccessToken will check for scope contains. If the scope in the key contains all the scope in the item.
-        accessTokens = mAccessor.getAccessToken(keyForAT);
-        Assert.assertTrue(accessTokens.size() == 2);
     }
 
     /**

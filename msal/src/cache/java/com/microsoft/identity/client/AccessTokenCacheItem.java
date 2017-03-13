@@ -44,16 +44,23 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
     }
 
     /**
-     * @return The token. Could either be access token or id token.
+     * @return The access token returned in the token respone.
      */
     String getAccessToken() {
         return mAccessToken;
     }
 
     /**
-     * @return The expires on. Could either be access token expires on or id token expires on.
+     * @return The access token expires on.
      */
     Date getExpiresOn() {
         return mExpiresOn;
+    }
+
+    /**
+     * @return The tenant id.
+     */
+    String getTenantId() {
+        return mTenantId;
     }
 }

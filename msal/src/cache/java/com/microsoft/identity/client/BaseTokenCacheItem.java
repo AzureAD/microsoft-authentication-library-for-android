@@ -86,8 +86,4 @@ abstract class BaseTokenCacheItem {
     String getRawIdToken() {
         return mRawIdToken;
     }
-
-    String getTenantId() {
-        return mTenantId;
-    }
 }
