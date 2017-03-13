@@ -307,7 +307,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     /**
-     * Verify {@link PublicClientApplication#acquireToken(String[], String, UIOptions, String, String[],
+     * Verify {@link PublicClientApplication#acquireToken(String[], String, UIBehavior, String, String[],
      * String, AuthenticationCallback)}. Also check if authority is set on the manifest, we read the authority
      * from manifest meta-data.
      */
@@ -373,7 +373,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     /**
-     * Verify {@link PublicClientApplication#acquireToken(String[], String, UIOptions, String, AuthenticationCallback)}.
+     * Verify {@link PublicClientApplication#acquireToken(String[], String, UIBehavior, String, AuthenticationCallback)}.
      */
     // TODO: suppress the test. The purpose is that the API call will eventually send back the cancel to caller.
     @Ignore
@@ -391,7 +391,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             @Override
             void makeAcquireTokenCall(PublicClientApplication publicClientApplication,
                                       final CountDownLatch releaseLock) {
-                publicClientApplication.acquireToken(SCOPE, "somehint", UIOptions.FORCE_LOGIN, "extra=param",
+                publicClientApplication.acquireToken(SCOPE, "somehint", UIBehavior.FORCE_LOGIN, "extra=param",
                         new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
@@ -434,7 +434,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     // TODO: add tests for b2c. Policy will be part of the authority
 
     /**
-     * Verify {@link PublicClientApplication#acquireToken(String[], String, UIOptions, String, AuthenticationCallback)}.
+     * Verify {@link PublicClientApplication#acquireToken(String[], String, UIBehavior, String, AuthenticationCallback)}.
      * AcquireToken asks token for {scope1, scope2}.
      * AcquireTokenSilent asks for {scope2}. Since forcePrompt is set for the silent request, RT request will be sent. There is
      * intersection, old entry will be removed. There will be only one access token left.
@@ -453,7 +453,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             @Override
             void makeAcquireTokenCall(PublicClientApplication publicClientApplication,
                                       final CountDownLatch releaseLock) {
-                publicClientApplication.acquireToken(SCOPE, "", UIOptions.FORCE_LOGIN, null, null, null,
+                publicClientApplication.acquireToken(SCOPE, "", UIBehavior.FORCE_LOGIN, null, null, null,
                         new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {

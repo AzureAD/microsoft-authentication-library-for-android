@@ -35,7 +35,7 @@ import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationException;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.UIOptions;
+import com.microsoft.identity.client.UIBehavior;
 import com.microsoft.identity.client.User;
 
 public class MainActivity extends Activity {
@@ -57,7 +57,7 @@ public class MainActivity extends Activity {
         buttonForInteractiveRequest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                callAcquireToken(SCOPES, UIOptions.FORCE_LOGIN, null, null, null);
+                callAcquireToken(SCOPES, UIBehavior.FORCE_LOGIN, null, null, null);
             }
         });
 
@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
         buttonForLaunchingChrome.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                callAcquireToken(SCOPES, UIOptions.FORCE_LOGIN, null, null, null);
+                callAcquireToken(SCOPES, UIBehavior.FORCE_LOGIN, null, null, null);
             }
         });
 
@@ -84,9 +84,9 @@ public class MainActivity extends Activity {
     }
 
 
-    private void callAcquireToken(final String[] scopes, final UIOptions uiOptions, final String loginHint,
+    private void callAcquireToken(final String[] scopes, final UIBehavior uiBehavior, final String loginHint,
                                   final String extraQueryParam, final String[] additionalScope) {
-        mApplication.acquireToken(scopes, loginHint, uiOptions, extraQueryParam, additionalScope,
+        mApplication.acquireToken(scopes, loginHint, uiBehavior, extraQueryParam, additionalScope,
                 null, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult o) {

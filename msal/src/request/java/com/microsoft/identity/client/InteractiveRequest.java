@@ -78,13 +78,6 @@ final class InteractiveRequest extends BaseRequest {
 
             mAdditionalScope.addAll(additionalScopeSet);
         }
-
-        // verify the UI option. If UI option is set as as_as_current_user, login hint has to be provided.
-        if (MSALUtils.isEmpty(authRequestParameters.getLoginHint())
-                && authRequestParameters.getUIOption() == UIOptions.ACT_AS_CURRENT_USER) {
-            throw new IllegalArgumentException(
-                    "loginhint has to be provided if setting UI option as ACT_AS_CURRENT_USER");
-        }
     }
 
     /**
@@ -216,7 +209,7 @@ final class InteractiveRequest extends BaseRequest {
 //            requestParameters.put(OauthConstants.Oauth2Parameters.HAS_CHROME, "1");
 //        }
 
-        addUiOptionToRequestParameters(requestParameters);
+        addUiBehaviorToRequestParameters(requestParameters);
 
         // append state in the query parameters
         requestParameters.put(OauthConstants.Oauth2Parameters.STATE, encodeProtocolState());
@@ -236,14 +229,14 @@ final class InteractiveRequest extends BaseRequest {
         requestParameters.put(OauthConstants.Oauth2Parameters.CODE_CHALLENGE_METHOD, PKCEChallengeFactory.PKCEChallenge.ChallengeMethod.S256.name());
     }
 
-    private void addUiOptionToRequestParameters(final Map<String, String> requestParameters) {
-        final UIOptions uiOptions = mAuthRequestParameters.getUIOption();
-        if (uiOptions == UIOptions.FORCE_LOGIN) {
+    private void addUiBehaviorToRequestParameters(final Map<String, String> requestParameters) {
+        final UIBehavior uiBehavior = mAuthRequestParameters.getUiBehavior();
+        if (uiBehavior == UIBehavior.FORCE_LOGIN) {
             requestParameters.put(OauthConstants.Oauth2Parameters.PROMPT, OauthConstants.PromptValue.LOGIN);
-        } else if (uiOptions == UIOptions.SELECT_ACCOUNT) {
+        } else if (uiBehavior == UIBehavior.SELECT_ACCOUNT) {
             requestParameters.put(OauthConstants.Oauth2Parameters.PROMPT, OauthConstants.PromptValue.SELECT_ACCOUNT);
-        } else if (uiOptions == UIOptions.ACT_AS_CURRENT_USER) {
-            requestParameters.put(OauthConstants.Oauth2Parameters.RESTRICT_TO_HINT, "true");
+        } else if (uiBehavior == UIBehavior.CONSENT) {
+            requestParameters.put(OauthConstants.Oauth2Parameters.PROMPT, OauthConstants.PromptValue.CONSENT);
         }
     }
 
