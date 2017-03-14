@@ -102,11 +102,14 @@ abstract class Authority {
         final boolean isB2cAuthority = pathSegments[0].equals(B2C_AUTHORITY_PREFIX);
 
         if (isAdfsAuthority) {
+            Logger.error(TAG, null, "ADFS authority is not a supported authority instance", null);
             throw new IllegalArgumentException("ADFS authority is not a supported authority instance");
         } else if (isB2cAuthority) {
+            Logger.info(TAG, null, "Passed in authority string is a b2c authority, create an new b2c authority instance.");
             return new B2CAuthority(authority, validateAuthority);
         }
 
+        Logger.info(TAG, null, "Passed in authority string is a aad authority, create an new aad authority instance.");
         return new AADAuthority(authority, validateAuthority);
     }
 

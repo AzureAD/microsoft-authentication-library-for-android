@@ -31,7 +31,6 @@ import android.test.AndroidTestCase;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -154,7 +153,7 @@ public final class TokenCacheTest extends AndroidTestCase {
      * Verify that token is correctly for b2c scenario, which will have policy as part of the authority.
      */
     @Test
-    public void testGetTokenWithB2cAuthorigy() throws AuthenticationException {
+    public void testGetTokenWithB2cAuthority() throws AuthenticationException {
         // prepare a valid AT item stored with policy in the cache
         final String singleScope = "scope";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, B2C_AUTHORITY, CLIENT_ID, getTokenResponseForDefaultUser(
