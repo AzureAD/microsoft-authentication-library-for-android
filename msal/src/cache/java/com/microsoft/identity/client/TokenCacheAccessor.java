@@ -78,11 +78,15 @@ final class TokenCacheAccessor {
     /**
      * When storing access token, the key needs to be a strict match.
      */
-    void saveAccessToken(final TokenCacheItem accessToken) {
+    void saveAccessToken(final AccessTokenCacheItem accessToken) {
         final TokenCacheKey key = TokenCacheKey.extractKeyForAT(accessToken);
+
         final Editor editor = mAccessTokenSharedPreference.edit();
         editor.putString(key.toString(), mGson.toJson(accessToken));
         editor.apply();
+
+        Logger.verbose(TAG, null, "Access token is into cache.");
+        Logger.verbosePII(TAG, null, "Access token is saved with key: " + key);
     }
 
     /**
@@ -90,27 +94,13 @@ final class TokenCacheAccessor {
      */
     void saveRefreshToken(final RefreshTokenCacheItem refreshToken) {
         final TokenCacheKey key = TokenCacheKey.extractKeyForRT(refreshToken);
+
         final Editor editor = mRefreshTokenSharedPreference.edit();
         editor.putString(key.toString(), mGson.toJson(refreshToken));
         editor.apply();
-    }
 
-    /**
-     * For access token item, authority, clientid and policy(if applicable) has to be matched. If user
-     * is provided, it also has to be matched. Scope in the cached access token item has to be the exact same with the
-     * scopes in the lookup key.
-     */
-    List<TokenCacheItem> getAccessToken(final TokenCacheKey tokenCacheKey) {
-        final Map<String, String> accessTokens = (Map<String, String>) mAccessTokenSharedPreference.getAll();
-        final List<TokenCacheItem> foundATs = new ArrayList<>();
-        for (final String accessTokenValue: accessTokens.values()) {
-            final TokenCacheItem tokenCacheItem = mGson.fromJson(accessTokenValue, TokenCacheItem.class);
-            if (tokenCacheKey.matches(tokenCacheItem) && tokenCacheKey.isScopeEqual(tokenCacheItem)) {
-                foundATs.add(tokenCacheItem);
-            }
-        }
-
-        return foundATs;
+        Logger.verbose(TAG, null, "Refresh token is successfully saved into cache.");
+        Logger.verbosePII(TAG, null, "Refresh token is saved with key: " + key);
     }
 
     /**
@@ -129,7 +119,16 @@ final class TokenCacheAccessor {
             }
         }
 
+        Logger.verbose(TAG, null, "Retrieve refresh tokens for the given cache key");
+        Logger.verbosePII(TAG, null, "Key used to retrieve refresh tokens is: " + tokenCacheKey);
         return foundRTs;
+    }
+
+    void deleteAccessToken(final BaseTokenCacheItem atItem) {
+        final String key = TokenCacheKey.extractKeyForAT(atItem).toString();
+        final Editor editor = mAccessTokenSharedPreference.edit();
+        editor.remove(key);
+        editor.apply();
     }
 
     /**
@@ -138,23 +137,27 @@ final class TokenCacheAccessor {
      */
     void deleteRefreshToken(final BaseTokenCacheItem rtItem) {
         final String key = TokenCacheKey.extractKeyForRT(rtItem).toString();
+        Logger.verbose(TAG, null, "Remove the given refresh token item.");
+        Logger.verbosePII(TAG, null, "Refresh token is deleted with key: " + key);
+
         final Editor editor = mRefreshTokenSharedPreference.edit();
         editor.remove(key);
         editor.apply();
     }
 
     /**
-     * @return Immutable List of all the {@link TokenCacheItem}s.
+     * @return Immutable List of all the {@link AccessTokenCacheItem}s.
      */
-    List<TokenCacheItem> getAllAccessTokens() {
+    List<AccessTokenCacheItem> getAllAccessTokens() {
         final Map<String, String> allAT = (Map<String, String>) mAccessTokenSharedPreference.getAll();
-        final List<TokenCacheItem> tokenCacheItems = new ArrayList<>(allAT.size());
+        final List<AccessTokenCacheItem> accessTokenCacheItems = new ArrayList<>(allAT.size());
         for (final String accessTokenValue : allAT.values()) {
-            final TokenCacheItem tokenCacheItem = mGson.fromJson(accessTokenValue, TokenCacheItem.class);
-            tokenCacheItems.add(tokenCacheItem);
+            final AccessTokenCacheItem accessTokenCacheItem = mGson.fromJson(accessTokenValue, AccessTokenCacheItem.class);
+            accessTokenCacheItems.add(accessTokenCacheItem);
         }
 
-        return Collections.unmodifiableList(tokenCacheItems);
+        Logger.verbose(TAG, null, "Retrieve all the access tokens from cache, the number of access tokens returned is: " + accessTokenCacheItems.size());
+        return Collections.unmodifiableList(accessTokenCacheItems);
     }
 
     /**
@@ -168,6 +171,7 @@ final class TokenCacheAccessor {
             refreshTokenCacheItems.add(refreshTokenCacheItem);
         }
 
+        Logger.verbose(TAG, null, "Retrieve all the refresh tokens, the number of refresh tokens returned is: " + refreshTokenCacheItems.size());
         return Collections.unmodifiableList(refreshTokenCacheItems);
     }
 
@@ -186,6 +190,19 @@ final class TokenCacheAccessor {
             }
         }
 
+        Logger.verbose(TAG, null, "Retrieve all the refresh tokens for given client id: " + clientId + "; Returned refresh token number is " + allRTsForApp.size());
         return Collections.unmodifiableList(allRTsForApp);
+    }
+
+    List<AccessTokenCacheItem> getAllAccessTokensForGivenClientId(final String clientId) {
+        final List<AccessTokenCacheItem> allATs = getAllAccessTokens();
+        final List<AccessTokenCacheItem> allATsForApp = new ArrayList<>(allATs.size());
+        for (final AccessTokenCacheItem accessTokenCacheItem : allATs) {
+            if (clientId.equals(accessTokenCacheItem.getClientId())) {
+                allATsForApp.add(accessTokenCacheItem);
+            }
+        }
+
+        return Collections.unmodifiableList(allATsForApp);
     }
 }

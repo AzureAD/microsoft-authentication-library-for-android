@@ -57,7 +57,7 @@ public class MainActivity extends Activity {
         buttonForInteractiveRequest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                callAcquireToken(SCOPES, UIOptions.FORCE_LOGIN, null, null, null, null);
+                callAcquireToken(SCOPES, UIOptions.FORCE_LOGIN, null, null, null);
             }
         });
 
@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
         buttonForLaunchingChrome.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                callAcquireToken(SCOPES, UIOptions.FORCE_LOGIN, null, null, null, null);
+                callAcquireToken(SCOPES, UIOptions.FORCE_LOGIN, null, null, null);
             }
         });
 
@@ -85,12 +85,12 @@ public class MainActivity extends Activity {
 
 
     private void callAcquireToken(final String[] scopes, final UIOptions uiOptions, final String loginHint,
-                                  final String policy, final String extraQueryParam, final String[] additionalScope) {
+                                  final String extraQueryParam, final String[] additionalScope) {
         mApplication.acquireToken(scopes, loginHint, uiOptions, extraQueryParam, additionalScope,
-                null, policy, new AuthenticationCallback() {
+                null, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult o) {
-                        showMessage("Receive Success Response " + o.getToken());
+                        showMessage("Receive Success Response " + o.getAccessToken());
                         sUser = o.getUser();
                     }
 
@@ -107,11 +107,11 @@ public class MainActivity extends Activity {
     }
 
     private void callAcquireTokenSilent(final String[] scopes, final String policy, boolean forceRefresh) {
-        mApplication.acquireTokenSilentAsync(scopes, sUser, null, policy, forceRefresh, new AuthenticationCallback() {
+        mApplication.acquireTokenSilentAsync(scopes, sUser, null, forceRefresh, new AuthenticationCallback() {
 
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
-                showMessage("Receive Success Response for silent request: " + authenticationResult.getToken());
+                showMessage("Receive Success Response for silent request: " + authenticationResult.getAccessToken());
             }
 
             @Override

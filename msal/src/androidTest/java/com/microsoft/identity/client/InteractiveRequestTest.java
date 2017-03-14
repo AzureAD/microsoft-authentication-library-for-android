@@ -74,6 +74,20 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     static final String LOGIN_HINT = "test@test.onmicrosoft.com";
     static final int TREAD_DELAY_TIME = 20;
 
+    /**
+     * Min length of code_challenge Strings
+     *
+     * @see <a href="https://tools.ietf.org/html/rfc7636#section-4.1">RFC-7636</a>
+     */
+    private static final int CODE_CHALLENGE_LENGTH_MIN = 43;
+
+    /**
+     * Max length of code_challenge Strings
+     *
+     * @see <a href="https://tools.ietf.org/html/rfc7636#section-4.1">RFC-7636</a>
+     */
+    private static final int CODE_CHALLENGE_LENGTH_MAX = 128;
+
     private Context mAppContext;
     private String mRedirectUri;
     private TokenCache mTokenCache;
@@ -115,7 +129,6 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorScopeContainsReservedScope() {
         final Set<String> scopes = new HashSet<>();
-        scopes.add(OauthConstants.Oauth2Value.SCOPE_EMAIL);
         scopes.add(OauthConstants.Oauth2Value.SCOPE_PROFILE);
 
         new InteractiveRequest(Mockito.mock(Activity.class), getAuthRequestParameters(scopes, mRedirectUri,
@@ -150,21 +163,36 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     @Test
-    public void testGetAuthorizationUriWithPolicyUIOptionIsActAsCurrentUser() throws UnsupportedEncodingException {
+    public void testGetAuthorizationUriWithPolicyUIOptionIsActAsCurrentUser() throws UnsupportedEncodingException, AuthenticationException {
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
                 getAuthenticationParams(POLICY, UIOptions.ACT_AS_CURRENT_USER), null);
         final String actualAuthorizationUri = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
         final Uri authorityUrl = Uri.parse(actualAuthorizationUri);
         Map<String, String> queryStrings = MSALUtils.decodeUrlToMap(authorityUrl.getQuery(), "&");
 
-        assertTrue(MSALUtils.convertSetToString(getExpectedScopes(true), " ").equals(
+        assertTrue(MSALUtils.convertSetToString(getExpectedScopes(), " ").equals(
                 queryStrings.get(OauthConstants.Oauth2Parameters.SCOPE)));
         assertTrue("true".equals(queryStrings.get(OauthConstants.Oauth2Parameters.RESTRICT_TO_HINT)));
         verifyCommonQueryString(queryStrings);
     }
 
     @Test
-    public void testGetAuthorizationUriNoPolicyUIOptionForceLogin() throws UnsupportedEncodingException {
+    public void testGetAuthorizationUriContainsPKCEChallenge() throws UnsupportedEncodingException, AuthenticationException {
+        final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
+                getAuthenticationParams(POLICY, UIOptions.ACT_AS_CURRENT_USER), null);
+        final String authUriStr = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
+        final Uri authorizationUri = Uri.parse(authUriStr);
+        final String codeChallenge = authorizationUri.getQueryParameter(OauthConstants.Oauth2Parameters.CODE_CHALLENGE);
+        final String codeChallengeMethod = authorizationUri.getQueryParameter(OauthConstants.Oauth2Parameters.CODE_CHALLENGE_METHOD);
+        assertNotNull(codeChallenge);
+        assertTrue(codeChallenge.length() >= CODE_CHALLENGE_LENGTH_MIN);
+        assertTrue(codeChallenge.length() <= CODE_CHALLENGE_LENGTH_MAX);
+        assertNotNull(codeChallengeMethod);
+        assertTrue(codeChallengeMethod.equals("S256"));
+    }
+
+    @Test
+    public void testGetAuthorizationUriNoPolicyUIOptionForceLogin() throws UnsupportedEncodingException, AuthenticationException {
         final String[] additionalScope = {"additionalScope"};
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
                 getAuthenticationParams("", UIOptions.FORCE_LOGIN), additionalScope);
@@ -172,7 +200,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         final Uri authorityUrl = Uri.parse(actualAuthorizationUri);
         Map<String, String> queryStrings = MSALUtils.decodeUrlToMap(authorityUrl.getQuery(), "&");
 
-        final Set<String> expectedScopes = getExpectedScopes(false);
+        final Set<String> expectedScopes = getExpectedScopes();
         expectedScopes.add("additionalScope");
         assertTrue(MSALUtils.convertSetToString(expectedScopes, " ").equals(
                 queryStrings.get(OauthConstants.Oauth2Parameters.SCOPE)));
@@ -298,7 +326,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         request.getToken(new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
-                Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getToken()));
+                Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
                 final User user = authenticationResult.getUser();
                 assertTrue(user.getClientId().equals(CLIENT_ID));
                 assertNotNull(user.getTokenCache());
@@ -665,7 +693,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
     private AuthenticationRequestParameters getAuthenticationParams(final String policy, final UIOptions uiOptions) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(AUTHORITY, false), new TokenCache(mAppContext), getScopes(),
-                CLIENT_ID, mRedirectUri, policy, true, LOGIN_HINT, "", uiOptions, CORRELATION_ID);
+                CLIENT_ID, mRedirectUri, LOGIN_HINT, "", uiOptions, new RequestContext(CORRELATION_ID, ""));
     }
 
     private AuthenticationRequestParameters getAuthRequestParameters(final Set<String> scopes,
@@ -673,7 +701,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                                                                      final String loginHint,
                                                                      final UIOptions uiOptions) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(AUTHORITY, false), new TokenCache(mAppContext), scopes,
-                CLIENT_ID, redirectUri, POLICY, true, loginHint, "", uiOptions, CORRELATION_ID);
+                CLIENT_ID, redirectUri, loginHint, "", uiOptions, new RequestContext(CORRELATION_ID, ""));
     }
 
     private Set<String> getScopes() {
@@ -681,14 +709,9 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         return new HashSet<>(Arrays.asList(scopes));
     }
 
-    private Set<String> getExpectedScopes(boolean withPolicy) {
+    private Set<String> getExpectedScopes() {
         final Set<String> scopes = getScopes();
-        if (withPolicy) {
-            scopes.add("offline_access");
-            scopes.add("openid");
-        } else {
-            scopes.addAll(new HashSet<>(Arrays.asList(OauthConstants.Oauth2Value.RESERVED_SCOPES)));
-        }
+        scopes.addAll(new HashSet<>(Arrays.asList(OauthConstants.Oauth2Value.RESERVED_SCOPES)));
 
         return scopes;
     }

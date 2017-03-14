@@ -31,9 +31,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 class WebFingerMetadataRequestor
         extends AbstractMetadataRequestor<WebFingerMetadata, WebFingerMetadataRequestParameters> {
@@ -43,6 +41,10 @@ class WebFingerMetadataRequestor
      */
     private static final String TAG = WebFingerMetadataRequestor.class.getSimpleName();
 
+    WebFingerMetadataRequestor(final RequestContext requestContext) {
+        super(requestContext);
+    }
+
     @Override
     WebFingerMetadata requestMetadata(
             final WebFingerMetadataRequestParameters webFingerMetadataRequestParameters
@@ -50,7 +52,7 @@ class WebFingerMetadataRequestor
 
         final URL domain = webFingerMetadataRequestParameters.getDomain();
         final DRSMetadata drsMetadata = webFingerMetadataRequestParameters.getDrsMetadata();
-        Logger.verbose(TAG, null, "Validating authority for auth endpoint: " + domain.toString(), null);
+        Logger.verbose(TAG, getRequestContext(), "Validating authority for auth endpoint: " + domain.toString());
         try {
             // create the URL
             URL webFingerUrl = buildWebFingerUrl(domain, drsMetadata);

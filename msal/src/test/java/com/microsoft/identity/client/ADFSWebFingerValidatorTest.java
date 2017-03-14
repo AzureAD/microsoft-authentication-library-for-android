@@ -24,6 +24,7 @@
 package com.microsoft.identity.client;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
@@ -31,8 +32,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class ADFSWebFingerValidatorTest {
+
+    @Before
+    public void setUp() {
+        Logger.getInstance().setEnableLogcatLog(false);
+    }
 
     @Test
     public void testTrustedRealmFieldInitialized()
@@ -52,6 +59,7 @@ public class ADFSWebFingerValidatorTest {
         Assert.assertEquals(
                 false,
                 ADFSWebFingerValidator.realmIsTrusted(
+                        new RequestContext(UUID.randomUUID(), ""),
                         testAuthority,
                         metadata
                 )
@@ -71,6 +79,7 @@ public class ADFSWebFingerValidatorTest {
         Assert.assertEquals(
                 true,
                 ADFSWebFingerValidator.realmIsTrusted(
+                        new RequestContext(UUID.randomUUID(), ""),
                         testAuthority,
                         metadata
                 )
@@ -86,6 +95,7 @@ public class ADFSWebFingerValidatorTest {
         Assert.assertEquals(
                 false,
                 ADFSWebFingerValidator.realmIsTrusted(
+                        new RequestContext(UUID.randomUUID(), ""),
                         testAuthority,
                         metadata
                 )

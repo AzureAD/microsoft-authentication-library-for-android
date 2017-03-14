@@ -32,20 +32,20 @@ import java.util.Set;
  */
 public final class AuthenticationResult {
 
-    private final TokenCacheItem mTokenCacheItem;
+    private final AccessTokenCacheItem mAccessTokenCacheItem;
     private User mUser;
 
-    AuthenticationResult(final TokenCacheItem tokenCacheItem) throws AuthenticationException {
-        mTokenCacheItem = tokenCacheItem;
-        mUser = new User(new IdToken(tokenCacheItem.getRawIdToken()));
+    AuthenticationResult(final AccessTokenCacheItem accessTokenCacheItem) throws AuthenticationException {
+        mAccessTokenCacheItem = accessTokenCacheItem;
+        mUser = new User(new IdToken(accessTokenCacheItem.getRawIdToken()));
     }
 
     /**
      * @return The token, could be access token or id token. If client id is the single scope that
      * is used for token acquisition, id token will be the only one returned.
      */
-    public String getToken() {
-        return mTokenCacheItem.getToken();
+    public String getAccessToken() {
+        return mAccessTokenCacheItem.getAccessToken();
     }
 
     /**
@@ -54,7 +54,7 @@ public final class AuthenticationResult {
      * service.
      */
     public Date getExpiresOn() {
-        return mTokenCacheItem.getExpiresOn();
+        return mAccessTokenCacheItem.getExpiresOn();
     }
 
     /**
@@ -62,7 +62,7 @@ public final class AuthenticationResult {
      * returned by the service.
      */
     public String getTenantId() {
-        return mTokenCacheItem.getTenantId();
+        return mAccessTokenCacheItem.getTenantId();
     }
 
     /**
@@ -77,14 +77,14 @@ public final class AuthenticationResult {
      * @return The raw Id token returned from service. Could be null if it's not returned.
      */
     public String getIdToken() {
-        return mTokenCacheItem.getRawIdToken();
+        return mAccessTokenCacheItem.getRawIdToken();
     }
 
     /**
      * @return The scope values returned from the service.
      */
     public String[] getScope() {
-        final Set<String> scopes = mTokenCacheItem.getScope();
+        final Set<String> scopes = mAccessTokenCacheItem.getScope();
         return scopes.toArray(new String[scopes.size()]);
     }
 }

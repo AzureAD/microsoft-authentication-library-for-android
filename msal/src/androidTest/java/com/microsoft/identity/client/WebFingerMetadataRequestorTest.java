@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RunWith(AndroidJUnit4.class)
 @SmallTest
@@ -63,6 +64,8 @@ public class WebFingerMetadataRequestorTest {
 
     private static final String DOMAIN = "https://fs.lindft6.com";
 
+    private static final RequestContext REQUEST_CONTEXT = new RequestContext(UUID.randomUUID(), "");
+
     private static final DRSMetadata DRS_METADATA = new DRSMetadata();
 
     static {
@@ -77,7 +80,7 @@ public class WebFingerMetadataRequestorTest {
                 .getMockedConnectionWithSuccessResponse(RESPONSE);
         HttpUrlConnectionFactory.addMockedConnection(mockedSuccessfulConnection);
 
-        WebFingerMetadataRequestor requestor = new WebFingerMetadataRequestor();
+        WebFingerMetadataRequestor requestor = new WebFingerMetadataRequestor(REQUEST_CONTEXT);
 
         WebFingerMetadataRequestParameters parameters = new WebFingerMetadataRequestParameters(
                 new URL(DOMAIN),
@@ -105,7 +108,7 @@ public class WebFingerMetadataRequestorTest {
                 .getMockedConnectionWithFailureResponse(HttpURLConnection.HTTP_BAD_REQUEST, RESPONSE);
         HttpUrlConnectionFactory.addMockedConnection(mockedFailedConnection);
 
-        WebFingerMetadataRequestor requestor = new WebFingerMetadataRequestor();
+        WebFingerMetadataRequestor requestor = new WebFingerMetadataRequestor(REQUEST_CONTEXT);
 
         WebFingerMetadataRequestParameters parameters = new WebFingerMetadataRequestParameters(
                 new URL(DOMAIN),
@@ -132,7 +135,7 @@ public class WebFingerMetadataRequestorTest {
                 mockHeaders
         );
 
-        WebFingerMetadata metadata = new WebFingerMetadataRequestor().parseMetadata(response);
+        WebFingerMetadata metadata = new WebFingerMetadataRequestor(REQUEST_CONTEXT).parseMetadata(response);
 
         Assert.assertEquals("https://fs.lindft6.com", metadata.getSubject());
         Assert.assertNotNull(metadata.getLinks());

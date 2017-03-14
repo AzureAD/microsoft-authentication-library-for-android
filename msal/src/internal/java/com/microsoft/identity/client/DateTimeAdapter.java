@@ -39,16 +39,12 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerializer<Date> {
+/**
+ * Internal class to serialize the date into the same format.
+ */
+final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerializer<Date> {
 
     private static final String TAG = "DateTimeAdapter";
-
-    private final DateFormat mEnUsFormat = DateFormat.getDateTimeInstance(DateFormat.DEFAULT,
-            DateFormat.DEFAULT, Locale.US);
-
-    private final DateFormat mLocalFormat = DateFormat.getDateTimeInstance(DateFormat.DEFAULT,
-            DateFormat.DEFAULT);
-
     private final DateFormat mISO8601Format = buildIso8601Format();
 
     private static DateFormat buildIso8601Format() {
@@ -58,18 +54,10 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
     }
 
     /**
-     * Default constructor for {@link DateTimeAdapter}.
-     */
-    public DateTimeAdapter() {
-        // Default constructor, intentionally empty.
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
-    public synchronized Date deserialize(JsonElement json, Type typeOfT,
-            JsonDeserializationContext context) throws JsonParseException {
+    public synchronized Date deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         String jsonString = json.getAsString();
 
         // Datetime string is serialized with iso8601 format by default, should
@@ -77,7 +65,11 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
         try {
             return mISO8601Format.parse(jsonString);
         } catch (final ParseException ignored) {
-//            Logger.v(TAG, "Cannot parse with ISO8601, try again with local format.");
+            Logger.verbose(
+                    TAG,
+                    null, // no request context
+                    "Cannot parse with ISO8601, try again with local format."
+            );
             throw new JsonParseException("Could not parse date: " + jsonString);
         }
     }
@@ -86,8 +78,7 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
      * {@inheritDoc}
      */
     @Override
-    public synchronized JsonElement serialize(Date src, Type typeOfSrc,
-            JsonSerializationContext context) {
+    public synchronized JsonElement serialize(Date src, Type typeOfSrc, JsonSerializationContext context) {
         return new JsonPrimitive(mISO8601Format.format(src));
     }
 }

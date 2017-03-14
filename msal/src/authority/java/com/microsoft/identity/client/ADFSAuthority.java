@@ -33,7 +33,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * MSAL internal class for representing the ADFS authority.
@@ -92,10 +91,10 @@ final class ADFSAuthority extends Authority {
     }
 
     @Override
-    String performInstanceDiscovery(final UUID correlationId, final String userPrincipalName) throws AuthenticationException {
+    String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws AuthenticationException {
         if (mValidateAuthority) {
-            final DRSMetadata drsMetadata = loadDRSMetadata(correlationId, userPrincipalName);
-            final WebFingerMetadata webFingerMetadata = loadWebFingerMetadata(correlationId, drsMetadata);
+            final DRSMetadata drsMetadata = loadDRSMetadata(requestContext, userPrincipalName);
+            final WebFingerMetadata webFingerMetadata = loadWebFingerMetadata(requestContext, drsMetadata);
             final URI authorityURI;
 
             try {
@@ -108,7 +107,7 @@ final class ADFSAuthority extends Authority {
             }
 
             // Verify trust
-            if (!ADFSWebFingerValidator.realmIsTrusted(authorityURI, webFingerMetadata)) {
+            if (!ADFSWebFingerValidator.realmIsTrusted(requestContext, authorityURI, webFingerMetadata)) {
                 throw new AuthenticationException(MSALError.AUTHORITY_VALIDATION_FAILED);
             }
         }
@@ -120,17 +119,15 @@ final class ADFSAuthority extends Authority {
         return mADFSValidatedAuthorities;
     }
 
-    private WebFingerMetadata loadWebFingerMetadata(final UUID correlationId, final DRSMetadata drsMetadata) throws AuthenticationException {
-        final WebFingerMetadataRequestor webFingerMetadataRequestor = new WebFingerMetadataRequestor();
-        webFingerMetadataRequestor.setCorrelationId(correlationId);
+    private WebFingerMetadata loadWebFingerMetadata(final RequestContext requestContext, final DRSMetadata drsMetadata) throws AuthenticationException {
+        final WebFingerMetadataRequestor webFingerMetadataRequestor = new WebFingerMetadataRequestor(requestContext);
         return webFingerMetadataRequestor.requestMetadata(
                 new WebFingerMetadataRequestParameters(mAuthorityUrl, drsMetadata)
         );
     }
 
-    private DRSMetadata loadDRSMetadata(final UUID correlationId, final String userPrincipalName) throws AuthenticationException {
-        final DRSMetadataRequestor drsRequestor = new DRSMetadataRequestor();
-        drsRequestor.setCorrelationId(correlationId);
+    private DRSMetadata loadDRSMetadata(final RequestContext requestContext, final String userPrincipalName) throws AuthenticationException {
+        final DRSMetadataRequestor drsRequestor = new DRSMetadataRequestor(requestContext);
         return drsRequestor.requestMetadata(getDomainFromUPN(userPrincipalName));
     }
 

@@ -41,6 +41,8 @@ import java.util.UUID;
 @RunWith(AndroidJUnit4.class)
 public class ADFSAuthorityTest {
 
+    private static final RequestContext REQUEST_CONTEXT = new RequestContext(UUID.randomUUID(), "");
+
     final String testUPN = "user.name@foo.com";
 
     private ADFSAuthority adfsAuthority;
@@ -91,7 +93,7 @@ public class ADFSAuthorityTest {
             );
             Assert.assertEquals(
                     "https://fs.lindft6.com/adfs/.well-known/openid-configuration",
-                    authority.performInstanceDiscovery(UUID.randomUUID(), testUPN)
+                    authority.performInstanceDiscovery(REQUEST_CONTEXT, testUPN)
             );
         } catch (AuthenticationException | MalformedURLException e) {
             Assert.fail();
@@ -105,7 +107,7 @@ public class ADFSAuthorityTest {
                     new URL("file:/Users/RFC2396 noncompliant"),
                     true
             );
-            adfsAuthority.performInstanceDiscovery(UUID.randomUUID(), testUPN);
+            adfsAuthority.performInstanceDiscovery(REQUEST_CONTEXT, testUPN);
         } catch (MalformedURLException e) {
             Assert.fail();
         } catch (AuthenticationException e) {

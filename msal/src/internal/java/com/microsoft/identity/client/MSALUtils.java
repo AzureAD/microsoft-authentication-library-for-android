@@ -362,4 +362,24 @@ final class MSALUtils {
         return !MSALUtils.isEmpty(path)
                 && path.toLowerCase(Locale.ENGLISH).equals("/adfs");
     }
+
+    /**
+     * @return True if there is an intersection between the scopes stored in the token cache key and the request scopes.
+     */
+    static boolean isScopeIntersects(final Set<String> scopes, final Set<String> otherScopes) {
+        for (final String scope: otherScopes) {
+            if (scopes.contains(scope)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return True if the scopes stored in the token cache key contains all the requested scopes.
+     */
+    static boolean isScopeContains(final Set<String> scopes, final Set<String> otherScopes) {
+        return scopes.containsAll(otherScopes);
+    }
 }

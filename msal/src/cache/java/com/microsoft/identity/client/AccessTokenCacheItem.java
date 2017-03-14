@@ -23,20 +23,44 @@
 
 package com.microsoft.identity.client;
 
+import java.util.Date;
+
 /**
- * MSAL internal class for representing an refresh token item.
+ * MSAL internal class for representing the access token cache item.
  */
-final class RefreshTokenCacheItem extends BaseTokenCacheItem {
+final class AccessTokenCacheItem extends BaseTokenCacheItem {
 
-    private final String mRefreshToken;
+    private String mAccessToken;
+    private Date mExpiresOn;
 
-    RefreshTokenCacheItem(final String authority, final String clientId, final TokenResponse response)
-            throws AuthenticationException {
+    /**
+     * Constructor for creating the {@link AccessTokenCacheItem}.
+     */
+    AccessTokenCacheItem(final String authority, final String clientId, final TokenResponse response) throws AuthenticationException {
         super(authority, clientId, response);
-        mRefreshToken = response.getRefreshToken();
+
+        mAccessToken = response.getAccessToken();
+        mExpiresOn = response.getExpiresOn();
     }
 
-    String getRefreshToken() {
-        return mRefreshToken;
+    /**
+     * @return The access token returned in the token respone.
+     */
+    String getAccessToken() {
+        return mAccessToken;
+    }
+
+    /**
+     * @return The access token expires on.
+     */
+    Date getExpiresOn() {
+        return mExpiresOn;
+    }
+
+    /**
+     * @return The tenant id.
+     */
+    String getTenantId() {
+        return mTenantId;
     }
 }

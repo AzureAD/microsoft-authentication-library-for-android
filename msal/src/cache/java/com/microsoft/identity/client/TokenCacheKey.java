@@ -36,22 +36,14 @@ final class TokenCacheKey {
     private final String mAuthority;
     private final String mClientId;
     private final TreeSet<String> mScope = new TreeSet<>();
-    private final String mDisplayableId;
-    private final String mUniqueId;
     private final String mHomeObjectId;
-    private final String mPolicy;
 
-    private TokenCacheKey(final String authority, final String clientId, final Set<String> scope, final User user, final String policy) {
-        this(authority, clientId, scope, user == null ? "" : user.getDisplayableId(),
-                user == null ? "" : user.getUniqueId(), user == null ? "" : user.getHomeObjectId(), policy);
+    private TokenCacheKey(final String authority, final String clientId, final Set<String> scope, final User user) {
+        this(authority, clientId, scope, user.getHomeObjectId());
     }
 
-    private TokenCacheKey(final String authority, final String clientId, final Set<String> scope, final String displayableId,
-                  final String uniqueId, final String homeObjectId, final String policy) {
-        // TODO: remove the authority from cache key for refresh token entry. Discuss with the team on whether we need authority as the key.
+    private TokenCacheKey(final String authority, final String clientId, final Set<String> scope, final String homeObjectId) {
         // All the tokens issued by AAD is cross tenant, ADFS 2016 should work the same as AAD, and client id.
-        // TODO: add the authority type. Will add once the Authority PR is merged.
-
         if (MSALUtils.isEmpty(clientId)) {
             throw new IllegalArgumentException("clientId");
         }
@@ -62,19 +54,16 @@ final class TokenCacheKey {
         // guarantee the order in the serialized string
         mScope.addAll(scope);
 
-        mDisplayableId = MSALUtils.isEmpty(displayableId) ? "" : displayableId.toLowerCase(Locale.US);
-        mUniqueId = MSALUtils.isEmpty(uniqueId) ? "" : uniqueId.toLowerCase(Locale.US);
         mHomeObjectId = MSALUtils.isEmpty(homeObjectId) ? "" : homeObjectId.toLowerCase(Locale.US);
-        mPolicy = MSALUtils.isEmpty(policy) ? "" : policy.toLowerCase(Locale.US);
     }
 
-    static TokenCacheKey createKeyForAT(final String authority, final String clientId, final Set<String> scopes, final User user, final String policy) {
-        return new TokenCacheKey(authority, clientId, scopes, user, policy);
+    static TokenCacheKey createKeyForAT(final String authority, final String clientId, final Set<String> scopes, final User user) {
+        return new TokenCacheKey(authority, clientId, scopes, user);
     }
 
     // RT entry doesn't contain scope.
-    static TokenCacheKey createKeyForRT(final String clientId, final User user, final String policy) {
-        return new TokenCacheKey("", clientId, new HashSet<String>(), user, policy);
+    static TokenCacheKey createKeyForRT(final String clientId, final User user) {
+        return new TokenCacheKey("", clientId, new HashSet<String>(), user);
     }
 
     static TokenCacheKey extractKeyForAT(final BaseTokenCacheItem tokenCacheItem) {
@@ -82,8 +71,7 @@ final class TokenCacheKey {
             throw new NullPointerException("token cache item is null");
         }
 
-        return new TokenCacheKey(tokenCacheItem.getAuthority(), tokenCacheItem.getClientId(), tokenCacheItem.getScope(), tokenCacheItem.getDisplayableId(),
-                tokenCacheItem.getUniqueId(), tokenCacheItem.getHomeObjectId(), tokenCacheItem.getPolicy());
+        return new TokenCacheKey(tokenCacheItem.getAuthority(), tokenCacheItem.getClientId(), tokenCacheItem.getScope(), tokenCacheItem.getHomeObjectId());
     }
 
     static TokenCacheKey extractKeyForRT(final BaseTokenCacheItem tokenCacheItem) {
@@ -91,8 +79,7 @@ final class TokenCacheKey {
             throw new NullPointerException("tokencacheItem null");
         }
 
-        return new TokenCacheKey("", tokenCacheItem.getClientId(), new HashSet<String>(), tokenCacheItem.getDisplayableId(),
-                tokenCacheItem.getUniqueId(), tokenCacheItem.getHomeObjectId(), tokenCacheItem.getPolicy());
+        return new TokenCacheKey("", tokenCacheItem.getClientId(), new HashSet<String>(), tokenCacheItem.getHomeObjectId());
     }
 
     Set<String> getScope() {
@@ -110,10 +97,7 @@ final class TokenCacheKey {
         stringBuilder.append(MSALUtils.base64EncodeToString(mClientId) + "$");
         // scope is treeSet to guarantee the order of the scopes when converting to string.
         stringBuilder.append(MSALUtils.base64EncodeToString(MSALUtils.convertSetToString(mScope, " ")) + "$");
-        stringBuilder.append(MSALUtils.base64EncodeToString(mDisplayableId) + "$");
-        stringBuilder.append(MSALUtils.base64EncodeToString(mUniqueId) + "$");
-        stringBuilder.append(MSALUtils.base64EncodeToString(mHomeObjectId) + "$");
-        stringBuilder.append(MSALUtils.base64EncodeToString(mPolicy));
+        stringBuilder.append(MSALUtils.base64EncodeToString(mHomeObjectId));
 
         return stringBuilder.toString();
     }
@@ -126,21 +110,6 @@ final class TokenCacheKey {
      boolean matches(final BaseTokenCacheItem item) {
         return mClientId.equalsIgnoreCase(item.getClientId())
                 && (MSALUtils.isEmpty(mAuthority) || mAuthority.equalsIgnoreCase(item.getAuthority()))
-                && (MSALUtils.isEmpty(mUniqueId) || mUniqueId.equalsIgnoreCase(item.getUniqueId()))
-                && (MSALUtils.isEmpty(mDisplayableId) || mDisplayableId.equalsIgnoreCase(item.getDisplayableId()))
-                && (MSALUtils.isEmpty(mHomeObjectId) || mHomeObjectId.equalsIgnoreCase(item.getHomeObjectId()))
-                && isPolicyMatch(item);
-    }
-
-    boolean isScopeEqual(final BaseTokenCacheItem item) {
-        return mScope.size() == item.getScope().size() && mScope.containsAll(item.getScope());
-    }
-
-    private boolean isPolicyMatch(final BaseTokenCacheItem item) {
-        if (MSALUtils.isEmpty(mPolicy)) {
-            return MSALUtils.isEmpty(item.getPolicy());
-        }
-
-        return mPolicy.equalsIgnoreCase(item.getPolicy());
+                && mHomeObjectId.equalsIgnoreCase(item.getHomeObjectId());
     }
 }

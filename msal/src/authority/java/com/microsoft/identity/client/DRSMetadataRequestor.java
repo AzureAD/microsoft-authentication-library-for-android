@@ -48,6 +48,10 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
     private static final String DRS_URL_PREFIX = "https://enterpriseregistration.";
     private static final String CLOUD_RESOLVER_DOMAIN = "windows.net/";
 
+    DRSMetadataRequestor(final RequestContext requestContext) {
+        super(requestContext);
+    }
+
     /**
      * The DRS configuration.
      */
@@ -75,7 +79,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
      */
     private DRSMetadata requestOnPrem(final String domain)
             throws UnknownHostException, AuthenticationException {
-        Logger.verbose(TAG, getCorrelationId(), "Requesting DRS discovery (on-prem)", null);
+        Logger.verbose(TAG, getRequestContext(), "Requesting DRS discovery (on-prem)");
         return requestDrsDiscoveryInternal(ON_PREM, domain);
     }
 
@@ -88,7 +92,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
      *                                 or the trust cannot be verified
      */
     private DRSMetadata requestCloud(final String domain) throws AuthenticationException {
-        Logger.verbose(TAG, getCorrelationId(), "Requesting DRS discovery (cloud)", null);
+        Logger.verbose(TAG, getRequestContext(), "Requesting DRS discovery (cloud)");
         try {
             return requestDrsDiscoveryInternal(CLOUD, domain);
         } catch (UnknownHostException e) {
@@ -111,8 +115,11 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
         // init the headers to use in the request
         final Map<String, String> headers = new HashMap<>();
         headers.put(HttpConstants.HeaderField.ACCEPT, HttpConstants.MediaType.APPLICATION_JSON);
-        if (null != getCorrelationId()) {
-            headers.put(OauthConstants.OauthHeader.CORRELATION_ID, getCorrelationId().toString());
+        if (null != getRequestContext().getCorrelationId()) {
+            headers.put(
+                    OauthConstants.OauthHeader.CORRELATION_ID,
+                    getRequestContext().getCorrelationId().toString()
+            );
         }
 
         final DRSMetadata metadata;
@@ -166,7 +173,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
 
         final String requestUrlStr = requestUrl.toString();
 
-        Logger.verbose(TAG, getCorrelationId(), "Requestor will use DRS url: " + requestUrlStr, null);
+        Logger.verbose(TAG, getRequestContext(), "Requestor will use DRS url: " + requestUrlStr);
 
         return requestUrlStr;
     }

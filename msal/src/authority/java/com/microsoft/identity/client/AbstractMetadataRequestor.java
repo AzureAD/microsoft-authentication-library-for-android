@@ -23,18 +23,12 @@
 
 package com.microsoft.identity.client;
 
-import java.util.UUID;
-
 abstract class AbstractMetadataRequestor<MetadataType, MetadataRequestOptions> {
 
-    private UUID mCorrelationId;
+    private RequestContext mRequestContext;
 
-    public final void setCorrelationId(final UUID requestCorrelationId) {
-        mCorrelationId = requestCorrelationId;
-    }
-
-    public final UUID getCorrelationId() {
-        return mCorrelationId;
+    AbstractMetadataRequestor(final RequestContext requestContext) {
+        mRequestContext = requestContext;
     }
 
     /**
@@ -54,4 +48,13 @@ abstract class AbstractMetadataRequestor<MetadataType, MetadataRequestOptions> {
      * @throws Exception if the metadata fails to deserialize
      */
     abstract MetadataType parseMetadata(HttpResponse response) throws Exception;
+
+    /**
+     * Gets the {@link RequestContext}
+     *
+     * @return the RequestContext
+     */
+    public RequestContext getRequestContext() {
+        return mRequestContext;
+    }
 }

@@ -23,42 +23,27 @@
 
 package com.microsoft.identity.client;
 
-import java.util.Date;
+import java.util.UUID;
 
 /**
- * MSAL internal class for representing the access token cache item.
+ * MSAL internal class for representing the request context. It contains correlation id and
+ * component name.
  */
-final class TokenCacheItem extends BaseTokenCacheItem {
 
-    private String mToken;
-    private Date mExpiresOn;
+final class RequestContext {
+    private final UUID mCorrelationId;
+    private final String mComponent;
 
-    /**
-     * Constructor for creating the {@link TokenCacheItem}.
-     */
-    TokenCacheItem(final String authority, final String clientId, final String policy, final TokenResponse response) throws AuthenticationException {
-        super(authority, clientId, policy, response);
-
-        if (!MSALUtils.isEmpty(response.getAccessToken())) {
-            mToken = response.getAccessToken();
-            mExpiresOn = response.getExpiresOn();
-        } else if (!MSALUtils.isEmpty(response.getRawIdToken())) {
-            mToken = response.getRawIdToken();
-            mExpiresOn = response.getIdTokenExpiresOn();
-        }
+    RequestContext(final UUID correlationId, final String component) {
+        mCorrelationId = correlationId;
+        mComponent = component;
     }
 
-    /**
-     * @return The token. Could either be access token or id token.
-     */
-    String getToken() {
-        return mToken;
+    UUID getCorrelationId() {
+        return mCorrelationId;
     }
 
-    /**
-     * @return The expires on. Could either be access token expires on or id token expires on.
-     */
-    Date getExpiresOn() {
-        return mExpiresOn;
+    String getComponent() {
+        return mComponent;
     }
 }
