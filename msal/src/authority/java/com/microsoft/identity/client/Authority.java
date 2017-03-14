@@ -41,6 +41,9 @@ abstract class Authority {
     // default_authorize_endpoint is used for instance discovery sent as query parameter for instance discovery.
     static final String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/v2.0/authorize";
 
+    static final String ADFS_AUTHORITY_PREFIX = "adfs";
+    static final String B2C_AUTHORITY_PREFIX = "tfp";
+
     final URL mAuthorityUrl;
     final boolean mValidateAuthority;
 
@@ -72,7 +75,7 @@ abstract class Authority {
 
     /**
      * Create the detailed authority. If the authority url string is for AAD, will create the {@link AADAuthority}, otherwise
-     * ADFS or B2C authority will be created. (TODO: only create AAD authority for now, will check what to do for B2C and ADFS).
+     * ADFS or B2C authority will be created.
      *
      * @param authorityUrl      The authority url used to create the {@link Authority}.
      * @param validateAuthority True if performing authority validation, false otherwise.
@@ -94,16 +97,17 @@ abstract class Authority {
             throw new IllegalArgumentException("Invalid authority url");
         }
 
-        final URL updatedAuthority = updateAuthority(authority);
+        final String[] pathSegments = authority.getPath().replaceFirst("/", "").split("/");
+        final boolean isAdfsAuthority = pathSegments[0].equals(ADFS_AUTHORITY_PREFIX);
+        final boolean isB2cAuthority = pathSegments[0].equals(B2C_AUTHORITY_PREFIX);
 
-        // TODO: when figuring out how to do instance discovery for ADFS and b2c, should create corresponding concrete
-        // Authority class.
-
-        if (MSALUtils.isADFSAuthority(updatedAuthority)) {
-            return new ADFSAuthority(updatedAuthority, validateAuthority);
+        if (isAdfsAuthority) {
+            throw new IllegalArgumentException("ADFS authority is not a supported authority instance");
+        } else if (isB2cAuthority) {
+            return new B2CAuthority(authority, validateAuthority);
         }
 
-        return new AADAuthority(updatedAuthority, validateAuthority);
+        return new AADAuthority(authority, validateAuthority);
     }
 
     /**
@@ -118,7 +122,8 @@ abstract class Authority {
         Logger.info(TAG, requestContext, "Perform authority validation and tenant discovery.");
         if (existsInValidatedAuthorityCache(userPrincipalName)) {
             Logger.info(TAG, requestContext, "Authority has been validated.");
-            Authority preValidatedAuthority = VALIDATED_AUTHORITY.get(mAuthorityUrl.toString());
+
+            final Authority preValidatedAuthority = VALIDATED_AUTHORITY.get(mAuthorityUrl.toString());
             mAuthorizationEndpoint = preValidatedAuthority.mAuthorizationEndpoint;
             mTokenEndpoint = preValidatedAuthority.mTokenEndpoint;
             return;
@@ -157,7 +162,7 @@ abstract class Authority {
      * @param validateAuthority True if authority validation is set to be true, false otherwise.
      */
     protected Authority(final URL authorityUrl, final boolean validateAuthority) {
-        mAuthorityUrl = authorityUrl;
+        mAuthorityUrl = updateAuthority(authorityUrl);
         mValidateAuthority = validateAuthority;
     }
 
@@ -190,7 +195,7 @@ abstract class Authority {
         return mTokenEndpoint;
     }
 
-    private static URL updateAuthority(final URL authority) {
+    protected URL updateAuthority(final URL authority) {
         final String path = authority.getPath().replaceFirst("/", "");
         int indexOfSecondPath = path.indexOf("/");
         final String firstPath = path.substring(0, indexOfSecondPath == -1 ? path.length() : indexOfSecondPath);
@@ -212,12 +217,16 @@ abstract class Authority {
         /**
          * Authority is an instance of AAD authority.
          */
+
         AAD,
         /**
          * Authority is an instance of ADFS authority.
          */
-        ADFS
+        ADFS,
 
-        //TODO: add B2C authority type
+        /**
+         * Authority is an instance of B2C authority.
+         */
+        B2C
     }
 }

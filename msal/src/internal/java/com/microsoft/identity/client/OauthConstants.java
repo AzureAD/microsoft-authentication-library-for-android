@@ -38,8 +38,6 @@ final class OauthConstants {
         static final String SCOPE = "scope";
         static final String LOGIN_HINT = "login_hint";
         static final String PROMPT = "prompt";
-        static final String RESTRICT_TO_HINT = "restrict_to_hint";
-        static final String POLICY = "p";
         static final String HAS_CHROME = "haschrome";
         static final String STATE = "state";
         static final String CODE_CHALLENGE = "code_challenge";

@@ -23,9 +23,12 @@
 
 package com.microsoft.identity.client;
 
+import android.support.test.runner.AndroidJUnit4;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -35,11 +38,13 @@ import java.util.UUID;
 /**
  * Unit test for {@link Authority}.
  */
+@RunWith(AndroidJUnit4.class)
 public final class AuthorityTest {
     static final String AUTHORIZE_ENDPOINT = "some_authorization_endpoint";
     static final String TOKEN_ENDPOINT = "some_token_endpoint";
     static final String TENANT_DISCOVERY_ENDPOINT = "https://some_tenant_discovery/endpoint";
     static final String TEST_AUTHORITY = "https://some.authority/common";
+    static final String TEST_B2C_AUTHORITY = "https://login.microsoftonline.com/tfp/tenant/policy";
 
     @After
     public void tearDown() {
@@ -72,6 +77,22 @@ public final class AuthorityTest {
         final Authority authority = Authority.createAuthority(
                 "https://login.windows.net/common?resource=2343&client_id=234", false);
         authority.equals("https://login.windows.net/common");
+    }
+
+    /**
+     * We don't support adfs as authority for BUILD.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testAdfsAuthorityValidationEnabled() {
+        Authority.createAuthority("https://somehost/adfs", true);
+    }
+
+    /**
+     * We don't support adfs as authority for BUILD.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testAdfsAuthorityValidationDisabled() {
+        Authority.createAuthority("https://somehost/adfs", false);
     }
 
     @Test
@@ -127,6 +148,25 @@ public final class AuthorityTest {
         performAuthorityValidationAndVerify(authorityGermany);
 
         final Authority authorityUSGovernment = Authority.createAuthority("https://login-us.microsoftonline.com/sometenant", true);
+        performAuthorityValidationAndVerify(authorityUSGovernment);
+    }
+
+    @Test
+    public void testB2cAuthorityValidationWithTrustedHost() {
+        Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
+        final Authority authorityAzure1 = Authority.createAuthority("https://login.windows.net/tfp/sometenant/policy", true);
+        performAuthorityValidationAndVerify(authorityAzure1);
+
+        final Authority authorityAzure2 = Authority.createAuthority("https://login.microsoftonline.com/tfp/sometenant/policy", true);
+        performAuthorityValidationAndVerify(authorityAzure2);
+
+        final Authority authorityChina = Authority.createAuthority("https://login.chinacloudapi.cn/tfp/sometenant/policy", true);
+        performAuthorityValidationAndVerify(authorityChina);
+
+        final Authority authorityGermany = Authority.createAuthority("https://login.microsoftonline.de/tfp/sometenant/policy", true);
+        performAuthorityValidationAndVerify(authorityGermany);
+
+        final Authority authorityUSGovernment = Authority.createAuthority("https://login-us.microsoftonline.com/tfp/sometenant/policy", true);
         performAuthorityValidationAndVerify(authorityUSGovernment);
     }
 
@@ -293,5 +333,21 @@ public final class AuthorityTest {
         }
 
         Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
+    }
+
+    @Test
+    public void testB2cAuthorityWithTenantDiscovery() throws IOException {
+        final Authority authority = Authority.createAuthority(TEST_B2C_AUTHORITY, true);
+
+        // mock tenant discovery succeed.
+        AndroidTestMockUtil.mockSuccessTenantDiscovery(AUTHORIZE_ENDPOINT, TOKEN_ENDPOINT);
+        try {
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "test"), null);
+        } catch (final AuthenticationException e) {
+            Assert.fail("Unexpected exception");
+        }
+
+        Assert.assertTrue(authority.getAuthorizeEndpoint().equals(AUTHORIZE_ENDPOINT));
+        Assert.assertTrue(authority.getTokenEndpoint().equals(TOKEN_ENDPOINT));
     }
 }

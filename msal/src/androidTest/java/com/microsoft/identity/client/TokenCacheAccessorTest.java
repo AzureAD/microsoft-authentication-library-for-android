@@ -225,10 +225,10 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
                 scope, getIdTokenWithDefaultUser()));
         mAccessor.saveRefreshToken(rtForDefaultClient);
 
-        // add rt with default clientid, authority, user and policy
-        final RefreshTokenCacheItem rtForDefaultClientIDWithPolicy = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("",
+        // add rt with default clientid, authority, user
+        final RefreshTokenCacheItem differentRtForDefaultClientID = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("",
                 "refreshToken1WithPolicy", scope, getIdTokenWithDefaultUser()));
-        mAccessor.saveRefreshToken(rtForDefaultClientIDWithPolicy);
+        mAccessor.saveRefreshToken(differentRtForDefaultClientID);
 
         // add rt with another clientid
         final String anotherClientId = "another_clientId";

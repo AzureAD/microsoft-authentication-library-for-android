@@ -124,7 +124,7 @@ abstract class BaseRequest {
 
     /**
      * Get the decorated scopes. Will combine the input scope and the reserved scope. If client id is provided as scope,
-     * it will be removed from the combined scopes. If policy is provided, email and profile will be removed.
+     * it will be removed from the combined scopes.
      * @param inputScopes The input scopes to decorate.
      * @return The combined scopes.
      */
@@ -133,14 +133,6 @@ abstract class BaseRequest {
         final Set<String> reservedScopes = getReservedScopesAsSet();
         scopes.addAll(reservedScopes);
         scopes.remove(mAuthRequestParameters.getClientId());
-
-        // For B2C scenario, policy will be provided. We don't send email and profile as scopes.
-//        if (!MSALUtils.isEmpty(mAuthRequestParameters.getPolicy())) {
-//            Logger.verbose(TAG, mRequestContext, "B2C scenario, remove email and "
-//                    + "profile from reserved scopes");
-//            scopes.remove(OauthConstants.Oauth2Value.SCOPE_EMAIL);
-//            scopes.remove(OauthConstants.Oauth2Value.SCOPE_PROFILE);
-//        }
 
         return scopes;
     }
