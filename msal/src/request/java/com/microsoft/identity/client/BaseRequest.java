@@ -97,7 +97,10 @@ abstract class BaseRequest {
             public void run() {
                 try {
                     // perform authority validation before doing any token request
-                    mAuthRequestParameters.getAuthority().resolveEndpoints(mAuthRequestParameters.getRequestContext());
+                    mAuthRequestParameters.getAuthority().resolveEndpoints(
+                            mAuthRequestParameters.getRequestContext(),
+                            mAuthRequestParameters.getLoginHint()
+                    );
                     preTokenRequest();
                     performTokenRequest();
 

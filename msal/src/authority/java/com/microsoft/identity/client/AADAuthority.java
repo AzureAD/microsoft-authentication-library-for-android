@@ -61,7 +61,7 @@ final class AADAuthority extends Authority {
     }
 
     @Override
-    String performInstanceDiscovery(final RequestContext requestContext) throws AuthenticationException {
+    String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws AuthenticationException {
         Logger.info(TAG, requestContext, "Passed in authority " + mAuthorityUrl.toString() + "is AAD authority. "
                 + "Start doing Instance discovery.");
         if (!mValidateAuthority || TRUSTED_HOST_SET.contains(mAuthorityUrl.getAuthority())) {
@@ -97,5 +97,15 @@ final class AADAuthority extends Authority {
         Logger.info(TAG, requestContext, "Instance discovery succeeded. Tenant discovery endpoint is: "
                 + response.getTenantDiscoveryEndpoint());
         return response.getTenantDiscoveryEndpoint();
+    }
+
+    @Override
+    boolean existsInValidatedAuthorityCache(final String userPrincipalName) {
+        return VALIDATED_AUTHORITY.containsKey(mAuthorityUrl.toString());
+    }
+
+    @Override
+    void addToValidatedAuthorityCache(final String userPrincipalName) {
+        VALIDATED_AUTHORITY.put(mAuthorityUrl.toString(), this);
     }
 }

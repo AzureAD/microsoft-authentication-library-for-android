@@ -51,20 +51,34 @@ abstract class Authority {
     /**
      * Perform instance discovery to get the tenant discovery endpoint. If it's a valid authority url, tenant discovery
      * endpoint will be return, otherwise exception will be thrown.
+     *
      * @param requestContext The {@link RequestContext} for the instance discovery request.
      * @return The tenant discovery endpoint.
      * @throws AuthenticationException if error happens during the instance discovery.
      */
-    abstract String performInstanceDiscovery(final RequestContext requestContext) throws AuthenticationException;
+    abstract String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws AuthenticationException;
+
+    /**
+     * @return True if the authority is already validated.
+     */
+    abstract boolean existsInValidatedAuthorityCache(final String userPrincipalName);
+
+    /**
+     * Adds this Authority to the {@link Authority#VALIDATED_AUTHORITY} cache
+     *
+     * @param userPrincipalName the UPN of the current user (if available)
+     */
+    abstract void addToValidatedAuthorityCache(final String userPrincipalName);
 
     /**
      * Create the detailed authority. If the authority url string is for AAD, will create the {@link AADAuthority}, otherwise
      * ADFS or B2C authority will be created. (TODO: only create AAD authority for now, will check what to do for B2C and ADFS).
-     * @param authorityUrl The authority url used to create the {@link Authority}.
+     *
+     * @param authorityUrl      The authority url used to create the {@link Authority}.
      * @param validateAuthority True if performing authority validation, false otherwise.
      * @return The {@link Authority} instance.
      */
-    static Authority createAuthority(final String authorityUrl, boolean validateAuthority) {
+    static Authority createAuthority(final String authorityUrl, final boolean validateAuthority) {
         final URL authority;
         try {
             authority = new URL(authorityUrl);
@@ -81,12 +95,14 @@ abstract class Authority {
         }
 
         final URL updatedAuthority = updateAuthority(authority);
-        if (VALIDATED_AUTHORITY.containsKey(updatedAuthority.toString())) {
-            return VALIDATED_AUTHORITY.get(updatedAuthority.toString());
-        }
 
         // TODO: when figuring out how to do instance discovery for ADFS and b2c, should create corresponding concrete
-        // Authority class. 
+        // Authority class.
+
+        if (MSALUtils.isADFSAuthority(updatedAuthority)) {
+            return new ADFSAuthority(updatedAuthority, validateAuthority);
+        }
+
         return new AADAuthority(updatedAuthority, validateAuthority);
     }
 
@@ -98,15 +114,18 @@ abstract class Authority {
      * @param requestContext {@link RequestContext} for the authority validation and tenant discovery.
      * @throws AuthenticationException If error happens during authority or tenant discovery.
      */
-    void resolveEndpoints(final RequestContext requestContext) throws AuthenticationException {
+    void resolveEndpoints(final RequestContext requestContext, final String userPrincipalName) throws AuthenticationException {
         Logger.info(TAG, requestContext, "Perform authority validation and tenant discovery.");
-        if (isAuthorityValidated()) {
+        if (existsInValidatedAuthorityCache(userPrincipalName)) {
             Logger.info(TAG, requestContext, "Authority has been validated.");
+            Authority preValidatedAuthority = VALIDATED_AUTHORITY.get(mAuthorityUrl.toString());
+            mAuthorizationEndpoint = preValidatedAuthority.mAuthorizationEndpoint;
+            mTokenEndpoint = preValidatedAuthority.mTokenEndpoint;
             return;
         }
 
         final TenantDiscoveryResponse tenantDiscoveryResponse;
-        final String openIdConfigurationEndpoint = performInstanceDiscovery(requestContext);
+        final String openIdConfigurationEndpoint = performInstanceDiscovery(requestContext, userPrincipalName);
         try {
             final Oauth2Client oauth2Client = new Oauth2Client();
             oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID, requestContext.getCorrelationId().toString());
@@ -128,15 +147,16 @@ abstract class Authority {
         mAuthorizationEndpoint = tenantDiscoveryResponse.getAuthorizationEndpoint();
         mTokenEndpoint = tenantDiscoveryResponse.getTokenEndpoint();
 
-        VALIDATED_AUTHORITY.put(mAuthorityUrl.toString(), this);
+        addToValidatedAuthorityCache(userPrincipalName);
     }
 
     /**
      * Constructor for the {@link Authority}.
-     * @param authorityUrl The string representation for the authority url.
+     *
+     * @param authorityUrl      The string representation for the authority url.
      * @param validateAuthority True if authority validation is set to be true, false otherwise.
      */
-     protected Authority(final URL authorityUrl, final boolean validateAuthority) {
+    protected Authority(final URL authorityUrl, final boolean validateAuthority) {
         mAuthorityUrl = authorityUrl;
         mValidateAuthority = validateAuthority;
     }
@@ -168,13 +188,6 @@ abstract class Authority {
      */
     String getTokenEndpoint() {
         return mTokenEndpoint;
-    }
-
-    /**
-     * @return True if the authority is already validated.
-     */
-    boolean isAuthorityValidated() {
-        return VALIDATED_AUTHORITY.containsKey(mAuthorityUrl.toString());
     }
 
     private static URL updateAuthority(final URL authority) {

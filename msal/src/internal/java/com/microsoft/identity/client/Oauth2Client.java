@@ -45,8 +45,8 @@ import java.util.UUID;
  */
 final class Oauth2Client {
     private static final String TAG = Oauth2Client.class.getSimpleName();
-    private static final String HEADER_ACCEPT = "Accept";
-    private static final String HEADER_ACCEPT_VALUE = "application/json";
+    private static final String HEADER_ACCEPT = HttpConstants.HeaderField.ACCEPT;
+    private static final String HEADER_ACCEPT_VALUE = HttpConstants.MediaType.APPLICATION_JSON;
 
     static final String POST_CONTENT_TYPE = "application/x-www-form-urlencoded";
 

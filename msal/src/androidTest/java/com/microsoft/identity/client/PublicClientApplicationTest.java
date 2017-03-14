@@ -73,7 +73,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     /**
      * Verify correct exception is thrown if activity is not provided.
      */
-    @Test (expected = IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testActivityNull() {
         new PublicClientApplication(null);
     }
@@ -283,7 +283,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                 final String scopeForSilent = "scope3";
                 mockSuccessResponse(scopeForSilent, AndroidTestUtil.ACCESS_TOKEN);
 
-                application.acquireTokenSilentAsync(new String [] {scopeForSilent}, mUser, new AuthenticationCallback() {
+                application.acquireTokenSilentAsync(new String[]{scopeForSilent}, mUser, new AuthenticationCallback() {
+
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
                         assertTrue(authenticationResult.getAccessToken().equals(AndroidTestUtil.ACCESS_TOKEN));
@@ -324,7 +325,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             @Override
             void mockHttpRequest() throws IOException {
                 final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithFailureResponse(
-                HttpURLConnection.HTTP_BAD_REQUEST, AndroidTestUtil.getErrorResponseMessage("invalid_request"));
+                        HttpURLConnection.HTTP_BAD_REQUEST, AndroidTestUtil.getErrorResponseMessage("invalid_request"));
                 Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
                 HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
             }
@@ -393,21 +394,21 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                                       final CountDownLatch releaseLock) {
                 publicClientApplication.acquireToken(SCOPE, "somehint", UIBehavior.FORCE_LOGIN, "extra=param",
                         new AuthenticationCallback() {
-                    @Override
-                    public void onSuccess(AuthenticationResult authenticationResult) {
-                        fail("unexpected success result");
-                    }
+                            @Override
+                            public void onSuccess(AuthenticationResult authenticationResult) {
+                                fail("unexpected success result");
+                            }
 
-                    @Override
-                    public void onError(AuthenticationException exception) {
-                        fail("Unexpected Error");
-                    }
+                            @Override
+                            public void onError(AuthenticationException exception) {
+                                fail("Unexpected Error");
+                            }
 
-                    @Override
-                    public void onCancel() {
-                        releaseLock.countDown();
-                    }
-                });
+                            @Override
+                            public void onCancel() {
+                                releaseLock.countDown();
+                            }
+                        });
             }
 
             @Override
@@ -455,23 +456,23 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                                       final CountDownLatch releaseLock) {
                 publicClientApplication.acquireToken(SCOPE, "", UIBehavior.FORCE_LOGIN, null, null, null,
                         new AuthenticationCallback() {
-                    @Override
-                    public void onSuccess(AuthenticationResult authenticationResult) {
-                        Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
-                        mUser = authenticationResult.getUser();
-                        releaseLock.countDown();
-                    }
+                            @Override
+                            public void onSuccess(AuthenticationResult authenticationResult) {
+                                Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
+                                mUser = authenticationResult.getUser();
+                                releaseLock.countDown();
+                            }
 
-                    @Override
-                    public void onError(AuthenticationException exception) {
-                        fail("Unexpected Error");
-                    }
+                            @Override
+                            public void onError(AuthenticationException exception) {
+                                fail("Unexpected Error");
+                            }
 
-                    @Override
-                    public void onCancel() {
-                        fail("Unexpected Cancel");
-                    }
-                });
+                            @Override
+                            public void onCancel() {
+                                fail("Unexpected Cancel");
+                            }
+                        });
             }
 
             @Override
@@ -487,7 +488,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                 final String newAccessToken = "some new access token";
                 mockSuccessResponse(silentRequestScope, newAccessToken);
 
-                application.acquireTokenSilentAsync(new String [] {silentRequestScope}, mUser, null, true, new AuthenticationCallback() {
+                application.acquireTokenSilentAsync(new String[]{silentRequestScope}, mUser, null, true, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
                         assertTrue(authenticationResult.getAccessToken().equals(newAccessToken));
@@ -631,6 +632,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     private static class MockActivityContext extends ContextWrapper {
         private final PackageManager mPackageManager;
+
         MockActivityContext(final Context context) {
             super(context);
             mPackageManager = Mockito.mock(PackageManager.class);
@@ -655,7 +657,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             return false;
         }
 
-        protected void performAdditionalVerify(final Activity testActivity) { }
+        protected void performAdditionalVerify(final Activity testActivity) {
+        }
 
         protected void makeSilentRequest(final PublicClientApplication publicClientApplication, final CountDownLatch silentLock)
                 throws IOException, InterruptedException {
@@ -669,8 +672,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             mockAuthenticationActivityResolvable(context);
 
             if (isSetAlternateAuthority()) {
-               AndroidTestMockUtil.mockSuccessTenantDiscovery(ALTERNATE_AUTHORITY + Authority.DEFAULT_AUTHORIZE_ENDPOINT,
-                       ALTERNATE_AUTHORITY + DEFAULT_TOKEN_ENDPOINT);
+                AndroidTestMockUtil.mockSuccessTenantDiscovery(ALTERNATE_AUTHORITY + Authority.DEFAULT_AUTHORIZE_ENDPOINT,
+                        ALTERNATE_AUTHORITY + DEFAULT_TOKEN_ENDPOINT);
             }
 
             mockHttpRequest();

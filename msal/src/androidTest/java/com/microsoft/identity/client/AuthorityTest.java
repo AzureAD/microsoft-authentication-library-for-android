@@ -85,7 +85,7 @@ public final class AuthorityTest {
         AndroidTestMockUtil.mockSuccessTenantDiscovery(AUTHORIZE_ENDPOINT, TOKEN_ENDPOINT);
 
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""));
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
         } catch (AuthenticationException e) {
             Assert.fail();
         }
@@ -101,7 +101,7 @@ public final class AuthorityTest {
         // mock tenant discovery response
         AndroidTestMockUtil.mockSuccessTenantDiscovery(AUTHORIZE_ENDPOINT, TOKEN_ENDPOINT);
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""));
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
         } catch (AuthenticationException e) {
             Assert.fail();
         }
@@ -132,7 +132,7 @@ public final class AuthorityTest {
 
     private void performAuthorityValidationAndVerify(final Authority authority) {
         try {
-            final String openIdConfigEndpoint = authority.performInstanceDiscovery(new RequestContext(UUID.randomUUID(), ""));
+            final String openIdConfigEndpoint = authority.performInstanceDiscovery(new RequestContext(UUID.randomUUID(), ""), null);
             Assert.assertTrue(openIdConfigEndpoint.equals(authority.getDefaultOpenIdConfigurationEndpoint()));
         } catch (AuthenticationException e) {
             Assert.fail();
@@ -148,7 +148,7 @@ public final class AuthorityTest {
         AndroidTestMockUtil.mockSuccessTenantDiscovery(AUTHORIZE_ENDPOINT, TOKEN_ENDPOINT);
 
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""));
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
         } catch (AuthenticationException e) {
             Assert.fail();
         }
@@ -160,7 +160,7 @@ public final class AuthorityTest {
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
 
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""));
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
         } catch (AuthenticationException e) {
             Assert.fail();
         }
@@ -171,7 +171,7 @@ public final class AuthorityTest {
         // create new authority with the same authority url again
         final Authority authority2 = Authority.createAuthority(TEST_AUTHORITY, true);
         try {
-            authority2.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""));
+            authority2.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
         } catch (AuthenticationException e) {
             Assert.fail();
         }
@@ -191,7 +191,7 @@ public final class AuthorityTest {
         AndroidTestMockUtil.mockFailedGetRequest(HttpURLConnection.HTTP_BAD_REQUEST,
                 AndroidTestUtil.getErrorResponseMessage("invalid_request"));
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""));
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
             Assert.fail();
         } catch (final AuthenticationException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.AUTHORITY_VALIDATION_FAILED));
@@ -208,7 +208,7 @@ public final class AuthorityTest {
 
         AndroidTestMockUtil.mockFailedGetRequest(HttpURLConnection.HTTP_BAD_REQUEST, "some_failure_response");
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""));
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
             Assert.fail();
         } catch (final AuthenticationException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.JSON_PARSE_FAILURE));
@@ -226,7 +226,7 @@ public final class AuthorityTest {
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""));
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
             Assert.fail();
         } catch (final AuthenticationException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.SERVER_ERROR));
@@ -246,7 +246,7 @@ public final class AuthorityTest {
         // mock tenant discovery failed
         AndroidTestMockUtil.mockFailedGetRequest(HttpURLConnection.HTTP_BAD_REQUEST, AndroidTestUtil.getErrorResponseMessage("invalid_instance"));
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""));
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
             Assert.fail();
         } catch (final AuthenticationException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.TENANT_DISCOVERY_FAILED));
@@ -264,7 +264,7 @@ public final class AuthorityTest {
         // mock tenant discovery failed
         AndroidTestMockUtil.mockFailedGetRequest(HttpURLConnection.HTTP_BAD_REQUEST, "some error");
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""));
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
             Assert.fail();
         } catch (final AuthenticationException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.JSON_PARSE_FAILURE));
@@ -284,7 +284,7 @@ public final class AuthorityTest {
         HttpUrlConnectionFactory.addMockedConnection(mockedConnectionWithTimeout);
         HttpUrlConnectionFactory.addMockedConnection(mockedConnectionWithTimeout);
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""));
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
             Assert.fail();
         } catch (final AuthenticationException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.SERVER_ERROR));
