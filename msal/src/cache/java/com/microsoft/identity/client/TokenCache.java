@@ -202,7 +202,28 @@ class TokenCache {
 
         return Collections.unmodifiableList(new ArrayList<>(allUsers.values()));
     }
-    
+
+    /**
+     * Delegate to handle the deleting of {@link BaseTokenCacheItem}s
+     */
+    private interface DeleteTokenAction {
+
+        /**
+         * Deletes the supplied token
+         *
+         * @param target the {@link BaseTokenCacheItem} to delete
+         */
+        void deleteToken(final BaseTokenCacheItem target);
+    }
+
+    private boolean tokenClientIdMatchesUser(final User user, final BaseTokenCacheItem token) {
+        return token.getClientId().equals(user.getClientId());
+    }
+
+    private boolean tokenHomeObjectIdMatchesUser(final User user, final BaseTokenCacheItem token) {
+        return token.getHomeObjectId().equals(user.getHomeObjectId());
+    }
+
     /**
      * @param expiresOn The expires on to check for.
      * @return True if the given date is already expired, false otherwise.
@@ -213,5 +234,52 @@ class TokenCache {
         final Date validity = calendar.getTime();
 
         return expiresOn != null && expiresOn.before(validity);
+    }
+
+    private void deleteTokenByUser(
+            final User user,
+            final List<? extends BaseTokenCacheItem> tokens,
+            final DeleteTokenAction delegate) {
+        for (BaseTokenCacheItem token : tokens) {
+            if (tokenClientIdMatchesUser(user, token)
+                    && tokenHomeObjectIdMatchesUser(user, token)) {
+                delegate.deleteToken(token);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Delete the refresh token associated with the supplied {@link User}
+     *
+     * @param user the User whose refresh token should be deleted
+     */
+    void deleteRefreshTokenByUser(final User user) {
+        deleteTokenByUser(
+                user,
+                mTokenCacheAccessor.getAllRefreshTokens(),
+                new DeleteTokenAction() {
+                    @Override
+                    public void deleteToken(final BaseTokenCacheItem target) {
+                        mTokenCacheAccessor.deleteRefreshToken(target);
+                    }
+                });
+    }
+
+    /**
+     * Delete the access token associated with the supplied {@link User}
+     *
+     * @param user the User whose access token should be deleted
+     */
+    void deleteAccessTokenByUser(final User user) {
+        deleteTokenByUser(
+                user,
+                mTokenCacheAccessor.getAllAccessTokens(),
+                new DeleteTokenAction() {
+                    @Override
+                    public void deleteToken(final BaseTokenCacheItem target) {
+                        mTokenCacheAccessor.deleteAccessToken(target);
+                    }
+                });
     }
 }

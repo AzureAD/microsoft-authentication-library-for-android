@@ -283,6 +283,15 @@ public final class PublicClientApplication {
     }
 
     /**
+     * Signs the {@link User} out of the application.
+     * @param user
+     */
+    public void signOut(final User user) {
+        mTokenCache.deleteRefreshTokenByUser(user);
+        mTokenCache.deleteAccessTokenByUser(user);
+    }
+
+    /**
      * Keep this method internal only to make it easy for MS apps to do serialize/deserialize on the family tokens.
      * @return The {@link TokenCache} that is used to persist token items for the running app.
      */
