@@ -30,7 +30,7 @@ public interface ITelemetry {
      *
      * @param dispatcher
      */
-    void registerDispatcher(MsalEventReceiver dispatcher);
+    void registerReceiver(MsalEventReceiver dispatcher);
 
     /**
      * Only return telemetry data upon error

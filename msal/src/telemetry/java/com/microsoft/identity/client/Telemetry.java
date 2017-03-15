@@ -59,7 +59,7 @@ public class Telemetry implements ITelemetry {
     }
 
     @Override
-    public synchronized void registerDispatcher(MsalEventReceiver dispatcher) {
+    public synchronized void registerReceiver(MsalEventReceiver dispatcher) {
         // check to make sure we're not already dispatching elsewhere
         if (null != mPublisher) {
             throw new IllegalStateException(
