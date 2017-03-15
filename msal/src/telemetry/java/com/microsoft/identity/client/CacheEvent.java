@@ -25,19 +25,21 @@ package com.microsoft.identity.client;
 
 import android.util.Pair;
 
+import static com.microsoft.identity.client.EventConstants.EventProperty;
+
 public class CacheEvent extends BaseEvent {
 
     CacheEvent(final Telemetry.EventName eventName) {
         setEventName(eventName);
-        setProperty(Properties.EVENT_NAME, eventName.value);
+        setProperty(EventProperty.EVENT_NAME, eventName.value);
     }
 
     void setTokenType(final String tokenType) {
-        add(new Pair<>(Properties.TOKEN_TYPE, tokenType));
+        add(new Pair<>(EventProperty.TOKEN_TYPE, tokenType));
     }
 
     void setTokenTypeRT(final boolean tokenTypeRT) {
-        setProperty(Properties.TOKEN_TYPE_IS_RT, String.valueOf(tokenTypeRT));
+        setProperty(EventProperty.TOKEN_TYPE_IS_RT, String.valueOf(tokenTypeRT));
     }
 
 }

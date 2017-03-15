@@ -29,13 +29,16 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 
+import static com.microsoft.identity.client.EventConstants.EventName;
+import static com.microsoft.identity.client.EventConstants.EventProperty;
+
 public class ApiEvent extends BaseEvent {
 
     private static final String TAG = BaseEvent.class.getSimpleName();
 
     ApiEvent() {
-        setEventName(Names.API_EVENT);
-        setProperty(Properties.EVENT_NAME, Names.API_EVENT.value);
+        setEventName(EventName.API_EVENT);
+        setProperty(EventProperty.EVENT_NAME, EventName.API_EVENT.value);
     }
 
     ApiEvent(final Context context, final String clientId) {
@@ -48,50 +51,50 @@ public class ApiEvent extends BaseEvent {
             return;
         }
 
-        setProperty(Properties.AUTHORITY_NAME, authority);
+        setProperty(EventProperty.AUTHORITY_NAME, authority);
         final URL authorityUrl = MSALUtils.getUrl(authority);
         if (authorityUrl == null) {
             return;
         }
 
         if (MSALUtils.isADFSAuthority(authorityUrl)) {
-            setAuthorityType(Properties.Values.AUTHORITY_TYPE_ADFS);
+            setAuthorityType(EventProperty.Value.AUTHORITY_TYPE_ADFS);
         } else {
-            setAuthorityType(Properties.Values.AUTHORITY_TYPE_AAD);
+            setAuthorityType(EventProperty.Value.AUTHORITY_TYPE_AAD);
         }
     }
 
     void setAuthorityType(final String authorityType) {
-        setProperty(Properties.AUTHORITY_TYPE, authorityType);
+        setProperty(EventProperty.AUTHORITY_TYPE, authorityType);
     }
 
     void setIsDeprecated(final boolean isDeprecated) {
-        setProperty(Properties.API_DEPRECATED, String.valueOf(isDeprecated));
+        setProperty(EventProperty.API_DEPRECATED, String.valueOf(isDeprecated));
     }
 
     void setValidationStatus(final String validationStatus) {
-        setProperty(Properties.AUTHORITY_VALIDATION, validationStatus);
+        setProperty(EventProperty.AUTHORITY_VALIDATION, validationStatus);
     }
 
     void setExtendedExpiresOnSetting(final boolean extendedExpiresOnSetting) {
-        setProperty(Properties.EXTENDED_EXPIRES_ON_SETTING, String.valueOf(extendedExpiresOnSetting));
+        setProperty(EventProperty.EXTENDED_EXPIRES_ON_SETTING, String.valueOf(extendedExpiresOnSetting));
     }
 
     void setPromptBehavior(final String promptBehavior) {
-        setProperty(Properties.PROMPT_BEHAVIOR, promptBehavior);
+        setProperty(EventProperty.PROMPT_BEHAVIOR, promptBehavior);
     }
 
     void setAPIId(final String id) {
-        setProperty(Properties.API_ID, id);
+        setProperty(EventProperty.API_ID, id);
     }
 
     void setWasApiCallSuccessful(final boolean isSuccess, final Exception exception) {
-        setProperty(Properties.WAS_SUCCESSFUL, String.valueOf(isSuccess));
+        setProperty(EventConstants.EventProperty.WAS_SUCCESSFUL, String.valueOf(isSuccess));
 
         if (exception != null) {
             if (exception instanceof AuthenticationException) {
                 final AuthenticationException authException = (AuthenticationException) exception;
-                setProperty(Properties.API_ERROR_CODE, authException.getErrorCode().toString());
+                setProperty(EventProperty.API_ERROR_CODE, authException.getErrorCode().toString());
             }
         }
     }
@@ -114,11 +117,11 @@ public class ApiEvent extends BaseEvent {
         }
 
         User user = new User(idToken);
-        setProperty(Properties.IDP_NAME, user.getIdentityProvider());
+        setProperty(EventProperty.IDP_NAME, user.getIdentityProvider());
 
         try {
-            setProperty(Properties.TENANT_ID, MSALUtils.createHash(idToken.getTenantId()));
-            setProperty(Properties.USER_ID, MSALUtils.createHash(user.getDisplayableId()));
+            setProperty(EventProperty.TENANT_ID, MSALUtils.createHash(idToken.getTenantId()));
+            setProperty(EventProperty.USER_ID, MSALUtils.createHash(user.getDisplayableId()));
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
             Logger.info(TAG, null, "Skipping TENANT_ID and USER_ID");
         }
@@ -126,7 +129,7 @@ public class ApiEvent extends BaseEvent {
 
     void setLoginHint(final String loginHint) {
         try {
-            setProperty(Properties.LOGIN_HINT, MSALUtils.createHash(loginHint));
+            setProperty(EventProperty.LOGIN_HINT, MSALUtils.createHash(loginHint));
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
             Logger.info(TAG, null, "Skipping telemetry for LOGIN_HINT");
         }

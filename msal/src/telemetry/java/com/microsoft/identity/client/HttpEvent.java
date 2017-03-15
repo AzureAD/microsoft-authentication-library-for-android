@@ -28,31 +28,34 @@ import android.util.Pair;
 import java.net.URL;
 import java.util.Arrays;
 
+import static com.microsoft.identity.client.EventConstants.EventName;
+import static com.microsoft.identity.client.EventConstants.EventProperty;
+
 public class HttpEvent extends BaseEvent {
 
     HttpEvent(final String eventName) {
-        setEventName(Names.HTTP_EVENT);
-        add(new Pair<>(Properties.EVENT_NAME, eventName));
+        setEventName(EventName.HTTP_EVENT);
+        add(new Pair<>(EventProperty.EVENT_NAME, eventName));
     }
 
     void setUserAgent(final String userAgent) {
-        setProperty(Properties.HTTP_USER_AGENT, userAgent);
+        setProperty(EventProperty.HTTP_USER_AGENT, userAgent);
     }
 
     void setMethod(final String method) {
-        setProperty(Properties.HTTP_METHOD, method);
+        setProperty(EventProperty.HTTP_METHOD, method);
     }
 
     void setQueryParameters(final String queryParameters) {
-        setProperty(Properties.HTTP_QUERY_PARAMETERS, queryParameters);
+        setProperty(EventProperty.HTTP_QUERY_PARAMETERS, queryParameters);
     }
 
     void setResponseCode(final int responseCode) {
-        setProperty(Properties.HTTP_RESPONSE_CODE, String.valueOf(responseCode));
+        setProperty(EventProperty.HTTP_RESPONSE_CODE, String.valueOf(responseCode));
     }
 
     void setApiVersion(final String apiVersion) {
-        setProperty(Properties.HTTP_API_VERSION, apiVersion);
+        setProperty(EventProperty.HTTP_API_VERSION, apiVersion);
     }
 
     void setHttpPath(final URL httpPath) {
@@ -77,15 +80,15 @@ public class HttpEvent extends BaseEvent {
             logPath.append(splitArray[i]);
             logPath.append("/");
         }
-        setProperty(Properties.HTTP_PATH, logPath.toString());
+        setProperty(EventProperty.HTTP_PATH, logPath.toString());
     }
 
     void setOauthErrorCode(final String errorCode) {
-        setProperty(Properties.OAUTH_ERROR_CODE, errorCode);
+        setProperty(EventProperty.OAUTH_ERROR_CODE, errorCode);
     }
 
     void setRequestIdHeader(final String requestIdHeader) {
-        setProperty(Properties.REQUEST_ID_HEADER, requestIdHeader);
+        setProperty(EventProperty.REQUEST_ID_HEADER, requestIdHeader);
     }
 
 }

@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.microsoft.identity.client.BaseEvent.Properties;
+import static com.microsoft.identity.client.EventConstants.EventProperty;
 
 public class Telemetry implements ITelemetry {
 
@@ -107,9 +107,9 @@ public class Telemetry implements ITelemetry {
         final String stopTime = Long.toString(stopTimeL);
 
         // Set execution time properties on the event
-        event.setProperty(Properties.START_TIME, eventStartTime.value);
-        event.setProperty(Properties.STOP_TIME, stopTime);
-        event.setProperty(Properties.RESPONSE_TIME, Long.toString(diffTime));
+        event.setProperty(EventProperty.START_TIME, eventStartTime.value);
+        event.setProperty(EventProperty.STOP_TIME, stopTime);
+        event.setProperty(EventProperty.RESPONSE_TIME, Long.toString(diffTime));
 
         if (null == mCompletedEvents.get(requestId)) {
             // if this is the first event associated to this
