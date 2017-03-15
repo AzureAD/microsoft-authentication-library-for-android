@@ -33,17 +33,27 @@ import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
+import static com.microsoft.identity.client.Telemetry.EventName;
+
 class BaseEvent extends ArrayList<Pair<String, String>> {
 
-    static class Properties {
-        /**
-         * Prefixes all event names
-         */
-        private static final String EVENT_PREFIX = "Microsoft.MSAL.";
+    /**
+     * Prefixes all event names
+     */
+    private static final String EVENT_PREFIX = "Microsoft.MSAL.";
 
-        /////////////////
-        // The properties
-        /////////////////
+    static class Names {
+        static final EventName API_EVENT = new EventName(EVENT_PREFIX + "api_event");
+        static final EventName AUTHORITY_VALIDATION_EVENT = new EventName(EVENT_PREFIX + "authority_validation");
+        static final EventName HTTP_EVENT = new EventName(EVENT_PREFIX + "http_event");
+        static final EventName BROKER_EVENT = new EventName(EVENT_PREFIX + "broker_event");
+        static final EventName UI_EVENT = new EventName(EVENT_PREFIX + "ui_event");
+        static final EventName TOKEN_CACHE_LOOKUP = new EventName(EVENT_PREFIX + "token_cache_lookup");
+        static final EventName TOKEN_CACHE_WRITE = new EventName(EVENT_PREFIX + "token_cache_write");
+        static final EventName TOKEN_CACHE_DELETE = new EventName(EVENT_PREFIX + "token_cache_delete");
+    }
+
+    static class Properties {
         static final String START_TIME = EVENT_PREFIX + "start_time";
         static final String STOP_TIME = EVENT_PREFIX + "stop_time";
         static final String RESPONSE_TIME = EVENT_PREFIX + "response_time";
