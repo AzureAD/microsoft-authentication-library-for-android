@@ -24,5 +24,11 @@
 package com.microsoft.identity.client;
 
 public class CryptographyEvent extends BaseEvent {
+
     // TODO
+
+    @Override
+    Telemetry.EventName getEventName() {
+        return null;
+    }
 }

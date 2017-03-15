@@ -35,7 +35,7 @@ import java.util.ArrayList;
 
 import static com.microsoft.identity.client.Telemetry.EventName;
 
-class BaseEvent extends ArrayList<Pair<String, String>> {
+abstract class BaseEvent extends ArrayList<Pair<String, String>> {
 
     /**
      * Prefixes all event names
@@ -86,8 +86,6 @@ class BaseEvent extends ArrayList<Pair<String, String>> {
         static final String BROKER_APP_USED = EVENT_PREFIX + "broker_app_used";
         static final String TOKEN_TYPE = EVENT_PREFIX + "token_type";
         static final String TOKEN_TYPE_IS_RT = EVENT_PREFIX + "is_rt";
-        static final String TOKEN_TYPE_IS_MRRT = EVENT_PREFIX + "is_mrrt";
-        static final String TOKEN_TYPE_IS_FRT = EVENT_PREFIX + "is_frt";
         static final String TOKEN_TYPE_RT = EVENT_PREFIX + "rt"; // Android only
         static final String TOKEN_TYPE_MRRT = EVENT_PREFIX + "mrrt"; // Android only
         static final String TOKEN_TYPE_FRT = EVENT_PREFIX + "frt"; // Android only
@@ -187,5 +185,7 @@ class BaseEvent extends ArrayList<Pair<String, String>> {
     Telemetry.RequestId getRequestId() {
         return mRequestId;
     }
+
+    abstract EventName getEventName();
 
 }

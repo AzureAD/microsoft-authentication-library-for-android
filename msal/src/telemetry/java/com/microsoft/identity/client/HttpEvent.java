@@ -24,5 +24,12 @@
 package com.microsoft.identity.client;
 
 public class HttpEvent extends BaseEvent {
+
     // TODO
+    
+    @Override
+    Telemetry.EventName getEventName() {
+        return null;
+    }
+
 }

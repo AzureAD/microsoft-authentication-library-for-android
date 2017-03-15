@@ -87,6 +87,7 @@ public class ApiEvent extends BaseEvent {
         setProperty(Properties.API_ID, id);
     }
 
+    @Override
     Telemetry.EventName getEventName() {
         return mEventName;
     }

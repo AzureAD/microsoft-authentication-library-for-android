@@ -18,7 +18,7 @@ public class Telemetry implements ITelemetry {
 
     private final Map<RequestId, List<BaseEvent>> mCompletedEvents;
 
-    private EventPublisher mPublisher;
+    private EventDispatcher mPublisher;
 
     private boolean mTelemetryOnFailureOnly = false;
 
@@ -36,17 +36,17 @@ public class Telemetry implements ITelemetry {
     }
 
     @Override
-    public synchronized void registerDispatcher(IDispatcher dispatcher) {
+    public synchronized void registerDispatcher(MsalEventReceiver dispatcher) {
         // check to make sure we're not already dispatching elsewhere
         if (null != mPublisher) {
             throw new IllegalStateException(
-                    IDispatcher.class.getSimpleName()
+                    MsalEventReceiver.class.getSimpleName()
                             + " instances are not swappable at this time."
             );
         }
 
         // set this dispatcher
-        mPublisher = new EventPublisher(dispatcher);
+        mPublisher = new EventDispatcher(dispatcher);
     }
 
     @Override
@@ -121,7 +121,7 @@ public class Telemetry implements ITelemetry {
             }
         }
         final List<BaseEvent> eventsToFlush = mCompletedEvents.remove(requestId);
-        mPublisher.publish(eventsToFlush);
+        mPublisher.dispatch(eventsToFlush);
     }
 
     private static abstract class ValueTypeDef {

@@ -7,20 +7,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class EventPublisher {
+class EventDispatcher {
 
-    private final IDispatcher mDispatcher;
+    private final MsalEventReceiver mEventReceiver;
 
-    EventPublisher(IDispatcher dispatcher) {
-        mDispatcher = dispatcher;
+    EventDispatcher(MsalEventReceiver receiver) {
+        mEventReceiver = receiver;
     }
 
-    IDispatcher getDispatcher() {
-        return mDispatcher;
+    MsalEventReceiver getDispatcher() {
+        return mEventReceiver;
     }
 
-    void publish(final List<BaseEvent> eventsToPublish) {
-        if (null == mDispatcher) {
+    void dispatch(final List<BaseEvent> eventsToPublish) {
+        if (null == mEventReceiver) {
             return;
         }
 
@@ -34,6 +34,6 @@ class EventPublisher {
             eventsForPublication.add(eventProperties);
         }
 
-        mDispatcher.onEventsReceived(eventsForPublication);
+        mEventReceiver.onEventsReceived(eventsForPublication);
     }
 }

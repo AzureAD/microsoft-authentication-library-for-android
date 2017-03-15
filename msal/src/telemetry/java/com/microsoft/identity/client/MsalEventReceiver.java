@@ -26,7 +26,7 @@ package com.microsoft.identity.client;
 import java.util.List;
 import java.util.Map;
 
-interface IDispatcher {
+interface MsalEventReceiver {
 
     /**
      * The interface function for apps to override if they want to get the Telemetry from MSAL.

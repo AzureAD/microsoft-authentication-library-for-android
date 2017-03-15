@@ -26,11 +26,11 @@ package com.microsoft.identity.client;
 public interface ITelemetry {
 
     /**
-     * Registers a new {@link IDispatcher} to receive telemetry data
+     * Registers a new {@link MsalEventReceiver} to receive telemetry data
      *
      * @param dispatcher
      */
-    void registerDispatcher(IDispatcher dispatcher);
+    void registerDispatcher(MsalEventReceiver dispatcher);
 
     /**
      * Only return telemetry data upon error
