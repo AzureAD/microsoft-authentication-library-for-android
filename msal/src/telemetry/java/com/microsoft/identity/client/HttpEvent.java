@@ -26,6 +26,7 @@ package com.microsoft.identity.client;
 import android.util.Pair;
 
 import java.net.URL;
+import java.util.Arrays;
 
 public class HttpEvent extends BaseEvent {
 
@@ -56,6 +57,10 @@ public class HttpEvent extends BaseEvent {
 
     void setHttpPath(final URL httpPath) {
         final String authority = httpPath.getAuthority();
+        // only collect telemetry for well-known hosts
+        if (!Arrays.asList(AADAuthority.TRUSTED_HOSTS).contains(authority)) {
+            return;
+        }
 
         final String[] splitArray = httpPath.getPath().split("/");
 

@@ -41,7 +41,7 @@ final class AADAuthority extends Authority {
     private static final String API_VERSION_VALUE = "1.0";
     private static final String AUTHORIZATION_ENDPOINT = "authorization_endpoint";
 
-    private static final String[] TRUSTED_HOSTS = new String[] {
+    static final String[] TRUSTED_HOSTS = new String[] {
             "login.windows.net", // Microsoft Azure Worldwide
             "login.microsoftonline.com", // Microsoft Azure Worldwide
             "login.chinacloudapi.cn", // Microsoft Azure China
