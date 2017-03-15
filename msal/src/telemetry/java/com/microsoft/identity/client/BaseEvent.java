@@ -79,7 +79,6 @@ abstract class BaseEvent extends ArrayList<Pair<String, String>> {
         static final String LOGIN_HINT = EVENT_PREFIX + "login_hint";
         static final String USER_ID = EVENT_PREFIX + "user_id";
         static final String REDIRECT_COUNT = EVENT_PREFIX + "redirect_count"; // Android only
-        static final String NTLM = EVENT_PREFIX + "ntlm";
         static final String USER_CANCEL = EVENT_PREFIX + "user_cancel";
         static final String BROKER_APP = EVENT_PREFIX + "broker_app";
         static final String BROKER_VERSION = EVENT_PREFIX + "broker_version";
@@ -119,6 +118,8 @@ abstract class BaseEvent extends ArrayList<Pair<String, String>> {
     private static String sDeviceId = "NA";
 
     private Telemetry.RequestId mRequestId;
+
+    private EventName mEventName;
 
     BaseEvent() {
         // Keying off Application name not being null to decide if the defaults have been set
@@ -182,10 +183,16 @@ abstract class BaseEvent extends ArrayList<Pair<String, String>> {
         add(0, new Pair<>(Properties.REQUEST_ID, requestId.value));
     }
 
-    Telemetry.RequestId getRequestId() {
+    final Telemetry.RequestId getRequestId() {
         return mRequestId;
     }
 
-    abstract EventName getEventName();
+    final void setEventName(EventName eventName) {
+        mEventName = eventName;
+    }
+
+    final EventName getEventName() {
+        return mEventName;
+    }
 
 }

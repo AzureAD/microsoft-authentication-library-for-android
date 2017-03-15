@@ -33,11 +33,9 @@ public class ApiEvent extends BaseEvent {
 
     private static final String TAG = BaseEvent.class.getSimpleName();
 
-    private final Telemetry.EventName mEventName;
-
     ApiEvent() {
+        setEventName(Names.API_EVENT);
         setProperty(Properties.EVENT_NAME, Names.API_EVENT.value);
-        mEventName = Names.API_EVENT;
     }
 
     ApiEvent(final Context context, final String clientId) {
@@ -85,11 +83,6 @@ public class ApiEvent extends BaseEvent {
 
     void setAPIId(final String id) {
         setProperty(Properties.API_ID, id);
-    }
-
-    @Override
-    Telemetry.EventName getEventName() {
-        return mEventName;
     }
 
     void setWasApiCallSuccessful(final boolean isSuccess, final Exception exception) {

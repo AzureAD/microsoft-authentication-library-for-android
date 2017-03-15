@@ -27,8 +27,4 @@ public class CryptographyEvent extends BaseEvent {
 
     // TODO
 
-    @Override
-    Telemetry.EventName getEventName() {
-        return null;
-    }
 }

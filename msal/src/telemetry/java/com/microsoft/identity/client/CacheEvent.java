@@ -27,10 +27,8 @@ import android.util.Pair;
 
 public class CacheEvent extends BaseEvent {
 
-    private final Telemetry.EventName mEventName;
-
     CacheEvent(final Telemetry.EventName eventName) {
-        mEventName = eventName;
+        setEventName(eventName);
         setProperty(Properties.EVENT_NAME, eventName.value);
     }
 
@@ -42,8 +40,4 @@ public class CacheEvent extends BaseEvent {
         setProperty(Properties.TOKEN_TYPE_IS_RT, String.valueOf(tokenTypeRT));
     }
 
-    @Override
-    Telemetry.EventName getEventName() {
-        return mEventName;
-    }
 }

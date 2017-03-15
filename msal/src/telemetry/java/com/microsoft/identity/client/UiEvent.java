@@ -23,13 +23,21 @@
 
 package com.microsoft.identity.client;
 
+import android.util.Pair;
+
 public class UiEvent extends BaseEvent {
 
-    // TODO
+    UiEvent(final Telemetry.EventName eventName) {
+        setEventName(eventName);
+        add(new Pair<>(Properties.EVENT_NAME, eventName.value));
+    }
 
-    @Override
-    Telemetry.EventName getEventName() {
-        return null;
+    void setRedirectCount(final Integer redirectCount) {
+        setProperty(Properties.REDIRECT_COUNT, redirectCount.toString());
+    }
+
+    void setUserCancel() {
+        setProperty(Properties.USER_CANCEL, "true");
     }
 
 }
