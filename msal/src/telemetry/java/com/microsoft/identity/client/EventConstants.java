@@ -11,7 +11,6 @@ final class EventConstants {
         static final Telemetry.EventName API_EVENT = new Telemetry.EventName(EVENT_PREFIX + "api_event");
         static final Telemetry.EventName AUTHORITY_VALIDATION_EVENT = new Telemetry.EventName(EVENT_PREFIX + "authority_validation");
         static final Telemetry.EventName HTTP_EVENT = new Telemetry.EventName(EVENT_PREFIX + "http_event");
-        static final Telemetry.EventName BROKER_EVENT = new Telemetry.EventName(EVENT_PREFIX + "broker_event");
         static final Telemetry.EventName UI_EVENT = new Telemetry.EventName(EVENT_PREFIX + "ui_event");
         static final Telemetry.EventName TOKEN_CACHE_LOOKUP = new Telemetry.EventName(EVENT_PREFIX + "token_cache_lookup");
         static final Telemetry.EventName TOKEN_CACHE_WRITE = new Telemetry.EventName(EVENT_PREFIX + "token_cache_write");
