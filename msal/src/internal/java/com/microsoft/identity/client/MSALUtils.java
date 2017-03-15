@@ -36,6 +36,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -395,5 +396,22 @@ final class MSALUtils {
             return new String(Base64.encode(digester.digest(msgInBytes), Base64.NO_WRAP), ENCODING_UTF8);
         }
         return msg;
+    }
+
+    /**
+     * create url from given endpoint. return null if format is not right.
+     *
+     * @param endpoint url as a string
+     * @return URL object for this string
+     */
+    static URL getUrl(String endpoint) {
+        URL url = null;
+        try {
+            url = new URL(endpoint);
+        } catch (MalformedURLException e1) {
+            Logger.error(MSALUtils.class.getSimpleName(), null, "Url is invalid", e1);
+        }
+
+        return url;
     }
 }
