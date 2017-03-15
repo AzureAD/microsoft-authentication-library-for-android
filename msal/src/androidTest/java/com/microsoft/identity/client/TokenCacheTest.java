@@ -129,15 +129,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         // Delete the default user's token
         mTokenCache.deleteRefreshTokenByUser(mDefaultUser);
         // Verify that that the cache still contains the other token
-        assertNotNull(
-                mTokenCache.findRefreshToken(
-                        differentUserParams,
-                        new User(
-                                new IdToken(getIdTokenForDifferentUser()
-                                )
-                        )
-                )
-        );
+        assertNotNull(mTokenCache.findRefreshToken(differentUserParams, new User(new IdToken(getIdTokenForDifferentUser()))));
     }
 
     @Test
