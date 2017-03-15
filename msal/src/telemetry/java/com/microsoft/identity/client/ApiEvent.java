@@ -29,7 +29,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 
-import static com.microsoft.identity.client.EventConstants.EventName;
 import static com.microsoft.identity.client.EventConstants.EventProperty;
 
 public class ApiEvent extends BaseEvent {

@@ -34,7 +34,6 @@ import java.util.ArrayList;
 
 import static android.provider.Settings.Secure;
 import static com.microsoft.identity.client.EventConstants.EventProperty;
-import static com.microsoft.identity.client.Telemetry.EventName;
 
 abstract class BaseEvent extends ArrayList<Pair<String, String>> {
 

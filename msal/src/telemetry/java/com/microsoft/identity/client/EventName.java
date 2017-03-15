@@ -23,23 +23,17 @@
 
 package com.microsoft.identity.client;
 
-import android.util.Pair;
+class EventName extends Telemetry.ValueTypeDef {
 
-import static com.microsoft.identity.client.EventConstants.EventProperty;
+    static final EventName API_EVENT = new EventName(EventConstants.EVENT_PREFIX + "api_event");
+    static final EventName AUTHORITY_VALIDATION_EVENT = new EventName(EventConstants.EVENT_PREFIX + "authority_validation");
+    static final EventName HTTP_EVENT = new EventName(EventConstants.EVENT_PREFIX + "http_event");
+    static final EventName UI_EVENT = new EventName(EventConstants.EVENT_PREFIX + "ui_event");
+    static final EventName TOKEN_CACHE_LOOKUP = new EventName(EventConstants.EVENT_PREFIX + "token_cache_lookup");
+    static final EventName TOKEN_CACHE_WRITE = new EventName(EventConstants.EVENT_PREFIX + "token_cache_write");
+    static final EventName TOKEN_CACHE_DELETE = new EventName(EventConstants.EVENT_PREFIX + "token_cache_delete");
 
-public class CacheEvent extends BaseEvent {
-
-    CacheEvent(final EventName eventName) {
-        setEventName(eventName);
-        setProperty(EventProperty.EVENT_NAME, eventName.value);
+    EventName(String value) {
+        super(value);
     }
-
-    void setTokenType(final String tokenType) {
-        add(new Pair<>(EventProperty.TOKEN_TYPE, tokenType));
-    }
-
-    void setTokenTypeRT(final boolean tokenTypeRT) {
-        setProperty(EventProperty.TOKEN_TYPE_IS_RT, String.valueOf(tokenTypeRT));
-    }
-
 }

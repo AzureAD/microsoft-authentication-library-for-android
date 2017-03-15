@@ -28,7 +28,6 @@ import android.util.Pair;
 import java.net.URL;
 import java.util.Arrays;
 
-import static com.microsoft.identity.client.EventConstants.EventName;
 import static com.microsoft.identity.client.EventConstants.EventProperty;
 
 public class HttpEvent extends BaseEvent {

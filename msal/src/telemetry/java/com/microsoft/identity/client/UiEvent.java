@@ -29,7 +29,7 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 
 public class UiEvent extends BaseEvent {
 
-    UiEvent(final Telemetry.EventName eventName) {
+    UiEvent(final EventName eventName) {
         setEventName(eventName);
         add(new Pair<>(EventProperty.EVENT_NAME, eventName.value));
     }

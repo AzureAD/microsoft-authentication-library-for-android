@@ -147,11 +147,11 @@ public class Telemetry implements ITelemetry {
         mPublisher.dispatch(eventsToFlush);
     }
 
-    private static abstract class ValueTypeDef {
+    static abstract class ValueTypeDef {
 
         final String value;
 
-        private ValueTypeDef(final String value) {
+        ValueTypeDef(final String value) {
             this.value = value;
         }
     }
@@ -159,14 +159,6 @@ public class Telemetry implements ITelemetry {
     static final class RequestId extends ValueTypeDef {
 
         RequestId(final String value) {
-            super(value);
-        }
-
-    }
-
-    static final class EventName extends ValueTypeDef {
-
-        EventName(final String value) {
             super(value);
         }
 
