@@ -209,7 +209,6 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         final User userForDisplayable3 = application.getUser(displayable3);
         assertNotNull(userForDisplayable3);
         assertNotNull(userForDisplayable3.getTokenCache());
-        assertTrue(userForDisplayable3.getClientId().equals(CLIENT_ID));
         assertTrue(userForDisplayable3.getDisplayableId().equals(displayable3));
         assertTrue(userForDisplayable3.getUniqueId().equals(uniqueId3));
         assertTrue(userForDisplayable3.getHomeObjectId().equals(homeOid3));
@@ -223,7 +222,6 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         assertTrue(users.size() == 1);
         final User userForAnotherClient = anotherApplication.getUser(uniqueId3);
         assertNotNull(userForAnotherClient);
-        assertTrue(userForAnotherClient.getClientId().equals(anotherClientId));
         assertNotNull(userForAnotherClient.getTokenCache());
         assertTrue(userForAnotherClient.getDisplayableId().equals(displayable3));
         assertTrue(userForAnotherClient.getUniqueId().equals(uniqueId3));

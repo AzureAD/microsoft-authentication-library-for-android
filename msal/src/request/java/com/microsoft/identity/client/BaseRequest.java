@@ -230,7 +230,6 @@ abstract class BaseRequest {
     }
 
     private void updateUserForAuthenticationResult(final AuthenticationResult result) {
-        result.getUser().setClientId(mAuthRequestParameters.getClientId());
         result.getUser().setTokenCache(mAuthRequestParameters.getTokenCache());
     }
 

@@ -72,7 +72,6 @@ public final class TokenCacheTest extends AndroidTestCase {
         AndroidTestUtil.removeAllTokens(mAppContext);
 
         mDefaultUser = getDefaultUser();
-        mDefaultUser.setClientId(CLIENT_ID);
     }
 
     @After

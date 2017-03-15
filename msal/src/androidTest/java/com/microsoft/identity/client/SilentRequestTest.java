@@ -470,7 +470,6 @@ public final class SilentRequestTest extends AndroidTestCase {
     private void verifyUserReturnedInResult(final AuthenticationResult result) {
         final User user = result.getUser();
         assertNotNull(user);
-        assertTrue(user.getClientId().equals(TokenCacheTest.CLIENT_ID));
         assertNotNull(user.getTokenCache());
     }
 

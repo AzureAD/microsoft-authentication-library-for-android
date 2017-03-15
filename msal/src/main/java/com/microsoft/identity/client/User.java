@@ -32,7 +32,6 @@ public class User {
     private String mName;
     private String mIdentityProvider;
     private String mHomeObjectId;
-    private String mClientId;
     private TokenCache mTokenCache;
 
     /**
@@ -90,12 +89,6 @@ public class User {
     }
 
     // internal methods provided
-    /**
-     * @return The client id of the application that the user is authenticated to.
-     */
-    String getClientId() {
-        return mClientId;
-    }
 
     void setTokenCache(final TokenCache tokenCache) {
         mTokenCache = tokenCache;
@@ -103,10 +96,6 @@ public class User {
 
     TokenCache getTokenCache() {
         return mTokenCache;
-    }
-
-    void setClientId(final String clientId) {
-        mClientId = clientId;
     }
 
     /**
