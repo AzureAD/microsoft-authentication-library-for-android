@@ -23,8 +23,64 @@
 
 package com.microsoft.identity.client;
 
+import android.util.Pair;
+
+import java.net.URL;
+
 public class HttpEvent extends BaseEvent {
 
-    // TODO
+    HttpEvent(final String eventName) {
+        setEventName(Names.HTTP_EVENT);
+        add(new Pair<>(Properties.EVENT_NAME, eventName));
+    }
+
+    void setUserAgent(final String userAgent) {
+        setProperty(Properties.HTTP_USER_AGENT, userAgent);
+    }
+
+    void setMethod(final String method) {
+        setProperty(Properties.HTTP_METHOD, method);
+    }
+
+    void setQueryParameters(final String queryParameters) {
+        setProperty(Properties.HTTP_QUERY_PARAMETERS, queryParameters);
+    }
+
+    void setResponseCode(final int responseCode) {
+        setProperty(Properties.HTTP_RESPONSE_CODE, String.valueOf(responseCode));
+    }
+
+    void setApiVersion(final String apiVersion) {
+        setProperty(Properties.HTTP_API_VERSION, apiVersion);
+    }
+
+    void setHttpPath(final URL httpPath) {
+        final String authority = httpPath.getAuthority();
+
+        final String[] splitArray = httpPath.getPath().split("/");
+
+        final StringBuilder logPath = new StringBuilder();
+        logPath.append(httpPath.getProtocol());
+        logPath.append("://");
+        logPath.append(authority);
+        logPath.append("/");
+
+        // we do not want to send tenant information
+        // index 0 is blank
+        // index 1 is tenant
+        for (int i = 2; i < splitArray.length; i++) {
+            logPath.append(splitArray[i]);
+            logPath.append("/");
+        }
+        setProperty(Properties.HTTP_PATH, logPath.toString());
+    }
+
+    void setOauthErrorCode(final String errorCode) {
+        setProperty(Properties.OAUTH_ERROR_CODE, errorCode);
+    }
+
+    void setRequestIdHeader(final String requestIdHeader) {
+        setProperty(Properties.REQUEST_ID_HEADER, requestIdHeader);
+    }
 
 }
