@@ -80,14 +80,9 @@ abstract class BaseEvent extends ArrayList<Pair<String, String>> {
         static final String USER_ID = EVENT_PREFIX + "user_id";
         static final String REDIRECT_COUNT = EVENT_PREFIX + "redirect_count"; // Android only
         static final String USER_CANCEL = EVENT_PREFIX + "user_cancel";
-        static final String BROKER_APP = EVENT_PREFIX + "broker_app";
-        static final String BROKER_VERSION = EVENT_PREFIX + "broker_version";
-        static final String BROKER_APP_USED = EVENT_PREFIX + "broker_app_used";
         static final String TOKEN_TYPE = EVENT_PREFIX + "token_type";
         static final String TOKEN_TYPE_IS_RT = EVENT_PREFIX + "is_rt";
         static final String TOKEN_TYPE_RT = EVENT_PREFIX + "rt"; // Android only
-        static final String TOKEN_TYPE_MRRT = EVENT_PREFIX + "mrrt"; // Android only
-        static final String TOKEN_TYPE_FRT = EVENT_PREFIX + "frt"; // Android only
         static final String CACHE_EVENT_COUNT = EVENT_PREFIX + "cache_event_count";
         static final String UI_EVENT_COUNT = EVENT_PREFIX + "ui_event_count";
         static final String HTTP_EVENT_COUNT = EVENT_PREFIX + "http_event_count";
