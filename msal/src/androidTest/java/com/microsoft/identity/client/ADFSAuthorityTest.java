@@ -29,6 +29,7 @@ import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -73,17 +74,23 @@ public class ADFSAuthorityTest {
         adfsAuthority.mAuthorizationEndpoint = "https://fs.ngctest.nttest.microsoft.com/adfs/oauth2/authorize";
     }
 
+    // ADFS is not a supported instance for BUILD.
+    @Ignore
     @Test
     public void testExistsInValidatedAuthorityCache() {
         adfsAuthority.addToValidatedAuthorityCache(testUPN);
         Assert.assertTrue(adfsAuthority.existsInValidatedAuthorityCache(testUPN));
     }
 
+    // ADFS is not a supported instance for BUILD.
+    @Ignore
     @Test
     public void testDoesntExistInValidatedAuthorityCache() {
         Assert.assertFalse(adfsAuthority.existsInValidatedAuthorityCache(testUPN));
     }
 
+    // ADFS is not a supported instance for BUILD.
+    @Ignore
     @Test
     public void testPerformInstanceDiscovery() {
         try {
@@ -100,6 +107,8 @@ public class ADFSAuthorityTest {
         }
     }
 
+    // ADFS is not a supported instance for BUILD.
+    @Ignore
     @Test
     public void testPerformInstanceDiscoveryThrowsWhenURLnvalid() {
         try {
@@ -117,6 +126,8 @@ public class ADFSAuthorityTest {
         Assert.fail();
     }
 
+    // ADFS is not a supported instance for BUILD.
+    @Ignore
     @Test
     public void testGetDomainFromUPN() {
         Assert.assertEquals(
@@ -125,6 +136,8 @@ public class ADFSAuthorityTest {
         );
     }
 
+    // ADFS is not a supported instance for BUILD.
+    @Ignore
     @Test
     public void testGetDomainFromUPNReturnsNullWhenInvalid() {
         Assert.assertNull(
@@ -132,6 +145,8 @@ public class ADFSAuthorityTest {
         );
     }
 
+    // ADFS is not a supported instance for BUILD.
+    @Ignore
     @Test
     public void testGetDefaultOpenIdConfigurationEndpoint() {
         Assert.assertEquals(

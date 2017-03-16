@@ -60,6 +60,9 @@ public enum MSALError {
     /** Indicates the failure for authority validation. */
     AUTHORITY_VALIDATION_FAILED("Authority validation failed"),
 
+    /** Indicates that authority validation is not supported for the passed in authority. */
+    UNSUPPORTED_AUTHORITY_VALIDATION("Unsupported authority validation"),
+
     /** Indicates the failure for tenant discovery. */
     TENANT_DISCOVERY_FAILED("Tenant discovery failed"),
 

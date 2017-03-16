@@ -34,9 +34,9 @@ import java.util.Set;
 /**
  * MSAL internal class for representing the AAD authority.
  */
-final class AADAuthority extends Authority {
+class AADAuthority extends Authority {
     private static final String TAG = AADAuthority.class.getSimpleName();
-    private static final String AAD_INSTANCE_DISCOVERY_ENDPOINT = "https://login.windows.net/common/discovery/instance";
+    private static final String AAD_INSTANCE_DISCOVERY_ENDPOINT = "https://login.microsoftonline.com/common/discovery/instance";
     private static final String API_VERSION = "api-version";
     private static final String API_VERSION_VALUE = "1.0";
     private static final String AUTHORIZATION_ENDPOINT = "authorization_endpoint";
@@ -49,7 +49,7 @@ final class AADAuthority extends Authority {
             "login-us.microsoftonline.com" // Microsoft Azure US government
     };
 
-    private static final Set<String> TRUSTED_HOST_SET = Collections.unmodifiableSet(
+    static final Set<String> TRUSTED_HOST_SET = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList(TRUSTED_HOSTS)));
 
     /**
@@ -57,6 +57,7 @@ final class AADAuthority extends Authority {
      */
     AADAuthority(final URL authority, boolean validateAuthority) {
         super(authority, validateAuthority);
+
         mAuthorityType = AuthorityType.AAD;
     }
 

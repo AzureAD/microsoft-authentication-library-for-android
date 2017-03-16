@@ -73,7 +73,7 @@ public class MainActivity extends Activity {
         buttonForSilentFlow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                callAcquireTokenSilent(SCOPES, null, true);
+                callAcquireTokenSilent(SCOPES, true);
             }
         });
     }
@@ -106,7 +106,7 @@ public class MainActivity extends Activity {
                 });
     }
 
-    private void callAcquireTokenSilent(final String[] scopes, final String policy, boolean forceRefresh) {
+    private void callAcquireTokenSilent(final String[] scopes, boolean forceRefresh) {
         mApplication.acquireTokenSilentAsync(scopes, sUser, null, forceRefresh, new AuthenticationCallback() {
 
             @Override
