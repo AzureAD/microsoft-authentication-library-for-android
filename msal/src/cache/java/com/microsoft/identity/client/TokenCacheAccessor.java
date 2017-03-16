@@ -104,7 +104,7 @@ final class TokenCacheAccessor {
     }
 
     /**
-     * For refresh token item, all the RTs are multi-scope. If authority, clientid, policy and user (if applicable)
+     * For refresh token item, all the RTs are multi-scope. If authority, clientid, and user (if applicable)
      * are matched, try to use the RT.
      * @param tokenCacheKey The {@link TokenCacheKey} that is used to find refresh tokens.
      * @return The List of refresh tokens matching the given key.

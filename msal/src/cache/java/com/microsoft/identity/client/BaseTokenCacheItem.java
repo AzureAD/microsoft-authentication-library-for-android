@@ -36,7 +36,9 @@ abstract class BaseTokenCacheItem {
     String mUniqueId;
     String mHomeObjectId;
     String mDisplayableId;
-    String mTenantId;
+
+    // excludes the field from being serialized
+    transient String mTenantId;
     String mRawIdToken;
 
     /**

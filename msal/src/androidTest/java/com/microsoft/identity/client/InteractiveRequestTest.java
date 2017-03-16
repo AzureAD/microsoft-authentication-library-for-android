@@ -69,7 +69,6 @@ import static org.mockito.Mockito.mock;
 public final class InteractiveRequestTest extends AndroidTestCase {
     static final String AUTHORITY = "https://login.microsoftonline.com/common";
     static final String CLIENT_ID = "client-id";
-    static final String POLICY = "signin signup";
     static final UUID CORRELATION_ID = UUID.randomUUID();
     static final String LOGIN_HINT = "test@test.onmicrosoft.com";
     static final int TREAD_DELAY_TIME = 20;
@@ -157,9 +156,9 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     @Test
-    public void testGetAuthorizationUriNoPolicyUiBehaviorIsConsent() throws UnsupportedEncodingException, AuthenticationException {
+    public void testGetAuthorizationUriUiBehaviorIsConsent() throws UnsupportedEncodingException, AuthenticationException {
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
-                getAuthenticationParams(POLICY, UIBehavior.CONSENT), null);
+                getAuthenticationParams(UIBehavior.CONSENT), null);
         final String actualAuthorizationUri = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
         final Uri authorityUrl = Uri.parse(actualAuthorizationUri);
         Map<String, String> queryStrings = MSALUtils.decodeUrlToMap(authorityUrl.getQuery(), "&");
@@ -173,7 +172,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     @Test
     public void testGetAuthorizationUriContainsPKCEChallenge() throws UnsupportedEncodingException, AuthenticationException {
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
-                getAuthenticationParams(POLICY, UIBehavior.CONSENT), null);
+                getAuthenticationParams(UIBehavior.CONSENT), null);
         final String authUriStr = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
         final Uri authorizationUri = Uri.parse(authUriStr);
         final String codeChallenge = authorizationUri.getQueryParameter(OauthConstants.Oauth2Parameters.CODE_CHALLENGE);
@@ -186,10 +185,10 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     @Test
-    public void testGetAuthorizationUriNoPolicyUiBehaviorForceLogin() throws UnsupportedEncodingException, AuthenticationException {
+    public void testGetAuthorizationUriUiBehaviorForceLogin() throws UnsupportedEncodingException, AuthenticationException {
         final String[] additionalScope = {"additionalScope"};
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
-                getAuthenticationParams("", UIBehavior.FORCE_LOGIN), additionalScope);
+                getAuthenticationParams(UIBehavior.FORCE_LOGIN), additionalScope);
         final String actualAuthorizationUri = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
         final Uri authorityUrl = Uri.parse(actualAuthorizationUri);
         Map<String, String> queryStrings = MSALUtils.decodeUrlToMap(authorityUrl.getQuery(), "&");
@@ -684,7 +683,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         }.performTest();
     }
 
-    private AuthenticationRequestParameters getAuthenticationParams(final String policy, final UIBehavior uiBehavior) {
+    private AuthenticationRequestParameters getAuthenticationParams(final UIBehavior uiBehavior) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(AUTHORITY, false), new TokenCache(mAppContext), getScopes(),
                 CLIENT_ID, mRedirectUri, LOGIN_HINT, "", uiBehavior, new RequestContext(CORRELATION_ID, ""));
     }
@@ -743,7 +742,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
     private BaseRequest createInteractiveRequest(final Activity testActivity) {
         return new InteractiveRequest(testActivity, getAuthenticationParams(
-                "", UIBehavior.FORCE_LOGIN), null);
+                UIBehavior.FORCE_LOGIN), null);
     }
 
     private void verifyStartActivityForResultCalled(final Activity testActivity) {

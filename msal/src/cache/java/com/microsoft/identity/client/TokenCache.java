@@ -93,7 +93,7 @@ class TokenCache {
     }
 
     /**
-     * Find access token matching authority, clientid, scope, user and policy in the cache.
+     * Find access token matching authority, clientid, scope, user in the cache.
      *
      * @param requestParam The {@link AuthenticationRequestParameters} containing the request data to get the token for.
      * @param user         The {@link User} to get the token for.
@@ -134,7 +134,7 @@ class TokenCache {
     }
 
     /**
-     * For access token item, authority, clientid and policy(if applicable) has to be matched. If user
+     * For access token item, authority, clientid, user home oid(if applicable) has to be matched. If user
      * is provided, it also has to be matched. Scope in the cached access token item has to be the exact same with the
      * scopes in the lookup key.
      */
