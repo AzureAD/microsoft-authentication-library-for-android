@@ -107,7 +107,8 @@ public final class SilentRequestTest extends AndroidTestCase {
 
             @Override
             public void onError(MsalException exception) {
-                assertTrue(exception.getErrorCode().equals(MsalError.DEVICE_CONNECTION_NOT_AVAILABLE));
+                assertTrue(exception instanceof MsalClientException);
+                assertTrue(exception.getErrorCode().equals(MsalError.DEVICE_NETWORK_NOT_AVAILABLE));
                 resultLock.countDown();
             }
 
@@ -368,7 +369,8 @@ public final class SilentRequestTest extends AndroidTestCase {
 
             @Override
             public void onError(MsalException exception) {
-                assertTrue(exception.getErrorCode().equals(MsalError.INTERACTION_REQUIRED));
+                assertTrue(exception instanceof MsalUiRequiredException);
+                assertTrue(exception.getErrorCode().equals(MsalError.CACHE_MISS));
                 resultLock.countDown();
             }
 
@@ -404,12 +406,8 @@ public final class SilentRequestTest extends AndroidTestCase {
 
             @Override
             public void onError(MsalException exception) {
-                assertTrue(exception.getErrorCode().equals(MsalError.INTERACTION_REQUIRED));
-                assertNotNull(exception.getCause());
-                assertTrue(exception instanceof MsalException);
-                final MsalException innerException = (MsalException) exception.getCause();
-                assertTrue(innerException.getErrorCode().equals(MsalError.OAUTH_ERROR));
-
+                assertTrue(exception instanceof MsalUiRequiredException);
+                assertTrue(exception.getErrorCode().equals(MsalError.INVALID_GRANT));
                 resultLock.countDown();
             }
 
@@ -447,11 +445,11 @@ public final class SilentRequestTest extends AndroidTestCase {
 
             @Override
             public void onError(MsalException exception) {
-                assertTrue(exception.getErrorCode().equals(MsalError.INTERACTION_REQUIRED));
-                assertNotNull(exception.getCause());
-                assertTrue(exception instanceof MsalException);
-                final MsalException innerException = (MsalException) exception.getCause();
-                assertTrue(innerException.getErrorCode().equals(MsalError.OAUTH_ERROR));
+                assertTrue(exception instanceof MsalServiceException);
+
+                final MsalServiceException msalServiceException = (MsalServiceException) exception;
+                assertTrue(msalServiceException.getErrorCode().equals(MsalError.INVALID_REQUEST));
+                assertTrue(msalServiceException.getHttpStatusCode() == HttpURLConnection.HTTP_BAD_REQUEST);
 
                 resultLock.countDown();
             }

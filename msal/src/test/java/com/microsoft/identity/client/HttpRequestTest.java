@@ -54,7 +54,7 @@ public final class HttpRequestTest {
      * Verify the expected exception is thrown when sending get request with null url.
      */
     @Test(expected = NullPointerException.class)
-    public void testNullRequestUrl() throws IOException, RetryableException {
+    public void testNullRequestUrl() throws IOException, MsalServiceException {
         HttpRequest.sendGet(null, Collections.<String, String>emptyMap());
     }
 
@@ -72,7 +72,7 @@ public final class HttpRequestTest {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 1);
             final HttpResponse response = sendHttpGet();
             verifySuccessHttpResponse(response);
-        } catch (final RetryableException e) {
+        } catch (final MsalServiceException e) {
             Assert.fail();
         }
 
@@ -100,7 +100,7 @@ public final class HttpRequestTest {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 1);
             final HttpResponse response = sendHttpPost();
             verifySuccessHttpResponse(response);
-        } catch (final RetryableException e) {
+        } catch (final MsalServiceException e) {
             Assert.fail();
         }
 
@@ -134,7 +134,7 @@ public final class HttpRequestTest {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             final HttpResponse response = sendHttpPost();
             verifySuccessHttpResponse(response);
-        } catch (final RetryableException e) {
+        } catch (final MsalServiceException e) {
             Assert.fail();
         }
 
@@ -175,7 +175,7 @@ public final class HttpRequestTest {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             final HttpResponse response = sendHttpPost();
             verifySuccessHttpResponse(response);
-        } catch (final RetryableException e) {
+        } catch (final MsalServiceException e) {
             Assert.fail();
         }
 
@@ -214,7 +214,7 @@ public final class HttpRequestTest {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             final HttpResponse response = sendHttpGet();
             verifySuccessHttpResponse(response);
-        } catch (final RetryableException e) {
+        } catch (final MsalServiceException e) {
             Assert.fail();
         }
 
@@ -254,7 +254,7 @@ public final class HttpRequestTest {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             final HttpResponse response = sendHttpPost();
             verifySuccessHttpResponse(response);
-        } catch (final RetryableException e) {
+        } catch (final MsalServiceException e) {
             Assert.fail();
         }
 
@@ -287,7 +287,7 @@ public final class HttpRequestTest {
             Assert.assertNotNull(response);
             Assert.assertTrue(response.getStatusCode() == HttpURLConnection.HTTP_BAD_REQUEST);
             Assert.assertTrue(response.getBody().equals(getErrorResponse()));
-        } catch (final RetryableException e) {
+        } catch (final MsalServiceException e) {
             Assert.fail();
         }
 
@@ -320,7 +320,7 @@ public final class HttpRequestTest {
             Assert.assertNotNull(response);
             Assert.assertTrue(response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED);
             Assert.assertTrue(response.getBody().equals(getErrorResponse()));
-        } catch (final RetryableException e) {
+        } catch (final MsalServiceException e) {
             Assert.fail();
         }
 
@@ -350,7 +350,7 @@ public final class HttpRequestTest {
             Assert.assertNotNull(response);
             Assert.assertTrue(response.getStatusCode() == HttpURLConnection.HTTP_BAD_METHOD);
             Assert.assertTrue(response.getBody().isEmpty());
-        } catch (final RetryableException e) {
+        } catch (final MsalServiceException e) {
             Assert.fail();
         }
 
@@ -388,7 +388,7 @@ public final class HttpRequestTest {
             Assert.assertNotNull(response);
             Assert.assertTrue(response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED);
             Assert.assertTrue(response.getBody().equals(getErrorResponse()));
-        } catch (final RetryableException e) {
+        } catch (final MsalServiceException e) {
             Assert.fail();
         }
 
@@ -430,7 +430,7 @@ public final class HttpRequestTest {
             Assert.assertNotNull(response);
             Assert.assertTrue(response.getStatusCode() == HttpURLConnection.HTTP_BAD_REQUEST);
             Assert.assertTrue(response.getBody().equals(getErrorResponse()));
-        } catch (final RetryableException e) {
+        } catch (final MsalServiceException e) {
             Assert.fail();
         }
 
@@ -471,14 +471,10 @@ public final class HttpRequestTest {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             sendHttpPost();
             Assert.fail("Expect MsalException to be thrown.");
-        } catch (final RetryableException e) {
+        } catch (final MsalServiceException e) {
             Assert.assertNotNull(e);
-            Assert.assertNotNull(e.getCause());
-            Assert.assertTrue(e.getCause() instanceof MsalException);
-            final MsalException innerException = (MsalException) e.getCause();
-            Assert.assertTrue(innerException.getErrorCode().equals(MsalError.RETRY_FAILED_WITH_SERVER_ERROR));
-            Assert.assertTrue(innerException.getMessage().contains(
-                    "StatusCode: " + String.valueOf(HttpURLConnection.HTTP_UNAVAILABLE)));
+            Assert.assertTrue(e.getErrorCode().equals(MsalError.SERVER_ERROR));
+            Assert.assertTrue(e.getHttpStatusCode() == HttpURLConnection.HTTP_UNAVAILABLE);
         }
 
         Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
@@ -517,14 +513,10 @@ public final class HttpRequestTest {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             sendHttpPost();
             Assert.fail("Expect MsalException to be thrown.");
-        } catch (final RetryableException e) {
+        } catch (final MsalServiceException e) {
             Assert.assertNotNull(e);
-            Assert.assertNotNull(e.getCause());
-            Assert.assertTrue(e.getCause() instanceof MsalException);
-            final MsalException innerException = (MsalException) e.getCause();
-            Assert.assertTrue(innerException.getErrorCode().equals(MsalError.RETRY_FAILED_WITH_SERVER_ERROR));
-            Assert.assertTrue(innerException.getMessage().contains(
-                    "StatusCode: " + String.valueOf(HttpURLConnection.HTTP_GATEWAY_TIMEOUT)));
+            Assert.assertTrue(e.getErrorCode().equals(MsalError.SERVER_ERROR));
+            Assert.assertTrue(e.getHttpStatusCode() == HttpURLConnection.HTTP_GATEWAY_TIMEOUT);
         }
 
         Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
@@ -561,7 +553,7 @@ public final class HttpRequestTest {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             sendHttpGet();
             Assert.fail("Expect MsalException to be thrown.");
-        } catch (final RetryableException e) {
+        } catch (final MsalServiceException e) {
             Assert.assertNotNull(e);
             Assert.assertNotNull(e.getCause());
             Assert.assertTrue(e.getCause() instanceof  SocketTimeoutException);
@@ -598,7 +590,7 @@ public final class HttpRequestTest {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             sendHttpGet();
             Assert.fail("Expect MsalException to be thrown.");
-        } catch (final RetryableException e) {
+        } catch (final MsalServiceException e) {
             Assert.assertNotNull(e);
             Assert.assertNotNull(e.getCause());
             Assert.assertTrue(e.getCause() instanceof  SocketTimeoutException);
@@ -626,14 +618,14 @@ public final class HttpRequestTest {
     /**
      * Send http get request.
      */
-    HttpResponse sendHttpGet() throws IOException, RetryableException {
+    HttpResponse sendHttpGet() throws IOException, MsalServiceException {
         return HttpRequest.sendGet(Util.getValidRequestUrl(), Collections.<String, String>emptyMap());
     }
 
     /**
      * Send http post request.
      */
-    HttpResponse sendHttpPost() throws IOException, RetryableException {
+    HttpResponse sendHttpPost() throws IOException, MsalServiceException {
         return HttpRequest.sendPost(Util.getValidRequestUrl(), Collections.<String, String>emptyMap(),
                 "SomeRequestMessage".getBytes(), "application/x-www-form-urlencoded");
     }

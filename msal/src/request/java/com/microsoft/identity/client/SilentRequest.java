@@ -46,7 +46,7 @@ final class SilentRequest extends BaseRequest {
     }
 
     @Override
-    void preTokenRequest() throws MsalException {
+    void preTokenRequest() throws MsalClientException, MsalUiRequiredException {
         final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
 
         // lookup AT first.

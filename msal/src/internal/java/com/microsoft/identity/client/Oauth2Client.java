@@ -76,7 +76,7 @@ final class Oauth2Client {
 
             @Override
             public <T extends BaseOauth2Response> T parseErrorRawResponse(Map<String, String> responseItems, final int statusCode) {
-                return (T) TokenResponse.createErrorResponse(responseItems, statusCode);
+                return (T) TokenResponse.createFailureTokenResponse(responseItems, statusCode);
             }
         });
     }
@@ -94,7 +94,7 @@ final class Oauth2Client {
 
             @Override
             public <T extends BaseOauth2Response> T parseErrorRawResponse(Map<String, String> responseItems, final int statusCode) {
-                return (T) BaseOauth2Response.createErrorResponse(responseItems, statusCode);
+                return (T) new InstanceDiscoveryResponse(BaseOauth2Response.createErrorResponse(responseItems, statusCode));
             }
         });
     }
@@ -112,7 +112,7 @@ final class Oauth2Client {
 
             @Override
             public <T extends BaseOauth2Response> T parseErrorRawResponse(Map<String, String> responseItems, final int statusCode) {
-                return (T) BaseOauth2Response.createErrorResponse(responseItems, statusCode);
+                return (T) new TenantDiscoveryResponse(BaseOauth2Response.createErrorResponse(responseItems, statusCode));
             }
         });
     }

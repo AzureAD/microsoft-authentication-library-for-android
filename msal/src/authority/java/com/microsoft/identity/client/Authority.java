@@ -59,7 +59,9 @@ abstract class Authority {
      * @return The tenant discovery endpoint.
      * @throws MsalException if error happens during the instance discovery.
      */
-    abstract String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws MsalException;
+    abstract String performInstanceDiscovery(final RequestContext requestContext,
+                                             final String userPrincipalName)
+            throws MsalClientException, MsalServiceException;
 
     /**
      * @return True if the authority is already validated.
@@ -121,7 +123,7 @@ abstract class Authority {
      * @param requestContext {@link RequestContext} for the authority validation and tenant discovery.
      * @throws MsalException If error happens during authority or tenant discovery.
      */
-    void resolveEndpoints(final RequestContext requestContext, final String userPrincipalName) throws MsalException {
+    void resolveEndpoints(final RequestContext requestContext, final String userPrincipalName) throws MsalClientException, MsalServiceException {
         Logger.info(TAG, requestContext, "Perform authority validation and tenant discovery.");
         if (existsInValidatedAuthorityCache(userPrincipalName)) {
             Logger.info(TAG, requestContext, "Authority has been validated.");

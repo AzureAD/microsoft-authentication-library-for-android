@@ -70,14 +70,16 @@ final class AuthorizationResult {
         } else if (resultCode == Constants.UiResponse.AUTH_CODE_COMPLETE) {
             final String url = data.getStringExtra(Constants.AUTHORIZATION_FINAL_URL);
             return AuthorizationResult.parseAuthorizationResponse(url);
-            //CHECKSTYLE:OFF: checkstyle:EmptyBlock
         } else if (resultCode == Constants.UiResponse.AUTH_CODE_ERROR) {
-            // TODO: handle to code error case.
-            //CHECKSTYLE:ON: checkstyle:EmptyBlock
+            // This is purely client side error, possible return could be chrome_not_installed or the request intent is
+            // not resolvable
+            final String error = data.getStringExtra(Constants.UiResponse.ERROR_CODE);
+            final String errorDescription = data.getStringExtra(Constants.UiResponse.ERROR_DESCRIPTION);
+            return new AuthorizationResult(AuthorizationStatus.FAIL, error, errorDescription);
         }
 
         return new AuthorizationResult(AuthorizationStatus.FAIL,
-                Constants.MSALInternalError.AUTHORIZATION_FAILED, "Unknown result code" + resultCode);
+                MsalError.UNKNOWN_ERROR, "Unknown result code [" + resultCode + "] returned from system webview.");
     }
 
     public static AuthorizationResult parseAuthorizationResponse(final String returnUri) {
@@ -94,7 +96,7 @@ final class AuthorizationResult {
                 final String state = urlParameters.get(OauthConstants.TokenResponseClaim.STATE);
                 if (MsalUtils.isEmpty(state)) {
                     Logger.warning(TAG, null, "State parameter is not returned from the webview redirect.");
-                    authorizationResult = new AuthorizationResult(AuthorizationStatus.FAIL, Constants.MSALInternalError.AUTHORIZATION_FAILED,
+                    authorizationResult = new AuthorizationResult(AuthorizationStatus.FAIL, MsalError.STATE_NOT_MATCH,
                             Constants.MsalErrorMessage.STATE_NOT_RETURNED);
                 } else {
                     Logger.info(TAG, null, "Auth code is successfully returned from webview redirect.");

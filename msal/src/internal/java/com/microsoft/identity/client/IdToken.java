@@ -27,7 +27,6 @@ import android.util.Base64;
 
 import org.json.JSONException;
 
-import java.net.HttpURLConnection;
 import java.nio.charset.Charset;
 import java.util.Map;
 
@@ -48,7 +47,7 @@ final class IdToken {
      * Constructor to create a new {@link IdToken}. Will parse the raw id token.
      * @param rawIdToken The raw Id token used to create the {@link IdToken}.
      */
-    IdToken(final String rawIdToken) throws MsalServiceException, MsalClientException {
+    IdToken(final String rawIdToken) throws MsalClientException {
         if (MsalUtils.isEmpty(rawIdToken)) {
             throw new IllegalArgumentException("null or empty raw idtoken");
         }
@@ -56,7 +55,7 @@ final class IdToken {
         // set all the instance variables.
         final Map<String, String> idTokenItems = parseJWT(rawIdToken);
         if (idTokenItems == null || idTokenItems.isEmpty()) {
-            throw new MsalServiceException(MsalError.INVALID_JWT, "Empty Id token returned from server.", HttpURLConnection.HTTP_OK, null);
+            throw new MsalClientException(MsalError.INVALID_JWT, "Empty Id token returned from server.");
         }
 
         mIssuer = idTokenItems.get(IdTokenClaim.ISSUER);
@@ -109,7 +108,7 @@ final class IdToken {
             final String decodedBody = new String(data, Charset.forName(MsalUtils.ENCODING_UTF8));
             return MsalUtils.extractJsonObjectIntoMap(decodedBody);
         } catch (final JSONException e) {
-            throw new MsalClientException(MsalError.JSON_PARSE_FAILURE, "Failed to extract Json object " + e.getMessage(), e);
+            throw new MsalClientException(MsalError.INVALID_JWT, "Failed to extract Json object " + e.getMessage(), e);
         }
     }
 
@@ -121,7 +120,7 @@ final class IdToken {
         if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
             return idToken.substring(firstDot + 1, secondDot);
         } else {
-            throw new MsalClientException(MsalError.JSON_PARSE_FAILURE, "Failed to parse id token.", null);
+            throw new MsalClientException(MsalError.INVALID_JWT, "Failed to parse id token.", null);
         }
     }
 

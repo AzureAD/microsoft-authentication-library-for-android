@@ -36,8 +36,20 @@ package com.microsoft.identity.client;
  *         <ul>access_denied: The resource owner or authorization server denied the request.</ul>
  *         <ul>invalid_scope: The request scope is invalid, unknown or malformed. </ul>
  *         <ul>server_error: This is to represent 500/503/504 or {@link java.net.SocketTimeoutException}. </ul>
+ *         <ul>invalid_instance: This is returned when authority validation fails. </ul>
+ *         <ul>unknown_error: Request to server failed, but no error and error_description is returned back from the service. </ul>
  *     </li>
  * </p>
+ * @Note: {@link MsalServiceException} provides two extra APIs:
+ * <li>
+ *     <ul>
+ *         {@link MsalServiceException#getHttpStatusCode()} : indicates the http status code for the failed request.
+ *     </ul>
+ *     <ul>
+ *         {@link MsalServiceException#getClaims()} : returns the claim challenge returned by the service. The sdk will not
+ *         parse the returned claims, it will be in the original Json format returned by the service.
+ *     </ul>
+ * </li>
  */
 public final class MsalServiceException extends MsalException {
 
@@ -49,31 +61,38 @@ public final class MsalServiceException extends MsalException {
      */
     static int DEFAULT_STATUS_CODE = 0;
 
-    public MsalServiceException(final String errorCode, final String errorMessage, final Throwable throwable) {
+    MsalServiceException(final String errorCode, final String errorMessage, final Throwable throwable) {
         super(errorCode, errorMessage, throwable);
 
         mHttpStatusCode = DEFAULT_STATUS_CODE;
         mClaims = "";
     }
 
-    public MsalServiceException(final String errorCode, final String errorMessage, final int httpStatusCode, final Throwable throwable) {
+    MsalServiceException(final String errorCode, final String errorMessage, final int httpStatusCode, final Throwable throwable) {
         super(errorCode, errorMessage, throwable);
 
         mHttpStatusCode = httpStatusCode;
         mClaims = "";
     }
 
-    public MsalServiceException(final String errorCode, final String errorMessge, final int httpStatusCode, final String claims, final Throwable throwable) {
+    MsalServiceException(final String errorCode, final String errorMessge, final int httpStatusCode, final String claims, final Throwable throwable) {
         super(errorCode, errorMessge, throwable);
 
         mHttpStatusCode = httpStatusCode;
         mClaims = claims;
     }
 
+    /**
+     * @return The http status code for the request sent to the service.
+     */
     public int getHttpStatusCode() {
         return mHttpStatusCode;
     }
 
+    /**
+     * @return The claims challenge returned back from the service, will be in the original JSON format sent back from the service.
+     * The sdk doesn't parse it.
+     */
     public String getClaims() {
         return mClaims;
     }

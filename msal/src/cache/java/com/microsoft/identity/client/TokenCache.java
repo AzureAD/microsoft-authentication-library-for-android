@@ -54,7 +54,7 @@ class TokenCache {
      * Create {@link AccessTokenCacheItem} from {@link TokenResponse} and save it into cache.
      */
     AccessTokenCacheItem saveAccessToken(final String authority, final String clientId, final TokenResponse response)
-            throws MsalClientException, MsalServiceException {
+            throws MsalClientException {
         // create the access token cache item
         Logger.info(TAG, null, "Starting to Save access token into cache. Access token will be saved with authority: " + authority
                 + "; Client Id: " + clientId + "; Scopes: " + response.getScope());
@@ -76,8 +76,7 @@ class TokenCache {
     /**
      * Create {@link RefreshTokenCacheItem} from {@link TokenResponse} and save it into cache.
      */
-    void saveRefreshToken(final String authority, final String clientId, final TokenResponse response) throws MsalClientException,
-            MsalServiceException {
+    void saveRefreshToken(final String authority, final String clientId, final TokenResponse response) throws MsalClientException {
         // if server returns the refresh token back, save it in the cache.
         if (!MsalUtils.isEmpty(response.getRefreshToken())) {
             Logger.info(TAG, null, "Starting to save refresh token into cache. Refresh token will be saved with authority: " + authority
@@ -181,7 +180,7 @@ class TokenCache {
      * @param clientId The application client id that is used to retrieve for all the signed in users.
      * @return The list of signed in users for the given client id.
      */
-    List<User> getUsers(final String clientId) throws MsalClientException, MsalServiceException {
+    List<User> getUsers(final String clientId) throws MsalClientException {
         if (MsalUtils.isEmpty(clientId)) {
             throw new IllegalArgumentException("empty or null clientId");
         }

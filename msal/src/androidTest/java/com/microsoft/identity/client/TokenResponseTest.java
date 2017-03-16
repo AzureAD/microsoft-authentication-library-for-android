@@ -31,10 +31,9 @@ import org.json.JSONException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Arrays;
+import java.net.HttpURLConnection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -84,13 +83,11 @@ public final class TokenResponseTest {
         failureResponseItem.put(EXTRA_DATA_1, EXTRA_DATA_1);
         failureResponseItem.put(EXTRA_DATA_1, EXTRA_DATA_2);
 
-        final TokenResponse failureResponse = new TokenResponse(BaseOauth2Response.createErrorResponse(failureResponseItem));
+        final TokenResponse failureResponse = new TokenResponse(BaseOauth2Response.createErrorResponse(failureResponseItem,
+                HttpURLConnection.HTTP_BAD_REQUEST), null);
         Assert.assertTrue(ERROR.equals(failureResponse.getError()));
         Assert.assertTrue(ERROR_DESCRIPTION.equals(failureResponse.getErrorDescription()));
-        Assert.assertTrue(failureResponse.getErrorCodes().length == 2);
-        final List<String> errorCodes = Arrays.asList(failureResponse.getErrorCodes());
-        Assert.assertTrue(errorCodes.contains("1234"));
-        Assert.assertTrue(errorCodes.contains("3456"));
+
     }
 
     @Test
@@ -98,7 +95,7 @@ public final class TokenResponseTest {
         final String rawIdToken = "raw idtoken";
         final Date expiresOn = new Date();
         final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, rawIdToken, REFRESH_TOKEN, expiresOn,
-                expiresOn, expiresOn, SCOPE, TOKEN_TYPE, null);
+                expiresOn, expiresOn, SCOPE, TOKEN_TYPE);
 
         Assert.assertTrue(ACCESS_TOKEN.equals(tokenResponse.getAccessToken()));
         Assert.assertTrue(rawIdToken.equals(tokenResponse.getRawIdToken()));
@@ -108,16 +105,16 @@ public final class TokenResponseTest {
         Assert.assertTrue(expiresOn.equals(tokenResponse.getExtendedExpiresOn()));
         Assert.assertTrue(TOKEN_TYPE.equals(tokenResponse.getTokenType()));
         Assert.assertTrue(SCOPE.equals(tokenResponse.getScope()));
-        Assert.assertNull(tokenResponse.getFamilyClientId());
     }
 
     @Test
     public void testConstructorForFailureResponse() {
-        final String[] errorCodes = new String[] {"123", "456"};
-        final TokenResponse response = new TokenResponse(ERROR, ERROR_DESCRIPTION, errorCodes);
+        final String claims = "some/claim";
+        final TokenResponse response = new TokenResponse(ERROR, ERROR_DESCRIPTION, HttpURLConnection.HTTP_BAD_REQUEST, claims);
 
         Assert.assertTrue(ERROR.equals(response.getError()));
         Assert.assertTrue(ERROR_DESCRIPTION.equals(response.getErrorDescription()));
-        Assert.assertTrue(errorCodes.equals(response.getErrorCodes()));
+        Assert.assertTrue(response.getHttpStatusCode() == HttpURLConnection.HTTP_BAD_REQUEST);
+        Assert.assertTrue(response.getClaims().equals(claims));
     }
 }

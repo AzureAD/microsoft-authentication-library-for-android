@@ -25,20 +25,26 @@ package com.microsoft.identity.client;
 
 /**
  * This exception class is to inform developers that UI is required for authentication to succeed.
- * TODO: provide a list of the errors that could be returned by this exception class
+ * <p>
+ *     Set of error codes that could be returned from this exception:
+ *     <li>
+ *         <ul>invalid_grant: The refresh token used to redeem access token is invalid, expired, revoked. </ul>
+ *         <ul>cache_miss: Access token doesn't exist and there is no refresh token can be found to redeem access token. </ul>
+ *     </li>
+ * </p>
  */
 
 public final class MsalUiRequiredException extends MsalException {
 
-    public MsalUiRequiredException(final String errorCode) {
+    MsalUiRequiredException(final String errorCode) {
         super(errorCode);
     }
 
-    public MsalUiRequiredException(final String errorCode, final String errorMessage) {
+    MsalUiRequiredException(final String errorCode, final String errorMessage) {
         super(errorCode, errorMessage);
     }
 
-    public MsalUiRequiredException(final String errorCode, final String errorMessage, final Throwable throwable) {
+    MsalUiRequiredException(final String errorCode, final String errorMessage, final Throwable throwable) {
         super(errorCode, errorMessage, throwable);
     }
 }

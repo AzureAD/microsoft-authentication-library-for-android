@@ -224,7 +224,7 @@ public final class AuthorityTest {
      * Verify that if instance discovery fails(server returns error and error_description), we return the error error back.
      */
     @Test
-    public void testInstanceDiscoveryFailed() throws IOException {
+    public void testInstanceDiscoveryFailed() throws IOException, MsalClientException {
         final String authorityString = "https://some.authority/endpoint";
         final Authority authority = Authority.createAuthority(authorityString, true);
 
@@ -233,8 +233,8 @@ public final class AuthorityTest {
         try {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
             Assert.fail();
-        } catch (final MsalException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MsalError.AUTHORITY_VALIDATION_FAILED));
+        } catch (final MsalServiceException e) {
+            Assert.assertTrue(e.getErrorCode().equals(MsalError.INVALID_REQUEST));
         }
     }
 
@@ -276,7 +276,7 @@ public final class AuthorityTest {
     }
 
     @Test
-    public void testTenantDiscoveryFailed() throws IOException {
+    public void testTenantDiscoveryFailed() throws IOException, MsalClientException {
         final String authorityString = "https://some.authority/endpoint";
         final Authority authority = Authority.createAuthority(authorityString, true);
 
@@ -288,8 +288,8 @@ public final class AuthorityTest {
         try {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
             Assert.fail();
-        } catch (final MsalException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MsalError.TENANT_DISCOVERY_FAILED));
+        } catch (final MsalServiceException e) {
+            Assert.assertTrue(e.getErrorCode().equals(MsalError.INVALID_INSTANCE));
         }
     }
 

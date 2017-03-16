@@ -44,15 +44,15 @@ public final class B2cAuthorityTest {
     }
 
     @Test
-    public void testValidationEnabledButNotSupported() {
+    public void testValidationEnabledButNotSupported() throws MsalServiceException {
         final String b2cAuthority = "https://someauthority/tfp/sometenant/somepolicy";
         final Authority authority = Authority.createAuthority(b2cAuthority, true);
 
         try {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "test"), null);
             Assert.fail("Should reach exception");
-        } catch (final MsalException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MsalError.UNSUPPORTED_AUTHORITY_VALIDATION));
+        } catch (final MsalClientException e) {
+            Assert.assertTrue(e.getErrorCode().equals(MsalError.UNSUPPORTED_AUTHORITY_VALIDATION_INSTANCE));
         }
     }
 }

@@ -44,8 +44,7 @@ abstract class BaseTokenCacheItem {
     /**
      * Constructor for creating the token cache item.
      */
-    BaseTokenCacheItem(final String authority, final String clientId, final TokenResponse response) throws MsalClientException,
-            MsalServiceException {
+    BaseTokenCacheItem(final String authority, final String clientId, final TokenResponse response) throws MsalClientException {
         if (!MsalUtils.isEmpty(response.getRawIdToken())) {
             final IdToken idToken = new IdToken(response.getRawIdToken());
             final User user = new User(idToken);

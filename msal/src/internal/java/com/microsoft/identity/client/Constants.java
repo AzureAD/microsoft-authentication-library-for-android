@@ -65,7 +65,5 @@ final class Constants {
     static final class MSALInternalError {
         static final String AUTHORIZATION_FAILED = "authorization_failed";
         static final String USER_CANCEL = "user_cancelled";
-        static final String INVALID_REQUEST = "invalid_request";
-        static final String CHROME_NOT_INSTALLED = "chrome_not_installed";
     }
 }

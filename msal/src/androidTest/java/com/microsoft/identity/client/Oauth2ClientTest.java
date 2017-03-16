@@ -72,7 +72,7 @@ public final class Oauth2ClientTest {
             // verify response
             Assert.assertNotNull(response);
             Assert.assertTrue(response.getAccessToken().equals(AndroidTestUtil.ACCESS_TOKEN));
-        } catch (final RetryableException | IOException | MsalException e) {
+        } catch (final IOException | MsalException e) {
             Assert.fail("Unexpected Exception.");
         }
     }
@@ -126,9 +126,7 @@ public final class Oauth2ClientTest {
             Assert.assertNotNull(response);
             Assert.assertTrue(response.getError().equals("invalid_request"));
             Assert.assertFalse(response.getErrorDescription().isEmpty());
-            Assert.assertNotNull(response.getErrorCodes());
-            Assert.assertTrue(response.getErrorCodes().length == 2);
-        } catch (final RetryableException | IOException | MsalException e) {
+        } catch (final IOException | MsalException e) {
             Assert.fail("Unexpected Exception.");
         }
     }
@@ -168,7 +166,7 @@ public final class Oauth2ClientTest {
         try {
             oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
             Assert.fail();
-        } catch (final RetryableException e) {
+        } catch (final MsalServiceException e) {
             Assert.assertNotNull(e.getCause());
             Assert.assertTrue(e.getCause() instanceof SocketTimeoutException);
         }
@@ -193,12 +191,8 @@ public final class Oauth2ClientTest {
         try {
             oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
             Assert.fail();
-        } catch (final RetryableException e) {
-            Assert.assertNotNull(e.getCause());
-            Assert.assertTrue(e.getCause() instanceof MsalException);
-
-            final MsalException exception = (MsalException) e.getCause();
-            Assert.assertTrue(exception.getErrorCode().equals(MsalError.RETRY_FAILED_WITH_SERVER_ERROR));
+        } catch (final MsalServiceException e) {
+            Assert.assertTrue(e.getErrorCode().equals(MsalError.SERVER_ERROR));
         }
     }
 

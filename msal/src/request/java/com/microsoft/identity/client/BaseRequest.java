@@ -54,7 +54,8 @@ abstract class BaseRequest {
      * @throws MsalUserCancelException If pre token request fails as user cancels the flow.
      * @throws MsalException If error happens during the pre-process.
      */
-    abstract void preTokenRequest() throws MsalUserCancelException, MsalException;
+    abstract void preTokenRequest() throws MsalUiRequiredException, MsalUserCancelException,
+            MsalServiceException, MsalClientException;
 
     /**
      * Abstract method to set the additional body parameters for specific request.
@@ -222,7 +223,7 @@ abstract class BaseRequest {
                     tokenResponse.getClaims(), null);
         }
 
-        if (MsalError.INVALID_GRANT.equals(tokenResponse)) {
+        if (MsalError.INVALID_GRANT.equals(tokenResponse.getError())) {
             throw new MsalUiRequiredException(MsalError.INVALID_GRANT, tokenResponse.getErrorDescription());
         }
 

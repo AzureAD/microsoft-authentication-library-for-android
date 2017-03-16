@@ -24,7 +24,6 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -32,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -343,8 +341,12 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
                     @Override
                     public void onError(MsalException exception) {
-                        assertTrue(MsalError.OAUTH_ERROR.equals(exception.getErrorCode()));
-                        assertTrue(exception.getMessage().contains("invalid_request"));
+                        assertTrue(exception instanceof MsalServiceException);
+
+                        final MsalServiceException serviceException = (MsalServiceException) exception;
+                        assertTrue(MsalError.INVALID_REQUEST.equals(serviceException.getErrorCode()));
+                        assertTrue(!serviceException.getMessage().isEmpty());
+                        assertTrue(serviceException.getHttpStatusCode() == HttpURLConnection.HTTP_BAD_REQUEST);
                         releaseLock.countDown();
                     }
 
@@ -463,7 +465,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                             @Override
                             public void onError(MsalException exception) {
                                 try {
-                                    assertTrue(exception.getErrorCode().equals(MsalError.UNSUPPORTED_AUTHORITY_VALIDATION));
+                                    assertTrue(exception instanceof MsalClientException);
+                                    assertTrue(exception.getErrorCode().equals(MsalError.UNSUPPORTED_AUTHORITY_VALIDATION_INSTANCE));
                                 } finally {
                                     releaseLock.countDown();
                                 }
@@ -585,7 +588,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
             @Override
             public void onError(MsalException exception) {
-                assertTrue(exception.getErrorCode().equals(MsalError.INTERACTION_REQUIRED));
+                assertTrue(exception instanceof MsalUiRequiredException);
+                assertTrue(exception.getErrorCode().equals(MsalError.CACHE_MISS));
                 assertNull(exception.getCause());
                 silentLock.countDown();
             }
@@ -605,7 +609,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     private TokenResponse getTokenResponse(final String idToken) throws MsalException {
         return new TokenResponse(AndroidTestUtil.ACCESS_TOKEN, idToken, AndroidTestUtil.REFRESH_TOKEN, new Date(), new Date(),
-                new Date(), "scope", "Bearer", null);
+                new Date(), "scope", "Bearer");
     }
 
     static void saveTokenResponse(final TokenCache tokenCache, final String authority, final String clientId,
@@ -734,7 +738,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
             // having the thread delayed for preTokenRequest to finish. Here we mock the
             // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
-            resultLock.await(InteractiveRequestTest.TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
+            resultLock.await(InteractiveRequestTest.THREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
 
             final Intent resultIntent = new Intent();
             resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, getFinalAuthUrl());

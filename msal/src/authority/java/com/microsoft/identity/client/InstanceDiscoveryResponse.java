@@ -56,7 +56,7 @@ final class InstanceDiscoveryResponse extends BaseOauth2Response {
     /**
      * Create the {@link InstanceDiscoveryResponse} with error response.
      */
-    public InstanceDiscoveryResponse(final BaseOauth2Response response) {
+    InstanceDiscoveryResponse(final BaseOauth2Response response) {
         this(response.getError(), response.getErrorDescription(), response.getHttpStatusCode());
     }
 
