@@ -201,7 +201,6 @@ class TokenCache {
         final Map<String, User> allUsers = new HashMap<>();
         for (final RefreshTokenCacheItem item : allRefreshTokens) {
             final User user = new User(new IdToken(item.getRawIdToken()));
-            user.setTokenCache(this);
             allUsers.put(item.getHomeObjectId(), user);
         }
 
