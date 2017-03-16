@@ -286,7 +286,7 @@ public final class PublicClientApplication {
      * Signs the {@link User} out of the application.
      * @param user
      */
-    public void signOut(final User user) {
+    public void remove(final User user) {
         mTokenCache.deleteRefreshTokenByUser(user);
         mTokenCache.deleteAccessTokenByUser(user);
     }
