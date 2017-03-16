@@ -51,10 +51,10 @@ abstract class BaseRequest {
 
     /**
      * Abstract method, implemented by subclass for its own logic before the token request.
-     * @throws MSALUserCancelException If pre token request fails as user cancels the flow.
-     * @throws AuthenticationException If error happens during the pre-process.
+     * @throws MsalUserCancelException If pre token request fails as user cancels the flow.
+     * @throws MsalException If error happens during the pre-process.
      */
-    abstract void preTokenRequest() throws MSALUserCancelException, AuthenticationException;
+    abstract void preTokenRequest() throws MsalUserCancelException, MsalException;
 
     /**
      * Abstract method to set the additional body parameters for specific request.
@@ -109,14 +109,14 @@ abstract class BaseRequest {
 
                     Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Token request succeeds.");
                     callbackOnSuccess(callback, result);
-                } catch (final MSALUserCancelException userCancelException) {
+                } catch (final MsalUserCancelException userCancelException) {
                     Logger.error(TAG, mAuthRequestParameters.getRequestContext(), "User cancelled the flow.",
                             userCancelException);
                     callbackOnCancel(callback);
-                } catch (final AuthenticationException authenticationException) {
+                } catch (final MsalException msalException) {
                     Logger.error(TAG, mAuthRequestParameters.getRequestContext(), "Error occurred during authentication.",
-                            authenticationException);
-                    callbackOnError(callback, authenticationException);
+                            msalException);
+                    callbackOnError(callback, msalException);
                 }
             }
         });
@@ -160,9 +160,9 @@ abstract class BaseRequest {
 
     /**
      * Perform the token request sent to token endpoint.
-     * @throws AuthenticationException If there is error happened in the request.
+     * @throws MsalException If there is error happened in the request.
      */
-    void performTokenRequest() throws AuthenticationException {
+    void performTokenRequest() throws MsalClientException, MsalServiceException {
         throwIfNetworkNotAvailable();
 
         final Oauth2Client oauth2Client = new Oauth2Client();
@@ -171,15 +171,10 @@ abstract class BaseRequest {
         final TokenResponse tokenResponse;
         try {
             tokenResponse = oauth2Client.getToken(mAuthRequestParameters.getAuthority());
-        } catch (final RetryableException retryableException) {
-            Logger.error(TAG, mRequestContext, "Token request failed with network error.",
-                    retryableException);
-            throw new AuthenticationException(MSALError.SERVER_ERROR, retryableException.getMessage(),
-                    retryableException.getCause());
         } catch (final IOException e) {
             Logger.error(TAG, mRequestContext, "Token request failed with error: "
                     + e.getMessage(), e);
-            throw new AuthenticationException(MSALError.AUTH_FAILED, "Auth failed with the error " + e.getMessage(), e);
+            throw new MsalClientException(MsalError.IO_ERROR, "Auth failed with the error " + e.getMessage(), e);
         }
 
         mTokenResponse = tokenResponse;
@@ -190,9 +185,9 @@ abstract class BaseRequest {
      * so, return the stored token. Otherwise read the token response, and send Interaction_required back to calling app.
      * Silent flow will also remove token if receiving invalid_grant from token endpoint.
      * Interactive request will read the response, and send error back with code as oauth_error.
-     * @throws AuthenticationException
+     * @throws MsalException
      */
-    AuthenticationResult postTokenRequest() throws AuthenticationException {
+    AuthenticationResult postTokenRequest() throws MsalUiRequiredException, MsalServiceException, MsalClientException  {
         final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
         final AccessTokenCacheItem accessTokenCacheItem = tokenCache.saveAccessToken(mAuthRequestParameters.getAuthority().getAuthority(),
                 mAuthRequestParameters.getClientId(), mTokenResponse);
@@ -206,19 +201,32 @@ abstract class BaseRequest {
      * @return True if either access token or id token is returned, false otherwise.
      */
     boolean isAccessTokenReturned() {
-        return !MSALUtils.isEmpty(mTokenResponse.getAccessToken()) || !MSALUtils.isEmpty(mTokenResponse.getRawIdToken());
+        return !MsalUtils.isEmpty(mTokenResponse.getAccessToken()) || !MsalUtils.isEmpty(mTokenResponse.getRawIdToken());
     }
 
     /**
      * Throw DEVICE_CONNECTION_NOT_AVAILABLE if device network connection is not available.
      */
-    void throwIfNetworkNotAvailable() throws AuthenticationException {
+    void throwIfNetworkNotAvailable() throws MsalClientException {
         final ConnectivityManager connectivityManager = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         final NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         if (networkInfo == null || !networkInfo.isConnected()) {
             Logger.error(TAG, mRequestContext, "No active network is available on the device.", null);
-            throw new AuthenticationException(MSALError.DEVICE_CONNECTION_NOT_AVAILABLE, "Device network connection is not available.");
+            throw new MsalClientException(MsalError.DEVICE_NETWORK_NOT_AVAILABLE, "Device network connection is not available.");
         }
+    }
+
+    void throwExceptionFromTokenResponse(final TokenResponse tokenResponse) throws MsalUiRequiredException, MsalServiceException {
+        if (MsalUtils.isEmpty(tokenResponse.getError())) {
+            throw new MsalServiceException(MsalError.UNKNOWN_ERROR, "Request failed, but no error returned back from service.", tokenResponse.getHttpStatusCode(),
+                    tokenResponse.getClaims(), null);
+        }
+
+        if (MsalError.INVALID_GRANT.equals(tokenResponse)) {
+            throw new MsalUiRequiredException(MsalError.INVALID_GRANT, tokenResponse.getErrorDescription());
+        }
+
+        throw new MsalServiceException(tokenResponse.getError(), tokenResponse.getErrorDescription(), tokenResponse.getHttpStatusCode(), tokenResponse.getClaims(), null);
     }
 
     private void updateUserForAuthenticationResult(final AuthenticationResult result) {
@@ -244,7 +252,7 @@ abstract class BaseRequest {
 
         // add body parameters
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.CLIENT_ID, mAuthRequestParameters.getClientId());
-        final String scope = MSALUtils.convertSetToString(getDecoratedScope(mAuthRequestParameters.getScope()), " ");
+        final String scope = MsalUtils.convertSetToString(getDecoratedScope(mAuthRequestParameters.getScope()), " ");
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.SCOPE, scope);
         setAdditionalOauthParameters(oauth2Client);
     }
@@ -273,11 +281,11 @@ abstract class BaseRequest {
     }
 
     private void callbackOnError(final AuthenticationCallback callback,
-                                 final AuthenticationException authenticationException) {
+                                 final MsalException msalException) {
         getHandler().post(new Runnable() {
             @Override
             public void run() {
-                callback.onError(authenticationException);
+                callback.onError(msalException);
             }
         });
     }

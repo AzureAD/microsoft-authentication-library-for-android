@@ -233,7 +233,7 @@ public final class Logger {
      * MSAL <msal_version> <platform> <platform_version> [<timestamp>] (component) <log_message>
      */
     private String formatMessage(final RequestContext requestContext, final String message) {
-        final String logMessage = MSALUtils.isEmpty(message) ? "N/A" : message;
+        final String logMessage = MsalUtils.isEmpty(message) ? "N/A" : message;
 
         return "MSAL " + PublicClientApplication.getSdkVersion() + " Android "
                 + Build.VERSION.SDK_INT + " [" + getUTCDateTimeAsString() + appendCorrelationId(requestContext)
@@ -250,7 +250,7 @@ public final class Logger {
     }
 
     private String appendComponent(final RequestContext requestContext) {
-        if (requestContext != null && !MSALUtils.isEmpty(requestContext.getComponent())) {
+        if (requestContext != null && !MsalUtils.isEmpty(requestContext.getComponent())) {
             return "(" + requestContext.getComponent() + ") ";
         }
 

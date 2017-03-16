@@ -56,10 +56,10 @@ public final class Oauth2ClientTest {
 
         final Set<String> expectedRequestMessageSet = new HashSet<>();
         expectedRequestMessageSet.add(OauthConstants.Oauth2Parameters.GRANT_TYPE + "=" + OauthConstants.Oauth2GrantType.REFRESH_TOKEN);
-        expectedRequestMessageSet.add(OauthConstants.Oauth2Parameters.REFRESH_TOKEN + "=" + MSALUtils.urlEncode(REFRESH_TOKEN));
-        expectedRequestMessageSet.add(OauthConstants.Oauth2Parameters.CLIENT_ID + "=" + MSALUtils.urlEncode(CLIENT_ID));
+        expectedRequestMessageSet.add(OauthConstants.Oauth2Parameters.REFRESH_TOKEN + "=" + MsalUtils.urlEncode(REFRESH_TOKEN));
+        expectedRequestMessageSet.add(OauthConstants.Oauth2Parameters.CLIENT_ID + "=" + MsalUtils.urlEncode(CLIENT_ID));
 
-        final String expectedRequestMessage = MSALUtils.convertSetToString(expectedRequestMessageSet, "&");
+        final String expectedRequestMessage = MsalUtils.convertSetToString(expectedRequestMessageSet, "&");
 
         try {
             final TokenResponse response = oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
@@ -67,12 +67,12 @@ public final class Oauth2ClientTest {
             verifyMockConnectionHasCommonHeaders(mockedConnection);
 
             // Verify body parameters
-            Mockito.verify(outputStream).write(AdditionalMatchers.aryEq(expectedRequestMessage.getBytes(MSALUtils.ENCODING_UTF8)));
+            Mockito.verify(outputStream).write(AdditionalMatchers.aryEq(expectedRequestMessage.getBytes(MsalUtils.ENCODING_UTF8)));
 
             // verify response
             Assert.assertNotNull(response);
             Assert.assertTrue(response.getAccessToken().equals(AndroidTestUtil.ACCESS_TOKEN));
-        } catch (final RetryableException | IOException | AuthenticationException e) {
+        } catch (final RetryableException | IOException | MsalException e) {
             Assert.fail("Unexpected Exception.");
         }
     }
@@ -110,7 +110,7 @@ public final class Oauth2ClientTest {
                         return false;
                     }
 
-                    final Map<String, String> decodeUrlMap = MSALUtils.decodeUrlToMap(message, "&");
+                    final Map<String, String> decodeUrlMap = MsalUtils.decodeUrlToMap(message, "&");
                     if (decodeUrlMap.get(OauthConstants.Oauth2Parameters.GRANT_TYPE).equalsIgnoreCase(
                             OauthConstants.Oauth2GrantType.AUTHORIZATION_CODE)
                             && decodeUrlMap.get(OauthConstants.Oauth2Parameters.CODE).equalsIgnoreCase(AUTH_CODE)
@@ -128,7 +128,7 @@ public final class Oauth2ClientTest {
             Assert.assertFalse(response.getErrorDescription().isEmpty());
             Assert.assertNotNull(response.getErrorCodes());
             Assert.assertTrue(response.getErrorCodes().length == 2);
-        } catch (final RetryableException | IOException | AuthenticationException e) {
+        } catch (final RetryableException | IOException | MsalException e) {
             Assert.fail("Unexpected Exception.");
         }
     }
@@ -147,7 +147,7 @@ public final class Oauth2ClientTest {
         try {
             oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
             Assert.fail();
-        } catch (final AuthenticationException e) {
+        } catch (final MsalException e) {
             Assert.assertNotNull(e.getCause());
             Assert.assertTrue(e.getCause() instanceof JSONException);
         }
@@ -158,7 +158,7 @@ public final class Oauth2ClientTest {
      */
     @Test
     public void testOauth2ClientPassBackRetryableExceptionRetryFailsWithTimeout() throws IOException,
-            AuthenticationException {
+            MsalException {
         final Oauth2Client oauth2Client = getOauth2ClientWithCorrelationIdInTheHeader();
 
         // Add two connections with timeout
@@ -179,7 +179,7 @@ public final class Oauth2ClientTest {
      */
     @Test
     public void testOauth2ClientPassBackRetryableExceptionRetryFailsWithServerError() throws IOException,
-            AuthenticationException {
+            MsalException {
         final Oauth2Client oauth2Client = getOauth2ClientWithCorrelationIdInTheHeader();
 
         // Add two connections, one with timeout, one with 500/503/504
@@ -195,10 +195,10 @@ public final class Oauth2ClientTest {
             Assert.fail();
         } catch (final RetryableException e) {
             Assert.assertNotNull(e.getCause());
-            Assert.assertTrue(e.getCause() instanceof AuthenticationException);
+            Assert.assertTrue(e.getCause() instanceof MsalException);
 
-            final AuthenticationException exception = (AuthenticationException) e.getCause();
-            Assert.assertTrue(exception.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_SERVER_ERROR));
+            final MsalException exception = (MsalException) e.getCause();
+            Assert.assertTrue(exception.getErrorCode().equals(MsalError.RETRY_FAILED_WITH_SERVER_ERROR));
         }
     }
 

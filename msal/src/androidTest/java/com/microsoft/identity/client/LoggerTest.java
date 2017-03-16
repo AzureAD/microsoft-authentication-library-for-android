@@ -271,8 +271,8 @@ public final class LoggerTest {
     private void verifyLogMessageFormat(final LogResponse response, final String message, final RequestContext requestContext,
                                         final Throwable throwable) {
         Assert.assertTrue(response.getMessage().contains("MSAL " + PublicClientApplication.getSdkVersion() + " Android " + Build.VERSION.SDK_INT + " ["));
-        if (requestContext != null && (requestContext.getCorrelationId() != null || !MSALUtils.isEmpty(requestContext.getComponent()))) {
-            if (requestContext.getCorrelationId() != null && !MSALUtils.isEmpty(requestContext.getComponent())) {
+        if (requestContext != null && (requestContext.getCorrelationId() != null || !MsalUtils.isEmpty(requestContext.getComponent()))) {
+            if (requestContext.getCorrelationId() != null && !MsalUtils.isEmpty(requestContext.getComponent())) {
                 Assert.assertTrue(response.getMessage().contains(" - " + requestContext.getCorrelationId().toString() + "] (" + requestContext.getComponent()
                         + ") " + message + getStackTrace(throwable)));
             } else if (requestContext.getCorrelationId() != null) {

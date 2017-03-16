@@ -27,10 +27,7 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,42 +66,64 @@ final class Oauth2Client {
     /**
      * Send post request to get token with the given authority. Authority will hold the token endpoint.
      */
-    TokenResponse getToken(final Authority authority) throws IOException, RetryableException,
-            AuthenticationException {
+    TokenResponse getToken(final Authority authority) throws IOException, MsalClientException, MsalServiceException {
 
-        return executeHttpRequest(HttpRequest.REQUEST_METHOD_POST, authority.getTokenEndpoint(), TokenResponse.class);
+        return executeHttpRequest(HttpRequest.REQUEST_METHOD_POST, authority.getTokenEndpoint(), new ParseRawJsonResponseDelegate() {
+            @Override
+            public <T extends BaseOauth2Response> T parseSuccessRawResponse(Map<String, String> responseItems) {
+                return (T) TokenResponse.createSuccessTokenResponse(responseItems);
+            }
+
+            @Override
+            public <T extends BaseOauth2Response> T parseErrorRawResponse(Map<String, String> responseItems, final int statusCode) {
+                return (T) TokenResponse.createErrorResponse(responseItems, statusCode);
+            }
+        });
     }
 
     /**
      * Discover the AAD instance with the given instance discovery endpoint.
      */
-    InstanceDiscoveryResponse discoveryAADInstance(final URL instanceDiscoveryEndpoint) throws IOException,
-            RetryableException, AuthenticationException {
+    InstanceDiscoveryResponse discoveryAADInstance(final URL instanceDiscoveryEndpoint) throws IOException, MsalClientException, MsalServiceException {
 
-        return executeHttpRequest(HttpRequest.REQUEST_METHOD_GET, instanceDiscoveryEndpoint.toString(), InstanceDiscoveryResponse.class);
+        return executeHttpRequest(HttpRequest.REQUEST_METHOD_GET, instanceDiscoveryEndpoint.toString(), new ParseRawJsonResponseDelegate() {
+            @Override
+            public <T extends BaseOauth2Response> T parseSuccessRawResponse(Map<String, String> responseItems) {
+                return (T) InstanceDiscoveryResponse.createSuccessInstanceDiscoveryResponse(responseItems);
+            }
+
+            @Override
+            public <T extends BaseOauth2Response> T parseErrorRawResponse(Map<String, String> responseItems, final int statusCode) {
+                return (T) BaseOauth2Response.createErrorResponse(responseItems, statusCode);
+            }
+        });
     }
 
     /**
      * Perform tenant discovery to get authorize endpoint and token endpoint.
      */
-    TenantDiscoveryResponse discoverEndpoints(final URL openIdConfigurationEndpoint) throws IOException,
-            RetryableException, AuthenticationException {
+    TenantDiscoveryResponse discoverEndpoints(final URL openIdConfigurationEndpoint) throws IOException, MsalClientException, MsalServiceException {
 
-        return executeHttpRequest(HttpRequest.REQUEST_METHOD_GET, openIdConfigurationEndpoint.toString(), TenantDiscoveryResponse.class);
+        return executeHttpRequest(HttpRequest.REQUEST_METHOD_GET, openIdConfigurationEndpoint.toString(), new ParseRawJsonResponseDelegate() {
+            @Override
+            public <T extends BaseOauth2Response> T parseSuccessRawResponse(Map<String, String> responseItems) {
+                return (T) TenantDiscoveryResponse.createSuccessTenantDiscoveryResponse(responseItems);
+            }
+
+            @Override
+            public <T extends BaseOauth2Response> T parseErrorRawResponse(Map<String, String> responseItems, final int statusCode) {
+                return (T) BaseOauth2Response.createErrorResponse(responseItems, statusCode);
+            }
+        });
     }
 
     /**
      * Execute the http request.
      */
-    private <T extends BaseOauth2Response> T executeHttpRequest(final String requestMethod, final String endpoint, final Class clazz)
-            throws IOException, RetryableException, AuthenticationException {
+    private <T extends BaseOauth2Response> T executeHttpRequest(final String requestMethod, final String endpoint, final ParseRawJsonResponseDelegate delegate)
+            throws IOException, MsalServiceException, MsalClientException {
         // append query parameter to the endpoint first
-        final URL endpointWithQP;
-        try {
-            endpointWithQP = new URL(MSALUtils.appendQueryParameterToUrl(endpoint, mQueryParameters));
-        } catch (final MalformedURLException e) {
-            throw new AuthenticationException(MSALError.SERVER_ERROR, "Malformed endpoint url " + e.getMessage(), e);
-        }
+        final URL endpointWithQP = new URL(MsalUtils.appendQueryParameterToUrl(endpoint, mQueryParameters));
 
         // add common headers
         addHeader(HEADER_ACCEPT, HEADER_ACCEPT_VALUE);
@@ -118,10 +137,11 @@ final class Oauth2Client {
                     buildRequestMessage(mBodyParameters), POST_CONTENT_TYPE);
         }
 
-        return parseRawResponse(response, clazz);
+        return parseRawResponse(response, delegate);
     }
 
-    private <T extends BaseOauth2Response> T parseRawResponse(final HttpResponse httpResponse, final Class clazz) throws AuthenticationException {
+    private <T extends BaseOauth2Response> T parseRawResponse(final HttpResponse httpResponse, final ParseRawJsonResponseDelegate delegate)
+            throws MsalServiceException, MsalClientException {
         // verify the correlation id in the httpResponse headers before parsing the httpResponse body.
         verifyCorrelationIdInResponseHeaders(httpResponse);
 
@@ -131,41 +151,22 @@ final class Oauth2Client {
         Logger.verbosePII(TAG, null, "HttpResponse body is: " + httpResponse.getBody());
 
         if (httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK) {
-            return (T) BaseOauth2Response.createSuccessResponse(responseItems);
+            return delegate.parseSuccessRawResponse(responseItems);
         }
 
-        final BaseOauth2Response errorResponse;
-        try {
-            errorResponse = BaseOauth2Response.createErrorResponse(responseItems);
-        } catch (final JSONException e) {
-            throw new AuthenticationException(MSALError.JSON_PARSE_FAILURE, "Fail to parse Json", e);
-        }
-
-        try {
-            final Constructor<T> constructor = clazz.getDeclaredConstructor(BaseOauth2Response.class);
-            return constructor.newInstance(errorResponse);
-        } catch (final NoSuchMethodException e) {
-            throw new IllegalArgumentException("Unable to find generic type constructor.", e);
-        } catch (final IllegalAccessException e) {
-            throw new IllegalArgumentException("Unable to create new instance.", e);
-        } catch (final InstantiationException e) {
-            throw new IllegalArgumentException("Unable to create new instance.", e);
-        } catch (final InvocationTargetException e) {
-            throw new IllegalArgumentException("Unable to create new instance.", e);
-        }
+        return delegate.parseErrorRawResponse(responseItems, httpResponse.getStatusCode());
     }
 
-    private Map<String, String> parseResponseItems(final HttpResponse response) throws AuthenticationException {
-        if (MSALUtils.isEmpty(response.getBody())) {
-            // TODO: Discuss in this case, should we create a concrete error with status code, indicating it's server error.
-            throw new AuthenticationException(MSALError.SERVER_ERROR, "statusCode: " + response.getStatusCode());
+    private Map<String, String> parseResponseItems(final HttpResponse response) throws MsalServiceException, MsalClientException {
+        if (MsalUtils.isEmpty(response.getBody())) {
+            throw new MsalServiceException(MsalError.SERVER_ERROR, "Empty response body", response.getStatusCode(), null);
         }
 
         final Map<String, String> responseItems;
         try {
-            responseItems = MSALUtils.extractJsonObjectIntoMap(response.getBody());
+            responseItems = MsalUtils.extractJsonObjectIntoMap(response.getBody());
         } catch (final JSONException e) {
-            throw new AuthenticationException(MSALError.JSON_PARSE_FAILURE, "Fail to parse JSON", e);
+            throw new MsalClientException(MsalError.JSON_PARSE_FAILURE, "Fail to parse JSON", e);
         }
 
         return responseItems;
@@ -175,11 +176,11 @@ final class Oauth2Client {
         final Set<String> requestBodyEntries = new HashSet<>();
         final Set<Map.Entry<String, String>> bodyEntries = bodyParameters.entrySet();
         for (Map.Entry<String, String> bodyEntry : bodyEntries) {
-            requestBodyEntries.add(bodyEntry.getKey() + "=" + MSALUtils.urlEncode(bodyEntry.getValue()));
+            requestBodyEntries.add(bodyEntry.getKey() + "=" + MsalUtils.urlEncode(bodyEntry.getValue()));
         }
 
-        final String requestMessage = requestBodyEntries.isEmpty() ? "" : MSALUtils.convertSetToString(requestBodyEntries, "&");
-        return requestMessage.getBytes(MSALUtils.ENCODING_UTF8);
+        final String requestMessage = requestBodyEntries.isEmpty() ? "" : MsalUtils.convertSetToString(requestBodyEntries, "&");
+        return requestMessage.getBytes(MsalUtils.ENCODING_UTF8);
     }
 
     private void verifyCorrelationIdInResponseHeaders(final HttpResponse response) {
@@ -201,7 +202,7 @@ final class Oauth2Client {
         }
 
         final String correlationIdInHeader = correlationIdsInHeader.get(0);
-        if (!MSALUtils.isEmpty(correlationIdInHeader)) {
+        if (!MsalUtils.isEmpty(correlationIdInHeader)) {
             try {
                 final UUID correlationId = UUID.fromString(correlationIdInHeader);
                 //CHECKSTYLE:OFF: checkstyle:EmptyBlock
@@ -213,5 +214,18 @@ final class Oauth2Client {
                 Logger.error(TAG, null, "Returned correlation id is not formatted correctly", e);
             }
         }
+    }
+
+    private interface ParseRawJsonResponseDelegate {
+
+        /**
+         * Interface method for parsing success response.
+         */
+        <T extends BaseOauth2Response> T parseSuccessRawResponse(final Map<String, String> responseItems);
+
+        /**
+         * Interface method for parsing failure response.
+         */
+        <T extends BaseOauth2Response> T parseErrorRawResponse(final Map<String, String> responseItems, final int statusCode);
     }
 }

@@ -52,10 +52,9 @@ class TokenCache {
 
     /**
      * Create {@link AccessTokenCacheItem} from {@link TokenResponse} and save it into cache.
-     * @throws AuthenticationException if error happens when creating the {@link AccessTokenCacheItem}.
      */
     AccessTokenCacheItem saveAccessToken(final String authority, final String clientId, final TokenResponse response)
-            throws AuthenticationException {
+            throws MsalClientException, MsalServiceException {
         // create the access token cache item
         Logger.info(TAG, null, "Starting to Save access token into cache. Access token will be saved with authority: " + authority
                 + "; Client Id: " + clientId + "; Scopes: " + response.getScope());
@@ -65,7 +64,7 @@ class TokenCache {
         // check for intersection and delete all the cache entries with intersecting scopes.
         final List<AccessTokenCacheItem> accessTokenCacheItems = mTokenCacheAccessor.getAllAccessTokensForGivenClientId(clientId);
         for (final AccessTokenCacheItem accessTokenCacheItem : accessTokenCacheItems) {
-            if (accessTokenCacheKey.matches(accessTokenCacheItem) && MSALUtils.isScopeIntersects(newAccessToken.getScope(), accessTokenCacheItem.getScope())) {
+            if (accessTokenCacheKey.matches(accessTokenCacheItem) && MsalUtils.isScopeIntersects(newAccessToken.getScope(), accessTokenCacheItem.getScope())) {
                 mTokenCacheAccessor.deleteAccessToken(accessTokenCacheItem);
             }
         }
@@ -76,12 +75,11 @@ class TokenCache {
 
     /**
      * Create {@link RefreshTokenCacheItem} from {@link TokenResponse} and save it into cache.
-     * @throws AuthenticationException if error happens when creating the {@link RefreshTokenCacheItem}.
      */
-    void saveRefreshToken(final String authority, final String clientId, final TokenResponse response)
-            throws AuthenticationException {
+    void saveRefreshToken(final String authority, final String clientId, final TokenResponse response) throws MsalClientException,
+            MsalServiceException {
         // if server returns the refresh token back, save it in the cache.
-        if (!MSALUtils.isEmpty(response.getRefreshToken())) {
+        if (!MsalUtils.isEmpty(response.getRefreshToken())) {
             Logger.info(TAG, null, "Starting to save refresh token into cache. Refresh token will be saved with authority: " + authority
                     + "; Client Id: " + clientId);
             final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(authority, clientId, response);
@@ -103,7 +101,7 @@ class TokenCache {
 
         if (accessTokenCacheItems.isEmpty()) {
             Logger.info(TAG, requestParam.getRequestContext(), "No access is found for scopes: "
-                    + MSALUtils.convertSetToString(requestParam.getScope(), " "));
+                    + MsalUtils.convertSetToString(requestParam.getScope(), " "));
             if (user != null) {
                 Logger.infoPII(TAG, requestParam.getRequestContext(), "User displayable: " + user.getDisplayableId()
                         + " ;User home object id: " + user.getHomeObjectId());
@@ -149,8 +147,7 @@ class TokenCache {
     }
 
     // All the token AAD returns are multi-scopes. MSAL only support ADFS 2016, which issues multi-scope RT.
-    RefreshTokenCacheItem findRefreshToken(final AuthenticationRequestParameters requestParam, final User user)
-            throws AuthenticationException {
+    RefreshTokenCacheItem findRefreshToken(final AuthenticationRequestParameters requestParam, final User user) throws MsalClientException {
         final TokenCacheKey key = TokenCacheKey.createKeyForRT(requestParam.getClientId(), user);
         final List<RefreshTokenCacheItem> refreshTokenCacheItems = mTokenCacheAccessor.getRefreshToken(key);
 
@@ -164,7 +161,7 @@ class TokenCache {
         // User info already provided, if there are multiple items found will throw since we don't what
         // is the one we should use.
         if (refreshTokenCacheItems.size() > 1) {
-            throw new AuthenticationException(MSALError.MULTIPLE_CACHE_ENTRY_FOUND);
+            throw new MsalClientException(MsalError.MULTIPLE_CACHE_ENTRY_FOUND, "Multiple token entries found.");
         }
 
         return refreshTokenCacheItems.get(0);
@@ -183,10 +180,9 @@ class TokenCache {
      * An immutable list of signed-in users for the given client id.
      * @param clientId The application client id that is used to retrieve for all the signed in users.
      * @return The list of signed in users for the given client id.
-     * @throws AuthenticationException
      */
-    List<User> getUsers(final String clientId) throws AuthenticationException {
-        if (MSALUtils.isEmpty(clientId)) {
+    List<User> getUsers(final String clientId) throws MsalClientException, MsalServiceException {
+        if (MsalUtils.isEmpty(clientId)) {
             throw new IllegalArgumentException("empty or null clientId");
         }
 

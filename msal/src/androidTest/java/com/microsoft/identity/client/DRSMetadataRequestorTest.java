@@ -40,7 +40,7 @@ import java.util.UUID;
 
 @RunWith(AndroidJUnit4.class)
 @SmallTest
-public class DRSMetadataRequestorTest {
+public class DrsMetadataRequestorTest {
 
     private static final RequestContext REQUEST_CONTEXT = new RequestContext(UUID.randomUUID(), "");
 
@@ -81,13 +81,13 @@ public class DRSMetadataRequestorTest {
     private static final String DOMAIN = "lindft6.com";
 
     @Test
-    public void testRequestMetadata() throws IOException, AuthenticationException {
+    public void testRequestMetadata() throws IOException, MsalException {
         final HttpURLConnection mockedSuccessConnection = AndroidTestMockUtil
                 .getMockedConnectionWithSuccessResponse(RESPONSE);
         HttpUrlConnectionFactory.addMockedConnection(mockedSuccessConnection);
-        final DRSMetadataRequestor requestor = new DRSMetadataRequestor(REQUEST_CONTEXT);
+        final DrsMetadataRequestor requestor = new DrsMetadataRequestor(REQUEST_CONTEXT);
 
-        final DRSMetadata metadata = requestor.requestMetadata(DOMAIN);
+        final DrsMetadata metadata = requestor.requestMetadata(DOMAIN);
 
         Assert.assertEquals(
                 TEST_ADFS,
@@ -95,20 +95,20 @@ public class DRSMetadataRequestorTest {
         );
     }
 
-    @Test(expected = AuthenticationException.class)
-    public void testRequestMetadataThrows() throws IOException, AuthenticationException {
+    @Test(expected = MsalException.class)
+    public void testRequestMetadataThrows() throws IOException, MsalException {
         final HttpURLConnection mockedFailedConnection =
                 AndroidTestMockUtil.getMockedConnectionWithFailureResponse(
                         HttpURLConnection.HTTP_BAD_REQUEST, "Bad Request"
                 );
         HttpUrlConnectionFactory.addMockedConnection(mockedFailedConnection);
-        final DRSMetadataRequestor requestor = new DRSMetadataRequestor(REQUEST_CONTEXT);
+        final DrsMetadataRequestor requestor = new DrsMetadataRequestor(REQUEST_CONTEXT);
         // throws Exception (expected)
         requestor.requestMetadata(DOMAIN);
     }
 
     @Test
-    public void testParseMetadata() throws AuthenticationException {
+    public void testParseMetadata() throws MsalException {
         final Map<String, List<String>> mockHeaders = new HashMap<>();
         mockHeaders.put(HttpConstants.HeaderField.CONTENT_TYPE,
                 Collections.singletonList(HttpConstants.MediaType.APPLICATION_JSON));
@@ -119,7 +119,7 @@ public class DRSMetadataRequestorTest {
                 mockHeaders
         );
 
-        final DRSMetadata metadata = new DRSMetadataRequestor(REQUEST_CONTEXT).parseMetadata(mockResponse);
+        final DrsMetadata metadata = new DrsMetadataRequestor(REQUEST_CONTEXT).parseMetadata(mockResponse);
 
         Assert.assertEquals(
                 TEST_ADFS,
@@ -130,11 +130,11 @@ public class DRSMetadataRequestorTest {
     @Test
     public void testBuildRequestUrlByTypeOnPrem() {
         final String expected = "https://enterpriseregistration.lindft6.com/enrollmentserver/contract?api-version=1.0";
-        final DRSMetadataRequestor requestor = new DRSMetadataRequestor(REQUEST_CONTEXT);
+        final DrsMetadataRequestor requestor = new DrsMetadataRequestor(REQUEST_CONTEXT);
         Assert.assertEquals(
                 expected,
                 requestor.buildRequestUrlByType(
-                        DRSMetadataRequestor.Type.ON_PREM,
+                        DrsMetadataRequestor.Type.ON_PREM,
                         DOMAIN
                 )
         );
@@ -143,11 +143,11 @@ public class DRSMetadataRequestorTest {
     @Test
     public void testBuildRequestUrlByTypeCloud() {
         final String expected = "https://enterpriseregistration.windows.net/lindft6.com/enrollmentserver/contract?api-version=1.0";
-        final DRSMetadataRequestor requestor = new DRSMetadataRequestor(REQUEST_CONTEXT);
+        final DrsMetadataRequestor requestor = new DrsMetadataRequestor(REQUEST_CONTEXT);
         Assert.assertEquals(
                 expected,
                 requestor.buildRequestUrlByType(
-                        DRSMetadataRequestor.Type.CLOUD,
+                        DrsMetadataRequestor.Type.CLOUD,
                         DOMAIN
                 )
         );

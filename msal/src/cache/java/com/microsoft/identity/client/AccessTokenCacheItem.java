@@ -36,7 +36,8 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
     /**
      * Constructor for creating the {@link AccessTokenCacheItem}.
      */
-    AccessTokenCacheItem(final String authority, final String clientId, final TokenResponse response) throws AuthenticationException {
+    AccessTokenCacheItem(final String authority, final String clientId, final TokenResponse response)
+            throws MsalClientException, MsalServiceException {
         super(authority, clientId, response);
 
         mAccessToken = response.getAccessToken();

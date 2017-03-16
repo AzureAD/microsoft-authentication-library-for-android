@@ -32,7 +32,7 @@ import org.junit.runner.RunWith;
 import java.util.UUID;
 
 /**
- * Tests for {@link B2CAuthority}.
+ * Tests for {@link B2cAuthority}.
  */
 @RunWith(AndroidJUnit4.class)
 public final class B2cAuthorityTest {
@@ -51,8 +51,8 @@ public final class B2cAuthorityTest {
         try {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "test"), null);
             Assert.fail("Should reach exception");
-        } catch (final AuthenticationException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.UNSUPPORTED_AUTHORITY_VALIDATION));
+        } catch (final MsalException e) {
+            Assert.assertTrue(e.getErrorCode().equals(MsalError.UNSUPPORTED_AUTHORITY_VALIDATION));
         }
     }
 }

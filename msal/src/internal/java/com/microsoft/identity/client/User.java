@@ -40,7 +40,7 @@ public class User {
      * @param idToken
      */
     User(final IdToken idToken) {
-        if (!MSALUtils.isEmpty(idToken.getObjectId())) {
+        if (!MsalUtils.isEmpty(idToken.getObjectId())) {
             mUniqueId = idToken.getObjectId();
         } else {
             mUniqueId = idToken.getSubject();
@@ -48,7 +48,7 @@ public class User {
 
         mDisplayableId = idToken.getPreferredName();
         // TODO: home object id is returned in client info.
-        mHomeObjectId = MSALUtils.isEmpty(idToken.getHomeObjectId()) ? mUniqueId : idToken.getHomeObjectId();
+        mHomeObjectId = MsalUtils.isEmpty(idToken.getHomeObjectId()) ? mUniqueId : idToken.getHomeObjectId();
         mName = idToken.getName();
         mIdentityProvider = idToken.getIssuer();
     }

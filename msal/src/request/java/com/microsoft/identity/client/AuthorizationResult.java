@@ -61,23 +61,23 @@ final class AuthorizationResult {
     public static AuthorizationResult create(int resultCode, final Intent data) {
         if (data == null) {
             return new AuthorizationResult(AuthorizationStatus.FAIL,
-                    Constants.MSALError.AUTHORIZATION_FAILED, "receives null intent");
+                    Constants.MSALInternalError.AUTHORIZATION_FAILED, "receives null intent");
         }
 
-        if (resultCode == Constants.UIResponse.CANCEL) {
+        if (resultCode == Constants.UiResponse.CANCEL) {
             Logger.verbose(TAG, null, "User cancel the request in webview.");
             return AuthorizationResult.getAuthorizationResultWithUserCancel();
-        } else if (resultCode == Constants.UIResponse.AUTH_CODE_COMPLETE) {
+        } else if (resultCode == Constants.UiResponse.AUTH_CODE_COMPLETE) {
             final String url = data.getStringExtra(Constants.AUTHORIZATION_FINAL_URL);
             return AuthorizationResult.parseAuthorizationResponse(url);
             //CHECKSTYLE:OFF: checkstyle:EmptyBlock
-        } else if (resultCode == Constants.UIResponse.AUTH_CODE_ERROR) {
+        } else if (resultCode == Constants.UiResponse.AUTH_CODE_ERROR) {
             // TODO: handle to code error case.
             //CHECKSTYLE:ON: checkstyle:EmptyBlock
         }
 
         return new AuthorizationResult(AuthorizationStatus.FAIL,
-                Constants.MSALError.AUTHORIZATION_FAILED, "Unknown result code" + resultCode);
+                Constants.MSALInternalError.AUTHORIZATION_FAILED, "Unknown result code" + resultCode);
     }
 
     public static AuthorizationResult parseAuthorizationResponse(final String returnUri) {
@@ -85,17 +85,17 @@ final class AuthorizationResult {
         final String result = responseUri.getQuery();
 
         final AuthorizationResult authorizationResult;
-        if (MSALUtils.isEmpty(result)) {
+        if (MsalUtils.isEmpty(result)) {
             Logger.warning(TAG, null, "Invalid server response, empty query string from the webview redirect.");
             authorizationResult = getAuthorizationResultWithInvalidServerResponse();
         } else {
-            final Map<String, String> urlParameters = MSALUtils.decodeUrlToMap(result, "&");
+            final Map<String, String> urlParameters = MsalUtils.decodeUrlToMap(result, "&");
             if (urlParameters.containsKey(OauthConstants.TokenResponseClaim.CODE)) {
                 final String state = urlParameters.get(OauthConstants.TokenResponseClaim.STATE);
-                if (MSALUtils.isEmpty(state)) {
+                if (MsalUtils.isEmpty(state)) {
                     Logger.warning(TAG, null, "State parameter is not returned from the webview redirect.");
-                    authorizationResult = new AuthorizationResult(AuthorizationStatus.FAIL, Constants.MSALError.AUTHORIZATION_FAILED,
-                            Constants.MSALErrorMessage.STATE_NOT_RETURNED);
+                    authorizationResult = new AuthorizationResult(AuthorizationStatus.FAIL, Constants.MSALInternalError.AUTHORIZATION_FAILED,
+                            Constants.MsalErrorMessage.STATE_NOT_RETURNED);
                 } else {
                     Logger.info(TAG, null, "Auth code is successfully returned from webview redirect.");
                     authorizationResult = new AuthorizationResult(urlParameters.get(
@@ -155,8 +155,8 @@ final class AuthorizationResult {
      * either code or error.
      */
     static AuthorizationResult getAuthorizationResultWithInvalidServerResponse() {
-        return new AuthorizationResult(AuthorizationStatus.FAIL, Constants.MSALError.AUTHORIZATION_FAILED,
-                Constants.MSALErrorMessage.AUTHORIZATION_SERVER_INVALID_RESPONSE);
+        return new AuthorizationResult(AuthorizationStatus.FAIL, Constants.MSALInternalError.AUTHORIZATION_FAILED,
+                Constants.MsalErrorMessage.AUTHORIZATION_SERVER_INVALID_RESPONSE);
     }
 
     /**
@@ -164,8 +164,8 @@ final class AuthorizationResult {
      * user clicks on the cancel displayed in the browser.
      */
     static AuthorizationResult getAuthorizationResultWithUserCancel() {
-        return new AuthorizationResult(AuthorizationStatus.USER_CANCEL, Constants.MSALError.USER_CANCEL,
-                Constants.MSALErrorMessage.USER_CANCELLED_FLOW);
+        return new AuthorizationResult(AuthorizationStatus.USER_CANCEL, Constants.MSALInternalError.USER_CANCEL,
+                Constants.MsalErrorMessage.USER_CANCELLED_FLOW);
     }
 
     /**

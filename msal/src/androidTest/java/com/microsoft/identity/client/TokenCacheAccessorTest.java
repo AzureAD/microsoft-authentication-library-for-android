@@ -82,7 +82,7 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
      * Verify that access token is stored with the passed in cache key.
      */
     @Test
-    public void testSaveAT() throws AuthenticationException {
+    public void testSaveAT() throws MsalException {
         final String firstAT = "accessToken1";
         final String secondAT = "accessToken2";
 
@@ -112,7 +112,7 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
      * Verify that AT is saved correctly for multiple users.
      */
     @Test
-    public void testSaveATWithMultipleUser() throws AuthenticationException {
+    public void testSaveATWithMultipleUser() throws MsalException {
         final Set<String> scopes = Collections.singleton("scope");
 
         // save token for user1
@@ -135,7 +135,7 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
      * Verify that AT is stored correctly for scopes with no intersection.
      */
     @Test
-    public void testSaveATWithSingleUserNoScopeIntersection() throws AuthenticationException {
+    public void testSaveATWithSingleUserNoScopeIntersection() throws MsalException {
         final Set<String> scopes1 = Collections.singleton("scope1");
         final AccessTokenCacheItem tokenItem1 = new AccessTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("accessToken", "",
                 scopes1, getIdTokenWithDefaultUser()));
@@ -153,7 +153,7 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
      * Verify that RT is saved correctly for single user case.
      */
     @Test
-    public void testSaveRT() throws AuthenticationException {
+    public void testSaveRT() throws MsalException {
         // save RT item with scope1
         final Set<String> scope1 = Collections.singleton("scope1");
         final RefreshTokenCacheItem rtItem = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("", "refreshToken",
@@ -189,7 +189,7 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
      * Verify that RT is saved correctly for multi-user case.
      */
     @Test
-    public void testSaveRTMultipleUsers() throws AuthenticationException {
+    public void testSaveRTMultipleUsers() throws MsalException {
         final Set<String> scope = Collections.singleton("scope");
 
         final RefreshTokenCacheItem rtForUser1 = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("", "refreshToken1",
@@ -217,7 +217,7 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
 
     // Verify that RT is saved correctly for different client id and authority.
     @Test
-    public void testSaveRTForDifferentClientIdAndAuthority() throws AuthenticationException {
+    public void testSaveRTForDifferentClientIdAndAuthority() throws MsalException {
         final Set<String> scope = Collections.singleton("scope1");
 
         // add rt with default client id, authority and user
@@ -252,7 +252,7 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
     }
 
     @Test
-    public void testDeleteRTItems() throws AuthenticationException {
+    public void testDeleteRTItems() throws MsalException {
         final Set<String> scope = Collections.singleton("scope");
 
         final RefreshTokenCacheItem rtItem = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("accessToken", "refresh_token",
@@ -266,12 +266,12 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         assertTrue(mAccessor.getAllRefreshTokens().size() == 0);
     }
 
-    private User getDefaultUser() throws AuthenticationException {
+    private User getDefaultUser() throws MsalException {
         return getUser(DISPLAYABLE, UNIQUE_ID, HOME_OID);
     }
 
     static User getUser(final String displayable, final String uniqueId, final String homeOid)
-            throws AuthenticationException {
+            throws MsalException {
         final IdToken idToken = new IdToken(AndroidTestUtil.getRawIdToken(displayable, uniqueId, homeOid));
         final User user = new User(idToken);
         user.setDisplayableId(displayable);
@@ -283,9 +283,9 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
 
     static TokenResponse getTokenResponse(final String accessToken, final String refreshToken, final Set<String> scopes,
                                            final String idToken)
-            throws AuthenticationException {
+            throws MsalException {
         return new TokenResponse(accessToken, idToken, refreshToken, new Date(), new Date(), new Date(),
-                MSALUtils.convertSetToString(scopes, " "), "Bearer", null);
+                MsalUtils.convertSetToString(scopes, " "), "Bearer", null);
     }
 
     private String getIdTokenWithDefaultUser() {

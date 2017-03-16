@@ -35,7 +35,7 @@ public final class AuthenticationResult {
     private final AccessTokenCacheItem mAccessTokenCacheItem;
     private User mUser;
 
-    AuthenticationResult(final AccessTokenCacheItem accessTokenCacheItem) throws AuthenticationException {
+    AuthenticationResult(final AccessTokenCacheItem accessTokenCacheItem) throws MsalClientException, MsalServiceException {
         mAccessTokenCacheItem = accessTokenCacheItem;
         mUser = new User(new IdToken(accessTokenCacheItem.getRawIdToken()));
     }

@@ -24,24 +24,20 @@
 package com.microsoft.identity.client;
 
 /**
- * The UI options that developer could pass in during interactive sign in.
+ * This exception class represents general errors that are local to the library. Given below is a table of proposed codes and a short description of each.
+ * TODO: document all the possible error code that will be returned from the exception.
  */
-public enum UiBehavior {
+public final class MsalClientException extends MsalException {
 
-    /**
-     * AcquireToken will send prompt=select_account to authorize endpoint and would show a list of users from which can be
-     * selected for authentication.
-     */
-    SELECT_ACCOUNT,
+    public MsalClientException(final String errorCode) {
+        super(errorCode);
+    }
 
-    /**
-     * The user will be prompted for credentials by the service. It is achieved by sending prompt=login to the service.
-     */
-    FORCE_LOGIN,
+    public MsalClientException(final String errorCode, final String errorMessage) {
+        super(errorCode, errorMessage);
+    }
 
-    /**
-     * The user will be prompted to consent even if consent was granted before. It is achieved by sending prompt=consent
-     * to the service.
-     */
-    CONSENT
+    public MsalClientException(final String errorCode, final String errorMessage, final Throwable throwable) {
+        super(errorCode, errorMessage, throwable);
+    }
 }

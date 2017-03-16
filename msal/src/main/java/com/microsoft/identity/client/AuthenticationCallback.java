@@ -36,9 +36,9 @@ public interface AuthenticationCallback {
 
     /**
      * Error occurs during the authentication.
-     * @param exception The {@link AuthenticationException} contains the error code, error message and cause if applicable.
+     * @param exception The {@link MsalException} contains the error code, error message and cause if applicable.
      */
-    void onError(final AuthenticationException exception);
+    void onError(final MsalException exception);
 
     /**
      * Will be called if user cancels the flow.

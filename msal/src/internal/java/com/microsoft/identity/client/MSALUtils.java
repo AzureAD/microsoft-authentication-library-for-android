@@ -36,7 +36,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -57,7 +56,7 @@ import java.util.StringTokenizer;
 /**
  * Internal Util class for MSAL.
  */
-final class MSALUtils {
+final class MsalUtils {
     /**
      * The encoding scheme the sdk uses.
      */
@@ -80,7 +79,7 @@ final class MSALUtils {
     /**
      * Private constructor to prevent Util class from being initiated.
      */
-    private MSALUtils() {
+    private MsalUtils() {
     }
 
     /**
@@ -162,14 +161,14 @@ final class MSALUtils {
      * @return Converted scopes in the format of set.
      */
     static Set<String> getScopesAsSet(final String scopes) {
-        if (MSALUtils.isEmpty(scopes)) {
+        if (MsalUtils.isEmpty(scopes)) {
             return new HashSet<>();
         }
 
         final String[] scopeArray = scopes.toLowerCase(Locale.US).split(" ");
         final Set<String> resultSet = new HashSet<>();
         for (int i = 0; i < scopeArray.length; i++) {
-            if (!MSALUtils.isEmpty(scopeArray[i])) {
+            if (!MsalUtils.isEmpty(scopeArray[i])) {
                 resultSet.add(scopeArray[i]);
             }
         }
@@ -281,7 +280,7 @@ final class MSALUtils {
         final Map<String, String> decodedUrlMap = new HashMap<>();
 
         // delimiter can be " "
-        if (MSALUtils.isEmpty(url) || delimiter == null) {
+        if (MsalUtils.isEmpty(url) || delimiter == null) {
             return decodedUrlMap;
         }
 
@@ -298,7 +297,7 @@ final class MSALUtils {
                 final String key = urlDecode(elements[0]);
                 final String value = urlDecode(elements[1]);
 
-                if (!MSALUtils.isEmpty(key) && !MSALUtils.isEmpty(value)) {
+                if (!MsalUtils.isEmpty(key) && !MsalUtils.isEmpty(value)) {
                     decodedUrlMap.put(key, value);
                 }
                 //CHECKSTYLE:OFF: checkstyle:EmptyBlock

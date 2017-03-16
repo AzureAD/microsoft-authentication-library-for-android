@@ -57,9 +57,9 @@ abstract class Authority {
      *
      * @param requestContext The {@link RequestContext} for the instance discovery request.
      * @return The tenant discovery endpoint.
-     * @throws AuthenticationException if error happens during the instance discovery.
+     * @throws MsalException if error happens during the instance discovery.
      */
-    abstract String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws AuthenticationException;
+    abstract String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws MsalException;
 
     /**
      * @return True if the authority is already validated.
@@ -74,7 +74,7 @@ abstract class Authority {
     abstract void addToValidatedAuthorityCache(final String userPrincipalName);
 
     /**
-     * Create the detailed authority. If the authority url string is for AAD, will create the {@link AADAuthority}, otherwise
+     * Create the detailed authority. If the authority url string is for AAD, will create the {@link AadAuthority}, otherwise
      * ADFS or B2C authority will be created.
      *
      * @param authorityUrl      The authority url used to create the {@link Authority}.
@@ -93,8 +93,7 @@ abstract class Authority {
             throw new IllegalArgumentException("Invalid protocol for the authority url.");
         }
 
-        // there has to be a valid path provided.
-        if (MSALUtils.isEmpty(authority.getPath().replaceFirst("/", ""))) {
+        if (MsalUtils.isEmpty(authority.getPath().replace("/", ""))) {
             throw new IllegalArgumentException("Invalid authority url");
         }
 
@@ -107,11 +106,11 @@ abstract class Authority {
             throw new IllegalArgumentException("ADFS authority is not a supported authority instance");
         } else if (isB2cAuthority) {
             Logger.info(TAG, null, "Passed in authority string is a b2c authority, create an new b2c authority instance.");
-            return new B2CAuthority(authority, validateAuthority);
+            return new B2cAuthority(authority, validateAuthority);
         }
 
         Logger.info(TAG, null, "Passed in authority string is a aad authority, create an new aad authority instance.");
-        return new AADAuthority(authority, validateAuthority);
+        return new AadAuthority(authority, validateAuthority);
     }
 
     /**
@@ -120,9 +119,9 @@ abstract class Authority {
      * tenant discovery to get authorize and token endpoint. Developer could turn off authority validation, but for all the
      * authority, we'll do tenant discovery.
      * @param requestContext {@link RequestContext} for the authority validation and tenant discovery.
-     * @throws AuthenticationException If error happens during authority or tenant discovery.
+     * @throws MsalException If error happens during authority or tenant discovery.
      */
-    void resolveEndpoints(final RequestContext requestContext, final String userPrincipalName) throws AuthenticationException {
+    void resolveEndpoints(final RequestContext requestContext, final String userPrincipalName) throws MsalException {
         Logger.info(TAG, requestContext, "Perform authority validation and tenant discovery.");
         if (existsInValidatedAuthorityCache(userPrincipalName)) {
             Logger.info(TAG, requestContext, "Authority has been validated.");
@@ -139,18 +138,19 @@ abstract class Authority {
             final Oauth2Client oauth2Client = new Oauth2Client();
             oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID, requestContext.getCorrelationId().toString());
             tenantDiscoveryResponse = oauth2Client.discoverEndpoints(new URL(openIdConfigurationEndpoint));
-        } catch (final MalformedURLException e) {
-            throw new AuthenticationException(MSALError.SERVER_ERROR, "malformed openid configuration endpoint", e);
-        } catch (final RetryableException retryableException) {
-            throw new AuthenticationException(MSALError.SERVER_ERROR, retryableException.getMessage(), retryableException.getCause());
         } catch (final IOException ioException) {
-            throw new AuthenticationException(MSALError.TENANT_DISCOVERY_FAILED, ioException.getMessage(), ioException);
+            throw new MsalServiceException(MsalError.SERVER_ERROR, ioException.getMessage(), ioException);
         }
 
-        if (MSALUtils.isEmpty(tenantDiscoveryResponse.getAuthorizationEndpoint())
-                || MSALUtils.isEmpty(tenantDiscoveryResponse.getTokenEndpoint())) {
-            throw new AuthenticationException(MSALError.TENANT_DISCOVERY_FAILED, "Error: " + tenantDiscoveryResponse.getError()
-                    + ";ErrorDescription: " + tenantDiscoveryResponse.getErrorDescription());
+        if (MsalUtils.isEmpty(tenantDiscoveryResponse.getAuthorizationEndpoint())
+                || MsalUtils.isEmpty(tenantDiscoveryResponse.getTokenEndpoint())) {
+            if (tenantDiscoveryResponse.getError() != null) {
+                throw new MsalServiceException(tenantDiscoveryResponse.getError(), tenantDiscoveryResponse.getErrorDescription(),
+                        tenantDiscoveryResponse.getHttpStatusCode(), null);
+            }
+
+            throw new MsalServiceException(MsalError.UNKNOWN_ERROR, "Didn't receive either success or failure response from server",
+                    tenantDiscoveryResponse.getHttpStatusCode(), null);
         }
 
         mAuthorizationEndpoint = tenantDiscoveryResponse.getAuthorizationEndpoint();
