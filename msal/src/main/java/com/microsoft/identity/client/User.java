@@ -27,7 +27,7 @@ package com.microsoft.identity.client;
  * Contains the detailed info to identify an user. Signout functionality is provided at the user level.
  */
 public class User {
-    private String mUniqueId;
+
     private String mDisplayableId;
     private String mName;
     private String mIdentityProvider;
@@ -39,25 +39,11 @@ public class User {
      * @param idToken
      */
     User(final IdToken idToken) {
-        if (!MSALUtils.isEmpty(idToken.getObjectId())) {
-            mUniqueId = idToken.getObjectId();
-        } else {
-            mUniqueId = idToken.getSubject();
-        }
-
         mDisplayableId = idToken.getPreferredName();
         // TODO: home object id is returned in client info.
-        mHomeObjectId = MSALUtils.isEmpty(idToken.getHomeObjectId()) ? mUniqueId : idToken.getHomeObjectId();
+        mHomeObjectId = MSALUtils.isEmpty(idToken.getHomeObjectId()) ? idToken.getObjectId() : idToken.getHomeObjectId();
         mName = idToken.getName();
         mIdentityProvider = idToken.getIssuer();
-    }
-
-    /**
-     * @return The unique identifier of the user authenticated during token acquisition. Can be null if not returned
-     * from the service.
-     */
-    public String getUniqueId() {
-        return mUniqueId;
     }
 
     /**
@@ -96,14 +82,6 @@ public class User {
 
     TokenCache getTokenCache() {
         return mTokenCache;
-    }
-
-    /**
-     * Used by developer to set the User object when doing the acquire token API call.
-     * @param uniqueId
-     */
-    void setUniqueId(final String uniqueId) {
-        mUniqueId = uniqueId;
     }
 
     /**

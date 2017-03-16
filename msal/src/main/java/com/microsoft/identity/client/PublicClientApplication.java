@@ -129,9 +129,9 @@ public final class PublicClientApplication {
     }
 
     /**
-     * Return the user object with specified user identifier. The user identifier could be either displayable id or
-     * unique id.
-     * @param userIdentifier The user identifier, could be either displayable id or unique id.
+     * Return the user object with specified user identifier. The user identifier could be either displayableId or
+     * homeObjectId.
+     * @param userIdentifier The user identifier, could be either displayable id or homeObjectId.
      * @return The {@link User} matching the user identifier.
      * @throws AuthenticationException if error happens when retrieving users from the cache.
      */
@@ -142,7 +142,7 @@ public final class PublicClientApplication {
 
         final List<User> allUsers = getUsers();
         for (final User user : allUsers) {
-            if (userIdentifier.equals(user.getDisplayableId()) || userIdentifier.equals(user.getUniqueId())) {
+            if (userIdentifier.equals(user.getDisplayableId()) || userIdentifier.equals(user.getHomeObjectId())) {
                 return user;
             }
         }
