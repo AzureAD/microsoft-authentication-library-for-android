@@ -54,49 +54,49 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Tests for {@link MSALUtils}.
+ * Tests for {@link MsalUtils}.
  */
 @RunWith(AndroidJUnit4.class)
 @SmallTest
-public final class MSALUtilTest {
+public final class MsalUtilTest {
     static final int EXPECTED_SINGLE_SCOPE_SIZE = 1;
     static final int EXPECTED_MULTI_SCOPE_SIZE = 3;
     @Test
     public void testNullMessage() {
-        Assert.assertTrue(MSALUtils.isEmpty(null));
+        Assert.assertTrue(MsalUtils.isEmpty(null));
     }
 
     @Test
     public void testEmptyMessage() {
-        Assert.assertTrue(MSALUtils.isEmpty(""));
+        Assert.assertTrue(MsalUtils.isEmpty(""));
     }
 
     @Test
     public void testBlankMessage() {
-        Assert.assertTrue(MSALUtils.isEmpty("  "));
+        Assert.assertTrue(MsalUtils.isEmpty("  "));
     }
 
     @Test
     public void testNonEmptyMessage() {
-        Assert.assertFalse(MSALUtils.isEmpty("Test"));
+        Assert.assertFalse(MsalUtils.isEmpty("Test"));
     }
 
     @Test
     public void testEmptyEncodeDecodeString() throws UnsupportedEncodingException {
-        Assert.assertTrue(MSALUtils.urlEncode("").equals(""));
-        Assert.assertTrue(MSALUtils.urlDecode("").equals(""));
+        Assert.assertTrue(MsalUtils.urlEncode("").equals(""));
+        Assert.assertTrue(MsalUtils.urlDecode("").equals(""));
     }
 
     @Test
     public void testEncodeDecodeString() throws UnsupportedEncodingException {
-        Assert.assertTrue(MSALUtils.urlEncode("1 $%&=").equals("1+%24%25%26%3D"));
-        Assert.assertTrue(MSALUtils.urlDecode("+%24%25%26%3D").equals(" $%&="));
+        Assert.assertTrue(MsalUtils.urlEncode("1 $%&=").equals("1+%24%25%26%3D"));
+        Assert.assertTrue(MsalUtils.urlDecode("+%24%25%26%3D").equals(" $%&="));
     }
 
     @Test
     public void testExtractJsonObjectIntoMapNullJsonFormat() {
         try {
-            MSALUtils.extractJsonObjectIntoMap("test");
+            MsalUtils.extractJsonObjectIntoMap("test");
             Assert.fail("Expect Json exception");
             //CHECKSTYLE:OFF: checkstyle:EmptyBlock
         } catch (final JSONException e) {
@@ -107,7 +107,7 @@ public final class MSALUtilTest {
     @Test
     public void testExtractJsonObjectIntoMapHappyPath() {
         try {
-            final Map<String, String> result = MSALUtils.extractJsonObjectIntoMap("{\"JsonKey\":\"JsonValue\"}");
+            final Map<String, String> result = MsalUtils.extractJsonObjectIntoMap("{\"JsonKey\":\"JsonValue\"}");
             Assert.assertNotNull(result);
             Assert.assertTrue(result.get("JsonKey").equals("JsonValue"));
         } catch (JSONException e) {
@@ -117,11 +117,11 @@ public final class MSALUtilTest {
 
     @Test
     public void testCalculateExpiresOnNullAndEmptyExpiresIn() {
-        final Date expiresOnWithNullExpiresIn = MSALUtils.calculateExpiresOn(null);
-        final Date expiresOnWithEmptyExpiresIn = MSALUtils.calculateExpiresOn("");
+        final Date expiresOnWithNullExpiresIn = MsalUtils.calculateExpiresOn(null);
+        final Date expiresOnWithEmptyExpiresIn = MsalUtils.calculateExpiresOn("");
 
         final Calendar calendar = new GregorianCalendar();
-        calendar.add(Calendar.SECOND, MSALUtils.DEFAULT_EXPIRATION_TIME_SEC);
+        calendar.add(Calendar.SECOND, MsalUtils.DEFAULT_EXPIRATION_TIME_SEC);
 
         Assert.assertNotNull(expiresOnWithNullExpiresIn);
         Assert.assertFalse(expiresOnWithNullExpiresIn.after(calendar.getTime()));
@@ -133,7 +133,7 @@ public final class MSALUtilTest {
     @Test
     public void testCalculateExpiresOnWithExpiresIn() {
         final String expiresIn = "1000";
-        final Date expiresOn = MSALUtils.calculateExpiresOn(expiresIn);
+        final Date expiresOn = MsalUtils.calculateExpiresOn(expiresIn);
 
         final Calendar expectedDate = new GregorianCalendar();
         expectedDate.add(Calendar.SECOND, Integer.parseInt(expiresIn));
@@ -144,28 +144,28 @@ public final class MSALUtilTest {
 
     @Test
     public void testGetScopeAsSetEmptyAndNullScopes() {
-        Assert.assertNotNull(MSALUtils.getScopesAsSet("").isEmpty());
-        Assert.assertTrue(MSALUtils.getScopesAsSet(null).isEmpty());
+        Assert.assertNotNull(MsalUtils.getScopesAsSet("").isEmpty());
+        Assert.assertTrue(MsalUtils.getScopesAsSet(null).isEmpty());
     }
 
     @Test
     public void testGetScopesAsSet() {
         // Verify that if the input scope array only contains one scope, it's correctly converted into the set.
         final String singleScope = "scope";
-        final Set<String> singleScopeSet = MSALUtils.getScopesAsSet(singleScope);
+        final Set<String> singleScopeSet = MsalUtils.getScopesAsSet(singleScope);
         Assert.assertNotNull(singleScopeSet);
         Assert.assertTrue(singleScopeSet.size() == EXPECTED_SINGLE_SCOPE_SIZE);
         Assert.assertTrue(singleScopeSet.contains(singleScope));
 
         // Verify if the scopes array has multiple space in the input string, it's corretly converted into the set.
         final String singleScopeWithTrailingSpace = singleScope + "   ";
-        final Set<String> singleScopeSetWithTrailingSpace = MSALUtils.getScopesAsSet(singleScopeWithTrailingSpace);
+        final Set<String> singleScopeSetWithTrailingSpace = MsalUtils.getScopesAsSet(singleScopeWithTrailingSpace);
         Assert.assertNotNull(singleScopeSetWithTrailingSpace);
         Assert.assertTrue(singleScopeSetWithTrailingSpace.size() == EXPECTED_SINGLE_SCOPE_SIZE);
         Assert.assertTrue(singleScopeSetWithTrailingSpace.contains(singleScope));
 
         final String multipleScopesInput = "scope1 scope2  scope3  ";
-        final Set<String> multipleScopesSet = MSALUtils.getScopesAsSet(multipleScopesInput);
+        final Set<String> multipleScopesSet = MsalUtils.getScopesAsSet(multipleScopesInput);
         Assert.assertNotNull(multipleScopesSet);
         Assert.assertTrue(multipleScopesSet.size() == EXPECTED_MULTI_SCOPE_SIZE);
         Assert.assertTrue(multipleScopesSet.contains("scope1"));
@@ -180,14 +180,14 @@ public final class MSALUtilTest {
 
         // If package manager is null
         Mockito.when(mockedContext.getPackageManager()).thenReturn(null);
-        Assert.assertFalse(MSALUtils.hasCustomTabRedirectActivity(mockedContext, url));
+        Assert.assertFalse(MsalUtils.hasCustomTabRedirectActivity(mockedContext, url));
 
         // resolveInfo list is empty
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
         Mockito.when(mockedContext.getPackageManager()).thenReturn(mockedPackageManager);
         Mockito.when(mockedPackageManager.queryIntentActivities(Matchers.any(Intent.class),
                 Matchers.eq(PackageManager.GET_RESOLVED_FILTER))).thenReturn(Collections.<ResolveInfo>emptyList());
-        Assert.assertFalse(MSALUtils.hasCustomTabRedirectActivity(mockedContext, url));
+        Assert.assertFalse(MsalUtils.hasCustomTabRedirectActivity(mockedContext, url));
 
         // resolve info list contains single item, and the activity name is BrowserTabActivity class name.
         final List<ResolveInfo> resolveInfos = new ArrayList<>();
@@ -199,7 +199,7 @@ public final class MSALUtilTest {
         mockedActivityInfo1.name = BrowserTabActivity.class.getName();
         mockedResolveInfo1.activityInfo = mockedActivityInfo1;
         resolveInfos.add(mockedResolveInfo1);
-        Assert.assertTrue(MSALUtils.hasCustomTabRedirectActivity(mockedContext, url));
+        Assert.assertTrue(MsalUtils.hasCustomTabRedirectActivity(mockedContext, url));
 
         // resolve info list contains multiple items
         final ResolveInfo mockedResolveInfo2 = Mockito.mock(ResolveInfo.class);
@@ -207,7 +207,7 @@ public final class MSALUtilTest {
         mockedActivityInfo2.name = "some other class";
         mockedResolveInfo2.activityInfo = mockedActivityInfo2;
         resolveInfos.add(mockedResolveInfo2);
-        Assert.assertFalse(MSALUtils.hasCustomTabRedirectActivity(mockedContext, url));
+        Assert.assertFalse(MsalUtils.hasCustomTabRedirectActivity(mockedContext, url));
     }
 
     @Test
@@ -216,14 +216,14 @@ public final class MSALUtilTest {
 
         // If package manager is null
         Mockito.when(mockedContext.getPackageManager()).thenReturn(null);
-        Assert.assertNull(MSALUtils.getChromePackageWithCustomTabSupport(mockedContext));
+        Assert.assertNull(MsalUtils.getChromePackageWithCustomTabSupport(mockedContext));
 
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
 
         // if not custom tab service exists
         Mockito.when(mockedPackageManager.queryIntentServices(Matchers.any(Intent.class),
                 Matchers.eq(0))).thenReturn(null);
-        Assert.assertNull(MSALUtils.getChromePackageWithCustomTabSupport(mockedContext));
+        Assert.assertNull(MsalUtils.getChromePackageWithCustomTabSupport(mockedContext));
 
         final List<ResolveInfo> resolvedInfos = new ArrayList<>();
         Mockito.when(mockedContext.getPackageManager()).thenReturn(mockedPackageManager);
@@ -236,17 +236,17 @@ public final class MSALUtilTest {
         mockedServiceInfo.packageName = "some package but not chrome";
         mockedResolveInfo.serviceInfo = mockedServiceInfo;
         resolvedInfos.add(mockedResolveInfo);
-        Assert.assertNull(MSALUtils.getChromePackageWithCustomTabSupport(mockedContext));
+        Assert.assertNull(MsalUtils.getChromePackageWithCustomTabSupport(mockedContext));
 
         // If multiple packages have custom tab support, and chrome package also has the support
         final ResolveInfo mockedResolveInfoForChrome = Mockito.mock(ResolveInfo.class);
         final ServiceInfo mockedServiceInfoForChrome = Mockito.mock(ServiceInfo.class);
-        mockedServiceInfoForChrome.packageName = MSALUtils.CHROME_PACKAGES[0];
+        mockedServiceInfoForChrome.packageName = MsalUtils.CHROME_PACKAGES[0];
         mockedResolveInfoForChrome.serviceInfo = mockedServiceInfoForChrome;
         resolvedInfos.add(mockedResolveInfoForChrome);
-        final String chromePackageNameWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(mockedContext);
+        final String chromePackageNameWithCustomTabSupport = MsalUtils.getChromePackageWithCustomTabSupport(mockedContext);
         Assert.assertNotNull(chromePackageNameWithCustomTabSupport);
-        Assert.assertTrue(chromePackageNameWithCustomTabSupport.equals(MSALUtils.CHROME_PACKAGES[0]));
+        Assert.assertTrue(chromePackageNameWithCustomTabSupport.equals(MsalUtils.CHROME_PACKAGES[0]));
     }
 
     @Test
@@ -255,36 +255,36 @@ public final class MSALUtilTest {
 
         // package manager is null
         Mockito.when(mockedContext.getPackageManager()).thenReturn(null);
-        Assert.assertNull(MSALUtils.getChromePackageWithCustomTabSupport(mockedContext));
+        Assert.assertNull(MsalUtils.getChromePackageWithCustomTabSupport(mockedContext));
 
         // no chrome package exists
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
         Mockito.when(mockedContext.getPackageManager()).thenReturn(mockedPackageManager);
-        for (int i = 0; i < MSALUtils.CHROME_PACKAGES.length; i++) {
-            Mockito.when(mockedPackageManager.getPackageInfo(Matchers.refEq(MSALUtils.CHROME_PACKAGES[i]),
+        for (int i = 0; i < MsalUtils.CHROME_PACKAGES.length; i++) {
+            Mockito.when(mockedPackageManager.getPackageInfo(Matchers.refEq(MsalUtils.CHROME_PACKAGES[i]),
                     Matchers.eq(PackageManager.GET_ACTIVITIES))).thenThrow(PackageManager.NameNotFoundException.class);
         }
-        Assert.assertNull(MSALUtils.getChromePackage(mockedContext));
+        Assert.assertNull(MsalUtils.getChromePackage(mockedContext));
 
         // The three chrome package all exists on the device, return the stable chrome package name.
-        for (int i = 0; i < MSALUtils.CHROME_PACKAGES.length; i++) {
-            Mockito.when(mockedPackageManager.getPackageInfo(Matchers.refEq(MSALUtils.CHROME_PACKAGES[i]),
+        for (int i = 0; i < MsalUtils.CHROME_PACKAGES.length; i++) {
+            Mockito.when(mockedPackageManager.getPackageInfo(Matchers.refEq(MsalUtils.CHROME_PACKAGES[i]),
                     Matchers.eq(PackageManager.GET_ACTIVITIES))).thenReturn(Mockito.mock(PackageInfo.class));
         }
-        Assert.assertTrue(MSALUtils.getChromePackage(mockedContext).equals(MSALUtils.CHROME_PACKAGES[0]));
+        Assert.assertTrue(MsalUtils.getChromePackage(mockedContext).equals(MsalUtils.CHROME_PACKAGES[0]));
     }
 
     @Test
     public void testDecodeUrlToMap() {
         // url is null or empty
-        Assert.assertTrue(MSALUtils.decodeUrlToMap(null, " ").isEmpty());
-        Assert.assertTrue(MSALUtils.decodeUrlToMap("", "").isEmpty());
+        Assert.assertTrue(MsalUtils.decodeUrlToMap(null, " ").isEmpty());
+        Assert.assertTrue(MsalUtils.decodeUrlToMap("", "").isEmpty());
 
         // delimiter is null
-        Assert.assertTrue(MSALUtils.decodeUrlToMap("some url", null).isEmpty());
+        Assert.assertTrue(MsalUtils.decodeUrlToMap("some url", null).isEmpty());
 
         final String urlToDecode = "a=b&c=d";
-        final Map<String, String> result = MSALUtils.decodeUrlToMap(urlToDecode, "&");
+        final Map<String, String> result = MsalUtils.decodeUrlToMap(urlToDecode, "&");
         Assert.assertNotNull(result);
         Assert.assertTrue(result.size() == 2);
         Assert.assertTrue(result.get("a").equals("b"));
@@ -293,12 +293,12 @@ public final class MSALUtilTest {
 
     @Test
     public void testConvertSetToStringEmptyOrNullSetOrDelimiter() {
-        Assert.assertTrue(MSALUtils.convertSetToString(null, " ").equals(""));
-        Assert.assertTrue(MSALUtils.convertSetToString(Collections.EMPTY_SET, " ").equals(""));
+        Assert.assertTrue(MsalUtils.convertSetToString(null, " ").equals(""));
+        Assert.assertTrue(MsalUtils.convertSetToString(Collections.EMPTY_SET, " ").equals(""));
 
         final Set<String> set = new HashSet<>();
         set.add("some string");
-        Assert.assertTrue(MSALUtils.convertSetToString(set, null).equals(""));
+        Assert.assertTrue(MsalUtils.convertSetToString(set, null).equals(""));
     }
 
     @Test
@@ -306,7 +306,7 @@ public final class MSALUtilTest {
         final List<String> input = new ArrayList<>();
         input.add("scope1");
         input.add("scope2");
-        final String result = MSALUtils.convertSetToString(new HashSet<>(input), " ");
+        final String result = MsalUtils.convertSetToString(new HashSet<>(input), " ");
 
         Assert.assertTrue(result.equals("scope1 scope2"));
     }
@@ -314,13 +314,13 @@ public final class MSALUtilTest {
     @Test
     public void testBase64Encode() {
         String stringToEncode = "a+b@c.com";
-        Assert.assertTrue(base64Decode(MSALUtils.base64EncodeToString(stringToEncode)).equals(stringToEncode));
+        Assert.assertTrue(base64Decode(MsalUtils.base64EncodeToString(stringToEncode)).equals(stringToEncode));
 
         stringToEncode = "a$c@b.com";
-        Assert.assertTrue(base64Decode(MSALUtils.base64EncodeToString(stringToEncode)).equals(stringToEncode));
+        Assert.assertTrue(base64Decode(MsalUtils.base64EncodeToString(stringToEncode)).equals(stringToEncode));
     }
 
     private String base64Decode(final String encodedString) {
-        return new String(Base64.decode(encodedString.getBytes(Charset.forName(MSALUtils.ENCODING_UTF8)), Base64.NO_PADDING | Base64.URL_SAFE));
+        return new String(Base64.decode(encodedString.getBytes(Charset.forName(MsalUtils.ENCODING_UTF8)), Base64.NO_PADDING | Base64.URL_SAFE));
     }
 }

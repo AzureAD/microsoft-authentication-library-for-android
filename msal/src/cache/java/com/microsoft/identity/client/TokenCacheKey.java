@@ -44,17 +44,17 @@ final class TokenCacheKey {
 
     private TokenCacheKey(final String authority, final String clientId, final Set<String> scope, final String homeObjectId) {
         // All the tokens issued by AAD is cross tenant, ADFS 2016 should work the same as AAD, and client id.
-        if (MSALUtils.isEmpty(clientId)) {
+        if (MsalUtils.isEmpty(clientId)) {
             throw new IllegalArgumentException("clientId");
         }
 
-        mAuthority = MSALUtils.isEmpty(authority) ? "" : authority.toLowerCase(Locale.US);
+        mAuthority = MsalUtils.isEmpty(authority) ? "" : authority.toLowerCase(Locale.US);
         mClientId = clientId.toLowerCase(Locale.US);
 
         // guarantee the order in the serialized string
         mScope.addAll(scope);
 
-        mHomeObjectId = MSALUtils.isEmpty(homeObjectId) ? "" : homeObjectId.toLowerCase(Locale.US);
+        mHomeObjectId = MsalUtils.isEmpty(homeObjectId) ? "" : homeObjectId.toLowerCase(Locale.US);
     }
 
     static TokenCacheKey createKeyForAT(final String authority, final String clientId, final Set<String> scopes, final User user) {
@@ -93,11 +93,11 @@ final class TokenCacheKey {
     @Override
     public String toString() {
         final StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(MSALUtils.base64EncodeToString(mAuthority) + "$");
-        stringBuilder.append(MSALUtils.base64EncodeToString(mClientId) + "$");
+        stringBuilder.append(MsalUtils.base64EncodeToString(mAuthority) + "$");
+        stringBuilder.append(MsalUtils.base64EncodeToString(mClientId) + "$");
         // scope is treeSet to guarantee the order of the scopes when converting to string.
-        stringBuilder.append(MSALUtils.base64EncodeToString(MSALUtils.convertSetToString(mScope, " ")) + "$");
-        stringBuilder.append(MSALUtils.base64EncodeToString(mHomeObjectId));
+        stringBuilder.append(MsalUtils.base64EncodeToString(MsalUtils.convertSetToString(mScope, " ")) + "$");
+        stringBuilder.append(MsalUtils.base64EncodeToString(mHomeObjectId));
 
         return stringBuilder.toString();
     }
@@ -109,7 +109,7 @@ final class TokenCacheKey {
      */
      boolean matches(final BaseTokenCacheItem item) {
         return mClientId.equalsIgnoreCase(item.getClientId())
-                && (MSALUtils.isEmpty(mAuthority) || mAuthority.equalsIgnoreCase(item.getAuthority()))
+                && (MsalUtils.isEmpty(mAuthority) || mAuthority.equalsIgnoreCase(item.getAuthority()))
                 && mHomeObjectId.equalsIgnoreCase(item.getHomeObjectId());
     }
 }

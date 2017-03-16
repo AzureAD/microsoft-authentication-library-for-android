@@ -47,25 +47,25 @@ public final class AuthenticationRequestParametersTest {
     @Test(expected = IllegalArgumentException.class)
     public void testNullCorrelationId() {
         AuthenticationRequestParameters.create(AUTHORITY, TOKEN_CACHE, SCOPE, CLIENT_ID, REDIRECT_URI, LOGIN_HINT, "",
-                UIBehavior.SELECT_ACCOUNT, null);
+                UiBehavior.SELECT_ACCOUNT, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testNullScope() {
         AuthenticationRequestParameters.create(AUTHORITY, TOKEN_CACHE, null, CLIENT_ID, REDIRECT_URI, "", LOGIN_HINT,
-                UIBehavior.SELECT_ACCOUNT, new RequestContext(CORRELATION_ID, COMPONENT));
+                UiBehavior.SELECT_ACCOUNT, new RequestContext(CORRELATION_ID, COMPONENT));
     }
 
     @Test
     public void testAuthenticationRequestParameterHappyPath() {
         final AuthenticationRequestParameters authRequestParameter = AuthenticationRequestParameters.create(AUTHORITY, TOKEN_CACHE,
-                SCOPE, CLIENT_ID, REDIRECT_URI, LOGIN_HINT, "", UIBehavior.SELECT_ACCOUNT, new RequestContext(CORRELATION_ID, COMPONENT));
+                SCOPE, CLIENT_ID, REDIRECT_URI, LOGIN_HINT, "", UiBehavior.SELECT_ACCOUNT, new RequestContext(CORRELATION_ID, COMPONENT));
         Assert.assertTrue(authRequestParameter.getAuthority().getAuthority().toString().equals(Util.VALID_AUTHORITY));
         Assert.assertTrue(authRequestParameter.getScope().isEmpty());
         Assert.assertTrue(authRequestParameter.getClientId().equals(CLIENT_ID));
         Assert.assertTrue(authRequestParameter.getRedirectUri().equals(REDIRECT_URI));
         Assert.assertTrue(authRequestParameter.getLoginHint().equals(LOGIN_HINT));
-        Assert.assertTrue(authRequestParameter.getUiBehavior().equals(UIBehavior.SELECT_ACCOUNT));
+        Assert.assertTrue(authRequestParameter.getUiBehavior().equals(UiBehavior.SELECT_ACCOUNT));
         Assert.assertTrue(authRequestParameter.getRequestContext().getCorrelationId().toString().equals(CORRELATION_ID.toString()));
         Assert.assertTrue(authRequestParameter.getRequestContext().getComponent().equals(COMPONENT));
     }

@@ -39,7 +39,7 @@ final class Constants {
 
     public static final String AUTHORIZATION_FINAL_URL = "com.microsoft.identity.client.finalUrl";
 
-    static final class UIResponse {
+    static final class UiResponse {
         static final int CANCEL = 2001;
 
         static final int AUTH_CODE_ERROR = 2002;
@@ -51,7 +51,7 @@ final class Constants {
         static final String ERROR_DESCRIPTION = "error_description";
     }
 
-    static final class MSALErrorMessage {
+    static final class MsalErrorMessage {
         static final String AUTHORIZATION_SERVER_INVALID_RESPONSE = "The authorization server returned an invalid "
                 + "response.";
 
@@ -62,7 +62,7 @@ final class Constants {
         static final String STATE_NOT_RETURNED = "State is not returned";
     }
 
-    static final class MSALError {
+    static final class MSALInternalError {
         static final String AUTHORIZATION_FAILED = "authorization_failed";
         static final String USER_CANCEL = "user_cancelled";
         static final String INVALID_REQUEST = "invalid_request";

@@ -27,6 +27,7 @@ import android.util.Base64;
 
 import org.json.JSONException;
 
+import java.net.HttpURLConnection;
 import java.nio.charset.Charset;
 import java.util.Map;
 
@@ -47,15 +48,15 @@ final class IdToken {
      * Constructor to create a new {@link IdToken}. Will parse the raw id token.
      * @param rawIdToken The raw Id token used to create the {@link IdToken}.
      */
-    IdToken(final String rawIdToken) throws AuthenticationException {
-        if (MSALUtils.isEmpty(rawIdToken)) {
+    IdToken(final String rawIdToken) throws MsalServiceException, MsalClientException {
+        if (MsalUtils.isEmpty(rawIdToken)) {
             throw new IllegalArgumentException("null or empty raw idtoken");
         }
 
         // set all the instance variables.
         final Map<String, String> idTokenItems = parseJWT(rawIdToken);
         if (idTokenItems == null || idTokenItems.isEmpty()) {
-            throw new AuthenticationException(MSALError.SERVER_ERROR, "Empty Id token");
+            throw new MsalServiceException(MsalError.INVALID_JWT, "Empty Id token returned from server.", HttpURLConnection.HTTP_OK, null);
         }
 
         mIssuer = idTokenItems.get(IdTokenClaim.ISSUER);
@@ -100,19 +101,19 @@ final class IdToken {
         return mHomeObjectId;
     }
 
-    private Map<String, String> parseJWT(final String idToken) throws AuthenticationException {
+    private Map<String, String> parseJWT(final String idToken) throws MsalClientException {
         final String idTokenBody = extractJWTBody(idToken);
         final byte[] data = Base64.decode(idTokenBody, Base64.URL_SAFE);
 
         try {
-            final String decodedBody = new String(data, Charset.forName(MSALUtils.ENCODING_UTF8));
-            return MSALUtils.extractJsonObjectIntoMap(decodedBody);
+            final String decodedBody = new String(data, Charset.forName(MsalUtils.ENCODING_UTF8));
+            return MsalUtils.extractJsonObjectIntoMap(decodedBody);
         } catch (final JSONException e) {
-            throw new AuthenticationException(MSALError.JSON_PARSE_FAILURE, e.getMessage(), e);
+            throw new MsalClientException(MsalError.JSON_PARSE_FAILURE, "Failed to extract Json object " + e.getMessage(), e);
         }
     }
 
-    private String extractJWTBody(final String idToken) throws AuthenticationException {
+    private String extractJWTBody(final String idToken) throws MsalClientException {
         final int firstDot = idToken.indexOf(".");
         final int secondDot = idToken.indexOf(".", firstDot + 1);
         final int invalidDot = idToken.indexOf(".", secondDot + 1);
@@ -120,7 +121,7 @@ final class IdToken {
         if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
             return idToken.substring(firstDot + 1, secondDot);
         } else {
-            throw new AuthenticationException(MSALError.IDTOKEN_PARSING_FAILURE, "Failed to parse id token.");
+            throw new MsalClientException(MsalError.JSON_PARSE_FAILURE, "Failed to parse id token.", null);
         }
     }
 

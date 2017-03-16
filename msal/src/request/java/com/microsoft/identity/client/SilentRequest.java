@@ -46,7 +46,7 @@ final class SilentRequest extends BaseRequest {
     }
 
     @Override
-    void preTokenRequest() throws AuthenticationException {
+    void preTokenRequest() throws MsalException {
         final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
 
         // lookup AT first.
@@ -64,7 +64,7 @@ final class SilentRequest extends BaseRequest {
         mRefreshTokenCacheItem = tokenCache.findRefreshToken(mAuthRequestParameters, mUser);
         if (mRefreshTokenCacheItem == null) {
             Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "No refresh token item is found.");
-            throw new AuthenticationException(MSALError.INTERACTION_REQUIRED, "RT not found");
+            throw new MsalUiRequiredException(MsalError.CACHE_MISS, "No refresh token was found. ");
         }
     }
 
@@ -80,38 +80,26 @@ final class SilentRequest extends BaseRequest {
      * perform token request. Otherwise, use the base performTokenRequest. Resiliency feather will be enabled here, if we
      * get the SERVER_ERROR, check for the extended_expires_on and if the token is still valid with extended expires on,
      * return the token.
-     * @throws AuthenticationException
      */
     @Override
-    void performTokenRequest() throws AuthenticationException {
+    void performTokenRequest() throws MsalServiceException, MsalClientException {
         // There is an access token returned, don't perform any token request. PostTokenRequest will the stored valid
         // access token.
         if (mAuthResult != null) {
             return;
         }
 
-        try {
-            super.performTokenRequest();
-        } catch (final AuthenticationException authenticationException) {
-            // TODO: resiliency feature
-            if (MSALError.SERVER_ERROR.equals(authenticationException.getErrorCode())) {
-                // TODO: check if the extended_expires_on is turned on and if the token is valid with extended_expires_on
-                // if so, set mAuthResult to the access token item
-                return;
-            }
-
-            throw authenticationException;
-        }
+        // TODO: Support resilency. No need for #BUILD
+        super.performTokenRequest();
     }
 
     /**
      * Return the valid AT. If error happens for request sent to token endpoint, remove the stored refresh token if
      * receiving invalid_grant, and re-wrap the exception with high level error as Interaction_required.
      * @return {@link AuthenticationResult} containing the auth token.
-     * @throws AuthenticationException
      */
     @Override
-    AuthenticationResult postTokenRequest() throws AuthenticationException {
+    AuthenticationResult postTokenRequest() throws MsalServiceException, MsalUiRequiredException, MsalClientException {
         // if there is an valid access token returned, mAuthResult will already be set
         if (mAuthResult != null) {
             return mAuthResult;
@@ -119,9 +107,7 @@ final class SilentRequest extends BaseRequest {
 
         if (!isAccessTokenReturned()) {
             removeToken();
-            throw new AuthenticationException(MSALError.INTERACTION_REQUIRED, "Silent request failed, interaction required",
-                    new AuthenticationException(MSALError.OAUTH_ERROR, "ErrorCode: " + mTokenResponse.getError()
-                            + "; ErrorDescription: " + mTokenResponse.getErrorDescription()));
+            throwExceptionFromTokenResponse(mTokenResponse);
         }
 
         return super.postTokenRequest();

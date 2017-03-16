@@ -26,7 +26,7 @@ package com.microsoft.identity.client;
 /**
  * Data container for the DRS discovery document.
  */
-final class DRSMetadata {
+final class DrsMetadata {
 
     static final String JSON_KEY_IDENTITY_PROVIDER_SERVICE = "IdentityProviderService";
 

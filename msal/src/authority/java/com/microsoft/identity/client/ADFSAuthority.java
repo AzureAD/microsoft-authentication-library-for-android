@@ -37,7 +37,7 @@ import java.util.Set;
 /**
  * MSAL internal class for representing the ADFS authority.
  */
-final class ADFSAuthority extends Authority {
+final class AdfsAuthority extends Authority {
 
     private static final int DELIM_NOT_FOUND = -1;
 
@@ -52,14 +52,14 @@ final class ADFSAuthority extends Authority {
      * @param authorityUrl      The string representation for the authority url.
      * @param validateAuthority Validate authority before sending token request
      */
-    protected ADFSAuthority(final URL authorityUrl, final boolean validateAuthority) {
+    protected AdfsAuthority(final URL authorityUrl, final boolean validateAuthority) {
         super(authorityUrl, validateAuthority);
         mAuthorityType = AuthorityType.ADFS;
     }
 
     @Override
     boolean existsInValidatedAuthorityCache(final String userPrincipalName) {
-        if (MSALUtils.isEmpty(userPrincipalName)) {
+        if (MsalUtils.isEmpty(userPrincipalName)) {
             throw new IllegalArgumentException("userPrincipalName cannot be null or blank");
         }
 
@@ -67,20 +67,20 @@ final class ADFSAuthority extends Authority {
         final String authorityUrlStr = mAuthorityUrl.toString();
 
         return authorityMap.containsKey(authorityUrlStr)
-                && authorityMap.get(authorityUrlStr) instanceof ADFSAuthority
-                && ((ADFSAuthority) authorityMap.get(authorityUrlStr))
+                && authorityMap.get(authorityUrlStr) instanceof AdfsAuthority
+                && ((AdfsAuthority) authorityMap.get(authorityUrlStr))
                 .getADFSValidatedAuthorities()
                 .contains(getDomainFromUPN(userPrincipalName));
     }
 
     @Override
     void addToValidatedAuthorityCache(final String userPrincipalName) {
-        ADFSAuthority adfsInstance = this;
+        AdfsAuthority adfsInstance = this;
 
         final String authorityUrlStr = mAuthorityUrl.toString();
 
         if (Authority.VALIDATED_AUTHORITY.containsKey(authorityUrlStr)) {
-            adfsInstance = (ADFSAuthority) VALIDATED_AUTHORITY.get(authorityUrlStr);
+            adfsInstance = (AdfsAuthority) VALIDATED_AUTHORITY.get(authorityUrlStr);
         }
 
         adfsInstance
@@ -91,24 +91,24 @@ final class ADFSAuthority extends Authority {
     }
 
     @Override
-    String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws AuthenticationException {
+    String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws MsalClientException,
+            MsalServiceException {
         if (mValidateAuthority) {
-            final DRSMetadata drsMetadata = loadDRSMetadata(requestContext, userPrincipalName);
+            final DrsMetadata drsMetadata = loadDRSMetadata(requestContext, userPrincipalName);
             final WebFingerMetadata webFingerMetadata = loadWebFingerMetadata(requestContext, drsMetadata);
             final URI authorityURI;
 
             try {
                 authorityURI = mAuthorityUrl.toURI();
             } catch (URISyntaxException e) {
-                throw new AuthenticationException(
-                        MSALError.AUTHORITY_VALIDATION_FAILED,
-                        "Authority URL/URI must be RFC 2396 compliant to use AD FS validation"
-                );
+                throw new MsalClientException(MsalError.UNSUPPORTED_URL,
+                        "Authority URL/URI must be RFC 2396 compliant to use AD FS validation");
             }
 
             // Verify trust
-            if (!ADFSWebFingerValidator.realmIsTrusted(requestContext, authorityURI, webFingerMetadata)) {
-                throw new AuthenticationException(MSALError.AUTHORITY_VALIDATION_FAILED);
+            if (!AdfsWebFingerValidator.realmIsTrusted(requestContext, authorityURI, webFingerMetadata)) {
+                // TODO: we need to read the error and error description, the current error code is not exposed yet.
+                throw new MsalClientException(MsalError.ADFS_AUTHORITY_VALIDATION_FAILED, "Realm is not trusted, adfs authority validation failed.");
             }
         }
 
@@ -119,15 +119,17 @@ final class ADFSAuthority extends Authority {
         return mADFSValidatedAuthorities;
     }
 
-    private WebFingerMetadata loadWebFingerMetadata(final RequestContext requestContext, final DRSMetadata drsMetadata) throws AuthenticationException {
+    private WebFingerMetadata loadWebFingerMetadata(final RequestContext requestContext, final DrsMetadata drsMetadata)
+            throws MsalClientException, MsalServiceException {
         final WebFingerMetadataRequestor webFingerMetadataRequestor = new WebFingerMetadataRequestor(requestContext);
         return webFingerMetadataRequestor.requestMetadata(
                 new WebFingerMetadataRequestParameters(mAuthorityUrl, drsMetadata)
         );
     }
 
-    private DRSMetadata loadDRSMetadata(final RequestContext requestContext, final String userPrincipalName) throws AuthenticationException {
-        final DRSMetadataRequestor drsRequestor = new DRSMetadataRequestor(requestContext);
+    private DrsMetadata loadDRSMetadata(final RequestContext requestContext, final String userPrincipalName)
+            throws MsalClientException, MsalServiceException  {
+        final DrsMetadataRequestor drsRequestor = new DrsMetadataRequestor(requestContext);
         return drsRequestor.requestMetadata(getDomainFromUPN(userPrincipalName));
     }
 

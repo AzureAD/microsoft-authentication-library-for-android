@@ -470,13 +470,13 @@ public final class HttpRequestTest {
         try {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             sendHttpPost();
-            Assert.fail("Expect AuthenticationException to be thrown.");
+            Assert.fail("Expect MsalException to be thrown.");
         } catch (final RetryableException e) {
             Assert.assertNotNull(e);
             Assert.assertNotNull(e.getCause());
-            Assert.assertTrue(e.getCause() instanceof AuthenticationException);
-            final AuthenticationException innerException = (AuthenticationException) e.getCause();
-            Assert.assertTrue(innerException.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_SERVER_ERROR));
+            Assert.assertTrue(e.getCause() instanceof MsalException);
+            final MsalException innerException = (MsalException) e.getCause();
+            Assert.assertTrue(innerException.getErrorCode().equals(MsalError.RETRY_FAILED_WITH_SERVER_ERROR));
             Assert.assertTrue(innerException.getMessage().contains(
                     "StatusCode: " + String.valueOf(HttpURLConnection.HTTP_UNAVAILABLE)));
         }
@@ -516,13 +516,13 @@ public final class HttpRequestTest {
         try {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             sendHttpPost();
-            Assert.fail("Expect AuthenticationException to be thrown.");
+            Assert.fail("Expect MsalException to be thrown.");
         } catch (final RetryableException e) {
             Assert.assertNotNull(e);
             Assert.assertNotNull(e.getCause());
-            Assert.assertTrue(e.getCause() instanceof AuthenticationException);
-            final AuthenticationException innerException = (AuthenticationException) e.getCause();
-            Assert.assertTrue(innerException.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_SERVER_ERROR));
+            Assert.assertTrue(e.getCause() instanceof MsalException);
+            final MsalException innerException = (MsalException) e.getCause();
+            Assert.assertTrue(innerException.getErrorCode().equals(MsalError.RETRY_FAILED_WITH_SERVER_ERROR));
             Assert.assertTrue(innerException.getMessage().contains(
                     "StatusCode: " + String.valueOf(HttpURLConnection.HTTP_GATEWAY_TIMEOUT)));
         }
@@ -560,7 +560,7 @@ public final class HttpRequestTest {
         try {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             sendHttpGet();
-            Assert.fail("Expect AuthenticationException to be thrown.");
+            Assert.fail("Expect MsalException to be thrown.");
         } catch (final RetryableException e) {
             Assert.assertNotNull(e);
             Assert.assertNotNull(e.getCause());
@@ -597,7 +597,7 @@ public final class HttpRequestTest {
         try {
             Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 2);
             sendHttpGet();
-            Assert.fail("Expect AuthenticationException to be thrown.");
+            Assert.fail("Expect MsalException to be thrown.");
         } catch (final RetryableException e) {
             Assert.assertNotNull(e);
             Assert.assertNotNull(e.getCause());

@@ -24,65 +24,120 @@
 package com.microsoft.identity.client;
 
 /**
- * Enum class representing MSAL error code.
+ * Constants class represents all the errors that could be returned by the sdk.
  */
-public enum MSALError {
-    /** Encounter network error and retry fails with 500/503/504. */
-    RETRY_FAILED_WITH_SERVER_ERROR("Retry failed with 500/503/504"),
+public final class MsalError {
 
-    /** Indicates the general server error for post request to token endpoint. */
-    SERVER_ERROR("Server error"),
+    // Error codes for MsalUiRequiredException
+    public final static String INVALID_GRANT = "invalid_grant";
 
-    /** Indicates the error when failing to parse the returned id token. */
-    IDTOKEN_PARSING_FAILURE("Fail to parse Id token"),
+    public final static String CACHE_MISS = "cache_miss";
 
-    /** Indicates the the encoding scheme is not supported. */
-    UNSUPPORTED_ENCODING("Encoding is not supported"),
+    // Error codes for MsalClientException
+    public final static String MULTIPLE_CACHE_ENTRY_FOUND = "multiple_cache_entry_found";
 
-    /** Indicates the failure to parse the returned JSON response. */
-    JSON_PARSE_FAILURE("Failed to parse the Json response"),
+    public final static String DEVICE_NETWORK_NOT_AVAILABLE = "device_network_not_available";
 
-    /** Indicates the general error for authentication failure. */
-    AUTH_FAILED("Authentication failed"),
+    public final static String JSON_PARSE_FAILURE = "json_parse_failure";
 
-    /** Indicates the general error for post request to token endpoint fails with oauth error. */
-    OAUTH_ERROR("Auth failed with oath error"),
+    public final static String IO_ERROR = "io_error";
 
-    /** Indicates the general error for silent request fails. */
-    INTERACTION_REQUIRED("Silent request failed, interaction required"),
+    public final static String UNSUPPORTED_ENCODING = "unsupported_encoding";
 
-    /** Indicates that there are multiple cache entries found in the cache. */
-    MULTIPLE_CACHE_ENTRY_FOUND("multiple cache entries found"),
+    public final static String NO_SUCH_ALGORITHM = "no_such_algorithm";
 
-    /** Indicates that device is not connected to the network. */
-    DEVICE_CONNECTION_NOT_AVAILABLE("Device network connection not available"),
+    public final static String INVALID_JWT = "invalid_jwt";
 
-    /** Indicates the failure for authority validation. */
-    AUTHORITY_VALIDATION_FAILED("Authority validation failed"),
+    public final static String STATE_NOT_MATCH = "state_not_match";
 
-    /** Indicates that authority validation is not supported for the passed in authority. */
-    UNSUPPORTED_AUTHORITY_VALIDATION("Unsupported authority validation"),
+    public final static String UNRESOLVABLE_INTENT = "unresolvable_intent";
 
-    /** Indicates the failure for tenant discovery. */
-    TENANT_DISCOVERY_FAILED("Tenant discovery failed"),
+    public final static String UNSUPPORTED_URL = "unsupported_url";
 
-    /** Indicates PKCE Challenge could not be created due to unimplemented hash. */
-    NO_SUCH_ALGORITHM("PKCE Challenge could not be completed because device lacks SHA-256 digest algorithm implementation");
+    public final static String UNSUPPORTED_AUTHORITY_VALIDATION_INSTANCE = "unsupported_authority_validation_instance";
 
-    private String mErrorDescription;
+    final static String ADFS_AUTHORITY_VALIDATION_FAILED = "adfs_authority_validation_failed";
 
-    /**
-     * Initiates {@link MSALError} with error description.
-     * @param errorDescription
-     */
-    MSALError(final String errorDescription) {
-        mErrorDescription = errorDescription;
-    }
+    // Errors codes for MsalServiceException
+    public final static String INVALID_REQUEST = "invalid_request";
 
-    /**
-     * @return Description for the MSAL error.
-     */
-    public String getDescription() {
-        return mErrorDescription;
-    }
+    public final static String UNAUTHORIZED_CLIENT = "unauthorized_client";
+
+    public final static String ACCESS_DENIED = "access_denied";
+
+    public final static String INVALID_SCOPE = "invalid_scope";
+
+    public final static String SERVER_ERROR = "server_error";
+
+    public final static String UNKNOWN_ERROR = "unknown_error";
+
+//    /**
+//     * Encounter network error and retry fails with 500/503/504.
+//     */
+//    RETRY_FAILED_WITH_SERVER_ERROR("Retry failed with 500/503/504"),
+//
+//    /**
+//     * Indicates the general server error for post request to token endpoint.
+//     */
+//    SERVER_ERROR("Server error"),
+//
+//    /**
+//     * Indicates the error when failing to parse the returned id token.
+//     */
+//    IDTOKEN_PARSING_FAILURE("Fail to parse Id token"),
+//
+//    /**
+//     * Indicates the the encoding scheme is not supported.
+//     */
+//    UNSUPPORTED_ENCODING("Encoding is not supported"),
+//
+//    /**
+//     * Indicates the failure to parse the returned JSON response.
+//     */
+//    JSON_PARSE_FAILURE("Failed to parse the Json response"),
+//
+//    /**
+//     * Indicates the general error for authentication failure.
+//     */
+//    AUTH_FAILED("Authentication failed"),
+//
+//    /**
+//     * Indicates the general error for post request to token endpoint fails with oauth error.
+//     */
+//    OAUTH_ERROR("Auth failed with oath error"),
+//
+//    /**
+//     * Indicates the general error for silent request fails.
+//     */
+//    INTERACTION_REQUIRED("Ui is required for authentication to succeed."),
+//
+//    /**
+//     * Indicates that there are multiple cache entries found in the cache.
+//     */
+//    MULTIPLE_CACHE_ENTRY_FOUND("multiple cache entries found"),
+//
+//    /**
+//     * Indicates that device is not connected to the network.
+//     */
+//    DEVICE_CONNECTION_NOT_AVAILABLE("Device network connection not available"),
+//
+//    /**
+//     * Indicates the failure for authority validation.
+//     */
+//    AUTHORITY_VALIDATION_FAILED("Authority validation failed"),
+//
+//    /**
+//     * Indicates that authority validation is not supported for the passed in authority.
+//     */
+//    UNSUPPORTED_AUTHORITY_VALIDATION("Unsupported authority validation"),
+//
+//    /**
+//     * Indicates the failure for tenant discovery.
+//     */
+//    TENANT_DISCOVERY_FAILED("Tenant discovery failed"),
+//
+//    /**
+//     * Indicates PKCE Challenge could not be created due to unimplemented hash.
+//     */
+//    NO_SUCH_ALGORITHM("PKCE Challenge could not be completed because device lacks SHA-256 digest algorithm implementation");
 }

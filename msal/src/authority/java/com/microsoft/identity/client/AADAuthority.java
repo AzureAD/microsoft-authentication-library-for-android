@@ -34,8 +34,8 @@ import java.util.Set;
 /**
  * MSAL internal class for representing the AAD authority.
  */
-class AADAuthority extends Authority {
-    private static final String TAG = AADAuthority.class.getSimpleName();
+class AadAuthority extends Authority {
+    private static final String TAG = AadAuthority.class.getSimpleName();
     private static final String AAD_INSTANCE_DISCOVERY_ENDPOINT = "https://login.microsoftonline.com/common/discovery/instance";
     private static final String API_VERSION = "api-version";
     private static final String API_VERSION_VALUE = "1.0";
@@ -53,16 +53,16 @@ class AADAuthority extends Authority {
             new HashSet<>(Arrays.asList(TRUSTED_HOSTS)));
 
     /**
-     * Constructor for creating the {@link AADAuthority}.
+     * Constructor for creating the {@link AadAuthority}.
      */
-    AADAuthority(final URL authority, boolean validateAuthority) {
+    AadAuthority(final URL authority, boolean validateAuthority) {
         super(authority, validateAuthority);
 
         mAuthorityType = AuthorityType.AAD;
     }
 
     @Override
-    String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws AuthenticationException {
+    String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws MsalServiceException, MsalClientException  {
         Logger.info(TAG, requestContext, "Passed in authority " + mAuthorityUrl.toString() + "is AAD authority. "
                 + "Start doing Instance discovery.");
         if (!mValidateAuthority || TRUSTED_HOST_SET.contains(mAuthorityUrl.getAuthority())) {
@@ -82,17 +82,14 @@ class AADAuthority extends Authority {
             response = oauth2Client.discoveryAADInstance(new URL(AAD_INSTANCE_DISCOVERY_ENDPOINT));
         } catch (final MalformedURLException e) {
             // instance discovery endpoint is hard-coded, if it's ever going wrong, should be found during runtime
-            throw new AuthenticationException(MSALError.SERVER_ERROR, "Malformed URL for instance discovery endpoint.", e);
-        } catch (final RetryableException retryableException) {
-            throw new AuthenticationException(MSALError.SERVER_ERROR, retryableException.getMessage(),
-                    retryableException.getCause());
+            throw new MsalClientException(MsalError.IO_ERROR, "Malformed URL for instance discovery endpoint.", e);
         } catch (final IOException ioException) {
-            throw new AuthenticationException(MSALError.AUTHORITY_VALIDATION_FAILED, ioException.getMessage(), ioException);
+            throw new MsalClientException(MsalError.IO_ERROR, ioException.getMessage(), ioException);
         }
 
-        if (!MSALUtils.isEmpty(response.getError())) {
-            throw new AuthenticationException(MSALError.AUTHORITY_VALIDATION_FAILED, "ErrorCode: " + response.getError()
-                    + ";ErrorDescription: " + response.getErrorDescription());
+        // TODO: invalid_instance should be returned in this case. But we should get a list of errors that will be returned from server.
+        if (!MsalUtils.isEmpty(response.getError())) {
+            throw new MsalServiceException(response.getError(), response.getErrorDescription(), response.getHttpStatusCode(), null);
         }
 
         Logger.info(TAG, requestContext, "Instance discovery succeeded. Tenant discovery endpoint is: "

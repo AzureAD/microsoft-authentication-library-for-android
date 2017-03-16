@@ -32,10 +32,10 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.microsoft.identity.client.AuthenticationCallback;
-import com.microsoft.identity.client.AuthenticationException;
+import com.microsoft.identity.client.MsalException;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.UIBehavior;
+import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.client.User;
 
 public class MainActivity extends Activity {
@@ -57,7 +57,7 @@ public class MainActivity extends Activity {
         buttonForInteractiveRequest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                callAcquireToken(SCOPES, UIBehavior.FORCE_LOGIN, null, null, null);
+                callAcquireToken(SCOPES, UiBehavior.FORCE_LOGIN, null, null, null);
             }
         });
 
@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
         buttonForLaunchingChrome.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                callAcquireToken(SCOPES, UIBehavior.FORCE_LOGIN, null, null, null);
+                callAcquireToken(SCOPES, UiBehavior.FORCE_LOGIN, null, null, null);
             }
         });
 
@@ -84,7 +84,7 @@ public class MainActivity extends Activity {
     }
 
 
-    private void callAcquireToken(final String[] scopes, final UIBehavior uiBehavior, final String loginHint,
+    private void callAcquireToken(final String[] scopes, final UiBehavior uiBehavior, final String loginHint,
                                   final String extraQueryParam, final String[] additionalScope) {
         mApplication.acquireToken(scopes, loginHint, uiBehavior, extraQueryParam, additionalScope,
                 null, new AuthenticationCallback() {
@@ -95,7 +95,7 @@ public class MainActivity extends Activity {
                     }
 
                     @Override
-                    public void onError(final AuthenticationException exception) {
+                    public void onError(final MsalException exception) {
                         showMessage("Receive Failure Response " + exception.getMessage());
                     }
 
@@ -115,7 +115,7 @@ public class MainActivity extends Activity {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
+            public void onError(MsalException exception) {
                 showMessage("Receive Failure Response for silent request: " + exception.getMessage());
             }
 

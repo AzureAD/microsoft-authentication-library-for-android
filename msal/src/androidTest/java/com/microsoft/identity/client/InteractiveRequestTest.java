@@ -116,13 +116,13 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorNullScope() {
         new InteractiveRequest(Mockito.mock(Activity.class), getAuthRequestParameters(
-                null, mRedirectUri, LOGIN_HINT, UIBehavior.FORCE_LOGIN), null);
+                null, mRedirectUri, LOGIN_HINT, UiBehavior.FORCE_LOGIN), null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorEmptyScope() {
         new InteractiveRequest(Mockito.mock(Activity.class), getAuthRequestParameters(
-                Collections.<String>emptySet(), mRedirectUri, LOGIN_HINT, UIBehavior.FORCE_LOGIN), null);
+                Collections.<String>emptySet(), mRedirectUri, LOGIN_HINT, UiBehavior.FORCE_LOGIN), null);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -131,7 +131,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         scopes.add(OauthConstants.Oauth2Value.SCOPE_PROFILE);
 
         new InteractiveRequest(Mockito.mock(Activity.class), getAuthRequestParameters(scopes, mRedirectUri,
-                LOGIN_HINT, UIBehavior.FORCE_LOGIN), null);
+                LOGIN_HINT, UiBehavior.FORCE_LOGIN), null);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -139,40 +139,40 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         final Set<String> scopes = getScopesContainsReservedScope();
 
         new InteractiveRequest(Mockito.mock(Activity.class), getAuthRequestParameters(scopes, mRedirectUri,
-                LOGIN_HINT, UIBehavior.FORCE_LOGIN), null);
+                LOGIN_HINT, UiBehavior.FORCE_LOGIN), null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorEmptyRedirectUri() {
         new InteractiveRequest(Mockito.mock(Activity.class), getAuthRequestParameters(getScopes(), "", LOGIN_HINT,
-                UIBehavior.FORCE_LOGIN), null);
+                UiBehavior.FORCE_LOGIN), null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testAdditionalScopeContainsReservedScope() {
         final Set<String> additionalScopes = getScopesContainsReservedScope();
         new InteractiveRequest(Mockito.mock(Activity.class), getAuthRequestParameters(getScopes(), "", LOGIN_HINT,
-                UIBehavior.FORCE_LOGIN), additionalScopes.toArray(new String[additionalScopes.size()]));
+                UiBehavior.FORCE_LOGIN), additionalScopes.toArray(new String[additionalScopes.size()]));
     }
 
     @Test
-    public void testGetAuthorizationUriUiBehaviorIsConsent() throws UnsupportedEncodingException, AuthenticationException {
+    public void testGetAuthorizationUriUiBehaviorIsConsent() throws UnsupportedEncodingException, MsalException {
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
-                getAuthenticationParams(UIBehavior.CONSENT), null);
+                getAuthenticationParams(UiBehavior.CONSENT), null);
         final String actualAuthorizationUri = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
         final Uri authorityUrl = Uri.parse(actualAuthorizationUri);
-        Map<String, String> queryStrings = MSALUtils.decodeUrlToMap(authorityUrl.getQuery(), "&");
+        Map<String, String> queryStrings = MsalUtils.decodeUrlToMap(authorityUrl.getQuery(), "&");
 
-        assertTrue(MSALUtils.convertSetToString(getExpectedScopes(), " ").equals(
+        assertTrue(MsalUtils.convertSetToString(getExpectedScopes(), " ").equals(
                 queryStrings.get(OauthConstants.Oauth2Parameters.SCOPE)));
         assertTrue(OauthConstants.PromptValue.CONSENT.equals(queryStrings.get(OauthConstants.Oauth2Parameters.PROMPT)));
         verifyCommonQueryString(queryStrings);
     }
 
     @Test
-    public void testGetAuthorizationUriContainsPKCEChallenge() throws UnsupportedEncodingException, AuthenticationException {
+    public void testGetAuthorizationUriContainsPKCEChallenge() throws UnsupportedEncodingException, MsalException {
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
-                getAuthenticationParams(UIBehavior.CONSENT), null);
+                getAuthenticationParams(UiBehavior.CONSENT), null);
         final String authUriStr = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
         final Uri authorizationUri = Uri.parse(authUriStr);
         final String codeChallenge = authorizationUri.getQueryParameter(OauthConstants.Oauth2Parameters.CODE_CHALLENGE);
@@ -185,17 +185,17 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     @Test
-    public void testGetAuthorizationUriUiBehaviorForceLogin() throws UnsupportedEncodingException, AuthenticationException {
+    public void testGetAuthorizationUriUiBehaviorForceLogin() throws UnsupportedEncodingException, MsalException {
         final String[] additionalScope = {"additionalScope"};
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
-                getAuthenticationParams(UIBehavior.FORCE_LOGIN), additionalScope);
+                getAuthenticationParams(UiBehavior.FORCE_LOGIN), additionalScope);
         final String actualAuthorizationUri = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
         final Uri authorityUrl = Uri.parse(actualAuthorizationUri);
-        Map<String, String> queryStrings = MSALUtils.decodeUrlToMap(authorityUrl.getQuery(), "&");
+        Map<String, String> queryStrings = MsalUtils.decodeUrlToMap(authorityUrl.getQuery(), "&");
 
         final Set<String> expectedScopes = getExpectedScopes();
         expectedScopes.add("additionalScope");
-        assertTrue(MSALUtils.convertSetToString(expectedScopes, " ").equals(
+        assertTrue(MsalUtils.convertSetToString(expectedScopes, " ").equals(
                 queryStrings.get(OauthConstants.Oauth2Parameters.SCOPE)));
         assertTrue(OauthConstants.PromptValue.LOGIN.equals(queryStrings.get(OauthConstants.Oauth2Parameters.PROMPT)));
         verifyCommonQueryString(queryStrings);
@@ -222,8 +222,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
-                assertTrue(MSALError.DEVICE_CONNECTION_NOT_AVAILABLE.equals(exception.getErrorCode()));
+            public void onError(MsalException exception) {
+                assertTrue(MsalError.DEVICE_CONNECTION_NOT_AVAILABLE.equals(exception.getErrorCode()));
                 resultLock.countDown();
             }
 
@@ -241,7 +241,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
                 + "?code=1234&state=" + AndroidTestUtil.encodeProtocolState(AUTHORITY, getScopes()));
         InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
-                Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
+                Constants.UiResponse.AUTH_CODE_COMPLETE, resultIntent);
 
         resultLock.await();
 
@@ -272,8 +272,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
-                assertTrue(MSALError.DEVICE_CONNECTION_NOT_AVAILABLE.equals(exception.getErrorCode()));
+            public void onError(MsalException exception) {
+                assertTrue(MsalError.DEVICE_CONNECTION_NOT_AVAILABLE.equals(exception.getErrorCode()));
                 resultLock.countDown();
             }
 
@@ -294,7 +294,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         mockNetworkConnected(mAppContext, false);
 
         InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
-                Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
+                Constants.UiResponse.AUTH_CODE_COMPLETE, resultIntent);
 
         resultLock.await();
 
@@ -329,7 +329,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
+            public void onError(MsalException exception) {
                 fail();
             }
 
@@ -347,7 +347,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
                 + "?code=1234&state=" + AndroidTestUtil.encodeProtocolState(AUTHORITY, getScopes()));
         InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
-                Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
+                Constants.UiResponse.AUTH_CODE_COMPLETE, resultIntent);
 
         resultLock.await();
 
@@ -379,8 +379,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
-                assertTrue(MSALError.OAUTH_ERROR.equals(exception.getErrorCode()));
+            public void onError(MsalException exception) {
+                assertTrue(MsalError.OAUTH_ERROR.equals(exception.getErrorCode()));
                 assertTrue(exception.getMessage().contains("invalid_request"));
                 resultLock.countDown();
             }
@@ -399,7 +399,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri + "?code=1234&state="
                 + AndroidTestUtil.encodeProtocolState(AUTHORITY, getScopes()));
         InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
-                Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
+                Constants.UiResponse.AUTH_CODE_COMPLETE, resultIntent);
 
         resultLock.await();
 
@@ -427,7 +427,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
+            public void onError(MsalException exception) {
                 fail();
             }
 
@@ -442,7 +442,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         resultLock.await(TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
 
         InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
-                Constants.UIResponse.CANCEL, new Intent());
+                Constants.UiResponse.CANCEL, new Intent());
 
         resultLock.await();
 
@@ -479,7 +479,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
+            public void onError(MsalException exception) {
                 fail();
             }
 
@@ -497,7 +497,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
                 + "?error=access_denied&error_subcode=cancel");
         InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
-                Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
+                Constants.UiResponse.AUTH_CODE_COMPLETE, resultIntent);
 
         resultLock.await();
 
@@ -526,8 +526,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(final AuthenticationException exception) {
-                assertTrue(MSALError.AUTH_FAILED.equals(exception.getErrorCode()));
+            public void onError(final MsalException exception) {
+                assertTrue(MsalError.AUTH_FAILED.equals(exception.getErrorCode()));
                 assertTrue(exception.getMessage().contains("access_denied"));
                 assertFalse(exception.getMessage().contains("other_error"));
                 resultLock.countDown();
@@ -547,7 +547,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
                 + "?error=access_denied&other_error=other_error");
         InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
-                Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
+                Constants.UiResponse.AUTH_CODE_COMPLETE, resultIntent);
 
         resultLock.await();
 
@@ -567,8 +567,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                     }
 
                     @Override
-                    public void onError(AuthenticationException exception) {
-                        assertTrue(MSALError.AUTH_FAILED.equals(exception.getErrorCode()));
+                    public void onError(MsalException exception) {
+                        assertTrue(MsalError.AUTH_FAILED.equals(exception.getErrorCode()));
                         assertTrue(exception.getMessage().contains("access_denied;some_error_description"));
                         countDownLatch.countDown();
                     }
@@ -599,9 +599,9 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                     }
 
                     @Override
-                    public void onError(AuthenticationException exception) {
-                        assertTrue(MSALError.AUTH_FAILED.equals(exception.getErrorCode()));
-                        assertTrue(Constants.MSALErrorMessage.STATE_NOT_THE_SAME.equals(exception.getMessage()));
+                    public void onError(MsalException exception) {
+                        assertTrue(MsalError.AUTH_FAILED.equals(exception.getErrorCode()));
+                        assertTrue(Constants.MsalErrorMessage.STATE_NOT_THE_SAME.equals(exception.getMessage()));
                         countDownLatch.countDown();
                     }
 
@@ -631,9 +631,9 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                     }
 
                     @Override
-                    public void onError(AuthenticationException exception) {
-                        assertTrue(MSALError.AUTH_FAILED.equals(exception.getErrorCode()));
-                        assertTrue(Constants.MSALErrorMessage.STATE_NOT_THE_SAME.equals(exception.getMessage()));
+                    public void onError(MsalException exception) {
+                        assertTrue(MsalError.AUTH_FAILED.equals(exception.getErrorCode()));
+                        assertTrue(Constants.MsalErrorMessage.STATE_NOT_THE_SAME.equals(exception.getMessage()));
                         countDownLatch.countDown();
                     }
 
@@ -646,8 +646,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
             @Override
             String getFinalUrl() throws UnsupportedEncodingException {
-                return "?code=1234&state=" + Base64.encodeToString(MSALUtils.urlEncode(
-                        MSALUtils.convertSetToString(getScopes(), " ")).getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
+                return "?code=1234&state=" + Base64.encodeToString(MsalUtils.urlEncode(
+                        MsalUtils.convertSetToString(getScopes(), " ")).getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
             }
         }.performTest();
     }
@@ -664,9 +664,9 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                     }
 
                     @Override
-                    public void onError(AuthenticationException exception) {
-                        assertTrue(MSALError.AUTH_FAILED.equals(exception.getErrorCode()));
-                        assertTrue(exception.getMessage().contains(Constants.MSALErrorMessage.STATE_NOT_RETURNED));
+                    public void onError(MsalException exception) {
+                        assertTrue(MsalError.AUTH_FAILED.equals(exception.getErrorCode()));
+                        assertTrue(exception.getMessage().contains(Constants.MsalErrorMessage.STATE_NOT_RETURNED));
                         countDownLatch.countDown();
                     }
 
@@ -684,7 +684,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         }.performTest();
     }
 
-    private AuthenticationRequestParameters getAuthenticationParams(final UIBehavior uiBehavior) {
+    private AuthenticationRequestParameters getAuthenticationParams(final UiBehavior uiBehavior) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(AUTHORITY, false), new TokenCache(mAppContext), getScopes(),
                 CLIENT_ID, mRedirectUri, LOGIN_HINT, "", uiBehavior, new RequestContext(CORRELATION_ID, ""));
     }
@@ -692,7 +692,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     private AuthenticationRequestParameters getAuthRequestParameters(final Set<String> scopes,
                                                                      final String redirectUri,
                                                                      final String loginHint,
-                                                                     final UIBehavior uiBehavior) {
+                                                                     final UiBehavior uiBehavior) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(AUTHORITY, false), new TokenCache(mAppContext), scopes,
                 CLIENT_ID, redirectUri, loginHint, "", uiBehavior, new RequestContext(CORRELATION_ID, ""));
     }
@@ -743,7 +743,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
     private BaseRequest createInteractiveRequest(final Activity testActivity) {
         return new InteractiveRequest(testActivity, getAuthenticationParams(
-                UIBehavior.FORCE_LOGIN), null);
+                UiBehavior.FORCE_LOGIN), null);
     }
 
     private void verifyStartActivityForResultCalled(final Activity testActivity) {
@@ -798,7 +798,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
             resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
                     + getFinalUrl());
             InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
-                    Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
+                    Constants.UiResponse.AUTH_CODE_COMPLETE, resultIntent);
 
             resultLock.await();
 
