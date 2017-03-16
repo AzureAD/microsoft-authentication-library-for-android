@@ -93,7 +93,8 @@ abstract class Authority {
             throw new IllegalArgumentException("Invalid protocol for the authority url.");
         }
 
-        if (MSALUtils.isEmpty(authority.getPath())) {
+        // there has to be a valid path provided.
+        if (MSALUtils.isEmpty(authority.getPath().replaceFirst("/", ""))) {
             throw new IllegalArgumentException("Invalid authority url");
         }
 
