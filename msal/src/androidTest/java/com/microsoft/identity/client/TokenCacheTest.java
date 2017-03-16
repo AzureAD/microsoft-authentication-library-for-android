@@ -102,6 +102,7 @@ public final class TokenCacheTest extends AndroidTestCase {
                 tokenResponse
         );
         return getRequestParameters(
+                AUTHORITY,
                 Collections.singleton(testScope),
                 CLIENT_ID
         );
