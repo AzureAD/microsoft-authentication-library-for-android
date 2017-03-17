@@ -135,7 +135,7 @@ public final class PublicClientApplication {
      * @return The {@link User} matching the user identifier.
      * @throws AuthenticationException if error happens when retrieving users from the cache.
      */
-    public User getUser(final String userIdentifier) throws AuthenticationException {
+    User getUser(final String userIdentifier) throws AuthenticationException {
         if (MSALUtils.isEmpty(userIdentifier)) {
             throw new IllegalArgumentException("invalid userIdentifier");
         }
