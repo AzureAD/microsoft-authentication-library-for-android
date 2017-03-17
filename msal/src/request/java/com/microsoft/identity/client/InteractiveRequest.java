@@ -196,14 +196,6 @@ final class InteractiveRequest extends BaseRequest {
             requestParameters.put(OauthConstants.Oauth2Parameters.LOGIN_HINT, mAuthRequestParameters.getLoginHint());
         }
 
-        // TODO: comment out the code for adding haschrome=1. Evo displays the Cancel button, and the returned url would
-        // contain the error=access_denied&error_subcode=cancel
-        // add hasChrome
-//        if (MsalUtils.isEmpty(mAuthRequestParameters.getExtraQueryParam())
-//                || mAuthRequestParameters.getExtraQueryParam().contains(OauthConstants.Oauth2Parameters.HAS_CHROME)) {
-//            requestParameters.put(OauthConstants.Oauth2Parameters.HAS_CHROME, "1");
-//        }
-
         addUiBehaviorToRequestParameters(requestParameters);
 
         // append state in the query parameters

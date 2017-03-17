@@ -68,15 +68,15 @@ final class Oauth2Client {
      */
     TokenResponse getToken(final Authority authority) throws IOException, MsalClientException, MsalServiceException {
 
-        return executeHttpRequest(HttpRequest.REQUEST_METHOD_POST, authority.getTokenEndpoint(), new ParseRawJsonResponseDelegate() {
+        return executeHttpRequest(HttpRequest.REQUEST_METHOD_POST, authority.getTokenEndpoint(), new ParseRawJsonResponseDelegate<TokenResponse>() {
             @Override
-            public <T extends BaseOauth2Response> T parseSuccessRawResponse(Map<String, String> responseItems) {
-                return (T) TokenResponse.createSuccessTokenResponse(responseItems);
+            public TokenResponse parseSuccessRawResponse(Map<String, String> responseItems) {
+                return TokenResponse.createSuccessTokenResponse(responseItems);
             }
 
             @Override
-            public <T extends BaseOauth2Response> T parseErrorRawResponse(Map<String, String> responseItems, final int statusCode) {
-                return (T) TokenResponse.createFailureTokenResponse(responseItems, statusCode);
+            public TokenResponse parseErrorRawResponse(Map<String, String> responseItems, final int statusCode) {
+                return TokenResponse.createFailureTokenResponse(responseItems, statusCode);
             }
         });
     }
@@ -86,15 +86,15 @@ final class Oauth2Client {
      */
     InstanceDiscoveryResponse discoveryAADInstance(final URL instanceDiscoveryEndpoint) throws IOException, MsalClientException, MsalServiceException {
 
-        return executeHttpRequest(HttpRequest.REQUEST_METHOD_GET, instanceDiscoveryEndpoint.toString(), new ParseRawJsonResponseDelegate() {
+        return executeHttpRequest(HttpRequest.REQUEST_METHOD_GET, instanceDiscoveryEndpoint.toString(), new ParseRawJsonResponseDelegate<InstanceDiscoveryResponse>() {
             @Override
-            public <T extends BaseOauth2Response> T parseSuccessRawResponse(Map<String, String> responseItems) {
-                return (T) InstanceDiscoveryResponse.createSuccessInstanceDiscoveryResponse(responseItems);
+            public InstanceDiscoveryResponse parseSuccessRawResponse(Map<String, String> responseItems) {
+                return InstanceDiscoveryResponse.createSuccessInstanceDiscoveryResponse(responseItems);
             }
 
             @Override
-            public <T extends BaseOauth2Response> T parseErrorRawResponse(Map<String, String> responseItems, final int statusCode) {
-                return (T) new InstanceDiscoveryResponse(BaseOauth2Response.createErrorResponse(responseItems, statusCode));
+            public InstanceDiscoveryResponse parseErrorRawResponse(Map<String, String> responseItems, final int statusCode) {
+                return new InstanceDiscoveryResponse(BaseOauth2Response.createErrorResponse(responseItems, statusCode));
             }
         });
     }
@@ -104,15 +104,15 @@ final class Oauth2Client {
      */
     TenantDiscoveryResponse discoverEndpoints(final URL openIdConfigurationEndpoint) throws IOException, MsalClientException, MsalServiceException {
 
-        return executeHttpRequest(HttpRequest.REQUEST_METHOD_GET, openIdConfigurationEndpoint.toString(), new ParseRawJsonResponseDelegate() {
+        return executeHttpRequest(HttpRequest.REQUEST_METHOD_GET, openIdConfigurationEndpoint.toString(), new ParseRawJsonResponseDelegate<TenantDiscoveryResponse>() {
             @Override
-            public <T extends BaseOauth2Response> T parseSuccessRawResponse(Map<String, String> responseItems) {
-                return (T) TenantDiscoveryResponse.createSuccessTenantDiscoveryResponse(responseItems);
+            public TenantDiscoveryResponse parseSuccessRawResponse(Map<String, String> responseItems) {
+                return TenantDiscoveryResponse.createSuccessTenantDiscoveryResponse(responseItems);
             }
 
             @Override
-            public <T extends BaseOauth2Response> T parseErrorRawResponse(Map<String, String> responseItems, final int statusCode) {
-                return (T) new TenantDiscoveryResponse(BaseOauth2Response.createErrorResponse(responseItems, statusCode));
+            public TenantDiscoveryResponse parseErrorRawResponse(Map<String, String> responseItems, final int statusCode) {
+                return new TenantDiscoveryResponse(BaseOauth2Response.createErrorResponse(responseItems, statusCode));
             }
         });
     }
@@ -120,7 +120,7 @@ final class Oauth2Client {
     /**
      * Execute the http request.
      */
-    private <T extends BaseOauth2Response> T executeHttpRequest(final String requestMethod, final String endpoint, final ParseRawJsonResponseDelegate delegate)
+    private <T extends BaseOauth2Response> T executeHttpRequest(final String requestMethod, final String endpoint, final ParseRawJsonResponseDelegate<T> delegate)
             throws IOException, MsalServiceException, MsalClientException {
         // append query parameter to the endpoint first
         final URL endpointWithQP = new URL(MsalUtils.appendQueryParameterToUrl(endpoint, mQueryParameters));
@@ -140,7 +140,7 @@ final class Oauth2Client {
         return parseRawResponse(response, delegate);
     }
 
-    private <T extends BaseOauth2Response> T parseRawResponse(final HttpResponse httpResponse, final ParseRawJsonResponseDelegate delegate)
+    private <T extends BaseOauth2Response> T parseRawResponse(final HttpResponse httpResponse, final ParseRawJsonResponseDelegate<T> delegate)
             throws MsalServiceException, MsalClientException {
         // verify the correlation id in the httpResponse headers before parsing the httpResponse body.
         verifyCorrelationIdInResponseHeaders(httpResponse);
@@ -216,16 +216,16 @@ final class Oauth2Client {
         }
     }
 
-    private interface ParseRawJsonResponseDelegate {
+    private interface ParseRawJsonResponseDelegate<T extends BaseOauth2Response> {
 
         /**
          * Interface method for parsing success response.
          */
-        <T extends BaseOauth2Response> T parseSuccessRawResponse(final Map<String, String> responseItems);
+        T parseSuccessRawResponse(final Map<String, String> responseItems);
 
         /**
          * Interface method for parsing failure response.
          */
-        <T extends BaseOauth2Response> T parseErrorRawResponse(final Map<String, String> responseItems, final int statusCode);
+        T parseErrorRawResponse(final Map<String, String> responseItems, final int statusCode);
     }
 }

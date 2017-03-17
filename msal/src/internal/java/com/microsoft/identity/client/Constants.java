@@ -62,7 +62,7 @@ final class Constants {
         static final String STATE_NOT_RETURNED = "State is not returned";
     }
 
-    static final class MSALInternalError {
+    static final class MsalInternalError {
         static final String AUTHORIZATION_FAILED = "authorization_failed";
         static final String USER_CANCEL = "user_cancelled";
     }

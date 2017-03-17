@@ -71,7 +71,7 @@ public final class AuthorizationResultTest {
 
         Assert.assertNotNull(authorizationResult);
         Assert.assertTrue(AuthorizationResult.AuthorizationStatus.FAIL.equals(authorizationResult.getAuthorizationStatus()));
-        Assert.assertTrue(Constants.MSALInternalError.AUTHORIZATION_FAILED.equals(authorizationResult.getError()));
+        Assert.assertTrue(Constants.MsalInternalError.AUTHORIZATION_FAILED.equals(authorizationResult.getError()));
         Assert.assertTrue(Constants.MsalErrorMessage.AUTHORIZATION_SERVER_INVALID_RESPONSE.equals(authorizationResult.getErrorDescription()));
     }
 
@@ -79,7 +79,7 @@ public final class AuthorizationResultTest {
     public void testAuthorizationResultWithUserCancel() {
         final AuthorizationResult authorizationResult = AuthorizationResult.getAuthorizationResultWithUserCancel();
         Assert.assertTrue(AuthorizationResult.AuthorizationStatus.USER_CANCEL.equals(authorizationResult.getAuthorizationStatus()));
-        Assert.assertTrue(Constants.MSALInternalError.USER_CANCEL.equals(authorizationResult.getError()));
+        Assert.assertTrue(Constants.MsalInternalError.USER_CANCEL.equals(authorizationResult.getError()));
         Assert.assertTrue(Constants.MsalErrorMessage.USER_CANCELLED_FLOW.equals(authorizationResult.getErrorDescription()));
     }
 }

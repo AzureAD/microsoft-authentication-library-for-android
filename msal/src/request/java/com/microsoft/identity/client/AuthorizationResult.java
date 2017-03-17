@@ -61,7 +61,7 @@ final class AuthorizationResult {
     public static AuthorizationResult create(int resultCode, final Intent data) {
         if (data == null) {
             return new AuthorizationResult(AuthorizationStatus.FAIL,
-                    Constants.MSALInternalError.AUTHORIZATION_FAILED, "receives null intent");
+                    Constants.MsalInternalError.AUTHORIZATION_FAILED, "receives null intent");
         }
 
         if (resultCode == Constants.UiResponse.CANCEL) {
@@ -157,7 +157,7 @@ final class AuthorizationResult {
      * either code or error.
      */
     static AuthorizationResult getAuthorizationResultWithInvalidServerResponse() {
-        return new AuthorizationResult(AuthorizationStatus.FAIL, Constants.MSALInternalError.AUTHORIZATION_FAILED,
+        return new AuthorizationResult(AuthorizationStatus.FAIL, Constants.MsalInternalError.AUTHORIZATION_FAILED,
                 Constants.MsalErrorMessage.AUTHORIZATION_SERVER_INVALID_RESPONSE);
     }
 
@@ -166,7 +166,7 @@ final class AuthorizationResult {
      * user clicks on the cancel displayed in the browser.
      */
     static AuthorizationResult getAuthorizationResultWithUserCancel() {
-        return new AuthorizationResult(AuthorizationStatus.USER_CANCEL, Constants.MSALInternalError.USER_CANCEL,
+        return new AuthorizationResult(AuthorizationStatus.USER_CANCEL, Constants.MsalInternalError.USER_CANCEL,
                 Constants.MsalErrorMessage.USER_CANCELLED_FLOW);
     }
 

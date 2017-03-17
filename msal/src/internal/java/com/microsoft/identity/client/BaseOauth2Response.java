@@ -34,7 +34,7 @@ class BaseOauth2Response {
     static final int DEFAULT_STATUS_CODE = 0;
     private final String mError;
     private final String mErrorDescription;
-    private final int mHttpStausCode;
+    private final int mHttpStatusCode;
 
     /**
      * Constructor for {@link BaseOauth2Response}.
@@ -42,7 +42,7 @@ class BaseOauth2Response {
     BaseOauth2Response(final String error, final String errorDescription, final int httpStatusCode) {
         mError = error;
         mErrorDescription = errorDescription;
-        mHttpStausCode = httpStatusCode;
+        mHttpStatusCode = httpStatusCode;
     }
 
     /**
@@ -63,7 +63,7 @@ class BaseOauth2Response {
      * @return The http status code for the error response.
      */
     public int getHttpStatusCode() {
-        return mHttpStausCode;
+        return mHttpStatusCode;
     }
 
     static BaseOauth2Response createErrorResponse(final Map<String, String> responseItems, final int httpStatusCode) {
