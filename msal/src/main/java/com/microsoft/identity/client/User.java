@@ -32,7 +32,6 @@ public class User {
     private String mName;
     private String mIdentityProvider;
     private String mHomeObjectId;
-    private TokenCache mTokenCache;
 
     /**
      * Internal constructor to create {@link User} from the {@link IdToken}.
@@ -89,14 +88,6 @@ public class User {
     }
 
     // internal methods provided
-
-    void setTokenCache(final TokenCache tokenCache) {
-        mTokenCache = tokenCache;
-    }
-
-    TokenCache getTokenCache() {
-        return mTokenCache;
-    }
 
     /**
      * Used by developer to set the User object when doing the acquire token API call.

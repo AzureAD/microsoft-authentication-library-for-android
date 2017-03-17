@@ -105,7 +105,6 @@ abstract class BaseRequest {
                     performTokenRequest();
 
                     final AuthenticationResult result = postTokenRequest();
-                    updateUserForAuthenticationResult(result);
 
                     Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Token request succeeds.");
                     callbackOnSuccess(callback, result);
@@ -219,10 +218,6 @@ abstract class BaseRequest {
             Logger.error(TAG, mRequestContext, "No active network is available on the device.", null);
             throw new AuthenticationException(MSALError.DEVICE_CONNECTION_NOT_AVAILABLE, "Device network connection is not available.");
         }
-    }
-
-    private void updateUserForAuthenticationResult(final AuthenticationResult result) {
-        result.getUser().setTokenCache(mAuthRequestParameters.getTokenCache());
     }
 
     private synchronized Handler getHandler() {
