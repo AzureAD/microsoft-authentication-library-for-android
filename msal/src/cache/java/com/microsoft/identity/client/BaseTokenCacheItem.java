@@ -49,7 +49,7 @@ abstract class BaseTokenCacheItem {
         if (!MSALUtils.isEmpty(response.getRawIdToken())) {
             final IdToken idToken = new IdToken(response.getRawIdToken());
             final User user = new User(idToken);
-            mUniqueId = idToken.getObjectId();
+            mUniqueId = MSALUtils.isEmpty(idToken.getObjectId()) ? idToken.getSubject() : idToken.getObjectId();
             mDisplayableId = user.getDisplayableId();
             mHomeObjectId = user.getHomeObjectId();
             mRawIdToken = response.getRawIdToken();
