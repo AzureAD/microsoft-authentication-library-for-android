@@ -283,8 +283,8 @@ public final class PublicClientApplication {
     }
 
     /**
-     * Signs the {@link User} out of the application.
-     * @param user
+     * Deletes all matching tokens (AT & RT) for the supplied {@link User} instance from the application cache.
+     * @param user the {@link User} whose tokens should be deleted.
      */
     public void remove(final User user) {
         mTokenCache.deleteRefreshTokenByUser(user);
