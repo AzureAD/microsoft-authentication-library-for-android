@@ -23,17 +23,27 @@
 
 package com.microsoft.identity.client;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * MSAL internal class for representing an refresh token item.
  */
 final class RefreshTokenCacheItem extends BaseTokenCacheItem {
 
+    @SerializedName("refresh_token")
     private final String mRefreshToken;
 
-    RefreshTokenCacheItem(final String authority, final String clientId, final TokenResponse response)
+    RefreshTokenCacheItem(final String clientId, final TokenResponse response)
             throws AuthenticationException {
-        super(authority, clientId, response);
+        super(clientId, response);
         mRefreshToken = response.getRefreshToken();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    TokenCacheKey extractTokenCacheKey() {
+        return TokenCacheKey.createKeyForRT(mClientId, mUser);
     }
 
     String getRefreshToken() {

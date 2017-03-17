@@ -54,11 +54,6 @@ public final class TokenCacheKeyTest {
         TokenCacheKey.createKeyForAT(AUTHORITY, null, getScopes(), getUser());
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testRefreshTokenKeyCreationWithNullTokenCacheItem() {
-        TokenCacheKey.extractKeyForRT(null);
-    }
-
     @Test
     public void testAccessTokenKeyCreationWithEmptyUser() throws AuthenticationException {
         final String rawIdToken = AndroidTestUtil.createIdToken(AndroidTestUtil.AUDIENCE, AndroidTestUtil.ISSUER, AndroidTestUtil.NAME,
@@ -113,10 +108,10 @@ public final class TokenCacheKeyTest {
                 "version", HOME_OBJECT_ID);
         final TokenResponse response = new TokenResponse("access_token", idToken, "refresh_token", new Date(), new Date(), new Date(),
                 MSALUtils.convertSetToString(getScopes(), " "), "Bearer", null);
-        final BaseTokenCacheItem item = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, response);
+        final RefreshTokenCacheItem item = new RefreshTokenCacheItem(CLIENT_ID, response);
 
 
-        Assert.assertTrue(TokenCacheKey.extractKeyForRT(item).toString().equals("" + "$" + MSALUtils.base64EncodeToString(CLIENT_ID) + "$" + "$"
+        Assert.assertTrue(item.extractTokenCacheKey().toString().equals("" + "$" + MSALUtils.base64EncodeToString(CLIENT_ID) + "$" + "$"
                 + MSALUtils.base64EncodeToString(HOME_OBJECT_ID)));
     }
 

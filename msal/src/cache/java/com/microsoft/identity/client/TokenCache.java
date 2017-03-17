@@ -60,7 +60,7 @@ class TokenCache {
         Logger.info(TAG, null, "Starting to Save access token into cache. Access token will be saved with authority: " + authority
                 + "; Client Id: " + clientId + "; Scopes: " + response.getScope());
         final AccessTokenCacheItem newAccessToken = new AccessTokenCacheItem(authority, clientId, response);
-        final TokenCacheKey accessTokenCacheKey = TokenCacheKey.extractKeyForAT(newAccessToken);
+        final TokenCacheKey accessTokenCacheKey = newAccessToken.extractTokenCacheKey();
 
         // check for intersection and delete all the cache entries with intersecting scopes.
         final List<AccessTokenCacheItem> accessTokenCacheItems = mTokenCacheAccessor.getAllAccessTokensForGivenClientId(clientId);
@@ -84,7 +84,7 @@ class TokenCache {
         if (!MSALUtils.isEmpty(response.getRefreshToken())) {
             Logger.info(TAG, null, "Starting to save refresh token into cache. Refresh token will be saved with authority: " + authority
                     + "; Client Id: " + clientId);
-            final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(authority, clientId, response);
+            final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(clientId, response);
             mTokenCacheAccessor.saveRefreshToken(refreshTokenCacheItem);
         }
     }
@@ -174,7 +174,7 @@ class TokenCache {
      * Delete refresh token items.
      * @param rtItem The item to delete.
      */
-    void deleteRT(final BaseTokenCacheItem rtItem) {
+    void deleteRT(final RefreshTokenCacheItem rtItem) {
         Logger.info(TAG, null, "Removing refresh tokens from the cache.");
         mTokenCacheAccessor.deleteRefreshToken(rtItem);
     }
