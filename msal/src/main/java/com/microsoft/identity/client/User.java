@@ -36,12 +36,20 @@ public class User {
 
     /**
      * Internal constructor to create {@link User} from the {@link IdToken}.
+     *
      * @param idToken
      */
     User(final IdToken idToken) {
         mDisplayableId = idToken.getPreferredName();
         // TODO: home object id is returned in client info.
-        mHomeObjectId = MSALUtils.isEmpty(idToken.getHomeObjectId()) ? idToken.getObjectId() : idToken.getHomeObjectId();
+        final String uniqueId;
+        if (!MSALUtils.isEmpty(idToken.getObjectId())) {
+            uniqueId = idToken.getObjectId();
+        } else {
+            uniqueId = idToken.getSubject();
+        }
+        mHomeObjectId = MSALUtils.isEmpty(idToken.getHomeObjectId()) ? uniqueId : idToken.getHomeObjectId();
+        //
         mName = idToken.getName();
         mIdentityProvider = idToken.getIssuer();
     }
@@ -66,6 +74,7 @@ public class User {
     public String getIdentityProvider() {
         return mIdentityProvider;
     }
+
     /**
      * Sign out the user from the application. TODO: from all application or the single one?
      */
@@ -86,6 +95,7 @@ public class User {
 
     /**
      * Used by developer to set the User object when making acquire token API call.
+     *
      * @param displayableId
      */
     void setDisplayableId(final String displayableId) {
