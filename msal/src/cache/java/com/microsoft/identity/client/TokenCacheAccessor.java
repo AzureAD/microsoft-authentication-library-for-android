@@ -52,6 +52,8 @@ final class TokenCacheAccessor {
 
     private Gson mGson = new GsonBuilder()
             .registerTypeAdapter(Date.class, new DateTimeAdapter())
+            .registerTypeAdapter(AccessTokenCacheItem.class, new TokenCacheItemDeserializer<AccessTokenCacheItem>())
+            .registerTypeAdapter(RefreshTokenCacheItem.class, new TokenCacheItemDeserializer<RefreshTokenCacheItem>())
             .create();
 
     /**
@@ -79,7 +81,7 @@ final class TokenCacheAccessor {
      * When storing access token, the key needs to be a strict match.
      */
     void saveAccessToken(final AccessTokenCacheItem accessToken) {
-        final TokenCacheKey key = TokenCacheKey.extractKeyForAT(accessToken);
+        final TokenCacheKey key = accessToken.extractTokenCacheKey();
 
         final Editor editor = mAccessTokenSharedPreference.edit();
         editor.putString(key.toString(), mGson.toJson(accessToken));
@@ -93,7 +95,12 @@ final class TokenCacheAccessor {
      * Save the refresh token item.
      */
     void saveRefreshToken(final RefreshTokenCacheItem refreshToken) {
-        final TokenCacheKey key = TokenCacheKey.extractKeyForRT(refreshToken);
+        if (refreshToken == null) {
+            Logger.warning(TAG, null, "Refresh token is null, cannot save.");
+            return;
+        }
+
+        final TokenCacheKey key = refreshToken.extractTokenCacheKey();
 
         final Editor editor = mRefreshTokenSharedPreference.edit();
         editor.putString(key.toString(), mGson.toJson(refreshToken));
@@ -124,8 +131,13 @@ final class TokenCacheAccessor {
         return foundRTs;
     }
 
-    void deleteAccessToken(final BaseTokenCacheItem atItem) {
-        final String key = TokenCacheKey.extractKeyForAT(atItem).toString();
+    void deleteAccessToken(final AccessTokenCacheItem atItem) {
+        if (atItem == null) {
+            Logger.warning(TAG, null, "AccessTokenCacheItem is null, no need to delete.");
+            return;
+        }
+
+        final String key = atItem.extractTokenCacheKey().toString();
         final Editor editor = mAccessTokenSharedPreference.edit();
         editor.remove(key);
         editor.apply();
@@ -135,8 +147,13 @@ final class TokenCacheAccessor {
      * Delete the refresh token item.
      * @param rtItem The {@link BaseTokenCacheItem} to remove.
      */
-    void deleteRefreshToken(final BaseTokenCacheItem rtItem) {
-        final String key = TokenCacheKey.extractKeyForRT(rtItem).toString();
+    void deleteRefreshToken(final RefreshTokenCacheItem rtItem) {
+        if (rtItem == null) {
+            Logger.warning(TAG, null, "Null refresh token item is passed.");
+            return;
+        }
+
+        final String key = rtItem.extractTokenCacheKey().toString();
         Logger.verbose(TAG, null, "Remove the given refresh token item.");
         Logger.verbosePII(TAG, null, "Refresh token is deleted with key: " + key);
 

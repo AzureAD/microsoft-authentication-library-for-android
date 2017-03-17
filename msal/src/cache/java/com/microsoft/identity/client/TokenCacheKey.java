@@ -66,22 +66,6 @@ final class TokenCacheKey {
         return new TokenCacheKey("", clientId, new HashSet<String>(), user);
     }
 
-    static TokenCacheKey extractKeyForAT(final BaseTokenCacheItem tokenCacheItem) {
-        if (tokenCacheItem == null) {
-            throw new NullPointerException("token cache item is null");
-        }
-
-        return new TokenCacheKey(tokenCacheItem.getAuthority(), tokenCacheItem.getClientId(), tokenCacheItem.getScope(), tokenCacheItem.getHomeObjectId());
-    }
-
-    static TokenCacheKey extractKeyForRT(final BaseTokenCacheItem tokenCacheItem) {
-        if (tokenCacheItem == null) {
-            throw new NullPointerException("tokencacheItem null");
-        }
-
-        return new TokenCacheKey("", tokenCacheItem.getClientId(), new HashSet<String>(), tokenCacheItem.getHomeObjectId());
-    }
-
     Set<String> getScope() {
         return Collections.unmodifiableSet(mScope);
     }
