@@ -39,9 +39,7 @@ final class RefreshTokenCacheItem extends BaseTokenCacheItem {
         mRefreshToken = response.getRefreshToken();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     TokenCacheKey extractTokenCacheKey() {
         return TokenCacheKey.createKeyForRT(mClientId, mUser);
     }

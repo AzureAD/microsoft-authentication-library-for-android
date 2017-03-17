@@ -26,7 +26,6 @@ package com.microsoft.identity.client;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -62,9 +61,7 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
         mTokenType = response.getTokenType();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     TokenCacheKey extractTokenCacheKey() {
         return TokenCacheKey.createKeyForAT(mAuthority, mClientId, MSALUtils.getScopesAsSet(mScope), mUser);
     }
