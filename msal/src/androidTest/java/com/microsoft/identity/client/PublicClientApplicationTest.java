@@ -24,7 +24,6 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -32,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -208,10 +206,9 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
         users = application.getUsers();
         assertTrue(users.size() == EXPECTED_USER_SIZE);
-        final User userForDisplayable3 = application.getUser(displayable3);
+        final User userForDisplayable3 = getUser(displayable3, users);
         assertNotNull(userForDisplayable3);
         assertTrue(userForDisplayable3.getDisplayableId().equals(displayable3));
-        assertTrue(userForDisplayable3.getUniqueId().equals(uniqueId3));
         assertTrue(userForDisplayable3.getHomeObjectId().equals(homeOid3));
 
         // prepare token cache for different client id, same displayable3 user
@@ -221,11 +218,28 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         assertTrue(application.getUsers().size() == EXPECTED_USER_SIZE);
         users = anotherApplication.getUsers();
         assertTrue(users.size() == 1);
-        final User userForAnotherClient = anotherApplication.getUser(uniqueId3);
+        final User userForAnotherClient = getUser(homeOid3, users);
         assertNotNull(userForAnotherClient);
         assertTrue(userForAnotherClient.getDisplayableId().equals(displayable3));
-        assertTrue(userForAnotherClient.getUniqueId().equals(uniqueId3));
         assertTrue(userForAnotherClient.getHomeObjectId().equals(homeOid3));
+    }
+
+    /**
+     * From the supplied {@link List} of {@link User}, return the instance with a matching displayableId or homeObjectId.
+     *
+     * @param userIdentifier The user identifier, could be either displayableId or homeObjectId
+     * @param users          the list of Users to traverse
+     * @return
+     */
+    private User getUser(final String userIdentifier, final List<User> users) {
+        User resultUser = null;
+        for (final User user : users) {
+            if (userIdentifier.equals(user.getDisplayableId()) || userIdentifier.equals(user.getHomeObjectId())) {
+                resultUser = user;
+                break;
+            }
+        }
+        return resultUser;
     }
 
     /**

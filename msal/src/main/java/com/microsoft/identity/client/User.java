@@ -27,7 +27,7 @@ package com.microsoft.identity.client;
  * Contains the detailed info to identify an user. Signout functionality is provided at the user level.
  */
 public class User {
-    private String mUniqueId;
+
     private String mDisplayableId;
     private String mName;
     private String mIdentityProvider;
@@ -35,28 +35,22 @@ public class User {
 
     /**
      * Internal constructor to create {@link User} from the {@link IdToken}.
+     *
      * @param idToken
      */
     User(final IdToken idToken) {
-        if (!MSALUtils.isEmpty(idToken.getObjectId())) {
-            mUniqueId = idToken.getObjectId();
-        } else {
-            mUniqueId = idToken.getSubject();
-        }
-
         mDisplayableId = idToken.getPreferredName();
         // TODO: home object id is returned in client info.
-        mHomeObjectId = MSALUtils.isEmpty(idToken.getHomeObjectId()) ? mUniqueId : idToken.getHomeObjectId();
+        final String uniqueId;
+        if (!MSALUtils.isEmpty(idToken.getObjectId())) {
+            uniqueId = idToken.getObjectId();
+        } else {
+            uniqueId = idToken.getSubject();
+        }
+        mHomeObjectId = MSALUtils.isEmpty(idToken.getHomeObjectId()) ? uniqueId : idToken.getHomeObjectId();
+        //
         mName = idToken.getName();
         mIdentityProvider = idToken.getIssuer();
-    }
-
-    /**
-     * @return The unique identifier of the user authenticated during token acquisition. Can be null if not returned
-     * from the service.
-     */
-    public String getUniqueId() {
-        return mUniqueId;
     }
 
     /**
@@ -79,6 +73,7 @@ public class User {
     public String getIdentityProvider() {
         return mIdentityProvider;
     }
+
     /**
      * Sign out the user from the application. TODO: from all application or the single one?
      */
@@ -90,15 +85,8 @@ public class User {
     // internal methods provided
 
     /**
-     * Used by developer to set the User object when doing the acquire token API call.
-     * @param uniqueId
-     */
-    void setUniqueId(final String uniqueId) {
-        mUniqueId = uniqueId;
-    }
-
-    /**
      * Used by developer to set the User object when making acquire token API call.
+     *
      * @param displayableId
      */
     void setDisplayableId(final String displayableId) {

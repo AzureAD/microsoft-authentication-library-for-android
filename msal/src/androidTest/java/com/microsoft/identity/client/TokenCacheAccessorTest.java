@@ -275,7 +275,6 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         final IdToken idToken = new IdToken(AndroidTestUtil.getRawIdToken(displayable, uniqueId, homeOid));
         final User user = new User(idToken);
         user.setDisplayableId(displayable);
-        user.setUniqueId(uniqueId);
         user.setHomeObjectId(homeOid);
 
         return user;
