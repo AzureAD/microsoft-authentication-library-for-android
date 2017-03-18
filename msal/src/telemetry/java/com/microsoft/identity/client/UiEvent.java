@@ -23,23 +23,34 @@
 
 package com.microsoft.identity.client;
 
-import android.util.Pair;
-
 import static com.microsoft.identity.client.EventConstants.EventProperty;
 
-public class UiEvent extends BaseEvent {
+class UiEvent extends Event implements IUiEvent {
 
-    UiEvent(final EventName eventName) {
-        setEventName(eventName);
-        add(new Pair<>(EventProperty.EVENT_NAME, eventName.value));
+    private UiEvent(Builder builder) {
+        super(builder);
+        setEventName(EventName.UI_EVENT);
+        setProperty(EventProperty.REDIRECT_COUNT, builder.mRedirectCount.toString());
+        setProperty(EventProperty.USER_CANCEL, builder.mUserDidCancel);
     }
 
-    void setRedirectCount(final Integer redirectCount) {
-        setProperty(EventProperty.REDIRECT_COUNT, redirectCount.toString());
-    }
+    static class Builder extends Event.Builder<Builder> {
 
-    void setUserCancel() {
-        setProperty(EventProperty.USER_CANCEL, "true");
-    }
+        private Integer mRedirectCount;
+        private String mUserDidCancel = "false";
 
+        Builder redirectCount(final Integer redirectCount) {
+            mRedirectCount = redirectCount;
+            return this;
+        }
+
+        Builder setUserDidCancel() {
+            mUserDidCancel = "true";
+            return this;
+        }
+
+        IUiEvent build() {
+            return new UiEvent(this);
+        }
+    }
 }

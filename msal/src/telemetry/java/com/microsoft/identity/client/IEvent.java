@@ -23,40 +23,12 @@
 
 package com.microsoft.identity.client;
 
-import android.util.Pair;
+interface IEvent {
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+    void setProperty(final String propertyName, final String propertyValue);
 
-class EventDispatcher {
+    String getProperty(final String propertyName);
 
-    private final MsalEventReceiver mEventReceiver;
+    int getPropertyCount();
 
-    EventDispatcher(final MsalEventReceiver receiver) {
-        mEventReceiver = receiver;
-    }
-
-    MsalEventReceiver getReceiver() {
-        return mEventReceiver;
-    }
-
-    void dispatch(final List<Event> eventsToPublish) {
-        if (null == mEventReceiver) {
-            return;
-        }
-
-        List<Map<String, String>> eventsForPublication = new ArrayList<>();
-
-        for (final Event event : eventsToPublish) {
-            Map<String, String> eventProperties = new HashMap<>();
-            for (Pair<String, String> property : event) {
-                eventProperties.put(property.first, property.second);
-            }
-            eventsForPublication.add(eventProperties);
-        }
-
-        mEventReceiver.onEventsReceived(eventsForPublication);
-    }
 }

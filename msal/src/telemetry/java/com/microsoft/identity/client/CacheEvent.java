@@ -23,23 +23,42 @@
 
 package com.microsoft.identity.client;
 
-import android.util.Pair;
-
 import static com.microsoft.identity.client.EventConstants.EventProperty;
 
-public class CacheEvent extends BaseEvent {
+class CacheEvent extends Event implements ICacheEvent {
 
-    CacheEvent(final EventName eventName) {
-        setEventName(eventName);
-        setProperty(EventProperty.EVENT_NAME, eventName.value);
+    private CacheEvent(Builder builder) {
+        super(builder);
+        setEventName(builder.mEventName);
+        setProperty(EventProperty.TOKEN_TYPE, builder.mTokenType);
+        setProperty(EventProperty.TOKEN_TYPE_IS_RT, String.valueOf(builder.mTokenTypeIsRT));
     }
 
-    void setTokenType(final String tokenType) {
-        add(new Pair<>(EventProperty.TOKEN_TYPE, tokenType));
-    }
+    static class Builder extends Event.Builder<Builder> {
 
-    void setTokenTypeRT(final boolean tokenTypeRT) {
-        setProperty(EventProperty.TOKEN_TYPE_IS_RT, String.valueOf(tokenTypeRT));
-    }
+        private EventName mEventName;
+        private String mTokenType;
+        private boolean mTokenTypeIsRT;
 
+        Builder eventName(final EventName eventName) {
+            mEventName = eventName;
+            return this;
+        }
+
+        Builder tokenType(final String tokenType) {
+            mTokenType = tokenType;
+            return this;
+        }
+
+        Builder tokenTypeIsRT(final boolean tokenTypeRT) {
+            mTokenTypeIsRT = tokenTypeRT;
+            return this;
+        }
+
+        ICacheEvent build() {
+            // todo make sure that the event name is set?
+            return new CacheEvent(this);
+        }
+
+    }
 }

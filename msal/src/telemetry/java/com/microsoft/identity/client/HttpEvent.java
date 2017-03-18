@@ -23,41 +23,27 @@
 
 package com.microsoft.identity.client;
 
-import android.util.Pair;
-
 import java.net.URL;
 import java.util.Arrays;
 
 import static com.microsoft.identity.client.EventConstants.EventProperty;
 
-public class HttpEvent extends BaseEvent {
+class HttpEvent extends Event implements IHttpEvent {
 
-    HttpEvent(final String eventName) {
+    private HttpEvent(Builder builder) {
+        super(builder);
         setEventName(EventName.HTTP_EVENT);
-        add(new Pair<>(EventProperty.EVENT_NAME, eventName));
+        setProperty(EventProperty.HTTP_USER_AGENT, builder.mUserAgent);
+        setProperty(EventProperty.HTTP_METHOD, builder.mHttpMethod);
+        setProperty(EventProperty.HTTP_QUERY_PARAMETERS, builder.mQueryParams);
+        setProperty(EventProperty.HTTP_API_VERSION, builder.mApiVersion);
+        setProperty(EventProperty.OAUTH_ERROR_CODE, builder.mOAuthErrorCode);
+        setProperty(EventProperty.REQUEST_ID_HEADER, builder.mRequestIdHeader);
+        setHttpPath(builder.mHttpPath);
+        setProperty(EventProperty.HTTP_RESPONSE_CODE, String.valueOf(builder.mResponseCode));
     }
 
-    void setUserAgent(final String userAgent) {
-        setProperty(EventProperty.HTTP_USER_AGENT, userAgent);
-    }
-
-    void setMethod(final String method) {
-        setProperty(EventProperty.HTTP_METHOD, method);
-    }
-
-    void setQueryParameters(final String queryParameters) {
-        setProperty(EventProperty.HTTP_QUERY_PARAMETERS, queryParameters);
-    }
-
-    void setResponseCode(final int responseCode) {
-        setProperty(EventProperty.HTTP_RESPONSE_CODE, String.valueOf(responseCode));
-    }
-
-    void setApiVersion(final String apiVersion) {
-        setProperty(EventProperty.HTTP_API_VERSION, apiVersion);
-    }
-
-    void setHttpPath(final URL httpPath) {
+    private void setHttpPath(final URL httpPath) {
         final String authority = httpPath.getAuthority();
         // only collect telemetry for well-known hosts
         if (!Arrays.asList(AADAuthority.TRUSTED_HOSTS).contains(authority)) {
@@ -82,12 +68,61 @@ public class HttpEvent extends BaseEvent {
         setProperty(EventProperty.HTTP_PATH, logPath.toString());
     }
 
-    void setOauthErrorCode(final String errorCode) {
-        setProperty(EventProperty.OAUTH_ERROR_CODE, errorCode);
-    }
+    static class Builder extends Event.Builder<Builder> {
 
-    void setRequestIdHeader(final String requestIdHeader) {
-        setProperty(EventProperty.REQUEST_ID_HEADER, requestIdHeader);
+        private String mUserAgent;
+        private String mHttpMethod;
+        private String mQueryParams;
+        private String mApiVersion;
+        private String mOAuthErrorCode;
+        private String mRequestIdHeader;
+        private URL mHttpPath;
+        private Integer mResponseCode;
+
+        Builder userAgent(final String userAgent) {
+            mUserAgent = userAgent;
+            return this;
+        }
+
+        Builder httpMethod(final String httpMethod) {
+            mHttpMethod = httpMethod;
+            return this;
+        }
+
+        Builder queryParameters(final String queryParams) {
+            mQueryParams = queryParams;
+            return this;
+        }
+
+        Builder apiVersion(final String apiVersion) {
+            mApiVersion = apiVersion;
+            return this;
+        }
+
+        Builder oAuthErrorCode(final String oAuthErrorCode) {
+            mOAuthErrorCode = oAuthErrorCode;
+            return this;
+        }
+
+        Builder requestIdHeader(final String requestIdHeader) {
+            mRequestIdHeader = requestIdHeader;
+            return this;
+        }
+
+        Builder httpPath(final URL httpPath) {
+            mHttpPath = httpPath;
+            return this;
+        }
+
+        Builder responseCode(final Integer responseCode) {
+            mResponseCode = responseCode;
+            return this;
+        }
+
+        IHttpEvent build() {
+            return new HttpEvent(this);
+        }
+
     }
 
 }

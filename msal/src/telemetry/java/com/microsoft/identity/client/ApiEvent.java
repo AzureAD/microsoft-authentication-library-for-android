@@ -23,87 +23,39 @@
 
 package com.microsoft.identity.client;
 
-import android.content.Context;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 
 import static com.microsoft.identity.client.EventConstants.EventProperty;
 
-public class ApiEvent extends BaseEvent {
+class ApiEvent extends Event implements IApiEvent {
 
-    private static final String TAG = BaseEvent.class.getSimpleName();
+    private static final String TAG = ApiEvent.class.getSimpleName();
 
-    ApiEvent() {
+    private ApiEvent(Builder builder) {
+        super(builder);
         setEventName(EventName.API_EVENT);
-        setProperty(EventProperty.EVENT_NAME, EventName.API_EVENT.value);
+        setAuthority(builder.mAuthority);
+        setProperty(EventProperty.PROMPT_BEHAVIOR, builder.mPromptBehavior);
+        setProperty(EventProperty.API_ID, builder.mApiId);
+        setProperty(EventProperty.AUTHORITY_VALIDATION, builder.mValidationStatus);
+        setIdToken(builder.mRawIdToken);
+        setLoginHint(builder.mLoginHint);
+        setProperty(EventProperty.API_DEPRECATED, String.valueOf(builder.mIsDeprecated));
+        setProperty(EventProperty.EXTENDED_EXPIRES_ON_SETTING, String.valueOf(builder.mExtendedExpiresOnStatus));
+        setProperty(EventProperty.WAS_SUCCESSFUL, String.valueOf(builder.mWasApiCallSuccessful));
     }
 
-    ApiEvent(final Context context, final String clientId) {
-        this();
-        setDefaults(context, clientId);
-    }
-
-    void setAuthority(final String authority) {
-        if (MSALUtils.isEmpty(authority)) {
-            return;
-        }
-
-        setProperty(EventProperty.AUTHORITY_NAME, authority);
-        final URL authorityUrl = MSALUtils.getUrl(authority);
-        if (authorityUrl == null) {
-            return;
-        }
-
-        if (Authority.isAdfsAuthority(authorityUrl)) {
-            setAuthorityType(EventProperty.Value.AUTHORITY_TYPE_ADFS);
-        } else {
-            setAuthorityType(EventProperty.Value.AUTHORITY_TYPE_AAD);
+    private void setLoginHint(final String loginHint) {
+        try {
+            setProperty(EventProperty.LOGIN_HINT, MSALUtils.createHash(loginHint));
+        } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
+            Logger.info(TAG, null, "Skipping telemetry for LOGIN_HINT");
         }
     }
 
-    void setAuthorityType(final String authorityType) {
-        setProperty(EventProperty.AUTHORITY_TYPE, authorityType);
-    }
-
-    void setIsDeprecated(final boolean isDeprecated) {
-        setProperty(EventProperty.API_DEPRECATED, String.valueOf(isDeprecated));
-    }
-
-    void setValidationStatus(final String validationStatus) {
-        setProperty(EventProperty.AUTHORITY_VALIDATION, validationStatus);
-    }
-
-    void setExtendedExpiresOnSetting(final boolean extendedExpiresOnSetting) {
-        setProperty(EventProperty.EXTENDED_EXPIRES_ON_SETTING, String.valueOf(extendedExpiresOnSetting));
-    }
-
-    void setPromptBehavior(final String promptBehavior) {
-        setProperty(EventProperty.PROMPT_BEHAVIOR, promptBehavior);
-    }
-
-    void setAPIId(final String id) {
-        setProperty(EventProperty.API_ID, id);
-    }
-
-    void setWasApiCallSuccessful(final boolean isSuccess, final Exception exception) {
-        setProperty(EventConstants.EventProperty.WAS_SUCCESSFUL, String.valueOf(isSuccess));
-
-        if (exception != null) {
-            if (exception instanceof AuthenticationException) {
-                final AuthenticationException authException = (AuthenticationException) exception;
-                setProperty(EventProperty.API_ERROR_CODE, authException.getErrorCode().toString());
-            }
-        }
-    }
-
-    void stopTelemetryAndFlush() {
-        Telemetry.getInstance().stopEvent(getRequestId(), getEventName(), this);
-        Telemetry.getInstance().flush(getRequestId());
-    }
-
-    void setIdToken(final String rawIdToken) {
+    private void setIdToken(final String rawIdToken) {
         if (MSALUtils.isEmpty(rawIdToken)) {
             return;
         }
@@ -126,12 +78,88 @@ public class ApiEvent extends BaseEvent {
         }
     }
 
-    void setLoginHint(final String loginHint) {
-        try {
-            setProperty(EventProperty.LOGIN_HINT, MSALUtils.createHash(loginHint));
-        } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
-            Logger.info(TAG, null, "Skipping telemetry for LOGIN_HINT");
+    private void setAuthority(final String authority) {
+        if (MSALUtils.isEmpty(authority)) {
+            return;
+        }
+
+        setProperty(EventProperty.AUTHORITY_NAME, authority);
+        final URL authorityUrl = MSALUtils.getUrl(authority);
+        if (authorityUrl == null) {
+            return;
+        }
+
+        if (Authority.isAdfsAuthority(authorityUrl)) {
+            setAuthorityType(EventProperty.Value.AUTHORITY_TYPE_ADFS);
+        } else {
+            setAuthorityType(EventProperty.Value.AUTHORITY_TYPE_AAD);
         }
     }
 
+    private void setAuthorityType(final String authorityType) {
+        setProperty(EventProperty.AUTHORITY_TYPE, authorityType);
+    }
+
+    static class Builder extends Event.Builder<Builder> {
+
+        private String mAuthority;
+        private String mPromptBehavior;
+        private String mApiId;
+        private String mValidationStatus;
+        private String mRawIdToken;
+        private String mLoginHint;
+        private boolean mIsDeprecated;
+        private boolean mExtendedExpiresOnStatus;
+        private boolean mWasApiCallSuccessful;
+
+        Builder authority(final String authority) {
+            mAuthority = authority;
+            return this;
+        }
+
+        Builder promptBehavior(final String promptBehavior) {
+            mPromptBehavior = promptBehavior;
+            return this;
+        }
+
+        Builder apiId(final String apiId) {
+            mApiId = apiId;
+            return this;
+        }
+
+        Builder validationStatus(final String validationStatus) {
+            mValidationStatus = validationStatus;
+            return this;
+        }
+
+        Builder rawIdToken(final String rawIdToken) {
+            mRawIdToken = rawIdToken;
+            return this;
+        }
+
+        Builder loginHint(final String loginHint) {
+            mLoginHint = loginHint;
+            return this;
+        }
+
+        Builder isDeprecated(final boolean isDeprecated) {
+            mIsDeprecated = isDeprecated;
+            return this;
+        }
+
+        Builder hasExtendedExpiresOnStatus(final boolean hasExtendedExpiresOn) {
+            mExtendedExpiresOnStatus = hasExtendedExpiresOn;
+            return this;
+        }
+
+        Builder apiCallWasSuccessful(final boolean callWasSuccessful) {
+            mWasApiCallSuccessful = callWasSuccessful;
+            return this;
+        }
+
+        IApiEvent build() {
+            return new ApiEvent(this);
+        }
+
+    }
 }
