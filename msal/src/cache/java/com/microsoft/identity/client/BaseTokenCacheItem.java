@@ -25,9 +25,6 @@ package com.microsoft.identity.client;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * MSAL Internal abstract class to represent the {@link BaseTokenCacheItem}.
  */
@@ -75,7 +72,7 @@ abstract class BaseTokenCacheItem {
     }
 
     String getHomeObjectId() {
-        return mUser != null? mUser.getHomeObjectId() : "";
+        return mUser != null ? mUser.getHomeObjectId() : "";
     }
 
     void setIdToken(final IdToken idToken) {

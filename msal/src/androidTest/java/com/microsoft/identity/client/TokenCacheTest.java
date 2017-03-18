@@ -82,6 +82,88 @@ public final class TokenCacheTest extends AndroidTestCase {
         AndroidTestUtil.removeAllTokens(mAppContext);
     }
 
+    private AuthenticationRequestParameters addTokenForUser(final boolean useDefault) throws AuthenticationException {
+        final String testScope = "scope";
+        // Prepare a TokenResponse for either the default of the 'different' User, by param
+        final TokenResponse tokenResponse = useDefault ?
+                getTokenResponseForDefaultUser(
+                        ACCESS_TOKEN,
+                        REFRESH_TOKEN,
+                        testScope,
+                        AndroidTestUtil.getValidExpiresOn()) : // otherwise...
+                getTokenResponseForDifferentUser(
+                        testScope,
+                        AndroidTestUtil.getValidExpiresOn()
+                );
+        PublicClientApplicationTest.saveTokenResponse(
+                mTokenCache,
+                AUTHORITY,
+                CLIENT_ID,
+                tokenResponse
+        );
+        return getRequestParameters(
+                AUTHORITY,
+                Collections.singleton(testScope),
+                CLIENT_ID
+        );
+    }
+
+    @Test
+    public void testDeleteRefreshTokenByUser() throws AuthenticationException {
+        // Add a refresh token to the cache for the default user
+        final AuthenticationRequestParameters requestParameters = addTokenForUser(true);
+        // Verify token was inserted
+        assertNotNull(mTokenCache.findRefreshToken(requestParameters, mDefaultUser));
+        // Delete that token
+        mTokenCache.deleteRefreshTokenByUser(mDefaultUser);
+        // Verify that the token is deleted
+        assertNull(mTokenCache.findRefreshToken(requestParameters, mDefaultUser));
+    }
+
+    @Test
+    public void testDeleteRefreshTokenByUserClearsCorrectToken() throws AuthenticationException {
+        // Add a refresh token to the cache that is not associated with the current user
+        final AuthenticationRequestParameters differentUserParams = addTokenForUser(false);
+        // Add a refresh token to the cache for the default user
+        addTokenForUser(true);
+        // Delete the default user's token
+        mTokenCache.deleteRefreshTokenByUser(mDefaultUser);
+        // Verify that that the cache still contains the other token
+        assertNotNull(mTokenCache.findRefreshToken(differentUserParams, new User(new IdToken(getIdTokenForDifferentUser()))));
+    }
+
+    @Test
+    public void testDeleteAccessTokenByUser() throws AuthenticationException {
+        // Add an access token to the cache for the default user
+        final AuthenticationRequestParameters defaultUserRequestParameters = addTokenForUser(true);
+        // Verify that token was inserted
+        assertNotNull(mTokenCache.findAccessToken(defaultUserRequestParameters, mDefaultUser));
+        // Delete that token
+        mTokenCache.deleteAccessTokenByUser(mDefaultUser);
+        // Verify that the token is deleted
+        assertNull(mTokenCache.findAccessToken(defaultUserRequestParameters, mDefaultUser));
+    }
+
+    @Test
+    public void testDeleteAccessTokenByUserClearsCorrectToken() throws AuthenticationException {
+        // Add an access token to the cache that is not associated with the current user
+        final AuthenticationRequestParameters differentUserParams = addTokenForUser(false);
+        // Add an access token to the cache for the default user
+        addTokenForUser(true);
+        // Delete the default user's token
+        mTokenCache.deleteAccessTokenByUser(mDefaultUser);
+        // Verify that that the cache still contains the other token
+        assertNotNull(
+                mTokenCache.findAccessToken(
+                        differentUserParams,
+                        new User(
+                                new IdToken(getIdTokenForDifferentUser()
+                                )
+                        )
+                )
+        );
+    }
+
     /**
      * Verify that expired AT is not returned.
      */
