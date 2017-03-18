@@ -23,7 +23,11 @@
 
 package com.microsoft.identity.client;
 
-interface IEvent {
+import android.util.Pair;
+
+import java.util.Collection;
+
+interface IEvent extends Collection<Pair<String, String>> {
 
     void setProperty(final String propertyName, final String propertyValue);
 

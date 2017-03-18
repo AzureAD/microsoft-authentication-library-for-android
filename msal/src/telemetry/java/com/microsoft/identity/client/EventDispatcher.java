@@ -42,14 +42,14 @@ class EventDispatcher {
         return mEventReceiver;
     }
 
-    void dispatch(final List<Event> eventsToPublish) {
+    void dispatch(final List<IEvent> eventsToPublish) {
         if (null == mEventReceiver) {
             return;
         }
 
         List<Map<String, String>> eventsForPublication = new ArrayList<>();
 
-        for (final Event event : eventsToPublish) {
+        for (final IEvent event : eventsToPublish) {
             Map<String, String> eventProperties = new HashMap<>();
             for (Pair<String, String> property : event) {
                 eventProperties.put(property.first, property.second);

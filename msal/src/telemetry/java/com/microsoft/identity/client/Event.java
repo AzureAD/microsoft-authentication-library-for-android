@@ -48,11 +48,6 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
             setProperty(EventProperty.DEVICE_ID, sAllDefaults.mDeviceId);
         }
         setProperty(EventProperty.REQUEST_ID, builder.mRequestId.value);
-        setProperty(EventProperty.EVENT_NAME, builder.mEventName.value);
-    }
-
-    void setEventName(final EventName eventName) {
-        setProperty(EventProperty.EVENT_NAME, eventName.value);
     }
 
     @Override
@@ -80,15 +75,9 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
     static class Builder<T extends Builder> {
 
         private Telemetry.RequestId mRequestId;
-        private EventName mEventName;
 
         T requestId(Telemetry.RequestId requestId) {
             mRequestId = requestId;
-            return (T) this;
-        }
-
-        T eventName(EventName eventName) {
-            mEventName = eventName;
             return (T) this;
         }
 

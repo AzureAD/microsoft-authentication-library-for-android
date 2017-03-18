@@ -29,7 +29,7 @@ class CacheEvent extends Event implements ICacheEvent {
 
     private CacheEvent(Builder builder) {
         super(builder);
-        setEventName(builder.mEventName);
+        setProperty(EventProperty.EVENT_NAME, builder.mEventName.value);
         setProperty(EventProperty.TOKEN_TYPE, builder.mTokenType);
         setProperty(EventProperty.TOKEN_TYPE_IS_RT, String.valueOf(builder.mTokenTypeIsRT));
     }

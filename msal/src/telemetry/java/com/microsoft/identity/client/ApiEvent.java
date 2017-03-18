@@ -35,7 +35,7 @@ class ApiEvent extends Event implements IApiEvent {
 
     private ApiEvent(Builder builder) {
         super(builder);
-        setEventName(EventName.API_EVENT);
+        setProperty(EventProperty.EVENT_NAME, EventName.API_EVENT.value);
         setAuthority(builder.mAuthority);
         setProperty(EventProperty.PROMPT_BEHAVIOR, builder.mPromptBehavior);
         setProperty(EventProperty.API_ID, builder.mApiId);

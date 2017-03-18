@@ -39,7 +39,7 @@ public class Telemetry implements ITelemetry {
 
     private final Map<Pair<RequestId, EventName>, EventStartTime> mEventsInProgress;
 
-    private final Map<RequestId, List<Event>> mCompletedEvents;
+    private final Map<RequestId, List<IEvent>> mCompletedEvents;
 
     private EventDispatcher mPublisher;
 
@@ -96,7 +96,7 @@ public class Telemetry implements ITelemetry {
         );
     }
 
-    void stopEvent(final RequestId requestId, final EventName eventName, final Event event) {
+    void stopEvent(final RequestId requestId, final EventName eventName, final IEvent event) {
         final Pair<RequestId, EventName> eventKey = new Pair<>(requestId, eventName);
 
         // Compute execution time
@@ -117,7 +117,7 @@ public class Telemetry implements ITelemetry {
             // all of sibling events
             mCompletedEvents.put(
                     requestId,
-                    new ArrayList<Event>() {{
+                    new ArrayList<IEvent>() {{
                         add(event);
                     }}
             );
@@ -143,7 +143,7 @@ public class Telemetry implements ITelemetry {
                 // TODO what should I do with this information?
             }
         }
-        final List<Event> eventsToFlush = mCompletedEvents.remove(requestId);
+        final List<IEvent> eventsToFlush = mCompletedEvents.remove(requestId);
         mPublisher.dispatch(eventsToFlush);
     }
 
