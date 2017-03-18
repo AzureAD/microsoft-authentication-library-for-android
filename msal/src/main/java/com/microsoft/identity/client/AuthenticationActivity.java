@@ -68,26 +68,26 @@ public final class AuthenticationActivity extends Activity {
 
         final Intent data = getIntent();
         if (data == null) {
-            sendError(MsalError.UNRESOLVABLE_INTENT, "Received null data intent from caller");
+            sendError(MSALError.UNRESOLVABLE_INTENT, "Received null data intent from caller");
             return;
         }
 
         mRequestUrl = data.getStringExtra(Constants.REQUEST_URL_KEY);
         mRequestId = data.getIntExtra(Constants.REQUEST_ID, 0);
-        if (MsalUtils.isEmpty(mRequestUrl)) {
-            sendError(MsalError.UNRESOLVABLE_INTENT, "Request url is not set on the intent");
+        if (MSALUtils.isEmpty(mRequestUrl)) {
+            sendError(MSALError.UNRESOLVABLE_INTENT, "Request url is not set on the intent");
             return;
         }
 
         // We'll use custom tab if the chrome installed on the device comes with custom tab support(on 45 and above it
         // does). If the chrome package doesn't contain the support, we'll use chrome to launch the UI.
-        if (MsalUtils.getChromePackage(this.getApplicationContext()) == null) {
+        if (MSALUtils.getChromePackage(this.getApplicationContext()) == null) {
             Logger.info(TAG, null, "Chrome is not installed on the device, cannot continue with auth.");
-            sendError(MsalError.CHROME_NOT_INSTALLED, "Chrome is not installed on the device, cannot proceed with auth");
+            sendError(MSALError.CHROME_NOT_INSTALLED, "Chrome is not installed on the device, cannot proceed with auth");
             return;
         }
 
-        mChromePackageWithCustomTabSupport = MsalUtils.getChromePackageWithCustomTabSupport(getApplicationContext());
+        mChromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(getApplicationContext());
         mRequestUrl = this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
     }
 
@@ -156,7 +156,7 @@ public final class AuthenticationActivity extends Activity {
 
         final Intent resultIntent = new Intent();
         resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, url);
-        returnToCaller(Constants.UiResponse.AUTH_CODE_COMPLETE,
+        returnToCaller(Constants.UIResponse.AUTH_CODE_COMPLETE,
                 resultIntent);
     }
 
@@ -171,7 +171,7 @@ public final class AuthenticationActivity extends Activity {
 
         mRestarted = true;
 
-        final String chromePackageWithCustomTabSupport = MsalUtils.getChromePackageWithCustomTabSupport(
+        final String chromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(
                 this.getApplicationContext());
         mRequestUrl =  this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
 
@@ -179,12 +179,12 @@ public final class AuthenticationActivity extends Activity {
         if (chromePackageWithCustomTabSupport != null) {
             Logger.info(TAG, null, "ChromeCustomTab support is available, launching chrome tab.");
             final CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder().build();
-            customTabsIntent.intent.setPackage(MsalUtils.getChromePackageWithCustomTabSupport(this));
+            customTabsIntent.intent.setPackage(MSALUtils.getChromePackageWithCustomTabSupport(this));
             customTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
         } else {
             Logger.info(TAG, null, "Chrome tab support is not available, launching chrome browser.");
             final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
-            browserIntent.setPackage(MsalUtils.getChromePackage(this.getApplicationContext()));
+            browserIntent.setPackage(MSALUtils.getChromePackage(this.getApplicationContext()));
             browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
             this.startActivity(browserIntent);
         }
@@ -202,7 +202,7 @@ public final class AuthenticationActivity extends Activity {
      */
     void cancelRequest() {
         Logger.verbose(TAG, null, "Cancel the authentication request.");
-        returnToCaller(Constants.UiResponse.CANCEL, new Intent());
+        returnToCaller(Constants.UIResponse.CANCEL, new Intent());
     }
 
     /**
@@ -229,8 +229,8 @@ public final class AuthenticationActivity extends Activity {
         Logger.info(TAG, null, "Sending error back to the caller, errorCode: " + errorCode + "; errorDescription"
                 + errorDescription);
         final Intent errorIntent = new Intent();
-        errorIntent.putExtra(Constants.UiResponse.ERROR_CODE, errorCode);
-        errorIntent.putExtra(Constants.UiResponse.ERROR_DESCRIPTION, errorDescription);
-        returnToCaller(Constants.UiResponse.AUTH_CODE_ERROR, errorIntent);
+        errorIntent.putExtra(Constants.UIResponse.ERROR_CODE, errorCode);
+        errorIntent.putExtra(Constants.UIResponse.ERROR_DESCRIPTION, errorDescription);
+        returnToCaller(Constants.UIResponse.AUTH_CODE_ERROR, errorIntent);
     }
 }

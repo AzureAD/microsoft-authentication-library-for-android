@@ -79,7 +79,7 @@ public final class AccessTokenCacheItemTest {
 
     static TokenResponse getTokenResponse(final String accessToken, final String refreshToken) {
         return new TokenResponse(accessToken, getIdToken(), refreshToken, new Date(), new Date(), new Date(),
-                MsalUtils.convertSetToString(getScopes(), " "), "Bearer");
+                MSALUtils.convertSetToString(getScopes(), " "), "Bearer");
     }
 
     static String getIdToken() {

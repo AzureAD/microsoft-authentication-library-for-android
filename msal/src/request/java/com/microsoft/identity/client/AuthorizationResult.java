@@ -64,22 +64,22 @@ final class AuthorizationResult {
                     Constants.MsalInternalError.AUTHORIZATION_FAILED, "receives null intent");
         }
 
-        if (resultCode == Constants.UiResponse.CANCEL) {
+        if (resultCode == Constants.UIResponse.CANCEL) {
             Logger.verbose(TAG, null, "User cancel the request in webview.");
             return AuthorizationResult.getAuthorizationResultWithUserCancel();
-        } else if (resultCode == Constants.UiResponse.AUTH_CODE_COMPLETE) {
+        } else if (resultCode == Constants.UIResponse.AUTH_CODE_COMPLETE) {
             final String url = data.getStringExtra(Constants.AUTHORIZATION_FINAL_URL);
             return AuthorizationResult.parseAuthorizationResponse(url);
-        } else if (resultCode == Constants.UiResponse.AUTH_CODE_ERROR) {
+        } else if (resultCode == Constants.UIResponse.AUTH_CODE_ERROR) {
             // This is purely client side error, possible return could be chrome_not_installed or the request intent is
             // not resolvable
-            final String error = data.getStringExtra(Constants.UiResponse.ERROR_CODE);
-            final String errorDescription = data.getStringExtra(Constants.UiResponse.ERROR_DESCRIPTION);
+            final String error = data.getStringExtra(Constants.UIResponse.ERROR_CODE);
+            final String errorDescription = data.getStringExtra(Constants.UIResponse.ERROR_DESCRIPTION);
             return new AuthorizationResult(AuthorizationStatus.FAIL, error, errorDescription);
         }
 
         return new AuthorizationResult(AuthorizationStatus.FAIL,
-                MsalError.UNKNOWN_ERROR, "Unknown result code [" + resultCode + "] returned from system webview.");
+                MSALError.UNKNOWN_ERROR, "Unknown result code [" + resultCode + "] returned from system webview.");
     }
 
     public static AuthorizationResult parseAuthorizationResponse(final String returnUri) {
@@ -87,16 +87,16 @@ final class AuthorizationResult {
         final String result = responseUri.getQuery();
 
         final AuthorizationResult authorizationResult;
-        if (MsalUtils.isEmpty(result)) {
+        if (MSALUtils.isEmpty(result)) {
             Logger.warning(TAG, null, "Invalid server response, empty query string from the webview redirect.");
             authorizationResult = getAuthorizationResultWithInvalidServerResponse();
         } else {
-            final Map<String, String> urlParameters = MsalUtils.decodeUrlToMap(result, "&");
+            final Map<String, String> urlParameters = MSALUtils.decodeUrlToMap(result, "&");
             if (urlParameters.containsKey(OauthConstants.TokenResponseClaim.CODE)) {
                 final String state = urlParameters.get(OauthConstants.TokenResponseClaim.STATE);
-                if (MsalUtils.isEmpty(state)) {
+                if (MSALUtils.isEmpty(state)) {
                     Logger.warning(TAG, null, "State parameter is not returned from the webview redirect.");
-                    authorizationResult = new AuthorizationResult(AuthorizationStatus.FAIL, MsalError.STATE_NOT_MATCH,
+                    authorizationResult = new AuthorizationResult(AuthorizationStatus.FAIL, MSALError.STATE_NOT_MATCH,
                             Constants.MsalErrorMessage.STATE_NOT_RETURNED);
                 } else {
                     Logger.info(TAG, null, "Auth code is successfully returned from webview redirect.");

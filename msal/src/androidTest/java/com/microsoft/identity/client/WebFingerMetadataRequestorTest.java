@@ -66,7 +66,7 @@ public class WebFingerMetadataRequestorTest {
 
     private static final RequestContext REQUEST_CONTEXT = new RequestContext(UUID.randomUUID(), "");
 
-    private static final DrsMetadata DRS_METADATA = new DrsMetadata();
+    private static final DRSMetadata DRS_METADATA = new DRSMetadata();
 
     static {
         IdentityProviderService identityProviderService = new IdentityProviderService();

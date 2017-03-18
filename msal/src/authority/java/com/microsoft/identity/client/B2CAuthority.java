@@ -29,11 +29,11 @@ import java.net.URL;
 /**
  * MSAL internal class for representing the B2C authority instance.
  */
-final class B2cAuthority extends AadAuthority {
-    private static final String TAG = B2cAuthority.class.getSimpleName();
+final class B2CAuthority extends AADAuthority {
+    private static final String TAG = B2CAuthority.class.getSimpleName();
     private static int B2C_AUTHORITY_SEGMENTS_SIZE = 3;
 
-    B2cAuthority(final URL authority, boolean validateAuthority) {
+    B2CAuthority(final URL authority, boolean validateAuthority) {
         super(authority, validateAuthority);
 
         mAuthorityType = AuthorityType.B2C;
@@ -74,7 +74,7 @@ final class B2cAuthority extends AadAuthority {
         if (mValidateAuthority && !TRUSTED_HOST_SET.contains(mAuthorityUrl.getAuthority())) {
             // we don't support b2c authority validation for BUILD.
             Logger.error(TAG, null, "Authority validation is not supported for b2c authority.", null);
-            throw new MsalClientException(MsalError.UNSUPPORTED_AUTHORITY_VALIDATION_INSTANCE, "B2C authority is not supported for doing authority validation");
+            throw new MsalClientException(MSALError.UNSUPPORTED_AUTHORITY_VALIDATION_INSTANCE, "B2C authority is not supported for doing authority validation");
         }
 
         return getDefaultOpenIdConfigurationEndpoint();

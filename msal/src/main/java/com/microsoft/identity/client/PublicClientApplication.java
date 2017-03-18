@@ -144,7 +144,7 @@ public final class PublicClientApplication {
     // Interactive APIs. Will launch the web UI.
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
+     * Default value for {@link UIBehavior} is {@link UIBehavior#SELECT_ACCOUNT}.
      * @param scopes An array of scopes to acquire token for.
      * @param callback The {@link AuthenticationCallback} to receive the result back.
      *                 1) If user cancels the flow by pressing the device back button, the result will be sent
@@ -155,12 +155,12 @@ public final class PublicClientApplication {
      *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireToken(final String[] scopes, final AuthenticationCallback callback) {
-        acquireTokenInteractive(scopes, "", UiBehavior.SELECT_ACCOUNT, "", null, "", callback);
+        acquireTokenInteractive(scopes, "", UIBehavior.SELECT_ACCOUNT, "", null, "", callback);
     }
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
+     * Default value for {@link UIBehavior} is {@link UIBehavior#SELECT_ACCOUNT}.
      * @param scopes An array of scopes to acquire the token for.
      * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
      *                  which will have the UPN pre-populated.
@@ -174,16 +174,16 @@ public final class PublicClientApplication {
      */
     public void acquireToken(final String[] scopes, final String loginHint,
                              final AuthenticationCallback callback) {
-        acquireTokenInteractive(scopes, loginHint, UiBehavior.SELECT_ACCOUNT, "", null, "", callback);
+        acquireTokenInteractive(scopes, loginHint, UIBehavior.SELECT_ACCOUNT, "", null, "", callback);
     }
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
+     * Default value for {@link UIBehavior} is {@link UIBehavior#SELECT_ACCOUNT}.
      * @param scopes An array of scopes to acquire the token for.
      * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
      *                  which will have the UPN pre-populated.
-     * @param uiBehavior The {@link UiBehavior} for prompting behavior. By default, the sdk use {@link UiBehavior#SELECT_ACCOUNT}.
+     * @param uiBehavior The {@link UIBehavior} for prompting behavior. By default, the sdk use {@link UIBehavior#SELECT_ACCOUNT}.
      * @param extraQueryParams Optional. The extra query parameter sent to authorize endpoint.
      * @param callback The {@link AuthenticationCallback} to receive the result back.
      *                 1) If user cancels the flow by pressing the device back button, the result will be sent
@@ -193,19 +193,19 @@ public final class PublicClientApplication {
      *                 3) All the other errors will be sent back via
      *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
-    public void acquireToken(final String[] scopes, final String loginHint, final UiBehavior uiBehavior,
+    public void acquireToken(final String[] scopes, final String loginHint, final UIBehavior uiBehavior,
                              final String extraQueryParams, final AuthenticationCallback callback) {
-        acquireTokenInteractive(scopes, loginHint, uiBehavior == null ? UiBehavior.SELECT_ACCOUNT : uiBehavior,
+        acquireTokenInteractive(scopes, loginHint, uiBehavior == null ? UIBehavior.SELECT_ACCOUNT : uiBehavior,
                 extraQueryParams, null, "", callback);
     }
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
+     * Default value for {@link UIBehavior} is {@link UIBehavior#SELECT_ACCOUNT}.
      * @param scopes An array of scopes to acquire the token for.
      * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
      *                  which will have the UPN pre-populated.
-     * @param uiBehavior The {@link UiBehavior} for prompting behavior. By default, the sdk use {@link UiBehavior#SELECT_ACCOUNT}.
+     * @param uiBehavior The {@link UIBehavior} for prompting behavior. By default, the sdk use {@link UIBehavior#SELECT_ACCOUNT}.
      * @param extraQueryParams Optional. The extra query parameter sent to authorize endpoint.
      * @param additionalScope Optional. The additional scope to consent for.
      * @param authority Should be set if developer wants to get token for a different authority url.
@@ -217,10 +217,10 @@ public final class PublicClientApplication {
      *                 3) All the other errors will be sent back via
      *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
-    public void acquireToken(final String[] scopes, final String loginHint, final UiBehavior uiBehavior,
+    public void acquireToken(final String[] scopes, final String loginHint, final UIBehavior uiBehavior,
                              final String extraQueryParams, final String[] additionalScope, final String authority,
                              final AuthenticationCallback callback) {
-        acquireTokenInteractive(scopes, loginHint, uiBehavior == null ? UiBehavior.SELECT_ACCOUNT : uiBehavior,
+        acquireTokenInteractive(scopes, loginHint, uiBehavior == null ? UIBehavior.SELECT_ACCOUNT : uiBehavior,
                 extraQueryParams, additionalScope, authority, callback);
     }
 
@@ -292,7 +292,7 @@ public final class PublicClientApplication {
 
         // read authority from manifest.
         final String authority = applicationInfo.metaData.getString(AUTHORITY_META_DATA);
-        if (!MsalUtils.isEmpty(authority)) {
+        if (!MSALUtils.isEmpty(authority)) {
             mAuthority = Authority.createAuthority(authority, mValidateAuthority);
         } else {
             mAuthority = Authority.createAuthority(DEFAULT_AUTHORITY, mValidateAuthority);
@@ -300,21 +300,21 @@ public final class PublicClientApplication {
 
         // read client id from manifest
         final String clientId = applicationInfo.metaData.getString(CLIENT_ID_META_DATA);
-        if (MsalUtils.isEmpty(clientId)) {
+        if (MSALUtils.isEmpty(clientId)) {
             throw new IllegalArgumentException("client id missing from manifest");
         }
         mClientId = clientId;
 
         // TODO: Comment out for now. As discussed, redirect should be computed during runtime, developer needs to put
 //        final String redirectUri = applicationInfo.metaData.getString(REDIRECT_META_DATA);
-//        if (!MsalUtils.isEmpty(redirectUri)) {
+//        if (!MSALUtils.isEmpty(redirectUri)) {
 //            mRedirectUri = redirectUri;
 //        }
     }
 
     // TODO: if no more input validation is needed, this could be moved back to the constructor.
     private void validateInputParameters() {
-        if (!MsalUtils.hasCustomTabRedirectActivity(mAppContext, mRedirectUri)) {
+        if (!MSALUtils.hasCustomTabRedirectActivity(mAppContext, mRedirectUri)) {
             throw new IllegalStateException("App doesn't have the correct configuration for "
                     + BrowserTabActivity.class.getSimpleName() + ".");
         }
@@ -339,7 +339,7 @@ public final class PublicClientApplication {
     }
 
 
-    private void acquireTokenInteractive(final String[] scopes, final String loginHint, final UiBehavior uiBehavior,
+    private void acquireTokenInteractive(final String[] scopes, final String loginHint, final UIBehavior uiBehavior,
                                          final String extraQueryParams, final String[] additionalScope,
                                          final String authority, final AuthenticationCallback callback) {
         if (callback == null) {
@@ -361,7 +361,7 @@ public final class PublicClientApplication {
             throw new IllegalArgumentException("callback is null");
         }
 
-        final Authority authorityForRequest = MsalUtils.isEmpty(authority) ? mAuthority
+        final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? mAuthority
                 : Authority.createAuthority(authority, mValidateAuthority);
         // set correlation if not developer didn't set it.
         final RequestContext requestContext = new RequestContext(UUID.randomUUID(), mComponent);
@@ -376,8 +376,8 @@ public final class PublicClientApplication {
 
     private AuthenticationRequestParameters getRequestParameters(final String authority, final String[] scopes,
                                                                  final String loginHint, final String extraQueryParam,
-                                                                 final UiBehavior uiBehavior) {
-        final Authority authorityForRequest = MsalUtils.isEmpty(authority) ? mAuthority
+                                                                 final UIBehavior uiBehavior) {
+        final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? mAuthority
                 : Authority.createAuthority(authority, mValidateAuthority);
         // set correlation if not developer didn't set it.
         final UUID correlationId = UUID.randomUUID();

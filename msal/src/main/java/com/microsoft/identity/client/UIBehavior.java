@@ -24,29 +24,24 @@
 package com.microsoft.identity.client;
 
 /**
- * Data container for the DRS discovery document.
+ * The UI options that developer could pass in during interactive sign in.
  */
-final class DrsMetadata {
-
-    static final String JSON_KEY_IDENTITY_PROVIDER_SERVICE = "IdentityProviderService";
-
-    private IdentityProviderService mIdentityProviderService;
+public enum UIBehavior {
 
     /**
-     * Gets the IdentityProviderService.
-     *
-     * @return the IdentityProviderService
+     * AcquireToken will send prompt=select_account to authorize endpoint and would show a list of users from which can be
+     * selected for authentication.
      */
-    IdentityProviderService getIdentityProviderService() {
-        return mIdentityProviderService;
-    }
+    SELECT_ACCOUNT,
 
     /**
-     * Sets the IdentityProviderService.
-     *
-     * @param identityProviderService the IdentityProviderService to set
+     * The user will be prompted for credentials by the service. It is achieved by sending prompt=login to the service.
      */
-    void setIdentityProviderService(IdentityProviderService identityProviderService) {
-        this.mIdentityProviderService = identityProviderService;
-    }
+    FORCE_LOGIN,
+
+    /**
+     * The user will be prompted to consent even if consent was granted before. It is achieved by sending prompt=consent
+     * to the service.
+     */
+    CONSENT
 }

@@ -76,7 +76,7 @@ abstract class Authority {
     abstract void addToValidatedAuthorityCache(final String userPrincipalName);
 
     /**
-     * Create the detailed authority. If the authority url string is for AAD, will create the {@link AadAuthority}, otherwise
+     * Create the detailed authority. If the authority url string is for AAD, will create the {@link AADAuthority}, otherwise
      * ADFS or B2C authority will be created.
      *
      * @param authorityUrl      The authority url used to create the {@link Authority}.
@@ -95,7 +95,7 @@ abstract class Authority {
             throw new IllegalArgumentException("Invalid protocol for the authority url.");
         }
 
-        if (MsalUtils.isEmpty(authority.getPath().replace("/", ""))) {
+        if (MSALUtils.isEmpty(authority.getPath().replace("/", ""))) {
             throw new IllegalArgumentException("Invalid authority url");
         }
 
@@ -108,11 +108,11 @@ abstract class Authority {
             throw new IllegalArgumentException("ADFS authority is not a supported authority instance");
         } else if (isB2cAuthority) {
             Logger.info(TAG, null, "Passed in authority string is a b2c authority, create an new b2c authority instance.");
-            return new B2cAuthority(authority, validateAuthority);
+            return new B2CAuthority(authority, validateAuthority);
         }
 
         Logger.info(TAG, null, "Passed in authority string is a aad authority, create an new aad authority instance.");
-        return new AadAuthority(authority, validateAuthority);
+        return new AADAuthority(authority, validateAuthority);
     }
 
     /**
@@ -141,17 +141,17 @@ abstract class Authority {
             oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID, requestContext.getCorrelationId().toString());
             tenantDiscoveryResponse = oauth2Client.discoverEndpoints(new URL(openIdConfigurationEndpoint));
         } catch (final IOException ioException) {
-            throw new MsalServiceException(MsalError.SERVER_ERROR, ioException.getMessage(), ioException);
+            throw new MsalServiceException(MSALError.SERVER_ERROR, ioException.getMessage(), ioException);
         }
 
-        if (MsalUtils.isEmpty(tenantDiscoveryResponse.getAuthorizationEndpoint())
-                || MsalUtils.isEmpty(tenantDiscoveryResponse.getTokenEndpoint())) {
+        if (MSALUtils.isEmpty(tenantDiscoveryResponse.getAuthorizationEndpoint())
+                || MSALUtils.isEmpty(tenantDiscoveryResponse.getTokenEndpoint())) {
             if (tenantDiscoveryResponse.getError() != null) {
                 throw new MsalServiceException(tenantDiscoveryResponse.getError(), tenantDiscoveryResponse.getErrorDescription(),
                         tenantDiscoveryResponse.getHttpStatusCode(), null);
             }
 
-            throw new MsalServiceException(MsalError.UNKNOWN_ERROR, "Didn't receive either success or failure response from server",
+            throw new MsalServiceException(MSALError.UNKNOWN_ERROR, "Didn't receive either success or failure response from server",
                     tenantDiscoveryResponse.getHttpStatusCode(), null);
         }
 

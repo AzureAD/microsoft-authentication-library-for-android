@@ -56,10 +56,10 @@ public final class Oauth2ClientTest {
 
         final Set<String> expectedRequestMessageSet = new HashSet<>();
         expectedRequestMessageSet.add(OauthConstants.Oauth2Parameters.GRANT_TYPE + "=" + OauthConstants.Oauth2GrantType.REFRESH_TOKEN);
-        expectedRequestMessageSet.add(OauthConstants.Oauth2Parameters.REFRESH_TOKEN + "=" + MsalUtils.urlEncode(REFRESH_TOKEN));
-        expectedRequestMessageSet.add(OauthConstants.Oauth2Parameters.CLIENT_ID + "=" + MsalUtils.urlEncode(CLIENT_ID));
+        expectedRequestMessageSet.add(OauthConstants.Oauth2Parameters.REFRESH_TOKEN + "=" + MSALUtils.urlEncode(REFRESH_TOKEN));
+        expectedRequestMessageSet.add(OauthConstants.Oauth2Parameters.CLIENT_ID + "=" + MSALUtils.urlEncode(CLIENT_ID));
 
-        final String expectedRequestMessage = MsalUtils.convertSetToString(expectedRequestMessageSet, "&");
+        final String expectedRequestMessage = MSALUtils.convertSetToString(expectedRequestMessageSet, "&");
 
         try {
             final TokenResponse response = oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
@@ -67,7 +67,7 @@ public final class Oauth2ClientTest {
             verifyMockConnectionHasCommonHeaders(mockedConnection);
 
             // Verify body parameters
-            Mockito.verify(outputStream).write(AdditionalMatchers.aryEq(expectedRequestMessage.getBytes(MsalUtils.ENCODING_UTF8)));
+            Mockito.verify(outputStream).write(AdditionalMatchers.aryEq(expectedRequestMessage.getBytes(MSALUtils.ENCODING_UTF8)));
 
             // verify response
             Assert.assertNotNull(response);
@@ -110,7 +110,7 @@ public final class Oauth2ClientTest {
                         return false;
                     }
 
-                    final Map<String, String> decodeUrlMap = MsalUtils.decodeUrlToMap(message, "&");
+                    final Map<String, String> decodeUrlMap = MSALUtils.decodeUrlToMap(message, "&");
                     if (decodeUrlMap.get(OauthConstants.Oauth2Parameters.GRANT_TYPE).equalsIgnoreCase(
                             OauthConstants.Oauth2GrantType.AUTHORIZATION_CODE)
                             && decodeUrlMap.get(OauthConstants.Oauth2Parameters.CODE).equalsIgnoreCase(AUTH_CODE)
@@ -192,7 +192,7 @@ public final class Oauth2ClientTest {
             oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
             Assert.fail();
         } catch (final MsalServiceException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MsalError.SERVER_ERROR));
+            Assert.assertTrue(e.getErrorCode().equals(MSALError.SERVER_ERROR));
         }
     }
 

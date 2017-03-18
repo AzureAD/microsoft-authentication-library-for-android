@@ -50,7 +50,7 @@ abstract class BaseTokenCacheItem {
      */
     BaseTokenCacheItem(final String clientId, final TokenResponse response)
             throws MsalClientException {
-        if (!MsalUtils.isEmpty(response.getRawIdToken())) {
+        if (!MSALUtils.isEmpty(response.getRawIdToken())) {
             mRawIdToken = response.getRawIdToken();
             mIdToken = new IdToken(mRawIdToken);
             mUser = new User(mIdToken);

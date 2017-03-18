@@ -40,7 +40,7 @@ import java.util.UUID;
 
 @RunWith(AndroidJUnit4.class)
 @SmallTest
-public class DrsMetadataRequestorTest {
+public class DRSMetadataRequestorTest {
 
     private static final RequestContext REQUEST_CONTEXT = new RequestContext(UUID.randomUUID(), "");
 
@@ -85,9 +85,9 @@ public class DrsMetadataRequestorTest {
         final HttpURLConnection mockedSuccessConnection = AndroidTestMockUtil
                 .getMockedConnectionWithSuccessResponse(RESPONSE);
         HttpUrlConnectionFactory.addMockedConnection(mockedSuccessConnection);
-        final DrsMetadataRequestor requestor = new DrsMetadataRequestor(REQUEST_CONTEXT);
+        final DRSMetadataRequestor requestor = new DRSMetadataRequestor(REQUEST_CONTEXT);
 
-        final DrsMetadata metadata = requestor.requestMetadata(DOMAIN);
+        final DRSMetadata metadata = requestor.requestMetadata(DOMAIN);
 
         Assert.assertEquals(
                 TEST_ADFS,
@@ -102,7 +102,7 @@ public class DrsMetadataRequestorTest {
                         HttpURLConnection.HTTP_BAD_REQUEST, "Bad Request"
                 );
         HttpUrlConnectionFactory.addMockedConnection(mockedFailedConnection);
-        final DrsMetadataRequestor requestor = new DrsMetadataRequestor(REQUEST_CONTEXT);
+        final DRSMetadataRequestor requestor = new DRSMetadataRequestor(REQUEST_CONTEXT);
         // throws Exception (expected)
         requestor.requestMetadata(DOMAIN);
     }
@@ -119,7 +119,7 @@ public class DrsMetadataRequestorTest {
                 mockHeaders
         );
 
-        final DrsMetadata metadata = new DrsMetadataRequestor(REQUEST_CONTEXT).parseMetadata(mockResponse);
+        final DRSMetadata metadata = new DRSMetadataRequestor(REQUEST_CONTEXT).parseMetadata(mockResponse);
 
         Assert.assertEquals(
                 TEST_ADFS,
@@ -130,11 +130,11 @@ public class DrsMetadataRequestorTest {
     @Test
     public void testBuildRequestUrlByTypeOnPrem() {
         final String expected = "https://enterpriseregistration.lindft6.com/enrollmentserver/contract?api-version=1.0";
-        final DrsMetadataRequestor requestor = new DrsMetadataRequestor(REQUEST_CONTEXT);
+        final DRSMetadataRequestor requestor = new DRSMetadataRequestor(REQUEST_CONTEXT);
         Assert.assertEquals(
                 expected,
                 requestor.buildRequestUrlByType(
-                        DrsMetadataRequestor.Type.ON_PREM,
+                        DRSMetadataRequestor.Type.ON_PREM,
                         DOMAIN
                 )
         );
@@ -143,11 +143,11 @@ public class DrsMetadataRequestorTest {
     @Test
     public void testBuildRequestUrlByTypeCloud() {
         final String expected = "https://enterpriseregistration.windows.net/lindft6.com/enrollmentserver/contract?api-version=1.0";
-        final DrsMetadataRequestor requestor = new DrsMetadataRequestor(REQUEST_CONTEXT);
+        final DRSMetadataRequestor requestor = new DRSMetadataRequestor(REQUEST_CONTEXT);
         Assert.assertEquals(
                 expected,
                 requestor.buildRequestUrlByType(
-                        DrsMetadataRequestor.Type.CLOUD,
+                        DRSMetadataRequestor.Type.CLOUD,
                         DOMAIN
                 )
         );

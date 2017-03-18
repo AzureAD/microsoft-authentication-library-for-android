@@ -89,8 +89,8 @@ public final class AndroidTestUtil {
                 + "\",\"home_oid\":\"" + homeObjectId + "\",\"name\":\"" + name + "\"}";
 
         return String.format("%s.%s.", new String(Base64.encode(idTokenHeader.getBytes(
-                Charset.forName(MsalUtils.ENCODING_UTF8)), Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE)),
-                new String(Base64.encode(claims.getBytes(Charset.forName(MsalUtils.ENCODING_UTF8)),
+                Charset.forName(MSALUtils.ENCODING_UTF8)), Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE)),
+                new String(Base64.encode(claims.getBytes(Charset.forName(MSALUtils.ENCODING_UTF8)),
                         Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE)));
     }
 
@@ -138,8 +138,8 @@ public final class AndroidTestUtil {
     }
 
     static String encodeProtocolState(final String authority, final Set<String> scopes) throws UnsupportedEncodingException {
-        String state = String.format("a=%s&r=%s", MsalUtils.urlEncode(authority),
-                MsalUtils.urlEncode(MsalUtils.convertSetToString(scopes, " ")));
+        String state = String.format("a=%s&r=%s", MSALUtils.urlEncode(authority),
+                MSALUtils.urlEncode(MSALUtils.convertSetToString(scopes, " ")));
         return Base64.encodeToString(state.getBytes(Charset.forName("UTF-8")), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 

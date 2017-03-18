@@ -40,12 +40,12 @@ public class User {
      */
     User(final IdToken idToken) {
         mDisplayableId = idToken.getPreferredName();
-        if (!MsalUtils.isEmpty(idToken.getObjectId())) {
+        if (!MSALUtils.isEmpty(idToken.getObjectId())) {
             mUniqueId = idToken.getObjectId();
         } else {
             mUniqueId = idToken.getSubject();
         }
-        mHomeObjectId = MsalUtils.isEmpty(idToken.getHomeObjectId()) ? mUniqueId : idToken.getHomeObjectId();
+        mHomeObjectId = MSALUtils.isEmpty(idToken.getHomeObjectId()) ? mUniqueId : idToken.getHomeObjectId();
         mName = idToken.getName();
         mIdentityProvider = idToken.getIssuer();
     }

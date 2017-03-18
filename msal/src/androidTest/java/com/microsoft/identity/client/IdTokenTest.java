@@ -54,27 +54,27 @@ public final class IdTokenTest {
             new IdToken("..");
             Assert.fail();
         } catch (final MsalClientException e) {
-            Assert.assertTrue(e.getErrorCode() == MsalError.INVALID_JWT);
+            Assert.assertTrue(e.getErrorCode() == MSALError.INVALID_JWT);
         }
 
         try {
             new IdToken("test.ab.b.");
             Assert.fail();
         } catch (final MsalClientException e) {
-            Assert.assertTrue(e.getErrorCode() == MsalError.INVALID_JWT);
+            Assert.assertTrue(e.getErrorCode() == MSALError.INVALID_JWT);
         }
 
         try {
             new IdToken(".....");
         } catch (final MsalClientException e) {
-            Assert.assertTrue(e.getErrorCode() == MsalError.INVALID_JWT);
+            Assert.assertTrue(e.getErrorCode() == MSALError.INVALID_JWT);
         }
 
         try {
             new IdToken("test");
             Assert.fail();
         } catch (final MsalClientException e) {
-            Assert.assertTrue(e.getErrorCode() == MsalError.INVALID_JWT);
+            Assert.assertTrue(e.getErrorCode() == MSALError.INVALID_JWT);
         }
     }
 

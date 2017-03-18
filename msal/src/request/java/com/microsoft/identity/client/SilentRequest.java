@@ -64,7 +64,7 @@ final class SilentRequest extends BaseRequest {
         mRefreshTokenCacheItem = tokenCache.findRefreshToken(mAuthRequestParameters, mUser);
         if (mRefreshTokenCacheItem == null) {
             Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "No refresh token item is found.");
-            throw new MsalUiRequiredException(MsalError.CACHE_MISS, "No refresh token was found. ");
+            throw new MsalUiRequiredException(MSALError.CACHE_MISS, "No refresh token was found. ");
         }
     }
 

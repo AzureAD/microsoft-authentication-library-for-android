@@ -43,7 +43,7 @@ final class TokenCacheItemDeserializer<T extends BaseTokenCacheItem> implements 
             throws JsonParseException {
         T deserializedTokenCacheItem = new Gson().fromJson(json, type);
         final String rawIdToken = deserializedTokenCacheItem.getRawIdToken();
-        if (!MsalUtils.isEmpty(rawIdToken)) {
+        if (!MSALUtils.isEmpty(rawIdToken)) {
             try {
                 final IdToken idToken = new IdToken(rawIdToken);;
                 deserializedTokenCacheItem.setIdToken(idToken);

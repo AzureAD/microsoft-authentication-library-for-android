@@ -177,14 +177,14 @@ final class TokenResponse extends BaseOauth2Response {
         final String idToken = responseItems.get(TokenResponseClaim.ID_TOKEN);
         additionalData.remove(TokenResponseClaim.ID_TOKEN);
 
-        final Date expiresOn = MsalUtils.calculateExpiresOn(responseItems.get(TokenResponseClaim.EXPIRES_IN));
+        final Date expiresOn = MSALUtils.calculateExpiresOn(responseItems.get(TokenResponseClaim.EXPIRES_IN));
         additionalData.remove(TokenResponseClaim.EXPIRES_IN);
 
-        final Date idTokenExpiresOn = MsalUtils.calculateExpiresOn(responseItems.get(
+        final Date idTokenExpiresOn = MSALUtils.calculateExpiresOn(responseItems.get(
                 TokenResponseClaim.ID_TOKEN_EXPIRES_IN));
         additionalData.remove(TokenResponseClaim.ID_TOKEN_EXPIRES_IN);
 
-        final Date extendedExpiresOn = MsalUtils.calculateExpiresOn(responseItems.get(
+        final Date extendedExpiresOn = MSALUtils.calculateExpiresOn(responseItems.get(
                 TokenResponseClaim.EXTENDED_EXPIRES_IN));
         additionalData.remove(TokenResponseClaim.EXTENDED_EXPIRES_IN);
 

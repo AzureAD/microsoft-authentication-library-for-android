@@ -67,7 +67,7 @@ final class InteractiveRequest extends BaseRequest {
         mActivity = activity;
 
         // validate redirect
-        if (MsalUtils.isEmpty(authRequestParameters.getRedirectUri())) {
+        if (MSALUtils.isEmpty(authRequestParameters.getRedirectUri())) {
             throw new IllegalArgumentException("redirect is empty");
         } // TODO: We need to validate redirect is as expected to make custom tab work.
 
@@ -84,13 +84,13 @@ final class InteractiveRequest extends BaseRequest {
      * Pre token request. Launch either chrome custom tab or chrome to get the auth code back.
      */
     @Override
-    synchronized void preTokenRequest() throws MsalUserCancelException, MsalClientException, MsalServiceException {
+    synchronized void preTokenRequest() throws MSALUserCancelException, MsalClientException, MsalServiceException {
         final String authorizeUri;
         try {
             Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Prepare authorize request uri for interactive flow.");
             authorizeUri = appendQueryStringToAuthorizeEndpoint();
         } catch (final UnsupportedEncodingException e) {
-            throw new MsalClientException(MsalError.IO_ERROR, e.getMessage(), e);
+            throw new MsalClientException(MSALError.IO_ERROR, e.getMessage(), e);
         }
 
         final Intent intentToLaunch = new Intent(mContext, AuthenticationActivity.class);
@@ -98,7 +98,7 @@ final class InteractiveRequest extends BaseRequest {
         intentToLaunch.putExtra(Constants.REQUEST_ID, mRequestId);
 
         if (!resolveIntent(intentToLaunch)) {
-            throw new MsalClientException(MsalError.UNRESOLVABLE_INTENT, "The intent is not resolvable");
+            throw new MsalClientException(MSALError.UNRESOLVABLE_INTENT, "The intent is not resolvable");
         }
 
         throwIfNetworkNotAvailable();
@@ -154,12 +154,12 @@ final class InteractiveRequest extends BaseRequest {
     }
 
     String appendQueryStringToAuthorizeEndpoint() throws UnsupportedEncodingException, MsalClientException {
-        String authorizationUrl = MsalUtils.appendQueryParameterToUrl(
+        String authorizationUrl = MSALUtils.appendQueryParameterToUrl(
                 mAuthRequestParameters.getAuthority().getAuthorizeEndpoint(),
                 createAuthorizationRequestParameters());
 
         final String extraQP = mAuthRequestParameters.getExtraQueryParam();
-        if (!MsalUtils.isEmpty(extraQP)) {
+        if (!MSALUtils.isEmpty(extraQP)) {
             String parsedQP = extraQP;
             if (!extraQP.startsWith("&")) {
                 parsedQP = "&" + parsedQP;
@@ -184,7 +184,7 @@ final class InteractiveRequest extends BaseRequest {
         scopes.addAll(mAdditionalScope);
         final Set<String> requestedScopes = getDecoratedScope(scopes);
         requestParameters.put(OauthConstants.Oauth2Parameters.SCOPE,
-                MsalUtils.convertSetToString(requestedScopes, " "));
+                MSALUtils.convertSetToString(requestedScopes, " "));
         requestParameters.put(OauthConstants.Oauth2Parameters.CLIENT_ID, mAuthRequestParameters.getClientId());
         requestParameters.put(OauthConstants.Oauth2Parameters.REDIRECT_URI, mAuthRequestParameters.getRedirectUri());
         requestParameters.put(OauthConstants.Oauth2Parameters.RESPONSE_TYPE, OauthConstants.Oauth2ResponseType.CODE);
@@ -192,7 +192,7 @@ final class InteractiveRequest extends BaseRequest {
                 mAuthRequestParameters.getRequestContext().getCorrelationId().toString());
         requestParameters.putAll(PlatformIdHelper.getPlatformIdParameters());
 
-        if (!MsalUtils.isEmpty(mAuthRequestParameters.getLoginHint())) {
+        if (!MSALUtils.isEmpty(mAuthRequestParameters.getLoginHint())) {
             requestParameters.put(OauthConstants.Oauth2Parameters.LOGIN_HINT, mAuthRequestParameters.getLoginHint());
         }
 
@@ -217,36 +217,36 @@ final class InteractiveRequest extends BaseRequest {
     }
 
     private void addUiBehaviorToRequestParameters(final Map<String, String> requestParameters) {
-        final UiBehavior uiBehavior = mAuthRequestParameters.getUiBehavior();
-        if (uiBehavior == UiBehavior.FORCE_LOGIN) {
+        final UIBehavior uiBehavior = mAuthRequestParameters.getUiBehavior();
+        if (uiBehavior == UIBehavior.FORCE_LOGIN) {
             requestParameters.put(OauthConstants.Oauth2Parameters.PROMPT, OauthConstants.PromptValue.LOGIN);
-        } else if (uiBehavior == UiBehavior.SELECT_ACCOUNT) {
+        } else if (uiBehavior == UIBehavior.SELECT_ACCOUNT) {
             requestParameters.put(OauthConstants.Oauth2Parameters.PROMPT, OauthConstants.PromptValue.SELECT_ACCOUNT);
-        } else if (uiBehavior == UiBehavior.CONSENT) {
+        } else if (uiBehavior == UIBehavior.CONSENT) {
             requestParameters.put(OauthConstants.Oauth2Parameters.PROMPT, OauthConstants.PromptValue.CONSENT);
         }
     }
 
     private String encodeProtocolState() throws UnsupportedEncodingException {
-        final String state = String.format("a=%s&r=%s", MsalUtils.urlEncode(
+        final String state = String.format("a=%s&r=%s", MSALUtils.urlEncode(
                 mAuthRequestParameters.getAuthority().getAuthority()),
-                MsalUtils.urlEncode(MsalUtils.convertSetToString(
+                MSALUtils.urlEncode(MSALUtils.convertSetToString(
                         mAuthRequestParameters.getScope(), " ")));
         return Base64.encodeToString(state.getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 
-    private void processAuthorizationResult(final AuthorizationResult authorizationResult) throws MsalUserCancelException,
+    private void processAuthorizationResult(final AuthorizationResult authorizationResult) throws MSALUserCancelException,
             MsalServiceException, MsalClientException {
         if (authorizationResult == null) {
             Logger.error(TAG, mAuthRequestParameters.getRequestContext(), "Authorization result is null", null);
-            throw new MsalClientException(MsalError.UNKNOWN_ERROR, "Receives empty result for authorize request");
+            throw new MsalClientException(MSALError.UNKNOWN_ERROR, "Receives empty result for authorize request");
         }
 
         final AuthorizationResult.AuthorizationStatus status = authorizationResult.getAuthorizationStatus();
         Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Authorize request status is: " + status.toString());
         switch (status) {
             case USER_CANCEL:
-                throw new MsalUserCancelException();
+                throw new MSALUserCancelException();
             case FAIL:
                 // TODO: if clicking on the cancel button in the signin page, we get sub_error with the returned url,
                 // however we cannot take dependency on the sub_error. Then how do we know user click on the cancel button
@@ -265,22 +265,22 @@ final class InteractiveRequest extends BaseRequest {
 
     private void verifyStateInResponse(final String stateInResponse) throws MsalClientException {
         final String decodeState = decodeState(stateInResponse);
-        final Map<String, String> stateMap = MsalUtils.decodeUrlToMap(decodeState, "&");
+        final Map<String, String> stateMap = MSALUtils.decodeUrlToMap(decodeState, "&");
 
         if (stateMap.size() != 2
                 || !mAuthRequestParameters.getAuthority().getAuthority().equals(stateMap.get("a"))) {
-            throw new MsalClientException(MsalError.STATE_NOT_MATCH, Constants.MsalErrorMessage.STATE_NOT_THE_SAME);
+            throw new MsalClientException(MSALError.STATE_NOT_MATCH, Constants.MsalErrorMessage.STATE_NOT_THE_SAME);
         }
 
-        final Set<String> scopesInState = MsalUtils.getScopesAsSet(stateMap.get("r"));
+        final Set<String> scopesInState = MSALUtils.getScopesAsSet(stateMap.get("r"));
         final Set<String> scopesInRequest = mAuthRequestParameters.getScope();
         if (scopesInState.size() != scopesInRequest.size() && !scopesInState.containsAll(scopesInRequest)) {
-            throw new MsalClientException(MsalError.STATE_NOT_MATCH, Constants.MsalErrorMessage.STATE_NOT_THE_SAME);
+            throw new MsalClientException(MSALError.STATE_NOT_MATCH, Constants.MsalErrorMessage.STATE_NOT_THE_SAME);
         }
     }
 
     private String decodeState(final String encodedState) {
-        if (MsalUtils.isEmpty(encodedState)) {
+        if (MSALUtils.isEmpty(encodedState)) {
             return null;
         }
 
@@ -382,9 +382,9 @@ final class InteractiveRequest extends BaseRequest {
                 byte[] digestBytes = digester.digest();
                 return Base64.encodeToString(digestBytes, ENCODE_MASK);
             } catch (final NoSuchAlgorithmException e) {
-                throw new MsalClientException(MsalError.NO_SUCH_ALGORITHM, "Failed to generate the code verifier challenge", e);
+                throw new MsalClientException(MSALError.NO_SUCH_ALGORITHM, "Failed to generate the code verifier challenge", e);
             } catch (final UnsupportedEncodingException e) {
-                throw new MsalClientException(MsalError.UNSUPPORTED_ENCODING,
+                throw new MsalClientException(MSALError.UNSUPPORTED_ENCODING,
                         "Every implementation of the Java platform is required to support ISO-8859-1."
                                 + "Consult the release documentation for your implementation.", e);
             }

@@ -284,7 +284,7 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
                                            final String idToken)
             throws MsalException {
         return new TokenResponse(accessToken, idToken, refreshToken, new Date(), new Date(), new Date(),
-                MsalUtils.convertSetToString(scopes, " "), "Bearer");
+                MSALUtils.convertSetToString(scopes, " "), "Bearer");
     }
 
     private String getIdTokenWithDefaultUser() {

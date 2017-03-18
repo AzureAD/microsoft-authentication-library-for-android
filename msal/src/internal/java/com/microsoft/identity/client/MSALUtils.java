@@ -56,7 +56,7 @@ import java.util.StringTokenizer;
 /**
  * Internal Util class for MSAL.
  */
-final class MsalUtils {
+final class MSALUtils {
     /**
      * The encoding scheme the sdk uses.
      */
@@ -79,7 +79,7 @@ final class MsalUtils {
     /**
      * Private constructor to prevent Util class from being initiated.
      */
-    private MsalUtils() {
+    private MSALUtils() {
     }
 
     /**
@@ -161,14 +161,14 @@ final class MsalUtils {
      * @return Converted scopes in the format of set.
      */
     static Set<String> getScopesAsSet(final String scopes) {
-        if (MsalUtils.isEmpty(scopes)) {
+        if (MSALUtils.isEmpty(scopes)) {
             return new HashSet<>();
         }
 
         final String[] scopeArray = scopes.toLowerCase(Locale.US).split(" ");
         final Set<String> resultSet = new HashSet<>();
         for (int i = 0; i < scopeArray.length; i++) {
-            if (!MsalUtils.isEmpty(scopeArray[i])) {
+            if (!MSALUtils.isEmpty(scopeArray[i])) {
                 resultSet.add(scopeArray[i]);
             }
         }
@@ -280,7 +280,7 @@ final class MsalUtils {
         final Map<String, String> decodedUrlMap = new HashMap<>();
 
         // delimiter can be " "
-        if (MsalUtils.isEmpty(url) || delimiter == null) {
+        if (MSALUtils.isEmpty(url) || delimiter == null) {
             return decodedUrlMap;
         }
 
@@ -297,7 +297,7 @@ final class MsalUtils {
                 final String key = urlDecode(elements[0]);
                 final String value = urlDecode(elements[1]);
 
-                if (!MsalUtils.isEmpty(key) && !MsalUtils.isEmpty(value)) {
+                if (!MSALUtils.isEmpty(key) && !MSALUtils.isEmpty(value)) {
                     decodedUrlMap.put(key, value);
                 }
                 //CHECKSTYLE:OFF: checkstyle:EmptyBlock

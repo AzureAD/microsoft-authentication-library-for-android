@@ -39,7 +39,7 @@ final class Constants {
 
     public static final String AUTHORIZATION_FINAL_URL = "com.microsoft.identity.client.finalUrl";
 
-    static final class UiResponse {
+    static final class UIResponse {
         static final int CANCEL = 2001;
 
         static final int AUTH_CODE_ERROR = 2002;

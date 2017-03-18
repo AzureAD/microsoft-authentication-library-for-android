@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class AdfsWebFingerValidatorTest {
+public class ADFSWebFingerValidatorTest {
 
     @Before
     public void setUp() {
@@ -44,7 +44,7 @@ public class AdfsWebFingerValidatorTest {
     @Test
     public void testTrustedRealmFieldInitialized()
             throws NoSuchFieldException, IllegalAccessException {
-        Field trustedRealmURI = AdfsWebFingerValidator.class.getDeclaredField("TRUSTED_REALM_REL");
+        Field trustedRealmURI = ADFSWebFingerValidator.class.getDeclaredField("TRUSTED_REALM_REL");
         trustedRealmURI.setAccessible(true);
         Assert.assertEquals(
                 trustedRealmURI.get(null).toString(),
@@ -58,7 +58,7 @@ public class AdfsWebFingerValidatorTest {
         WebFingerMetadata metadata = new WebFingerMetadata();
         Assert.assertEquals(
                 false,
-                AdfsWebFingerValidator.realmIsTrusted(
+                ADFSWebFingerValidator.realmIsTrusted(
                         new RequestContext(UUID.randomUUID(), ""),
                         testAuthority,
                         metadata
@@ -78,7 +78,7 @@ public class AdfsWebFingerValidatorTest {
         metadata.setLinks(links);
         Assert.assertEquals(
                 true,
-                AdfsWebFingerValidator.realmIsTrusted(
+                ADFSWebFingerValidator.realmIsTrusted(
                         new RequestContext(UUID.randomUUID(), ""),
                         testAuthority,
                         metadata
@@ -94,7 +94,7 @@ public class AdfsWebFingerValidatorTest {
         metadata.setLinks(links);
         Assert.assertEquals(
                 false,
-                AdfsWebFingerValidator.realmIsTrusted(
+                ADFSWebFingerValidator.realmIsTrusted(
                         new RequestContext(UUID.randomUUID(), ""),
                         testAuthority,
                         metadata

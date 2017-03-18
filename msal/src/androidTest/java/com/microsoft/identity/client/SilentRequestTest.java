@@ -108,7 +108,7 @@ public final class SilentRequestTest extends AndroidTestCase {
             @Override
             public void onError(MsalException exception) {
                 assertTrue(exception instanceof MsalClientException);
-                assertTrue(exception.getErrorCode().equals(MsalError.DEVICE_NETWORK_NOT_AVAILABLE));
+                assertTrue(exception.getErrorCode().equals(MSALError.DEVICE_NETWORK_NOT_AVAILABLE));
                 resultLock.countDown();
             }
 
@@ -367,7 +367,7 @@ public final class SilentRequestTest extends AndroidTestCase {
             @Override
             public void onError(MsalException exception) {
                 assertTrue(exception instanceof MsalUiRequiredException);
-                assertTrue(exception.getErrorCode().equals(MsalError.CACHE_MISS));
+                assertTrue(exception.getErrorCode().equals(MSALError.CACHE_MISS));
                 resultLock.countDown();
             }
 
@@ -404,7 +404,7 @@ public final class SilentRequestTest extends AndroidTestCase {
             @Override
             public void onError(MsalException exception) {
                 assertTrue(exception instanceof MsalUiRequiredException);
-                assertTrue(exception.getErrorCode().equals(MsalError.INVALID_GRANT));
+                assertTrue(exception.getErrorCode().equals(MSALError.INVALID_GRANT));
                 resultLock.countDown();
             }
 
@@ -445,7 +445,7 @@ public final class SilentRequestTest extends AndroidTestCase {
                 assertTrue(exception instanceof MsalServiceException);
 
                 final MsalServiceException msalServiceException = (MsalServiceException) exception;
-                assertTrue(msalServiceException.getErrorCode().equals(MsalError.INVALID_REQUEST));
+                assertTrue(msalServiceException.getErrorCode().equals(MSALError.INVALID_REQUEST));
                 assertTrue(msalServiceException.getHttpStatusCode() == HttpURLConnection.HTTP_BAD_REQUEST);
 
                 resultLock.countDown();
@@ -469,7 +469,7 @@ public final class SilentRequestTest extends AndroidTestCase {
 
     private AuthenticationRequestParameters getRequestParameters(final Set<String> scopes) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(AndroidTestUtil.DEFAULT_AUTHORITY, false),
-                mTokenCache, scopes, TokenCacheTest.CLIENT_ID, "some redirect", "", "", UiBehavior.SELECT_ACCOUNT,
+                mTokenCache, scopes, TokenCacheTest.CLIENT_ID, "some redirect", "", "", UIBehavior.SELECT_ACCOUNT,
                 new RequestContext(UUID.randomUUID(), ""));
     }
 

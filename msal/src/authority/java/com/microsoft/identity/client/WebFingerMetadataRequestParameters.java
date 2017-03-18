@@ -32,7 +32,7 @@ final class WebFingerMetadataRequestParameters {
     
     private final URL mDomain;
 
-    private final DrsMetadata mMetadata;
+    private final DRSMetadata mMetadata;
 
     /**
      * Constructs a new parameter tuple.
@@ -40,7 +40,7 @@ final class WebFingerMetadataRequestParameters {
      * @param domain
      * @param metadata
      */
-    WebFingerMetadataRequestParameters(final URL domain, final DrsMetadata metadata) {
+    WebFingerMetadataRequestParameters(final URL domain, final DRSMetadata metadata) {
         this.mDomain = domain;
         this.mMetadata = metadata;
     }
@@ -55,11 +55,11 @@ final class WebFingerMetadataRequestParameters {
     }
 
     /**
-     * Gets the DrsMetadata.
+     * Gets the DRSMetadata.
      *
-     * @return the DrsMetadata
+     * @return the DRSMetadata
      */
-    DrsMetadata getDrsMetadata() {
+    DRSMetadata getDrsMetadata() {
         return mMetadata;
     }
 }

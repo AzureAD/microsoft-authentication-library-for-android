@@ -36,12 +36,12 @@ public final class AuthenticationActivityTest {
 
         mTestActivityRule.launchActivity(TestActivity.createIntent(mAppContext, intent));
 
-        Assert.assertTrue(TestActivity.getResultCode() == Constants.UiResponse.AUTH_CODE_ERROR);
+        Assert.assertTrue(TestActivity.getResultCode() == Constants.UIResponse.AUTH_CODE_ERROR);
         final Intent resultData = TestActivity.getResultData();
         Assert.assertNotNull(resultData);
-        Assert.assertTrue(resultData.getStringExtra(Constants.UiResponse.ERROR_CODE).equals(
-                MsalError.UNRESOLVABLE_INTENT));
-        Assert.assertTrue(resultData.getStringExtra(Constants.UiResponse.ERROR_DESCRIPTION).contains("Request url"));
+        Assert.assertTrue(resultData.getStringExtra(Constants.UIResponse.ERROR_CODE).equals(
+                MSALError.UNRESOLVABLE_INTENT));
+        Assert.assertTrue(resultData.getStringExtra(Constants.UIResponse.ERROR_DESCRIPTION).contains("Request url"));
     }
 
     private String getRequestUri() {

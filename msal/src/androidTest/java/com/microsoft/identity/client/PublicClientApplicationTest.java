@@ -320,7 +320,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     /**
-     * Verify {@link PublicClientApplication#acquireToken(String[], String, UiBehavior, String, String[],
+     * Verify {@link PublicClientApplication#acquireToken(String[], String, UIBehavior, String, String[],
      * String, AuthenticationCallback)}. Also check if authority is set on the manifest, we read the authority
      * from manifest meta-data.
      */
@@ -356,7 +356,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                         assertTrue(exception instanceof MsalServiceException);
 
                         final MsalServiceException serviceException = (MsalServiceException) exception;
-                        assertTrue(MsalError.INVALID_REQUEST.equals(serviceException.getErrorCode()));
+                        assertTrue(MSALError.INVALID_REQUEST.equals(serviceException.getErrorCode()));
                         assertTrue(!serviceException.getMessage().isEmpty());
                         assertTrue(serviceException.getHttpStatusCode() == HttpURLConnection.HTTP_BAD_REQUEST);
                         releaseLock.countDown();
@@ -390,7 +390,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     /**
-     * Verify {@link PublicClientApplication#acquireToken(String[], String, UiBehavior, String, AuthenticationCallback)}.
+     * Verify {@link PublicClientApplication#acquireToken(String[], String, UIBehavior, String, AuthenticationCallback)}.
      */
     // TODO: suppress the test. The purpose is that the API call will eventually send back the cancel to caller.
     @Ignore
@@ -408,7 +408,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             @Override
             void makeAcquireTokenCall(PublicClientApplication publicClientApplication,
                                       final CountDownLatch releaseLock) {
-                publicClientApplication.acquireToken(SCOPE, "somehint", UiBehavior.FORCE_LOGIN, "extra=param",
+                publicClientApplication.acquireToken(SCOPE, "somehint", UIBehavior.FORCE_LOGIN, "extra=param",
                         new AuthenticationCallback() {
                             @Override
                             public void onSuccess(AuthenticationResult authenticationResult) {
@@ -467,7 +467,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             @Override
             void makeAcquireTokenCall(PublicClientApplication publicClientApplication,
                                       final CountDownLatch releaseLock) {
-                publicClientApplication.acquireToken(SCOPE, "somehint", UiBehavior.FORCE_LOGIN, "extra=param",
+                publicClientApplication.acquireToken(SCOPE, "somehint", UIBehavior.FORCE_LOGIN, "extra=param",
                         new AuthenticationCallback() {
                             @Override
                             public void onSuccess(AuthenticationResult authenticationResult) {
@@ -478,7 +478,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                             public void onError(MsalException exception) {
                                 try {
                                     assertTrue(exception instanceof MsalClientException);
-                                    assertTrue(exception.getErrorCode().equals(MsalError.UNSUPPORTED_AUTHORITY_VALIDATION_INSTANCE));
+                                    assertTrue(exception.getErrorCode().equals(MSALError.UNSUPPORTED_AUTHORITY_VALIDATION_INSTANCE));
                                 } finally {
                                     releaseLock.countDown();
                                 }
@@ -499,7 +499,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     /**
-     * Verify {@link PublicClientApplication#acquireToken(String[], String, UiBehavior, String, AuthenticationCallback)}.
+     * Verify {@link PublicClientApplication#acquireToken(String[], String, UIBehavior, String, AuthenticationCallback)}.
      * AcquireToken asks token for {scope1, scope2}.
      * AcquireTokenSilent asks for {scope2}. Since forcePrompt is set for the silent request, RT request will be sent. There is
      * intersection, old entry will be removed. There will be only one access token left.
@@ -518,7 +518,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             @Override
             void makeAcquireTokenCall(PublicClientApplication publicClientApplication,
                                       final CountDownLatch releaseLock) {
-                publicClientApplication.acquireToken(SCOPE, "", UiBehavior.FORCE_LOGIN, null, null, null,
+                publicClientApplication.acquireToken(SCOPE, "", UIBehavior.FORCE_LOGIN, null, null, null,
                         new AuthenticationCallback() {
                             @Override
                             public void onSuccess(AuthenticationResult authenticationResult) {
@@ -601,7 +601,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             @Override
             public void onError(MsalException exception) {
                 assertTrue(exception instanceof MsalUiRequiredException);
-                assertTrue(exception.getErrorCode().equals(MsalError.CACHE_MISS));
+                assertTrue(exception.getErrorCode().equals(MSALError.CACHE_MISS));
                 assertNull(exception.getCause());
                 silentLock.countDown();
             }
@@ -638,7 +638,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         // meta data is empty, no client id there.
         applicationInfo.metaData = new Bundle();
         applicationInfo.metaData.putString("com.microsoft.identity.client.ClientId", clientId);
-        if (!MsalUtils.isEmpty(alternateAuthorityInManifest)) {
+        if (!MSALUtils.isEmpty(alternateAuthorityInManifest)) {
             applicationInfo.metaData.putString("com.microsoft.identity.client.Authority", alternateAuthorityInManifest);
         }
 
@@ -683,7 +683,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     private String convertScopesArrayToString(final String[] scopes) {
         final Set<String> scopesInSet = new HashSet<>(Arrays.asList(scopes));
-        return MsalUtils.convertSetToString(scopesInSet, " ");
+        return MSALUtils.convertSetToString(scopesInSet, " ");
     }
 
     private Activity getMockedActivity(final String clientId) throws PackageManager.NameNotFoundException {
@@ -736,7 +736,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             mockHasCustomTabRedirect(context);
             mockAuthenticationActivityResolvable(context);
 
-            if (!MsalUtils.isEmpty(getAlternateAuthorityInManifest())) {
+            if (!MSALUtils.isEmpty(getAlternateAuthorityInManifest())) {
                 AndroidTestMockUtil.mockSuccessTenantDiscovery(getAlternateAuthorityInManifest() + Authority.DEFAULT_AUTHORIZE_ENDPOINT,
                         ALTERNATE_AUTHORITY + DEFAULT_TOKEN_ENDPOINT);
             }
@@ -755,7 +755,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             final Intent resultIntent = new Intent();
             resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, getFinalAuthUrl());
             InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
-                    Constants.UiResponse.AUTH_CODE_COMPLETE, resultIntent);
+                    Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
 
             resultLock.await();
 

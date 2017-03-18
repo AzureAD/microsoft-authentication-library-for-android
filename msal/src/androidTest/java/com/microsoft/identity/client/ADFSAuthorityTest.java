@@ -40,19 +40,19 @@ import java.net.URL;
 import java.util.UUID;
 
 @RunWith(AndroidJUnit4.class)
-public class AdfsAuthorityTest {
+public class ADFSAuthorityTest {
 
     private static final RequestContext REQUEST_CONTEXT = new RequestContext(UUID.randomUUID(), "");
 
     final String testUPN = "user.name@foo.com";
 
-    private AdfsAuthority adfsAuthority;
+    private ADFSAuthority adfsAuthority;
 
     @Before
     public void setUp() {
         try {
             initializeAuthority();
-            final HttpURLConnection mockDrsConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(DrsMetadataRequestorTest.RESPONSE);
+            final HttpURLConnection mockDrsConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(DRSMetadataRequestorTest.RESPONSE);
             final HttpURLConnection mockWebFinger = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(WebFingerMetadataRequestorTest.RESPONSE);
             HttpUrlConnectionFactory.addMockedConnection(mockDrsConnection);
             HttpUrlConnectionFactory.addMockedConnection(mockWebFinger);
@@ -67,7 +67,7 @@ public class AdfsAuthorityTest {
     }
 
     private void initializeAuthority() throws MalformedURLException {
-        adfsAuthority = new AdfsAuthority(
+        adfsAuthority = new ADFSAuthority(
                 new URL("https://fs.ngctest.nttest.microsoft.com/adfs/ls/"),
                 true
         );
@@ -94,7 +94,7 @@ public class AdfsAuthorityTest {
     @Test
     public void testPerformInstanceDiscovery() {
         try {
-            final AdfsAuthority authority = new AdfsAuthority(
+            final ADFSAuthority authority = new ADFSAuthority(
                     new URL("https://fs.lindft6.com/adfs/ls/"),
                     true
             );
@@ -112,7 +112,7 @@ public class AdfsAuthorityTest {
     @Test
     public void testPerformInstanceDiscoveryThrowsWhenURLnvalid() {
         try {
-            adfsAuthority = new AdfsAuthority(
+            adfsAuthority = new ADFSAuthority(
                     new URL("file:/Users/RFC2396 noncompliant"),
                     true
             );
@@ -132,7 +132,7 @@ public class AdfsAuthorityTest {
     public void testGetDomainFromUPN() {
         Assert.assertEquals(
                 "foo.com",
-                AdfsAuthority.getDomainFromUPN(testUPN)
+                ADFSAuthority.getDomainFromUPN(testUPN)
         );
     }
 
@@ -141,7 +141,7 @@ public class AdfsAuthorityTest {
     @Test
     public void testGetDomainFromUPNReturnsNullWhenInvalid() {
         Assert.assertNull(
-                AdfsAuthority.getDomainFromUPN("user_no_domain")
+                ADFSAuthority.getDomainFromUPN("user_no_domain")
         );
     }
 

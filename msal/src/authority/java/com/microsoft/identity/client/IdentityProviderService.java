@@ -26,7 +26,7 @@ package com.microsoft.identity.client;
 /**
  * Data container for the IdentityProviderService.
  *
- * @see DrsMetadata
+ * @see DRSMetadata
  */
 final class IdentityProviderService {
 

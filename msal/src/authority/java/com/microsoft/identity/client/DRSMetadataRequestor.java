@@ -34,21 +34,21 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.microsoft.identity.client.DrsMetadataRequestor.Type.CLOUD;
-import static com.microsoft.identity.client.DrsMetadataRequestor.Type.ON_PREM;
+import static com.microsoft.identity.client.DRSMetadataRequestor.Type.CLOUD;
+import static com.microsoft.identity.client.DRSMetadataRequestor.Type.ON_PREM;
 
-class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String> {
+class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String> {
 
     /**
      * Tag used for logging.
      */
-    private static final String TAG = DrsMetadataRequestor.class.getSimpleName();
+    private static final String TAG = DRSMetadataRequestor.class.getSimpleName();
 
     // DRS doc constants
     private static final String DRS_URL_PREFIX = "https://enterpriseregistration.";
     private static final String CLOUD_RESOLVER_DOMAIN = "windows.net/";
 
-    DrsMetadataRequestor(final RequestContext requestContext) {
+    DRSMetadataRequestor(final RequestContext requestContext) {
         super(requestContext);
     }
 
@@ -61,7 +61,7 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
     }
 
     @Override
-    public DrsMetadata requestMetadata(final String domain) throws MsalClientException, MsalServiceException {
+    public DRSMetadata requestMetadata(final String domain) throws MsalClientException, MsalServiceException {
         try {
             return requestOnPrem(domain);
         } catch (UnknownHostException e) {
@@ -77,7 +77,7 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
      * @throws UnknownHostException    if the on-prem enrollment server cannot be resolved
      * @throws MsalException if there exists an enrollment/domain mismatch (lack of trust)
      */
-    private DrsMetadata requestOnPrem(final String domain)
+    private DRSMetadata requestOnPrem(final String domain)
             throws UnknownHostException, MsalClientException, MsalServiceException {
         Logger.verbose(TAG, getRequestContext(), "Requesting DRS discovery (on-prem)");
         return requestDrsDiscoveryInternal(ON_PREM, domain);
@@ -91,16 +91,16 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
      * @throws MsalException if there exists an enrollment/domain mismatch (lack of trust)
      *                                 or the trust cannot be verified
      */
-    private DrsMetadata requestCloud(final String domain) throws MsalClientException, MsalServiceException {
+    private DRSMetadata requestCloud(final String domain) throws MsalClientException, MsalServiceException {
         Logger.verbose(TAG, getRequestContext(), "Requesting DRS discovery (cloud)");
         try {
             return requestDrsDiscoveryInternal(CLOUD, domain);
         } catch (UnknownHostException e) {
-            throw new MsalClientException(MsalError.IO_ERROR, "Cannot resolve the host. ", e);
+            throw new MsalClientException(MSALError.IO_ERROR, "Cannot resolve the host. ", e);
         }
     }
 
-    private DrsMetadata requestDrsDiscoveryInternal(final Type type, final String domain)
+    private DRSMetadata requestDrsDiscoveryInternal(final Type type, final String domain)
             throws UnknownHostException, MsalClientException, MsalServiceException {
         final URL requestURL;
 
@@ -109,7 +109,7 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
             requestURL = new URL(buildRequestUrlByType(type, domain));
         } catch (MalformedURLException e) {
             // DRS metadata URL invalid
-            throw new MsalClientException(MsalError.UNSUPPORTED_URL, "Drs metadata url is invalid", e);
+            throw new MsalClientException(MSALError.UNSUPPORTED_URL, "Drs metadata url is invalid", e);
         }
 
         // init the headers to use in the request
@@ -122,7 +122,7 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
             );
         }
 
-        final DrsMetadata metadata;
+        final DRSMetadata metadata;
         final HttpResponse webResponse;
 
         // make the request
@@ -135,12 +135,12 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
                 // unexpected status code
                 // TODO: Does adfs authority validation returns the error and error description? If so, we should get a list
                 // of possible erros.
-                throw new MsalServiceException(MsalError.SERVER_ERROR, "Unexpected error code: [" + webResponse.getBody() + "]", webResponse.getStatusCode(), null);
+                throw new MsalServiceException(MSALError.SERVER_ERROR, "Unexpected error code: [" + webResponse.getBody() + "]", webResponse.getStatusCode(), null);
             }
         } catch (UnknownHostException e) {
             throw e;
         } catch (IOException e) {
-            throw new MsalClientException(MsalError.IO_ERROR, "Unexpected error", e);
+            throw new MsalClientException(MSALError.IO_ERROR, "Unexpected error", e);
         }
 
         return metadata;
@@ -173,9 +173,9 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
     }
 
     @Override
-    DrsMetadata parseMetadata(final HttpResponse response) throws MsalClientException {
+    DRSMetadata parseMetadata(final HttpResponse response) throws MsalClientException {
         // Initialize the response container
-        final DrsMetadata drsMetadata = new DrsMetadata();
+        final DRSMetadata drsMetadata = new DRSMetadata();
         drsMetadata.setIdentityProviderService(new IdentityProviderService());
 
         // Grab the response to parse
@@ -187,7 +187,7 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
 
             // Grab the provider service object field
             final JSONObject identityProviderService = responseJson
-                    .getJSONObject(DrsMetadata.JSON_KEY_IDENTITY_PROVIDER_SERVICE);
+                    .getJSONObject(DRSMetadata.JSON_KEY_IDENTITY_PROVIDER_SERVICE);
 
             // Parse-out the passive auth endpoint
             final String passiveAuthEndpoint = identityProviderService
@@ -197,7 +197,7 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
             drsMetadata.getIdentityProviderService()
                     .setPassiveAuthEndpoint(passiveAuthEndpoint);
         } catch (final JSONException e) {
-            throw new MsalClientException(MsalError.JSON_PARSE_FAILURE, "Failed to parse the Json response", e);
+            throw new MsalClientException(MSALError.JSON_PARSE_FAILURE, "Failed to parse the Json response", e);
         }
 
         return drsMetadata;

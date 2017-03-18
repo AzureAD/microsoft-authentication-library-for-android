@@ -123,7 +123,7 @@ final class Oauth2Client {
     private <T extends BaseOauth2Response> T executeHttpRequest(final String requestMethod, final String endpoint, final ParseRawJsonResponseDelegate<T> delegate)
             throws IOException, MsalServiceException, MsalClientException {
         // append query parameter to the endpoint first
-        final URL endpointWithQP = new URL(MsalUtils.appendQueryParameterToUrl(endpoint, mQueryParameters));
+        final URL endpointWithQP = new URL(MSALUtils.appendQueryParameterToUrl(endpoint, mQueryParameters));
 
         // add common headers
         addHeader(HEADER_ACCEPT, HEADER_ACCEPT_VALUE);
@@ -158,15 +158,15 @@ final class Oauth2Client {
     }
 
     private Map<String, String> parseResponseItems(final HttpResponse response) throws MsalServiceException, MsalClientException {
-        if (MsalUtils.isEmpty(response.getBody())) {
-            throw new MsalServiceException(MsalError.SERVER_ERROR, "Empty response body", response.getStatusCode(), null);
+        if (MSALUtils.isEmpty(response.getBody())) {
+            throw new MsalServiceException(MSALError.SERVER_ERROR, "Empty response body", response.getStatusCode(), null);
         }
 
         final Map<String, String> responseItems;
         try {
-            responseItems = MsalUtils.extractJsonObjectIntoMap(response.getBody());
+            responseItems = MSALUtils.extractJsonObjectIntoMap(response.getBody());
         } catch (final JSONException e) {
-            throw new MsalClientException(MsalError.JSON_PARSE_FAILURE, "Fail to parse JSON", e);
+            throw new MsalClientException(MSALError.JSON_PARSE_FAILURE, "Fail to parse JSON", e);
         }
 
         return responseItems;
@@ -176,11 +176,11 @@ final class Oauth2Client {
         final Set<String> requestBodyEntries = new HashSet<>();
         final Set<Map.Entry<String, String>> bodyEntries = bodyParameters.entrySet();
         for (Map.Entry<String, String> bodyEntry : bodyEntries) {
-            requestBodyEntries.add(bodyEntry.getKey() + "=" + MsalUtils.urlEncode(bodyEntry.getValue()));
+            requestBodyEntries.add(bodyEntry.getKey() + "=" + MSALUtils.urlEncode(bodyEntry.getValue()));
         }
 
-        final String requestMessage = requestBodyEntries.isEmpty() ? "" : MsalUtils.convertSetToString(requestBodyEntries, "&");
-        return requestMessage.getBytes(MsalUtils.ENCODING_UTF8);
+        final String requestMessage = requestBodyEntries.isEmpty() ? "" : MSALUtils.convertSetToString(requestBodyEntries, "&");
+        return requestMessage.getBytes(MSALUtils.ENCODING_UTF8);
     }
 
     private void verifyCorrelationIdInResponseHeaders(final HttpResponse response) {
@@ -202,7 +202,7 @@ final class Oauth2Client {
         }
 
         final String correlationIdInHeader = correlationIdsInHeader.get(0);
-        if (!MsalUtils.isEmpty(correlationIdInHeader)) {
+        if (!MSALUtils.isEmpty(correlationIdInHeader)) {
             try {
                 final UUID correlationId = UUID.fromString(correlationIdInHeader);
                 //CHECKSTYLE:OFF: checkstyle:EmptyBlock
