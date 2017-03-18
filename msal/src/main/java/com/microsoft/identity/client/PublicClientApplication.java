@@ -131,30 +131,6 @@ public final class PublicClientApplication {
     }
 
     /**
-     * Return the user object with specified user identifier. The user identifier could be either displayable id or
-     * unique id.
-     * @param userIdentifier The user identifier, could be either displayable id or unique id.
-     * @return The {@link User} matching the user identifier.
-     * @throws MsalException if error happens when retrieving users from the cache.
-     */
-    public User getUser(final String userIdentifier) throws MsalClientException {
-        if (MsalUtils.isEmpty(userIdentifier)) {
-            throw new IllegalArgumentException("invalid userIdentifier");
-        }
-
-        final List<User> allUsers = getUsers();
-        for (final User user : allUsers) {
-            if (userIdentifier.equals(user.getDisplayableId()) || userIdentifier.equals(user.getUniqueId())) {
-                return user;
-            }
-        }
-
-        Logger.info(TAG, null, "No user found matching the given user identifier.");
-        Logger.infoPII(TAG, null, "Given user identifier is: " + userIdentifier);
-        return null;
-    }
-
-    /**
      * The sdk requires calling app to pass in the {@link Activity} which <b> MUST </b> call this method to get the auth
      * code handled back correctly.
      * @param requestCode The request code for interactive request.
@@ -282,6 +258,15 @@ public final class PublicClientApplication {
                                         final boolean forceRefresh,
                                         final AuthenticationCallback callback) {
         acquireTokenSilent(scopes, user, authority, forceRefresh, callback);
+    }
+
+    /**
+     * Deletes all matching tokens (AT & RT) for the supplied {@link User} instance from the application cache.
+     * @param user the {@link User} whose tokens should be deleted.
+     */
+    public void remove(final User user) {
+        mTokenCache.deleteRefreshTokenByUser(user);
+        mTokenCache.deleteAccessTokenByUser(user);
     }
 
     /**

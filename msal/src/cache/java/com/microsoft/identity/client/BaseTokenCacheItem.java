@@ -23,68 +23,71 @@
 
 package com.microsoft.identity.client;
 
-import java.util.HashSet;
-import java.util.Set;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * MSAL Internal abstract class to represent the {@link BaseTokenCacheItem}.
  */
 abstract class BaseTokenCacheItem {
-    final String mAuthority;
+
+    @SerializedName("client_id")
     final String mClientId;
-    final Set<String> mScope = new HashSet<>();
-    String mUniqueId;
-    String mHomeObjectId;
-    String mDisplayableId;
+
+    @SerializedName("id_token")
+    String mRawIdToken;
 
     // excludes the field from being serialized
-    transient String mTenantId;
-    String mRawIdToken;
+    transient User mUser;
+    transient IdToken mIdToken;
+
+    /**
+     * @return {@link TokenCacheKey} for the given token item.
+     */
+    abstract TokenCacheKey extractTokenCacheKey();
 
     /**
      * Constructor for creating the token cache item.
      */
-    BaseTokenCacheItem(final String authority, final String clientId, final TokenResponse response) throws MsalClientException {
+    BaseTokenCacheItem(final String clientId, final TokenResponse response)
+            throws MsalClientException {
         if (!MsalUtils.isEmpty(response.getRawIdToken())) {
-            final IdToken idToken = new IdToken(response.getRawIdToken());
-            final User user = new User(idToken);
-            mUniqueId = user.getUniqueId();
-            mDisplayableId = user.getDisplayableId();
-            mHomeObjectId = user.getHomeObjectId();
             mRawIdToken = response.getRawIdToken();
-            mTenantId = idToken.getTenantId();
+            mIdToken = new IdToken(mRawIdToken);
+            mUser = new User(mIdToken);
         }
 
-        mAuthority = authority;
         mClientId = clientId;
-        mScope.addAll(MsalUtils.getScopesAsSet(response.getScope()));
-    }
-
-    String getAuthority() {
-        return mAuthority;
     }
 
     String getClientId() {
         return mClientId;
     }
 
-    Set<String> getScope() {
-        return mScope;
-    }
-
     String getUniqueId() {
-        return mUniqueId;
+        return mUser != null ? mUser.getUniqueId() : "";
     }
 
     String getDisplayableId() {
-        return mDisplayableId;
+        return mUser != null ? mUser.getDisplayableId() : "";
     }
 
     String getHomeObjectId() {
-        return mHomeObjectId;
+        return mUser != null ? mUser.getHomeObjectId() : "";
+    }
+
+    void setIdToken(final IdToken idToken) {
+        mIdToken = idToken;
     }
 
     String getRawIdToken() {
         return mRawIdToken;
+    }
+
+    void setUser(final User user) {
+        mUser = user;
+    }
+
+    String getAuthority() {
+        return "";
     }
 }

@@ -140,8 +140,7 @@ public final class SilentRequestTest extends AndroidTestCase {
 
                 verifyUserReturnedInResult(authenticationResult);
 
-                final TokenCache tokenCache = authenticationResult.getUser().getTokenCache();
-                assertTrue(tokenCache.findAccessToken(requestParameters, mDefaultUser).getAccessToken().equals(ACCESS_TOKEN));
+                assertTrue(mTokenCache.findAccessToken(requestParameters, mDefaultUser).getAccessToken().equals(ACCESS_TOKEN));
                 assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 1);
                 resultLock.countDown();
             }
@@ -177,7 +176,7 @@ public final class SilentRequestTest extends AndroidTestCase {
             public void onSuccess(AuthenticationResult authenticationResult) {
                 assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
                 verifyUserReturnedInResult(authenticationResult);
-                assertTrue(authenticationResult.getUser().getTokenCache().findAccessToken(requestParameters,
+                assertTrue(mTokenCache.findAccessToken(requestParameters,
                         mDefaultUser).getAccessToken().equals(AndroidTestUtil.ACCESS_TOKEN));
                 assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 1);
                 resultLock.countDown();
@@ -222,12 +221,11 @@ public final class SilentRequestTest extends AndroidTestCase {
 
                 verifyUserReturnedInResult(authenticationResult);
 
-                final TokenCache cache = authenticationResult.getUser().getTokenCache();
-                assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(cache.findAccessToken(requestParameters, mDefaultUser).getAccessToken()));
+                assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(mTokenCache.findAccessToken(requestParameters, mDefaultUser).getAccessToken()));
                 assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 1);
 
                 try {
-                    assertTrue(AndroidTestUtil.REFRESH_TOKEN.equals(cache.findRefreshToken(requestParameters, mDefaultUser).getRefreshToken()));
+                    assertTrue(AndroidTestUtil.REFRESH_TOKEN.equals(mTokenCache.findRefreshToken(requestParameters, mDefaultUser).getRefreshToken()));
                 } catch (final MsalException e) {
                     fail();
                 }
@@ -313,7 +311,6 @@ public final class SilentRequestTest extends AndroidTestCase {
                 assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
                 verifyUserReturnedInResult(authenticationResult);
 
-                final TokenCache cache = authenticationResult.getUser().getTokenCache();
                 assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 2);
 
                 assertNotNull(AndroidTestUtil.getAccessTokenSharedPreference(mAppContext).getString(TokenCacheKey.createKeyForAT(
@@ -322,11 +319,11 @@ public final class SilentRequestTest extends AndroidTestCase {
                 // The access token for scope1 in the cache is no longer valid
                 assertNull(mTokenCache.findAccessToken(getRequestParameters(Collections.singleton(singleScope)), mDefaultUser));
 
-                assertTrue(cache.findAccessToken(requestParametersWithAnotherScope, mDefaultUser).getAccessToken().equals(AndroidTestUtil.ACCESS_TOKEN));
+                assertTrue(mTokenCache.findAccessToken(requestParametersWithAnotherScope, mDefaultUser).getAccessToken().equals(AndroidTestUtil.ACCESS_TOKEN));
 
                 assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 1);
                 try {
-                    assertTrue(AndroidTestUtil.REFRESH_TOKEN.equals(cache.findRefreshToken(requestParametersWithAnotherScope,
+                    assertTrue(AndroidTestUtil.REFRESH_TOKEN.equals(mTokenCache.findRefreshToken(requestParametersWithAnotherScope,
                             mDefaultUser).getRefreshToken()));
                 } catch (final MsalException e) {
                     fail();
@@ -468,8 +465,6 @@ public final class SilentRequestTest extends AndroidTestCase {
     private void verifyUserReturnedInResult(final AuthenticationResult result) {
         final User user = result.getUser();
         assertNotNull(user);
-        assertTrue(user.getClientId().equals(TokenCacheTest.CLIENT_ID));
-        assertNotNull(user.getTokenCache());
     }
 
     private AuthenticationRequestParameters getRequestParameters(final Set<String> scopes) {

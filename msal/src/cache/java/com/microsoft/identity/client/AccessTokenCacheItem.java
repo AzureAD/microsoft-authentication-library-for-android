@@ -23,25 +23,55 @@
 
 package com.microsoft.identity.client;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.Date;
+import java.util.Set;
 
 /**
  * MSAL internal class for representing the access token cache item.
  */
 final class AccessTokenCacheItem extends BaseTokenCacheItem {
 
+    @SerializedName("authority")
+    final String mAuthority;
+
+    @SerializedName("access_token")
     private String mAccessToken;
+
+    @SerializedName("expires_on")
     private Date mExpiresOn;
+
+    @SerializedName("scope")
+    final String mScope;
+
+    @SerializedName("token_type")
+    final String mTokenType;
 
     /**
      * Constructor for creating the {@link AccessTokenCacheItem}.
      */
     AccessTokenCacheItem(final String authority, final String clientId, final TokenResponse response)
             throws MsalClientException {
-        super(authority, clientId, response);
+        super(clientId, response);
 
+        mAuthority = authority;
         mAccessToken = response.getAccessToken();
         mExpiresOn = response.getExpiresOn();
+        mScope = response.getScope();
+        mTokenType = response.getTokenType();
+    }
+
+    @Override
+    TokenCacheKey extractTokenCacheKey() {
+        return TokenCacheKey.createKeyForAT(mAuthority, mClientId, MsalUtils.getScopesAsSet(mScope), mUser);
+    }
+
+    /**
+     * @return The authority for the request.
+     */
+    String getAuthority() {
+        return mAuthority;
     }
 
     /**
@@ -62,6 +92,20 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
      * @return The tenant id.
      */
     String getTenantId() {
-        return mTenantId;
+        return mIdToken != null ? mIdToken.getTenantId() : "";
+    }
+
+    /**
+     * @return Scopes in the format of set.
+     */
+    Set<String> getScope() {
+        return MsalUtils.getScopesAsSet(mScope);
+    }
+
+    /**
+     * @return The token type, i.e Bearer.
+     */
+    String getTokenType() {
+        return mTokenType;
     }
 }

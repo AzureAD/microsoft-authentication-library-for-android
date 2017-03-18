@@ -65,7 +65,7 @@ public final class AccessTokenCacheItemTest {
 
     @Test
     public void testRefreshTokenCreation() throws MsalClientException, MsalServiceException {
-        final RefreshTokenCacheItem item = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("", REFRESH_TOKEN));
+        final RefreshTokenCacheItem item = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", REFRESH_TOKEN));
         Assert.assertTrue(item.getRefreshToken().equals(REFRESH_TOKEN));
     }
 

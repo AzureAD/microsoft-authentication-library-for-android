@@ -106,7 +106,6 @@ abstract class BaseRequest {
                     performTokenRequest();
 
                     final AuthenticationResult result = postTokenRequest();
-                    updateUserForAuthenticationResult(result);
 
                     Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Token request succeeds.");
                     callbackOnSuccess(callback, result);
@@ -228,11 +227,6 @@ abstract class BaseRequest {
         }
 
         throw new MsalServiceException(tokenResponse.getError(), tokenResponse.getErrorDescription(), tokenResponse.getHttpStatusCode(), tokenResponse.getClaims(), null);
-    }
-
-    private void updateUserForAuthenticationResult(final AuthenticationResult result) {
-        result.getUser().setClientId(mAuthRequestParameters.getClientId());
-        result.getUser().setTokenCache(mAuthRequestParameters.getTokenCache());
     }
 
     private synchronized Handler getHandler() {

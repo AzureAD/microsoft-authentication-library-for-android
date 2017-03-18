@@ -71,7 +71,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     static final String CLIENT_ID = "client-id";
     static final UUID CORRELATION_ID = UUID.randomUUID();
     static final String LOGIN_HINT = "test@test.onmicrosoft.com";
-    static final int THREAD_DELAY_TIME = 20;
+    static final int THREAD_DELAY_TIME = 200;
 
     /**
      * Min length of code_challenge Strings
@@ -321,8 +321,6 @@ public final class InteractiveRequestTest extends AndroidTestCase {
             public void onSuccess(AuthenticationResult authenticationResult) {
                 Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
                 final User user = authenticationResult.getUser();
-                assertTrue(user.getClientId().equals(CLIENT_ID));
-                assertNotNull(user.getTokenCache());
                 assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 1);
                 assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 0);
                 resultLock.countDown();
