@@ -98,9 +98,8 @@ abstract class Authority {
             throw new IllegalArgumentException("Invalid authority url");
         }
 
-        final String[] pathSegments = authority.getPath().replaceFirst("/", "").split("/");
-        final boolean isAdfsAuthority = pathSegments[0].equals(ADFS_AUTHORITY_PREFIX);
-        final boolean isB2cAuthority = pathSegments[0].equals(B2C_AUTHORITY_PREFIX);
+        final boolean isAdfsAuthority = isAdfsAuthority(authority);
+        final boolean isB2cAuthority = isB2cAuthority(authority);
 
         if (isAdfsAuthority) {
             Logger.error(TAG, null, "ADFS authority is not a supported authority instance", null);
@@ -114,11 +113,24 @@ abstract class Authority {
         return new AADAuthority(authority, validateAuthority);
     }
 
+    private static String[] chunkUrlPaths(final URL targetAuthorityUrl) {
+        return targetAuthorityUrl.getPath().replaceFirst("/", "").split("/");
+    }
+
+    static boolean isAdfsAuthority(final URL authorityUrl) {
+        return chunkUrlPaths(authorityUrl)[0].equals(ADFS_AUTHORITY_PREFIX);
+    }
+
+    static boolean isB2cAuthority(final URL authorityUrl) {
+        return chunkUrlPaths(authorityUrl)[0].equals(B2C_AUTHORITY_PREFIX);
+    }
+
     /**
      * Perform authority validation and tenant discovery. If authority validation is done successfully, the tenant discovery
      * endpoint will be returned otherwise exception will be thrown. Returned tenant discovery endpoint will be used for
      * tenant discovery to get authorize and token endpoint. Developer could turn off authority validation, but for all the
      * authority, we'll do tenant discovery.
+     *
      * @param requestContext {@link RequestContext} for the authority validation and tenant discovery.
      * @throws AuthenticationException If error happens during authority or tenant discovery.
      */

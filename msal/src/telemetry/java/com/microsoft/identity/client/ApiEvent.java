@@ -56,7 +56,7 @@ public class ApiEvent extends BaseEvent {
             return;
         }
 
-        if (MSALUtils.isADFSAuthority(authorityUrl)) {
+        if (Authority.isAdfsAuthority(authorityUrl)) {
             setAuthorityType(EventProperty.Value.AUTHORITY_TYPE_ADFS);
         } else {
             setAuthorityType(EventProperty.Value.AUTHORITY_TYPE_AAD);
