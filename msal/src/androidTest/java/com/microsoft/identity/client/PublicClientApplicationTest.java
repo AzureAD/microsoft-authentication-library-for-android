@@ -122,7 +122,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     @Test(expected = IllegalStateException.class)
     public void testNoCustomTabSchemeConfigured() throws PackageManager.NameNotFoundException {
         final Context context = new MockActivityContext(mAppContext);
-        mockPackageManagerWithClientId(context, false, CLIENT_ID);
+        mockPackageManagerWithClientId(context, null, CLIENT_ID);
 
         new PublicClientApplication(getActivity(context));
     }
@@ -154,7 +154,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     @Test(expected = IllegalArgumentException.class)
     public void testCallBackEmpty() throws PackageManager.NameNotFoundException {
         final Context context = new MockActivityContext(mAppContext);
-        mockPackageManagerWithClientId(context, false, CLIENT_ID);
+        mockPackageManagerWithClientId(context, null, CLIENT_ID);
         mockHasCustomTabRedirect(context);
 
         final PublicClientApplication application = new PublicClientApplication(getActivity(context));
@@ -165,7 +165,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     public void testInternetPermissionMissing() throws PackageManager.NameNotFoundException {
         final Context context = new MockActivityContext(mAppContext);
         final PackageManager packageManager = context.getPackageManager();
-        mockPackageManagerWithClientId(context, false, CLIENT_ID);
+        mockPackageManagerWithClientId(context, null, CLIENT_ID);
         mockHasCustomTabRedirect(context);
         Mockito.when(packageManager.checkPermission(Mockito.refEq("android.permission.INTERNET"),
                 Mockito.refEq(mAppContext.getPackageName()))).thenReturn(PackageManager.PERMISSION_DENIED);
@@ -206,12 +206,9 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
         users = application.getUsers();
         assertTrue(users.size() == EXPECTED_USER_SIZE);
-        final User userForDisplayable3 = application.getUser(displayable3);
+        final User userForDisplayable3 = getUser(displayable3, users);
         assertNotNull(userForDisplayable3);
-        assertNotNull(userForDisplayable3.getTokenCache());
-        assertTrue(userForDisplayable3.getClientId().equals(CLIENT_ID));
         assertTrue(userForDisplayable3.getDisplayableId().equals(displayable3));
-        assertTrue(userForDisplayable3.getUniqueId().equals(uniqueId3));
         assertTrue(userForDisplayable3.getHomeObjectId().equals(homeOid3));
 
         // prepare token cache for different client id, same displayable3 user
@@ -221,13 +218,28 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         assertTrue(application.getUsers().size() == EXPECTED_USER_SIZE);
         users = anotherApplication.getUsers();
         assertTrue(users.size() == 1);
-        final User userForAnotherClient = anotherApplication.getUser(uniqueId3);
+        final User userForAnotherClient = getUser(homeOid3, users);
         assertNotNull(userForAnotherClient);
-        assertTrue(userForAnotherClient.getClientId().equals(anotherClientId));
-        assertNotNull(userForAnotherClient.getTokenCache());
         assertTrue(userForAnotherClient.getDisplayableId().equals(displayable3));
-        assertTrue(userForAnotherClient.getUniqueId().equals(uniqueId3));
         assertTrue(userForAnotherClient.getHomeObjectId().equals(homeOid3));
+    }
+
+    /**
+     * From the supplied {@link List} of {@link User}, return the instance with a matching displayableId or homeObjectId.
+     *
+     * @param userIdentifier The user identifier, could be either displayableId or homeObjectId
+     * @param users          the list of Users to traverse
+     * @return
+     */
+    private User getUser(final String userIdentifier, final List<User> users) {
+        User resultUser = null;
+        for (final User user : users) {
+            if (userIdentifier.equals(user.getDisplayableId()) || userIdentifier.equals(user.getHomeObjectId())) {
+                resultUser = user;
+                break;
+            }
+        }
+        return resultUser;
     }
 
     /**
@@ -318,8 +330,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         new GetTokenBaseTestCase() {
 
             @Override
-            protected boolean isSetAlternateAuthority() {
-                return true;
+            protected String getAlternateAuthorityInManifest() {
+                return ALTERNATE_AUTHORITY;
             }
 
             @Override
@@ -432,7 +444,54 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         }.performTest();
     }
 
-    // TODO: add tests for b2c. Policy will be part of the authority
+    @Test
+    public void testB2cAuthorityNotInTrustedList() throws PackageManager.NameNotFoundException, IOException, InterruptedException {
+        final String unsupportedB2cAuthority = "https://somehost/tfp/sometenant/somepolicy";
+
+        new GetTokenBaseTestCase() {
+            @Override
+            protected String getAlternateAuthorityInManifest() {
+                return unsupportedB2cAuthority;
+            }
+
+            @Override
+            void mockHttpRequest() throws IOException {
+                // do nothing. The intention for this test is the callback receives cancel if returned url contains
+                // cancel error.
+            }
+
+            @Override
+            void makeAcquireTokenCall(PublicClientApplication publicClientApplication,
+                                      final CountDownLatch releaseLock) {
+                publicClientApplication.acquireToken(SCOPE, "somehint", UIBehavior.FORCE_LOGIN, "extra=param",
+                        new AuthenticationCallback() {
+                            @Override
+                            public void onSuccess(AuthenticationResult authenticationResult) {
+                                fail("unexpected success result");
+                            }
+
+                            @Override
+                            public void onError(AuthenticationException exception) {
+                                try {
+                                    assertTrue(exception.getErrorCode().equals(MSALError.UNSUPPORTED_AUTHORITY_VALIDATION));
+                                } finally {
+                                    releaseLock.countDown();
+                                }
+                            }
+
+                            @Override
+                            public void onCancel() {
+                                fail("unexpected cancel");
+                            }
+                        });
+            }
+
+            @Override
+            String getFinalAuthUrl() throws UnsupportedEncodingException {
+                return "";
+            }
+        }.performTest();
+    }
 
     /**
      * Verify {@link PublicClientApplication#acquireToken(String[], String, UIBehavior, String, AuthenticationCallback)}.
@@ -565,7 +624,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         tokenCache.saveRefreshToken(authority, clientId, response);
     }
 
-    private void mockPackageManagerWithClientId(final Context context, final boolean addAuthorityInManifest,
+    private void mockPackageManagerWithClientId(final Context context, final String alternateAuthorityInManifest,
                                                 final String clientId)
             throws PackageManager.NameNotFoundException {
         final PackageManager mockedPackageManager = context.getPackageManager();
@@ -573,8 +632,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         // meta data is empty, no client id there.
         applicationInfo.metaData = new Bundle();
         applicationInfo.metaData.putString("com.microsoft.identity.client.ClientId", clientId);
-        if (addAuthorityInManifest) {
-            applicationInfo.metaData.putString("com.microsoft.identity.client.Authority", ALTERNATE_AUTHORITY);
+        if (!MSALUtils.isEmpty(alternateAuthorityInManifest)) {
+            applicationInfo.metaData.putString("com.microsoft.identity.client.Authority", alternateAuthorityInManifest);
         }
 
         Mockito.when(mockedPackageManager.getApplicationInfo(
@@ -623,7 +682,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     private Activity getMockedActivity(final String clientId) throws PackageManager.NameNotFoundException {
         final Context context = new MockActivityContext(mAppContext);
-        mockPackageManagerWithClientId(context, false, clientId);
+        mockPackageManagerWithClientId(context, null, clientId);
         mockHasCustomTabRedirect(context);
         mockAuthenticationActivityResolvable(context);
 
@@ -653,8 +712,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
         abstract String getFinalAuthUrl() throws UnsupportedEncodingException;
 
-        protected boolean isSetAlternateAuthority() {
-            return false;
+        protected String getAlternateAuthorityInManifest() {
+            return null;
         }
 
         protected void performAdditionalVerify(final Activity testActivity) {
@@ -667,12 +726,12 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
         public void performTest() throws PackageManager.NameNotFoundException, IOException, InterruptedException {
             final Context context = new MockActivityContext(mAppContext);
-            mockPackageManagerWithClientId(context, isSetAlternateAuthority(), CLIENT_ID);
+            mockPackageManagerWithClientId(context, getAlternateAuthorityInManifest(), CLIENT_ID);
             mockHasCustomTabRedirect(context);
             mockAuthenticationActivityResolvable(context);
 
-            if (isSetAlternateAuthority()) {
-                AndroidTestMockUtil.mockSuccessTenantDiscovery(ALTERNATE_AUTHORITY + Authority.DEFAULT_AUTHORIZE_ENDPOINT,
+            if (!MSALUtils.isEmpty(getAlternateAuthorityInManifest())) {
+                AndroidTestMockUtil.mockSuccessTenantDiscovery(getAlternateAuthorityInManifest() + Authority.DEFAULT_AUTHORIZE_ENDPOINT,
                         ALTERNATE_AUTHORITY + DEFAULT_TOKEN_ENDPOINT);
             }
 

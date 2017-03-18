@@ -36,7 +36,6 @@ import java.util.Set;
 public final class AccessTokenCacheItemTest {
     private static final String AUTHORITY = "https://login.microsoftonline.com/common";
     private static final String CLIENT_ID = "some-client-id";
-    private static final String POLICY = "signin";
     private static final String DISPLAYABLE = "test@contoso.onmicrosoft.com";
     private static final String UNIQUE_ID = "some-unique-id";
     private static final String HOME_OBJECT_ID = "some-home-oid";
@@ -66,7 +65,7 @@ public final class AccessTokenCacheItemTest {
 
     @Test
     public void testRefreshTokenCreation() throws AuthenticationException {
-        final RefreshTokenCacheItem item = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("", REFRESH_TOKEN));
+        final RefreshTokenCacheItem item = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", REFRESH_TOKEN));
         Assert.assertTrue(item.getRefreshToken().equals(REFRESH_TOKEN));
     }
 

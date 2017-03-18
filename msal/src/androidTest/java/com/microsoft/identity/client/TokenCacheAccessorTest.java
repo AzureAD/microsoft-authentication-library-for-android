@@ -156,13 +156,13 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
     public void testSaveRT() throws AuthenticationException {
         // save RT item with scope1
         final Set<String> scope1 = Collections.singleton("scope1");
-        final RefreshTokenCacheItem rtItem = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("", "refreshToken",
+        final RefreshTokenCacheItem rtItem = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", "refreshToken",
                 scope1, getIdTokenWithDefaultUser()));
         mAccessor.saveRefreshToken(rtItem);
 
         // save RT item with scope2 for same user
         final Set<String> scope2 = Collections.singleton("scope2");
-        final RefreshTokenCacheItem rtItem2 = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("", "refreshToken2",
+        final RefreshTokenCacheItem rtItem2 = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", "refreshToken2",
                 scope2, getIdTokenWithDefaultUser()));
         mAccessor.saveRefreshToken(rtItem2);
 
@@ -175,7 +175,7 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         final Set<String> scope3 = new HashSet<>();
         scope3.add("scope2");
         scope3.add("scope3");
-        final RefreshTokenCacheItem rtItem3 = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("", "refreshToken3",
+        final RefreshTokenCacheItem rtItem3 = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", "refreshToken3",
                 scope3, getIdTokenWithDefaultUser()));
         mAccessor.saveRefreshToken(rtItem3);
 
@@ -192,14 +192,14 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
     public void testSaveRTMultipleUsers() throws AuthenticationException {
         final Set<String> scope = Collections.singleton("scope");
 
-        final RefreshTokenCacheItem rtForUser1 = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("", "refreshToken1",
+        final RefreshTokenCacheItem rtForUser1 = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", "refreshToken1",
                 scope, getIdTokenWithDefaultUser()));
         mAccessor.saveRefreshToken(rtForUser1);
 
         final String anotherDisplayable = "anotherDisplayable";
         final String anotherUniqueId = "some-other-unique-id";
         final String anotherHomeOid = "some-other-home-oid";
-        final RefreshTokenCacheItem rtForUser2 = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("", "refreshToken2",
+        final RefreshTokenCacheItem rtForUser2 = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", "refreshToken2",
                 scope, AndroidTestUtil.getRawIdToken(anotherDisplayable, anotherUniqueId, anotherHomeOid)));
         mAccessor.saveRefreshToken(rtForUser2);
 
@@ -221,24 +221,24 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         final Set<String> scope = Collections.singleton("scope1");
 
         // add rt with default client id, authority and user
-        final RefreshTokenCacheItem rtForDefaultClient = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("", "refreshToken1",
+        final RefreshTokenCacheItem rtForDefaultClient = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", "refreshToken1",
                 scope, getIdTokenWithDefaultUser()));
         mAccessor.saveRefreshToken(rtForDefaultClient);
 
-        // add rt with default clientid, authority, user and policy
-        final RefreshTokenCacheItem rtForDefaultClientIDWithPolicy = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("",
+        // add rt with default clientid, authority, user
+        final RefreshTokenCacheItem differentRtForDefaultClientID = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("",
                 "refreshToken1WithPolicy", scope, getIdTokenWithDefaultUser()));
-        mAccessor.saveRefreshToken(rtForDefaultClientIDWithPolicy);
+        mAccessor.saveRefreshToken(differentRtForDefaultClientID);
 
         // add rt with another clientid
         final String anotherClientId = "another_clientId";
-        final RefreshTokenCacheItem rtForAnotherClientId = new RefreshTokenCacheItem(AUTHORITY, anotherClientId, getTokenResponse("",
+        final RefreshTokenCacheItem rtForAnotherClientId = new RefreshTokenCacheItem(anotherClientId, getTokenResponse("",
                 "refreshToken2", scope, getIdTokenWithDefaultUser()));
         mAccessor.saveRefreshToken(rtForAnotherClientId);
 
         // add rt for same user, different authority
         final String anotherAuthority = "another_authority";
-        final RefreshTokenCacheItem rtForDifferentAuthority = new RefreshTokenCacheItem(anotherAuthority, CLIENT_ID, getTokenResponse("",
+        final RefreshTokenCacheItem rtForDifferentAuthority = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("",
                 "refreshToken3", scope, getIdTokenWithDefaultUser()));
         mAccessor.saveRefreshToken(rtForDifferentAuthority);
 
@@ -255,7 +255,7 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
     public void testDeleteRTItems() throws AuthenticationException {
         final Set<String> scope = Collections.singleton("scope");
 
-        final RefreshTokenCacheItem rtItem = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("accessToken", "refresh_token",
+        final RefreshTokenCacheItem rtItem = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("accessToken", "refresh_token",
                 scope, getIdTokenWithDefaultUser()));
         mAccessor.saveRefreshToken(rtItem);
 
@@ -275,7 +275,6 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         final IdToken idToken = new IdToken(AndroidTestUtil.getRawIdToken(displayable, uniqueId, homeOid));
         final User user = new User(idToken);
         user.setDisplayableId(displayable);
-        user.setUniqueId(uniqueId);
         user.setHomeObjectId(homeOid);
 
         return user;

@@ -361,13 +361,6 @@ final class MSALUtils {
         return Base64.encodeToString(message.getBytes(Charset.forName(ENCODING_UTF8)), Base64.NO_PADDING);
     }
 
-    static boolean isADFSAuthority(URL authorizationEndpoint) {
-        // similar to ADAL.NET
-        String path = authorizationEndpoint.getPath();
-        return !MSALUtils.isEmpty(path)
-                && path.toLowerCase(Locale.ENGLISH).equals("/adfs");
-    }
-
     /**
      * @return True if there is an intersection between the scopes stored in the token cache key and the request scopes.
      */

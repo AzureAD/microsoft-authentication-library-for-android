@@ -38,7 +38,6 @@ import java.util.Set;
 public final class TokenCacheKeyTest {
     private static final String AUTHORITY = "https://login.microsoftonline.com/common";
     private static final String CLIENT_ID = "some-client-id";
-    private static final String POLICY = "signin";
     private static final String DISPLAYABLE = "test@contoso.onmicrosoft.com";
     private static final String UNIQUE_ID = "some-unique-id";
     private static final String HOME_OBJECT_ID = "some-home-oid";
@@ -53,11 +52,6 @@ public final class TokenCacheKeyTest {
     @Test(expected = IllegalArgumentException.class)
     public void testAccessTokenKeyCreationNoClientId() throws AuthenticationException {
         TokenCacheKey.createKeyForAT(AUTHORITY, null, getScopes(), getUser());
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testRefreshTokenKeyCreationWithNullTokenCacheItem() {
-        TokenCacheKey.extractKeyForRT(null);
     }
 
     @Test
@@ -114,10 +108,10 @@ public final class TokenCacheKeyTest {
                 "version", HOME_OBJECT_ID);
         final TokenResponse response = new TokenResponse("access_token", idToken, "refresh_token", new Date(), new Date(), new Date(),
                 MSALUtils.convertSetToString(getScopes(), " "), "Bearer", null);
-        final BaseTokenCacheItem item = new RefreshTokenCacheItem(AUTHORITY, CLIENT_ID, response);
+        final RefreshTokenCacheItem item = new RefreshTokenCacheItem(CLIENT_ID, response);
 
 
-        Assert.assertTrue(TokenCacheKey.extractKeyForRT(item).toString().equals("" + "$" + MSALUtils.base64EncodeToString(CLIENT_ID) + "$" + "$"
+        Assert.assertTrue(item.extractTokenCacheKey().toString().equals("" + "$" + MSALUtils.base64EncodeToString(CLIENT_ID) + "$" + "$"
                 + MSALUtils.base64EncodeToString(HOME_OBJECT_ID)));
     }
 

@@ -31,7 +31,6 @@ import android.test.AndroidTestCase;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -49,6 +48,7 @@ import java.util.UUID;
 @RunWith(AndroidJUnit4.class)
 public final class TokenCacheTest extends AndroidTestCase {
     static final String AUTHORITY = "https://login.microsoftonline.com/common";
+    static final String B2C_AUTHORITY = "https://login.microsoftonline.com/tfp/tenant/policy";
     static final String CLIENT_ID = "some-client-id";
     static final String DISPLAYABLE = "some-displayable-id";
     static final String UNIQUE_ID = "some-unique-id";
@@ -82,6 +82,88 @@ public final class TokenCacheTest extends AndroidTestCase {
         AndroidTestUtil.removeAllTokens(mAppContext);
     }
 
+    private AuthenticationRequestParameters addTokenForUser(final boolean useDefault) throws AuthenticationException {
+        final String testScope = "scope";
+        // Prepare a TokenResponse for either the default of the 'different' User, by param
+        final TokenResponse tokenResponse = useDefault ?
+                getTokenResponseForDefaultUser(
+                        ACCESS_TOKEN,
+                        REFRESH_TOKEN,
+                        testScope,
+                        AndroidTestUtil.getValidExpiresOn()) : // otherwise...
+                getTokenResponseForDifferentUser(
+                        testScope,
+                        AndroidTestUtil.getValidExpiresOn()
+                );
+        PublicClientApplicationTest.saveTokenResponse(
+                mTokenCache,
+                AUTHORITY,
+                CLIENT_ID,
+                tokenResponse
+        );
+        return getRequestParameters(
+                AUTHORITY,
+                Collections.singleton(testScope),
+                CLIENT_ID
+        );
+    }
+
+    @Test
+    public void testDeleteRefreshTokenByUser() throws AuthenticationException {
+        // Add a refresh token to the cache for the default user
+        final AuthenticationRequestParameters requestParameters = addTokenForUser(true);
+        // Verify token was inserted
+        assertNotNull(mTokenCache.findRefreshToken(requestParameters, mDefaultUser));
+        // Delete that token
+        mTokenCache.deleteRefreshTokenByUser(mDefaultUser);
+        // Verify that the token is deleted
+        assertNull(mTokenCache.findRefreshToken(requestParameters, mDefaultUser));
+    }
+
+    @Test
+    public void testDeleteRefreshTokenByUserClearsCorrectToken() throws AuthenticationException {
+        // Add a refresh token to the cache that is not associated with the current user
+        final AuthenticationRequestParameters differentUserParams = addTokenForUser(false);
+        // Add a refresh token to the cache for the default user
+        addTokenForUser(true);
+        // Delete the default user's token
+        mTokenCache.deleteRefreshTokenByUser(mDefaultUser);
+        // Verify that that the cache still contains the other token
+        assertNotNull(mTokenCache.findRefreshToken(differentUserParams, new User(new IdToken(getIdTokenForDifferentUser()))));
+    }
+
+    @Test
+    public void testDeleteAccessTokenByUser() throws AuthenticationException {
+        // Add an access token to the cache for the default user
+        final AuthenticationRequestParameters defaultUserRequestParameters = addTokenForUser(true);
+        // Verify that token was inserted
+        assertNotNull(mTokenCache.findAccessToken(defaultUserRequestParameters, mDefaultUser));
+        // Delete that token
+        mTokenCache.deleteAccessTokenByUser(mDefaultUser);
+        // Verify that the token is deleted
+        assertNull(mTokenCache.findAccessToken(defaultUserRequestParameters, mDefaultUser));
+    }
+
+    @Test
+    public void testDeleteAccessTokenByUserClearsCorrectToken() throws AuthenticationException {
+        // Add an access token to the cache that is not associated with the current user
+        final AuthenticationRequestParameters differentUserParams = addTokenForUser(false);
+        // Add an access token to the cache for the default user
+        addTokenForUser(true);
+        // Delete the default user's token
+        mTokenCache.deleteAccessTokenByUser(mDefaultUser);
+        // Verify that that the cache still contains the other token
+        assertNotNull(
+                mTokenCache.findAccessToken(
+                        differentUserParams,
+                        new User(
+                                new IdToken(getIdTokenForDifferentUser()
+                                )
+                        )
+                )
+        );
+    }
+
     /**
      * Verify that expired AT is not returned.
      */
@@ -93,7 +175,7 @@ public final class TokenCacheTest extends AndroidTestCase {
                 getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getExpiredDate()));
 
         // access token is already expired, verify that the access token is not returned.
-        final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope), CLIENT_ID);
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(AUTHORITY, Collections.singleton(singleScope), CLIENT_ID);
         assertNull(mTokenCache.findAccessToken(requestParameters, mDefaultUser));
         final RefreshTokenCacheItem refreshTokenCacheItem = mTokenCache.findRefreshToken(requestParameters, mDefaultUser);
         assertNotNull(refreshTokenCacheItem);
@@ -109,7 +191,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID,
                 getTokenResponseForDefaultUser(ACCESS_TOKEN, "", singleScope, AndroidTestUtil.getValidExpiresOn()));
 
-        final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope), CLIENT_ID);
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(AUTHORITY, Collections.singleton(singleScope), CLIENT_ID);
         assertTrue(ACCESS_TOKEN.equals(mTokenCache.findAccessToken(requestParameters, mDefaultUser).getAccessToken()));
         assertNull(mTokenCache.findRefreshToken(requestParameters, mDefaultUser));
     }
@@ -138,7 +220,7 @@ public final class TokenCacheTest extends AndroidTestCase {
                 getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, scope, AndroidTestUtil.getValidExpiresOn()));
 
         // verify the access token is saved
-        final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(scope), CLIENT_ID);
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(AUTHORITY, Collections.singleton(scope), CLIENT_ID);
 
         assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 2);
 
@@ -150,37 +232,41 @@ public final class TokenCacheTest extends AndroidTestCase {
     }
 
     /**
-     * Verify that token is correctly when cache key contains policy.
-     * TODO: B2C policy will be part of the authority. Need to update corresponding tests when figuring out the b2c authority.
+     * Verify that token is correctly for b2c scenario, which will have policy as part of the authority.
      */
-    @Ignore
     @Test
-    public void testGetTokenWithPolicy() throws AuthenticationException {
+    public void testGetTokenWithB2cAuthority() throws AuthenticationException {
         // prepare a valid AT item stored with policy in the cache
         final String singleScope = "scope";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, getTokenResponseForDefaultUser(
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, B2C_AUTHORITY, CLIENT_ID, getTokenResponseForDefaultUser(
                 ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn()));
 
-        // asks a token with no policy
-        final AuthenticationRequestParameters requestParametersWithoutPolicy = getRequestParameters(Collections.singleton(
+        // asks a token with aad authority
+        final AuthenticationRequestParameters requestParametersWithAadAuthoirty = getRequestParameters(AUTHORITY, Collections.singleton(
                 singleScope), CLIENT_ID);
-        assertNull(mTokenCache.findAccessToken(requestParametersWithoutPolicy, mDefaultUser));
-        assertNull(mTokenCache.findRefreshToken(requestParametersWithoutPolicy, mDefaultUser));
+        assertNull(mTokenCache.findAccessToken(requestParametersWithAadAuthoirty, mDefaultUser));
+        // refresh token is not cached with authority.
+        assertNotNull(mTokenCache.findRefreshToken(requestParametersWithAadAuthoirty, mDefaultUser));
 
-        // asks the token with policy
-        final AuthenticationRequestParameters requestParametersWithPolicy = getRequestParameters(Collections.singleton(
+        // asks the token with b2c authority
+        final AuthenticationRequestParameters requestParametersWithB2cAuthority = getRequestParameters(B2C_AUTHORITY, Collections.singleton(
                 singleScope), CLIENT_ID);
-        assertNotNull(mTokenCache.findAccessToken(requestParametersWithPolicy, mDefaultUser));
-        assertNotNull(mTokenCache.findRefreshToken(requestParametersWithPolicy, mDefaultUser));
+        assertNotNull(mTokenCache.findAccessToken(requestParametersWithB2cAuthority, mDefaultUser));
+        assertNotNull(mTokenCache.findRefreshToken(requestParametersWithB2cAuthority, mDefaultUser));
         AndroidTestUtil.removeAllTokens(mAppContext);
 
-        // save a token without policy
+        // save a token without paad authority
+        final String accessToken2 = "some_access_token2";
+        final String refreshToken2 = "some_refresh_token2";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, getTokenResponseForDefaultUser(
-                ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn()));
+                accessToken2, refreshToken2, singleScope, AndroidTestUtil.getValidExpiresOn()));
 
         // asks a token with scope
-        assertNull(mTokenCache.findAccessToken(requestParametersWithPolicy, mDefaultUser));
-        assertNull(mTokenCache.findRefreshToken(requestParametersWithPolicy, mDefaultUser));
+        final AccessTokenCacheItem accessTokenCacheItem = mTokenCache.findAccessToken(requestParametersWithB2cAuthority, mDefaultUser);
+        final RefreshTokenCacheItem refreshTokenCacheItem = mTokenCache.findRefreshToken(requestParametersWithB2cAuthority, mDefaultUser);
+        assertNull(accessTokenCacheItem);
+        assertNotNull(refreshTokenCacheItem);
+        assertTrue(refreshTokenCacheItem.getRefreshToken().equals(refreshToken2));
     }
 
     /**
@@ -192,7 +278,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, getTokenResponseForDefaultUser(
                 ACCESS_TOKEN, REFRESH_TOKEN, scope1, AndroidTestUtil.getValidExpiresOn()));
 
-        final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(scope1), CLIENT_ID);
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(AUTHORITY, Collections.singleton(scope1), CLIENT_ID);
         assertNotNull(mTokenCache.findAccessToken(requestParameters, getDefaultUser()));
         assertNotNull(mTokenCache.findRefreshToken(requestParameters, getDefaultUser()));
 
@@ -263,23 +349,23 @@ public final class TokenCacheTest extends AndroidTestCase {
 
         // retrieve token for scope2, current entry for access token is s2 and s3.
         final Set<String> scopesToRetrieve = Collections.singleton(scope2);
-        final AccessTokenCacheItem tokenCacheItem = mTokenCache.findAccessToken(getRequestParameters(scopesToRetrieve, CLIENT_ID), getDefaultUser());
+        final AccessTokenCacheItem tokenCacheItem = mTokenCache.findAccessToken(getRequestParameters(AUTHORITY, scopesToRetrieve, CLIENT_ID), getDefaultUser());
         assertNotNull(tokenCacheItem);
         assertTrue(tokenCacheItem.getAccessToken().equals(accessToken2));
 
         // retrieve token for scope3
-        final AccessTokenCacheItem tokenCacheItemForScope3 = mTokenCache.findAccessToken(getRequestParameters(Collections.singleton(scope3), CLIENT_ID),
+        final AccessTokenCacheItem tokenCacheItemForScope3 = mTokenCache.findAccessToken(getRequestParameters(AUTHORITY, Collections.singleton(scope3), CLIENT_ID),
                 getDefaultUser());
         assertNotNull(tokenCacheItemForScope3);
         assertTrue(tokenCacheItemForScope3.getAccessToken().equals(accessToken2));
 
         // retrieve token for scope2 and scope 3
-        final AccessTokenCacheItem tokenCacheItemForScope2And3 = mTokenCache.findAccessToken(getRequestParameters(scopes2, CLIENT_ID), getDefaultUser());
+        final AccessTokenCacheItem tokenCacheItemForScope2And3 = mTokenCache.findAccessToken(getRequestParameters(AUTHORITY, scopes2, CLIENT_ID), getDefaultUser());
         assertNotNull(tokenCacheItemForScope2And3);
         assertTrue(tokenCacheItemForScope2And3.getAccessToken().equals(accessToken2));
 
         // retrieve token for scope 1
-        final AccessTokenCacheItem accessTokenCacheItemForScope1 = mTokenCache.findAccessToken(getRequestParameters(Collections.singleton(scope1), CLIENT_ID),
+        final AccessTokenCacheItem accessTokenCacheItemForScope1 = mTokenCache.findAccessToken(getRequestParameters(AUTHORITY, Collections.singleton(scope1), CLIENT_ID),
                 getDefaultUser());
         assertNull(accessTokenCacheItemForScope1);
 
@@ -288,7 +374,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         allScopes.add(scope1);
         allScopes.add(scope2);
         allScopes.add(scope3);
-        final AccessTokenCacheItem accessTokenCacheItemForAllThreeScopes = mTokenCache.findAccessToken(getRequestParameters(allScopes, CLIENT_ID), getDefaultUser());
+        final AccessTokenCacheItem accessTokenCacheItemForAllThreeScopes = mTokenCache.findAccessToken(getRequestParameters(AUTHORITY, allScopes, CLIENT_ID), getDefaultUser());
         assertNull(accessTokenCacheItemForAllThreeScopes);
     }
 
@@ -358,7 +444,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 2);
 
         // retrieve token for default user1
-        final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(scope), CLIENT_ID);
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(AUTHORITY, Collections.singleton(scope), CLIENT_ID);
         final AccessTokenCacheItem accessTokenCacheItem = mTokenCache.findAccessToken(requestParameters, mDefaultUser);
         assertNotNull(accessTokenCacheItem);
         verifyUserReturnedFromCacheIsDefaultUser(accessTokenCacheItem);
@@ -392,7 +478,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 2);
 
         // retrieve token for user1, client id 1
-        final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(scope), CLIENT_ID);
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(AUTHORITY, Collections.singleton(scope), CLIENT_ID);
         final AccessTokenCacheItem accessTokenItemForClientId1 = mTokenCache.findAccessToken(requestParameters, getDefaultUser());
         assertTrue(accessTokenItemForClientId1.getAccessToken().equals(ACCESS_TOKEN));
 
@@ -400,7 +486,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         assertTrue(refreshTokenCacheItemForClientId1.getRefreshToken().equals(REFRESH_TOKEN));
 
         // retrieve token for user1, client id2
-        final AuthenticationRequestParameters requestParametersForClientId2 = getRequestParameters(Collections.singleton(scope), anotherClientId);
+        final AuthenticationRequestParameters requestParametersForClientId2 = getRequestParameters(AUTHORITY, Collections.singleton(scope), anotherClientId);
         final AccessTokenCacheItem accessTokenCacheItemForClientId2 = mTokenCache.findAccessToken(requestParametersForClientId2, getDefaultUser());
         assertTrue(accessTokenCacheItemForClientId2.getAccessToken().equals(accessToken2));
 
@@ -449,8 +535,8 @@ public final class TokenCacheTest extends AndroidTestCase {
                 "version", HOME_OID);
     }
 
-    private AuthenticationRequestParameters getRequestParameters(final Set<String> scopes, final String clientId) {
-        return AuthenticationRequestParameters.create(Authority.createAuthority(AUTHORITY, false),
+    private AuthenticationRequestParameters getRequestParameters(final String authority, final Set<String> scopes, final String clientId) {
+        return AuthenticationRequestParameters.create(Authority.createAuthority(authority, false),
                 mTokenCache, scopes, clientId, "some redirect", "", "", UIBehavior.SELECT_ACCOUNT,
                 new RequestContext(UUID.randomUUID(), ""));
     }

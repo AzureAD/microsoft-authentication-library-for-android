@@ -105,7 +105,6 @@ abstract class BaseRequest {
                     performTokenRequest();
 
                     final AuthenticationResult result = postTokenRequest();
-                    updateUserForAuthenticationResult(result);
 
                     Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Token request succeeds.");
                     callbackOnSuccess(callback, result);
@@ -124,7 +123,7 @@ abstract class BaseRequest {
 
     /**
      * Get the decorated scopes. Will combine the input scope and the reserved scope. If client id is provided as scope,
-     * it will be removed from the combined scopes. If policy is provided, email and profile will be removed.
+     * it will be removed from the combined scopes.
      * @param inputScopes The input scopes to decorate.
      * @return The combined scopes.
      */
@@ -133,14 +132,6 @@ abstract class BaseRequest {
         final Set<String> reservedScopes = getReservedScopesAsSet();
         scopes.addAll(reservedScopes);
         scopes.remove(mAuthRequestParameters.getClientId());
-
-        // For B2C scenario, policy will be provided. We don't send email and profile as scopes.
-//        if (!MSALUtils.isEmpty(mAuthRequestParameters.getPolicy())) {
-//            Logger.verbose(TAG, mRequestContext, "B2C scenario, remove email and "
-//                    + "profile from reserved scopes");
-//            scopes.remove(OauthConstants.Oauth2Value.SCOPE_EMAIL);
-//            scopes.remove(OauthConstants.Oauth2Value.SCOPE_PROFILE);
-//        }
 
         return scopes;
     }
@@ -227,11 +218,6 @@ abstract class BaseRequest {
             Logger.error(TAG, mRequestContext, "No active network is available on the device.", null);
             throw new AuthenticationException(MSALError.DEVICE_CONNECTION_NOT_AVAILABLE, "Device network connection is not available.");
         }
-    }
-
-    private void updateUserForAuthenticationResult(final AuthenticationResult result) {
-        result.getUser().setClientId(mAuthRequestParameters.getClientId());
-        result.getUser().setTokenCache(mAuthRequestParameters.getTokenCache());
     }
 
     private synchronized Handler getHandler() {
