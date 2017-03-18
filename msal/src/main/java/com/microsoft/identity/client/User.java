@@ -56,7 +56,7 @@ public class User {
      * @return The unique identifier of the user authenticated during token acquisition. Can be null if not returned
      * from the service.
      */
-    public String getUniqueId() {
+    String getUniqueId() {
         return mUniqueId;
     }
 
