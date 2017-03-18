@@ -23,8 +23,14 @@
 
 package com.microsoft.identity.client;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.provider.Settings;
 import android.util.Pair;
 
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
 import static com.microsoft.identity.client.EventConstants.EventProperty;
@@ -98,6 +104,37 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
             mApplicationVersion = builder.mApplicationVersion;
             mClientId = builder.mClientId;
             mDeviceId = builder.mDeviceId;
+        }
+
+        @SuppressLint("HardwareIds")
+        static EventDefaults forApplication(final Context context, final String clientId) {
+            Builder defaultsBuilder = new Builder()
+                    .clientId(clientId)
+                    .applicationName(context.getPackageName());
+            try {
+                defaultsBuilder.applicationVersion(
+                        context
+                                .getPackageManager()
+                                .getPackageInfo(defaultsBuilder.mApplicationName, 0).versionName
+                );
+            } catch (PackageManager.NameNotFoundException e) {
+                defaultsBuilder.applicationVersion("NA");
+            }
+
+            try {
+                defaultsBuilder.deviceId(
+                        MSALUtils.createHash(
+                                Settings.Secure.getString(
+                                        context.getContentResolver(),
+                                        Settings.Secure.ANDROID_ID
+                                )
+                        )
+                );
+            } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+                defaultsBuilder.deviceId("");
+            }
+
+            return defaultsBuilder.build();
         }
 
         static class Builder {
