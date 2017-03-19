@@ -25,6 +25,9 @@ package com.microsoft.identity.client;
 
 import static com.microsoft.identity.client.EventConstants.EventProperty;
 
+/**
+ * Internal class for CacheEvent telemetry data.
+ */
 class CacheEvent extends Event implements ICacheEvent {
 
     private CacheEvent(Builder builder) {
@@ -43,21 +46,41 @@ class CacheEvent extends Event implements ICacheEvent {
         return Boolean.valueOf(getProperty(EventProperty.TOKEN_TYPE_IS_RT));
     }
 
+    /**
+     * Builder object for CacheEvents.
+     */
     static class Builder extends Event.Builder<Builder> {
 
         private String mTokenType;
         private boolean mTokenTypeIsRT;
 
+        /**
+         * Sets the tokenType.
+         *
+         * @param tokenType the tokenType to set.
+         * @return the Builder instance.
+         */
         Builder tokenType(final String tokenType) {
             mTokenType = tokenType;
             return this;
         }
 
+        /**
+         * Sets the tokenTypeRT flag.
+         *
+         * @param tokenTypeRT the true/falseness of RT status.
+         * @return the Builder instance.
+         */
         Builder tokenTypeIsRT(final boolean tokenTypeRT) {
             mTokenTypeIsRT = tokenTypeRT;
             return this;
         }
 
+        /**
+         * Constructs a new CacheEvent.
+         *
+         * @return the newly constructed CacheEvent instance.
+         */
         ICacheEvent build() {
             // todo make sure that the event name is set?
             return new CacheEvent(this);
