@@ -68,42 +68,42 @@ class HttpEvent extends Event implements IHttpEvent {
     }
 
     @Override
-    public String getUserAgent() {
+    public final String getUserAgent() {
         return getProperty(EventProperty.HTTP_USER_AGENT);
     }
 
     @Override
-    public String getHttpMethod() {
+    public final String getHttpMethod() {
         return getProperty(EventProperty.HTTP_METHOD);
     }
 
     @Override
-    public String getQueryParameters() {
+    public final String getQueryParameters() {
         return getProperty(EventProperty.HTTP_QUERY_PARAMETERS);
     }
 
     @Override
-    public String getApiVersion() {
+    public final String getApiVersion() {
         return getProperty(EventProperty.HTTP_API_VERSION);
     }
 
     @Override
-    public String getOAuthErrorCode() {
+    public final String getOAuthErrorCode() {
         return getProperty(EventProperty.OAUTH_ERROR_CODE);
     }
 
     @Override
-    public String getRequestIdHeader() {
+    public final String getRequestIdHeader() {
         return getProperty(EventProperty.REQUEST_ID_HEADER);
     }
 
     @Override
-    public URL getHttpPath() {
+    public final URL getHttpPath() {
         return MSALUtils.getUrl(getProperty(EventProperty.HTTP_PATH));
     }
 
     @Override
-    public Integer getResponseCode() {
+    public final Integer getResponseCode() {
         return Integer.valueOf(getProperty(EventProperty.HTTP_RESPONSE_CODE));
     }
 
