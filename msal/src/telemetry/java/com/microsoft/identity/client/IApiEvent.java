@@ -24,4 +24,27 @@
 package com.microsoft.identity.client;
 
 public interface IApiEvent extends IEvent {
+
+    String getAuthority();
+
+    String getUiBehavior();
+
+    String getApiId();
+
+    String getValidationStatus();
+
+    String getIdpName();
+
+    String getTenantId();
+
+    String getUserId();
+
+    String getLoginHint();
+
+    Boolean isDeprecated();
+
+    Boolean hasExtendedExpiresOnStatus();
+
+    Boolean wasSuccessful();
+
 }

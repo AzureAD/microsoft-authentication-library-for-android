@@ -35,7 +35,6 @@ class ApiEvent extends Event implements IApiEvent {
 
     private ApiEvent(Builder builder) {
         super(builder);
-        setProperty(EventProperty.EVENT_NAME, EventName.API_EVENT.value);
         setAuthority(builder.mAuthority);
         setProperty(EventProperty.UI_BEHAVIOR, builder.mUiBehavior);
         setProperty(EventProperty.API_ID, builder.mApiId);
@@ -100,6 +99,61 @@ class ApiEvent extends Event implements IApiEvent {
         setProperty(EventProperty.AUTHORITY_TYPE, authorityType);
     }
 
+    @Override
+    public final String getAuthority() {
+        return getProperty(EventProperty.AUTHORITY_NAME);
+    }
+
+    @Override
+    public final String getUiBehavior() {
+        return getProperty(EventProperty.UI_BEHAVIOR);
+    }
+
+    @Override
+    public final String getApiId() {
+        return getProperty(EventProperty.API_ID);
+    }
+
+    @Override
+    public final String getValidationStatus() {
+        return getProperty(EventProperty.AUTHORITY_VALIDATION);
+    }
+
+    @Override
+    public final String getIdpName() {
+        return getProperty(EventProperty.IDP_NAME);
+    }
+
+    @Override
+    public final String getTenantId() {
+        return getProperty(EventProperty.TENANT_ID);
+    }
+
+    @Override
+    public final String getUserId() {
+        return getProperty(EventProperty.USER_ID);
+    }
+
+    @Override
+    public final String getLoginHint() {
+        return getProperty(EventProperty.LOGIN_HINT);
+    }
+
+    @Override
+    public final Boolean isDeprecated() {
+        return Boolean.valueOf(getProperty(EventProperty.API_DEPRECATED));
+    }
+
+    @Override
+    public final Boolean hasExtendedExpiresOnStatus() {
+        return Boolean.valueOf(getProperty(EventProperty.EXTENDED_EXPIRES_ON_SETTING));
+    }
+
+    @Override
+    public final Boolean wasSuccessful() {
+        return Boolean.valueOf(getProperty(EventProperty.WAS_SUCCESSFUL));
+    }
+
     static class Builder extends Event.Builder<Builder> {
 
         private String mAuthority;
@@ -158,6 +212,7 @@ class ApiEvent extends Event implements IApiEvent {
         }
 
         IApiEvent build() {
+            eventName(EventName.API_EVENT);
             return new ApiEvent(this);
         }
 

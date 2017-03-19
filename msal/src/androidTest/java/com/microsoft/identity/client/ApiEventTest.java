@@ -25,13 +25,22 @@ package com.microsoft.identity.client;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import junit.framework.Assert;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 
 import static com.microsoft.identity.client.EventConstants.EventProperty;
 
 @RunWith(AndroidJUnit4.class)
 public class ApiEventTest {
+
+    private static final String sTestIdp = "https://sts.windows.net/30baa666-8df8-48e7-97e6-77cfd0995963/";
+    private static final String sTestTenantId = "cDlznUzXvRPmsu0nwRE5iZ4/mbYap0jgmkpxSnZzRQY=";
+    private static final String sTestUserId = null; // test token does not contain id
 
     static final String sTestAuthority = HttpEventTest.sTestHttpPath.toString();
     static final String sTestUiBehavior = "FORCE_LOGIN";
@@ -45,6 +54,7 @@ public class ApiEventTest {
 
     static IApiEvent getTestApiEvent(final Telemetry.RequestId requestId) {
         return new ApiEvent.Builder()
+                .requestId(requestId)
                 .authority(sTestAuthority)
                 .uiBehavior(sTestUiBehavior)
                 .apiId(sTestApiId)
@@ -58,12 +68,28 @@ public class ApiEventTest {
     }
 
     @Test
-    public void testApiEventInitializes() {
+    public void testApiEventInitializes() throws UnsupportedEncodingException, NoSuchAlgorithmException {
         // TODO
+        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+        IApiEvent apiEvent = getTestApiEvent(requestId);
+        Assert.assertEquals(requestId.value, apiEvent.getRequestId());
+        Assert.assertEquals(sTestAuthority, apiEvent.getAuthority());
+        Assert.assertEquals(sTestUiBehavior, apiEvent.getUiBehavior());
+        Assert.assertEquals(sTestApiId, apiEvent.getApiId());
+        Assert.assertEquals(sTestValidationStatus, apiEvent.getValidationStatus());
+        // Testing token parsing in another test....
+        Assert.assertEquals(MSALUtils.createHash(sTestLoginHint), apiEvent.getLoginHint());
+        Assert.assertEquals(Boolean.valueOf(sTestIsDeprecated), apiEvent.isDeprecated());
+        Assert.assertEquals(Boolean.valueOf(sTestHasExtendedExpiresStatus), apiEvent.hasExtendedExpiresOnStatus());
+        Assert.assertEquals(Boolean.valueOf(sTestApiCallWasSuccessful), apiEvent.wasSuccessful());
     }
 
     @Test
     public void testIdTokenParsing() {
-        // TODO
+        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+        IApiEvent apiEvent = getTestApiEvent(requestId);
+        Assert.assertEquals(sTestIdp, apiEvent.getIdpName());
+        Assert.assertEquals(sTestTenantId, apiEvent.getTenantId());
+        Assert.assertEquals(sTestUserId, apiEvent.getUserId());
     }
 }

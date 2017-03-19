@@ -46,6 +46,9 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
     }
 
     Event(final Builder builder) {
+        if (null == builder.mEventName) {
+            throw new IllegalStateException("Event must have a name");
+        }
         if (sInitializeAllWithDefaults) {
             // add the defaults
             setProperty(EventProperty.APPLICATION_NAME, sAllDefaults.mApplicationName);
@@ -68,7 +71,8 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
         String propertyValue = null;
         for (Pair<String, String> property : this) {
             if (property.first.equals(propertyName)) {
-                propertyValue = property.first;
+                //propertyValue = property.first;
+                propertyValue = property.second;
                 break;
             }
         }
@@ -80,12 +84,48 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
         return size();
     }
 
+    @Override
+    public final String getApplicationName() {
+        return getProperty(EventProperty.APPLICATION_NAME);
+    }
+
+    @Override
+    public final String getApplicationVersion() {
+        return getProperty(EventProperty.APPLICATION_VERSION);
+    }
+
+    @Override
+    public final String getClientId() {
+        return getProperty(EventProperty.CLIENT_ID);
+    }
+
+    @Override
+    public final String getDeviceId() {
+        return getProperty(EventProperty.DEVICE_ID);
+    }
+
+    @Override
+    public String getRequestId() {
+        return getProperty(EventProperty.REQUEST_ID);
+    }
+
+    @Override
+    public String getEventName() {
+        return getProperty(EventProperty.EVENT_NAME);
+    }
+
     static class Builder<T extends Builder> {
 
         private Telemetry.RequestId mRequestId;
+        private EventName mEventName;
 
         T requestId(Telemetry.RequestId requestId) {
             mRequestId = requestId;
+            return (T) this;
+        }
+
+        T eventName(EventName eventName) {
+            mEventName = eventName;
             return (T) this;
         }
 

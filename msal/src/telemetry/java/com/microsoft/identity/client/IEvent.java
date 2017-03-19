@@ -35,4 +35,16 @@ interface IEvent extends Collection<Pair<String, String>> {
 
     int getPropertyCount();
 
+    String getApplicationName();
+
+    String getApplicationVersion();
+
+    String getClientId();
+
+    String getDeviceId();
+
+    String getRequestId();
+
+    String getEventName();
+
 }

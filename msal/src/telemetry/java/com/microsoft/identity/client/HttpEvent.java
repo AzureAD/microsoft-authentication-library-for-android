@@ -32,7 +32,6 @@ class HttpEvent extends Event implements IHttpEvent {
 
     private HttpEvent(Builder builder) {
         super(builder);
-        setProperty(EventProperty.EVENT_NAME, EventName.HTTP_EVENT.value);
         setProperty(EventProperty.HTTP_USER_AGENT, builder.mUserAgent);
         setProperty(EventProperty.HTTP_METHOD, builder.mHttpMethod);
         setProperty(EventProperty.HTTP_QUERY_PARAMETERS, builder.mQueryParams);
@@ -120,6 +119,7 @@ class HttpEvent extends Event implements IHttpEvent {
         }
 
         IHttpEvent build() {
+            eventName(EventName.HTTP_EVENT);
             return new HttpEvent(this);
         }
 

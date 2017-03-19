@@ -160,6 +160,11 @@ public class Telemetry implements ITelemetry {
 
         final String value;
 
+        @Override
+        public String toString() {
+            return value;
+        }
+
         ValueTypeDef(final String value) {
             this.value = value;
         }

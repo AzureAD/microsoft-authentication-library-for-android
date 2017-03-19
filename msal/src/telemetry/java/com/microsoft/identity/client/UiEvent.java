@@ -29,7 +29,6 @@ class UiEvent extends Event implements IUiEvent {
 
     private UiEvent(Builder builder) {
         super(builder);
-        setProperty(EventProperty.EVENT_NAME, EventName.UI_EVENT.value);
         setProperty(EventProperty.REDIRECT_COUNT, builder.mRedirectCount.toString());
         setProperty(EventProperty.USER_CANCEL, builder.mUserDidCancel);
     }
@@ -50,6 +49,7 @@ class UiEvent extends Event implements IUiEvent {
         }
 
         IUiEvent build() {
+            eventName(EventName.UI_EVENT);
             return new UiEvent(this);
         }
     }
