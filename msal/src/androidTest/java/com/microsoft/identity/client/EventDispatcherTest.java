@@ -25,15 +25,74 @@ package com.microsoft.identity.client;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import junit.framework.Assert;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @RunWith(AndroidJUnit4.class)
 public class EventDispatcherTest {
 
     @Test
     public void testEventsDispatchedInOrder() {
-        // TODO
+        // mock out receiver object
+        final MsalEventReceiver mockReceiver = Mockito.mock(MsalEventReceiver.class);
+        final EventDispatcher dispatcher = new EventDispatcher(mockReceiver);
+
+        // create a List to hold some events
+        List<IEvent> eventList = new ArrayList<>();
+
+        // create some test events
+        final Telemetry.RequestId cacheEventRequestId = Telemetry.generateNewRequestId();
+        final EventName cacheEventName = EventName.TOKEN_CACHE_LOOKUP;
+        final ICacheEvent cacheEvent =
+                CacheEventTest.getTestCacheEvent(
+                        cacheEventRequestId,
+                        cacheEventName,
+                        CacheEventTest.sTestTokenTypeAT
+                );
+
+        final Telemetry.RequestId httpEventRequestId = Telemetry.generateNewRequestId();
+        final IHttpEvent httpEvent = HttpEventTest.getTestHttpEvent(httpEventRequestId);
+
+
+        final Telemetry.RequestId uiEventRequestId = Telemetry.generateNewRequestId();
+        final IUiEvent uiEvent = UiEventTest.getTestUiEvent(uiEventRequestId);
+
+
+        final Telemetry.RequestId apiEventRequestId = Telemetry.generateNewRequestId();
+        final IApiEvent apiEvent = ApiEventTest.getTestApiEvent(apiEventRequestId);
+        // add them to the list
+        eventList.add(cacheEvent);
+        eventList.add(httpEvent);
+        eventList.add(uiEvent);
+        eventList.add(apiEvent);
+
+        // dispatch them to the receiver
+        dispatcher.dispatch(eventList);
+
+        // check the results are in order
+        final ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        Mockito.verify(mockReceiver, Mockito.only()).onEventsReceived(captor.capture());
+        List<Map<String, String>> result = captor.getValue();
+
+        int index = 0;
+        for (final IEvent event : eventList) {
+            Assert.assertEquals(
+                    event.getRequestId(),
+                    new Telemetry.RequestId(
+                            result.get(index)
+                                    .get(EventConstants.EventProperty.REQUEST_ID)
+                    )
+            );
+            index++;
+        }
     }
 
 }
