@@ -48,7 +48,7 @@ public class UiEventTest {
     @Test
     public void testUiEventInitializes() {
         final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
-        IUiEvent uiEvent = getTestUiEvent(requestId);
+        final IUiEvent uiEvent = getTestUiEvent(requestId);
         Assert.assertEquals(sTestExpectedEventName, uiEvent.getEventName());
         Assert.assertEquals(sTestRedirectCount, uiEvent.getRedirectCount());
         Assert.assertEquals(Boolean.valueOf(sTestUserDidCancel), uiEvent.userCancelled());

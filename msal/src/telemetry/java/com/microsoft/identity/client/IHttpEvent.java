@@ -23,5 +23,23 @@
 
 package com.microsoft.identity.client;
 
+import java.net.URL;
+
 interface IHttpEvent extends IEvent {
+
+    String getUserAgent();
+
+    String getHttpMethod();
+
+    String getQueryParameters();
+
+    String getApiVersion();
+
+    String getOAuthErrorCode();
+
+    String getRequestIdHeader();
+
+    URL getHttpPath();
+
+    Integer getResponseCode();
 }

@@ -67,6 +67,46 @@ class HttpEvent extends Event implements IHttpEvent {
         setProperty(EventProperty.HTTP_PATH, logPath.toString());
     }
 
+    @Override
+    public String getUserAgent() {
+        return getProperty(EventProperty.HTTP_USER_AGENT);
+    }
+
+    @Override
+    public String getHttpMethod() {
+        return getProperty(EventProperty.HTTP_METHOD);
+    }
+
+    @Override
+    public String getQueryParameters() {
+        return getProperty(EventProperty.HTTP_QUERY_PARAMETERS);
+    }
+
+    @Override
+    public String getApiVersion() {
+        return getProperty(EventProperty.HTTP_API_VERSION);
+    }
+
+    @Override
+    public String getOAuthErrorCode() {
+        return getProperty(EventProperty.OAUTH_ERROR_CODE);
+    }
+
+    @Override
+    public String getRequestIdHeader() {
+        return getProperty(EventProperty.REQUEST_ID_HEADER);
+    }
+
+    @Override
+    public URL getHttpPath() {
+        return MSALUtils.getUrl(getProperty(EventProperty.HTTP_PATH));
+    }
+
+    @Override
+    public Integer getResponseCode() {
+        return Integer.valueOf(getProperty(EventProperty.HTTP_RESPONSE_CODE));
+    }
+
     static class Builder extends Event.Builder<Builder> {
 
         private String mUserAgent;

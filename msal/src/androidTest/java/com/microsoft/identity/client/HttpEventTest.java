@@ -25,6 +25,8 @@ package com.microsoft.identity.client;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import junit.framework.Assert;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -39,10 +41,17 @@ public class HttpEventTest {
     static final String sTestApiVersion = "v1.0";
     static final String sTestOAuthErrorCode = "invalid grant";
     static final String sTestRequestIdHeader = "a_request_header";
-    static final URL sTestHttpPath = MSALUtils.getUrl("https://login.microsoftonline.com");
-    static final int sTestHttpResponseCode = 200;
+    static final URL sTestHttpPath = MSALUtils.getUrl("https://login.microsoftonline.com/");
+    static final Integer sTestHttpResponseCode = 200;
 
     static IHttpEvent getTestHttpEvent(final Telemetry.RequestId requestId) {
+        return getTestHttpEvent(requestId, sTestHttpPath);
+    }
+
+    private static IHttpEvent getTestHttpEvent(
+            final Telemetry.RequestId requestId,
+            final URL httpPath
+    ) {
         return new HttpEvent.Builder()
                 .requestId(requestId)
                 .userAgent(sTestUserAgent)
@@ -51,18 +60,32 @@ public class HttpEventTest {
                 .apiVersion(sTestApiVersion)
                 .oAuthErrorCode(sTestOAuthErrorCode)
                 .requestIdHeader(sTestRequestIdHeader)
-                .httpPath(sTestHttpPath)
+                .httpPath(httpPath)
                 .responseCode(sTestHttpResponseCode)
                 .build();
     }
 
     @Test
     public void testHttpEventInitializes() {
-        // TODO
+        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+        final IHttpEvent httpEvent = getTestHttpEvent(requestId);
+        Assert.assertEquals(requestId, httpEvent.getRequestId());
+        Assert.assertEquals(EventName.HTTP_EVENT, httpEvent.getEventName());
+        Assert.assertEquals(sTestUserAgent, httpEvent.getUserAgent());
+        Assert.assertEquals(sTestHttpMethod, httpEvent.getHttpMethod());
+        Assert.assertEquals(sTestQueryParams, httpEvent.getQueryParameters());
+        Assert.assertEquals(sTestApiVersion, httpEvent.getApiVersion());
+        Assert.assertEquals(sTestOAuthErrorCode, httpEvent.getOAuthErrorCode());
+        Assert.assertEquals(sTestRequestIdHeader, httpEvent.getRequestIdHeader());
+        Assert.assertEquals(sTestHttpPath, httpEvent.getHttpPath());
+        Assert.assertEquals(sTestHttpResponseCode, httpEvent.getResponseCode());
     }
 
     @Test
     public void testOnlyTrustedHostsAddedToEvent() {
-        // TODO
+        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+        final IHttpEvent httpEvent =
+                getTestHttpEvent(requestId, MSALUtils.getUrl("https://login.contoso.com/"));
+        Assert.assertNull(httpEvent.getHttpPath());
     }
 }
