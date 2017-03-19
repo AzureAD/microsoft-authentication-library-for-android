@@ -71,7 +71,7 @@ public class ApiEventTest {
     public void testApiEventInitializes() throws UnsupportedEncodingException, NoSuchAlgorithmException {
         final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
         final IApiEvent apiEvent = getTestApiEvent(requestId);
-        Assert.assertEquals(requestId.value, apiEvent.getRequestId());
+        Assert.assertEquals(requestId, apiEvent.getRequestId());
         Assert.assertEquals(sTestAuthority, apiEvent.getAuthority());
         Assert.assertEquals(sTestUiBehavior, apiEvent.getUiBehavior());
         Assert.assertEquals(sTestApiId, apiEvent.getApiId());

@@ -33,15 +33,20 @@ class CacheEvent extends Event implements ICacheEvent {
         setProperty(EventProperty.TOKEN_TYPE_IS_RT, String.valueOf(builder.mTokenTypeIsRT));
     }
 
+    @Override
+    public String getTokenType() {
+        return getProperty(EventProperty.TOKEN_TYPE);
+    }
+
+    @Override
+    public Boolean tokenTypeisRT() {
+        return Boolean.valueOf(getProperty(EventProperty.TOKEN_TYPE_IS_RT));
+    }
+
     static class Builder extends Event.Builder<Builder> {
 
         private String mTokenType;
         private boolean mTokenTypeIsRT;
-
-        Builder eventName(final EventName eventName) {
-            eventName(eventName);
-            return this;
-        }
 
         Builder tokenType(final String tokenType) {
             mTokenType = tokenType;

@@ -25,6 +25,8 @@ package com.microsoft.identity.client;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import junit.framework.Assert;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -49,7 +51,13 @@ public class CacheEventTest {
 
     @Test
     public void testCacheEventInitializes() {
-        // TODO
+        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+        final EventName eventName = EventName.TOKEN_CACHE_DELETE;
+        final ICacheEvent cacheEvent = getTestCacheEvent(requestId, eventName, sTestTokenTypeAT);
+        Assert.assertEquals(requestId, cacheEvent.getRequestId());
+        Assert.assertEquals(eventName, cacheEvent.getEventName());
+        Assert.assertEquals(sTestTokenTypeAT, cacheEvent.getTokenType());
+        Assert.assertEquals(Boolean.FALSE, cacheEvent.tokenTypeisRT());
     }
 
 }

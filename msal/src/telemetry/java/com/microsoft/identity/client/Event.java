@@ -106,13 +106,13 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
     }
 
     @Override
-    public String getRequestId() {
-        return getProperty(EventProperty.REQUEST_ID);
+    public Telemetry.RequestId getRequestId() {
+        return new Telemetry.RequestId(getProperty(EventProperty.REQUEST_ID));
     }
 
     @Override
-    public String getEventName() {
-        return getProperty(EventProperty.EVENT_NAME);
+    public EventName getEventName() {
+        return new EventName(getProperty(EventProperty.EVENT_NAME));
     }
 
     static class Builder<T extends Builder> {
@@ -120,12 +120,12 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
         private Telemetry.RequestId mRequestId;
         private EventName mEventName;
 
-        T requestId(Telemetry.RequestId requestId) {
+        final T requestId(Telemetry.RequestId requestId) {
             mRequestId = requestId;
             return (T) this;
         }
 
-        T eventName(EventName eventName) {
+        final T eventName(EventName eventName) {
             mEventName = eventName;
             return (T) this;
         }

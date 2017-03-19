@@ -33,7 +33,7 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class UiEventTest {
 
-    static final String sTestExpectedEventName = EventName.UI_EVENT.value;
+    static final EventName sTestExpectedEventName = EventName.UI_EVENT;
     static final Integer sTestRedirectCount = 2;
     static final boolean sTestUserDidCancel = true;
 

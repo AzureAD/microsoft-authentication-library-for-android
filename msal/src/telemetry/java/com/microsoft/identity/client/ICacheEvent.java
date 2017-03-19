@@ -24,4 +24,9 @@
 package com.microsoft.identity.client;
 
 interface ICacheEvent extends IEvent {
+
+    String getTokenType();
+
+    Boolean tokenTypeisRT();
+
 }

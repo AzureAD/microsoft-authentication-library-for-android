@@ -43,8 +43,8 @@ interface IEvent extends Collection<Pair<String, String>> {
 
     String getDeviceId();
 
-    String getRequestId();
+    Telemetry.RequestId getRequestId();
 
-    String getEventName();
+    EventName getEventName();
 
 }
