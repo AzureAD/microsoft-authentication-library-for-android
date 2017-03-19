@@ -25,21 +25,64 @@ package com.microsoft.identity.client;
 
 import java.net.URL;
 
+/**
+ * Internal interface for HttpEvent telemetry data.
+ */
 interface IHttpEvent extends IEvent {
 
+    /**
+     * Gets the user agent.
+     *
+     * @return the user agent to get.
+     */
     String getUserAgent();
 
+    /**
+     * Gets the http method.
+     *
+     * @return the http method to get.
+     */
     String getHttpMethod();
 
+    /**
+     * Gets the query parameters.
+     *
+     * @return the query parameters to get.
+     */
     String getQueryParameters();
 
+    /**
+     * Gets the api version.
+     *
+     * @return the api version to get.
+     */
     String getApiVersion();
 
+    /**
+     * Gets the oauth error code.
+     *
+     * @return the oauth error code to get.
+     */
     String getOAuthErrorCode();
 
+    /**
+     * Gets the RequestId header.
+     *
+     * @return the RequestId header to get
+     */
     String getRequestIdHeader();
 
+    /**
+     * Gets the http path of this event.
+     *
+     * @return the http path to get.
+     */
     URL getHttpPath();
 
+    /**
+     * Gets the http status line (code) of the call matching this request.
+     *
+     * @return the status line (code) to get.
+     */
     Integer getResponseCode();
 }

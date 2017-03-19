@@ -23,28 +23,86 @@
 
 package com.microsoft.identity.client;
 
+/**
+ * Internal interface for ApiEvent telemetry data.
+ */
 interface IApiEvent extends IEvent {
 
+    /**
+     * Gets the authority.
+     *
+     * @return the authority to get.
+     */
     String getAuthority();
 
+    /**
+     * Gets the UI behavior.
+     *
+     * @return the UI behavior to get.
+     */
     String getUiBehavior();
 
+    /**
+     * Gets the API Id.
+     *
+     * @return the API id to get.
+     */
     String getApiId();
 
+    /**
+     * Gets the validation scheme.
+     *
+     * @return the validation scheme to get.
+     */
     String getValidationStatus();
 
+    /**
+     * Gets the IDP name.
+     *
+     * @return the IDP name to get.
+     */
     String getIdpName();
 
+    /**
+     * Gets the tenant id.
+     *
+     * @return the tenant id to get.
+     */
     String getTenantId();
 
+    /**
+     * Gets the user id.
+     *
+     * @return the user id to get.
+     */
     String getUserId();
 
+    /**
+     * Gets the loginHint.
+     *
+     * @return the loginHint to get.
+     */
     String getLoginHint();
 
+    /**
+     * Gets the deprecated status.
+     *
+     * @return true if the call is deprecated, otherwise false.
+     */
     Boolean isDeprecated();
 
+    /**
+     * Gets the extended expires-on status.
+     *
+     * @return true if the status is extended, otherwise false.
+     */
     Boolean hasExtendedExpiresOnStatus();
 
+    /**
+     * Gets the success-status.
+     *
+     * @return true if the call was successful, otherwise false.
+     */
     Boolean wasSuccessful();
 
 }

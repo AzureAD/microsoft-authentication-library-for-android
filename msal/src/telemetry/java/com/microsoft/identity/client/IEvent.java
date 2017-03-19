@@ -27,24 +27,77 @@ import android.util.Pair;
 
 import java.util.Collection;
 
+/**
+ * Internal interface for Event telemetry data.
+ */
 interface IEvent extends Collection<Pair<String, String>> {
 
+    /**
+     * Sets the supplied telemetry properties on this event.
+     *
+     * @param propertyName  the name of the property to set.
+     *                      See {@link com.microsoft.identity.client.EventConstants.EventProperty}.
+     * @param propertyValue the value of the property to set.
+     *                      See {@link com.microsoft.identity.client.EventConstants.EventProperty.Value}.
+     */
     void setProperty(final String propertyName, final String propertyValue);
 
+    /**
+     * Gets the telemetry property by name.
+     * See {@link com.microsoft.identity.client.EventConstants.EventProperty}.
+     *
+     * @param propertyName the name of the property to get
+     * @return the property value
+     */
     String getProperty(final String propertyName);
 
+    /**
+     * Gets the number of properties associated to this event. Includes defaults.
+     *
+     * @return the number of properties.
+     */
     int getPropertyCount();
 
+    /**
+     * Gets the name of this application.
+     *
+     * @return the application's name.
+     */
     String getApplicationName();
 
+    /**
+     * Gets the version of this application.
+     *
+     * @return the application's version.
+     */
     String getApplicationVersion();
 
+    /**
+     * Gets the clientId (hashed).
+     *
+     * @return the hashed clientId.
+     */
     String getClientId();
 
+    /**
+     * Gets the deviceId (hashed).
+     *
+     * @return the hashed deviceId
+     */
     String getDeviceId();
 
+    /**
+     * Gets the {@link com.microsoft.identity.client.Telemetry.RequestId}
+     *
+     * @return the RequestId to get
+     */
     Telemetry.RequestId getRequestId();
 
+    /**
+     * Gets the {@link EventName}
+     *
+     * @return the EventName to get
+     */
     EventName getEventName();
 
 }

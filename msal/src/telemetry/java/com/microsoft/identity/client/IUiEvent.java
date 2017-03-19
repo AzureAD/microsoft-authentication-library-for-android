@@ -23,10 +23,23 @@
 
 package com.microsoft.identity.client;
 
+/**
+ * Internal interface for UiEvent telemetry data.
+ */
 interface IUiEvent extends IEvent {
 
+    /**
+     * Gets the number of redirects.
+     *
+     * @return the number of redirects.
+     */
     Integer getRedirectCount();
 
+    /**
+     * Gets whether or not the user cancelled the ui interaction.
+     *
+     * @return true if the user cancelled, false otherwise.
+     */
     Boolean userCancelled();
 
 }
