@@ -24,4 +24,9 @@
 package com.microsoft.identity.client;
 
 public interface IUiEvent extends IEvent {
+
+    Integer getRedirectCount();
+
+    Boolean userCancelled();
+
 }

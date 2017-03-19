@@ -49,6 +49,7 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
         if (null == builder.mEventName) {
             throw new IllegalStateException("Event must have a name");
         }
+        setProperty(EventProperty.EVENT_NAME, builder.mEventName.value);
         if (sInitializeAllWithDefaults) {
             // add the defaults
             setProperty(EventProperty.APPLICATION_NAME, sAllDefaults.mApplicationName);

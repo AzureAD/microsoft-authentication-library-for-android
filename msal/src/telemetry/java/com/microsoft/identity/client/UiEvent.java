@@ -33,6 +33,16 @@ class UiEvent extends Event implements IUiEvent {
         setProperty(EventProperty.USER_CANCEL, builder.mUserDidCancel);
     }
 
+    @Override
+    public final Integer getRedirectCount() {
+        return Integer.valueOf(getProperty(EventProperty.REDIRECT_COUNT));
+    }
+
+    @Override
+    public final Boolean userCancelled() {
+        return Boolean.valueOf(getProperty(EventProperty.USER_CANCEL));
+    }
+
     static class Builder extends Event.Builder<Builder> {
 
         private Integer mRedirectCount;

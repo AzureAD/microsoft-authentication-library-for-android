@@ -25,13 +25,17 @@ package com.microsoft.identity.client;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import junit.framework.Assert;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 public class UiEventTest {
 
+    static final String sTestExpectedEventName = EventName.UI_EVENT.value;
     static final Integer sTestRedirectCount = 2;
+    static final boolean sTestUserDidCancel = true;
 
     static IUiEvent getTestUiEvent(final Telemetry.RequestId requestId) {
         return new UiEvent.Builder()
@@ -43,7 +47,11 @@ public class UiEventTest {
 
     @Test
     public void testUiEventInitializes() {
-        // TODO
+        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+        IUiEvent uiEvent = getTestUiEvent(requestId);
+        Assert.assertEquals(sTestExpectedEventName, uiEvent.getEventName());
+        Assert.assertEquals(sTestRedirectCount, uiEvent.getRedirectCount());
+        Assert.assertEquals(Boolean.valueOf(sTestUserDidCancel), uiEvent.userCancelled());
     }
 
 }
