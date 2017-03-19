@@ -30,18 +30,37 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Dispatcher for telemetry event data.
+ * Turns MSAL internal Events into an externally consumable format before publishing.
+ */
 class EventDispatcher {
 
     private final MsalEventReceiver mEventReceiver;
 
+    /**
+     * Constructs a new EventDispatcher.
+     *
+     * @param receiver the {@link MsalEventReceiver} to receive {@link Event} data.
+     */
     EventDispatcher(final MsalEventReceiver receiver) {
         mEventReceiver = receiver;
     }
 
+    /**
+     * Returns the {@link MsalEventReceiver} to which telemetry data is dispatched.
+     *
+     * @return the event receiver.
+     */
     MsalEventReceiver getReceiver() {
         return mEventReceiver;
     }
 
+    /**
+     * Dispatches the {@link Event} instances associated to receiver.
+     *
+     * @param eventsToPublish the Events to publish.
+     */
     void dispatch(final List<IEvent> eventsToPublish) {
         if (null == mEventReceiver) {
             return;

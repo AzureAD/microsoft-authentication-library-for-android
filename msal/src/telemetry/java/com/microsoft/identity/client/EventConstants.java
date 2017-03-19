@@ -23,6 +23,9 @@
 
 package com.microsoft.identity.client;
 
+/**
+ * Constants used in the handling of telemetry data.
+ */
 final class EventConstants {
 
     /**
@@ -30,6 +33,9 @@ final class EventConstants {
      */
     static final String EVENT_PREFIX = "Microsoft.MSAL.";
 
+    /**
+     * Properties used by Event key/value pairs.
+     */
     static class EventProperty {
         static final String API_ID = EVENT_PREFIX + "api_id";
         static final String START_TIME = EVENT_PREFIX + "start_time";
@@ -72,6 +78,9 @@ final class EventConstants {
         static final String HTTP_API_VERSION = EVENT_PREFIX + "api_version";
         static final String REQUEST_ID_HEADER = EVENT_PREFIX + "x_ms_request_id";
 
+        /**
+         * Frequently occurring values of telemetry key/value pairs.
+         */
         static class Value {
             static final String AUTHORITY_TYPE_ADFS = EVENT_PREFIX + "adfs";
             static final String AUTHORITY_TYPE_AAD = EVENT_PREFIX + "aad";

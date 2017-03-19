@@ -28,6 +28,9 @@ import java.util.Arrays;
 
 import static com.microsoft.identity.client.EventConstants.EventProperty;
 
+/**
+ * Internal class for HttpEvent telemetry data.
+ */
 class HttpEvent extends Event implements IHttpEvent {
 
     private HttpEvent(Builder builder) {
@@ -107,6 +110,9 @@ class HttpEvent extends Event implements IHttpEvent {
         return Integer.valueOf(getProperty(EventProperty.HTTP_RESPONSE_CODE));
     }
 
+    /**
+     * Builder object for HttpEvents.
+     */
     static class Builder extends Event.Builder<Builder> {
 
         private String mUserAgent;
@@ -118,46 +124,99 @@ class HttpEvent extends Event implements IHttpEvent {
         private URL mHttpPath;
         private Integer mResponseCode;
 
+        /**
+         * Sets the userAgent.
+         *
+         * @param userAgent the userAgent to set.
+         * @return the Builder instance.
+         */
         Builder userAgent(final String userAgent) {
             mUserAgent = userAgent;
             return this;
         }
 
+        /**
+         * Sets the http method.
+         *
+         * @param httpMethod the http method to set.
+         * @return the Builder instance.
+         */
         Builder httpMethod(final String httpMethod) {
             mHttpMethod = httpMethod;
             return this;
         }
 
+        /**
+         * Sets the query parameters.
+         *
+         * @param queryParams the query parameters to set.
+         * @return the Builder instance.
+         */
         Builder queryParameters(final String queryParams) {
             mQueryParams = queryParams;
             return this;
         }
 
+        /**
+         * Sets the api version.
+         *
+         * @param apiVersion the api version to set.
+         * @return the Builder instance.
+         */
         Builder apiVersion(final String apiVersion) {
             mApiVersion = apiVersion;
             return this;
         }
 
+        /**
+         * Sets the OAuthErrorCode.
+         *
+         * @param oAuthErrorCode the OAuthErrorCode to set.
+         * @return the Builder instance.
+         */
         Builder oAuthErrorCode(final String oAuthErrorCode) {
             mOAuthErrorCode = oAuthErrorCode;
             return this;
         }
 
+        /**
+         * Sets the requestId header.
+         *
+         * @param requestIdHeader the header to set.
+         * @return the Builder instance.
+         */
         Builder requestIdHeader(final String requestIdHeader) {
             mRequestIdHeader = requestIdHeader;
             return this;
         }
 
+        /**
+         * Sets the http path.
+         *
+         * @param httpPath the path to set.
+         * @return the Builder instance.
+         */
         Builder httpPath(final URL httpPath) {
             mHttpPath = httpPath;
             return this;
         }
 
+        /**
+         * Sets the response code of this request.
+         *
+         * @param responseCode the resonse code to set.
+         * @return the Builder instance.
+         */
         Builder responseCode(final Integer responseCode) {
             mResponseCode = responseCode;
             return this;
         }
 
+        /**
+         * Constructs a new HttpEvent
+         *
+         * @return the newly constucted HttpEvent instance
+         */
         IHttpEvent build() {
             eventName(EventName.HTTP_EVENT);
             return new HttpEvent(this);

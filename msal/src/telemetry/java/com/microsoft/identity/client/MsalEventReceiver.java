@@ -26,10 +26,13 @@ package com.microsoft.identity.client;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The interface function for apps to override if they want to get the Telemetry from MSAL.
+ */
 interface MsalEventReceiver {
 
     /**
-     * The interface function for apps to override if they want to get the Telemetry from MSAL.
+     * Invoked when telemetry data is received.
      *
      * @param events Map keyed on event name, valued on event data
      */

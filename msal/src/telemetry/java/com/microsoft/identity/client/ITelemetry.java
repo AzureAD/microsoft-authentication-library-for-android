@@ -23,17 +23,20 @@
 
 package com.microsoft.identity.client;
 
+/**
+ * The telemetry subscription interface.
+ */
 public interface ITelemetry {
 
     /**
-     * Registers a new {@link MsalEventReceiver} to receive telemetry data
+     * Registers a new {@link MsalEventReceiver} to receive telemetry data.
      *
      * @param dispatcher
      */
     void registerReceiver(MsalEventReceiver dispatcher);
 
     /**
-     * Only return telemetry data upon error
+     * Only return telemetry data upon error.
      *
      * @param onFailure
      */
