@@ -29,6 +29,9 @@ import java.security.NoSuchAlgorithmException;
 
 import static com.microsoft.identity.client.EventConstants.EventProperty;
 
+/**
+ * Internal class for ApiEvent telemetry data.
+ */
 class ApiEvent extends Event implements IApiEvent {
 
     private static final String TAG = ApiEvent.class.getSimpleName();
@@ -154,6 +157,9 @@ class ApiEvent extends Event implements IApiEvent {
         return Boolean.valueOf(getProperty(EventProperty.WAS_SUCCESSFUL));
     }
 
+    /**
+     * Builder object for ApiEvents
+     */
     static class Builder extends Event.Builder<Builder> {
 
         private String mAuthority;
@@ -166,51 +172,110 @@ class ApiEvent extends Event implements IApiEvent {
         private boolean mExtendedExpiresOnStatus;
         private boolean mWasApiCallSuccessful;
 
+        /**
+         * Sets the authority.
+         *
+         * @param authority the authority to set.
+         * @return the Builder instance.
+         */
         Builder authority(final String authority) {
             mAuthority = authority;
             return this;
         }
 
-        Builder uiBehavior(final String promptBehavior) {
-            mUiBehavior = promptBehavior;
+        /**
+         * Sets the UiBehavior.
+         *
+         * @param uiBehavior the UiBehavior to set.
+         * @return the Builder instance.
+         */
+        Builder uiBehavior(final String uiBehavior) {
+            mUiBehavior = uiBehavior;
             return this;
         }
 
+        /**
+         * Sets the apiId.
+         *
+         * @param apiId the apiId to set.
+         * @return the Builder instance.
+         */
         Builder apiId(final String apiId) {
             mApiId = apiId;
             return this;
         }
 
+        /**
+         * Sets the validation status.
+         *
+         * @param validationStatus the validation status to set.
+         * @return the Builder instance.
+         */
         Builder validationStatus(final String validationStatus) {
             mValidationStatus = validationStatus;
             return this;
         }
 
+        /**
+         * Sets the rawIdToken.
+         *
+         * @param rawIdToken the rawIdToken to set.
+         * @return the Builder instance.
+         */
         Builder rawIdToken(final String rawIdToken) {
             mRawIdToken = rawIdToken;
             return this;
         }
 
+        /**
+         * Sets the loginHint.
+         *
+         * @param loginHint the loginHint to set.
+         * @return the Builder instance.
+         */
         Builder loginHint(final String loginHint) {
             mLoginHint = loginHint;
             return this;
         }
 
+        /**
+         * Sets the deprecated status.
+         *
+         * @param isDeprecated the status to set.
+         * @return the Builder instance.
+         */
         Builder isDeprecated(final boolean isDeprecated) {
             mIsDeprecated = isDeprecated;
             return this;
         }
 
+        /**
+         * Sets the hasExtendedExpiresOnStatus.
+         *
+         * @param hasExtendedExpiresOn the status to set.
+         * @return the Builder instance.
+         */
         Builder hasExtendedExpiresOnStatus(final boolean hasExtendedExpiresOn) {
             mExtendedExpiresOnStatus = hasExtendedExpiresOn;
             return this;
         }
 
+        /**
+         * Sets the success status of the api call.
+         *
+         * @param callWasSuccessful the status to set.
+         * @return the Builder instance.
+         */
         Builder apiCallWasSuccessful(final boolean callWasSuccessful) {
             mWasApiCallSuccessful = callWasSuccessful;
             return this;
         }
 
+        /**
+         * Constructs a new ApiEvent.
+         *
+         * @return the new ApiEvent.
+         */
         IApiEvent build() {
             eventName(EventName.API_EVENT);
             return new ApiEvent(this);
