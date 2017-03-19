@@ -23,7 +23,7 @@
 
 package com.microsoft.identity.client;
 
-public interface IApiEvent extends IEvent {
+interface IApiEvent extends IEvent {
 
     String getAuthority();
 

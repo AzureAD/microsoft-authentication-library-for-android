@@ -23,7 +23,7 @@
 
 package com.microsoft.identity.client;
 
-public interface IUiEvent extends IEvent {
+interface IUiEvent extends IEvent {
 
     Integer getRedirectCount();
 
