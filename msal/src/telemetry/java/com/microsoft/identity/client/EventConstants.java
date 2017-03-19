@@ -46,7 +46,7 @@ final class EventConstants {
         static final String AUTHORITY_TYPE = EVENT_PREFIX + "authority_type";
         static final String API_DEPRECATED = EVENT_PREFIX + "is_deprecated"; // Android only
         static final String AUTHORITY_VALIDATION = EVENT_PREFIX + "authority_validation_status";
-        static final String PROMPT_BEHAVIOR = EVENT_PREFIX + "prompt_behavior";
+        static final String UI_BEHAVIOR = EVENT_PREFIX + "ui_behavior";
         static final String EXTENDED_EXPIRES_ON_SETTING = EVENT_PREFIX + "extended_expires_on_setting";
         static final String WAS_SUCCESSFUL = EVENT_PREFIX + "is_successful";
         static final String API_ERROR_CODE = EVENT_PREFIX + "api_error_code";

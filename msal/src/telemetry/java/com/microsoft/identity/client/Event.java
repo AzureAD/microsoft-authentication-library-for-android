@@ -58,7 +58,9 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
 
     @Override
     public void setProperty(final String propertyName, final String propertyValue) {
-        add(new Pair<>(propertyName, propertyValue));
+        if (!MSALUtils.isEmpty(propertyName) && !MSALUtils.isEmpty(propertyValue)) {
+            add(new Pair<>(propertyName, propertyValue));
+        }
     }
 
     @Override

@@ -23,40 +23,27 @@
 
 package com.microsoft.identity.client;
 
-import android.util.Pair;
+import android.support.test.runner.AndroidJUnit4;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-class EventDispatcher {
+@RunWith(AndroidJUnit4.class)
+public class EventTest {
 
-    private final MsalEventReceiver mEventReceiver;
-
-    EventDispatcher(final MsalEventReceiver receiver) {
-        mEventReceiver = receiver;
+    @Test
+    public void testEventDefaultsInitialize() {
+        // TODO
     }
 
-    MsalEventReceiver getReceiver() {
-        return mEventReceiver;
+    @Test
+    public void testSetProperty() {
+        // TODO
     }
 
-    void dispatch(final List<IEvent> eventsToPublish) {
-        if (null == mEventReceiver) {
-            return;
-        }
-
-        List<Map<String, String>> eventsForPublication = new ArrayList<>();
-
-        for (final IEvent event : eventsToPublish) {
-            Map<String, String> eventProperties = new LinkedHashMap<>();
-            for (Pair<String, String> property : event) {
-                eventProperties.put(property.first, property.second);
-            }
-            eventsForPublication.add(eventProperties);
-        }
-
-        mEventReceiver.onEventsReceived(eventsForPublication);
+    @Test
+    public void testGetProperty() {
+        // TODO
     }
+
 }

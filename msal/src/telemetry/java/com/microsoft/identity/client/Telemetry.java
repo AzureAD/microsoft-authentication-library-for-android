@@ -26,10 +26,11 @@ package com.microsoft.identity.client;
 import android.util.Pair;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static com.microsoft.identity.client.EventConstants.EventProperty;
 
@@ -46,8 +47,16 @@ public class Telemetry implements ITelemetry {
     private boolean mTelemetryOnFailureOnly = false;
 
     private Telemetry() {
-        mEventsInProgress = new ConcurrentHashMap<>();
-        mCompletedEvents = new ConcurrentHashMap<>();
+        mEventsInProgress = Collections.synchronizedMap(
+                new LinkedHashMap<Pair<RequestId, EventName>, EventStartTime>()
+        );
+        mCompletedEvents = Collections.synchronizedMap(
+                new LinkedHashMap<RequestId, List<IEvent>>()
+        );
+    }
+
+    static Telemetry getTestInstance() {
+        return new Telemetry();
     }
 
     static Telemetry getInstance() {

@@ -37,7 +37,7 @@ class ApiEvent extends Event implements IApiEvent {
         super(builder);
         setProperty(EventProperty.EVENT_NAME, EventName.API_EVENT.value);
         setAuthority(builder.mAuthority);
-        setProperty(EventProperty.PROMPT_BEHAVIOR, builder.mPromptBehavior);
+        setProperty(EventProperty.UI_BEHAVIOR, builder.mUiBehavior);
         setProperty(EventProperty.API_ID, builder.mApiId);
         setProperty(EventProperty.AUTHORITY_VALIDATION, builder.mValidationStatus);
         setIdToken(builder.mRawIdToken);
@@ -103,7 +103,7 @@ class ApiEvent extends Event implements IApiEvent {
     static class Builder extends Event.Builder<Builder> {
 
         private String mAuthority;
-        private String mPromptBehavior;
+        private String mUiBehavior;
         private String mApiId;
         private String mValidationStatus;
         private String mRawIdToken;
@@ -117,8 +117,8 @@ class ApiEvent extends Event implements IApiEvent {
             return this;
         }
 
-        Builder promptBehavior(final String promptBehavior) {
-            mPromptBehavior = promptBehavior;
+        Builder uiBehavior(final String promptBehavior) {
+            mUiBehavior = promptBehavior;
             return this;
         }
 

@@ -23,40 +23,33 @@
 
 package com.microsoft.identity.client;
 
-import android.util.Pair;
+import android.support.test.runner.AndroidJUnit4;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-class EventDispatcher {
+@RunWith(AndroidJUnit4.class)
+public class CacheEventTest {
 
-    private final MsalEventReceiver mEventReceiver;
+    static final String sTestTokenTypeRT = "RT";
+    static final String sTestTokenTypeAT = "AT";
 
-    EventDispatcher(final MsalEventReceiver receiver) {
-        mEventReceiver = receiver;
+    static ICacheEvent getTestCacheEvent(
+            final Telemetry.RequestId requestId,
+            final EventName eventName,
+            final String tokenType
+    ) {
+        return new CacheEvent.Builder()
+                .requestId(requestId)
+                .eventName(eventName)
+                .tokenType(tokenType)
+                .tokenTypeIsRT(sTestTokenTypeRT.equals(tokenType))
+                .build();
     }
 
-    MsalEventReceiver getReceiver() {
-        return mEventReceiver;
+    @Test
+    public void testCacheEventInitializes() {
+        // TODO
     }
 
-    void dispatch(final List<IEvent> eventsToPublish) {
-        if (null == mEventReceiver) {
-            return;
-        }
-
-        List<Map<String, String>> eventsForPublication = new ArrayList<>();
-
-        for (final IEvent event : eventsToPublish) {
-            Map<String, String> eventProperties = new LinkedHashMap<>();
-            for (Pair<String, String> property : event) {
-                eventProperties.put(property.first, property.second);
-            }
-            eventsForPublication.add(eventProperties);
-        }
-
-        mEventReceiver.onEventsReceived(eventsForPublication);
-    }
 }

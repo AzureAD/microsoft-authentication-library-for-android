@@ -23,40 +23,21 @@
 
 package com.microsoft.identity.client;
 
-import android.util.Pair;
+import android.support.test.runner.AndroidJUnit4;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import junit.framework.Assert;
 
-class EventDispatcher {
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-    private final MsalEventReceiver mEventReceiver;
+@RunWith(AndroidJUnit4.class)
+public class TelemetryFactoryTest {
 
-    EventDispatcher(final MsalEventReceiver receiver) {
-        mEventReceiver = receiver;
+    @Test
+    public void testTelemetryFactoryReturnsSingleton() {
+        TelemetryFactory telemetryFactory1 = new TelemetryFactory();
+        TelemetryFactory telemetryFactory2 = new TelemetryFactory();
+        Assert.assertEquals(telemetryFactory1.getInstance(), telemetryFactory2.getInstance());
     }
 
-    MsalEventReceiver getReceiver() {
-        return mEventReceiver;
-    }
-
-    void dispatch(final List<IEvent> eventsToPublish) {
-        if (null == mEventReceiver) {
-            return;
-        }
-
-        List<Map<String, String>> eventsForPublication = new ArrayList<>();
-
-        for (final IEvent event : eventsToPublish) {
-            Map<String, String> eventProperties = new LinkedHashMap<>();
-            for (Pair<String, String> property : event) {
-                eventProperties.put(property.first, property.second);
-            }
-            eventsForPublication.add(eventProperties);
-        }
-
-        mEventReceiver.onEventsReceived(eventsForPublication);
-    }
 }
