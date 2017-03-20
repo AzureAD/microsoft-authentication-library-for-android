@@ -35,16 +35,29 @@ import java.util.ArrayList;
 
 import static com.microsoft.identity.client.EventConstants.EventProperty;
 
+/**
+ * Internal base-class for Event telemetry data.
+ */
 class Event extends ArrayList<Pair<String, String>> implements IEvent {
 
     private static boolean sInitializeAllWithDefaults = false;
     private static EventDefaults sAllDefaults;
 
+    /**
+     * Sets the default fields automatically for *all* Events.
+     *
+     * @param defaults the defaults to use.
+     */
     static void initializeAllWithDefaults(final EventDefaults defaults) {
         sInitializeAllWithDefaults = true;
         sAllDefaults = defaults;
     }
 
+    /**
+     * Constructs a new Event
+     *
+     * @param builder the Builder instance for this Event
+     */
     Event(final Builder builder) {
         if (null == builder.mEventName) {
             throw new IllegalStateException("Event must have a name");
@@ -115,26 +128,51 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
         return new EventName(getProperty(EventProperty.EVENT_NAME));
     }
 
+    /**
+     * Builder object used for Events.
+     *
+     * @param <T> generic type parameter for Builder subtypes.
+     */
     static class Builder<T extends Builder> {
 
         private Telemetry.RequestId mRequestId;
         private EventName mEventName;
 
+        /**
+         * Sets the {@link com.microsoft.identity.client.Telemetry.RequestId}.
+         *
+         * @param requestId the {@link com.microsoft.identity.client.Telemetry.RequestId} to set.
+         * @return the Builder instance.
+         */
         final T requestId(Telemetry.RequestId requestId) {
             mRequestId = requestId;
             return (T) this;
         }
 
+        /**
+         * Sets the {@link EventName}.
+         *
+         * @param eventName the {@link EventName} to set.
+         * @return the Builder instance.
+         */
         final T eventName(EventName eventName) {
             mEventName = eventName;
             return (T) this;
         }
 
+        /**
+         * Constructs a new Event.
+         *
+         * @return the newly constructed Event instance.
+         */
         IEvent build() {
             return new Event(this);
         }
     }
 
+    /**
+     * Data-container used for default Event values.
+     */
     static class EventDefaults {
 
         private String mApplicationName;
@@ -142,6 +180,11 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
         private String mClientId;
         private String mDeviceId;
 
+        /**
+         * Constructs a new EventDefaults from the supplied Builder.
+         *
+         * @param builder the Builder to use in this construction.
+         */
         private EventDefaults(final Builder builder) {
             mApplicationName = builder.mApplicationName;
             mApplicationVersion = builder.mApplicationVersion;
@@ -149,6 +192,13 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
             mDeviceId = builder.mDeviceId;
         }
 
+        /**
+         * Generates an EventDefaults instance for the supplied {@link Context} and
+         *
+         * @param context  the {@link Context} from which these defaults should be created.
+         * @param clientId the clientId of the application
+         * @return the newly constructed EventDefaults instance.
+         */
         @SuppressLint("HardwareIds")
         static EventDefaults forApplication(final Context context, final String clientId) {
             Builder defaultsBuilder = new Builder()
@@ -180,6 +230,9 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
             return defaultsBuilder.build();
         }
 
+        /**
+         * Builder object for EventDefaults.
+         */
         static class Builder {
 
             private String mApplicationName;
@@ -187,26 +240,55 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
             private String mClientId;
             private String mDeviceId;
 
+            /**
+             * Sets the application name.
+             *
+             * @param applicationName the application name to set.
+             * @return the Builder instance.
+             */
             Builder applicationName(final String applicationName) {
                 mApplicationName = applicationName;
                 return this;
             }
 
+            /**
+             * Sets the application version.
+             *
+             * @param applicationVersion the application version to set.
+             * @return the Builder instance.
+             */
             Builder applicationVersion(final String applicationVersion) {
                 mApplicationVersion = applicationVersion;
                 return this;
             }
 
+            /**
+             * Sets the clientId.
+             *
+             * @param clientId the clientId to set.
+             * @return the Builder instance.
+             */
             Builder clientId(final String clientId) {
                 mClientId = clientId;
                 return this;
             }
 
+            /**
+             * Sets the deviceId.
+             *
+             * @param deviceId the deviceId to set.
+             * @return the Builder instance.
+             */
             Builder deviceId(final String deviceId) {
                 mDeviceId = deviceId;
                 return this;
             }
 
+            /**
+             * Constructs a new EventDefaults.
+             *
+             * @return the newly constructed EventDefaults instance.
+             */
             EventDefaults build() {
                 return new EventDefaults(this);
             }
