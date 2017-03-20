@@ -34,6 +34,9 @@ import java.util.UUID;
 
 import static com.microsoft.identity.client.EventConstants.EventProperty;
 
+/**
+ * Collects and publishes telemetry key/value pairs to subscribers.
+ */
 public class Telemetry implements ITelemetry {
 
     private static final Telemetry INSTANCE = new Telemetry();
@@ -55,14 +58,30 @@ public class Telemetry implements ITelemetry {
         );
     }
 
+    /**
+     * Returns a new Telemetry instance.
+     * ** This is for testing purposes only. **
+     *
+     * @return a new Telemetry instance.
+     */
     static Telemetry getTestInstance() {
         return new Telemetry();
     }
 
+    /**
+     * Returns the Telemetry singleton.
+     *
+     * @return the Telemetry singleton.
+     */
     static Telemetry getInstance() {
         return INSTANCE;
     }
 
+    /**
+     * Generates a new {@link RequestId}
+     *
+     * @return a random UUID (in String format).
+     */
     static RequestId generateNewRequestId() {
         return new RequestId(UUID.randomUUID().toString());
     }
@@ -86,6 +105,12 @@ public class Telemetry implements ITelemetry {
         mTelemetryOnFailureOnly = onFailure;
     }
 
+    /**
+     * Starts recording a new Event, based on {@link RequestId}.
+     *
+     * @param requestId the RequestId used to track this Event.
+     * @param eventName the name of the Event which is to be tracked.
+     */
     void startEvent(final RequestId requestId, final EventName eventName) {
         if (null == mPublisher) {
             // no publisher, abort
@@ -105,6 +130,13 @@ public class Telemetry implements ITelemetry {
         );
     }
 
+    /**
+     * Stops a previously started event.
+     *
+     * @param requestId the RequestId of the Event to stop.
+     * @param eventName the name of the Event to stop.
+     * @param event     the Event data.
+     */
     void stopEvent(final RequestId requestId, final EventName eventName, final IEvent event) {
         final Pair<RequestId, EventName> eventKey = new Pair<>(requestId, eventName);
 
@@ -140,6 +172,11 @@ public class Telemetry implements ITelemetry {
         mEventsInProgress.remove(eventKey);
     }
 
+    /**
+     * Flushes collected Events matching the supplied {@link RequestId} to the receiver.
+     *
+     * @param requestId Events matching the supplied RequestId will be flushed.
+     */
     void flush(final RequestId requestId) {
         // check for orphaned events...
         for (Pair<RequestId, EventName> key : mEventsInProgress.keySet()) {
@@ -156,6 +193,9 @@ public class Telemetry implements ITelemetry {
         mPublisher.dispatch(eventsToFlush);
     }
 
+    /**
+     * Abstract container class for String values.
+     */
     static abstract class ValueTypeDef {
 
         final String value;
@@ -185,6 +225,9 @@ public class Telemetry implements ITelemetry {
         }
     }
 
+    /**
+     * Container for Event request UUIDs
+     */
     static final class RequestId extends ValueTypeDef {
 
         RequestId(final String value) {
@@ -193,6 +236,9 @@ public class Telemetry implements ITelemetry {
 
     }
 
+    /**
+     * Container for Event start times.
+     */
     private static final class EventStartTime extends ValueTypeDef {
 
         private EventStartTime(final String value) {
