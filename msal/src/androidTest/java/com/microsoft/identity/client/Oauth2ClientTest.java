@@ -62,7 +62,7 @@ public final class Oauth2ClientTest {
         final String expectedRequestMessage = MSALUtils.convertSetToString(expectedRequestMessageSet, "&");
 
         try {
-            final TokenResponse response = oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
+            final TokenResponse response = oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT));
             // Verify common headers
             verifyMockConnectionHasCommonHeaders(mockedConnection);
 
@@ -97,7 +97,7 @@ public final class Oauth2ClientTest {
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
         try {
-            final TokenResponse response = oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
+            final TokenResponse response = oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT));
             // Verify common headers
             verifyMockConnectionHasCommonHeaders(mockedConnection);
 
@@ -145,7 +145,7 @@ public final class Oauth2ClientTest {
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
         try {
-            oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
+            oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT));
             Assert.fail();
         } catch (final AuthenticationException e) {
             Assert.assertNotNull(e.getCause());
@@ -166,7 +166,7 @@ public final class Oauth2ClientTest {
         HttpUrlConnectionFactory.addMockedConnection(getMockedConnectionWithSocketTimeout());
 
         try {
-            oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
+            oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT));
             Assert.fail();
         } catch (final RetryableException e) {
             Assert.assertNotNull(e.getCause());
@@ -191,7 +191,7 @@ public final class Oauth2ClientTest {
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
         try {
-            oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
+            oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT));
             Assert.fail();
         } catch (final RetryableException e) {
             Assert.assertNotNull(e.getCause());

@@ -192,6 +192,7 @@ abstract class BaseRequest {
      * @throws AuthenticationException
      */
     AuthenticationResult postTokenRequest() throws AuthenticationException {
+        mAuthRequestParameters.getAuthority().updateTenantLessAuthority(new IdToken(mTokenResponse.getRawIdToken()).getTenantId());
         final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
         final AccessTokenCacheItem accessTokenCacheItem = tokenCache.saveAccessToken(mAuthRequestParameters.getAuthority().getAuthority(),
                 mAuthRequestParameters.getClientId(), mTokenResponse);
