@@ -54,6 +54,10 @@ class CacheEvent extends Event implements ICacheEvent {
         private String mTokenType;
         private boolean mTokenTypeIsRT;
 
+        Builder(final Telemetry.RequestId requestId, final EventName eventName) {
+            super(requestId, eventName);
+        }
+
         /**
          * Sets the tokenType.
          *
@@ -82,7 +86,6 @@ class CacheEvent extends Event implements ICacheEvent {
          * @return the newly constructed CacheEvent instance.
          */
         ICacheEvent build() {
-            // todo make sure that the event name is set?
             return new CacheEvent(this);
         }
 

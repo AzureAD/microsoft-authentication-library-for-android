@@ -52,9 +52,12 @@ public class ApiEventTest {
     static final boolean sTestHasExtendedExpiresStatus = false;
     static final boolean sTestApiCallWasSuccessful = true;
 
-    static IApiEvent getTestApiEvent(final Telemetry.RequestId requestId) {
-        return new ApiEvent.Builder()
-                .requestId(requestId)
+    static ApiEvent.Builder getRandomTestApiEventBuilder() {
+        return getTestApiEventBuilder(Telemetry.generateNewRequestId());
+    }
+
+    static ApiEvent.Builder getTestApiEventBuilder(Telemetry.RequestId requestId) {
+        return new ApiEvent.Builder(requestId)
                 .authority(sTestAuthority)
                 .uiBehavior(sTestUiBehavior)
                 .apiId(sTestApiId)
@@ -63,8 +66,11 @@ public class ApiEventTest {
                 .loginHint(sTestLoginHint)
                 .isDeprecated(sTestIsDeprecated)
                 .hasExtendedExpiresOnStatus(sTestHasExtendedExpiresStatus)
-                .apiCallWasSuccessful(sTestApiCallWasSuccessful)
-                .build();
+                .apiCallWasSuccessful(sTestApiCallWasSuccessful);
+    }
+
+    static IApiEvent getTestApiEvent(final Telemetry.RequestId requestId) {
+        return getTestApiEventBuilder(requestId).build();
     }
 
     @Test

@@ -41,9 +41,7 @@ public class CacheEventTest {
             final EventName eventName,
             final String tokenType
     ) {
-        return new CacheEvent.Builder()
-                .requestId(requestId)
-                .eventName(eventName)
+        return new CacheEvent.Builder(requestId, eventName)
                 .tokenType(tokenType)
                 .tokenTypeIsRT(sTestTokenTypeRT.equals(tokenType))
                 .build();

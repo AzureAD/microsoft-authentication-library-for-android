@@ -52,8 +52,7 @@ public class HttpEventTest {
             final Telemetry.RequestId requestId,
             final URL httpPath
     ) {
-        return new HttpEvent.Builder()
-                .requestId(requestId)
+        return new HttpEvent.Builder(requestId)
                 .userAgent(sTestUserAgent)
                 .httpMethod(sTestHttpMethod)
                 .queryParameters(sTestQueryParams)
@@ -61,7 +60,7 @@ public class HttpEventTest {
                 .oAuthErrorCode(sTestOAuthErrorCode)
                 .requestIdHeader(sTestRequestIdHeader)
                 .httpPath(httpPath)
-                .responseCode(sTestHttpResponseCode)
+                .statusCode(sTestHttpResponseCode)
                 .build();
     }
 

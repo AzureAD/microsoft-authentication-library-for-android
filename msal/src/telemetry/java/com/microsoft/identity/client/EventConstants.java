@@ -34,6 +34,18 @@ final class EventConstants {
     static final String EVENT_PREFIX = "Microsoft.MSAL.";
 
     /**
+     * API Ids for Telemetry
+     */
+    static class ApiId {
+        static final String API_ID_ACQUIRE = "400";
+        static final String API_ID_ACQUIRE_WITH_HINT = "410";
+        static final String API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_AND_PARAMETERS = "420";
+        static final String API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_PARAMETERS_AND_AUTHORITY = "430";
+        static final String ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER = "460";
+        static final String ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER_AUTHORITY_AND_FORCE_REFRESH = "470";
+    }
+
+    /**
      * Properties used by Event key/value pairs.
      */
     static class EventProperty {

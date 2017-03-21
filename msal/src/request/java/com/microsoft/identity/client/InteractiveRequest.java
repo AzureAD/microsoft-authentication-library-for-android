@@ -62,8 +62,8 @@ final class InteractiveRequest extends BaseRequest {
      * @param additionalScope       An array of additional scopes.
      */
     InteractiveRequest(final Activity activity, final AuthenticationRequestParameters authRequestParameters,
-                       final String[] additionalScope) {
-        super(activity.getApplicationContext(), authRequestParameters);
+                       final String[] additionalScope, final ApiEvent.Builder apiEventBuilder) {
+        super(activity.getApplicationContext(), authRequestParameters, apiEventBuilder);
         mActivity = activity;
 
         // validate redirect
@@ -96,6 +96,10 @@ final class InteractiveRequest extends BaseRequest {
         final Intent intentToLaunch = new Intent(mContext, AuthenticationActivity.class);
         intentToLaunch.putExtra(Constants.REQUEST_URL_KEY, authorizeUri);
         intentToLaunch.putExtra(Constants.REQUEST_ID, mRequestId);
+        intentToLaunch.putExtra(
+                Constants.TELEMETRY_REQUEST_ID,
+                mAuthRequestParameters.getRequestContext().getTelemetryRequestId().value
+        );
 
         // TODO: put a request id.
         if (!resolveIntent(intentToLaunch)) {

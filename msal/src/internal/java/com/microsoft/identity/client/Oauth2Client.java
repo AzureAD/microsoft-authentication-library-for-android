@@ -54,6 +54,12 @@ final class Oauth2Client {
     private final Map<String, String> mQueryParameters = new HashMap<>();
     private final Map<String, String> mHeader = new HashMap<>(PlatformIdHelper.getPlatformIdParameters());
 
+    private final Telemetry.RequestId mTelemetryRequestId;
+
+    Oauth2Client(final Telemetry.RequestId telemetryRequestId) {
+        mTelemetryRequestId = telemetryRequestId;
+    }
+
     void addQueryParameter(final String key, final String value) {
         mQueryParameters.put(key, value);
     }
@@ -112,10 +118,10 @@ final class Oauth2Client {
 
         final HttpResponse response;
         if (HttpRequest.REQUEST_METHOD_GET.equals(requestMethod)) {
-            response = HttpRequest.sendGet(endpointWithQP, mHeader);
+            response = HttpRequest.sendGet(endpointWithQP, mHeader, mTelemetryRequestId);
         } else {
             response = HttpRequest.sendPost(endpointWithQP, mHeader,
-                    buildRequestMessage(mBodyParameters), POST_CONTENT_TYPE);
+                    buildRequestMessage(mBodyParameters), POST_CONTENT_TYPE, mTelemetryRequestId);
         }
 
         return parseRawResponse(response, clazz);

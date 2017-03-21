@@ -42,7 +42,7 @@ import java.util.UUID;
 @RunWith(AndroidJUnit4.class)
 public class ADFSAuthorityTest {
 
-    private static final RequestContext REQUEST_CONTEXT = new RequestContext(UUID.randomUUID(), "");
+    private static final RequestContext REQUEST_CONTEXT = new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId());
 
     final String testUPN = "user.name@foo.com";
 

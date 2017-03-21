@@ -38,8 +38,8 @@ final class SilentRequest extends BaseRequest {
     private AuthenticationResult mAuthResult;
 
     SilentRequest(final Context appContext, final AuthenticationRequestParameters authRequestParams,
-                  final boolean forceRefresh, final User user) {
-        super(appContext, authRequestParams);
+                  final boolean forceRefresh, final User user, final ApiEvent.Builder apiEventBuilder) {
+        super(appContext, authRequestParams, apiEventBuilder);
 
         mForceRefresh = forceRefresh;
         mUser = user;
@@ -80,6 +80,7 @@ final class SilentRequest extends BaseRequest {
      * perform token request. Otherwise, use the base performTokenRequest. Resiliency feather will be enabled here, if we
      * get the SERVER_ERROR, check for the extended_expires_on and if the token is still valid with extended expires on,
      * return the token.
+     *
      * @throws AuthenticationException
      */
     @Override
@@ -107,6 +108,7 @@ final class SilentRequest extends BaseRequest {
     /**
      * Return the valid AT. If error happens for request sent to token endpoint, remove the stored refresh token if
      * receiving invalid_grant, and re-wrap the exception with high level error as Interaction_required.
+     *
      * @return {@link AuthenticationResult} containing the auth token.
      * @throws AuthenticationException
      */

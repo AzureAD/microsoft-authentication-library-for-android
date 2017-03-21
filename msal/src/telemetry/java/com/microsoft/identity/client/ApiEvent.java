@@ -172,6 +172,10 @@ class ApiEvent extends Event implements IApiEvent {
         private boolean mExtendedExpiresOnStatus;
         private boolean mWasApiCallSuccessful;
 
+        Builder(final Telemetry.RequestId requestId) {
+            super(requestId, EventName.API_EVENT);
+        }
+
         /**
          * Sets the authority.
          *
@@ -277,7 +281,6 @@ class ApiEvent extends Event implements IApiEvent {
          * @return the new ApiEvent.
          */
         IApiEvent build() {
-            eventName(EventName.API_EVENT);
             return new ApiEvent(this);
         }
 

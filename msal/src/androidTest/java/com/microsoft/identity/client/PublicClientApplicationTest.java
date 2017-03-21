@@ -6,6 +6,7 @@ import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
@@ -639,6 +640,14 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         Mockito.when(mockedPackageManager.getApplicationInfo(
                 Mockito.refEq(mAppContext.getPackageName()), Mockito.eq(
                         PackageManager.GET_META_DATA))).thenReturn(applicationInfo);
+
+        final PackageInfo mockedPackageInfo = Mockito.mock(PackageInfo.class);
+        Mockito.when(mockedPackageManager
+                .getPackageInfo(
+                        Mockito.anyString(),
+                        Mockito.anyInt()
+                )
+        ).thenReturn(mockedPackageInfo);
     }
 
     private void mockHasCustomTabRedirect(final Context context) {

@@ -124,6 +124,10 @@ class HttpEvent extends Event implements IHttpEvent {
         private URL mHttpPath;
         private Integer mResponseCode;
 
+        Builder(final Telemetry.RequestId requestId) {
+            super(requestId, EventName.HTTP_EVENT);
+        }
+
         /**
          * Sets the userAgent.
          *
@@ -207,7 +211,7 @@ class HttpEvent extends Event implements IHttpEvent {
          * @param responseCode the resonse code to set.
          * @return the Builder instance.
          */
-        Builder responseCode(final Integer responseCode) {
+        Builder statusCode(final Integer responseCode) {
             mResponseCode = responseCode;
             return this;
         }
@@ -218,7 +222,6 @@ class HttpEvent extends Event implements IHttpEvent {
          * @return the newly constucted HttpEvent instance
          */
         IHttpEvent build() {
-            eventName(EventName.HTTP_EVENT);
             return new HttpEvent(this);
         }
 

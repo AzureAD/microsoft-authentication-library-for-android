@@ -41,6 +41,8 @@ public class Telemetry implements ITelemetry {
 
     private static final Telemetry INSTANCE = new Telemetry();
 
+    private static boolean DISABLE_FOR_TEST;
+
     private final Map<Pair<RequestId, EventName>, EventStartTime> mEventsInProgress;
 
     private final Map<RequestId, List<IEvent>> mCompletedEvents;
@@ -86,6 +88,13 @@ public class Telemetry implements ITelemetry {
         return new RequestId(UUID.randomUUID().toString());
     }
 
+    /**
+     * Mark that the system is running under test conditions and that Telemetry should be disabled.
+     */
+    static void disableForTest(final boolean disabled) {
+        DISABLE_FOR_TEST = disabled;
+    }
+
     @Override
     public synchronized void registerReceiver(MsalEventReceiver dispatcher) {
         // check to make sure we're not already dispatching elsewhere
@@ -112,7 +121,7 @@ public class Telemetry implements ITelemetry {
      * @param eventName the name of the Event which is to be tracked.
      */
     void startEvent(final RequestId requestId, final EventName eventName) {
-        if (null == mPublisher) {
+        if (null == mPublisher || DISABLE_FOR_TEST) {
             // no publisher, abort
             return;
         }
@@ -131,6 +140,32 @@ public class Telemetry implements ITelemetry {
     }
 
     /**
+     * Convenience method for {@link #startEvent(RequestId, EventName)}
+     *
+     * @param eventBuilder the Builder used to make the Event in-progress
+     */
+    void startEvent(final Event.Builder eventBuilder) {
+        if (null == mPublisher || DISABLE_FOR_TEST) {
+            return;
+        }
+
+        startEvent(eventBuilder.getRequestId(), eventBuilder.getEventName());
+    }
+
+    /**
+     * Convenience method for (@link {@link #stopEvent(RequestId, EventName, IEvent)}
+     *
+     * @param eventToStop the Event to stop
+     */
+    void stopEvent(final IEvent eventToStop) {
+        if (null == mPublisher || DISABLE_FOR_TEST) {
+            return;
+        }
+
+        stopEvent(eventToStop.getRequestId(), eventToStop.getEventName(), eventToStop);
+    }
+
+    /**
      * Stops a previously started event.
      *
      * @param requestId the RequestId of the Event to stop.
@@ -138,6 +173,10 @@ public class Telemetry implements ITelemetry {
      * @param event     the Event data.
      */
     void stopEvent(final RequestId requestId, final EventName eventName, final IEvent event) {
+        if (null == mPublisher || DISABLE_FOR_TEST) {
+            return;
+        }
+
         final Pair<RequestId, EventName> eventKey = new Pair<>(requestId, eventName);
 
         // Compute execution time
@@ -232,6 +271,21 @@ public class Telemetry implements ITelemetry {
 
         RequestId(final String value) {
             super(value);
+        }
+
+        static boolean isValid(final String requestIdValue) {
+            boolean isValid;
+            try {
+                UUID uuid = UUID.fromString(requestIdValue);
+                isValid = true;
+            } catch (IllegalArgumentException e) {
+                isValid = false;
+            }
+            return isValid;
+        }
+
+        static boolean isValid(final RequestId requestId) {
+            return null != requestId && isValid(requestId.value);
         }
 
     }

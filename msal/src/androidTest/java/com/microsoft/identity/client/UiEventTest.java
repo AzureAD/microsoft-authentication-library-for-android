@@ -38,8 +38,7 @@ public class UiEventTest {
     static final boolean sTestUserDidCancel = true;
 
     static IUiEvent getTestUiEvent(final Telemetry.RequestId requestId) {
-        return new UiEvent.Builder()
-                .requestId(requestId)
+        return new UiEvent.Builder(requestId)
                 .redirectCount(2)
                 .setUserDidCancel()
                 .build();

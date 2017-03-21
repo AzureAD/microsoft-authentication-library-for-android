@@ -58,6 +58,7 @@ final class TokenCacheAccessor {
 
     /**
      * Constructor for {@link TokenCacheAccessor}. Access token and refresh token will be stored separately.
+     *
      * @param context
      */
     TokenCacheAccessor(final Context context) {
@@ -113,6 +114,7 @@ final class TokenCacheAccessor {
     /**
      * For refresh token item, all the RTs are multi-scope. If authority, clientid, and user (if applicable)
      * are matched, try to use the RT.
+     *
      * @param tokenCacheKey The {@link TokenCacheKey} that is used to find refresh tokens.
      * @return The List of refresh tokens matching the given key.
      */
@@ -145,6 +147,7 @@ final class TokenCacheAccessor {
 
     /**
      * Delete the refresh token item.
+     *
      * @param rtItem The {@link BaseTokenCacheItem} to remove.
      */
     void deleteRefreshToken(final RefreshTokenCacheItem rtItem) {
@@ -193,7 +196,6 @@ final class TokenCacheAccessor {
     }
 
     /**
-     *
      * @param clientId The client id to query the refresh token.
      * @return Immutable List of the {@link RefreshTokenCacheItem}s matching the given client id.
      */

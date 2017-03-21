@@ -85,7 +85,6 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
         String propertyValue = null;
         for (Pair<String, String> property : this) {
             if (property.first.equals(propertyName)) {
-                //propertyValue = property.first;
                 propertyValue = property.second;
                 break;
             }
@@ -133,31 +132,36 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
      *
      * @param <T> generic type parameter for Builder subtypes.
      */
-    static class Builder<T extends Builder> {
+    static abstract class Builder<T extends Builder> {
 
         private Telemetry.RequestId mRequestId;
-        private EventName mEventName;
+        private final EventName mEventName;
 
-        /**
-         * Sets the {@link com.microsoft.identity.client.Telemetry.RequestId}.
-         *
-         * @param requestId the {@link com.microsoft.identity.client.Telemetry.RequestId} to set.
-         * @return the Builder instance.
-         */
-        final T requestId(Telemetry.RequestId requestId) {
+        Builder(Telemetry.RequestId requestId, final EventName name) {
+            if (!Telemetry.RequestId.isValid(requestId)) {
+                throw new IllegalArgumentException("Invalid RequestId");
+            }
             mRequestId = requestId;
-            return (T) this;
+            mEventName = name;
         }
 
         /**
-         * Sets the {@link EventName}.
+         * Gets the {@link com.microsoft.identity.client.Telemetry.RequestId}
+         * assigned to this Builder
          *
-         * @param eventName the {@link EventName} to set.
-         * @return the Builder instance.
+         * @return the requestId
          */
-        final T eventName(EventName eventName) {
-            mEventName = eventName;
-            return (T) this;
+        final Telemetry.RequestId getRequestId() {
+            return mRequestId;
+        }
+
+        /**
+         * Gets the {@link EventName}
+         *
+         * @return the EventName to get
+         */
+        final EventName getEventName() {
+            return mEventName;
         }
 
         /**
@@ -205,11 +209,11 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
                     .clientId(clientId)
                     .applicationName(context.getPackageName());
             try {
-                defaultsBuilder.applicationVersion(
-                        context
-                                .getPackageManager()
-                                .getPackageInfo(defaultsBuilder.mApplicationName, 0).versionName
-                );
+                String versionName = context
+                        .getPackageManager()
+                        .getPackageInfo(defaultsBuilder.mApplicationName, 0).versionName;
+                versionName = null == versionName ? "" : versionName;
+                defaultsBuilder.applicationVersion(versionName);
             } catch (PackageManager.NameNotFoundException e) {
                 defaultsBuilder.applicationVersion("NA");
             }

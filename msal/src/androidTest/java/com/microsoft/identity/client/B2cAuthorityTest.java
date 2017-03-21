@@ -49,7 +49,7 @@ public final class B2cAuthorityTest {
         final Authority authority = Authority.createAuthority(b2cAuthority, true);
 
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "test"), null);
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "test", Telemetry.generateNewRequestId()), null);
             Assert.fail("Should reach exception");
         } catch (final AuthenticationException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.UNSUPPORTED_AUTHORITY_VALIDATION));

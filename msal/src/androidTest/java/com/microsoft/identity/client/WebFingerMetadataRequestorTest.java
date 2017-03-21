@@ -64,7 +64,7 @@ public class WebFingerMetadataRequestorTest {
 
     private static final String DOMAIN = "https://fs.lindft6.com";
 
-    private static final RequestContext REQUEST_CONTEXT = new RequestContext(UUID.randomUUID(), "");
+    private static final RequestContext REQUEST_CONTEXT = new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId());
 
     private static final DRSMetadata DRS_METADATA = new DRSMetadata();
 
