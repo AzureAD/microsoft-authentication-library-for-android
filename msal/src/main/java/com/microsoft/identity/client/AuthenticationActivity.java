@@ -88,7 +88,6 @@ public final class AuthenticationActivity extends Activity {
         }
 
         mChromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(getApplicationContext());
-        mRequestUrl = this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
     }
 
     @Override
@@ -173,7 +172,7 @@ public final class AuthenticationActivity extends Activity {
 
         final String chromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(
                 this.getApplicationContext());
-        mRequestUrl =  this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
+        mRequestUrl = this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
 
         Logger.infoPII(TAG, null, "Request to launch is: " + mRequestUrl);
         if (chromePackageWithCustomTabSupport != null) {
