@@ -159,7 +159,7 @@ final class Oauth2Client {
 
     private Map<String, String> parseResponseItems(final HttpResponse response) throws MsalServiceException, MsalClientException {
         if (MSALUtils.isEmpty(response.getBody())) {
-            throw new MsalServiceException(MSALError.SERVER_ERROR, "Empty response body", response.getStatusCode(), null);
+            throw new MsalServiceException(MSALError.SERVICE_NOT_AVAILABLE, "Empty response body", response.getStatusCode(), null);
         }
 
         final Map<String, String> responseItems;

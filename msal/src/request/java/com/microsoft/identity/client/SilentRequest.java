@@ -78,7 +78,7 @@ final class SilentRequest extends BaseRequest {
     /**
      * For silent request, we check if there is an valid access token first. If there is an valid AT in the cache, no actual
      * perform token request. Otherwise, use the base performTokenRequest. Resiliency feather will be enabled here, if we
-     * get the SERVER_ERROR, check for the extended_expires_on and if the token is still valid with extended expires on,
+     * get the SERVICE_NOT_AVAILABLE, check for the extended_expires_on and if the token is still valid with extended expires on,
      * return the token.
      */
     @Override

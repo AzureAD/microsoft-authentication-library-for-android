@@ -130,7 +130,7 @@ final class HttpRequest {
         }
 
         if (response != null && isRetryableError(response.getStatusCode())) {
-            throw new MsalServiceException(MSALError.SERVER_ERROR, "Retry failed again with 500/503/504", response.getStatusCode(), null);
+            throw new MsalServiceException(MSALError.SERVICE_NOT_AVAILABLE, "Retry failed again with 500/503/504", response.getStatusCode(), null);
         }
 
         return response;

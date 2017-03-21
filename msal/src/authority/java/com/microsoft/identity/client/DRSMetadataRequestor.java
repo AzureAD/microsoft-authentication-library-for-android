@@ -135,7 +135,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
                 // unexpected status code
                 // TODO: Does adfs authority validation returns the error and error description? If so, we should get a list
                 // of possible erros.
-                throw new MsalServiceException(MSALError.SERVER_ERROR, "Unexpected error code: [" + webResponse.getBody() + "]", webResponse.getStatusCode(), null);
+                throw new MsalServiceException(MSALError.SERVICE_NOT_AVAILABLE, "Unexpected error code: [" + webResponse.getBody() + "]", webResponse.getStatusCode(), null);
             }
         } catch (UnknownHostException e) {
             throw e;

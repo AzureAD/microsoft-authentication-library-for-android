@@ -193,7 +193,7 @@ public final class Oauth2ClientTest {
             oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
             Assert.fail();
         } catch (final MsalServiceException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.SERVER_ERROR));
+            Assert.assertTrue(e.getErrorCode().equals(MSALError.SERVICE_NOT_AVAILABLE));
         }
     }
 

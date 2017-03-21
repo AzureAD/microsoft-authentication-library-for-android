@@ -64,7 +64,7 @@ class WebFingerMetadataRequestor
             if (HttpURLConnection.HTTP_OK != statusCode) { // check 200 OK
                 // non-200 codes mean not valid/trusted
                 // TODO: will error code returned from web finger request? if so we should parse the response
-                throw new MsalServiceException(MSALError.SERVER_ERROR, webResponse.getBody(), webResponse.getStatusCode(), null);
+                throw new MsalServiceException(MSALError.SERVICE_NOT_AVAILABLE, webResponse.getBody(), webResponse.getStatusCode(), null);
             }
 
             // parse the response

@@ -136,7 +136,7 @@ public final class MSALError {
     /**
      * This is to represent 500/503/504.
      */
-    public final static String SERVER_ERROR = "server_error";
+    public final static String SERVICE_NOT_AVAILABLE = "service_not_available";
 
     /**
      * This is to represent {@link java.net.SocketTimeoutException}.
