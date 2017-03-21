@@ -53,11 +53,9 @@ class TokenCache {
 
     /**
      * Create {@link AccessTokenCacheItem} from {@link TokenResponse} and save it into cache.
-     *
-     * @throws AuthenticationException if error happens when creating the {@link AccessTokenCacheItem}.
      */
     AccessTokenCacheItem saveAccessToken(final String authority, final String clientId, final TokenResponse response)
-            throws AuthenticationException {
+            throws MsalClientException {
         // create the access token cache item
         Logger.info(TAG, null, "Starting to Save access token into cache. Access token will be saved with authority: " + authority
                 + "; Client Id: " + clientId + "; Scopes: " + response.getScope());
@@ -78,11 +76,8 @@ class TokenCache {
 
     /**
      * Create {@link RefreshTokenCacheItem} from {@link TokenResponse} and save it into cache.
-     *
-     * @throws AuthenticationException if error happens when creating the {@link RefreshTokenCacheItem}.
      */
-    void saveRefreshToken(final String authority, final String clientId, final TokenResponse response)
-            throws AuthenticationException {
+    void saveRefreshToken(final String authority, final String clientId, final TokenResponse response) throws MsalClientException {
         // if server returns the refresh token back, save it in the cache.
         if (!MSALUtils.isEmpty(response.getRefreshToken())) {
             Logger.info(TAG, null, "Starting to save refresh token into cache. Refresh token will be saved with authority: " + authority
@@ -153,8 +148,7 @@ class TokenCache {
     }
 
     // All the token AAD returns are multi-scopes. MSAL only support ADFS 2016, which issues multi-scope RT.
-    RefreshTokenCacheItem findRefreshToken(final AuthenticationRequestParameters requestParam, final User user)
-            throws AuthenticationException {
+    RefreshTokenCacheItem findRefreshToken(final AuthenticationRequestParameters requestParam, final User user) throws MsalClientException {
         final TokenCacheKey key = TokenCacheKey.createKeyForRT(requestParam.getClientId(), user);
         final List<RefreshTokenCacheItem> refreshTokenCacheItems = mTokenCacheAccessor.getRefreshToken(key);
 
@@ -168,7 +162,7 @@ class TokenCache {
         // User info already provided, if there are multiple items found will throw since we don't what
         // is the one we should use.
         if (refreshTokenCacheItems.size() > 1) {
-            throw new AuthenticationException(MSALError.MULTIPLE_CACHE_ENTRY_FOUND);
+            throw new MsalClientException(MSALError.MULTIPLE_CACHE_ENTRY_FOUND, "Multiple token entries found.");
         }
 
         return refreshTokenCacheItems.get(0);
@@ -189,9 +183,8 @@ class TokenCache {
      *
      * @param clientId The application client id that is used to retrieve for all the signed in users.
      * @return The list of signed in users for the given client id.
-     * @throws AuthenticationException
      */
-    List<User> getUsers(final String clientId) throws AuthenticationException {
+    List<User> getUsers(final String clientId) throws MsalClientException {
         if (MSALUtils.isEmpty(clientId)) {
             throw new IllegalArgumentException("empty or null clientId");
         }

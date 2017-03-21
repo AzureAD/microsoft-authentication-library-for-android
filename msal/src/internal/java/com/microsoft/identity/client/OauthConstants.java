@@ -89,6 +89,7 @@ final class OauthConstants {
         static final String ERROR_DESCRIPTION = "error_description";
         static final String ERROR_CODES = "error_codes";
         static final String CORRELATION_ID = "correlation_id";
+        static final String CLAIMS = "claims";
     }
 
     static final class TokenResponseClaim {

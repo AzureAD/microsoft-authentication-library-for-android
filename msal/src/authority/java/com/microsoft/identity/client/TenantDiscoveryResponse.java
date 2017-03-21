@@ -38,7 +38,7 @@ final class TenantDiscoveryResponse extends BaseOauth2Response {
      * endpoint and token endpoint.
      */
     TenantDiscoveryResponse(final String authorizationEndpoint, final String tokenEndpoint) {
-        super(null, null, null);
+        super(null, null, 0);
         mAuthorizationEndpoint = authorizationEndpoint;
         mTokenEndpoint = tokenEndpoint;
     }
@@ -46,8 +46,8 @@ final class TenantDiscoveryResponse extends BaseOauth2Response {
     /**
      * Constructor for creating {@link TenantDiscoveryResponse} with error response including error and error description.
      */
-    TenantDiscoveryResponse(final String error, final String errorDescription, final String[] errorCodes) {
-        super(error, errorDescription, errorCodes);
+    TenantDiscoveryResponse(final String error, final String errorDescription, int httpStatusCode) {
+        super(error, errorDescription, httpStatusCode);
 
         mAuthorizationEndpoint = null;
         mTokenEndpoint = null;
@@ -58,7 +58,7 @@ final class TenantDiscoveryResponse extends BaseOauth2Response {
      * @param response
      */
     TenantDiscoveryResponse(final BaseOauth2Response response) {
-        this(response.getError(), response.getErrorDescription(), response.getErrorCodes());
+        this(response.getError(), response.getErrorDescription(), response.getHttpStatusCode());
     }
 
     /**

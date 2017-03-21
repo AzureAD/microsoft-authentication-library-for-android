@@ -55,9 +55,9 @@ final class WebFingerMetadataRequestParameters {
     }
 
     /**
-     * Gets the DrsMetadata.
+     * Gets the DRSMetadata.
      *
-     * @return the DrsMetadata
+     * @return the DRSMetadata
      */
     DRSMetadata getDrsMetadata() {
         return mMetadata;

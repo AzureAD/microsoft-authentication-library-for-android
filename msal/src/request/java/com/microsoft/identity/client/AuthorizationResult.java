@@ -61,7 +61,7 @@ final class AuthorizationResult {
     public static AuthorizationResult create(int resultCode, final Intent data) {
         if (data == null) {
             return new AuthorizationResult(AuthorizationStatus.FAIL,
-                    Constants.MSALError.AUTHORIZATION_FAILED, "receives null intent");
+                    Constants.MsalInternalError.AUTHORIZATION_FAILED, "receives null intent");
         }
 
         if (resultCode == Constants.UIResponse.CANCEL) {
@@ -70,14 +70,16 @@ final class AuthorizationResult {
         } else if (resultCode == Constants.UIResponse.AUTH_CODE_COMPLETE) {
             final String url = data.getStringExtra(Constants.AUTHORIZATION_FINAL_URL);
             return AuthorizationResult.parseAuthorizationResponse(url);
-            //CHECKSTYLE:OFF: checkstyle:EmptyBlock
         } else if (resultCode == Constants.UIResponse.AUTH_CODE_ERROR) {
-            // TODO: handle to code error case.
-            //CHECKSTYLE:ON: checkstyle:EmptyBlock
+            // This is purely client side error, possible return could be chrome_not_installed or the request intent is
+            // not resolvable
+            final String error = data.getStringExtra(Constants.UIResponse.ERROR_CODE);
+            final String errorDescription = data.getStringExtra(Constants.UIResponse.ERROR_DESCRIPTION);
+            return new AuthorizationResult(AuthorizationStatus.FAIL, error, errorDescription);
         }
 
         return new AuthorizationResult(AuthorizationStatus.FAIL,
-                Constants.MSALError.AUTHORIZATION_FAILED, "Unknown result code" + resultCode);
+                MSALError.UNKNOWN_ERROR, "Unknown result code [" + resultCode + "] returned from system webview.");
     }
 
     public static AuthorizationResult parseAuthorizationResponse(final String returnUri) {
@@ -94,8 +96,8 @@ final class AuthorizationResult {
                 final String state = urlParameters.get(OauthConstants.TokenResponseClaim.STATE);
                 if (MSALUtils.isEmpty(state)) {
                     Logger.warning(TAG, null, "State parameter is not returned from the webview redirect.");
-                    authorizationResult = new AuthorizationResult(AuthorizationStatus.FAIL, Constants.MSALError.AUTHORIZATION_FAILED,
-                            Constants.MSALErrorMessage.STATE_NOT_RETURNED);
+                    authorizationResult = new AuthorizationResult(AuthorizationStatus.FAIL, MSALError.STATE_NOT_MATCH,
+                            Constants.MsalErrorMessage.STATE_NOT_RETURNED);
                 } else {
                     Logger.info(TAG, null, "Auth code is successfully returned from webview redirect.");
                     authorizationResult = new AuthorizationResult(urlParameters.get(
@@ -155,8 +157,8 @@ final class AuthorizationResult {
      * either code or error.
      */
     static AuthorizationResult getAuthorizationResultWithInvalidServerResponse() {
-        return new AuthorizationResult(AuthorizationStatus.FAIL, Constants.MSALError.AUTHORIZATION_FAILED,
-                Constants.MSALErrorMessage.AUTHORIZATION_SERVER_INVALID_RESPONSE);
+        return new AuthorizationResult(AuthorizationStatus.FAIL, Constants.MsalInternalError.AUTHORIZATION_FAILED,
+                Constants.MsalErrorMessage.AUTHORIZATION_SERVER_INVALID_RESPONSE);
     }
 
     /**
@@ -164,8 +166,8 @@ final class AuthorizationResult {
      * user clicks on the cancel displayed in the browser.
      */
     static AuthorizationResult getAuthorizationResultWithUserCancel() {
-        return new AuthorizationResult(AuthorizationStatus.USER_CANCEL, Constants.MSALError.USER_CANCEL,
-                Constants.MSALErrorMessage.USER_CANCELLED_FLOW);
+        return new AuthorizationResult(AuthorizationStatus.USER_CANCEL, Constants.MsalInternalError.USER_CANCEL,
+                Constants.MsalErrorMessage.USER_CANCELLED_FLOW);
     }
 
     /**

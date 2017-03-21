@@ -61,7 +61,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
     }
 
     @Override
-    public DRSMetadata requestMetadata(final String domain) throws AuthenticationException {
+    public DRSMetadata requestMetadata(final String domain) throws MsalClientException, MsalServiceException {
         try {
             return requestOnPrem(domain);
         } catch (UnknownHostException e) {
@@ -75,10 +75,10 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
      * @param domain the domain to validate
      * @return the DRS discovery metadata
      * @throws UnknownHostException    if the on-prem enrollment server cannot be resolved
-     * @throws AuthenticationException if there exists an enrollment/domain mismatch (lack of trust)
+     * @throws MsalException if there exists an enrollment/domain mismatch (lack of trust)
      */
     private DRSMetadata requestOnPrem(final String domain)
-            throws UnknownHostException, AuthenticationException {
+            throws UnknownHostException, MsalClientException, MsalServiceException {
         Logger.verbose(TAG, getRequestContext(), "Requesting DRS discovery (on-prem)");
         return requestDrsDiscoveryInternal(ON_PREM, domain);
     }
@@ -88,20 +88,20 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
      *
      * @param domain the domain to validate
      * @return the DRS discovery metadata
-     * @throws AuthenticationException if there exists an enrollment/domain mismatch (lack of trust)
+     * @throws MsalException if there exists an enrollment/domain mismatch (lack of trust)
      *                                 or the trust cannot be verified
      */
-    private DRSMetadata requestCloud(final String domain) throws AuthenticationException {
+    private DRSMetadata requestCloud(final String domain) throws MsalClientException, MsalServiceException {
         Logger.verbose(TAG, getRequestContext(), "Requesting DRS discovery (cloud)");
         try {
             return requestDrsDiscoveryInternal(CLOUD, domain);
         } catch (UnknownHostException e) {
-            throw new AuthenticationException(MSALError.AUTHORITY_VALIDATION_FAILED);
+            throw new MsalClientException(MSALError.IO_ERROR, "Cannot resolve the host. ", e);
         }
     }
 
     private DRSMetadata requestDrsDiscoveryInternal(final Type type, final String domain)
-            throws AuthenticationException, UnknownHostException {
+            throws UnknownHostException, MsalClientException, MsalServiceException {
         final URL requestURL;
 
         try {
@@ -109,7 +109,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
             requestURL = new URL(buildRequestUrlByType(type, domain));
         } catch (MalformedURLException e) {
             // DRS metadata URL invalid
-            throw new AuthenticationException(MSALError.AUTHORITY_VALIDATION_FAILED);
+            throw new MsalClientException(MSALError.UNSUPPORTED_URL, "Drs metadata url is invalid", e);
         }
 
         // init the headers to use in the request
@@ -133,20 +133,14 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
                 metadata = parseMetadata(webResponse);
             } else {
                 // unexpected status code
-                throw new AuthenticationException(
-                        MSALError.AUTHORITY_VALIDATION_FAILED,
-                        "Unexpected error code: [" + statusCode + "]"
-                );
+                // TODO: Does adfs authority validation returns the error and error description? If so, we should get a list
+                // of possible erros.
+                throw new MsalServiceException(MSALError.SERVICE_NOT_AVAILABLE, "Unexpected error code: [" + webResponse.getBody() + "]", webResponse.getStatusCode(), null);
             }
         } catch (UnknownHostException e) {
             throw e;
-        } catch (IOException | RetryableException e) {
-            // TODO is there something that should be done with the RetryableException?
-            throw new AuthenticationException(
-                    MSALError.AUTHORITY_VALIDATION_FAILED,
-                    "Unexpected error",
-                    e
-            );
+        } catch (IOException e) {
+            throw new MsalClientException(MSALError.IO_ERROR, "Unexpected error", e);
         }
 
         return metadata;
@@ -179,7 +173,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
     }
 
     @Override
-    DRSMetadata parseMetadata(final HttpResponse response) throws AuthenticationException {
+    DRSMetadata parseMetadata(final HttpResponse response) throws MsalClientException {
         // Initialize the response container
         final DRSMetadata drsMetadata = new DRSMetadata();
         drsMetadata.setIdentityProviderService(new IdentityProviderService());
@@ -202,8 +196,8 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
             // Set this value on our native object
             drsMetadata.getIdentityProviderService()
                     .setPassiveAuthEndpoint(passiveAuthEndpoint);
-        } catch (JSONException e) {
-            throw new AuthenticationException(MSALError.JSON_PARSE_FAILURE);
+        } catch (final JSONException e) {
+            throw new MsalClientException(MSALError.JSON_PARSE_FAILURE, "Failed to parse the Json response", e);
         }
 
         return drsMetadata;
