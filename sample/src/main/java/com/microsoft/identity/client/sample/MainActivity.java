@@ -51,7 +51,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mApplication = new PublicClientApplication(this);
+        mApplication = new PublicClientApplication(this.getApplicationContext());
 
         final Button buttonForInteractiveRequest = (Button) findViewById(R.id.AcquireTokenInteractiveForR1);
         buttonForInteractiveRequest.setOnClickListener(new View.OnClickListener() {
@@ -86,7 +86,7 @@ public class MainActivity extends Activity {
 
     private void callAcquireToken(final String[] scopes, final UIBehavior uiBehavior, final String loginHint,
                                   final String extraQueryParam, final String[] additionalScope) {
-        mApplication.acquireToken(scopes, loginHint, uiBehavior, extraQueryParam, additionalScope,
+        mApplication.acquireToken(this, scopes, loginHint, uiBehavior, extraQueryParam, additionalScope,
                 null, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult o) {
