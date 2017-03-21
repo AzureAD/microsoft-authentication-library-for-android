@@ -33,7 +33,6 @@ class CacheEvent extends Event implements ICacheEvent {
     private CacheEvent(Builder builder) {
         super(builder);
         setProperty(EventProperty.TOKEN_TYPE, builder.mTokenType);
-        setProperty(EventProperty.TOKEN_TYPE_IS_RT, String.valueOf(builder.mTokenTypeIsRT));
     }
 
     @Override
@@ -43,7 +42,7 @@ class CacheEvent extends Event implements ICacheEvent {
 
     @Override
     public Boolean tokenTypeisRT() {
-        return Boolean.valueOf(getProperty(EventProperty.TOKEN_TYPE_IS_RT));
+        return getTokenType().equals(EventProperty.Value.TOKEN_TYPE_RT);
     }
 
     /**
@@ -52,7 +51,6 @@ class CacheEvent extends Event implements ICacheEvent {
     static class Builder extends Event.Builder<Builder> {
 
         private String mTokenType;
-        private boolean mTokenTypeIsRT;
 
         Builder(final Telemetry.RequestId requestId, final EventName eventName) {
             super(requestId, eventName);
@@ -66,17 +64,6 @@ class CacheEvent extends Event implements ICacheEvent {
          */
         Builder tokenType(final String tokenType) {
             mTokenType = tokenType;
-            return this;
-        }
-
-        /**
-         * Sets the tokenTypeRT flag.
-         *
-         * @param tokenTypeRT the true/falseness of RT status.
-         * @return the Builder instance.
-         */
-        Builder tokenTypeIsRT(final boolean tokenTypeRT) {
-            mTokenTypeIsRT = tokenTypeRT;
             return this;
         }
 

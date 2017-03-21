@@ -46,6 +46,7 @@ public class TelemetryTest {
     @Before
     public void setUp() {
         testInstance = Telemetry.getTestInstance();
+        Telemetry.disableForTest(false);
     }
 
     @Test(expected = IllegalStateException.class)

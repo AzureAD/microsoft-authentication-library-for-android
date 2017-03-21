@@ -43,7 +43,6 @@ public class CacheEventTest {
     ) {
         return new CacheEvent.Builder(requestId, eventName)
                 .tokenType(tokenType)
-                .tokenTypeIsRT(sTestTokenTypeRT.equals(tokenType))
                 .build();
     }
 

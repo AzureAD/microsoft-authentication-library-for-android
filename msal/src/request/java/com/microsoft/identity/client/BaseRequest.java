@@ -42,9 +42,9 @@ abstract class BaseRequest {
     private static final String TAG = BaseRequest.class.getSimpleName();
     private static final ExecutorService THREAD_EXECUTOR = Executors.newSingleThreadExecutor();
     private Handler mHandler;
-    private final RequestContext mRequestContext;
 
     protected final ApiEvent.Builder mApiEventBuilder;
+    protected final RequestContext mRequestContext;
     protected final AuthenticationRequestParameters mAuthRequestParameters;
     protected final Context mContext;
     protected int mRequestId;
@@ -206,9 +206,9 @@ abstract class BaseRequest {
     AuthenticationResult postTokenRequest() throws AuthenticationException {
         final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
         final AccessTokenCacheItem accessTokenCacheItem = tokenCache.saveAccessToken(mAuthRequestParameters.getAuthority().getAuthority(),
-                mAuthRequestParameters.getClientId(), mTokenResponse);
+                mAuthRequestParameters.getClientId(), mTokenResponse, mRequestContext.getTelemetryRequestId());
         tokenCache.saveRefreshToken(mAuthRequestParameters.getAuthority().getAuthority(), mAuthRequestParameters.getClientId(),
-                mTokenResponse);
+                mTokenResponse, mRequestContext.getTelemetryRequestId());
 
         return new AuthenticationResult(accessTokenCacheItem);
     }

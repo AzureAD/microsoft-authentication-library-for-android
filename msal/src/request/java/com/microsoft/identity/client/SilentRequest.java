@@ -139,6 +139,6 @@ final class SilentRequest extends BaseRequest {
             return;
         }
 
-        mAuthRequestParameters.getTokenCache().deleteRT(mRefreshTokenCacheItem);
+        mAuthRequestParameters.getTokenCache().deleteRT(mRefreshTokenCacheItem, mRequestContext.getTelemetryRequestId());
     }
 }

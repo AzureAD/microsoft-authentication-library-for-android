@@ -76,8 +76,6 @@ final class EventConstants {
         static final String REDIRECT_COUNT = EVENT_PREFIX + "redirect_count"; // Android only
         static final String USER_CANCEL = EVENT_PREFIX + "user_cancel";
         static final String TOKEN_TYPE = EVENT_PREFIX + "token_type";
-        static final String TOKEN_TYPE_IS_RT = EVENT_PREFIX + "is_rt";
-        static final String TOKEN_TYPE_RT = EVENT_PREFIX + "rt"; // Android only
         static final String CACHE_EVENT_COUNT = EVENT_PREFIX + "cache_event_count";
         static final String UI_EVENT_COUNT = EVENT_PREFIX + "ui_event_count";
         static final String HTTP_EVENT_COUNT = EVENT_PREFIX + "http_event_count";
@@ -99,6 +97,8 @@ final class EventConstants {
             static final String AUTHORITY_VALIDATION_SUCCESS = EVENT_PREFIX + "authority_validation_status_success";
             static final String AUTHORITY_VALIDATION_FAILURE = EVENT_PREFIX + "authority_validation_status_failure";
             static final String AUTHORITY_VALIDATION_NOT_DONE = EVENT_PREFIX + "authority_validation_status_not_done";
+            static final String TOKEN_TYPE_AT = EVENT_PREFIX + "at";
+            static final String TOKEN_TYPE_RT = EVENT_PREFIX + "rt"; // Android only
         }
     }
 }

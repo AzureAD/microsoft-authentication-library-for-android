@@ -142,7 +142,13 @@ public final class PublicClientApplication {
      * @throws AuthenticationException If failed to retrieve users from the cache.
      */
     public List<User> getUsers() throws AuthenticationException {
-        return mTokenCache.getUsers(mClientId);
+        // TODO Create an ApiEvent for this...
+        ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(Telemetry.generateNewRequestId());
+        Telemetry.getInstance().startEvent(apiEventBuilder);
+        List<User> users = mTokenCache.getUsers(mClientId, apiEventBuilder.getRequestId());
+        apiEventBuilder.apiCallWasSuccessful(true);
+        Telemetry.getInstance().stopEvent(apiEventBuilder.build());
+        return users;
     }
 
     /**
@@ -296,8 +302,13 @@ public final class PublicClientApplication {
      * @param user the {@link User} whose tokens should be deleted.
      */
     public void remove(final User user) {
-        mTokenCache.deleteRefreshTokenByUser(user);
-        mTokenCache.deleteAccessTokenByUser(user);
+        // TODO create an ApiEvent this...
+        final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(Telemetry.generateNewRequestId());
+        Telemetry.getInstance().startEvent(apiEventBuilder);
+        mTokenCache.deleteRefreshTokenByUser(user, apiEventBuilder.getRequestId());
+        mTokenCache.deleteAccessTokenByUser(user, apiEventBuilder.getRequestId());
+        apiEventBuilder.apiCallWasSuccessful(true);
+        Telemetry.getInstance().stopEvent(apiEventBuilder.build());
     }
 
     /**

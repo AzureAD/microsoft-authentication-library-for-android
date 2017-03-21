@@ -62,6 +62,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         mAppContext = InstrumentationRegistry.getContext().getApplicationContext();
         mRedirectUri = "msauth-client-id://" + mAppContext.getPackageName();
         mTokenCache = new TokenCache(mAppContext);
+        Telemetry.disableForTest(true);
     }
 
     @After
@@ -69,6 +70,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         super.tearDown();
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
         AndroidTestUtil.removeAllTokens(mAppContext);
+        Telemetry.disableForTest(false);
     }
 
     /**
@@ -621,8 +623,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     static void saveTokenResponse(final TokenCache tokenCache, final String authority, final String clientId,
                                   final TokenResponse response) throws AuthenticationException {
-        tokenCache.saveAccessToken(authority, clientId, response);
-        tokenCache.saveRefreshToken(authority, clientId, response);
+        tokenCache.saveAccessToken(authority, clientId, response, Telemetry.generateNewRequestId());
+        tokenCache.saveRefreshToken(authority, clientId, response, Telemetry.generateNewRequestId());
     }
 
     private void mockPackageManagerWithClientId(final Context context, final String alternateAuthorityInManifest,
