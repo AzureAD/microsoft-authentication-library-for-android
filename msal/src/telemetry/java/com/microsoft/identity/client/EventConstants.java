@@ -37,12 +37,12 @@ final class EventConstants {
      * API Ids for Telemetry
      */
     static class ApiId {
-        static final String API_ID_ACQUIRE = "400";
-        static final String API_ID_ACQUIRE_WITH_HINT = "410";
-        static final String API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_AND_PARAMETERS = "420";
-        static final String API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_PARAMETERS_AND_AUTHORITY = "430";
-        static final String ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER = "460";
-        static final String ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER_AUTHORITY_AND_FORCE_REFRESH = "470";
+        static final String API_ID_ACQUIRE = "100";
+        static final String API_ID_ACQUIRE_WITH_HINT = "160";
+        static final String API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_AND_PARAMETERS = "161";
+        static final String API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_PARAMETERS_AND_AUTHORITY = "162";
+        static final String ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER = "13";
+        static final String ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER_AUTHORITY_AND_FORCE_REFRESH = "14";
     }
 
     /**
