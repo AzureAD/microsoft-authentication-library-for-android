@@ -100,9 +100,8 @@ final class ADFSAuthority extends Authority {
 
             try {
                 authorityURI = mAuthorityUrl.toURI();
-            } catch (URISyntaxException e) {
-                throw new MsalClientException(MSALError.UNSUPPORTED_URL,
-                        "Authority URL/URI must be RFC 2396 compliant to use AD FS validation");
+            } catch (final URISyntaxException e) {
+                throw new MsalClientException(MSALError.UNSUPPORTED_URL, "Authority url cannot be constructed to be URI. ", e);
             }
 
             // Verify trust

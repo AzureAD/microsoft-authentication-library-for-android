@@ -32,7 +32,8 @@ package com.microsoft.identity.client;
  *         or refresh token from the cache. When this happens, mostly likely it's an bug in the sdk for storing tokens. </ul>
  *         <ul>device_network_not_available: No active network is available on the device. </ul>
  *         <ul>json_parse_failure: Indicates that the sdk failed to parse the Json format.</ul>
- *         <ul>io_error: Indicates that IOException happened, could be the io operations, malformed url. </ul>
+ *         <ul>io_error: Indicates that IOException happened, could be the device/network errors. </ul>
+ *         <ul>malformed_url: Indicates that the url is malformed. </ul>
  *         <ul>unsupported_encoding: Indicates that the encoding is not supported by the device. </ul>
  *         <ul>no_such_algorithm: Indicates the algorithm used to generate pkce challenge is not supported. </ul>
  *         <ul>invalid_jwt: JWT returned by the server is not valid, empty or malformed. </ul>

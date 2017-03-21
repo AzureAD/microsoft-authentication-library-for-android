@@ -37,7 +37,7 @@ public final class MSALError {
     /**
      * Access token doesn't exist and there is no refresh token can be found to redeem access token.
      */
-    public final static String CACHE_MISS = "cache_miss";
+    public final static String NO_TOKENS_FOUND = "no_tokens_found";
 
     // Error codes for MsalClientException
     /**
@@ -57,9 +57,14 @@ public final class MSALError {
     public final static String JSON_PARSE_FAILURE = "json_parse_failure";
 
     /**
-     * Indicates that IOException happened, could be the io operations, malformed url.
+     * Indicates that IOException happened, could be the device/network errors.
      */
     public final static String IO_ERROR = "io_error";
+
+    /**
+     * Indicates that the url is malformed.
+     */
+    public final static String MALFORMED_URL = "malformed_url";
 
     /**
      * Indicates that the encoding is not supported by the device.
@@ -129,9 +134,14 @@ public final class MSALError {
     public final static String INVALID_SCOPE = "invalid_scope";
 
     /**
-     * This is to represent 500/503/504 or {@link java.net.SocketTimeoutException}.
+     * This is to represent 500/503/504.
      */
     public final static String SERVER_ERROR = "server_error";
+
+    /**
+     * This is to represent {@link java.net.SocketTimeoutException}.
+     */
+    public final static String REQUEST_TIMEOUT = "request_timeout";
 
     /**
      * This is returned when authority validation fails.

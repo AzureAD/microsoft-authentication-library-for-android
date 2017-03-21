@@ -167,6 +167,7 @@ public final class Oauth2ClientTest {
             oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
             Assert.fail();
         } catch (final MsalServiceException e) {
+            Assert.assertTrue(e.getErrorCode().equals(MSALError.REQUEST_TIMEOUT));
             Assert.assertNotNull(e.getCause());
             Assert.assertTrue(e.getCause() instanceof SocketTimeoutException);
         }

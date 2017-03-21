@@ -269,7 +269,7 @@ public final class AuthorityTest {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
             Assert.fail();
         } catch (final MsalException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.SERVER_ERROR));
+            Assert.assertTrue(e.getErrorCode().equals(MSALError.REQUEST_TIMEOUT));
             Assert.assertNotNull(e.getCause());
             Assert.assertTrue(e.getCause() instanceof SocketTimeoutException);
         }
@@ -327,7 +327,7 @@ public final class AuthorityTest {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
             Assert.fail();
         } catch (final MsalException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.SERVER_ERROR));
+            Assert.assertTrue(e.getErrorCode().equals(MSALError.REQUEST_TIMEOUT));
             Assert.assertNotNull(e.getCause());
             Assert.assertTrue(e.getCause() instanceof SocketTimeoutException);
         }

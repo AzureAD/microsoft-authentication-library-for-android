@@ -35,7 +35,8 @@ package com.microsoft.identity.client;
  *         <ul>unauthorized_client: The client is not authorized to request an authorization code. </ul>
  *         <ul>access_denied: The resource owner or authorization server denied the request.</ul>
  *         <ul>invalid_scope: The request scope is invalid, unknown or malformed. </ul>
- *         <ul>server_error: This is to represent 500/503/504 or {@link java.net.SocketTimeoutException}. </ul>
+ *         <ul>server_error: This is to represent 500/503/504. </ul>
+ *         <ul>request_timeout: This is to represent {@link java.net.SocketTimeoutException}. </ul>
  *         <ul>invalid_instance: This is returned when authority validation fails. </ul>
  *         <ul>unknown_error: Request to server failed, but no error and error_description is returned back from the service. </ul>
  *     </li>

@@ -58,7 +58,7 @@ import java.util.Set;
  */
 @RunWith(AndroidJUnit4.class)
 @SmallTest
-public final class MsalUtilTest {
+public final class MSALUtilTest {
     static final int EXPECTED_SINGLE_SCOPE_SIZE = 1;
     static final int EXPECTED_MULTI_SCOPE_SIZE = 3;
     @Test

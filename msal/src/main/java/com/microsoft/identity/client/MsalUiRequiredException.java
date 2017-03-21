@@ -29,7 +29,7 @@ package com.microsoft.identity.client;
  *     Set of error codes that could be returned from this exception:
  *     <li>
  *         <ul>invalid_grant: The refresh token used to redeem access token is invalid, expired, revoked. </ul>
- *         <ul>cache_miss: Access token doesn't exist and there is no refresh token can be found to redeem access token. </ul>
+ *         <ul>no_tokens_found: Access token doesn't exist and there is no refresh token can be found to redeem access token. </ul>
  *     </li>
  * </p>
  */

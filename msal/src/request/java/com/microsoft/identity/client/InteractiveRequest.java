@@ -90,7 +90,7 @@ final class InteractiveRequest extends BaseRequest {
             Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Prepare authorize request uri for interactive flow.");
             authorizeUri = appendQueryStringToAuthorizeEndpoint();
         } catch (final UnsupportedEncodingException e) {
-            throw new MsalClientException(MSALError.IO_ERROR, e.getMessage(), e);
+            throw new MsalClientException(MSALError.UNSUPPORTED_ENCODING, e.getMessage(), e);
         }
 
         final Intent intentToLaunch = new Intent(mContext, AuthenticationActivity.class);

@@ -70,7 +70,7 @@ class WebFingerMetadataRequestor
             // parse the response
             return parseMetadata(webResponse);
         } catch (final IOException e) {
-            throw new MsalClientException(MSALError.IO_ERROR, "Unexpected error", e);
+            throw new MsalClientException(MSALError.IO_ERROR, "Received io exception: " + e.getMessage(), e);
         }
     }
 

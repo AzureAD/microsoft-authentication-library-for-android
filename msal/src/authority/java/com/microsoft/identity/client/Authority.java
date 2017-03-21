@@ -141,7 +141,7 @@ abstract class Authority {
             oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID, requestContext.getCorrelationId().toString());
             tenantDiscoveryResponse = oauth2Client.discoverEndpoints(new URL(openIdConfigurationEndpoint));
         } catch (final IOException ioException) {
-            throw new MsalServiceException(MSALError.SERVER_ERROR, ioException.getMessage(), ioException);
+            throw new MsalClientException(MSALError.IO_ERROR, ioException.getMessage(), ioException);
         }
 
         if (MSALUtils.isEmpty(tenantDiscoveryResponse.getAuthorizationEndpoint())

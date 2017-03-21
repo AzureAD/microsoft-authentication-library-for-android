@@ -126,7 +126,7 @@ final class HttpRequest {
         try {
             response = sendWithRetry();
         } catch (final SocketTimeoutException socketTimeoutException) {
-            throw new MsalServiceException(MSALError.SERVER_ERROR, "Retry failed again with SocketTimeout", socketTimeoutException);
+            throw new MsalServiceException(MSALError.REQUEST_TIMEOUT, "Retry failed again with SocketTimeout", socketTimeoutException);
         }
 
         if (response != null && isRetryableError(response.getStatusCode())) {

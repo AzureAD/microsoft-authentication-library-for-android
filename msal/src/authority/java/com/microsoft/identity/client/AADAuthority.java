@@ -82,7 +82,7 @@ class AADAuthority extends Authority {
             response = oauth2Client.discoveryAADInstance(new URL(AAD_INSTANCE_DISCOVERY_ENDPOINT));
         } catch (final MalformedURLException e) {
             // instance discovery endpoint is hard-coded, if it's ever going wrong, should be found during runtime
-            throw new MsalClientException(MSALError.IO_ERROR, "Malformed URL for instance discovery endpoint.", e);
+            throw new MsalClientException(MSALError.MALFORMED_URL, "Malformed URL for instance discovery endpoint.", e);
         } catch (final IOException ioException) {
             throw new MsalClientException(MSALError.IO_ERROR, ioException.getMessage(), ioException);
         }

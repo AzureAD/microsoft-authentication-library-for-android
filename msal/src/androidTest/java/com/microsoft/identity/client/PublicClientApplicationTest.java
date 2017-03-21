@@ -601,7 +601,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             @Override
             public void onError(MsalException exception) {
                 assertTrue(exception instanceof MsalUiRequiredException);
-                assertTrue(exception.getErrorCode().equals(MSALError.CACHE_MISS));
+                assertTrue(exception.getErrorCode().equals(MSALError.NO_TOKENS_FOUND));
                 assertNull(exception.getCause());
                 silentLock.countDown();
             }
