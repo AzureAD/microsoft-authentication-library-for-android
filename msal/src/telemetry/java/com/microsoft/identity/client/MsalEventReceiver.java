@@ -34,7 +34,7 @@ interface MsalEventReceiver {
     /**
      * Invoked when telemetry data is received.
      *
-     * @param events Map keyed on event name, valued on event data
+     * @param events List of Maps keyed on event name, valued on event data
      */
     void onEventsReceived(final List<Map<String, String>> events);
 }

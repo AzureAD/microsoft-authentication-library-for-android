@@ -31,9 +31,9 @@ public interface ITelemetry {
     /**
      * Registers a new {@link MsalEventReceiver} to receive telemetry data.
      *
-     * @param dispatcher
+     * @param receiver
      */
-    void registerReceiver(MsalEventReceiver dispatcher);
+    void registerReceiver(MsalEventReceiver receiver);
 
     /**
      * Only return telemetry data upon error.

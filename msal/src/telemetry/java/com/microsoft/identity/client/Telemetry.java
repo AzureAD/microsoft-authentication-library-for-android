@@ -96,7 +96,7 @@ public class Telemetry implements ITelemetry {
     }
 
     @Override
-    public synchronized void registerReceiver(MsalEventReceiver dispatcher) {
+    public synchronized void registerReceiver(MsalEventReceiver receiver) {
         // check to make sure we're not already dispatching elsewhere
         if (null != mPublisher) {
             throw new IllegalStateException(
@@ -106,7 +106,7 @@ public class Telemetry implements ITelemetry {
         }
 
         // set this dispatcher
-        mPublisher = new EventDispatcher(dispatcher);
+        mPublisher = new EventDispatcher(receiver);
     }
 
     @Override

@@ -147,7 +147,7 @@ public final class PublicClientApplication {
         Telemetry.getInstance().startEvent(apiEventBuilder);
         List<User> users = mTokenCache.getUsers(mClientId, apiEventBuilder.getRequestId());
         apiEventBuilder.apiCallWasSuccessful(true);
-        Telemetry.getInstance().stopEvent(apiEventBuilder.build());
+        stopTelemetryEventAndFlush(apiEventBuilder);
         return users;
     }
 
@@ -180,7 +180,8 @@ public final class PublicClientApplication {
      */
     public void acquireToken(final String[] scopes, final AuthenticationCallback callback) {
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(API_ID_ACQUIRE);
-        acquireTokenInteractive(scopes, "", UIBehavior.SELECT_ACCOUNT, "", null, "", callback, apiEventBuilder);
+        acquireTokenInteractive(scopes, "", UIBehavior.SELECT_ACCOUNT, "", null, "",
+                wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
     }
 
     /**
@@ -201,7 +202,8 @@ public final class PublicClientApplication {
     public void acquireToken(final String[] scopes, final String loginHint,
                              final AuthenticationCallback callback) {
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(API_ID_ACQUIRE_WITH_HINT);
-        acquireTokenInteractive(scopes, loginHint, UIBehavior.SELECT_ACCOUNT, "", null, "", callback, apiEventBuilder);
+        acquireTokenInteractive(scopes, loginHint, UIBehavior.SELECT_ACCOUNT, "", null, "",
+                wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
     }
 
     /**
@@ -225,7 +227,7 @@ public final class PublicClientApplication {
                              final String extraQueryParams, final AuthenticationCallback callback) {
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_AND_PARAMETERS);
         acquireTokenInteractive(scopes, loginHint, uiBehavior == null ? UIBehavior.SELECT_ACCOUNT : uiBehavior,
-                extraQueryParams, null, "", callback, apiEventBuilder);
+                extraQueryParams, null, "", wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
     }
 
     /**
@@ -252,7 +254,7 @@ public final class PublicClientApplication {
                              final AuthenticationCallback callback) {
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_PARAMETERS_AND_AUTHORITY);
         acquireTokenInteractive(scopes, loginHint, uiBehavior == null ? UIBehavior.SELECT_ACCOUNT : uiBehavior,
-                extraQueryParams, additionalScope, authority, callback, apiEventBuilder);
+                extraQueryParams, additionalScope, authority, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
     }
 
     // Silent call APIs.
@@ -272,7 +274,7 @@ public final class PublicClientApplication {
     public void acquireTokenSilentAsync(final String[] scopes, final User user,
                                         final AuthenticationCallback callback) {
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER);
-        acquireTokenSilent(scopes, user, "", false, callback, apiEventBuilder);
+        acquireTokenSilent(scopes, user, "", false, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
     }
 
     /**
@@ -293,7 +295,8 @@ public final class PublicClientApplication {
                                         final boolean forceRefresh,
                                         final AuthenticationCallback callback) {
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER_AUTHORITY_AND_FORCE_REFRESH);
-        acquireTokenSilent(scopes, user, authority, forceRefresh, callback, apiEventBuilder);
+        acquireTokenSilent(scopes, user, authority, forceRefresh,
+                wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
     }
 
     /**
@@ -308,7 +311,7 @@ public final class PublicClientApplication {
         mTokenCache.deleteRefreshTokenByUser(user, apiEventBuilder.getRequestId());
         mTokenCache.deleteAccessTokenByUser(user, apiEventBuilder.getRequestId());
         apiEventBuilder.apiCallWasSuccessful(true);
-        Telemetry.getInstance().stopEvent(apiEventBuilder.build());
+        stopTelemetryEventAndFlush(apiEventBuilder);
     }
 
     /**
@@ -457,5 +460,42 @@ public final class PublicClientApplication {
 
         // Return the Builder
         return eventBuilder;
+    }
+
+    private void stopTelemetryEventAndFlush(final Event.Builder builder) {
+        Telemetry.getInstance().stopEvent(builder.build());
+        Telemetry.getInstance().flush(builder.getRequestId());
+    }
+
+    /**
+     * Wraps {@link AuthenticationCallback} instances to bind Telemetry actions.
+     * @param eventBinding the {@link com.microsoft.identity.client.ApiEvent.Builder}
+     *                     monitoring this request.
+     * @param authenticationCallback the original consuming callback
+     * @return the wrapped {@link AuthenticationCallback} instance
+     */
+    private AuthenticationCallback wrapCallbackForTelemetryIntercept(
+            final ApiEvent.Builder eventBinding, final AuthenticationCallback authenticationCallback) {
+        return new AuthenticationCallback() {
+            @Override
+            public void onSuccess(final AuthenticationResult authenticationResult) {
+                eventBinding.apiCallWasSuccessful(true);
+                stopTelemetryEventAndFlush(eventBinding);
+                authenticationCallback.onSuccess(authenticationResult);
+            }
+
+            @Override
+            public void onError(final AuthenticationException exception) {
+                eventBinding.apiCallWasSuccessful(false);
+                stopTelemetryEventAndFlush(eventBinding);
+                authenticationCallback.onError(exception);
+            }
+
+            @Override
+            public void onCancel() {
+                stopTelemetryEventAndFlush(eventBinding);
+                authenticationCallback.onCancel();
+            }
+        };
     }
 }

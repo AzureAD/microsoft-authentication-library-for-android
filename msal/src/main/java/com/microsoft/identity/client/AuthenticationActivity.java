@@ -54,6 +54,7 @@ public final class AuthenticationActivity extends Activity {
     private CustomTabsIntent mCustomTabsIntent;
     private CustomTabsServiceConnection mCustomTabsServiceConnection;
     private boolean mCustomTabsServiceIsBound;
+    private UiEvent.Builder mUiEventBuilder;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -88,6 +89,13 @@ public final class AuthenticationActivity extends Activity {
         }
 
         mChromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(getApplicationContext());
+
+        mUiEventBuilder = new UiEvent.Builder(
+                new Telemetry.RequestId(
+                        data.getStringExtra(Constants.TELEMETRY_REQUEST_ID)
+                )
+        );
+        Telemetry.getInstance().startEvent(mUiEventBuilder);
     }
 
     @Override
@@ -105,6 +113,12 @@ public final class AuthenticationActivity extends Activity {
             unbindService(mCustomTabsServiceConnection);
             mCustomTabsServiceIsBound = false;
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Telemetry.getInstance().stopEvent(mUiEventBuilder.build());
     }
 
     private void warmUpCustomTabs() {
@@ -201,6 +215,7 @@ public final class AuthenticationActivity extends Activity {
      */
     void cancelRequest() {
         Logger.verbose(TAG, null, "Cancel the authentication request.");
+        mUiEventBuilder.setUserDidCancel();
         returnToCaller(Constants.UIResponse.CANCEL, new Intent());
     }
 
