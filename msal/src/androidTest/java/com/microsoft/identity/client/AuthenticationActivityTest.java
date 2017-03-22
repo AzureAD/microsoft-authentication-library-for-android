@@ -40,7 +40,7 @@ public final class AuthenticationActivityTest {
         final Intent resultData = TestActivity.getResultData();
         Assert.assertNotNull(resultData);
         Assert.assertTrue(resultData.getStringExtra(Constants.UIResponse.ERROR_CODE).equals(
-                Constants.MSALError.INVALID_REQUEST));
+                MSALError.UNRESOLVABLE_INTENT));
         Assert.assertTrue(resultData.getStringExtra(Constants.UIResponse.ERROR_DESCRIPTION).contains("Request url"));
     }
 

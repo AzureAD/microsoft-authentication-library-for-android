@@ -91,7 +91,8 @@ final class ADFSAuthority extends Authority {
     }
 
     @Override
-    String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws AuthenticationException {
+    String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws MsalClientException,
+            MsalServiceException {
         if (mValidateAuthority) {
             final DRSMetadata drsMetadata = loadDRSMetadata(requestContext, userPrincipalName);
             final WebFingerMetadata webFingerMetadata = loadWebFingerMetadata(requestContext, drsMetadata);
@@ -99,16 +100,14 @@ final class ADFSAuthority extends Authority {
 
             try {
                 authorityURI = mAuthorityUrl.toURI();
-            } catch (URISyntaxException e) {
-                throw new AuthenticationException(
-                        MSALError.AUTHORITY_VALIDATION_FAILED,
-                        "Authority URL/URI must be RFC 2396 compliant to use AD FS validation"
-                );
+            } catch (final URISyntaxException e) {
+                throw new MsalClientException(MSALError.UNSUPPORTED_URL, "Authority url cannot be constructed to be URI. ", e);
             }
 
             // Verify trust
             if (!ADFSWebFingerValidator.realmIsTrusted(requestContext, authorityURI, webFingerMetadata)) {
-                throw new AuthenticationException(MSALError.AUTHORITY_VALIDATION_FAILED);
+                // TODO: we need to read the error and error description, the current error code is not exposed yet.
+                throw new MsalClientException(MSALError.ADFS_AUTHORITY_VALIDATION_FAILED, "Realm is not trusted, adfs authority validation failed.");
             }
         }
 
@@ -119,14 +118,16 @@ final class ADFSAuthority extends Authority {
         return mADFSValidatedAuthorities;
     }
 
-    private WebFingerMetadata loadWebFingerMetadata(final RequestContext requestContext, final DRSMetadata drsMetadata) throws AuthenticationException {
+    private WebFingerMetadata loadWebFingerMetadata(final RequestContext requestContext, final DRSMetadata drsMetadata)
+            throws MsalClientException, MsalServiceException {
         final WebFingerMetadataRequestor webFingerMetadataRequestor = new WebFingerMetadataRequestor(requestContext);
         return webFingerMetadataRequestor.requestMetadata(
                 new WebFingerMetadataRequestParameters(mAuthorityUrl, drsMetadata)
         );
     }
 
-    private DRSMetadata loadDRSMetadata(final RequestContext requestContext, final String userPrincipalName) throws AuthenticationException {
+    private DRSMetadata loadDRSMetadata(final RequestContext requestContext, final String userPrincipalName)
+            throws MsalClientException, MsalServiceException  {
         final DRSMetadataRequestor drsRequestor = new DRSMetadataRequestor(requestContext);
         return drsRequestor.requestMetadata(getDomainFromUPN(userPrincipalName));
     }

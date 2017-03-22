@@ -81,7 +81,7 @@ public class DRSMetadataRequestorTest {
     private static final String DOMAIN = "lindft6.com";
 
     @Test
-    public void testRequestMetadata() throws IOException, AuthenticationException {
+    public void testRequestMetadata() throws IOException, MsalException {
         final HttpURLConnection mockedSuccessConnection = AndroidTestMockUtil
                 .getMockedConnectionWithSuccessResponse(RESPONSE);
         HttpUrlConnectionFactory.addMockedConnection(mockedSuccessConnection);
@@ -95,8 +95,8 @@ public class DRSMetadataRequestorTest {
         );
     }
 
-    @Test(expected = AuthenticationException.class)
-    public void testRequestMetadataThrows() throws IOException, AuthenticationException {
+    @Test(expected = MsalException.class)
+    public void testRequestMetadataThrows() throws IOException, MsalException {
         final HttpURLConnection mockedFailedConnection =
                 AndroidTestMockUtil.getMockedConnectionWithFailureResponse(
                         HttpURLConnection.HTTP_BAD_REQUEST, "Bad Request"
@@ -108,7 +108,7 @@ public class DRSMetadataRequestorTest {
     }
 
     @Test
-    public void testParseMetadata() throws AuthenticationException {
+    public void testParseMetadata() throws MsalException {
         final Map<String, List<String>> mockHeaders = new HashMap<>();
         mockHeaders.put(HttpConstants.HeaderField.CONTENT_TYPE,
                 Collections.singletonList(HttpConstants.MediaType.APPLICATION_JSON));

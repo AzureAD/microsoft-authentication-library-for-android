@@ -34,7 +34,7 @@ final class RefreshTokenCacheItem extends BaseTokenCacheItem {
     private final String mRefreshToken;
 
     RefreshTokenCacheItem(final String clientId, final TokenResponse response)
-            throws AuthenticationException {
+            throws MsalClientException {
         super(clientId, response);
         mRefreshToken = response.getRefreshToken();
     }

@@ -47,7 +47,7 @@ final class IdToken {
      * Constructor to create a new {@link IdToken}. Will parse the raw id token.
      * @param rawIdToken The raw Id token used to create the {@link IdToken}.
      */
-    IdToken(final String rawIdToken) throws AuthenticationException {
+    IdToken(final String rawIdToken) throws MsalClientException {
         if (MSALUtils.isEmpty(rawIdToken)) {
             throw new IllegalArgumentException("null or empty raw idtoken");
         }
@@ -55,7 +55,7 @@ final class IdToken {
         // set all the instance variables.
         final Map<String, String> idTokenItems = parseJWT(rawIdToken);
         if (idTokenItems == null || idTokenItems.isEmpty()) {
-            throw new AuthenticationException(MSALError.SERVER_ERROR, "Empty Id token");
+            throw new MsalClientException(MSALError.INVALID_JWT, "Empty Id token returned from server.");
         }
 
         mIssuer = idTokenItems.get(IdTokenClaim.ISSUER);
@@ -100,7 +100,7 @@ final class IdToken {
         return mHomeObjectId;
     }
 
-    private Map<String, String> parseJWT(final String idToken) throws AuthenticationException {
+    private Map<String, String> parseJWT(final String idToken) throws MsalClientException {
         final String idTokenBody = extractJWTBody(idToken);
         final byte[] data = Base64.decode(idTokenBody, Base64.URL_SAFE);
 
@@ -108,11 +108,11 @@ final class IdToken {
             final String decodedBody = new String(data, Charset.forName(MSALUtils.ENCODING_UTF8));
             return MSALUtils.extractJsonObjectIntoMap(decodedBody);
         } catch (final JSONException e) {
-            throw new AuthenticationException(MSALError.JSON_PARSE_FAILURE, e.getMessage(), e);
+            throw new MsalClientException(MSALError.INVALID_JWT, "Failed to extract Json object " + e.getMessage(), e);
         }
     }
 
-    private String extractJWTBody(final String idToken) throws AuthenticationException {
+    private String extractJWTBody(final String idToken) throws MsalClientException {
         final int firstDot = idToken.indexOf(".");
         final int secondDot = idToken.indexOf(".", firstDot + 1);
         final int invalidDot = idToken.indexOf(".", secondDot + 1);
@@ -120,7 +120,7 @@ final class IdToken {
         if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
             return idToken.substring(firstDot + 1, secondDot);
         } else {
-            throw new AuthenticationException(MSALError.IDTOKEN_PARSING_FAILURE, "Failed to parse id token.");
+            throw new MsalClientException(MSALError.INVALID_JWT, "Failed to parse id token.", null);
         }
     }
 

@@ -32,7 +32,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.microsoft.identity.client.AuthenticationCallback;
-import com.microsoft.identity.client.AuthenticationException;
+import com.microsoft.identity.client.MsalException;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.UIBehavior;
@@ -95,7 +95,7 @@ public class MainActivity extends Activity {
                     }
 
                     @Override
-                    public void onError(final AuthenticationException exception) {
+                    public void onError(final MsalException exception) {
                         showMessage("Receive Failure Response " + exception.getMessage());
                     }
 
@@ -115,7 +115,7 @@ public class MainActivity extends Activity {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
+            public void onError(MsalException exception) {
                 showMessage("Receive Failure Response for silent request: " + exception.getMessage());
             }
 

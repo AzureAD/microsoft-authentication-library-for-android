@@ -24,52 +24,52 @@
 package com.microsoft.identity.client;
 
 /**
- * {@link AuthenticationException} that will be thrown or sent back via callback, represents the detailed exception
+ * {@link MsalException} that will be thrown or sent back via callback, represents the detailed exception
  * thrown by the sdk. It will contain the {@link MSALError}, error description(could be null) or
  *  throwable(could be null).
  */
-public class AuthenticationException extends Exception {
-    private MSALError mErrorCode;
+public class MsalException extends Exception {
+    private String mErrorCode;
 
     /**
      * Default constructor.
      */
-    public AuthenticationException() { }
+    public MsalException() { }
 
     /**
-     * Initiates the {@link AuthenticationException} with {@link MSALError}.
+     * Initiates the {@link MsalException} with {@link MSALError}.
      * @param errorCode The {@link MSALError} contained in the exception.
      */
-    public AuthenticationException(final MSALError errorCode) {
+    public MsalException(final String errorCode) {
         mErrorCode = errorCode;
     }
 
     /**
-     * Initiates the {@link AuthenticationException} with {@link MSALError} and error message.
+     * Initiates the {@link MsalException} with {@link MSALError} and error message.
      * @param errorCode The {@link MSALError} contained in the exception.
      * @param errorMessage The error message contained in the exception.
      */
-    public AuthenticationException(final MSALError errorCode, final String errorMessage) {
+    public MsalException(final String errorCode, final String errorMessage) {
         super(errorMessage);
         mErrorCode = errorCode;
     }
 
     /**
-     * Initiates the {@link AuthenticationException} with {@link MSALError}, error message and throwable.
+     * Initiates the {@link MsalException} with {@link MSALError}, error message and throwable.
      * @param errorCode The {@link MSALError} contained in the exception.
      * @param errorMessage The error message contained in the exception.
-     * @param innerException The {@link Throwable} contains the cause for the exception.
+     * @param throwable The {@link Throwable} contains the cause for the exception.
      */
-    public AuthenticationException(final MSALError errorCode, final String errorMessage,
-                                   final Throwable innerException) {
-        super(errorMessage, innerException);
+    public MsalException(final String errorCode, final String errorMessage,
+                         final Throwable throwable) {
+        super(errorMessage, throwable);
         mErrorCode = errorCode;
     }
 
     /**
      * @return The {@link MSALError} for the exception, could be null.
      */
-    public MSALError getErrorCode() {
+    public String getErrorCode() {
         return mErrorCode;
     }
 
@@ -85,10 +85,6 @@ public class AuthenticationException extends Exception {
             return super.getMessage();
         }
 
-        if (mErrorCode != null) {
-            return mErrorCode.getDescription();
-        }
-
-        return null;
+        return "";
     }
 }

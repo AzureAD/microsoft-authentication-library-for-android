@@ -102,7 +102,7 @@ public class ADFSAuthorityTest {
                     "https://fs.lindft6.com/adfs/.well-known/openid-configuration",
                     authority.performInstanceDiscovery(REQUEST_CONTEXT, testUPN)
             );
-        } catch (AuthenticationException | MalformedURLException e) {
+        } catch (final MsalServiceException| MsalClientException | MalformedURLException e) {
             Assert.fail();
         }
     }
@@ -119,7 +119,7 @@ public class ADFSAuthorityTest {
             adfsAuthority.performInstanceDiscovery(REQUEST_CONTEXT, testUPN);
         } catch (MalformedURLException e) {
             Assert.fail();
-        } catch (AuthenticationException e) {
+        } catch (final MsalClientException| MsalServiceException e) {
             // NOOP: expected
             return;
         }
