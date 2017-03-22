@@ -52,7 +52,7 @@ final class InteractiveRequest extends BaseRequest {
     private static AuthorizationResult sAuthorizationResult;
     private static CountDownLatch sResultLock = new CountDownLatch(1);
 
-    private final ActivityWrapper mActivity;
+    private final ActivityWrapper mActivityWrapper;
     private PKCEChallengeFactory.PKCEChallenge mPKCEChallenge;
 
     /**
@@ -65,7 +65,7 @@ final class InteractiveRequest extends BaseRequest {
     InteractiveRequest(final Activity activity, final AuthenticationRequestParameters authRequestParameters,
                        final String[] additionalScope) {
         super(activity.getApplicationContext(), authRequestParameters);
-        mActivity = new ActivityWrapper(activity);
+        mActivityWrapper = new ActivityWrapper(activity);
 
         // validate redirect
         if (MSALUtils.isEmpty(authRequestParameters.getRedirectUri())) {
@@ -104,11 +104,11 @@ final class InteractiveRequest extends BaseRequest {
 
         throwIfNetworkNotAvailable();
 
-        if (mActivity.getReferencedActivity() == null) {
+        if (mActivityWrapper.getReferencedActivity() == null) {
             throw new MsalClientException(MSALError.UNRESOLVABLE_INTENT, "The referenced object is already being garbage collected.");
         }
 
-        mActivity.getReferencedActivity().startActivityForResult(intentToLaunch, BROWSER_FLOW);
+        mActivityWrapper.getReferencedActivity().startActivityForResult(intentToLaunch, BROWSER_FLOW);
         // lock the thread until onActivityResult release the lock.
         try {
             if (sResultLock.getCount() == 0) {
