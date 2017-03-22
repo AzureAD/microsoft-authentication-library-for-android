@@ -69,9 +69,6 @@ class EventDispatcher {
 
         List<Map<String, String>> eventsForPublication = new ArrayList<>();
 
-        // Reverse the List for iteration
-        Collections.reverse(eventsToPublish);
-
         for (final IEvent event : eventsToPublish) {
             Map<String, String> eventProperties = new LinkedHashMap<>();
             for (Pair<String, String> property : event) {

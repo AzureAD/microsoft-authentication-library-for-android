@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
                     for (final String key : event.keySet()) {
                         Log.d(LOG_TAG, "\t" + key + " :: " + event.get(key));
                     }
-                    Log.d(LOG_TAG, "End event ---------");
+                    Log.d(LOG_TAG, "End event ----------");
                 }
             }
         });
