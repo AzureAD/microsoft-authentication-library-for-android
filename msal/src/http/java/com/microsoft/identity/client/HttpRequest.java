@@ -108,7 +108,7 @@ final class HttpRequest {
     public static HttpResponse sendPost(final URL requestUrl, final Map<String, String> requestHeaders,
                                         final byte[] requestContent, final String requestContentType,
                                         final Telemetry.RequestId telemetryRequestId)
-            throws IOException, RetryableException {
+            throws IOException, MsalServiceException {
         final HttpRequest httpRequest = new HttpRequest(requestUrl, requestHeaders, REQUEST_METHOD_POST,
                 requestContent, requestContentType, telemetryRequestId);
         Logger.verbose(TAG, null, "Sending Http Post request.");
@@ -123,7 +123,7 @@ final class HttpRequest {
      */
     public static HttpResponse sendGet(final URL requestUrl, final Map<String, String> requestHeaders,
                                        final Telemetry.RequestId telemetryRequestId)
-            throws IOException, RetryableException {
+            throws IOException, MsalServiceException {
         final HttpRequest httpRequest = new HttpRequest(requestUrl, requestHeaders, REQUEST_METHOD_GET, telemetryRequestId);
 
         Logger.verbose(TAG, null, "Sending Http Get request.");
@@ -133,18 +133,16 @@ final class HttpRequest {
     /**
      * Send http request.
      */
-    private HttpResponse send() throws IOException, RetryableException {
+    private HttpResponse send() throws IOException, MsalServiceException {
         final HttpResponse response;
         try {
             response = sendWithRetry();
         } catch (final SocketTimeoutException socketTimeoutException) {
-            throw new RetryableException(socketTimeoutException.getMessage(), socketTimeoutException);
+            throw new MsalServiceException(MSALError.REQUEST_TIMEOUT, "Retry failed again with SocketTimeout", socketTimeoutException);
         }
 
         if (response != null && isRetryableError(response.getStatusCode())) {
-            throw new RetryableException("Retry fails with 500/503/504", new AuthenticationException(
-                    MSALError.RETRY_FAILED_WITH_SERVER_ERROR, "StatusCode: "
-                    + String.valueOf(response.getStatusCode()) + ";ResponseBody: " + response.getBody()));
+            throw new MsalServiceException(MSALError.SERVICE_NOT_AVAILABLE, "Retry failed again with 500/503/504", response.getStatusCode(), null);
         }
 
         return response;

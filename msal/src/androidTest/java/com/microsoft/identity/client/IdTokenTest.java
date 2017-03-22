@@ -39,12 +39,12 @@ import org.junit.runner.RunWith;
 public final class IdTokenTest {
 
     @Test(expected = IllegalArgumentException.class)
-    public void testEmptyIdToken() throws AuthenticationException {
+    public void testEmptyIdToken() throws MsalException {
         new IdToken("");
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testNullIdToken() throws AuthenticationException {
+    public void testNullIdToken() throws MsalException {
         new IdToken(null);
     }
 
@@ -53,28 +53,28 @@ public final class IdTokenTest {
         try {
             new IdToken("..");
             Assert.fail();
-        } catch (final AuthenticationException e) {
-            Assert.assertTrue(e.getErrorCode() == MSALError.IDTOKEN_PARSING_FAILURE);
+        } catch (final MsalClientException e) {
+            Assert.assertTrue(e.getErrorCode() == MSALError.INVALID_JWT);
         }
 
         try {
             new IdToken("test.ab.b.");
             Assert.fail();
-        } catch (final AuthenticationException e) {
-            Assert.assertTrue(e.getErrorCode() == MSALError.IDTOKEN_PARSING_FAILURE);
+        } catch (final MsalClientException e) {
+            Assert.assertTrue(e.getErrorCode() == MSALError.INVALID_JWT);
         }
 
         try {
             new IdToken(".....");
-        } catch (final AuthenticationException e) {
-            Assert.assertTrue(e.getErrorCode() == MSALError.IDTOKEN_PARSING_FAILURE);
+        } catch (final MsalClientException e) {
+            Assert.assertTrue(e.getErrorCode() == MSALError.INVALID_JWT);
         }
 
         try {
             new IdToken("test");
             Assert.fail();
-        } catch (final AuthenticationException e) {
-            Assert.assertTrue(e.getErrorCode() == MSALError.IDTOKEN_PARSING_FAILURE);
+        } catch (final MsalClientException e) {
+            Assert.assertTrue(e.getErrorCode() == MSALError.INVALID_JWT);
         }
     }
 
@@ -84,14 +84,14 @@ public final class IdTokenTest {
         try {
             new IdToken("test..");
             Assert.fail("Expect exceptions");
-        } catch (final AuthenticationException e) {
+        } catch (final MsalException e) {
             Assert.assertNotNull(e.getCause());
             Assert.assertTrue(e.getCause() instanceof JSONException);
         }
 
         try {
             new IdToken("test.test.test");
-        } catch (final AuthenticationException e) {
+        } catch (final MsalException e) {
             Assert.assertNotNull(e.getCause());
             Assert.assertTrue(e.getCause() instanceof JSONException);
         }
@@ -121,7 +121,7 @@ public final class IdTokenTest {
         try {
             new IdToken(rawIdToken);
             Assert.fail("Expect exceptions.");
-        } catch (final AuthenticationException e) {
+        } catch (final MsalException e) {
             Assert.assertNotNull(e.getCause());
             Assert.assertTrue(e.getCause() instanceof JSONException);
         }
@@ -146,7 +146,7 @@ public final class IdTokenTest {
             Assert.assertTrue(idToken.getTenantId().equals(AndroidTestUtil.TENANT_ID));
             Assert.assertTrue(idToken.getHomeObjectId().equals(AndroidTestUtil.HOME_OBJECT_ID));
             Assert.assertTrue(idToken.getSubject().equals(AndroidTestUtil.SUBJECT));
-        } catch (final AuthenticationException e) {
+        } catch (final MsalException e) {
             Assert.fail("unexpected exception");
         }
     }

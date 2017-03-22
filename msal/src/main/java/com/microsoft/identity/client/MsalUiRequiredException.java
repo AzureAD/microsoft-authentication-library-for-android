@@ -24,26 +24,27 @@
 package com.microsoft.identity.client;
 
 /**
- * Callback to use with token request. Authentication result or error will be returned back via callback.
+ * This exception class is to inform developers that UI is required for authentication to succeed.
+ * <p>
+ *     Set of error codes that could be returned from this exception:
+ *     <li>
+ *         <ul>invalid_grant: The refresh token used to redeem access token is invalid, expired, revoked. </ul>
+ *         <ul>no_tokens_found: Access token doesn't exist and there is no refresh token can be found to redeem access token. </ul>
+ *     </li>
+ * </p>
  */
-public interface AuthenticationCallback {
 
-    /**
-     * Authentication finishes successfully,{@link AuthenticationResult} will be sent back via the onSuccess.
-     * @param authenticationResult {@link AuthenticationResult} that contains the success response.
-     */
-    void onSuccess(final AuthenticationResult authenticationResult);
+public final class MsalUiRequiredException extends MsalException {
 
-    /**
-     * Error occurs during the authentication.
-     * @param exception The {@link MsalException} contains the error code, error message and cause if applicable. The exception
-     *                  returned in the callback could be {@link MsalClientException}, {@link MsalServiceException} or
-     *                  {@link MsalUiRequiredException}.
-     */
-    void onError(final MsalException exception);
+    MsalUiRequiredException(final String errorCode) {
+        super(errorCode);
+    }
 
-    /**
-     * Will be called if user cancels the flow.
-     */
-    void onCancel();
+    MsalUiRequiredException(final String errorCode, final String errorMessage) {
+        super(errorCode, errorMessage);
+    }
+
+    MsalUiRequiredException(final String errorCode, final String errorMessage, final Throwable throwable) {
+        super(errorCode, errorMessage, throwable);
+    }
 }

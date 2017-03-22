@@ -48,7 +48,7 @@ final class TokenCacheItemDeserializer<T extends BaseTokenCacheItem> implements 
                 final IdToken idToken = new IdToken(rawIdToken);
                 deserializedTokenCacheItem.setIdToken(idToken);
                 deserializedTokenCacheItem.setUser(new User(idToken));
-            } catch (final AuthenticationException e) {
+            } catch (final MsalClientException e) {
                 Logger.error(TAG, null, "Fail to parse Id token", e);
             }
         }

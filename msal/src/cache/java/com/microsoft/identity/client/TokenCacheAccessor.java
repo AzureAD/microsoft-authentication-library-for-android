@@ -110,8 +110,7 @@ final class TokenCacheAccessor {
         editor.apply();
 
         Telemetry.getInstance().stopEvent(cacheEventBuilder.build());
-
-        Logger.verbose(TAG, null, "Access token is into cache.");
+        Logger.verbose(TAG, null, "Access token is saved into cache.");
         Logger.verbosePII(TAG, null, "Access token is saved with key: " + key);
     }
 

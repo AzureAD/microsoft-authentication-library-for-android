@@ -29,6 +29,7 @@ import android.content.pm.ResolveInfo;
 import android.util.Base64;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.ref.WeakReference;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -51,7 +52,7 @@ final class InteractiveRequest extends BaseRequest {
     private static AuthorizationResult sAuthorizationResult;
     private static CountDownLatch sResultLock = new CountDownLatch(1);
 
-    private final Activity mActivity;
+    private final ActivityWrapper mActivityWrapper;
     private PKCEChallengeFactory.PKCEChallenge mPKCEChallenge;
 
     /**
@@ -64,7 +65,7 @@ final class InteractiveRequest extends BaseRequest {
     InteractiveRequest(final Activity activity, final AuthenticationRequestParameters authRequestParameters,
                        final String[] additionalScope) {
         super(activity.getApplicationContext(), authRequestParameters);
-        mActivity = activity;
+        mActivityWrapper = new ActivityWrapper(activity);
 
         // validate redirect
         if (MSALUtils.isEmpty(authRequestParameters.getRedirectUri())) {
@@ -84,13 +85,13 @@ final class InteractiveRequest extends BaseRequest {
      * Pre token request. Launch either chrome custom tab or chrome to get the auth code back.
      */
     @Override
-    synchronized void preTokenRequest() throws MSALUserCancelException, AuthenticationException {
+    synchronized void preTokenRequest() throws MSALUserCancelException, MsalClientException, MsalServiceException {
         final String authorizeUri;
         try {
             Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Prepare authorize request uri for interactive flow.");
             authorizeUri = appendQueryStringToAuthorizeEndpoint();
         } catch (final UnsupportedEncodingException e) {
-            throw new AuthenticationException(MSALError.UNSUPPORTED_ENCODING, e.getMessage(), e);
+            throw new MsalClientException(MSALError.UNSUPPORTED_ENCODING, e.getMessage(), e);
         }
 
         final Intent intentToLaunch = new Intent(mContext, AuthenticationActivity.class);
@@ -101,15 +102,13 @@ final class InteractiveRequest extends BaseRequest {
                 mAuthRequestParameters.getRequestContext().getTelemetryRequestId().toString()
         );
 
-        // TODO: put a request id.
         if (!resolveIntent(intentToLaunch)) {
-            // TODO: what is the exception to throw
-            throw new AuthenticationException();
+            throw new MsalClientException(MSALError.UNRESOLVABLE_INTENT, "The intent is not resolvable");
         }
 
         throwIfNetworkNotAvailable();
 
-        mActivity.startActivityForResult(intentToLaunch, BROWSER_FLOW);
+        mActivityWrapper.startActivityForResult(intentToLaunch, BROWSER_FLOW);
         // lock the thread until onActivityResult release the lock.
         try {
             if (sResultLock.getCount() == 0) {
@@ -117,9 +116,7 @@ final class InteractiveRequest extends BaseRequest {
             }
 
             sResultLock.await();
-            //CHECKSTYLE:OFF: checkstyle:EmptyBlock
         } catch (final InterruptedException e) {
-            // TODO: logging.
             Logger.error(TAG, mAuthRequestParameters.getRequestContext(), "Fail to lock the thread for waiting for authorize"
                     + " request to return.", e);
         }
@@ -139,10 +136,9 @@ final class InteractiveRequest extends BaseRequest {
     }
 
     @Override
-    AuthenticationResult postTokenRequest() throws AuthenticationException {
+    AuthenticationResult postTokenRequest() throws MsalUiRequiredException, MsalServiceException, MsalClientException {
         if (!isAccessTokenReturned()) {
-            throw new AuthenticationException(MSALError.OAUTH_ERROR, ""
-                    + "ErrorCode: " + mTokenResponse.getError() + "; ErrorDescription: " + mTokenResponse.getErrorDescription());
+           throwExceptionFromTokenResponse(mTokenResponse);
         }
 
         return super.postTokenRequest();
@@ -162,7 +158,7 @@ final class InteractiveRequest extends BaseRequest {
         }
     }
 
-    String appendQueryStringToAuthorizeEndpoint() throws UnsupportedEncodingException, AuthenticationException {
+    String appendQueryStringToAuthorizeEndpoint() throws UnsupportedEncodingException, MsalClientException {
         String authorizationUrl = MSALUtils.appendQueryParameterToUrl(
                 mAuthRequestParameters.getAuthority().getAuthorizeEndpoint(),
                 createAuthorizationRequestParameters());
@@ -186,7 +182,7 @@ final class InteractiveRequest extends BaseRequest {
         return resolveInfo != null;
     }
 
-    private Map<String, String> createAuthorizationRequestParameters() throws UnsupportedEncodingException, AuthenticationException {
+    private Map<String, String> createAuthorizationRequestParameters() throws UnsupportedEncodingException, MsalClientException {
         final Map<String, String> requestParameters = new HashMap<>();
 
         final Set<String> scopes = new HashSet<>(mAuthRequestParameters.getScope());
@@ -205,14 +201,6 @@ final class InteractiveRequest extends BaseRequest {
             requestParameters.put(OauthConstants.Oauth2Parameters.LOGIN_HINT, mAuthRequestParameters.getLoginHint());
         }
 
-        // TODO: comment out the code for adding haschrome=1. Evo displays the Cancel button, and the returned url would
-        // contain the error=access_denied&error_subcode=cancel
-        // add hasChrome
-//        if (MSALUtils.isEmpty(mAuthRequestParameters.getExtraQueryParam())
-//                || mAuthRequestParameters.getExtraQueryParam().contains(OauthConstants.Oauth2Parameters.HAS_CHROME)) {
-//            requestParameters.put(OauthConstants.Oauth2Parameters.HAS_CHROME, "1");
-//        }
-
         addUiBehaviorToRequestParameters(requestParameters);
 
         // append state in the query parameters
@@ -224,7 +212,7 @@ final class InteractiveRequest extends BaseRequest {
         return requestParameters;
     }
 
-    private void addPKCEChallengeToRequestParameters(final Map<String, String> requestParameters) throws AuthenticationException {
+    private void addPKCEChallengeToRequestParameters(final Map<String, String> requestParameters) throws MsalClientException {
         // Create our Challenge
         mPKCEChallenge = PKCEChallengeFactory.newPKCEChallenge();
 
@@ -252,12 +240,11 @@ final class InteractiveRequest extends BaseRequest {
         return Base64.encodeToString(state.getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 
-    private void processAuthorizationResult(final AuthorizationResult authorizationResult)
-            throws MSALUserCancelException, AuthenticationException {
+    private void processAuthorizationResult(final AuthorizationResult authorizationResult) throws MSALUserCancelException,
+            MsalServiceException, MsalClientException {
         if (authorizationResult == null) {
             Logger.error(TAG, mAuthRequestParameters.getRequestContext(), "Authorization result is null", null);
-            // TODO: throw unknown error
-            //CHECKSTYLE:ON: checkstyle:EmptyBlock
+            throw new MsalClientException(MSALError.UNKNOWN_ERROR, "Receives empty result for authorize request");
         }
 
         final AuthorizationResult.AuthorizationStatus status = authorizationResult.getAuthorizationStatus();
@@ -269,8 +256,8 @@ final class InteractiveRequest extends BaseRequest {
                 // TODO: if clicking on the cancel button in the signin page, we get sub_error with the returned url,
                 // however we cannot take dependency on the sub_error. Then how do we know user click on the cancel button
                 // and that's actually a cancel request? Is server going to return some error code that we can use?
-                throw new AuthenticationException(MSALError.AUTH_FAILED, authorizationResult.getError() + ";"
-                        + authorizationResult.getErrorDescription());
+                throw new MsalServiceException(authorizationResult.getError(), authorizationResult.getError() + ";"
+                        + authorizationResult.getErrorDescription(), MsalServiceException.DEFAULT_STATUS_CODE, null);
             case SUCCESS:
                 // verify if the state is the same as the one we send
                 verifyStateInResponse(authorizationResult.getState());
@@ -281,19 +268,19 @@ final class InteractiveRequest extends BaseRequest {
         }
     }
 
-    private void verifyStateInResponse(final String stateInResponse) throws AuthenticationException {
+    private void verifyStateInResponse(final String stateInResponse) throws MsalClientException {
         final String decodeState = decodeState(stateInResponse);
         final Map<String, String> stateMap = MSALUtils.decodeUrlToMap(decodeState, "&");
 
         if (stateMap.size() != 2
                 || !mAuthRequestParameters.getAuthority().getAuthority().equals(stateMap.get("a"))) {
-            throw new AuthenticationException(MSALError.AUTH_FAILED, Constants.MSALErrorMessage.STATE_NOT_THE_SAME);
+            throw new MsalClientException(MSALError.STATE_NOT_MATCH, Constants.MsalErrorMessage.STATE_NOT_THE_SAME);
         }
 
         final Set<String> scopesInState = MSALUtils.getScopesAsSet(stateMap.get("r"));
         final Set<String> scopesInRequest = mAuthRequestParameters.getScope();
         if (scopesInState.size() != scopesInRequest.size() && !scopesInState.containsAll(scopesInRequest)) {
-            throw new AuthenticationException(MSALError.AUTH_FAILED, Constants.MSALErrorMessage.STATE_NOT_THE_SAME);
+            throw new MsalClientException(MSALError.STATE_NOT_MATCH, Constants.MsalErrorMessage.STATE_NOT_THE_SAME);
         }
     }
 
@@ -366,9 +353,9 @@ final class InteractiveRequest extends BaseRequest {
          * Creates a new instance of {@link PKCEChallenge}.
          *
          * @return the newly created Challenge
-         * @throws AuthenticationException if the Challenge could not be created
+         * @throws MsalException if the Challenge could not be created
          */
-        static PKCEChallenge newPKCEChallenge() throws AuthenticationException {
+        static PKCEChallenge newPKCEChallenge() throws MsalClientException {
             // Generate the code_verifier as a high-entropy cryptographic random String
             final String codeVerifier = generateCodeVerifier();
 
@@ -384,22 +371,39 @@ final class InteractiveRequest extends BaseRequest {
             return Base64.encodeToString(verifierBytes, ENCODE_MASK);
         }
 
-        private static String generateCodeVerifierChallenge(final String verifier) throws AuthenticationException {
+        private static String generateCodeVerifierChallenge(final String verifier) throws MsalClientException {
             try {
                 MessageDigest digester = MessageDigest.getInstance(DIGEST_ALGORITHM);
                 digester.update(verifier.getBytes(ISO_8859_1));
                 byte[] digestBytes = digester.digest();
                 return Base64.encodeToString(digestBytes, ENCODE_MASK);
-            } catch (NoSuchAlgorithmException e) {
-                throw new AuthenticationException(MSALError.NO_SUCH_ALGORITHM);
-            } catch (UnsupportedEncodingException e) {
-                throw new AuthenticationException(
-                        MSALError.UNSUPPORTED_ENCODING,
+            } catch (final NoSuchAlgorithmException e) {
+                throw new MsalClientException(MSALError.NO_SUCH_ALGORITHM, "Failed to generate the code verifier challenge", e);
+            } catch (final UnsupportedEncodingException e) {
+                throw new MsalClientException(MSALError.UNSUPPORTED_ENCODING,
                         "Every implementation of the Java platform is required to support ISO-8859-1."
-                                + "Consult the release documentation for your implementation.",
-                        e
-                );
+                                + "Consult the release documentation for your implementation.", e);
             }
+        }
+    }
+
+    /**
+     * Internal static class to create a weak reference of the passed-in activity. The library itself doesn't control the
+     * passed-in activity's lifecycle.
+     */
+    static class ActivityWrapper {
+        private WeakReference<Activity> mReferencedActivity;
+
+        ActivityWrapper(final Activity activity) {
+            mReferencedActivity = new WeakReference<Activity>(activity);
+        }
+
+        void startActivityForResult(final Intent intent, int requestCode) throws MsalClientException {
+            if (mReferencedActivity.get() == null) {
+                throw new MsalClientException(MSALError.UNRESOLVABLE_INTENT, "The referenced object is already being garbage collected.");
+            }
+
+            mReferencedActivity.get().startActivityForResult(intent, requestCode);
         }
     }
 }

@@ -53,9 +53,9 @@ public final class AuthenticationResultTest {
      * Verify scope is correctly constructed if token response contains the empty scope.
      */
     @Test
-    public void testTokenResponseContainEmptyScope() throws AuthenticationException {
+    public void testTokenResponseContainEmptyScope() throws MsalException {
         final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, AndroidTestUtil.TEST_IDTOKEN, REFRESH_TOKEN,
-                EXPIRES_ON, EXPIRES_ON, EXPIRES_ON, "", TOKEN_TYPE, null);
+                EXPIRES_ON, EXPIRES_ON, EXPIRES_ON, "", TOKEN_TYPE);
 
         final AuthenticationResult authenticationResult = new AuthenticationResult(new AccessTokenCacheItem(null, null, tokenResponse));
         verifyScopeIsEmpty(authenticationResult);
@@ -65,9 +65,9 @@ public final class AuthenticationResultTest {
      * Verify scope is correctly constructed if token response contains null scope.
      */
     @Test
-    public void testTokenResponseContainNullScope() throws AuthenticationException {
+    public void testTokenResponseContainNullScope() throws MsalException {
         final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, AndroidTestUtil.TEST_IDTOKEN, REFRESH_TOKEN,
-                EXPIRES_ON, EXPIRES_ON, EXPIRES_ON, null, TOKEN_TYPE, null);
+                EXPIRES_ON, EXPIRES_ON, EXPIRES_ON, null, TOKEN_TYPE);
 
         final AuthenticationResult authenticationResult = new AuthenticationResult(new AccessTokenCacheItem(null, null, tokenResponse));
         verifyScopeIsEmpty(authenticationResult);
@@ -78,10 +78,10 @@ public final class AuthenticationResultTest {
      * trailing spaces in the end.
      */
     @Test
-    public void testTokenResponseContainsScopeWithTrailingSpace() throws AuthenticationException {
+    public void testTokenResponseContainsScopeWithTrailingSpace() throws MsalException {
         final String scopes = " scope1 scope2  scope3   ";
         final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, AndroidTestUtil.TEST_IDTOKEN, REFRESH_TOKEN,
-                EXPIRES_ON, EXPIRES_ON, EXPIRES_ON, scopes, TOKEN_TYPE, null);
+                EXPIRES_ON, EXPIRES_ON, EXPIRES_ON, scopes, TOKEN_TYPE);
 
         final AuthenticationResult authenticationResult = new AuthenticationResult(new AccessTokenCacheItem(null, null, tokenResponse));
         final String[] scopeArray = authenticationResult.getScope();
@@ -97,22 +97,22 @@ public final class AuthenticationResultTest {
      * Verify that if both AT and Id Token are returned, AT will be used as the token returned in authenticationResult.
      */
     @Test
-    public void testBothATAndIdTokenReturned() throws AuthenticationException {
+    public void testBothATAndIdTokenReturned() throws MsalException {
         final Date expiresOn = getExpiresOn(TIME_OFFSET);
         final Date idTokenExpiresOn = getExpiresOn(-TIME_OFFSET);
 
         final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, AndroidTestUtil.TEST_IDTOKEN,
-                REFRESH_TOKEN, expiresOn, idTokenExpiresOn, EXPIRES_ON, SCOPE, TOKEN_TYPE, null);
+                REFRESH_TOKEN, expiresOn, idTokenExpiresOn, EXPIRES_ON, SCOPE, TOKEN_TYPE);
         final AuthenticationResult authenticationResult = new AuthenticationResult(new AccessTokenCacheItem(null, null, tokenResponse));
         Assert.assertTrue(authenticationResult.getAccessToken().equals(ACCESS_TOKEN));
         Assert.assertTrue(authenticationResult.getExpiresOn().equals(expiresOn));
     }
 
     @Test
-    public void testHomeOidNotReturned() throws AuthenticationException {
+    public void testHomeOidNotReturned() throws MsalException {
         final String uniqueId = "unique";
         final TokenResponse tokenResponse = new TokenResponse(null, PublicClientApplicationTest.getIdToken("displayable",
-                uniqueId, ""), REFRESH_TOKEN, new Date(), new Date(), new Date(), SCOPE, TOKEN_TYPE, null);
+                uniqueId, ""), REFRESH_TOKEN, new Date(), new Date(), new Date(), SCOPE, TOKEN_TYPE);
         final AuthenticationResult result = new AuthenticationResult(new AccessTokenCacheItem(null, null, tokenResponse));
 
         final User user = result.getUser();

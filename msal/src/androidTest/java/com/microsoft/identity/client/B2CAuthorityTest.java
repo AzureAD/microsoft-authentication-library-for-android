@@ -35,7 +35,7 @@ import java.util.UUID;
  * Tests for {@link B2CAuthority}.
  */
 @RunWith(AndroidJUnit4.class)
-public final class B2cAuthorityTest {
+public final class B2CAuthorityTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidPathSegments() {
@@ -44,15 +44,15 @@ public final class B2cAuthorityTest {
     }
 
     @Test
-    public void testValidationEnabledButNotSupported() {
+    public void testValidationEnabledButNotSupported() throws MsalServiceException {
         final String b2cAuthority = "https://someauthority/tfp/sometenant/somepolicy";
         final Authority authority = Authority.createAuthority(b2cAuthority, true);
 
         try {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "test", Telemetry.generateNewRequestId()), null);
             Assert.fail("Should reach exception");
-        } catch (final AuthenticationException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.UNSUPPORTED_AUTHORITY_VALIDATION));
+        } catch (final MsalClientException e) {
+            Assert.assertTrue(e.getErrorCode().equals(MSALError.UNSUPPORTED_AUTHORITY_VALIDATION_INSTANCE));
         }
     }
 }

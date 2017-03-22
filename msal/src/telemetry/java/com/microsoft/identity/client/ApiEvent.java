@@ -65,7 +65,7 @@ final class ApiEvent extends Event implements IApiEvent {
         final IdToken idToken;
         try {
             idToken = new IdToken(rawIdToken);
-        } catch (AuthenticationException ae) {
+        } catch (MsalClientException ae) {
             return;
         }
 

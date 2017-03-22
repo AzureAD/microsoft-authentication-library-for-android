@@ -45,17 +45,17 @@ public final class TokenCacheKeyTest {
     // TODO: add ignore for now. If everybody agrees on not putting authority as the key for rt entry, remove the test.
     @Ignore
     @Test(expected = IllegalArgumentException.class)
-    public void testAccessTokenKeyCreationNoAuthority() throws AuthenticationException {
+    public void testAccessTokenKeyCreationNoAuthority() throws MsalException {
         TokenCacheKey.createKeyForAT(null, CLIENT_ID, getScopes(), getUser());
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testAccessTokenKeyCreationNoClientId() throws AuthenticationException {
+    public void testAccessTokenKeyCreationNoClientId() throws MsalException {
         TokenCacheKey.createKeyForAT(AUTHORITY, null, getScopes(), getUser());
     }
 
     @Test
-    public void testAccessTokenKeyCreationWithEmptyUser() throws AuthenticationException {
+    public void testAccessTokenKeyCreationWithEmptyUser() throws MsalException {
         final String rawIdToken = AndroidTestUtil.createIdToken(AndroidTestUtil.AUDIENCE, AndroidTestUtil.ISSUER, AndroidTestUtil.NAME,
                 "", "", "", AndroidTestUtil.TENANT_ID, AndroidTestUtil.VERSION, "");
         final IdToken idToken = new IdToken(rawIdToken);
@@ -65,13 +65,13 @@ public final class TokenCacheKeyTest {
     }
 
     @Test
-    public void testAccessTokenKeyCreationWithUser() throws AuthenticationException {
+    public void testAccessTokenKeyCreationWithUser() throws MsalException {
         final TokenCacheKey accessTokenCacheKey = TokenCacheKey.createKeyForAT(AUTHORITY, CLIENT_ID, getScopes(), getUser());
         Assert.assertTrue(accessTokenCacheKey.toString().equals(MSALUtils.base64EncodeToString(AUTHORITY) + "$" + MSALUtils.base64EncodeToString(CLIENT_ID) + "$" + MSALUtils.base64EncodeToString("scope1 scope2") + "$" + MSALUtils.base64EncodeToString(HOME_OBJECT_ID)));
     }
 
     @Test
-    public void testAccessTokenKeyWithDifferentOrderOfScopes() throws AuthenticationException {
+    public void testAccessTokenKeyWithDifferentOrderOfScopes() throws MsalException {
         final TokenCacheKey accessTokenCacheKey = TokenCacheKey.createKeyForAT(AUTHORITY, CLIENT_ID, getScopes(), getUser());
 
         final Set<String> scopesInDifferentOrder = new HashSet<>();
@@ -84,7 +84,7 @@ public final class TokenCacheKeyTest {
     }
 
     @Test
-    public void testAccessTokenKeyCreationSavedWithLowerCase() throws AuthenticationException {
+    public void testAccessTokenKeyCreationSavedWithLowerCase() throws MsalException {
         final String rawIdToken = AndroidTestUtil.getRawIdToken(DISPLAYABLE.toUpperCase(Locale.US), UNIQUE_ID.toUpperCase(Locale.US),
                 HOME_OBJECT_ID.toUpperCase(Locale.US));
         final User user = new User(new IdToken(rawIdToken));
@@ -97,17 +97,17 @@ public final class TokenCacheKeyTest {
     }
 
     @Test
-    public void testRefreshTokenKeyCreation() throws AuthenticationException {
+    public void testRefreshTokenKeyCreation() throws MsalException {
         final TokenCacheKey refreshTokenCacheKey = TokenCacheKey.createKeyForRT(CLIENT_ID, getUser());
         Assert.assertTrue(refreshTokenCacheKey.toString().equals("$" + MSALUtils.base64EncodeToString(CLIENT_ID) + "$" + "$" + MSALUtils.base64EncodeToString(HOME_OBJECT_ID)));
     }
 
     @Test
-    public void testRefreshTokenKeyExtractionFromTokenCacheItem() throws AuthenticationException {
+    public void testRefreshTokenKeyExtractionFromTokenCacheItem() throws MsalException {
         final String idToken = AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", UNIQUE_ID, DISPLAYABLE, "sub", "tenant",
                 "version", HOME_OBJECT_ID);
         final TokenResponse response = new TokenResponse("access_token", idToken, "refresh_token", new Date(), new Date(), new Date(),
-                MSALUtils.convertSetToString(getScopes(), " "), "Bearer", null);
+                MSALUtils.convertSetToString(getScopes(), " "), "Bearer");
         final RefreshTokenCacheItem item = new RefreshTokenCacheItem(CLIENT_ID, response);
 
 
@@ -123,7 +123,7 @@ public final class TokenCacheKeyTest {
         return scopes;
     }
 
-    private User getUser() throws AuthenticationException {
+    private User getUser() throws MsalException {
         final String rawIdToken = AndroidTestUtil.getRawIdToken(DISPLAYABLE, UNIQUE_ID, HOME_OBJECT_ID);
         final IdToken idToken = new IdToken(rawIdToken);
 

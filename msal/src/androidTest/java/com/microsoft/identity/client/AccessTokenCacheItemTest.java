@@ -46,7 +46,7 @@ public final class AccessTokenCacheItemTest {
     private static final String TENANT_ID = "tenant";
 
     @Test
-    public void testAccessTokenItemCreation() throws AuthenticationException {
+    public void testAccessTokenItemCreation() throws MsalClientException, MsalServiceException {
         final AccessTokenCacheItem item = new AccessTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse(ACCESS_TOKEN, ""));
         Assert.assertTrue(item instanceof AccessTokenCacheItem);
         Assert.assertTrue(item.getAuthority().equals(AUTHORITY));
@@ -64,7 +64,7 @@ public final class AccessTokenCacheItemTest {
     }
 
     @Test
-    public void testRefreshTokenCreation() throws AuthenticationException {
+    public void testRefreshTokenCreation() throws MsalClientException, MsalServiceException {
         final RefreshTokenCacheItem item = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", REFRESH_TOKEN));
         Assert.assertTrue(item.getRefreshToken().equals(REFRESH_TOKEN));
     }
@@ -77,10 +77,9 @@ public final class AccessTokenCacheItemTest {
         return scopes;
     }
 
-    static TokenResponse getTokenResponse(final String accessToken, final String refreshToken)
-            throws AuthenticationException {
+    static TokenResponse getTokenResponse(final String accessToken, final String refreshToken) {
         return new TokenResponse(accessToken, getIdToken(), refreshToken, new Date(), new Date(), new Date(),
-                MSALUtils.convertSetToString(getScopes(), " "), "Bearer", null);
+                MSALUtils.convertSetToString(getScopes(), " "), "Bearer");
     }
 
     static String getIdToken() {

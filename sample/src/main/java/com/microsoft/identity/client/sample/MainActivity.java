@@ -33,7 +33,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.microsoft.identity.client.AuthenticationCallback;
-import com.microsoft.identity.client.AuthenticationException;
+import com.microsoft.identity.client.MsalException;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.MsalEventReceiver;
 import com.microsoft.identity.client.PublicClientApplication;
@@ -76,7 +76,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mApplication = new PublicClientApplication(this);
+        mApplication = new PublicClientApplication(this.getApplicationContext());
 
         final Button buttonForInteractiveRequest = (Button) findViewById(R.id.AcquireTokenInteractiveForR1);
         buttonForInteractiveRequest.setOnClickListener(new View.OnClickListener() {
@@ -111,7 +111,7 @@ public class MainActivity extends Activity {
 
     private void callAcquireToken(final String[] scopes, final UIBehavior uiBehavior, final String loginHint,
                                   final String extraQueryParam, final String[] additionalScope) {
-        mApplication.acquireToken(scopes, loginHint, uiBehavior, extraQueryParam, additionalScope,
+        mApplication.acquireToken(this, scopes, loginHint, uiBehavior, extraQueryParam, additionalScope,
                 null, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult o) {
@@ -120,7 +120,7 @@ public class MainActivity extends Activity {
                     }
 
                     @Override
-                    public void onError(final AuthenticationException exception) {
+                    public void onError(final MsalException exception) {
                         showMessage("Receive Failure Response " + exception.getMessage());
                     }
 
@@ -140,7 +140,7 @@ public class MainActivity extends Activity {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
+            public void onError(MsalException exception) {
                 showMessage("Receive Failure Response for silent request: " + exception.getMessage());
             }
 

@@ -40,14 +40,12 @@ public class User {
      */
     User(final IdToken idToken) {
         mDisplayableId = idToken.getPreferredName();
-        // TODO: home object id is returned in client info.
         if (!MSALUtils.isEmpty(idToken.getObjectId())) {
             mUniqueId = idToken.getObjectId();
         } else {
             mUniqueId = idToken.getSubject();
         }
         mHomeObjectId = MSALUtils.isEmpty(idToken.getHomeObjectId()) ? mUniqueId : idToken.getHomeObjectId();
-        //
         mName = idToken.getName();
         mIdentityProvider = idToken.getIssuer();
     }

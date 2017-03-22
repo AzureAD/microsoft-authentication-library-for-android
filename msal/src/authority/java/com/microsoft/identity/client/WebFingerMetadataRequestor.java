@@ -46,10 +46,8 @@ class WebFingerMetadataRequestor
     }
 
     @Override
-    WebFingerMetadata requestMetadata(
-            final WebFingerMetadataRequestParameters webFingerMetadataRequestParameters
-    ) throws AuthenticationException {
-
+    WebFingerMetadata requestMetadata(final WebFingerMetadataRequestParameters webFingerMetadataRequestParameters)
+            throws MsalServiceException, MsalClientException {
         final URL domain = webFingerMetadataRequestParameters.getDomain();
         final DRSMetadata drsMetadata = webFingerMetadataRequestParameters.getDrsMetadata();
         Logger.verbose(TAG, getRequestContext(), "Validating authority for auth endpoint: " + domain.toString());
@@ -66,25 +64,19 @@ class WebFingerMetadataRequestor
 
             if (HttpURLConnection.HTTP_OK != statusCode) { // check 200 OK
                 // non-200 codes mean not valid/trusted
-                throw new AuthenticationException(
-                        MSALError.AUTHORITY_VALIDATION_FAILED
-                );
+                // TODO: will error code returned from web finger request? if so we should parse the response
+                throw new MsalServiceException(MSALError.SERVICE_NOT_AVAILABLE, webResponse.getBody(), webResponse.getStatusCode(), null);
             }
 
             // parse the response
             return parseMetadata(webResponse);
-
-        } catch (IOException | RetryableException e) {
-            throw new AuthenticationException(
-                    MSALError.AUTHORITY_VALIDATION_FAILED,
-                    "Unexpected error",
-                    e
-            );
+        } catch (final IOException e) {
+            throw new MsalClientException(MSALError.IO_ERROR, "Received io exception: " + e.getMessage(), e);
         }
     }
 
     @Override
-    WebFingerMetadata parseMetadata(final HttpResponse response) throws AuthenticationException {
+    WebFingerMetadata parseMetadata(final HttpResponse response) throws MsalClientException {
         // Initialize the metadata container
         final WebFingerMetadata webFingerMetadata = new WebFingerMetadata();
 
@@ -119,8 +111,8 @@ class WebFingerMetadataRequestor
                 // Add this element to native container
                 webFingerMetadata.getLinks().add(linkElement);
             }
-        } catch (JSONException e) {
-            throw new AuthenticationException(MSALError.JSON_PARSE_FAILURE);
+        } catch (final JSONException e) {
+            throw new MsalClientException(MSALError.JSON_PARSE_FAILURE);
         }
 
         return webFingerMetadata;

@@ -37,7 +37,7 @@ final class InstanceDiscoveryResponse extends BaseOauth2Response {
      * @param tenantDiscoveryEndpoint The tenant discovery endpoint.
      */
     InstanceDiscoveryResponse(final String tenantDiscoveryEndpoint) {
-        super(null, null, null);
+        super(null, null, BaseOauth2Response.DEFAULT_STATUS_CODE);
 
         mTenantDiscoveryEndpoint = tenantDiscoveryEndpoint;
     }
@@ -46,18 +46,18 @@ final class InstanceDiscoveryResponse extends BaseOauth2Response {
      * Constructor for creating the failure response of instance discovery.
      * @param error Error code representing the failure.
      * @param errorDescription Detailed error description.
-     * @param errorCodes Error codes returned in the error response.
+     * @param statusCode The http status code related with the request.
      */
-    InstanceDiscoveryResponse(final String error, final String errorDescription, final String[] errorCodes) {
-        super(error, errorDescription, errorCodes);
+    InstanceDiscoveryResponse(final String error, final String errorDescription, final int statusCode) {
+        super(error, errorDescription, statusCode);
         mTenantDiscoveryEndpoint = null;
     }
 
     /**
      * Create the {@link InstanceDiscoveryResponse} with error response.
      */
-    public InstanceDiscoveryResponse(final BaseOauth2Response response) {
-        this(response.getError(), response.getErrorDescription(), response.getErrorCodes());
+    InstanceDiscoveryResponse(final BaseOauth2Response response) {
+        this(response.getError(), response.getErrorDescription(), response.getHttpStatusCode());
     }
 
     /**

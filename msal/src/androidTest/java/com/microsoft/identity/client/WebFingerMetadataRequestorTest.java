@@ -75,7 +75,7 @@ public class WebFingerMetadataRequestorTest {
     }
 
     @Test
-    public void testRequestMetadata() throws IOException, AuthenticationException {
+    public void testRequestMetadata() throws IOException, MsalException {
         final HttpURLConnection mockedSuccessfulConnection = AndroidTestMockUtil
                 .getMockedConnectionWithSuccessResponse(RESPONSE);
         HttpUrlConnectionFactory.addMockedConnection(mockedSuccessfulConnection);
@@ -103,7 +103,7 @@ public class WebFingerMetadataRequestorTest {
     }
 
     @Test
-    public void testRequestMetadataThrows() throws IOException, AuthenticationException {
+    public void testRequestMetadataThrows() throws IOException, MsalException {
         final HttpURLConnection mockedFailedConnection = AndroidTestMockUtil
                 .getMockedConnectionWithFailureResponse(HttpURLConnection.HTTP_BAD_REQUEST, RESPONSE);
         HttpUrlConnectionFactory.addMockedConnection(mockedFailedConnection);
@@ -117,14 +117,14 @@ public class WebFingerMetadataRequestorTest {
 
         try {
             WebFingerMetadata metadata = requestor.requestMetadata(parameters);
-        } catch (AuthenticationException e) {
+        } catch (MsalException e) {
             // should throw
             return;
         }
     }
 
     @Test
-    public void testParseMetadata() throws AuthenticationException {
+    public void testParseMetadata() throws MsalException {
         final Map<String, List<String>> mockHeaders = new HashMap<>();
         mockHeaders.put(HttpConstants.HeaderField.CONTENT_TYPE,
                 Collections.singletonList(HttpConstants.MediaType.APPLICATION_JSON));

@@ -72,7 +72,7 @@ public final class Oauth2ClientTest {
             // verify response
             Assert.assertNotNull(response);
             Assert.assertTrue(response.getAccessToken().equals(AndroidTestUtil.ACCESS_TOKEN));
-        } catch (final RetryableException | IOException | AuthenticationException e) {
+        } catch (final IOException | MsalException e) {
             Assert.fail("Unexpected Exception.");
         }
     }
@@ -126,9 +126,7 @@ public final class Oauth2ClientTest {
             Assert.assertNotNull(response);
             Assert.assertTrue(response.getError().equals("invalid_request"));
             Assert.assertFalse(response.getErrorDescription().isEmpty());
-            Assert.assertNotNull(response.getErrorCodes());
-            Assert.assertTrue(response.getErrorCodes().length == 2);
-        } catch (final RetryableException | IOException | AuthenticationException e) {
+        } catch (final IOException | MsalException e) {
             Assert.fail("Unexpected Exception.");
         }
     }
@@ -147,7 +145,7 @@ public final class Oauth2ClientTest {
         try {
             oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
             Assert.fail();
-        } catch (final AuthenticationException e) {
+        } catch (final MsalException e) {
             Assert.assertNotNull(e.getCause());
             Assert.assertTrue(e.getCause() instanceof JSONException);
         }
@@ -158,7 +156,7 @@ public final class Oauth2ClientTest {
      */
     @Test
     public void testOauth2ClientPassBackRetryableExceptionRetryFailsWithTimeout() throws IOException,
-            AuthenticationException {
+            MsalException {
         final Oauth2Client oauth2Client = getOauth2ClientWithCorrelationIdInTheHeader();
 
         // Add two connections with timeout
@@ -168,7 +166,8 @@ public final class Oauth2ClientTest {
         try {
             oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
             Assert.fail();
-        } catch (final RetryableException e) {
+        } catch (final MsalServiceException e) {
+            Assert.assertTrue(e.getErrorCode().equals(MSALError.REQUEST_TIMEOUT));
             Assert.assertNotNull(e.getCause());
             Assert.assertTrue(e.getCause() instanceof SocketTimeoutException);
         }
@@ -179,7 +178,7 @@ public final class Oauth2ClientTest {
      */
     @Test
     public void testOauth2ClientPassBackRetryableExceptionRetryFailsWithServerError() throws IOException,
-            AuthenticationException {
+            MsalException {
         final Oauth2Client oauth2Client = getOauth2ClientWithCorrelationIdInTheHeader();
 
         // Add two connections, one with timeout, one with 500/503/504
@@ -193,12 +192,8 @@ public final class Oauth2ClientTest {
         try {
             oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY));
             Assert.fail();
-        } catch (final RetryableException e) {
-            Assert.assertNotNull(e.getCause());
-            Assert.assertTrue(e.getCause() instanceof AuthenticationException);
-
-            final AuthenticationException exception = (AuthenticationException) e.getCause();
-            Assert.assertTrue(exception.getErrorCode().equals(MSALError.RETRY_FAILED_WITH_SERVER_ERROR));
+        } catch (final MsalServiceException e) {
+            Assert.assertTrue(e.getErrorCode().equals(MSALError.SERVICE_NOT_AVAILABLE));
         }
     }
 

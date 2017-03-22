@@ -41,7 +41,7 @@ final class AuthenticationRequestParameters {
     private String mRedirectUri;
     private String mLoginHint;
     private String mExtraQueryParam;
-    private UIBehavior mUiBehavior;
+    private UIBehavior mUIBehavior;
 
     /**
      * Creates new {@link AuthenticationRequestParameters}.
@@ -135,11 +135,11 @@ final class AuthenticationRequestParameters {
     }
 
     UIBehavior getUiBehavior() {
-        return mUiBehavior;
+        return mUIBehavior;
     }
 
     private void setUIBehavior(final UIBehavior uiBehavior) {
-        mUiBehavior = uiBehavior;
+        mUIBehavior = uiBehavior;
     }
 
     RequestContext getRequestContext() {
