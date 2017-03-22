@@ -110,7 +110,7 @@ public final class AuthorityTest {
 
         try {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
-        } catch (AuthenticationException e) {
+        } catch (MsalException e) {
             Assert.fail();
         }
 
@@ -126,7 +126,7 @@ public final class AuthorityTest {
         AndroidTestMockUtil.mockSuccessTenantDiscovery(AUTHORIZE_ENDPOINT, TOKEN_ENDPOINT);
         try {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
-        } catch (AuthenticationException e) {
+        } catch (MsalException e) {
             Assert.fail();
         }
 
@@ -177,7 +177,7 @@ public final class AuthorityTest {
         try {
             final String openIdConfigEndpoint = authority.performInstanceDiscovery(new RequestContext(UUID.randomUUID(), ""), null);
             Assert.assertTrue(openIdConfigEndpoint.equals(authority.getDefaultOpenIdConfigurationEndpoint()));
-        } catch (AuthenticationException e) {
+        } catch (MsalException e) {
             Assert.fail();
         }
     }
@@ -192,7 +192,7 @@ public final class AuthorityTest {
 
         try {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
-        } catch (AuthenticationException e) {
+        } catch (MsalException e) {
             Assert.fail();
         }
 
@@ -204,7 +204,7 @@ public final class AuthorityTest {
 
         try {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
-        } catch (AuthenticationException e) {
+        } catch (MsalException e) {
             Assert.fail();
         }
 
@@ -215,7 +215,7 @@ public final class AuthorityTest {
         final Authority authority2 = Authority.createAuthority(TEST_AUTHORITY, true);
         try {
             authority2.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
-        } catch (AuthenticationException e) {
+        } catch (MsalException e) {
             Assert.fail();
         }
 
@@ -227,7 +227,7 @@ public final class AuthorityTest {
      * Verify that if instance discovery fails(server returns error and error_description), we return the error error back.
      */
     @Test
-    public void testInstanceDiscoveryFailed() throws IOException {
+    public void testInstanceDiscoveryFailed() throws IOException, MsalClientException {
         final String authorityString = "https://some.authority/endpoint";
         final Authority authority = Authority.createAuthority(authorityString, true);
 
@@ -236,8 +236,8 @@ public final class AuthorityTest {
         try {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
             Assert.fail();
-        } catch (final AuthenticationException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.AUTHORITY_VALIDATION_FAILED));
+        } catch (final MsalServiceException e) {
+            Assert.assertTrue(e.getErrorCode().equals(MSALError.INVALID_REQUEST));
         }
     }
 
@@ -253,7 +253,7 @@ public final class AuthorityTest {
         try {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
             Assert.fail();
-        } catch (final AuthenticationException e) {
+        } catch (final MsalException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.JSON_PARSE_FAILURE));
         }
     }
@@ -271,15 +271,15 @@ public final class AuthorityTest {
         try {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
             Assert.fail();
-        } catch (final AuthenticationException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.SERVER_ERROR));
+        } catch (final MsalException e) {
+            Assert.assertTrue(e.getErrorCode().equals(MSALError.REQUEST_TIMEOUT));
             Assert.assertNotNull(e.getCause());
             Assert.assertTrue(e.getCause() instanceof SocketTimeoutException);
         }
     }
 
     @Test
-    public void testTenantDiscoveryFailed() throws IOException {
+    public void testTenantDiscoveryFailed() throws IOException, MsalClientException {
         final String authorityString = "https://some.authority/endpoint";
         final Authority authority = Authority.createAuthority(authorityString, true);
 
@@ -291,8 +291,8 @@ public final class AuthorityTest {
         try {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
             Assert.fail();
-        } catch (final AuthenticationException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.TENANT_DISCOVERY_FAILED));
+        } catch (final MsalServiceException e) {
+            Assert.assertTrue(e.getErrorCode().equals(MSALError.INVALID_INSTANCE));
         }
     }
 
@@ -309,7 +309,7 @@ public final class AuthorityTest {
         try {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
             Assert.fail();
-        } catch (final AuthenticationException e) {
+        } catch (final MsalException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.JSON_PARSE_FAILURE));
         }
     }
@@ -329,8 +329,8 @@ public final class AuthorityTest {
         try {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
             Assert.fail();
-        } catch (final AuthenticationException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.SERVER_ERROR));
+        } catch (final MsalException e) {
+            Assert.assertTrue(e.getErrorCode().equals(MSALError.REQUEST_TIMEOUT));
             Assert.assertNotNull(e.getCause());
             Assert.assertTrue(e.getCause() instanceof SocketTimeoutException);
         }
@@ -346,7 +346,7 @@ public final class AuthorityTest {
         AndroidTestMockUtil.mockSuccessTenantDiscovery(AUTHORIZE_ENDPOINT, TOKEN_ENDPOINT);
         try {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "test"), null);
-        } catch (final AuthenticationException e) {
+        } catch (final MsalException e) {
             Assert.fail("Unexpected exception");
         }
 

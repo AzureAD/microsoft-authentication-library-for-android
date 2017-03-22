@@ -25,7 +25,7 @@ package com.microsoft.identity.client;
 
 /**
  * Internal exception used to wrap the {@link java.net.SocketTimeoutException} and network request with status code as
- * 500/503/504. For 500/503/504, we'll wrap the {@link AuthenticationException} as the cause.
+ * 500/503/504. For 500/503/504, we'll wrap the {@link MsalException} as the cause.
  */
 class RetryableException extends Exception {
 

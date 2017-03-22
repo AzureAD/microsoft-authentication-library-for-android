@@ -23,11 +23,6 @@
 
 package com.microsoft.identity.client;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,17 +31,18 @@ import java.util.Map;
 class BaseOauth2Response {
     private static final String TAG = BaseOauth2Response.class.getSimpleName();
 
+    static final int DEFAULT_STATUS_CODE = 0;
     private final String mError;
     private final String mErrorDescription;
-    private final String[] mErrorCodes;
+    private final int mHttpStatusCode;
 
     /**
      * Constructor for {@link BaseOauth2Response}.
      */
-    BaseOauth2Response(final String error, final String errorDescription, final String[] errorCodes) {
+    BaseOauth2Response(final String error, final String errorDescription, final int httpStatusCode) {
         mError = error;
         mErrorDescription = errorDescription;
-        mErrorCodes = errorCodes;
+        mHttpStatusCode = httpStatusCode;
     }
 
     /**
@@ -64,36 +60,16 @@ class BaseOauth2Response {
     }
 
     /**
-     * @return Array of error codes.
+     * @return The http status code for the error response.
      */
-    public String[] getErrorCodes() {
-        return mErrorCodes;
+    public int getHttpStatusCode() {
+        return mHttpStatusCode;
     }
 
-    static BaseOauth2Response createErrorResponse(final Map<String, String> responseItems) throws JSONException {
+    static BaseOauth2Response createErrorResponse(final Map<String, String> responseItems, final int httpStatusCode) {
         final String error = responseItems.get(OauthConstants.BaseOauth2ResponseClaim.ERROR);
         final String errorDescription = responseItems.get(OauthConstants.BaseOauth2ResponseClaim.ERROR_DESCRIPTION);
 
-        final JSONArray errorCodesJsonArray = new JSONArray(responseItems.get(OauthConstants.BaseOauth2ResponseClaim.ERROR_CODES));
-        final List<String> errorCodesList = new ArrayList<>();
-        for (int i = 0; i < errorCodesJsonArray.length(); i++) {
-            final String errorCode = errorCodesJsonArray.getString(i);
-            errorCodesList.add(errorCode);
-        }
-
-        return new BaseOauth2Response(error, errorDescription, errorCodesList.toArray(new String[errorCodesList.size()]));
-    }
-
-    static BaseOauth2Response createSuccessResponse(final Map<String, String> responseItems) {
-        if (responseItems.get(OauthConstants.InstanceDiscoveryClaim.TENANT_DISCOVERY_ENDPOINT) != null) {
-            Logger.info(TAG, null, "Instance discovery succeeded.");
-            return InstanceDiscoveryResponse.createSuccessInstanceDiscoveryResponse(responseItems);
-        } else if (responseItems.get(OauthConstants.TenantDiscoveryClaim.AUTHORIZATION_ENDPOINT) != null) {
-            Logger.info(TAG, null, "Tenant discovery succeeded.");
-            return TenantDiscoveryResponse.createSuccessTenantDiscoveryResponse(responseItems);
-        } else {
-            Logger.info(TAG, null, "Token is returned successfully.");
-            return TokenResponse.createSuccessTokenResponse(responseItems);
-        }
+        return new BaseOauth2Response(error, errorDescription, httpStatusCode);
     }
 }

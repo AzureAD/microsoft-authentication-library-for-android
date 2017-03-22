@@ -90,7 +90,7 @@ public final class SilentRequestTest extends AndroidTestCase {
      * Verify that correct exception is thrown if device is not connected to the network.
      */
     @Test
-    public void testNetworkNotConnected() throws AuthenticationException, IOException, InterruptedException {
+    public void testNetworkNotConnected() throws MsalException, IOException, InterruptedException {
         final String singleScope = "scope1";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
                 TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope,
@@ -113,8 +113,9 @@ public final class SilentRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
-                assertTrue(exception.getErrorCode().equals(MSALError.DEVICE_CONNECTION_NOT_AVAILABLE));
+            public void onError(MsalException exception) {
+                assertTrue(exception instanceof MsalClientException);
+                assertTrue(exception.getErrorCode().equals(MSALError.DEVICE_NETWORK_NOT_AVAILABLE));
                 resultLock.countDown();
             }
 
@@ -131,7 +132,7 @@ public final class SilentRequestTest extends AndroidTestCase {
      * Verify that valid access token is successfully returned.
      */
     @Test
-    public void testValidAccessTokenInTheCache() throws AuthenticationException, InterruptedException, IOException {
+    public void testValidAccessTokenInTheCache() throws MsalException, InterruptedException {
         final String singleScope = "scope1";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
                 TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn()));
@@ -152,7 +153,7 @@ public final class SilentRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
+            public void onError(MsalException exception) {
                 fail();
             }
 
@@ -169,7 +170,7 @@ public final class SilentRequestTest extends AndroidTestCase {
      * Verify that if the access token item in the cache does not contain access_token, id token will be returned instead.
      */
     @Test
-    public void testSavedTokenInCacheNotHaveAccessToken() throws AuthenticationException, InterruptedException {
+    public void testSavedTokenInCacheNotHaveAccessToken() throws MsalException, InterruptedException {
         final String singleScope = "scope1";
 
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
@@ -190,7 +191,7 @@ public final class SilentRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
+            public void onError(MsalException exception) {
                 fail();
             }
 
@@ -207,7 +208,7 @@ public final class SilentRequestTest extends AndroidTestCase {
      * Verify that refresh token is correctly used if at is not valid.
      */
     @Test
-    public void testAccessTokenNotValidRTIsUsed() throws AuthenticationException,
+    public void testAccessTokenNotValidRTIsUsed() throws MsalException,
             InterruptedException, IOException {
         final String singleScope = "scope1";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
@@ -234,7 +235,7 @@ public final class SilentRequestTest extends AndroidTestCase {
 
                 try {
                     assertTrue(AndroidTestUtil.REFRESH_TOKEN.equals(mTokenCache.findRefreshToken(requestParameters, mDefaultUser).getRefreshToken()));
-                } catch (final AuthenticationException e) {
+                } catch (final MsalException e) {
                     fail();
                 }
 
@@ -243,7 +244,7 @@ public final class SilentRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
+            public void onError(MsalException exception) {
                 fail();
             }
 
@@ -261,7 +262,7 @@ public final class SilentRequestTest extends AndroidTestCase {
      * what's requested for.
      */
     @Test
-    public void testScopeNotProvidedTheSameOrder() throws AuthenticationException, InterruptedException, IOException {
+    public void testScopeNotProvidedTheSameOrder() throws MsalException, InterruptedException, IOException {
         // store valid token in the cache
         final String scopeInResponse = "user.read email.read scope2";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
@@ -283,7 +284,7 @@ public final class SilentRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
+            public void onError(MsalException exception) {
                 fail();
             }
 
@@ -297,7 +298,7 @@ public final class SilentRequestTest extends AndroidTestCase {
     }
 
     @Test
-    public void testSilentRequestScopeNotSameAsTokenCacheItem() throws AuthenticationException,
+    public void testSilentRequestScopeNotSameAsTokenCacheItem() throws MsalException,
             InterruptedException, IOException {
         final String singleScope = "scope1";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
@@ -332,7 +333,7 @@ public final class SilentRequestTest extends AndroidTestCase {
                 try {
                     assertTrue(AndroidTestUtil.REFRESH_TOKEN.equals(mTokenCache.findRefreshToken(requestParametersWithAnotherScope,
                             mDefaultUser).getRefreshToken()));
-                } catch (final AuthenticationException e) {
+                } catch (final MsalException e) {
                     fail();
                 }
 
@@ -340,7 +341,7 @@ public final class SilentRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
+            public void onError(MsalException exception) {
                 fail();
             }
 
@@ -357,7 +358,7 @@ public final class SilentRequestTest extends AndroidTestCase {
      * Verify that correct exception is returned if no refresh token is found.
      */
     @Test
-    public void testNoRefreshTokenIsFound() throws AuthenticationException,
+    public void testNoRefreshTokenIsFound() throws MsalException,
             InterruptedException, IOException {
         final String singleScope = "scope1";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
@@ -372,8 +373,9 @@ public final class SilentRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
-                assertTrue(exception.getErrorCode().equals(MSALError.INTERACTION_REQUIRED));
+            public void onError(MsalException exception) {
+                assertTrue(exception instanceof MsalUiRequiredException);
+                assertTrue(exception.getErrorCode().equals(MSALError.NO_TOKENS_FOUND));
                 resultLock.countDown();
             }
 
@@ -390,7 +392,7 @@ public final class SilentRequestTest extends AndroidTestCase {
      * Verify that refresh token is deleted if failed with invalid grant.
      */
     @Test
-    public void testForceRefreshRequestFailedWithInvalidGrant() throws AuthenticationException,
+    public void testForceRefreshRequestFailedWithInvalidGrant() throws MsalException,
             InterruptedException, IOException {
         final String singleScope = "scope1";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
@@ -408,13 +410,9 @@ public final class SilentRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
-                assertTrue(exception.getErrorCode().equals(MSALError.INTERACTION_REQUIRED));
-                assertNotNull(exception.getCause());
-                assertTrue(exception instanceof AuthenticationException);
-                final AuthenticationException innerException = (AuthenticationException) exception.getCause();
-                assertTrue(innerException.getErrorCode().equals(MSALError.OAUTH_ERROR));
-
+            public void onError(MsalException exception) {
+                assertTrue(exception instanceof MsalUiRequiredException);
+                assertTrue(exception.getErrorCode().equals(MSALError.INVALID_GRANT));
                 resultLock.countDown();
             }
 
@@ -433,7 +431,7 @@ public final class SilentRequestTest extends AndroidTestCase {
      * Verify that refresh token is not cleared if RT request failed with invalid_request.
      */
     @Test
-    public void testForceRefreshTokenRequestFailedWithInvalidRequest() throws AuthenticationException, InterruptedException,
+    public void testForceRefreshTokenRequestFailedWithInvalidRequest() throws MsalException, InterruptedException,
             IOException {
         final String singleScope = "scope1";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
@@ -451,12 +449,12 @@ public final class SilentRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
-                assertTrue(exception.getErrorCode().equals(MSALError.INTERACTION_REQUIRED));
-                assertNotNull(exception.getCause());
-                assertTrue(exception instanceof AuthenticationException);
-                final AuthenticationException innerException = (AuthenticationException) exception.getCause();
-                assertTrue(innerException.getErrorCode().equals(MSALError.OAUTH_ERROR));
+            public void onError(MsalException exception) {
+                assertTrue(exception instanceof MsalServiceException);
+
+                final MsalServiceException msalServiceException = (MsalServiceException) exception;
+                assertTrue(msalServiceException.getErrorCode().equals(MSALError.INVALID_REQUEST));
+                assertTrue(msalServiceException.getHttpStatusCode() == HttpURLConnection.HTTP_BAD_REQUEST);
 
                 resultLock.countDown();
             }

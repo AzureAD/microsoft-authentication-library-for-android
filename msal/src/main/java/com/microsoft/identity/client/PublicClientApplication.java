@@ -40,7 +40,7 @@ import java.util.UUID;
  * Entry point for developer to create the public native application, and make API call to get token.
  */
 public final class PublicClientApplication {
-    private static final String TAG = PublicClientApplication.class.getSimpleName(); //NOPMD
+    private static final String TAG = PublicClientApplication.class.getSimpleName();
 
     private static final String CLIENT_ID_META_DATA = "com.microsoft.identity.client.ClientId";
     private static final String AUTHORITY_META_DATA = "com.microsoft.identity.client.Authority";
@@ -61,11 +61,13 @@ public final class PublicClientApplication {
 
     /**
      * Constructor for {@link PublicClientApplication}.
-     * Client id has be to set in the manifest as the meta data, name for client id in the metadata is:
-     * "com.microsoft.identity.client.ClientId"
-     * Redirect uri has to be set in the manifest as the meta data, name for redirect uri in metadata is:
-     * "com.microsoft.identity.client.RedirectUri"
-     * Authority can be set in the meta data, if not provided, the sdk will use the default authority.
+     * <p>
+     *      Client id <b>MUST</b> be set in the manifest as the meta data({@link IllegalArgumentException} will be thrown
+     *      if client id is not provided), name for client id in the metadata is: "com.microsoft.identity.client.ClientId"
+     *      Redirect uri <b>MUST</b> be set in the manifest as the meta data({@link IllegalArgumentException} will be thrown
+     *      if client id is not provided), name for redirect uri in metadata is: "com.microsoft.identity.client.RedirectUri"
+     *      Authority can be set in the meta data, if not provided, the sdk will use the default authority.
+     * </p>
      * @param activity The sdk requires the activity to be passed in when creating the {@link PublicClientApplication}.
      *                 For interactive request, the result has will be delivered back via the
      *                 {@link Activity#onActivityResult(int, int, Intent)}. Cannot be null.
@@ -122,9 +124,9 @@ public final class PublicClientApplication {
     /**
      * Returns the list of signed in users for the application.
      * @return Immutable List of all the signed in users.
-     * @throws AuthenticationException If failed to retrieve users from the cache.
+     * @throws MsalClientException If failed to retrieve users from the cache.
      */
-    public List<User> getUsers() throws AuthenticationException {
+    public List<User> getUsers() throws MsalClientException {
         return mTokenCache.getUsers(mClientId);
     }
 
@@ -150,7 +152,7 @@ public final class PublicClientApplication {
      *                 2) If the sdk successfully receives the token back, result will be sent back via
      *                 {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
      *                 3) All the other errors will be sent back via
-     *                 {@link AuthenticationCallback#onError(AuthenticationException)}.
+     *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireToken(final String[] scopes, final AuthenticationCallback callback) {
         acquireTokenInteractive(scopes, "", UIBehavior.SELECT_ACCOUNT, "", null, "", callback);
@@ -168,7 +170,7 @@ public final class PublicClientApplication {
      *                 2) If the sdk successfully receives the token back, result will be sent back via
      *                 {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
      *                 3) All the other errors will be sent back via
-     *                 {@link AuthenticationCallback#onError(AuthenticationException)}.
+     *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireToken(final String[] scopes, final String loginHint,
                              final AuthenticationCallback callback) {
@@ -189,7 +191,7 @@ public final class PublicClientApplication {
      *                 2) If the sdk successfully receives the token back, result will be sent back via
      *                 {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
      *                 3) All the other errors will be sent back via
-     *                 {@link AuthenticationCallback#onError(AuthenticationException)}.
+     *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireToken(final String[] scopes, final String loginHint, final UIBehavior uiBehavior,
                              final String extraQueryParams, final AuthenticationCallback callback) {
@@ -213,7 +215,7 @@ public final class PublicClientApplication {
      *                 2) If the sdk successfully receives the token back, result will be sent back via
      *                 {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
      *                 3) All the other errors will be sent back via
-     *                 {@link AuthenticationCallback#onError(AuthenticationException)}.
+     *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireToken(final String[] scopes, final String loginHint, final UIBehavior uiBehavior,
                              final String extraQueryParams, final String[] additionalScope, final String authority,
@@ -232,7 +234,7 @@ public final class PublicClientApplication {
      * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
      *                                               sent back via {@link AuthenticationCallback#onSuccess(AuthenticationResult)}.
      *                                               Failure case will be sent back via {
-     *                                               @link AuthenticationCallback#onError(AuthenticationException)}.
+     *                                               @link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireTokenSilentAsync(final String[] scopes, final User user,
                                         final AuthenticationCallback callback) {
@@ -250,7 +252,7 @@ public final class PublicClientApplication {
      * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
      *                                               sent back via {@link AuthenticationCallback#onSuccess(AuthenticationResult)}.
      *                                               Failure case will be sent back via {
-     *                                               @link AuthenticationCallback#onError(AuthenticationException)}.
+     *                                               @link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireTokenSilentAsync(final String[] scopes, final User user, final String authority,
                                         final boolean forceRefresh,

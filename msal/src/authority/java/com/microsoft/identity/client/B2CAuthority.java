@@ -70,11 +70,11 @@ final class B2CAuthority extends AADAuthority {
     }
 
     @Override
-    String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws AuthenticationException {
+    String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws MsalClientException {
         if (mValidateAuthority && !TRUSTED_HOST_SET.contains(mAuthorityUrl.getAuthority())) {
             // we don't support b2c authority validation for BUILD.
             Logger.error(TAG, null, "Authority validation is not supported for b2c authority.", null);
-            throw new AuthenticationException(MSALError.UNSUPPORTED_AUTHORITY_VALIDATION, "B2C authority is not supported for doing authority validation");
+            throw new MsalClientException(MSALError.UNSUPPORTED_AUTHORITY_VALIDATION_INSTANCE, "B2C authority is not supported for doing authority validation");
         }
 
         return getDefaultOpenIdConfigurationEndpoint();

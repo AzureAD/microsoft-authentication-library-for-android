@@ -61,9 +61,11 @@ abstract class Authority {
      *
      * @param requestContext The {@link RequestContext} for the instance discovery request.
      * @return The tenant discovery endpoint.
-     * @throws AuthenticationException if error happens during the instance discovery.
+     * @throws MsalException if error happens during the instance discovery.
      */
-    abstract String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws AuthenticationException;
+    abstract String performInstanceDiscovery(final RequestContext requestContext,
+                                             final String userPrincipalName)
+            throws MsalClientException, MsalServiceException;
 
     /**
      * @return True if the authority is already validated.
@@ -97,8 +99,7 @@ abstract class Authority {
             throw new IllegalArgumentException("Invalid protocol for the authority url.");
         }
 
-        // there has to be a valid path provided.
-        if (MSALUtils.isEmpty(authority.getPath().replaceFirst("/", ""))) {
+        if (MSALUtils.isEmpty(authority.getPath().replace("/", ""))) {
             throw new IllegalArgumentException("Invalid authority url");
         }
 
@@ -124,9 +125,9 @@ abstract class Authority {
      * tenant discovery to get authorize and token endpoint. Developer could turn off authority validation, but for all the
      * authority, we'll do tenant discovery.
      * @param requestContext {@link RequestContext} for the authority validation and tenant discovery.
-     * @throws AuthenticationException If error happens during authority or tenant discovery.
+     * @throws MsalException If error happens during authority or tenant discovery.
      */
-    void resolveEndpoints(final RequestContext requestContext, final String userPrincipalName) throws AuthenticationException {
+    void resolveEndpoints(final RequestContext requestContext, final String userPrincipalName) throws MsalClientException, MsalServiceException {
         Logger.info(TAG, requestContext, "Perform authority validation and tenant discovery.");
         if (existsInValidatedAuthorityCache(userPrincipalName)) {
             Logger.info(TAG, requestContext, "Authority has been validated.");
@@ -143,18 +144,19 @@ abstract class Authority {
             final Oauth2Client oauth2Client = new Oauth2Client();
             oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID, requestContext.getCorrelationId().toString());
             tenantDiscoveryResponse = oauth2Client.discoverEndpoints(new URL(openIdConfigurationEndpoint));
-        } catch (final MalformedURLException e) {
-            throw new AuthenticationException(MSALError.SERVER_ERROR, "malformed openid configuration endpoint", e);
-        } catch (final RetryableException retryableException) {
-            throw new AuthenticationException(MSALError.SERVER_ERROR, retryableException.getMessage(), retryableException.getCause());
         } catch (final IOException ioException) {
-            throw new AuthenticationException(MSALError.TENANT_DISCOVERY_FAILED, ioException.getMessage(), ioException);
+            throw new MsalClientException(MSALError.IO_ERROR, ioException.getMessage(), ioException);
         }
 
         if (MSALUtils.isEmpty(tenantDiscoveryResponse.getAuthorizationEndpoint())
                 || MSALUtils.isEmpty(tenantDiscoveryResponse.getTokenEndpoint())) {
-            throw new AuthenticationException(MSALError.TENANT_DISCOVERY_FAILED, "Error: " + tenantDiscoveryResponse.getError()
-                    + ";ErrorDescription: " + tenantDiscoveryResponse.getErrorDescription());
+            if (tenantDiscoveryResponse.getError() != null) {
+                throw new MsalServiceException(tenantDiscoveryResponse.getError(), tenantDiscoveryResponse.getErrorDescription(),
+                        tenantDiscoveryResponse.getHttpStatusCode(), null);
+            }
+
+            throw new MsalServiceException(MSALError.UNKNOWN_ERROR, "Didn't receive either success or failure response from server",
+                    tenantDiscoveryResponse.getHttpStatusCode(), null);
         }
 
         mAuthorizationEndpoint = tenantDiscoveryResponse.getAuthorizationEndpoint();
@@ -225,7 +227,7 @@ abstract class Authority {
         return mIsTenantless;
     }
 
-    void updateTenantLessAuthority(final String tenantId) throws AuthenticationException {
+    void updateTenantLessAuthority(final String tenantId) throws MsalClientException {
         if (!mIsTenantless || MSALUtils.isEmpty(tenantId)) {
             return;
         }
@@ -240,7 +242,7 @@ abstract class Authority {
             mAuthorityUrl = new URL(authorityString);
             mIsTenantless = false;
         } catch (final MalformedURLException e) {
-            throw new AuthenticationException(MSALError.UNSUPPORTED_ENCODING, "Fail to update tenant id for tenant less authority, ", e);
+            throw new MsalClientException(MSALError.MALFORMED_URL, "Fail to update tenant id for tenant less authority, ", e);
         }
     }
 

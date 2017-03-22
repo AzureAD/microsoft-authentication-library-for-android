@@ -71,7 +71,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     static final String CLIENT_ID = "client-id";
     static final UUID CORRELATION_ID = UUID.randomUUID();
     static final String LOGIN_HINT = "test@test.onmicrosoft.com";
-    static final int TREAD_DELAY_TIME = 200;
+    static final int THREAD_DELAY_TIME = 200;
 
     /**
      * Min length of code_challenge Strings
@@ -157,7 +157,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     @Test
-    public void testGetAuthorizationUriUiBehaviorIsConsent() throws UnsupportedEncodingException, AuthenticationException {
+    public void testGetAuthorizationUriUiBehaviorIsConsent() throws UnsupportedEncodingException, MsalException {
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
                 getAuthenticationParams(AUTHORITY, UIBehavior.CONSENT), null);
         final String actualAuthorizationUri = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
@@ -171,7 +171,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     @Test
-    public void testGetAuthorizationUriContainsPKCEChallenge() throws UnsupportedEncodingException, AuthenticationException {
+    public void testGetAuthorizationUriContainsPKCEChallenge() throws UnsupportedEncodingException, MsalException {
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
                 getAuthenticationParams(AUTHORITY, UIBehavior.CONSENT), null);
         final String authUriStr = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
@@ -186,7 +186,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     @Test
-    public void testGetAuthorizationUriUiBehaviorForceLogin() throws UnsupportedEncodingException, AuthenticationException {
+    public void testGetAuthorizationUriUiBehaviorForceLogin() throws UnsupportedEncodingException, MsalException {
         final String[] additionalScope = {"additionalScope"};
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
                 getAuthenticationParams(AUTHORITY, UIBehavior.FORCE_LOGIN), additionalScope);
@@ -224,8 +224,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
-                assertTrue(MSALError.DEVICE_CONNECTION_NOT_AVAILABLE.equals(exception.getErrorCode()));
+            public void onError(MsalException exception) {
+                assertTrue(MSALError.DEVICE_NETWORK_NOT_AVAILABLE.equals(exception.getErrorCode()));
                 resultLock.countDown();
             }
 
@@ -237,7 +237,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         // having the thread delayed for preTokenRequest to finish. Here we mock the
         // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
-        resultLock.await(TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
+        resultLock.await(THREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
 
         final Intent resultIntent = new Intent();
         resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
@@ -275,8 +275,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
-                assertTrue(MSALError.DEVICE_CONNECTION_NOT_AVAILABLE.equals(exception.getErrorCode()));
+            public void onError(MsalException exception) {
+                assertTrue(MSALError.DEVICE_NETWORK_NOT_AVAILABLE.equals(exception.getErrorCode()));
                 resultLock.countDown();
             }
 
@@ -288,7 +288,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         // having the thread delayed for preTokenRequest to finish. Here we mock the
         // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
-        resultLock.await(TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
+        resultLock.await(THREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
 
         final Intent resultIntent = new Intent();
         resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
@@ -335,7 +335,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
+            public void onError(MsalException exception) {
                 fail();
             }
 
@@ -347,7 +347,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         // having the thread delayed for preTokenRequest to finish. Here we mock the
         // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
-        resultLock.await(TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
+        resultLock.await(THREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
 
         final Intent resultIntent = new Intent();
         resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
@@ -387,9 +387,13 @@ public final class InteractiveRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
-                assertTrue(MSALError.OAUTH_ERROR.equals(exception.getErrorCode()));
-                assertTrue(exception.getMessage().contains("invalid_request"));
+            public void onError(MsalException exception) {
+                assertTrue(exception instanceof MsalServiceException);
+
+                final MsalServiceException serviceException = (MsalServiceException) exception;
+                assertTrue(MSALError.INVALID_REQUEST.equals(serviceException.getErrorCode()));
+                assertTrue(!exception.getMessage().isEmpty());
+                assertTrue(serviceException.getHttpStatusCode() == HttpURLConnection.HTTP_BAD_REQUEST);
                 resultLock.countDown();
             }
 
@@ -401,7 +405,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         // having the thread delayed for preTokenRequest to finish. Here we mock the
         // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
-        resultLock.await(TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
+        resultLock.await(THREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
 
         final Intent resultIntent = new Intent();
         resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri + "?code=1234&state="
@@ -435,7 +439,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
+            public void onError(MsalException exception) {
                 fail();
             }
 
@@ -447,7 +451,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         // having the thread delayed for preTokenRequest to finish. Here we mock the
         // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
-        resultLock.await(TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
+        resultLock.await(THREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
 
         InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
                 Constants.UIResponse.CANCEL, new Intent());
@@ -488,7 +492,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(AuthenticationException exception) {
+            public void onError(MsalException exception) {
                 fail();
             }
 
@@ -500,7 +504,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         // having the thread delayed for preTokenRequest to finish. Here we mock the
         // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
-        resultLock.await(TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
+        resultLock.await(THREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
 
         final Intent resultIntent = new Intent();
         resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
@@ -536,9 +540,9 @@ public final class InteractiveRequestTest extends AndroidTestCase {
             }
 
             @Override
-            public void onError(final AuthenticationException exception) {
-                assertTrue(MSALError.AUTH_FAILED.equals(exception.getErrorCode()));
-                assertTrue(exception.getMessage().contains("access_denied"));
+            public void onError(final MsalException exception) {
+                assertTrue(exception instanceof MsalServiceException);
+                assertTrue(MSALError.ACCESS_DENIED.equals(exception.getErrorCode()));
                 assertFalse(exception.getMessage().contains("other_error"));
                 resultLock.countDown();
             }
@@ -551,7 +555,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         // having the thread delayed for preTokenRequest to finish. Here we mock the
         // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
-        resultLock.await(TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
+        resultLock.await(THREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
 
         final Intent resultIntent = new Intent();
         resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
@@ -577,9 +581,10 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                     }
 
                     @Override
-                    public void onError(AuthenticationException exception) {
-                        assertTrue(MSALError.AUTH_FAILED.equals(exception.getErrorCode()));
-                        assertTrue(exception.getMessage().contains("access_denied;some_error_description"));
+                    public void onError(MsalException exception) {
+                        assertTrue(exception instanceof MsalServiceException);
+                        assertTrue(MSALError.ACCESS_DENIED.equals(exception.getErrorCode()));
+                        assertTrue(exception.getMessage().contains("some_error_description"));
                         countDownLatch.countDown();
                     }
 
@@ -609,9 +614,10 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                     }
 
                     @Override
-                    public void onError(AuthenticationException exception) {
-                        assertTrue(MSALError.AUTH_FAILED.equals(exception.getErrorCode()));
-                        assertTrue(Constants.MSALErrorMessage.STATE_NOT_THE_SAME.equals(exception.getMessage()));
+                    public void onError(MsalException exception) {
+                        assertTrue(exception instanceof MsalClientException);
+                        assertTrue(MSALError.STATE_NOT_MATCH.equals(exception.getErrorCode()));
+                        assertTrue(Constants.MsalErrorMessage.STATE_NOT_THE_SAME.equals(exception.getMessage()));
                         countDownLatch.countDown();
                     }
 
@@ -641,9 +647,9 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                     }
 
                     @Override
-                    public void onError(AuthenticationException exception) {
-                        assertTrue(MSALError.AUTH_FAILED.equals(exception.getErrorCode()));
-                        assertTrue(Constants.MSALErrorMessage.STATE_NOT_THE_SAME.equals(exception.getMessage()));
+                    public void onError(MsalException exception) {
+                        assertTrue(MSALError.STATE_NOT_MATCH.equals(exception.getErrorCode()));
+                        assertTrue(Constants.MsalErrorMessage.STATE_NOT_THE_SAME.equals(exception.getMessage()));
                         countDownLatch.countDown();
                     }
 
@@ -674,9 +680,9 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                     }
 
                     @Override
-                    public void onError(AuthenticationException exception) {
-                        assertTrue(MSALError.AUTH_FAILED.equals(exception.getErrorCode()));
-                        assertTrue(exception.getMessage().contains(Constants.MSALErrorMessage.STATE_NOT_RETURNED));
+                    public void onError(MsalException exception) {
+                        assertTrue(MSALError.STATE_NOT_MATCH.equals(exception.getErrorCode()));
+                        assertTrue(exception.getMessage().contains(Constants.MsalErrorMessage.STATE_NOT_RETURNED));
                         countDownLatch.countDown();
                     }
 
@@ -804,7 +810,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
             // having the thread delayed for preTokenRequest to finish. Here we mock the
             // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
-            resultLock.await(TREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
+            resultLock.await(THREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
 
             final Intent resultIntent = new Intent();
             resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
