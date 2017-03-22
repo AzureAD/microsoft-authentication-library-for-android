@@ -67,9 +67,9 @@ public final class PublicClientApplication {
      *      if client id is not provided), name for redirect uri in metadata is: "com.microsoft.identity.client.RedirectUri"
      *      Authority can be set in the meta data, if not provided, the sdk will use the default authority.
      * </p>
-     * @param context Application running activity's {@link Context}. The sdk requires the application context to be passed in
+     * @param context Application's {@link Context}. The sdk requires the application context to be passed in
      *                {@link PublicClientApplication}. Cannot be null. @note: The {@link Context} should be the application
-     *                context instead of an running activity, which could potentially make the sdk hold a strong reference on
+     *                context instead of an running activity's context, which could potentially make the sdk hold a strong reference on
      *                the activity, thus preventing correct garbage collection and causing bugs.
      */
     public PublicClientApplication(@NonNull final Context context) {
