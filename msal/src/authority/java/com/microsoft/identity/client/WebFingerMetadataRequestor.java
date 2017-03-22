@@ -59,7 +59,7 @@ class WebFingerMetadataRequestor
 
             // make the request
             final HttpResponse webResponse =
-                    HttpRequest.sendGet(webFingerUrl, Collections.EMPTY_MAP);
+                    HttpRequest.sendGet(webFingerUrl, Collections.EMPTY_MAP, getRequestContext().getTelemetryRequestId());
 
             // get the status code
             final int statusCode = webResponse.getStatusCode();

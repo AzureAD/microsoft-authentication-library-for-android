@@ -215,7 +215,7 @@ public final class Oauth2ClientTest {
     }
 
     private Oauth2Client getOauth2ClientWithCorrelationIdInTheHeader() {
-        final Oauth2Client oauth2Client = new Oauth2Client();
+        final Oauth2Client oauth2Client = new Oauth2Client(Telemetry.generateNewRequestId());
         oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID, CORRELATION_ID.toString());
 
         return oauth2Client;

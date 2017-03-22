@@ -28,21 +28,23 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 /**
  * Internal class for UiEvent telemetry data.
  */
-class UiEvent extends Event implements IUiEvent {
+final class UiEvent extends Event implements IUiEvent {
 
     private UiEvent(Builder builder) {
         super(builder);
-        setProperty(EventProperty.REDIRECT_COUNT, builder.mRedirectCount.toString());
+        if (null != builder.mRedirectCount) {
+            setProperty(EventProperty.REDIRECT_COUNT, builder.mRedirectCount.toString());
+        }
         setProperty(EventProperty.USER_CANCEL, builder.mUserDidCancel);
     }
 
     @Override
-    public final Integer getRedirectCount() {
+    public Integer getRedirectCount() {
         return Integer.valueOf(getProperty(EventProperty.REDIRECT_COUNT));
     }
 
     @Override
-    public final Boolean userCancelled() {
+    public Boolean userCancelled() {
         return Boolean.valueOf(getProperty(EventProperty.USER_CANCEL));
     }
 
@@ -53,6 +55,10 @@ class UiEvent extends Event implements IUiEvent {
 
         private Integer mRedirectCount;
         private String mUserDidCancel = "false";
+
+        Builder(final Telemetry.RequestId requestId) {
+            super(requestId, EventName.UI_EVENT);
+        }
 
         /**
          * Sets the redirect count.
@@ -81,7 +87,6 @@ class UiEvent extends Event implements IUiEvent {
          * @return the newly created IUiEvent instance.
          */
         IUiEvent build() {
-            eventName(EventName.UI_EVENT);
             return new UiEvent(this);
         }
     }

@@ -31,14 +31,14 @@ public interface ITelemetry {
     /**
      * Registers a new {@link MsalEventReceiver} to receive telemetry data.
      *
-     * @param dispatcher
+     * @param receiver the object to receiver the telemetry data
      */
-    void registerReceiver(MsalEventReceiver dispatcher);
+    void registerReceiver(MsalEventReceiver receiver);
 
     /**
      * Only return telemetry data upon error.
      *
-     * @param onFailure
+     * @param onFailure flag indicating whether telemetry should only be sent on errors.
      */
     void setTelemetryOnFailure(boolean onFailure);
 }

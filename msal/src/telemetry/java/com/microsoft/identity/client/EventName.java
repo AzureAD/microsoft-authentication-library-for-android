@@ -24,7 +24,7 @@
 package com.microsoft.identity.client;
 
 /**
- * Internal telemetry data-container for the names of Events
+ * Internal telemetry data-container for the names of Events.
  */
 class EventName extends Telemetry.ValueTypeDef {
 
@@ -37,7 +37,7 @@ class EventName extends Telemetry.ValueTypeDef {
     static final EventName TOKEN_CACHE_DELETE = new EventName(EventConstants.EVENT_PREFIX + "token_cache_delete");
 
     /**
-     * Constructs a new EventName instance
+     * Constructs a new EventName instance.
      *
      * @param value the name to use (as a String)
      */

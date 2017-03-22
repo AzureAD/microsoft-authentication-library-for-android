@@ -32,7 +32,7 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 /**
  * Internal class for ApiEvent telemetry data.
  */
-class ApiEvent extends Event implements IApiEvent {
+final class ApiEvent extends Event implements IApiEvent {
 
     private static final String TAG = ApiEvent.class.getSimpleName();
 
@@ -103,62 +103,62 @@ class ApiEvent extends Event implements IApiEvent {
     }
 
     @Override
-    public final String getAuthority() {
+    public String getAuthority() {
         return getProperty(EventProperty.AUTHORITY_NAME);
     }
 
     @Override
-    public final String getUiBehavior() {
+    public String getUiBehavior() {
         return getProperty(EventProperty.UI_BEHAVIOR);
     }
 
     @Override
-    public final String getApiId() {
+    public String getApiId() {
         return getProperty(EventProperty.API_ID);
     }
 
     @Override
-    public final String getValidationStatus() {
+    public String getValidationStatus() {
         return getProperty(EventProperty.AUTHORITY_VALIDATION);
     }
 
     @Override
-    public final String getIdpName() {
+    public String getIdpName() {
         return getProperty(EventProperty.IDP_NAME);
     }
 
     @Override
-    public final String getTenantId() {
+    public String getTenantId() {
         return getProperty(EventProperty.TENANT_ID);
     }
 
     @Override
-    public final String getUserId() {
+    public String getUserId() {
         return getProperty(EventProperty.USER_ID);
     }
 
     @Override
-    public final String getLoginHint() {
+    public String getLoginHint() {
         return getProperty(EventProperty.LOGIN_HINT);
     }
 
     @Override
-    public final Boolean isDeprecated() {
+    public Boolean isDeprecated() {
         return Boolean.valueOf(getProperty(EventProperty.API_DEPRECATED));
     }
 
     @Override
-    public final Boolean hasExtendedExpiresOnStatus() {
+    public Boolean hasExtendedExpiresOnStatus() {
         return Boolean.valueOf(getProperty(EventProperty.EXTENDED_EXPIRES_ON_SETTING));
     }
 
     @Override
-    public final Boolean wasSuccessful() {
+    public Boolean wasSuccessful() {
         return Boolean.valueOf(getProperty(EventProperty.WAS_SUCCESSFUL));
     }
 
     /**
-     * Builder object for ApiEvents
+     * Builder object for ApiEvents.
      */
     static class Builder extends Event.Builder<Builder> {
 
@@ -171,6 +171,10 @@ class ApiEvent extends Event implements IApiEvent {
         private boolean mIsDeprecated;
         private boolean mExtendedExpiresOnStatus;
         private boolean mWasApiCallSuccessful;
+
+        Builder(final Telemetry.RequestId requestId) {
+            super(requestId, EventName.API_EVENT);
+        }
 
         /**
          * Sets the authority.
@@ -277,7 +281,6 @@ class ApiEvent extends Event implements IApiEvent {
          * @return the new ApiEvent.
          */
         IApiEvent build() {
-            eventName(EventName.API_EVENT);
             return new ApiEvent(this);
         }
 

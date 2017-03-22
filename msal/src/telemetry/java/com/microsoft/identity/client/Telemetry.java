@@ -37,9 +37,11 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 /**
  * Collects and publishes telemetry key/value pairs to subscribers.
  */
-public class Telemetry implements ITelemetry {
+public final class Telemetry implements ITelemetry {
 
     private static final Telemetry INSTANCE = new Telemetry();
+
+    private static boolean sDisableForTest;
 
     private final Map<Pair<RequestId, EventName>, EventStartTime> mEventsInProgress;
 
@@ -73,12 +75,12 @@ public class Telemetry implements ITelemetry {
      *
      * @return the Telemetry singleton.
      */
-    static Telemetry getInstance() {
+    public static Telemetry getInstance() {
         return INSTANCE;
     }
 
     /**
-     * Generates a new {@link RequestId}
+     * Generates a new {@link RequestId}.
      *
      * @return a random UUID (in String format).
      */
@@ -86,8 +88,15 @@ public class Telemetry implements ITelemetry {
         return new RequestId(UUID.randomUUID().toString());
     }
 
+    /**
+     * Mark that the system is running under test conditions and that Telemetry should be disabled.
+     */
+    static void disableForTest(final boolean disabled) {
+        sDisableForTest = disabled;
+    }
+
     @Override
-    public synchronized void registerReceiver(MsalEventReceiver dispatcher) {
+    public synchronized void registerReceiver(MsalEventReceiver receiver) {
         // check to make sure we're not already dispatching elsewhere
         if (null != mPublisher) {
             throw new IllegalStateException(
@@ -97,7 +106,7 @@ public class Telemetry implements ITelemetry {
         }
 
         // set this dispatcher
-        mPublisher = new EventDispatcher(dispatcher);
+        mPublisher = new EventDispatcher(receiver);
     }
 
     @Override
@@ -112,22 +121,38 @@ public class Telemetry implements ITelemetry {
      * @param eventName the name of the Event which is to be tracked.
      */
     void startEvent(final RequestId requestId, final EventName eventName) {
-        if (null == mPublisher) {
+        if (null == mPublisher || sDisableForTest) {
             // no publisher, abort
             return;
         }
 
-        mEventsInProgress.put( // add the new event
-                new Pair<>( // create the composite key
-                        requestId,
-                        eventName
-                ),
-                new EventStartTime( // create the value using systime
-                        Long.toString(
-                                System.currentTimeMillis()
-                        )
-                )
-        );
+        mEventsInProgress.put(new Pair<>(requestId, eventName), new EventStartTime(Long.toString(System.currentTimeMillis())));
+    }
+
+    /**
+     * Convenience method for {@link #startEvent(RequestId, EventName)}.
+     *
+     * @param eventBuilder the Builder used to make the Event in-progress.
+     */
+    void startEvent(final Event.Builder eventBuilder) {
+        if (null == mPublisher || sDisableForTest) {
+            return;
+        }
+
+        startEvent(eventBuilder.getRequestId(), eventBuilder.getEventName());
+    }
+
+    /**
+     * Convenience method for (@link {@link #stopEvent(RequestId, EventName, IEvent)}.
+     *
+     * @param eventToStop the Event to stop.
+     */
+    void stopEvent(final IEvent eventToStop) {
+        if (null == mPublisher || sDisableForTest) {
+            return;
+        }
+
+        stopEvent(eventToStop.getRequestId(), eventToStop.getEventName(), eventToStop);
     }
 
     /**
@@ -138,17 +163,21 @@ public class Telemetry implements ITelemetry {
      * @param event     the Event data.
      */
     void stopEvent(final RequestId requestId, final EventName eventName, final IEvent event) {
+        if (null == mPublisher || sDisableForTest) {
+            return;
+        }
+
         final Pair<RequestId, EventName> eventKey = new Pair<>(requestId, eventName);
 
         // Compute execution time
         final EventStartTime eventStartTime = mEventsInProgress.get(eventKey);
-        final long startTimeL = Long.parseLong(eventStartTime.value);
+        final long startTimeL = Long.parseLong(eventStartTime.toString());
         final long stopTimeL = System.currentTimeMillis();
         final long diffTime = stopTimeL - startTimeL;
         final String stopTime = Long.toString(stopTimeL);
 
         // Set execution time properties on the event
-        event.setProperty(EventProperty.START_TIME, eventStartTime.value);
+        event.setProperty(EventProperty.START_TIME, eventStartTime.toString());
         event.setProperty(EventProperty.STOP_TIME, stopTime);
         event.setProperty(EventProperty.RESPONSE_TIME, Long.toString(diffTime));
 
@@ -156,11 +185,11 @@ public class Telemetry implements ITelemetry {
             // if this is the first event associated to this
             // RequestId we need to initialize a new List to hold
             // all of sibling events
+            final List<IEvent> events = new ArrayList<>();
+            events.add(event);
             mCompletedEvents.put(
                     requestId,
-                    new ArrayList<IEvent>() {{
-                        add(event);
-                    }}
+                    events
             );
         } else {
             // if this event shares a RequestId with other events
@@ -182,56 +211,77 @@ public class Telemetry implements ITelemetry {
         for (Pair<RequestId, EventName> key : mEventsInProgress.keySet()) {
             if (key.first.equals(requestId)) {
                 // this event was orphaned...
-                final String orphanedRequestId = key.first.value;
-                final String orphanedEventName = key.second.value;
+                final String orphanedRequestId = key.first.toString();
+                final String orphanedEventName = key.second.toString();
                 final String orphanedEventStartTime =
-                        mEventsInProgress.remove(key).value; // remove() this entry
+                        mEventsInProgress.remove(key).toString(); // remove() this entry
                 // TODO what should I do with this information?
             }
         }
         final List<IEvent> eventsToFlush = mCompletedEvents.remove(requestId);
-        mPublisher.dispatch(eventsToFlush);
+        if (null != mPublisher) {
+            mPublisher.dispatch(eventsToFlush);
+        }
     }
 
     /**
      * Abstract container class for String values.
      */
-    static abstract class ValueTypeDef {
+    abstract static class ValueTypeDef {
 
-        final String value;
+        private final String mValue;
 
         @Override
         public String toString() {
-            return value;
+            return mValue;
         }
 
-        ValueTypeDef(final String value) {
-            this.value = value;
+        ValueTypeDef(final String v) {
+            this.mValue = v;
         }
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
 
             ValueTypeDef that = (ValueTypeDef) o;
 
-            return value != null ? value.equals(that.value) : that.value == null;
+            return mValue != null ? mValue.equals(that.mValue) : that.mValue == null;
         }
 
         @Override
         public int hashCode() {
-            return value != null ? value.hashCode() : 0;
+            return mValue != null ? mValue.hashCode() : 0;
         }
     }
 
     /**
-     * Container for Event request UUIDs
+     * Container for Event request UUIDs.
      */
     static final class RequestId extends ValueTypeDef {
 
-        RequestId(final String value) {
-            super(value);
+        RequestId(final String v) {
+            super(v);
+        }
+
+        static boolean isValid(final String requestIdValue) {
+            boolean isValid;
+            try {
+                UUID uuid = UUID.fromString(requestIdValue);
+                isValid = true;
+            } catch (IllegalArgumentException e) {
+                isValid = false;
+            }
+            return isValid;
+        }
+
+        static boolean isValid(final RequestId requestId) {
+            return null != requestId && isValid(requestId.toString());
         }
 
     }

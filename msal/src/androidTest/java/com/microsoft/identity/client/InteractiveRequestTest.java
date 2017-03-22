@@ -684,7 +684,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
     private AuthenticationRequestParameters getAuthenticationParams(final UIBehavior uiBehavior) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(AUTHORITY, false), new TokenCache(mAppContext), getScopes(),
-                CLIENT_ID, mRedirectUri, LOGIN_HINT, "", uiBehavior, new RequestContext(CORRELATION_ID, ""));
+                CLIENT_ID, mRedirectUri, LOGIN_HINT, "", uiBehavior, new RequestContext(CORRELATION_ID, "", Telemetry.generateNewRequestId()));
     }
 
     private AuthenticationRequestParameters getAuthRequestParameters(final Set<String> scopes,
@@ -692,7 +692,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                                                                      final String loginHint,
                                                                      final UIBehavior uiBehavior) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(AUTHORITY, false), new TokenCache(mAppContext), scopes,
-                CLIENT_ID, redirectUri, loginHint, "", uiBehavior, new RequestContext(CORRELATION_ID, ""));
+                CLIENT_ID, redirectUri, loginHint, "", uiBehavior, new RequestContext(CORRELATION_ID, "", Telemetry.generateNewRequestId()));
     }
 
     private Set<String> getScopes() {

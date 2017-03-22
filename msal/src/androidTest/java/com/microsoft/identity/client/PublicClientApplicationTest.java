@@ -6,6 +6,7 @@ import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
@@ -61,6 +62,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         mAppContext = InstrumentationRegistry.getContext().getApplicationContext();
         mRedirectUri = "msauth-client-id://" + mAppContext.getPackageName();
         mTokenCache = new TokenCache(mAppContext);
+        Telemetry.disableForTest(true);
     }
 
     @After
@@ -68,6 +70,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         super.tearDown();
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
         AndroidTestUtil.removeAllTokens(mAppContext);
+        Telemetry.disableForTest(false);
     }
 
     /**
@@ -620,8 +623,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     static void saveTokenResponse(final TokenCache tokenCache, final String authority, final String clientId,
                                   final TokenResponse response) throws AuthenticationException {
-        tokenCache.saveAccessToken(authority, clientId, response);
-        tokenCache.saveRefreshToken(authority, clientId, response);
+        tokenCache.saveAccessToken(authority, clientId, response, Telemetry.generateNewRequestId());
+        tokenCache.saveRefreshToken(authority, clientId, response, Telemetry.generateNewRequestId());
     }
 
     private void mockPackageManagerWithClientId(final Context context, final String alternateAuthorityInManifest,
@@ -639,6 +642,14 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         Mockito.when(mockedPackageManager.getApplicationInfo(
                 Mockito.refEq(mAppContext.getPackageName()), Mockito.eq(
                         PackageManager.GET_META_DATA))).thenReturn(applicationInfo);
+
+        final PackageInfo mockedPackageInfo = Mockito.mock(PackageInfo.class);
+        Mockito.when(mockedPackageManager
+                .getPackageInfo(
+                        Mockito.anyString(),
+                        Mockito.anyInt()
+                )
+        ).thenReturn(mockedPackageInfo);
     }
 
     private void mockHasCustomTabRedirect(final Context context) {

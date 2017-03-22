@@ -42,11 +42,11 @@ import java.util.UUID;
 @RunWith(AndroidJUnit4.class)
 public class ADFSAuthorityTest {
 
-    private static final RequestContext REQUEST_CONTEXT = new RequestContext(UUID.randomUUID(), "");
+    private static final RequestContext REQUEST_CONTEXT = new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId());
 
-    final String testUPN = "user.name@foo.com";
+    private final String mTestUPN = "user.name@foo.com";
 
-    private ADFSAuthority adfsAuthority;
+    private ADFSAuthority mAdfsAuthority;
 
     @Before
     public void setUp() {
@@ -67,26 +67,26 @@ public class ADFSAuthorityTest {
     }
 
     private void initializeAuthority() throws MalformedURLException {
-        adfsAuthority = new ADFSAuthority(
+        mAdfsAuthority = new ADFSAuthority(
                 new URL("https://fs.ngctest.nttest.microsoft.com/adfs/ls/"),
                 true
         );
-        adfsAuthority.mAuthorizationEndpoint = "https://fs.ngctest.nttest.microsoft.com/adfs/oauth2/authorize";
+        mAdfsAuthority.mAuthorizationEndpoint = "https://fs.ngctest.nttest.microsoft.com/adfs/oauth2/authorize";
     }
 
     // ADFS is not a supported instance for BUILD.
     @Ignore
     @Test
     public void testExistsInValidatedAuthorityCache() {
-        adfsAuthority.addToValidatedAuthorityCache(testUPN);
-        Assert.assertTrue(adfsAuthority.existsInValidatedAuthorityCache(testUPN));
+        mAdfsAuthority.addToValidatedAuthorityCache(mTestUPN);
+        Assert.assertTrue(mAdfsAuthority.existsInValidatedAuthorityCache(mTestUPN));
     }
 
     // ADFS is not a supported instance for BUILD.
     @Ignore
     @Test
     public void testDoesntExistInValidatedAuthorityCache() {
-        Assert.assertFalse(adfsAuthority.existsInValidatedAuthorityCache(testUPN));
+        Assert.assertFalse(mAdfsAuthority.existsInValidatedAuthorityCache(mTestUPN));
     }
 
     // ADFS is not a supported instance for BUILD.
@@ -100,7 +100,7 @@ public class ADFSAuthorityTest {
             );
             Assert.assertEquals(
                     "https://fs.lindft6.com/adfs/.well-known/openid-configuration",
-                    authority.performInstanceDiscovery(REQUEST_CONTEXT, testUPN)
+                    authority.performInstanceDiscovery(REQUEST_CONTEXT, mTestUPN)
             );
         } catch (AuthenticationException | MalformedURLException e) {
             Assert.fail();
@@ -112,11 +112,11 @@ public class ADFSAuthorityTest {
     @Test
     public void testPerformInstanceDiscoveryThrowsWhenURLnvalid() {
         try {
-            adfsAuthority = new ADFSAuthority(
+            mAdfsAuthority = new ADFSAuthority(
                     new URL("file:/Users/RFC2396 noncompliant"),
                     true
             );
-            adfsAuthority.performInstanceDiscovery(REQUEST_CONTEXT, testUPN);
+            mAdfsAuthority.performInstanceDiscovery(REQUEST_CONTEXT, mTestUPN);
         } catch (MalformedURLException e) {
             Assert.fail();
         } catch (AuthenticationException e) {
@@ -132,7 +132,7 @@ public class ADFSAuthorityTest {
     public void testGetDomainFromUPN() {
         Assert.assertEquals(
                 "foo.com",
-                ADFSAuthority.getDomainFromUPN(testUPN)
+                ADFSAuthority.getDomainFromUPN(mTestUPN)
         );
     }
 
@@ -151,7 +151,7 @@ public class ADFSAuthorityTest {
     public void testGetDefaultOpenIdConfigurationEndpoint() {
         Assert.assertEquals(
                 "https://fs.ngctest.nttest.microsoft.com/adfs/.well-known/openid-configuration",
-                adfsAuthority.getDefaultOpenIdConfigurationEndpoint()
+                mAdfsAuthority.getDefaultOpenIdConfigurationEndpoint()
         );
     }
 }

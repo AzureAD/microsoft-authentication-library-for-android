@@ -24,6 +24,7 @@
 package com.microsoft.identity.client;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -35,6 +36,11 @@ import java.util.UUID;
  * Tests for {@link AuthenticationRequestParameters}.
  */
 public final class AuthenticationRequestParametersTest {
+
+    static {
+        Logger.getInstance().setEnableLogcatLog(false);
+    }
+
     static final Authority AUTHORITY = Authority.createAuthority(Util.VALID_AUTHORITY, false);
     static final TokenCache TOKEN_CACHE = Mockito.mock(TokenCache.class);
     static final Set<String> SCOPE = new HashSet<>();
@@ -53,13 +59,13 @@ public final class AuthenticationRequestParametersTest {
     @Test(expected = IllegalArgumentException.class)
     public void testNullScope() {
         AuthenticationRequestParameters.create(AUTHORITY, TOKEN_CACHE, null, CLIENT_ID, REDIRECT_URI, "", LOGIN_HINT,
-                UIBehavior.SELECT_ACCOUNT, new RequestContext(CORRELATION_ID, COMPONENT));
+                UIBehavior.SELECT_ACCOUNT, new RequestContext(CORRELATION_ID, COMPONENT, Telemetry.generateNewRequestId()));
     }
 
     @Test
     public void testAuthenticationRequestParameterHappyPath() {
         final AuthenticationRequestParameters authRequestParameter = AuthenticationRequestParameters.create(AUTHORITY, TOKEN_CACHE,
-                SCOPE, CLIENT_ID, REDIRECT_URI, LOGIN_HINT, "", UIBehavior.SELECT_ACCOUNT, new RequestContext(CORRELATION_ID, COMPONENT));
+                SCOPE, CLIENT_ID, REDIRECT_URI, LOGIN_HINT, "", UIBehavior.SELECT_ACCOUNT, new RequestContext(CORRELATION_ID, COMPONENT, Telemetry.generateNewRequestId()));
         Assert.assertTrue(authRequestParameter.getAuthority().getAuthority().toString().equals(Util.VALID_AUTHORITY));
         Assert.assertTrue(authRequestParameter.getScope().isEmpty());
         Assert.assertTrue(authRequestParameter.getClientId().equals(CLIENT_ID));

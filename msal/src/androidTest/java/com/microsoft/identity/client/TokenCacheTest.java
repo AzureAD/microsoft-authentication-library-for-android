@@ -72,6 +72,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         AndroidTestUtil.removeAllTokens(mAppContext);
 
         mDefaultUser = getDefaultUser();
+        Telemetry.disableForTest(true);
     }
 
     @After
@@ -80,6 +81,7 @@ public final class TokenCacheTest extends AndroidTestCase {
 
         // clear the state left by the tests.
         AndroidTestUtil.removeAllTokens(mAppContext);
+        Telemetry.disableForTest(false);
     }
 
     private AuthenticationRequestParameters addTokenForUser(final boolean useDefault) throws AuthenticationException {
@@ -115,7 +117,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         // Verify token was inserted
         assertNotNull(mTokenCache.findRefreshToken(requestParameters, mDefaultUser));
         // Delete that token
-        mTokenCache.deleteRefreshTokenByUser(mDefaultUser);
+        mTokenCache.deleteRefreshTokenByUser(mDefaultUser, Telemetry.generateNewRequestId());
         // Verify that the token is deleted
         assertNull(mTokenCache.findRefreshToken(requestParameters, mDefaultUser));
     }
@@ -127,7 +129,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         // Add a refresh token to the cache for the default user
         addTokenForUser(true);
         // Delete the default user's token
-        mTokenCache.deleteRefreshTokenByUser(mDefaultUser);
+        mTokenCache.deleteRefreshTokenByUser(mDefaultUser, Telemetry.generateNewRequestId());
         // Verify that that the cache still contains the other token
         assertNotNull(mTokenCache.findRefreshToken(differentUserParams, new User(new IdToken(getIdTokenForDifferentUser()))));
     }
@@ -139,7 +141,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         // Verify that token was inserted
         assertNotNull(mTokenCache.findAccessToken(defaultUserRequestParameters, mDefaultUser));
         // Delete that token
-        mTokenCache.deleteAccessTokenByUser(mDefaultUser);
+        mTokenCache.deleteAccessTokenByUser(mDefaultUser, Telemetry.generateNewRequestId());
         // Verify that the token is deleted
         assertNull(mTokenCache.findAccessToken(defaultUserRequestParameters, mDefaultUser));
     }
@@ -151,7 +153,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         // Add an access token to the cache for the default user
         addTokenForUser(true);
         // Delete the default user's token
-        mTokenCache.deleteAccessTokenByUser(mDefaultUser);
+        mTokenCache.deleteAccessTokenByUser(mDefaultUser, Telemetry.generateNewRequestId());
         // Verify that that the cache still contains the other token
         assertNotNull(
                 mTokenCache.findAccessToken(
@@ -396,7 +398,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         // verify the access token is saved
         final User user = getDefaultUser();
         final TokenCacheKey keyForAT = TokenCacheKey.createKeyForAT(AUTHORITY, CLIENT_ID, scopes, user);
-        List<AccessTokenCacheItem> accessTokens = mTokenCache.getAccessToken(keyForAT);
+        List<AccessTokenCacheItem> accessTokens = mTokenCache.getAccessToken(keyForAT, Telemetry.generateNewRequestId());
         assertTrue(accessTokens.size() == 1);
         final AccessTokenCacheItem accessTokenCacheItem = accessTokens.get(0);
         assertTrue(accessTokenCacheItem.getAccessToken().equals(firstAT));
@@ -412,14 +414,14 @@ public final class TokenCacheTest extends AndroidTestCase {
 
         // verify the new access token is saved, there will be two separate items in the cache
         final TokenCacheKey keyForAT2 = TokenCacheKey.createKeyForAT(AUTHORITY, CLIENT_ID, scopes, user);
-        accessTokens = mTokenCache.getAccessToken(keyForAT2);
+        accessTokens = mTokenCache.getAccessToken(keyForAT2, Telemetry.generateNewRequestId());
         assertTrue(accessTokens.size() == 1);
         AccessTokenCacheItem accessTokenCacheItemToVerify = accessTokens.get(0);
         assertTrue(accessTokenCacheItemToVerify.getAccessToken().equals(secondAT));
 
         // if retrieve access token with keyForAT1, should still be able to get the access token back
         // getAccessToken will check for scope contains. If the scope in the key contains all the scope in the item.
-        accessTokens = mTokenCache.getAccessToken(keyForAT);
+        accessTokens = mTokenCache.getAccessToken(keyForAT, Telemetry.generateNewRequestId());
         Assert.assertTrue(accessTokens.size() == 1);
         final AccessTokenCacheItem accessTokenForScope1and2 = accessTokens.get(0);
         assertTrue(accessTokenForScope1and2.getAccessToken().equals(secondAT));
@@ -538,6 +540,6 @@ public final class TokenCacheTest extends AndroidTestCase {
     private AuthenticationRequestParameters getRequestParameters(final String authority, final Set<String> scopes, final String clientId) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(authority, false),
                 mTokenCache, scopes, clientId, "some redirect", "", "", UIBehavior.SELECT_ACCOUNT,
-                new RequestContext(UUID.randomUUID(), ""));
+                new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()));
     }
 }

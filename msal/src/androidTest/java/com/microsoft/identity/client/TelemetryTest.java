@@ -41,22 +41,23 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 @RunWith(AndroidJUnit4.class)
 public class TelemetryTest {
 
-    Telemetry testInstance;
+    private Telemetry mTestInstance;
 
     @Before
     public void setUp() {
-        testInstance = Telemetry.getTestInstance();
+        mTestInstance = Telemetry.getTestInstance();
+        Telemetry.disableForTest(false);
     }
 
     @Test(expected = IllegalStateException.class)
     public void testTelemetryOnlyAllowsEventReceiverSetOnce() {
-        testInstance.registerReceiver(new MsalEventReceiver() {
+        mTestInstance.registerReceiver(new MsalEventReceiver() {
             @Override
             public void onEventsReceived(List<Map<String, String>> events) {
                 // no functionality needed
             }
         });
-        testInstance.registerReceiver(new MsalEventReceiver() {
+        mTestInstance.registerReceiver(new MsalEventReceiver() {
             @Override
             public void onEventsReceived(List<Map<String, String>> events) {
                 // no functionality needed
@@ -70,15 +71,15 @@ public class TelemetryTest {
         final MsalEventReceiver mockReceiver = Mockito.mock(MsalEventReceiver.class);
 
         // register it on the Telemetry instance
-        testInstance.registerReceiver(mockReceiver);
+        mTestInstance.registerReceiver(mockReceiver);
 
         // create some Telemetry data
         final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
-        testInstance.startEvent(requestId, EventName.HTTP_EVENT);
-        testInstance.stopEvent(requestId, EventName.HTTP_EVENT, HttpEventTest.getTestHttpEvent(requestId));
+        mTestInstance.startEvent(requestId, EventName.HTTP_EVENT);
+        mTestInstance.stopEvent(requestId, EventName.HTTP_EVENT, HttpEventTest.getTestHttpEvent(requestId));
 
         // flush the data to the receiver
-        testInstance.flush(requestId);
+        mTestInstance.flush(requestId);
 
         // create a captor to 'catch' the results
         final ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
@@ -95,7 +96,7 @@ public class TelemetryTest {
 
         // make sure it contains the correct event
         Assert.assertEquals(
-                EventName.HTTP_EVENT.value,
+                EventName.HTTP_EVENT.toString(),
                 eventData.get(EventProperty.EVENT_NAME)
         );
     }
@@ -106,27 +107,27 @@ public class TelemetryTest {
         final MsalEventReceiver mockReceiver = Mockito.mock(MsalEventReceiver.class);
 
         // register it on the Telemetry instance
-        testInstance.registerReceiver(mockReceiver);
+        mTestInstance.registerReceiver(mockReceiver);
 
         // create some Telemetry data
         final Telemetry.RequestId requestId1 = Telemetry.generateNewRequestId();
-        testInstance.startEvent(requestId1, EventName.HTTP_EVENT);
-        testInstance.stopEvent(requestId1, EventName.HTTP_EVENT, HttpEventTest.getTestHttpEvent(requestId1));
+        mTestInstance.startEvent(requestId1, EventName.HTTP_EVENT);
+        mTestInstance.stopEvent(requestId1, EventName.HTTP_EVENT, HttpEventTest.getTestHttpEvent(requestId1));
 
         final Telemetry.RequestId requestId2 = Telemetry.generateNewRequestId();
-        testInstance.startEvent(requestId2, EventName.TOKEN_CACHE_LOOKUP);
-        testInstance.stopEvent(
+        mTestInstance.startEvent(requestId2, EventName.TOKEN_CACHE_LOOKUP);
+        mTestInstance.stopEvent(
                 requestId2,
                 EventName.TOKEN_CACHE_LOOKUP,
                 CacheEventTest.getTestCacheEvent(
                         requestId2,
                         EventName.TOKEN_CACHE_LOOKUP,
-                        CacheEventTest.sTestTokenTypeAT
+                        CacheEventTest.TEST_TOKEN_TYPE_AT
                 )
         );
 
         // flush the data to the receiver
-        testInstance.flush(requestId2);
+        mTestInstance.flush(requestId2);
 
         // create a captor to 'catch' the results
         final ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
@@ -143,7 +144,7 @@ public class TelemetryTest {
 
         // make sure it contains the correct event
         Assert.assertEquals(
-                EventName.TOKEN_CACHE_LOOKUP.value,
+                EventName.TOKEN_CACHE_LOOKUP.toString(),
                 eventData.get(EventProperty.EVENT_NAME)
         );
     }

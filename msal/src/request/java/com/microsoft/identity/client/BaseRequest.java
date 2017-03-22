@@ -42,8 +42,9 @@ abstract class BaseRequest {
     private static final String TAG = BaseRequest.class.getSimpleName();
     private static final ExecutorService THREAD_EXECUTOR = Executors.newSingleThreadExecutor();
     private Handler mHandler;
-    private final RequestContext mRequestContext;
 
+    //protected final ApiEvent.Builder mApiEventBuilder;
+    protected final RequestContext mRequestContext;
     protected final AuthenticationRequestParameters mAuthRequestParameters;
     protected final Context mContext;
     protected int mRequestId;
@@ -51,6 +52,7 @@ abstract class BaseRequest {
 
     /**
      * Abstract method, implemented by subclass for its own logic before the token request.
+     *
      * @throws MSALUserCancelException If pre token request fails as user cancels the flow.
      * @throws AuthenticationException If error happens during the pre-process.
      */
@@ -58,16 +60,19 @@ abstract class BaseRequest {
 
     /**
      * Abstract method to set the additional body parameters for specific request.
+     *
      * @param oauth2Client
      */
     abstract void setAdditionalOauthParameters(final Oauth2Client oauth2Client);
 
     /**
      * Constructor for abstract {@link BaseRequest}.
-     * @param appContext The app running context.
+     *
+     * @param appContext                      The app running context.
      * @param authenticationRequestParameters The {@link AuthenticationRequestParameters} used to create request.
      */
-    BaseRequest(final Context appContext, final AuthenticationRequestParameters authenticationRequestParameters) {
+    BaseRequest(final Context appContext,
+                final AuthenticationRequestParameters authenticationRequestParameters) {
         mContext = appContext;
         mAuthRequestParameters = authenticationRequestParameters;
         mRequestContext = authenticationRequestParameters.getRequestContext();
@@ -88,6 +93,7 @@ abstract class BaseRequest {
      * If there is a RT returned, we should use it to token acquisition.
      * 2. performTokenRequest. Use either auth code or RT found in the preTokenRequest to get a new token.
      * 3. Post token request, store the returned token into cache.
+     *
      * @param callback The {@link AuthenticationCallback} to deliver the result back.
      */
     void getToken(final AuthenticationCallback callback) {
@@ -124,6 +130,7 @@ abstract class BaseRequest {
     /**
      * Get the decorated scopes. Will combine the input scope and the reserved scope. If client id is provided as scope,
      * it will be removed from the combined scopes.
+     *
      * @param inputScopes The input scopes to decorate.
      * @return The combined scopes.
      */
@@ -139,6 +146,7 @@ abstract class BaseRequest {
     /**
      * Validate the input scopes. The input scope cannot have reserved scopes, if client id is provided as the scope it
      * should be a single scope.
+     *
      * @param inputScopes The input set of scope to validate.
      */
     void validateInputScopes(final Set<String> inputScopes) {
@@ -159,12 +167,13 @@ abstract class BaseRequest {
 
     /**
      * Perform the token request sent to token endpoint.
+     *
      * @throws AuthenticationException If there is error happened in the request.
      */
     void performTokenRequest() throws AuthenticationException {
         throwIfNetworkNotAvailable();
 
-        final Oauth2Client oauth2Client = new Oauth2Client();
+        final Oauth2Client oauth2Client = new Oauth2Client(mRequestContext.getTelemetryRequestId());
         buildRequestParameters(oauth2Client);
 
         final TokenResponse tokenResponse;
@@ -189,14 +198,15 @@ abstract class BaseRequest {
      * so, return the stored token. Otherwise read the token response, and send Interaction_required back to calling app.
      * Silent flow will also remove token if receiving invalid_grant from token endpoint.
      * Interactive request will read the response, and send error back with code as oauth_error.
+     *
      * @throws AuthenticationException
      */
     AuthenticationResult postTokenRequest() throws AuthenticationException {
         final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
         final AccessTokenCacheItem accessTokenCacheItem = tokenCache.saveAccessToken(mAuthRequestParameters.getAuthority().getAuthority(),
-                mAuthRequestParameters.getClientId(), mTokenResponse);
+                mAuthRequestParameters.getClientId(), mTokenResponse, mRequestContext.getTelemetryRequestId());
         tokenCache.saveRefreshToken(mAuthRequestParameters.getAuthority().getAuthority(), mAuthRequestParameters.getClientId(),
-                mTokenResponse);
+                mTokenResponse, mRequestContext.getTelemetryRequestId());
 
         return new AuthenticationResult(accessTokenCacheItem);
     }
@@ -230,6 +240,7 @@ abstract class BaseRequest {
 
     /**
      * Build request parameters, containing header, query parameters and request body.
+     *
      * @param oauth2Client
      */
     private void buildRequestParameters(final Oauth2Client oauth2Client) {

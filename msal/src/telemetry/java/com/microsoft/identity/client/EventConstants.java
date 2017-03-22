@@ -28,15 +28,41 @@ package com.microsoft.identity.client;
  */
 final class EventConstants {
 
+    private EventConstants() {
+        // Utility class
+    }
+
     /**
-     * Prefixes all event names
+     * Prefixes all event names.
      */
     static final String EVENT_PREFIX = "Microsoft.MSAL.";
 
     /**
+     * API Ids for Telemetry.
+     */
+    static final class ApiId {
+
+        private ApiId() {
+            // Utility class
+        }
+
+        static final String API_ID_ACQUIRE = "100";
+        static final String API_ID_ACQUIRE_WITH_HINT = "160";
+        static final String API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_AND_PARAMETERS = "161";
+        static final String API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_PARAMETERS_AND_AUTHORITY = "162";
+        static final String ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER = "13";
+        static final String ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER_AUTHORITY_AND_FORCE_REFRESH = "14";
+    }
+
+    /**
      * Properties used by Event key/value pairs.
      */
-    static class EventProperty {
+    static final class EventProperty {
+
+        private EventProperty() {
+            // Utility class
+        }
+
         static final String API_ID = EVENT_PREFIX + "api_id";
         static final String START_TIME = EVENT_PREFIX + "start_time";
         static final String STOP_TIME = EVENT_PREFIX + "stop_time";
@@ -64,8 +90,6 @@ final class EventConstants {
         static final String REDIRECT_COUNT = EVENT_PREFIX + "redirect_count"; // Android only
         static final String USER_CANCEL = EVENT_PREFIX + "user_cancel";
         static final String TOKEN_TYPE = EVENT_PREFIX + "token_type";
-        static final String TOKEN_TYPE_IS_RT = EVENT_PREFIX + "is_rt";
-        static final String TOKEN_TYPE_RT = EVENT_PREFIX + "rt"; // Android only
         static final String CACHE_EVENT_COUNT = EVENT_PREFIX + "cache_event_count";
         static final String UI_EVENT_COUNT = EVENT_PREFIX + "ui_event_count";
         static final String HTTP_EVENT_COUNT = EVENT_PREFIX + "http_event_count";
@@ -81,12 +105,19 @@ final class EventConstants {
         /**
          * Frequently occurring values of telemetry key/value pairs.
          */
-        static class Value {
+        static final class Value {
+
+            private Value() {
+                // Utility class
+            }
+
             static final String AUTHORITY_TYPE_ADFS = EVENT_PREFIX + "adfs";
             static final String AUTHORITY_TYPE_AAD = EVENT_PREFIX + "aad";
             static final String AUTHORITY_VALIDATION_SUCCESS = EVENT_PREFIX + "authority_validation_status_success";
             static final String AUTHORITY_VALIDATION_FAILURE = EVENT_PREFIX + "authority_validation_status_failure";
             static final String AUTHORITY_VALIDATION_NOT_DONE = EVENT_PREFIX + "authority_validation_status_not_done";
+            static final String TOKEN_TYPE_AT = EVENT_PREFIX + "at";
+            static final String TOKEN_TYPE_RT = EVENT_PREFIX + "rt"; // Android only
         }
     }
 }
