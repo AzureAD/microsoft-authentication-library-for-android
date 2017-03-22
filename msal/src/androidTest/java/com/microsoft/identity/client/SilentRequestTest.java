@@ -97,7 +97,7 @@ public final class SilentRequestTest extends AndroidTestCase {
 
         InteractiveRequestTest.mockNetworkConnected(mAppContext, false);
 
-        final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope)), false, mDefaultUser, ApiEventTest.getRandomTestApiEventBuilder());
+        final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope)), false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
         request.getToken(new AuthenticationCallback() {
             @Override
@@ -130,7 +130,7 @@ public final class SilentRequestTest extends AndroidTestCase {
                 TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn()));
 
         final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope));
-        final BaseRequest request = new SilentRequest(mAppContext, requestParameters, false, mDefaultUser, ApiEventTest.getRandomTestApiEventBuilder());
+        final BaseRequest request = new SilentRequest(mAppContext, requestParameters, false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
         request.getToken(new AuthenticationCallback() {
             @Override
@@ -168,7 +168,7 @@ public final class SilentRequestTest extends AndroidTestCase {
                 TokenCacheTest.getTokenResponseForDefaultUser(AndroidTestUtil.ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn()));
 
         final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope));
-        final BaseRequest request = new SilentRequest(mAppContext, requestParameters, false, mDefaultUser, ApiEventTest.getRandomTestApiEventBuilder());
+        final BaseRequest request = new SilentRequest(mAppContext, requestParameters, false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
         request.getToken(new AuthenticationCallback() {
             @Override
@@ -211,7 +211,7 @@ public final class SilentRequestTest extends AndroidTestCase {
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
         final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope));
-        final BaseRequest request = new SilentRequest(mAppContext, requestParameters, false, mDefaultUser, ApiEventTest.getRandomTestApiEventBuilder());
+        final BaseRequest request = new SilentRequest(mAppContext, requestParameters, false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
         request.getToken(new AuthenticationCallback() {
             @Override
@@ -261,7 +261,7 @@ public final class SilentRequestTest extends AndroidTestCase {
 
         final String[] requestedScope = new String[]{"email.read", "scope2", "user.read"};
         final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(new HashSet<>(Arrays.asList(
-                requestedScope))), false, mDefaultUser, ApiEventTest.getRandomTestApiEventBuilder());
+                requestedScope))), false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
 
         assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
@@ -302,7 +302,7 @@ public final class SilentRequestTest extends AndroidTestCase {
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
         final AuthenticationRequestParameters requestParametersWithAnotherScope = getRequestParameters(Collections.singleton(anotherScope));
-        final BaseRequest request = new SilentRequest(mAppContext, requestParametersWithAnotherScope, false, mDefaultUser, ApiEventTest.getRandomTestApiEventBuilder());
+        final BaseRequest request = new SilentRequest(mAppContext, requestParametersWithAnotherScope, false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
         request.getToken(new AuthenticationCallback() {
             @Override
@@ -355,7 +355,7 @@ public final class SilentRequestTest extends AndroidTestCase {
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY, TokenCacheTest.CLIENT_ID,
                 TokenCacheTest.getTokenResponseForDifferentUser(singleScope, AndroidTestUtil.getValidExpiresOn()));
 
-        final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope)), false, mDefaultUser, ApiEventTest.getRandomTestApiEventBuilder());
+        final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope)), false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
         request.getToken(new AuthenticationCallback() {
             @Override
@@ -391,7 +391,7 @@ public final class SilentRequestTest extends AndroidTestCase {
         mockFailureResponse("invalid_grant");
 
         assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 1);
-        final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope)), true, mDefaultUser, ApiEventTest.getRandomTestApiEventBuilder());
+        final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope)), true, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
         request.getToken(new AuthenticationCallback() {
             @Override
@@ -434,7 +434,7 @@ public final class SilentRequestTest extends AndroidTestCase {
         mockFailureResponse("invalid_request");
 
         assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 1);
-        final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope)), true, mDefaultUser, ApiEventTest.getRandomTestApiEventBuilder());
+        final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope)), true, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
         request.getToken(new AuthenticationCallback() {
             @Override

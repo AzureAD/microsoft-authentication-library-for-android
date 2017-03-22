@@ -402,7 +402,7 @@ public final class PublicClientApplication {
                 extraQueryParams, uiBehavior, apiEventBuilder.getRequestId());
 
         Logger.info(TAG, requestParameters.getRequestContext(), "Preparing a new interactive request");
-        final BaseRequest request = new InteractiveRequest(mActivity, requestParameters, additionalScope, apiEventBuilder);
+        final BaseRequest request = new InteractiveRequest(mActivity, requestParameters, additionalScope);
         request.getToken(callback);
     }
 
@@ -430,7 +430,7 @@ public final class PublicClientApplication {
         }
 
         Logger.info(TAG, requestContext, "Preparing a new silent request");
-        final BaseRequest request = new SilentRequest(mAppContext, requestParameters, forceRefresh, user, apiEventBuilder);
+        final BaseRequest request = new SilentRequest(mAppContext, requestParameters, forceRefresh, user);
         request.getToken(callback);
     }
 
@@ -462,20 +462,19 @@ public final class PublicClientApplication {
         return eventBuilder;
     }
 
-    private void stopTelemetryEventAndFlush(final Event.Builder builder) {
-        Telemetry.getInstance().stopEvent(builder.build());
-        Telemetry.getInstance().flush(builder.getRequestId());
-    }
-
     /**
      * Wraps {@link AuthenticationCallback} instances to bind Telemetry actions.
-     * @param eventBinding the {@link com.microsoft.identity.client.ApiEvent.Builder}
-     *                     monitoring this request.
+     *
+     * @param eventBinding           the {@link com.microsoft.identity.client.ApiEvent.Builder}
+     *                               monitoring this request.
      * @param authenticationCallback the original consuming callback
      * @return the wrapped {@link AuthenticationCallback} instance
      */
     private AuthenticationCallback wrapCallbackForTelemetryIntercept(
             final ApiEvent.Builder eventBinding, final AuthenticationCallback authenticationCallback) {
+        if (null == authenticationCallback) {
+            throw new IllegalArgumentException("callback is null");
+        }
         return new AuthenticationCallback() {
             @Override
             public void onSuccess(final AuthenticationResult authenticationResult) {
@@ -497,5 +496,11 @@ public final class PublicClientApplication {
                 authenticationCallback.onCancel();
             }
         };
+    }
+
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
+    private void stopTelemetryEventAndFlush(final Event.Builder builder) {
+        Telemetry.getInstance().stopEvent(builder.build());
+        Telemetry.getInstance().flush(builder.getRequestId());
     }
 }

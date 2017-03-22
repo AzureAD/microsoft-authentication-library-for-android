@@ -118,7 +118,9 @@ public final class AuthenticationActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Telemetry.getInstance().stopEvent(mUiEventBuilder.build());
+        if (null != mUiEventBuilder) {
+            Telemetry.getInstance().stopEvent(mUiEventBuilder.build());
+        }
     }
 
     private void warmUpCustomTabs() {

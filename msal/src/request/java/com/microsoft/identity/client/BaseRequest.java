@@ -43,7 +43,7 @@ abstract class BaseRequest {
     private static final ExecutorService THREAD_EXECUTOR = Executors.newSingleThreadExecutor();
     private Handler mHandler;
 
-    protected final ApiEvent.Builder mApiEventBuilder;
+    //protected final ApiEvent.Builder mApiEventBuilder;
     protected final RequestContext mRequestContext;
     protected final AuthenticationRequestParameters mAuthRequestParameters;
     protected final Context mContext;
@@ -72,12 +72,10 @@ abstract class BaseRequest {
      * @param authenticationRequestParameters The {@link AuthenticationRequestParameters} used to create request.
      */
     BaseRequest(final Context appContext,
-                final AuthenticationRequestParameters authenticationRequestParameters,
-                final ApiEvent.Builder apiEventBuilder) {
+                final AuthenticationRequestParameters authenticationRequestParameters) {
         mContext = appContext;
         mAuthRequestParameters = authenticationRequestParameters;
         mRequestContext = authenticationRequestParameters.getRequestContext();
-        mApiEventBuilder = apiEventBuilder;
 
         if (authenticationRequestParameters.getScope() == null
                 || authenticationRequestParameters.getScope().isEmpty()) {
@@ -265,8 +263,6 @@ abstract class BaseRequest {
         getHandler().post(new Runnable() {
             @Override
             public void run() {
-                mApiEventBuilder.apiCallWasSuccessful(true);
-                Telemetry.getInstance().stopEvent(mApiEventBuilder.build());
                 callback.onSuccess(result);
             }
         });
@@ -276,8 +272,6 @@ abstract class BaseRequest {
         getHandler().post(new Runnable() {
             @Override
             public void run() {
-                mApiEventBuilder.apiCallWasSuccessful(false);
-                Telemetry.getInstance().stopEvent(mApiEventBuilder.build());
                 callback.onCancel();
             }
         });
@@ -288,8 +282,6 @@ abstract class BaseRequest {
         getHandler().post(new Runnable() {
             @Override
             public void run() {
-                mApiEventBuilder.apiCallWasSuccessful(false);
-                Telemetry.getInstance().stopEvent(mApiEventBuilder.build());
                 callback.onError(authenticationException);
             }
         });

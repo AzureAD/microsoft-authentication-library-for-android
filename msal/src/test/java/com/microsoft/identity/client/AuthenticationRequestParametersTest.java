@@ -24,6 +24,7 @@
 package com.microsoft.identity.client;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -35,6 +36,11 @@ import java.util.UUID;
  * Tests for {@link AuthenticationRequestParameters}.
  */
 public final class AuthenticationRequestParametersTest {
+
+    static {
+        Logger.getInstance().setEnableLogcatLog(false);
+    }
+
     static final Authority AUTHORITY = Authority.createAuthority(Util.VALID_AUTHORITY, false);
     static final TokenCache TOKEN_CACHE = Mockito.mock(TokenCache.class);
     static final Set<String> SCOPE = new HashSet<>();

@@ -38,8 +38,8 @@ final class SilentRequest extends BaseRequest {
     private AuthenticationResult mAuthResult;
 
     SilentRequest(final Context appContext, final AuthenticationRequestParameters authRequestParams,
-                  final boolean forceRefresh, final User user, final ApiEvent.Builder apiEventBuilder) {
-        super(appContext, authRequestParams, apiEventBuilder);
+                  final boolean forceRefresh, final User user) {
+        super(appContext, authRequestParams);
 
         mForceRefresh = forceRefresh;
         mUser = user;

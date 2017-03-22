@@ -62,8 +62,8 @@ final class InteractiveRequest extends BaseRequest {
      * @param additionalScope       An array of additional scopes.
      */
     InteractiveRequest(final Activity activity, final AuthenticationRequestParameters authRequestParameters,
-                       final String[] additionalScope, final ApiEvent.Builder apiEventBuilder) {
-        super(activity.getApplicationContext(), authRequestParameters, apiEventBuilder);
+                       final String[] additionalScope) {
+        super(activity.getApplicationContext(), authRequestParameters);
         mActivity = activity;
 
         // validate redirect

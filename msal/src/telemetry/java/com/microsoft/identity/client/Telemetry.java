@@ -219,7 +219,9 @@ public final class Telemetry implements ITelemetry {
             }
         }
         final List<IEvent> eventsToFlush = mCompletedEvents.remove(requestId);
-        mPublisher.dispatch(eventsToFlush);
+        if (null != mPublisher) {
+            mPublisher.dispatch(eventsToFlush);
+        }
     }
 
     /**
