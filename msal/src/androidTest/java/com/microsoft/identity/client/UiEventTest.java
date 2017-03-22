@@ -33,9 +33,9 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class UiEventTest {
 
-    static final EventName sTestExpectedEventName = EventName.UI_EVENT;
-    static final Integer sTestRedirectCount = 2;
-    static final boolean sTestUserDidCancel = true;
+    static final EventName TEST_EXPECTED_EVENT_NAME = EventName.UI_EVENT;
+    static final Integer TEST_REDIRECT_COUNT = 2;
+    static final boolean TEST_USER_DID_CANCEL = true;
 
     static IUiEvent getTestUiEvent(final Telemetry.RequestId requestId) {
         return new UiEvent.Builder(requestId)
@@ -48,9 +48,9 @@ public class UiEventTest {
     public void testUiEventInitializes() {
         final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
         final IUiEvent uiEvent = getTestUiEvent(requestId);
-        Assert.assertEquals(sTestExpectedEventName, uiEvent.getEventName());
-        Assert.assertEquals(sTestRedirectCount, uiEvent.getRedirectCount());
-        Assert.assertEquals(Boolean.valueOf(sTestUserDidCancel), uiEvent.userCancelled());
+        Assert.assertEquals(TEST_EXPECTED_EVENT_NAME, uiEvent.getEventName());
+        Assert.assertEquals(TEST_REDIRECT_COUNT, uiEvent.getRedirectCount());
+        Assert.assertEquals(Boolean.valueOf(TEST_USER_DID_CANCEL), uiEvent.userCancelled());
     }
 
 }

@@ -33,8 +33,8 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class CacheEventTest {
 
-    static final String sTestTokenTypeRT = "RT";
-    static final String sTestTokenTypeAT = "AT";
+    static final String TEST_TOKEN_TYPE_RT = "RT";
+    static final String TEST_TOKEN_TYPE_AT = "AT";
 
     static ICacheEvent getTestCacheEvent(
             final Telemetry.RequestId requestId,
@@ -50,10 +50,10 @@ public class CacheEventTest {
     public void testCacheEventInitializes() {
         final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
         final EventName eventName = EventName.TOKEN_CACHE_DELETE;
-        final ICacheEvent cacheEvent = getTestCacheEvent(requestId, eventName, sTestTokenTypeAT);
+        final ICacheEvent cacheEvent = getTestCacheEvent(requestId, eventName, TEST_TOKEN_TYPE_AT);
         Assert.assertEquals(requestId, cacheEvent.getRequestId());
         Assert.assertEquals(eventName, cacheEvent.getEventName());
-        Assert.assertEquals(sTestTokenTypeAT, cacheEvent.getTokenType());
+        Assert.assertEquals(TEST_TOKEN_TYPE_AT, cacheEvent.getTokenType());
         Assert.assertEquals(Boolean.FALSE, cacheEvent.tokenTypeisRT());
     }
 

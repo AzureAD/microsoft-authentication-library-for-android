@@ -31,7 +31,7 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 /**
  * Internal class for HttpEvent telemetry data.
  */
-class HttpEvent extends Event implements IHttpEvent {
+final class HttpEvent extends Event implements IHttpEvent {
 
     private HttpEvent(Builder builder) {
         super(builder);
@@ -71,42 +71,42 @@ class HttpEvent extends Event implements IHttpEvent {
     }
 
     @Override
-    public final String getUserAgent() {
+    public String getUserAgent() {
         return getProperty(EventProperty.HTTP_USER_AGENT);
     }
 
     @Override
-    public final String getHttpMethod() {
+    public String getHttpMethod() {
         return getProperty(EventProperty.HTTP_METHOD);
     }
 
     @Override
-    public final String getQueryParameters() {
+    public String getQueryParameters() {
         return getProperty(EventProperty.HTTP_QUERY_PARAMETERS);
     }
 
     @Override
-    public final String getApiVersion() {
+    public String getApiVersion() {
         return getProperty(EventProperty.HTTP_API_VERSION);
     }
 
     @Override
-    public final String getOAuthErrorCode() {
+    public String getOAuthErrorCode() {
         return getProperty(EventProperty.OAUTH_ERROR_CODE);
     }
 
     @Override
-    public final String getRequestIdHeader() {
+    public String getRequestIdHeader() {
         return getProperty(EventProperty.REQUEST_ID_HEADER);
     }
 
     @Override
-    public final URL getHttpPath() {
+    public URL getHttpPath() {
         return MSALUtils.getUrl(getProperty(EventProperty.HTTP_PATH));
     }
 
     @Override
-    public final Integer getResponseCode() {
+    public Integer getResponseCode() {
         return Integer.valueOf(getProperty(EventProperty.HTTP_RESPONSE_CODE));
     }
 
@@ -217,7 +217,7 @@ class HttpEvent extends Event implements IHttpEvent {
         }
 
         /**
-         * Constructs a new HttpEvent
+         * Constructs a new HttpEvent.
          *
          * @return the newly constucted HttpEvent instance
          */

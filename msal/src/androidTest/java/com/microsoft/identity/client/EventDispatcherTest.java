@@ -55,7 +55,7 @@ public class EventDispatcherTest {
                 CacheEventTest.getTestCacheEvent(
                         cacheEventRequestId,
                         cacheEventName,
-                        CacheEventTest.sTestTokenTypeAT
+                        CacheEventTest.TEST_TOKEN_TYPE_AT
                 );
 
         final Telemetry.RequestId httpEventRequestId = Telemetry.generateNewRequestId();

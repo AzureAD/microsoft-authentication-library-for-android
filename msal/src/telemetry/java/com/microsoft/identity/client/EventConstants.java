@@ -28,15 +28,24 @@ package com.microsoft.identity.client;
  */
 final class EventConstants {
 
+    private EventConstants() {
+        // Utility class
+    }
+
     /**
-     * Prefixes all event names
+     * Prefixes all event names.
      */
     static final String EVENT_PREFIX = "Microsoft.MSAL.";
 
     /**
-     * API Ids for Telemetry
+     * API Ids for Telemetry.
      */
-    static class ApiId {
+    static final class ApiId {
+
+        private ApiId() {
+            // Utility class
+        }
+
         static final String API_ID_ACQUIRE = "100";
         static final String API_ID_ACQUIRE_WITH_HINT = "160";
         static final String API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_AND_PARAMETERS = "161";
@@ -48,7 +57,12 @@ final class EventConstants {
     /**
      * Properties used by Event key/value pairs.
      */
-    static class EventProperty {
+    static final class EventProperty {
+
+        private EventProperty() {
+            // Utility class
+        }
+
         static final String API_ID = EVENT_PREFIX + "api_id";
         static final String START_TIME = EVENT_PREFIX + "start_time";
         static final String STOP_TIME = EVENT_PREFIX + "stop_time";
@@ -91,7 +105,12 @@ final class EventConstants {
         /**
          * Frequently occurring values of telemetry key/value pairs.
          */
-        static class Value {
+        static final class Value {
+
+            private Value() {
+                // Utility class
+            }
+
             static final String AUTHORITY_TYPE_ADFS = EVENT_PREFIX + "adfs";
             static final String AUTHORITY_TYPE_AAD = EVENT_PREFIX + "aad";
             static final String AUTHORITY_VALIDATION_SUCCESS = EVENT_PREFIX + "authority_validation_status_success";

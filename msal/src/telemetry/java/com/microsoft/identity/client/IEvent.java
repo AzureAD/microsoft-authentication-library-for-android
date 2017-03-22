@@ -87,14 +87,14 @@ interface IEvent extends Collection<Pair<String, String>> {
     String getDeviceId();
 
     /**
-     * Gets the {@link com.microsoft.identity.client.Telemetry.RequestId}
+     * Gets the {@link com.microsoft.identity.client.Telemetry.RequestId}.
      *
      * @return the RequestId to get
      */
     Telemetry.RequestId getRequestId();
 
     /**
-     * Gets the {@link EventName}
+     * Gets the {@link EventName}.
      *
      * @return the EventName to get
      */

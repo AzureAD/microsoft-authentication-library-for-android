@@ -35,17 +35,17 @@ import java.net.URL;
 @RunWith(AndroidJUnit4.class)
 public class HttpEventTest {
 
-    static final String sTestUserAgent = "a_user_agent";
-    static final String sTestHttpMethod = "GET";
-    static final String sTestQueryParams = "?value=1&name=foo";
-    static final String sTestApiVersion = "v1.0";
-    static final String sTestOAuthErrorCode = "invalid grant";
-    static final String sTestRequestIdHeader = "a_request_header";
-    static final URL sTestHttpPath = MSALUtils.getUrl("https://login.microsoftonline.com/");
-    static final Integer sTestHttpResponseCode = 200;
+    static final String TEST_USER_AGENT = "a_user_agent";
+    static final String TEST_HTTP_METHOD = "GET";
+    static final String TEST_QUERY_PARAMS = "?value=1&name=foo";
+    static final String TEST_API_VERSION = "v1.0";
+    static final String TEST_O_AUTH_ERROR_CODE = "invalid grant";
+    static final String TEST_REQUEST_ID_HEADER = "a_request_header";
+    static final URL TEST_HTTP_PATH = MSALUtils.getUrl("https://login.microsoftonline.com/");
+    static final Integer TEST_HTTP_RESPONSE_CODE = 200;
 
     static IHttpEvent getTestHttpEvent(final Telemetry.RequestId requestId) {
-        return getTestHttpEvent(requestId, sTestHttpPath);
+        return getTestHttpEvent(requestId, TEST_HTTP_PATH);
     }
 
     private static IHttpEvent getTestHttpEvent(
@@ -53,14 +53,14 @@ public class HttpEventTest {
             final URL httpPath
     ) {
         return new HttpEvent.Builder(requestId)
-                .userAgent(sTestUserAgent)
-                .httpMethod(sTestHttpMethod)
-                .queryParameters(sTestQueryParams)
-                .apiVersion(sTestApiVersion)
-                .oAuthErrorCode(sTestOAuthErrorCode)
-                .requestIdHeader(sTestRequestIdHeader)
+                .userAgent(TEST_USER_AGENT)
+                .httpMethod(TEST_HTTP_METHOD)
+                .queryParameters(TEST_QUERY_PARAMS)
+                .apiVersion(TEST_API_VERSION)
+                .oAuthErrorCode(TEST_O_AUTH_ERROR_CODE)
+                .requestIdHeader(TEST_REQUEST_ID_HEADER)
                 .httpPath(httpPath)
-                .statusCode(sTestHttpResponseCode)
+                .statusCode(TEST_HTTP_RESPONSE_CODE)
                 .build();
     }
 
@@ -70,14 +70,14 @@ public class HttpEventTest {
         final IHttpEvent httpEvent = getTestHttpEvent(requestId);
         Assert.assertEquals(requestId, httpEvent.getRequestId());
         Assert.assertEquals(EventName.HTTP_EVENT, httpEvent.getEventName());
-        Assert.assertEquals(sTestUserAgent, httpEvent.getUserAgent());
-        Assert.assertEquals(sTestHttpMethod, httpEvent.getHttpMethod());
-        Assert.assertEquals(sTestQueryParams, httpEvent.getQueryParameters());
-        Assert.assertEquals(sTestApiVersion, httpEvent.getApiVersion());
-        Assert.assertEquals(sTestOAuthErrorCode, httpEvent.getOAuthErrorCode());
-        Assert.assertEquals(sTestRequestIdHeader, httpEvent.getRequestIdHeader());
-        Assert.assertEquals(sTestHttpPath, httpEvent.getHttpPath());
-        Assert.assertEquals(sTestHttpResponseCode, httpEvent.getResponseCode());
+        Assert.assertEquals(TEST_USER_AGENT, httpEvent.getUserAgent());
+        Assert.assertEquals(TEST_HTTP_METHOD, httpEvent.getHttpMethod());
+        Assert.assertEquals(TEST_QUERY_PARAMS, httpEvent.getQueryParameters());
+        Assert.assertEquals(TEST_API_VERSION, httpEvent.getApiVersion());
+        Assert.assertEquals(TEST_O_AUTH_ERROR_CODE, httpEvent.getOAuthErrorCode());
+        Assert.assertEquals(TEST_REQUEST_ID_HEADER, httpEvent.getRequestIdHeader());
+        Assert.assertEquals(TEST_HTTP_PATH, httpEvent.getHttpPath());
+        Assert.assertEquals(TEST_HTTP_RESPONSE_CODE, httpEvent.getResponseCode());
     }
 
     @Test

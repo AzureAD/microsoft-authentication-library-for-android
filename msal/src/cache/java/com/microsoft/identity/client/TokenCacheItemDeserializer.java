@@ -45,7 +45,7 @@ final class TokenCacheItemDeserializer<T extends BaseTokenCacheItem> implements 
         final String rawIdToken = deserializedTokenCacheItem.getRawIdToken();
         if (!MSALUtils.isEmpty(rawIdToken)) {
             try {
-                final IdToken idToken = new IdToken(rawIdToken);;
+                final IdToken idToken = new IdToken(rawIdToken);
                 deserializedTokenCacheItem.setIdToken(idToken);
                 deserializedTokenCacheItem.setUser(new User(idToken));
             } catch (final AuthenticationException e) {

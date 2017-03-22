@@ -28,7 +28,7 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 /**
  * Internal class for CacheEvent telemetry data.
  */
-class CacheEvent extends Event implements ICacheEvent {
+final class CacheEvent extends Event implements ICacheEvent {
 
     private CacheEvent(Builder builder) {
         super(builder);

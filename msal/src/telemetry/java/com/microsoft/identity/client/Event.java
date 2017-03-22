@@ -54,15 +54,15 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
     }
 
     /**
-     * Constructs a new Event
+     * Constructs a new Event.
      *
-     * @param builder the Builder instance for this Event
+     * @param builder the Builder instance for this Event.
      */
     Event(final Builder builder) {
         if (null == builder.mEventName) {
             throw new IllegalStateException("Event must have a name");
         }
-        setProperty(EventProperty.EVENT_NAME, builder.mEventName.value);
+        setProperty(EventProperty.EVENT_NAME, builder.mEventName.toString());
         if (sInitializeAllWithDefaults) {
             // add the defaults
             setProperty(EventProperty.APPLICATION_NAME, sAllDefaults.mApplicationName);
@@ -70,7 +70,7 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
             setProperty(EventProperty.CLIENT_ID, sAllDefaults.mClientId);
             setProperty(EventProperty.DEVICE_ID, sAllDefaults.mDeviceId);
         }
-        setProperty(EventProperty.REQUEST_ID, builder.mRequestId.value);
+        setProperty(EventProperty.REQUEST_ID, builder.mRequestId.toString());
     }
 
     @Override
@@ -132,7 +132,7 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
      *
      * @param <T> generic type parameter for Builder subtypes.
      */
-    static abstract class Builder<T extends Builder> {
+    abstract static class Builder<T extends Builder> {
 
         private Telemetry.RequestId mRequestId;
         private final EventName mEventName;
@@ -146,19 +146,19 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
         }
 
         /**
-         * Gets the {@link com.microsoft.identity.client.Telemetry.RequestId}
-         * assigned to this Builder
+         * Gets the {@link com.microsoft.identity.client.Telemetry.RequestId}.
+         * assigned to this Builder.
          *
-         * @return the requestId
+         * @return the requestId.
          */
         final Telemetry.RequestId getRequestId() {
             return mRequestId;
         }
 
         /**
-         * Gets the {@link EventName}
+         * Gets the {@link EventName}.
          *
-         * @return the EventName to get
+         * @return the EventName to get.
          */
         final EventName getEventName() {
             return mEventName;
@@ -177,7 +177,7 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
     /**
      * Data-container used for default Event values.
      */
-    static class EventDefaults {
+    static final class EventDefaults {
 
         private String mApplicationName;
         private String mApplicationVersion;
@@ -197,7 +197,7 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
         }
 
         /**
-         * Generates an EventDefaults instance for the supplied {@link Context} and
+         * Generates an EventDefaults instance for the supplied {@link Context} and clientId.
          *
          * @param context  the {@link Context} from which these defaults should be created.
          * @param clientId the clientId of the application

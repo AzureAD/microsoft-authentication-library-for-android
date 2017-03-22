@@ -249,7 +249,7 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         final List<RefreshTokenCacheItem> rtItem = mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(CLIENT_ID, getDefaultUser()), Telemetry.generateNewRequestId());
         assertTrue(rtItem.size() == 1);
         assertTrue(rtItem.get(0).getRefreshToken().equals("refreshToken3"));
-        assertTrue(mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(CLIENT_ID, getDefaultUser()),Telemetry.generateNewRequestId()).size() == 1);
+        assertTrue(mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(CLIENT_ID, getDefaultUser()), Telemetry.generateNewRequestId()).size() == 1);
         assertTrue(mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(anotherClientId, getDefaultUser()), Telemetry.generateNewRequestId()).size() == 1);
     }
 

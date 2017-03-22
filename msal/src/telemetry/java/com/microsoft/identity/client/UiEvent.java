@@ -28,7 +28,7 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 /**
  * Internal class for UiEvent telemetry data.
  */
-class UiEvent extends Event implements IUiEvent {
+final class UiEvent extends Event implements IUiEvent {
 
     private UiEvent(Builder builder) {
         super(builder);
@@ -37,12 +37,12 @@ class UiEvent extends Event implements IUiEvent {
     }
 
     @Override
-    public final Integer getRedirectCount() {
+    public Integer getRedirectCount() {
         return Integer.valueOf(getProperty(EventProperty.REDIRECT_COUNT));
     }
 
     @Override
-    public final Boolean userCancelled() {
+    public Boolean userCancelled() {
         return Boolean.valueOf(getProperty(EventProperty.USER_CANCEL));
     }
 
