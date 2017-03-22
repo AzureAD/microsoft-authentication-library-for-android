@@ -51,7 +51,7 @@ final class InteractiveRequest extends BaseRequest {
     private static AuthorizationResult sAuthorizationResult;
     private static CountDownLatch sResultLock = new CountDownLatch(1);
 
-    private final Activity mActivity;
+    private final PublicClientApplication.ActivityWrapper mActivity;
     private PKCEChallengeFactory.PKCEChallenge mPKCEChallenge;
 
     /**
@@ -61,9 +61,9 @@ final class InteractiveRequest extends BaseRequest {
      * @param authRequestParameters {@link AuthenticationRequestParameters} that is holding all the parameters for oauth request.
      * @param additionalScope       An array of additional scopes.
      */
-    InteractiveRequest(final Activity activity, final AuthenticationRequestParameters authRequestParameters,
+    InteractiveRequest(final PublicClientApplication.ActivityWrapper activity, final AuthenticationRequestParameters authRequestParameters,
                        final String[] additionalScope) {
-        super(activity.getApplicationContext(), authRequestParameters);
+        super(activity.getReferencedActivity().getApplicationContext(), authRequestParameters);
         mActivity = activity;
 
         // validate redirect
@@ -105,7 +105,11 @@ final class InteractiveRequest extends BaseRequest {
 
         throwIfNetworkNotAvailable();
 
-        mActivity.startActivityForResult(intentToLaunch, BROWSER_FLOW);
+        if (mActivity.getReferencedActivity() == null) {
+            throw new AuthenticationException();
+        }
+
+        mActivity.getReferencedActivity().startActivityForResult(intentToLaunch, BROWSER_FLOW);
         // lock the thread until onActivityResult release the lock.
         try {
             if (sResultLock.getCount() == 0) {

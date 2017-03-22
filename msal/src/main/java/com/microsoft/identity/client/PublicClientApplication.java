@@ -67,7 +67,9 @@ public final class PublicClientApplication {
      * "com.microsoft.identity.client.RedirectUri"
      * Authority can be set in the meta data, if not provided, the sdk will use the default authority.
      * @param context Application running {@link Context}. The sdk requires the application context to be passed in
-     *                {@link PublicClientApplication}. Cannot be null.
+     *                {@link PublicClientApplication}. Cannot be null. @note: The {@link Context} should be the application
+     *                context instead of an running activity, which could potentially make the sdk hold a strong reference on
+     *                the activity, thus preventing correct garbage collection and causing bugs.
      */
     public PublicClientApplication(@NonNull final Context context) {
         if (context == null) {
@@ -153,7 +155,7 @@ public final class PublicClientApplication {
      *                 3) All the other errors will be sent back via
      *                 {@link AuthenticationCallback#onError(AuthenticationException)}.
      */
-    public void acquireToken(@NonNull final Activity activity,  final String[] scopes, @NonNull final AuthenticationCallback callback) {
+    public void acquireToken(@NonNull final Activity activity, final String[] scopes, @NonNull final AuthenticationCallback callback) {
         acquireTokenInteractive(activity, scopes, "", UIBehavior.SELECT_ACCOUNT, "", null, "", callback);
     }
 
@@ -175,8 +177,8 @@ public final class PublicClientApplication {
      *                 3) All the other errors will be sent back via
      *                 {@link AuthenticationCallback#onError(AuthenticationException)}.
      */
-    public void acquireToken(@NonNull  final Activity activity, final String[] scopes, final String loginHint,
-                             @NonNull  final AuthenticationCallback callback) {
+    public void acquireToken(@NonNull final Activity activity, final String[] scopes, final String loginHint,
+                             @NonNull final AuthenticationCallback callback) {
         acquireTokenInteractive(activity, scopes, loginHint, UIBehavior.SELECT_ACCOUNT, "", null, "", callback);
     }
 
@@ -361,7 +363,7 @@ public final class PublicClientApplication {
                 extraQueryParams, uiBehavior);
 
         Logger.info(TAG, requestParameters.getRequestContext(), "Preparing a new interactive request");
-        final BaseRequest request = new InteractiveRequest(getActivity(activity), requestParameters, additionalScope);
+        final BaseRequest request = new InteractiveRequest(new ActivityWrapper(activity), requestParameters, additionalScope);
         request.getToken(callback);
     }
 
@@ -398,16 +400,11 @@ public final class PublicClientApplication {
                 mRedirectUri, loginHint, extraQueryParam, uiBehavior, new RequestContext(correlationId, mComponent));
     }
 
-
-    private Activity getActivity(final Activity activity) {
-        return new ActivityWrapper(activity).getReferencedActivity();
-    }
-
     /**
      * Internal static class to create a weak reference of the passed-in activity. The library itself doesn't control the
      * passed-in activity's lifecycle.
      */
-    private static class ActivityWrapper {
+    static class ActivityWrapper {
         private WeakReference<Activity> mReferencedActivity;
 
         ActivityWrapper(final Activity activity) {
