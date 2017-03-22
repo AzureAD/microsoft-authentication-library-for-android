@@ -50,7 +50,7 @@ abstract class Authority {
     final boolean mValidateAuthority;
 
     URL mAuthorityUrl;
-    boolean mIsTenantLess;
+    boolean mIsTenantless;
     String mAuthorizationEndpoint;
     String mTokenEndpoint;
     AuthorityType mAuthorityType;
@@ -174,7 +174,7 @@ abstract class Authority {
         mValidateAuthority = validateAuthority;
 
         // default value for tenant less is false. B2c and Adfs authority will never be tenant less.
-        mIsTenantLess = isTenantLess();
+        mIsTenantless = isTenantLess();
     }
 
     /**
@@ -221,12 +221,12 @@ abstract class Authority {
         return updatedAuthority;
     }
 
-    boolean getIsTenantLess() {
-        return mIsTenantLess;
+    boolean getIsTenantless() {
+        return mIsTenantless;
     }
 
     void updateTenantLessAuthority(final String tenantId) throws AuthenticationException {
-        if (!mIsTenantLess || MSALUtils.isEmpty(tenantId)) {
+        if (!mIsTenantless || MSALUtils.isEmpty(tenantId)) {
             return;
         }
 
@@ -238,7 +238,7 @@ abstract class Authority {
 
         try {
             mAuthorityUrl = new URL(authorityString);
-            mIsTenantLess = false;
+            mIsTenantless = false;
         } catch (final MalformedURLException e) {
             throw new AuthenticationException(MSALError.UNSUPPORTED_ENCODING, "Fail to update tenant id for tenant less authority, ", e);
         }

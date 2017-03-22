@@ -77,7 +77,7 @@ public final class AuthorityTest {
         final Authority authority = Authority.createAuthority(
                 "https://login.windows.net/common?resource=2343&client_id=234", false);
         authority.equals("https://login.windows.net/common");
-        Assert.assertTrue(authority.getIsTenantLess());
+        Assert.assertTrue(authority.getIsTenantless());
     }
 
     /**
@@ -352,6 +352,6 @@ public final class AuthorityTest {
 
         Assert.assertTrue(authority.getAuthorizeEndpoint().equals(AUTHORIZE_ENDPOINT));
         Assert.assertTrue(authority.getTokenEndpoint().equals(TOKEN_ENDPOINT));
-        Assert.assertFalse(authority.getIsTenantLess());
+        Assert.assertFalse(authority.getIsTenantless());
     }
 }
