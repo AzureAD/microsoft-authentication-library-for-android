@@ -52,30 +52,30 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         mApplication = new PublicClientApplication(this);
-
-        final Button buttonForInteractiveRequest = (Button) findViewById(R.id.AcquireTokenInteractiveForR1);
-        buttonForInteractiveRequest.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                callAcquireToken(SCOPES, UIBehavior.FORCE_LOGIN, null, null, null);
-            }
-        });
-
-        final Button buttonForLaunchingChrome = (Button) findViewById(R.id.LaunchChrome);
-        buttonForLaunchingChrome.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                callAcquireToken(SCOPES, UIBehavior.FORCE_LOGIN, null, null, null);
-            }
-        });
-
-        final Button buttonForSilentFlow = (Button) findViewById(R.id.AcquireTokenSilentForR1);
-        buttonForSilentFlow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                callAcquireTokenSilent(SCOPES, true);
-            }
-        });
+//
+//        final Button buttonForInteractiveRequest = (Button) findViewById(R.id.AcquireTokenInteractiveForR1);
+//        buttonForInteractiveRequest.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                callAcquireToken(SCOPES, UIBehavior.FORCE_LOGIN, null, null, null);
+//            }
+//        });
+//
+//        final Button buttonForLaunchingChrome = (Button) findViewById(R.id.LaunchChrome);
+//        buttonForLaunchingChrome.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                callAcquireToken(SCOPES, UIBehavior.FORCE_LOGIN, null, null, null);
+//            }
+//        });
+//
+//        final Button buttonForSilentFlow = (Button) findViewById(R.id.AcquireTokenSilentForR1);
+//        buttonForSilentFlow.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                callAcquireTokenSilent(SCOPES, true);
+//            }
+//        });
     }
 
     @Override
