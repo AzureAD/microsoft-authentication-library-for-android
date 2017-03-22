@@ -104,11 +104,7 @@ final class InteractiveRequest extends BaseRequest {
 
         throwIfNetworkNotAvailable();
 
-        if (mActivityWrapper.getReferencedActivity() == null) {
-            throw new MsalClientException(MSALError.UNRESOLVABLE_INTENT, "The referenced object is already being garbage collected.");
-        }
-
-        mActivityWrapper.getReferencedActivity().startActivityForResult(intentToLaunch, BROWSER_FLOW);
+        mActivityWrapper.startActivityForResult(intentToLaunch, BROWSER_FLOW);
         // lock the thread until onActivityResult release the lock.
         try {
             if (sResultLock.getCount() == 0) {
@@ -407,8 +403,12 @@ final class InteractiveRequest extends BaseRequest {
             mReferencedActivity = new WeakReference<Activity>(activity);
         }
 
-        Activity getReferencedActivity() {
-            return mReferencedActivity.get();
+        void startActivityForResult(final Intent intent, int requestCode) throws MsalClientException {
+            if (mReferencedActivity.get() == null) {
+                throw new MsalClientException(MSALError.UNRESOLVABLE_INTENT, "The referenced object is already being garbage collected.");
+            }
+
+            mReferencedActivity.get().startActivityForResult(intent, requestCode);
         }
     }
 }
