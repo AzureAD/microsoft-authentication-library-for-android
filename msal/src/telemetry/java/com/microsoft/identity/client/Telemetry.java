@@ -75,7 +75,7 @@ public final class Telemetry implements ITelemetry {
      *
      * @return the Telemetry singleton.
      */
-    static Telemetry getInstance() {
+    public static Telemetry getInstance() {
         return INSTANCE;
     }
 

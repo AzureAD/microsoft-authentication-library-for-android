@@ -34,6 +34,8 @@ import android.support.customtabs.CustomTabsIntent;
 import android.support.customtabs.CustomTabsServiceConnection;
 import android.support.customtabs.CustomTabsSession;
 
+import java.lang.ref.WeakReference;
+
 /**
  * Custom tab requires the device to have a browser with custom tab support, chrome with version >= 45 comes with the
  * support and is available on all devices with API version >= 16 . The sdk use chrome custom tab, and before launching
@@ -115,16 +117,9 @@ public final class AuthenticationActivity extends Activity {
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (null != mUiEventBuilder) {
-            Telemetry.getInstance().stopEvent(mUiEventBuilder.build());
-        }
-    }
-
     private void warmUpCustomTabs() {
-        mCustomTabsServiceConnection = createCustomTabsServiceConnection();
+        //mCustomTabsServiceConnection = createCustomTabsServiceConnection();
+        mCustomTabsServiceConnection = new CustomTabsConnection(this);
 
         // Initiate the service-bind action
         CustomTabsClient.bindCustomTabsService(
@@ -140,22 +135,32 @@ public final class AuthenticationActivity extends Activity {
         mCustomTabsIntent.intent.setPackage(mChromePackageWithCustomTabSupport);
     }
 
-    @NonNull
-    private CustomTabsServiceConnection createCustomTabsServiceConnection() {
-        return new CustomTabsServiceConnection() {
-            @Override
-            public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
-                mCustomTabsServiceIsBound = true;
-                mCustomTabsClient = client;
-                mCustomTabsClient.warmup(0L);
-                mCustomTabsSession = mCustomTabsClient.newSession(null);
-            }
+    private static class CustomTabsConnection extends CustomTabsServiceConnection {
 
-            @Override
-            public void onServiceDisconnected(ComponentName componentName) {
-                mCustomTabsClient = null;
+        WeakReference<AuthenticationActivity> mActivityWeakRef;
+
+        CustomTabsConnection(AuthenticationActivity activity) {
+            mActivityWeakRef = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
+            AuthenticationActivity activity = mActivityWeakRef.get();
+            if (null != activity) {
+                activity.mCustomTabsServiceIsBound = true;
+                activity.mCustomTabsClient = client;
+                activity.mCustomTabsClient.warmup(0L);
+                activity.mCustomTabsSession = activity.mCustomTabsClient.newSession(null);
             }
-        };
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            AuthenticationActivity activity = mActivityWeakRef.get();
+            if (null != activity) {
+                activity.mCustomTabsClient = null;
+            }
+        }
     }
 
     /**
@@ -230,6 +235,10 @@ public final class AuthenticationActivity extends Activity {
     private void returnToCaller(final int resultCode, final Intent data) {
         Logger.info(TAG, null, "Return to caller with resultCode: " + resultCode + "; requestId: " + mRequestId);
         data.putExtra(Constants.REQUEST_ID, mRequestId);
+
+        if (null != mUiEventBuilder) {
+            Telemetry.getInstance().stopEvent(mUiEventBuilder.build());
+        }
 
         setResult(resultCode, data);
         this.finish();

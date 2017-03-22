@@ -27,6 +27,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -34,17 +35,41 @@ import android.widget.Toast;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationException;
 import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.MsalEventReceiver;
 import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.Telemetry;
 import com.microsoft.identity.client.UIBehavior;
 import com.microsoft.identity.client.User;
+
+import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends Activity {
 
     private PublicClientApplication mApplication;
-    private static String[] SCOPES = new String [] {"User.Read"};
+    private static String[] SCOPES = new String[]{"User.Read"};
 
     private Handler mHandler;
     private static User sUser;
+
+    private static final String LOG_TAG = MainActivity.class.getSimpleName();
+
+    static {
+        Telemetry.getInstance().registerReceiver(new MsalEventReceiver() {
+            @Override
+            public void onEventsReceived(List<Map<String, String>> events) {
+                Log.d(LOG_TAG, "Received events");
+                Log.d(LOG_TAG, "Event count: [" + events.size() + "]");
+                for (final Map<String, String> event : events) {
+                    Log.d(LOG_TAG, "Begin event --------");
+                    for (final String key : event.keySet()) {
+                        Log.d(LOG_TAG, "\t" + key + " :: " + event.get(key));
+                    }
+                    Log.d(LOG_TAG, "End event ---------");
+                }
+            }
+        });
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

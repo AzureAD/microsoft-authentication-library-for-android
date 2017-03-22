@@ -26,6 +26,7 @@ package com.microsoft.identity.client;
 import android.util.Pair;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +68,9 @@ class EventDispatcher {
         }
 
         List<Map<String, String>> eventsForPublication = new ArrayList<>();
+
+        // Reverse the List for iteration
+        Collections.reverse(eventsToPublish);
 
         for (final IEvent event : eventsToPublish) {
             Map<String, String> eventProperties = new LinkedHashMap<>();

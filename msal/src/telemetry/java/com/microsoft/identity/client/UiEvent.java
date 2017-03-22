@@ -32,7 +32,9 @@ final class UiEvent extends Event implements IUiEvent {
 
     private UiEvent(Builder builder) {
         super(builder);
-        setProperty(EventProperty.REDIRECT_COUNT, builder.mRedirectCount.toString());
+        if (null != builder.mRedirectCount) {
+            setProperty(EventProperty.REDIRECT_COUNT, builder.mRedirectCount.toString());
+        }
         setProperty(EventProperty.USER_CANCEL, builder.mUserDidCancel);
     }
 

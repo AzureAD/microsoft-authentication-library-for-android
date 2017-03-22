@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * The interface function for apps to override if they want to get the Telemetry from MSAL.
  */
-interface MsalEventReceiver {
+public interface MsalEventReceiver {
 
     /**
      * Invoked when telemetry data is received.
