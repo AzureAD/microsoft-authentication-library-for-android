@@ -42,13 +42,13 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="0.8"
-        android:text="Log data goes here..." />
+        android:text="@string/log_hint_text" />
 
     <Button
         android:id="@+id/btn_clearLogs"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="clear logs" />
+        android:text="@string/clear_log_button" />
 
 </LinearLayout>

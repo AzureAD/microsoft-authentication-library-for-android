@@ -211,7 +211,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="5"
-            android:text="Get User" />
+            android:text="@string/btn_getUser" />
 
     </LinearLayout>
 
@@ -227,7 +227,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="5"
-            android:text="Remove User" />
+            android:text="@string/btn_removeUser" />
 
     </LinearLayout>
 

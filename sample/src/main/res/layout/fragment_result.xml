@@ -34,6 +34,6 @@
         android:id="@+id/txt_result"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="Acquire token interactive/silent flow result data goes here..." />
+        android:text="@string/result_hint_text" />
 
 </FrameLayout>
