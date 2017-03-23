@@ -26,10 +26,12 @@ package com.microsoft.identity.client;
 import android.util.Pair;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
+import static com.microsoft.identity.client.EventConstants.EventProperty;
 
 /**
  * Dispatcher for telemetry event data.
@@ -67,6 +69,9 @@ class EventDispatcher {
             return;
         }
 
+        final UUID requestCorrelationIdForGroup = getCorrelationIdForGroup(eventsToPublish);
+        applyCorrelationIdToGroup(eventsToPublish, requestCorrelationIdForGroup);
+
         List<Map<String, String>> eventsForPublication = new ArrayList<>();
 
         for (final IEvent event : eventsToPublish) {
@@ -78,5 +83,31 @@ class EventDispatcher {
         }
 
         mEventReceiver.onEventsReceived(eventsForPublication);
+    }
+
+    private void applyCorrelationIdToGroup(
+            final List<IEvent> eventsToPublish, final UUID requestCorrelationIdForGroup) {
+        for (final IEvent event : eventsToPublish) {
+            int correlationIdIndex = EventProperty.Index.CORRELATION_ID_WHEN_NO_DEFAULTS;
+            if (hasDefaults(event)) {
+                correlationIdIndex = EventProperty.Index.CORRELATION_ID;
+            }
+            event.setProperty(correlationIdIndex, EventProperty.CORRELATION_ID, requestCorrelationIdForGroup.toString());
+        }
+    }
+
+    private boolean hasDefaults(final IEvent event) {
+        return null != event.getApplicationName();
+    }
+
+    private UUID getCorrelationIdForGroup(List<IEvent> eventsToPublish) {
+        UUID groupCorrelationId = null;
+        for (final IEvent event : eventsToPublish) {
+            if (null != event.getCorrelationId()) {
+                groupCorrelationId = event.getCorrelationId();
+                break;
+            }
+        }
+        return groupCorrelationId;
     }
 }

@@ -26,6 +26,7 @@ package com.microsoft.identity.client;
 import android.util.Pair;
 
 import java.util.Collection;
+import java.util.UUID;
 
 /**
  * Internal interface for Event telemetry data.
@@ -33,7 +34,7 @@ import java.util.Collection;
 interface IEvent extends Collection<Pair<String, String>> {
 
     /**
-     * Sets the supplied telemetry properties on this event.
+     * Sets the supplied telemetry property on this IEvent.
      *
      * @param propertyName  the name of the property to set.
      *                      See {@link com.microsoft.identity.client.EventConstants.EventProperty}.
@@ -41,6 +42,17 @@ interface IEvent extends Collection<Pair<String, String>> {
      *                      See {@link com.microsoft.identity.client.EventConstants.EventProperty.Value}.
      */
     void setProperty(final String propertyName, final String propertyValue);
+
+    /**
+     * Sets the supplied telemetry property on this IEvent.
+     *
+     * @param position      the index to use for this property (ordering)
+     * @param propertyName  the name of the property to set.
+     *                      See {@link com.microsoft.identity.client.EventConstants.EventProperty}.
+     * @param propertyValue the value of the property to set.
+     *                      See {@link com.microsoft.identity.client.EventConstants.EventProperty.Value}.
+     */
+    void setProperty(final int position, final String propertyName, final String propertyValue);
 
     /**
      * Gets the telemetry property by name.
@@ -99,5 +111,12 @@ interface IEvent extends Collection<Pair<String, String>> {
      * @return the EventName to get
      */
     EventName getEventName();
+
+    /**
+     * Gets the correlationId of the Event
+     *
+     * @return the correlationId
+     */
+    UUID getCorrelationId();
 
 }
