@@ -26,7 +26,6 @@ package com.microsoft.identity.client;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
-import java.util.UUID;
 
 import static com.microsoft.identity.client.EventConstants.EventProperty;
 
@@ -48,13 +47,6 @@ final class ApiEvent extends Event implements IApiEvent {
         setProperty(EventProperty.API_DEPRECATED, String.valueOf(builder.mIsDeprecated));
         setProperty(EventProperty.EXTENDED_EXPIRES_ON_SETTING, String.valueOf(builder.mExtendedExpiresOnStatus));
         setProperty(EventProperty.WAS_SUCCESSFUL, String.valueOf(builder.mWasApiCallSuccessful));
-    }
-
-    @Override
-    public void setCorrelationId(UUID correlationId) {
-        if (null != correlationId) {
-            setProperty(EventProperty.CORRELATION_ID, correlationId.toString());
-        }
     }
 
     private void setLoginHint(final String loginHint) {

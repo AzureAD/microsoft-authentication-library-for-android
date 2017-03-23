@@ -32,10 +32,8 @@ import android.util.Pair;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.UUID;
 
 import static com.microsoft.identity.client.EventConstants.EventProperty;
-import static com.microsoft.identity.client.EventConstants.EventProperty.Index;
 
 /**
  * Internal base-class for Event telemetry data.
@@ -64,35 +62,21 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
         if (null == builder.mEventName) {
             throw new IllegalStateException("Event must have a name");
         }
-
-        setProperty(Index.EVENT_NAME, EventProperty.EVENT_NAME, builder.mEventName.toString());
-
+        setProperty(EventProperty.EVENT_NAME, builder.mEventName.toString());
         if (sInitializeAllWithDefaults) {
             // add the defaults
-            setProperty(Index.APPLICATION_NAME, EventProperty.APPLICATION_NAME, sAllDefaults.mApplicationName);
-            setProperty(Index.APPLICATION_VERSION, EventProperty.APPLICATION_VERSION, sAllDefaults.mApplicationVersion);
-            setProperty(Index.CLIENT_ID, EventProperty.CLIENT_ID, sAllDefaults.mClientId);
-            setProperty(Index.DEVICE_ID, EventProperty.DEVICE_ID, sAllDefaults.mDeviceId);
+            setProperty(EventProperty.APPLICATION_NAME, sAllDefaults.mApplicationName);
+            setProperty(EventProperty.APPLICATION_VERSION, sAllDefaults.mApplicationVersion);
+            setProperty(EventProperty.CLIENT_ID, sAllDefaults.mClientId);
+            setProperty(EventProperty.DEVICE_ID, sAllDefaults.mDeviceId);
         }
-
-        setProperty(Index.REQUEST_ID, EventProperty.REQUEST_ID, builder.mRequestId.toString());
-
-        if (null != builder.mCorrelationId) {
-            setProperty(Index.CORRELATION_ID, EventProperty.CORRELATION_ID, builder.mCorrelationId.toString());
-        }
+        setProperty(EventProperty.REQUEST_ID, builder.mRequestId.toString());
     }
 
     @Override
     public void setProperty(final String propertyName, final String propertyValue) {
         if (!MSALUtils.isEmpty(propertyName) && !MSALUtils.isEmpty(propertyValue)) {
             add(new Pair<>(propertyName, propertyValue));
-        }
-    }
-
-    @Override
-    public void setProperty(final int position, final String propertyName, final String propertyValue) {
-        if (!MSALUtils.isEmpty(propertyName) && !MSALUtils.isEmpty(propertyValue)) {
-            add(position, new Pair<>(propertyName, propertyValue));
         }
     }
 
@@ -143,17 +127,6 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
         return new EventName(getProperty(EventProperty.EVENT_NAME));
     }
 
-    @Override
-    public UUID getCorrelationId() {
-        UUID correlationId;
-        try {
-            correlationId = UUID.fromString(getProperty(EventProperty.CORRELATION_ID));
-        } catch (NullPointerException | IllegalArgumentException e) {
-            correlationId = null;
-        }
-        return correlationId;
-    }
-
     /**
      * Builder object used for Events.
      *
@@ -163,7 +136,6 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
 
         private Telemetry.RequestId mRequestId;
         private final EventName mEventName;
-        private String mCorrelationId;
 
         Builder(Telemetry.RequestId requestId, final EventName name) {
             if (!Telemetry.RequestId.isValid(requestId)) {
@@ -171,41 +143,6 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
             }
             mRequestId = requestId;
             mEventName = name;
-        }
-
-        private static boolean isValidCorrelationId(final UUID uuid) {
-            return null != uuid && isValidCorrelationId(uuid.toString());
-        }
-
-        private static boolean isValidCorrelationId(final String correlationId) {
-            try {
-                UUID.fromString(correlationId);
-                return true;
-            } catch (IllegalArgumentException e) {
-                return false;
-            }
-        }
-
-        /**
-         * Sets the correlationId of the Event
-         *
-         * @param correlationId UUID of the action
-         */
-        final void correlationId(final UUID correlationId) {
-            if (isValidCorrelationId(correlationId)) {
-                mCorrelationId = correlationId.toString();
-            }
-        }
-
-        /**
-         * Sets the correlationId of the Event
-         *
-         * @param correlationId UUID of the action
-         */
-        final void correlationId(final String correlationId) {
-            if (isValidCorrelationId(correlationId)) {
-                mCorrelationId = correlationId;
-            }
         }
 
         /**

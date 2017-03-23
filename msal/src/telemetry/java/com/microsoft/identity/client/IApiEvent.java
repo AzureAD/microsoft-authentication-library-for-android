@@ -23,8 +23,6 @@
 
 package com.microsoft.identity.client;
 
-import java.util.UUID;
-
 /**
  * Internal interface for ApiEvent telemetry data.
  */
@@ -106,7 +104,5 @@ interface IApiEvent extends IEvent {
      * @return true if the call was successful, otherwise false.
      */
     Boolean wasSuccessful();
-
-    void setCorrelationId(UUID correlationId);
 
 }

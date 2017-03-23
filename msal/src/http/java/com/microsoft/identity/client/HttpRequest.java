@@ -175,16 +175,12 @@ final class HttpRequest {
     }
 
     private HttpResponse executeHttpSend() throws IOException {
-        // build up the telemetry event
         final HttpEvent.Builder httpEventBuilder =
                 new HttpEvent.Builder(mTelemetryRequestId)
                         .httpPath(mRequestUrl)
                         .httpMethod(mRequestMethod)
                         .queryParameters(mRequestUrl.getQuery());
-
-        // start the telemetry event
         Telemetry.getInstance().startEvent(httpEventBuilder);
-
         final HttpURLConnection urlConnection = setupConnection();
         urlConnection.setRequestMethod(mRequestMethod);
         setRequestBody(urlConnection, mRequestContent, mRequestContentType);

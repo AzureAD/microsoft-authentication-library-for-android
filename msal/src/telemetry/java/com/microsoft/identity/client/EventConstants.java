@@ -102,17 +102,6 @@ final class EventConstants {
         static final String HTTP_API_VERSION = EVENT_PREFIX + "api_version";
         static final String REQUEST_ID_HEADER = EVENT_PREFIX + "x_ms_request_id";
 
-        static final class Index {
-            static final int EVENT_NAME = 0;
-            static final int APPLICATION_NAME = 1;
-            static final int APPLICATION_VERSION = 2;
-            static final int CLIENT_ID = 3;
-            static final int DEVICE_ID = 4;
-            static final int REQUEST_ID = 5;
-            static final int CORRELATION_ID = 6;
-            static final int CORRELATION_ID_WHEN_NO_DEFAULTS = 2;
-        }
-
         /**
          * Frequently occurring values of telemetry key/value pairs.
          */
