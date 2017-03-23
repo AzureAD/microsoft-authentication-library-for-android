@@ -32,9 +32,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 /**
- * Created by weij on 3/22/2017.
+ * The Fragment used to display the result.
  */
-
 public class ResultFragment extends Fragment {
 
     static final String ACCESS_TOKEN = "access_token";

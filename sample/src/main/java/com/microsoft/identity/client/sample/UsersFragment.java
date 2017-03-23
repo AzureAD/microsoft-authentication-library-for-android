@@ -30,7 +30,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 
 import com.google.gson.Gson;
@@ -40,9 +39,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by weij on 3/22/2017.
+ * The Fragment used to display the current list of users.
  */
-
 public class UsersFragment extends Fragment {
 
     private ListView mUserList;

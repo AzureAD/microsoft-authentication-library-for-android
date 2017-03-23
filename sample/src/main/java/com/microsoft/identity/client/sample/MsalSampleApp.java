@@ -29,7 +29,7 @@ import com.microsoft.identity.client.ILogger;
 import com.microsoft.identity.client.Logger;
 
 /**
- * Created by weij on 3/22/2017.
+ * MSAL sample app.
  */
 
 public class MsalSampleApp extends Application {
@@ -40,6 +40,8 @@ public class MsalSampleApp extends Application {
         super.onCreate();
         mLogs = new StringBuffer();
 
+        // Logging can be turned on four different levels: error, warning, info, and verbose. By default the sdk is turning on
+        // verbose level logging. Any apps can use Logger.getInstance().setLogLevel(Loglevel) to enable different level of logging.
         Logger.getInstance().setExternalLogger(new ILogger() {
             @Override
             public void log(String tag, Logger.LogLevel logLevel, String message, boolean containsPII) {

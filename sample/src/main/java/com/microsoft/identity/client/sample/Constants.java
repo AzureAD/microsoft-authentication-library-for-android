@@ -24,7 +24,7 @@
 package com.microsoft.identity.client.sample;
 
 /**
- * Created by weij on 3/22/2017.
+ * Constants file.
  */
 
 public class Constants {

@@ -32,12 +32,9 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.microsoft.identity.client.Logger;
-
 /**
- * Created by weij on 3/22/2017.
+ * Logger fragment for displaying all the logs.
  */
-
 public class LogFragment extends Fragment {
     static final String LOG_MSG = "log_msg";
 

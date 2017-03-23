@@ -42,6 +42,9 @@ import java.util.ArrayList;
 import static com.microsoft.identity.client.sample.R.id.enablePII;
 
 
+/**
+ * AcquireToken Fragment, contains the flow for acquireToken interactively, acquireTokenSilent, getUsers, removeUser.
+ */
 public class AcquireTokenFragment extends Fragment {
     private Spinner mAuthority;
     private EditText mLoginhint;
