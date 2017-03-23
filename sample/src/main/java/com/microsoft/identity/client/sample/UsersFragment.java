@@ -28,7 +28,16 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListAdapter;
 import android.widget.ListView;
+
+import com.google.gson.Gson;
+import com.microsoft.identity.client.User;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by weij on 3/22/2017.
@@ -37,6 +46,7 @@ import android.widget.ListView;
 public class UsersFragment extends Fragment {
 
     private ListView mUserList;
+    private Gson mGson;
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
@@ -44,7 +54,26 @@ public class UsersFragment extends Fragment {
 
         mUserList = (ListView) view.findViewById(R.id.user_list);
 
+        final List<User> users = ((MainActivity) this.getActivity()).getUsers();
+        mGson = new Gson();
+        final List<String> serializedUsers = new ArrayList<>(users.size());
+        for (final User user : users) {
+            serializedUsers.add(mGson.toJson(user, User.class));
+        }
 
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter(getContext(), android.R.layout.simple_list_item_1, serializedUsers);
+        mUserList.setAdapter(arrayAdapter);
+
+        mUserList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                final String value = (String) parent.getItemAtPosition(position);
+                final User user = mGson.fromJson(value, User.class);
+
+                ((MainActivity) getActivity()).setUser(user);
+                getFragmentManager().popBackStack();
+            }
+        });
         return view;
     }
 }

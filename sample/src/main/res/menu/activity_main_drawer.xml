@@ -31,12 +31,6 @@
             android:id="@+id/nav_acquire"
             android:title="AcquireToken" />
         <item
-            android:id="@+id/nav_users"
-            android:title="Users" />
-        <item
-            android:id="@+id/nav_cache"
-            android:title="Cache" />
-        <item
             android:id="@+id/nav_result"
             android:title="Result" />
         <item

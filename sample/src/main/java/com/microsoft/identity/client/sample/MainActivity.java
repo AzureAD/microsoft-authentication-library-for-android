@@ -42,10 +42,14 @@ import android.widget.Toast;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.Logger;
+import com.microsoft.identity.client.MsalClientException;
 import com.microsoft.identity.client.MsalException;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.UIBehavior;
 import com.microsoft.identity.client.User;
+
+import java.util.Collections;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
         AcquireTokenFragment.OnFragmentInteractionListener {
@@ -54,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static String[] SCOPES = new String [] {"User.Read"};
 
     private Handler mHandler;
-    private static User sUser;
+    private User mUser;
 
     private String mAuthority;
     private String[] mScopes;
@@ -67,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private AuthenticationResult mAuthResult;
 
     private RelativeLayout mContentMain;
+
+    static StringBuilder logBuilder = new StringBuilder();
 
 
     @Override
@@ -97,18 +103,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onNavigationItemSelected(final MenuItem item) {
-        final FragmentManager fragmentManager = getSupportFragmentManager();
-        final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-
         final Fragment fragment;
         int menuItemId = item.getItemId();
         if (menuItemId == R.id.nav_acquire) {
             fragment = new AcquireTokenFragment();
-        } else if (menuItemId == R.id.nav_users) {
-            fragment = new UsersFragment();
-        }
-        else if (menuItemId == R.id.nav_cache) {
-            fragment = null;
         } else if (menuItemId == R.id.nav_result) {
             fragment = new ResultFragment();
             final Bundle bundle = new Bundle();
@@ -120,14 +118,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             fragment.setArguments(bundle);
             mAuthResult = null;
-        } else {
+        } else if (menuItemId == R.id.nav_log) {
+            fragment = new LogFragment();
+            final String logs = ((MsalSampleApp)this.getApplication()).getLogs();
+            final Bundle bundle = new Bundle();
+            bundle.putString(LogFragment.LOG_MSG, logs);
+            fragment.setArguments(bundle);
+        }else {
             fragment = null;
         }
 
-        final DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawerLayout.closeDrawer(GravityCompat.START);
-        fragmentTransaction.replace(mContentMain.getId(), fragment).commit();
-
+//        final DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+//        drawerLayout.closeDrawer(GravityCompat.START);
+//        fragmentTransaction.replace(mContentMain.getId(), fragment).commit();
+        attachFragment(fragment);
         return true;
     }
 
@@ -137,8 +141,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
-    public void onExpireAccessTokenClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+    public void onGetUser() {
+        final Fragment fragment = new UsersFragment();
+        attachFragment(fragment);
+    }
 
+    List<User> getUsers() {
+        try {
+            return mApplication.getUsers();
+        } catch (final MsalClientException e) {
+
+        }
+        return Collections.emptyList();
+    }
+
+    private void attachFragment(final Fragment fragment) {
+        final FragmentManager fragmentManager = getSupportFragmentManager();
+        final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+        final DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawerLayout.closeDrawer(GravityCompat.START);
+        fragmentTransaction.replace(mContentMain.getId(), fragment).addToBackStack(null).commit();
     }
 
     @Override
@@ -153,12 +176,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
-    public void onClearCacheClicked() {
+    public void onRemoveUserClicked() {
+        if (mUser == null) {
+            showMessage("Please select a user");
+            return;
+        }
 
+        mApplication.remove(mUser);
+        mUser = null;
     }
 
     @Override
     public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+        prepareRequestParameters(requestOptions);
+        if (mUser == null) {
+            showMessage("Please select an user.");
+            return;
+        }
+
+        callAcquireTokenSilent(mScopes, mUser, mForceRefresh);
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
@@ -188,6 +224,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         throw new IllegalArgumentException("Not supported authority type");
     }
 
+    void setUser(final User user) {
+        mUser = user;
+    }
+
 
     private void callAcquireToken(final String[] scopes, final UIBehavior uiBehavior, final String loginHint,
                                   final String extraQueryParam, final String[] additionalScope) {
@@ -196,7 +236,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
                         mAuthResult = authenticationResult;
-                        onNavigationItemSelected(getNavigationView().getMenu().getItem(3));
+                        onNavigationItemSelected(getNavigationView().getMenu().getItem(1));
                     }
 
                     @Override
@@ -217,7 +257,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 mAuthResult = authenticationResult;
-                showMessage("Receive Success Response for silent request: " + authenticationResult.getAccessToken());
+                onNavigationItemSelected(getNavigationView().getMenu().getItem(1));
+                mUser = null;
             }
 
             @Override

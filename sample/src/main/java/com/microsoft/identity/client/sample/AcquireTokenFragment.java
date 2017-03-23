@@ -51,7 +51,7 @@ public class AcquireTokenFragment extends Fragment {
     private EditText mAdditionalScope;
     private Switch mEnablePII;
     private Switch mForceRefresh;
-    private Button mExpireAccessToken;
+    private Button mGetUsers;
     private Button mClearCache;
     private Button mAcquireToken;
     private Button mAcquireTokenSilent;
@@ -75,8 +75,7 @@ public class AcquireTokenFragment extends Fragment {
         mEnablePII = (Switch) view.findViewById(enablePII);
         mForceRefresh = (Switch) view.findViewById(R.id.forceRefresh);
 
-
-        mExpireAccessToken = (Button) view.findViewById(R.id.btn_expireAccessToken);
+        mGetUsers = (Button) view.findViewById(R.id.btn_getUsers);
         mClearCache = (Button) view.findViewById(R.id.btn_clearCache);
         mAcquireToken = (Button) view.findViewById(R.id.btn_acquiretoken);
         mAcquireTokenSilent = (Button) view.findViewById(R.id.btn_acquiretokensilent);
@@ -99,17 +98,17 @@ public class AcquireTokenFragment extends Fragment {
             }
         });
 
-        mExpireAccessToken.setOnClickListener(new View.OnClickListener() {
+        mGetUsers.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mOnFragmentInteractionListener.onExpireAccessTokenClicked(getCurrentRequestOptions());
+                mOnFragmentInteractionListener.onGetUser();
             }
         });
 
         mClearCache.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mOnFragmentInteractionListener.onClearCacheClicked();
+                mOnFragmentInteractionListener.onRemoveUserClicked();
             }
         });
 
@@ -219,9 +218,9 @@ public class AcquireTokenFragment extends Fragment {
     }
 
     public interface OnFragmentInteractionListener {
-        void onExpireAccessTokenClicked(final RequestOptions requestOptions);
+        void onGetUser();
 
-        void onClearCacheClicked();
+        void onRemoveUserClicked();
 
         void onAcquireTokenClicked(final RequestOptions requestOptions);
 
