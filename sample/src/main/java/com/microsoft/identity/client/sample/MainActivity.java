@@ -41,6 +41,7 @@ import android.widget.Toast;
 
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.MsalException;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.UIBehavior;
@@ -63,8 +64,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private String[] mAdditionalScope;
     private boolean mEnablePiiLogging;
     private boolean mForceRefresh;
+    private AuthenticationResult mAuthResult;
 
     private RelativeLayout mContentMain;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,30 +93,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         mApplication = new PublicClientApplication(this.getApplicationContext());
-////
-////        final Button buttonForInteractiveRequest = (Button) findViewById(R.id.AcquireTokenInteractiveForR1);
-////        buttonForInteractiveRequest.setOnClickListener(new View.OnClickListener() {
-////            @Override
-////            public void onClick(View v) {
-////                callAcquireToken(SCOPES, UIBehavior.FORCE_LOGIN, null, null, null);
-////            }
-////        });
-////
-////        final Button buttonForLaunchingChrome = (Button) findViewById(R.id.LaunchChrome);
-////        buttonForLaunchingChrome.setOnClickListener(new View.OnClickListener() {
-////            @Override
-////            public void onClick(View v) {
-////                callAcquireToken(SCOPES, UIBehavior.FORCE_LOGIN, null, null, null);
-////            }
-////        });
-////
-////        final Button buttonForSilentFlow = (Button) findViewById(R.id.AcquireTokenSilentForR1);
-////        buttonForSilentFlow.setOnClickListener(new View.OnClickListener() {
-////            @Override
-////            public void onClick(View v) {
-////                callAcquireTokenSilent(SCOPES, true);
-////            }
-////        });
     }
 
     @Override
@@ -125,8 +104,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         int menuItemId = item.getItemId();
         if (menuItemId == R.id.nav_acquire) {
             fragment = new AcquireTokenFragment();
-        } else if (menuItemId == R.id.nav_cache) {
+        } else if (menuItemId == R.id.nav_users) {
+            fragment = new UsersFragment();
+        }
+        else if (menuItemId == R.id.nav_cache) {
             fragment = null;
+        } else if (menuItemId == R.id.nav_result) {
+            fragment = new ResultFragment();
+            final Bundle bundle = new Bundle();
+            if (mAuthResult != null) {
+                bundle.putString(ResultFragment.ACCESS_TOKEN, mAuthResult.getAccessToken());
+                bundle.putString(ResultFragment.ID_TOKEN, mAuthResult.getIdToken());
+                bundle.putString(ResultFragment.DISPLAYABLE, mAuthResult.getUser().getDisplayableId());
+            }
+
+            fragment.setArguments(bundle);
+            mAuthResult = null;
         } else {
             fragment = null;
         }
@@ -151,6 +144,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onAcquireTokenClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
+
+        if (mEnablePiiLogging) {
+            Logger.getInstance().setEnableLogcatLog(mEnablePiiLogging);
+        }
+
         callAcquireToken(mScopes, mUiBehavior, mLoginhint, mExtraQp, mAdditionalScope);
     }
 
@@ -170,12 +168,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mEnablePiiLogging = requestOptions.enablePiiLogging();
         mForceRefresh = requestOptions.forceRefresh();
 
-        final String scopes = requestOptions.getScope();
+        final String scopes = requestOptions.getScopes();
         if (scopes == null) {
             throw new IllegalArgumentException("null scope");
         }
 
         mScopes = scopes.toLowerCase().split(" ");
+        mAdditionalScope = requestOptions.getAdditionalScopes() == null ? null : requestOptions.getAdditionalScopes().toLowerCase().split(" ");
     }
 
     final String getAuthority(Constants.AuthorityType authorityTypeType) {
@@ -195,9 +194,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mApplication.acquireToken(this, scopes, loginHint, uiBehavior, extraQueryParam, additionalScope,
                 null, new AuthenticationCallback() {
                     @Override
-                    public void onSuccess(AuthenticationResult o) {
-                        showMessage("Receive Success Response " + o.getAccessToken());
-                        sUser = o.getUser();
+                    public void onSuccess(AuthenticationResult authenticationResult) {
+                        mAuthResult = authenticationResult;
+                        onNavigationItemSelected(getNavigationView().getMenu().getItem(3));
                     }
 
                     @Override
@@ -212,11 +211,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 });
     }
 
-    private void callAcquireTokenSilent(final String[] scopes, boolean forceRefresh) {
-        mApplication.acquireTokenSilentAsync(scopes, sUser, null, forceRefresh, new AuthenticationCallback() {
+    private void callAcquireTokenSilent(final String[] scopes, final User user,  boolean forceRefresh) {
+        mApplication.acquireTokenSilentAsync(scopes, user, null, forceRefresh, new AuthenticationCallback() {
 
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
+                mAuthResult = authenticationResult;
                 showMessage("Receive Success Response for silent request: " + authenticationResult.getAccessToken());
             }
 
@@ -230,6 +230,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 showMessage("User cancelled the flow.");
             }
         });
+    }
+
+    private NavigationView getNavigationView() {
+        final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        return navigationView;
     }
 
     private void showMessage(final String msg) {

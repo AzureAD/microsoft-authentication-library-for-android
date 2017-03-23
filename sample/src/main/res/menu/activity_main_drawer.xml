@@ -31,12 +31,12 @@
             android:id="@+id/nav_acquire"
             android:title="AcquireToken" />
         <item
-            android:id="@+id/nav_settings"
+            android:id="@+id/nav_users"
             android:title="Users" />
         <item
             android:id="@+id/nav_cache"
             android:title="Cache" />
-        <Item
+        <item
             android:id="@+id/nav_result"
             android:title="Result" />
         <item

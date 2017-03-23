@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   ~ // Copyright (c) Microsoft Corporation.
   ~ // All rights reserved.
@@ -23,23 +24,15 @@
   ~ // THE SOFTWARE.
   -->
 
-<resources>
-    <string name="app_name">MSAL Sample App</string>
-    <string name="select_account">Select Account </string>
-    <string name="force_login">Force Login</string>
-    <string name="consent">Consent</string>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             tools:context="com.microsoft.identity.client.sample.MainActivity">
 
-    <string name="authority_text">Authority</string>
-    <string name="login_hint_text">Login hint</string>
-    <string name="ui_behavior_text">Ui Behavior</string>
-    <string name="data_profile_text">Data Profile</string>
-    <string name="scope_text">Scope</string>
-    <string name="additional_scope_text">Additional Scopes</string>
-    <string name="scope_text_hint">Type in scopes delimited by space</string>
-    <string name="enable_pii_text">Enable PII logging</string>
-    <string name="force_refresh">Force Refresh</string>
-    <string name="expire_at_button">Expire Access Token</string>
-    <string name="clear_cache_button">Clear Cache</string>
-    <string name="acquire_token_button">AcquireToken</string>
-    <string name="acquire_token_silent_button">AcquireTokenSilent</string>
-</resources>
+    <ListView
+        android:id="@+id/user_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</FrameLayout>

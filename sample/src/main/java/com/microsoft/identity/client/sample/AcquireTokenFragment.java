@@ -39,6 +39,8 @@ import com.microsoft.identity.client.UIBehavior;
 
 import java.util.ArrayList;
 
+import static com.microsoft.identity.client.sample.R.id.enablePII;
+
 
 public class AcquireTokenFragment extends Fragment {
     private Spinner mAuthority;
@@ -46,6 +48,7 @@ public class AcquireTokenFragment extends Fragment {
     private Spinner mUiBehavior;
     private Spinner mDataProfile;
     private EditText mScope;
+    private EditText mAdditionalScope;
     private Switch mEnablePII;
     private Switch mForceRefresh;
     private Button mExpireAccessToken;
@@ -68,7 +71,8 @@ public class AcquireTokenFragment extends Fragment {
         mUiBehavior = (Spinner) view.findViewById(R.id.uiBehavior);
         mDataProfile = (Spinner) view.findViewById(R.id.data_profile);
         mScope = (EditText) view.findViewById(R.id.scope);
-        mEnablePII = (Switch) view.findViewById(R.id.enablePII);
+        mAdditionalScope = (EditText) view.findViewById(R.id.additionalScope);
+        mEnablePII = (Switch) view.findViewById(enablePII);
         mForceRefresh = (Switch) view.findViewById(R.id.forceRefresh);
 
 
@@ -148,9 +152,10 @@ public class AcquireTokenFragment extends Fragment {
         final UIBehavior uiBehavior = UIBehavior.valueOf(mUiBehavior.getSelectedItem().toString());
         final Constants.DataProfile dataProfile = Constants.DataProfile.valueOf(mDataProfile.getSelectedItem().toString());
         final String scopes = mScope.getText().toString();
+        final String additionalScopes = mAdditionalScope.getText().toString();
         final boolean enablePII = mEnablePII.isChecked();
         final boolean forceRefresh = mForceRefresh.isChecked();
-        return RequestOptions.create(authorityType, loginHint, uiBehavior, dataProfile, scopes, enablePII, forceRefresh);
+        return RequestOptions.create(authorityType, loginHint, uiBehavior, dataProfile, scopes, additionalScopes, enablePII, forceRefresh);
     }
 
     static class RequestOptions {
@@ -159,23 +164,25 @@ public class AcquireTokenFragment extends Fragment {
         final UIBehavior mUiBehavior;
         final Constants.DataProfile mDataProfile;
         final String mScope;
+        final String mAdditionalScope;
         final boolean mEnablePII;
         final boolean mForceRefresh;
 
         RequestOptions(final Constants.AuthorityType authorityType, final String loginHint, final UIBehavior uiBehavior,
-                       final Constants.DataProfile dataProfile, final String scope, final boolean enablePII, final boolean forceRefresh) {
+                       final Constants.DataProfile dataProfile, final String scope, final String additionalScope, final boolean enablePII, final boolean forceRefresh) {
             mAuthorityType = authorityType;
             mLoginHint = loginHint;
             mUiBehavior = uiBehavior;
             mDataProfile = dataProfile;
             mScope = scope;
+            mAdditionalScope = additionalScope;
             mEnablePII = enablePII;
             mForceRefresh = forceRefresh;
         }
 
         static RequestOptions create(final Constants.AuthorityType authority, final String loginHint, final UIBehavior uiBehavior, final Constants.DataProfile dataProfile,
-                                     final String scope, final boolean enablePII, final boolean forceRefresh) {
-            return new RequestOptions(authority, loginHint, uiBehavior, dataProfile, scope, enablePII, forceRefresh);
+                                     final String scope, final String additionalScope, final boolean enablePII, final boolean forceRefresh) {
+            return new RequestOptions(authority, loginHint, uiBehavior, dataProfile, scope, additionalScope, enablePII, forceRefresh);
         }
 
         Constants.AuthorityType getAuthorityType() {
@@ -194,8 +201,12 @@ public class AcquireTokenFragment extends Fragment {
             return mDataProfile;
         }
 
-        String getScope() {
+        String getScopes() {
             return mScope;
+        }
+
+        String getAdditionalScopes() {
+            return mAdditionalScope;
         }
 
         boolean enablePiiLogging() {
