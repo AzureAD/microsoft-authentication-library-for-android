@@ -33,246 +33,187 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.TextView;
+import android.widget.Switch;
+
+import com.microsoft.identity.client.UIBehavior;
 
 import java.util.ArrayList;
-import java.util.List;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import hugo.weaving.DebugLog;
 
 
 public class AcquireTokenFragment extends Fragment {
+    private Spinner mAuthority;
+    private EditText mLoginhint;
+    private Spinner mUiBehavior;
+    private Spinner mDataProfile;
+    private EditText mScope;
+    private Switch mEnablePII;
+    private Switch mForceRefresh;
+    private Button mExpireAccessToken;
+    private Button mClearCache;
+    private Button mAcquireToken;
+    private Button mAcquireTokenSilent;
 
-    private OnFragmentInteractionListener mListener;
-
-    static class Options {
-
-        static <T extends Enum<T>> T getChoice(Class<T> clazz, String choiceText) {
-            return Enum.valueOf(clazz, choiceText);
-        }
-
-
-        enum IdType {
-            OPTIONAL(R.string.id_optional),
-            REQUIRED(R.string.id_required),
-            UNIQUE(R.string.id_unique);
-
-            final String mDisplayText;
-
-            @DebugLog
-            IdType(int textId) {
-                mDisplayText = getString(textId);
-                System.out.println(mDisplayText);
-            }
-        }
-
-        enum Prompt {
-            ALWAYS(R.string.prompt_always),
-            AUTO(R.string.prompt_auto);
-
-            final String mDisplayText;
-
-            Prompt(int textId) {
-                mDisplayText = getString(textId);
-            }
-        }
-
-    }
-
-    EditText mEtUserId;
-    Spinner mSpIdType;
-    Spinner mSpPrompt;
-    Spinner mSpProfile;
-    @BindView(R.id.btn_clearcookies)
-    Button mBtnClearCookies;
-
-    @BindView(R.id.btn_clearcache)
-    Button mBtnClearCache;
-
-    @BindView(R.id.txt_output)
-    TextView mTxtOutput;
-
-    @BindView(R.id.btn_acquiretoken)
-    Button mBtnAcquireToken;
-
-    @BindView(R.id.btn_acquiretokensilent)
-    Button getmBtnAcquireTokenToken;
-
-    List<Spinner> mSpinners = new ArrayList<>();
-
+    private OnFragmentInteractionListener mOnFragmentInteractionListener;
 
     public AcquireTokenFragment() {
-        // Required empty public constructor
+        // left empty
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_acquire, container, false);
-        initializeChoices();
-        populateSpinnerList();
+    public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+        final View view = inflater.inflate(R.layout.fragment_acquire, container, false);
+
+        mAuthority = (Spinner) view.findViewById(R.id.authorityType);
+        mLoginhint = (EditText) view.findViewById(R.id.loginHint);
+        mUiBehavior = (Spinner) view.findViewById(R.id.uiBehavior);
+        mDataProfile = (Spinner) view.findViewById(R.id.data_profile);
+        mScope = (EditText) view.findViewById(R.id.scope);
+        mEnablePII = (Switch) view.findViewById(R.id.enablePII);
+        mForceRefresh = (Switch) view.findViewById(R.id.forceRefresh);
+
+
+        mExpireAccessToken = (Button) view.findViewById(R.id.btn_expireAccessToken);
+        mClearCache = (Button) view.findViewById(R.id.btn_clearCache);
+        mAcquireToken = (Button) view.findViewById(R.id.btn_acquiretoken);
+        mAcquireTokenSilent = (Button) view.findViewById(R.id.btn_acquiretokensilent);
+
+        bindSpinnerChoice(mAuthority, Constants.AuthorityType.class);
+        bindSpinnerChoice(mUiBehavior, UIBehavior.class);
+        bindSpinnerChoice(mDataProfile, Constants.DataProfile.class);
+
+        mAcquireToken.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mOnFragmentInteractionListener.onAcquireTokenClicked(getCurrentRequestOptions());
+            }
+        });
+
+        mAcquireTokenSilent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mOnFragmentInteractionListener.onAcquireTokenSilentClicked(getCurrentRequestOptions());
+            }
+        });
+
+        mExpireAccessToken.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mOnFragmentInteractionListener.onExpireAccessTokenClicked(getCurrentRequestOptions());
+            }
+        });
+
+        mClearCache.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mOnFragmentInteractionListener.onClearCacheClicked();
+            }
+        });
+
         return view;
     }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(final Context context) {
         super.onAttach(context);
+
         if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
+            mOnFragmentInteractionListener = (OnFragmentInteractionListener) context;
         } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
+            throw new IllegalStateException("OnFragmentInteractionListener is not implemented");
         }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
+        mOnFragmentInteractionListener = null;
     }
 
-    private RequestOptions getCurrentRequestOptions() {
-        return RequestOptions.newInstance(
-                mEtUserId.getText().toString(),
-                mSpIdType.getSelectedItem().toString(),
-                mSpPrompt.getSelectedItem().toString(),
-        );
-    }
-    
-    @OnClick(R.id.btn_clearcookies)
-    void onClearCookiesClicked() {
-        mListener.onClearCookiesClicked();
-    }
-
-    @DebugLog
-    @OnClick(R.id.btn_clearcache)
-    void onClearCacheClicked() {
-        mListener.onClearCacheClicked();
-    }
-
-    @DebugLog
-    @OnClick(R.id.btn_acquiretoken)
-    void onAcquireTokenClicked() {
-        mListener.onAcquireTokenClicked(getCurrentRequestOptions());
-    }
-
-    @DebugLog
-    @OnClick(R.id.btn_acquiretokensilent)
-    void onAcquireTokenSilentClicked() {
-        mListener.onAcquireTokenSilentClicked(getCurrentRequestOptions());
-    }
-
-    @DebugLog
-    private void populateSpinnerList() {
-        mSpinners.add(mSpIdType);
-        mSpinners.add(mSpPrompt);
-        mSpinners.add(mSpProfile);
-        mSpinners.add(mSpWebView);
-        mSpinners.add(mSpFullscreen);
-        mSpinners.add(mSpBroker);
-        mSpinners.add(mSpValAuth);
-    }
-
-    @DebugLog
-    private void initializeChoices() {
-        bindChoices(mSpIdType, Options.IdType.class);
-        bindChoices(mSpPrompt, Options.Prompt.class);
-        bindChoices(mSpWebView, Options.WebView.class);
-        bindChoices(mSpFullscreen, Options.FullScreen.class);
-        bindChoices(mSpBroker, Options.Broker.class);
-        bindChoices(mSpValAuth, Options.ValAuth.class);
-    }
-
-    @DebugLog
-    private void bindChoices(Spinner spinner, final Class<? extends Enum> choiceClass) {
-        ArrayAdapter<CharSequence> adapter = new ArrayAdapter<>(
-                getContext(),
-                android.R.layout.simple_spinner_item,
-                new ArrayList<CharSequence>() {{
-                    for (Enum choice : choiceClass.getEnumConstants())
-                        add(choice.name());
+    void bindSpinnerChoice(final Spinner spinner, final Class<? extends Enum> spinnerChoiceClass) {
+        final ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                getContext(), android.R.layout.simple_spinner_item,
+                new ArrayList<String>() {{
+                        for (Enum choice : spinnerChoiceClass.getEnumConstants())
+                            add(choice.name());
                 }}
         );
+
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
     }
 
+    RequestOptions getCurrentRequestOptions() {
+        final Constants.AuthorityType authorityType = Constants.AuthorityType.valueOf(mAuthority.getSelectedItem().toString()) ;
+        final String loginHint = mLoginhint.getText().toString();
+        final UIBehavior uiBehavior = UIBehavior.valueOf(mUiBehavior.getSelectedItem().toString());
+        final Constants.DataProfile dataProfile = Constants.DataProfile.valueOf(mDataProfile.getSelectedItem().toString());
+        final String scopes = mScope.getText().toString();
+        final boolean enablePII = mEnablePII.isChecked();
+        final boolean forceRefresh = mForceRefresh.isChecked();
+        return RequestOptions.create(authorityType, loginHint, uiBehavior, dataProfile, scopes, enablePII, forceRefresh);
+    }
+
     static class RequestOptions {
+        final Constants.AuthorityType mAuthorityType;
+        final String mLoginHint;
+        final UIBehavior mUiBehavior;
+        final Constants.DataProfile mDataProfile;
+        final String mScope;
+        final boolean mEnablePII;
+        final boolean mForceRefresh;
 
-        final String mUserId;
-        final Options.IdType mIdType;
-        final Options.Prompt mPrompt;
-        // Profile??
-        final Options.WebView mWebView;
-        final Options.FullScreen mFullScreen;
-        final Options.Broker mBroker;
-        final Options.ValAuth mValAuth;
-
-        @DebugLog
-        private RequestOptions(
-                String userId,
-                Options.IdType idType,
-                Options.Prompt prompt,
-                Options.WebView webView,
-                Options.FullScreen fullScreen,
-                Options.Broker broker,
-                Options.ValAuth valAuth
-        ) {
-            mUserId = userId;
-            mIdType = idType;
-            mPrompt = prompt;
-            mWebView = webView;
-            mFullScreen = fullScreen;
-            mBroker = broker;
-            mValAuth = valAuth;
+        RequestOptions(final Constants.AuthorityType authorityType, final String loginHint, final UIBehavior uiBehavior,
+                       final Constants.DataProfile dataProfile, final String scope, final boolean enablePII, final boolean forceRefresh) {
+            mAuthorityType = authorityType;
+            mLoginHint = loginHint;
+            mUiBehavior = uiBehavior;
+            mDataProfile = dataProfile;
+            mScope = scope;
+            mEnablePII = enablePII;
+            mForceRefresh = forceRefresh;
         }
 
-        @DebugLog
-        static RequestOptions newInstance(
-                String userId,
-                String idType,
-                String prompt,
-                String webView,
-                String fullScreen,
-                String broker,
-                String valAuth
-        ) {
-            return new RequestOptions(
-                    userId,
-                    Options.getChoice(Options.IdType.class, idType),
-                    Options.getChoice(Options.Prompt.class, prompt),
-                    Options.getChoice(Options.WebView.class, webView),
-                    Options.getChoice(Options.FullScreen.class, fullScreen),
-                    Options.getChoice(Options.Broker.class, broker),
-                    Options.getChoice(Options.ValAuth.class, valAuth)
-            );
+        static RequestOptions create(final Constants.AuthorityType authority, final String loginHint, final UIBehavior uiBehavior, final Constants.DataProfile dataProfile,
+                                     final String scope, final boolean enablePII, final boolean forceRefresh) {
+            return new RequestOptions(authority, loginHint, uiBehavior, dataProfile, scope, enablePII, forceRefresh);
         }
 
-        @Override
-        public String toString() {
-            final StringBuffer sb = new StringBuffer("RequestOptions{");
-            sb.append("mUserId='").append(mUserId).append('\'');
-            sb.append(", mIdType=").append(mIdType);
-            sb.append(", mPrompt=").append(mPrompt);
-            sb.append(", mWebView=").append(mWebView);
-            sb.append(", mFullScreen=").append(mFullScreen);
-            sb.append(", mBroker=").append(mBroker);
-            sb.append(", mValAuth=").append(mValAuth);
-            sb.append('}');
-            return sb.toString();
+        Constants.AuthorityType getAuthorityType() {
+            return mAuthorityType;
+        }
+
+        String getLoginHint() {
+            return mLoginHint;
+        }
+
+        UIBehavior getUiBehavior() {
+            return mUiBehavior;
+        }
+
+        Constants.DataProfile getDataProfile() {
+            return mDataProfile;
+        }
+
+        String getScope() {
+            return mScope;
+        }
+
+        boolean enablePiiLogging() {
+            return mEnablePII;
+        }
+
+        boolean forceRefresh() {
+            return mForceRefresh;
         }
     }
 
     public interface OnFragmentInteractionListener {
-        void onClearCookiesClicked();
+        void onExpireAccessTokenClicked(final RequestOptions requestOptions);
 
         void onClearCacheClicked();
 
-        void onAcquireTokenClicked(RequestOptions options);
+        void onAcquireTokenClicked(final RequestOptions requestOptions);
 
-        void onAcquireTokenSilentClicked(RequestOptions options);
+        void onAcquireTokenSilentClicked(final RequestOptions requestOptions);
     }
 }

@@ -41,21 +41,18 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:weightSum="10">
-
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
-            android:text="Login hint" />
+            android:text="@string/authority_text"/>
 
-        <EditText
-            android:id="@+id/loginHint"
+        <Spinner
+            android:id="@+id/authorityType"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="8" />
-
     </LinearLayout>
-
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -67,7 +64,26 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
-            android:text="Ui Behavior" />
+            android:text="@string/login_hint_text" />
+
+        <EditText
+            android:id="@+id/loginHint"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="8" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="10">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:text="@string/ui_behavior_text" />
 
         <Spinner
             android:id="@+id/uiBehavior"
@@ -87,7 +103,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
-            android:text="Data Profile" />
+            android:text="@string/data_profile_text" />
 
         <Spinner
             android:id="@+id/data_profile"
@@ -107,15 +123,60 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
-            android:text="Scope" />
+            android:text="@string/scope_text" />
 
         <EditText
             android:id="@+id/scope"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="8"
-            android:hint="Type in scopes delimited by space"/>
+            android:hint="@string/scope_text_hint"/>
+    </LinearLayout>
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:gravity="center_vertical"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="10">
+        
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:minLines="3"
+            android:layout_weight="2"
+            android:text="@string/enable_pii_text"/>
+        
+        <Switch
+            android:id="@+id/enablePII"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2.47"
+            android:textOn="on"
+            android:textOff="off"/>
+    </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:gravity="center_vertical"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="10">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:minLines="3"
+            android:layout_weight="2"
+            android:text="@string/force_refresh"/>
+
+        <Switch
+            android:id="@+id/forceRefresh"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2.47"
+            android:textOn="on"
+            android:textOff="off"/>
     </LinearLayout>
 
     <LinearLayout
@@ -130,14 +191,14 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="5"
-            android:text="Expire Access Token" />
+            android:text="@string/expire_at_button" />
 
         <Button
             android:id="@+id/btn_clearCache"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="5"
-            android:text="Clear Cache" />
+            android:text="@string/clear_cache_button" />
 
     </LinearLayout>
 
@@ -157,13 +218,13 @@
                 android:id="@+id/btn_acquiretoken"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="acquireToken" />
+                android:text="@string/acquire_token_button" />
 
             <Button
                 android:id="@+id/btn_acquiretokensilent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="acquireTokenSilent" />
+                android:text="@string/acquire_token_silent_button" />
 
         </LinearLayout>
 

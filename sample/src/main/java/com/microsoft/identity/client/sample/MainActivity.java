@@ -23,22 +23,31 @@
 
 package com.microsoft.identity.client.sample;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.View;
-import android.widget.Button;
+import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.microsoft.identity.client.AuthenticationCallback;
-import com.microsoft.identity.client.MsalException;
 import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.MsalException;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.UIBehavior;
 import com.microsoft.identity.client.User;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
+        AcquireTokenFragment.OnFragmentInteractionListener {
 
     private PublicClientApplication mApplication;
     private static String[] SCOPES = new String [] {"User.Read"};
@@ -46,41 +55,138 @@ public class MainActivity extends Activity {
     private Handler mHandler;
     private static User sUser;
 
+    private String mAuthority;
+    private String[] mScopes;
+    private UIBehavior mUiBehavior;
+    private String mLoginhint;
+    private String mExtraQp;
+    private String[] mAdditionalScope;
+    private boolean mEnablePiiLogging;
+    private boolean mForceRefresh;
+
+    private RelativeLayout mContentMain;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mApplication = new PublicClientApplication(this);
-//
-//        final Button buttonForInteractiveRequest = (Button) findViewById(R.id.AcquireTokenInteractiveForR1);
-//        buttonForInteractiveRequest.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                callAcquireToken(SCOPES, UIBehavior.FORCE_LOGIN, null, null, null);
-//            }
-//        });
-//
-//        final Button buttonForLaunchingChrome = (Button) findViewById(R.id.LaunchChrome);
-//        buttonForLaunchingChrome.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                callAcquireToken(SCOPES, UIBehavior.FORCE_LOGIN, null, null, null);
-//            }
-//        });
-//
-//        final Button buttonForSilentFlow = (Button) findViewById(R.id.AcquireTokenSilentForR1);
-//        buttonForSilentFlow.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                callAcquireTokenSilent(SCOPES, true);
-//            }
-//        });
+        mContentMain = (RelativeLayout) findViewById(R.id.content_main);
+
+        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        final DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, 0, 0);
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+
+        final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        if (savedInstanceState == null) {
+            // auto select the first item
+            onNavigationItemSelected(navigationView.getMenu().getItem(0));
+        }
+
+        mApplication = new PublicClientApplication(this.getApplicationContext());
+////
+////        final Button buttonForInteractiveRequest = (Button) findViewById(R.id.AcquireTokenInteractiveForR1);
+////        buttonForInteractiveRequest.setOnClickListener(new View.OnClickListener() {
+////            @Override
+////            public void onClick(View v) {
+////                callAcquireToken(SCOPES, UIBehavior.FORCE_LOGIN, null, null, null);
+////            }
+////        });
+////
+////        final Button buttonForLaunchingChrome = (Button) findViewById(R.id.LaunchChrome);
+////        buttonForLaunchingChrome.setOnClickListener(new View.OnClickListener() {
+////            @Override
+////            public void onClick(View v) {
+////                callAcquireToken(SCOPES, UIBehavior.FORCE_LOGIN, null, null, null);
+////            }
+////        });
+////
+////        final Button buttonForSilentFlow = (Button) findViewById(R.id.AcquireTokenSilentForR1);
+////        buttonForSilentFlow.setOnClickListener(new View.OnClickListener() {
+////            @Override
+////            public void onClick(View v) {
+////                callAcquireTokenSilent(SCOPES, true);
+////            }
+////        });
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(final MenuItem item) {
+        final FragmentManager fragmentManager = getSupportFragmentManager();
+        final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+        final Fragment fragment;
+        int menuItemId = item.getItemId();
+        if (menuItemId == R.id.nav_acquire) {
+            fragment = new AcquireTokenFragment();
+        } else if (menuItemId == R.id.nav_cache) {
+            fragment = null;
+        } else {
+            fragment = null;
+        }
+
+        final DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawerLayout.closeDrawer(GravityCompat.START);
+        fragmentTransaction.replace(mContentMain.getId(), fragment).commit();
+
+        return true;
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         mApplication.handleInteractiveRequestRedirect(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void onExpireAccessTokenClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+
+    }
+
+    @Override
+    public void onAcquireTokenClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+        prepareRequestParameters(requestOptions);
+        callAcquireToken(mScopes, mUiBehavior, mLoginhint, mExtraQp, mAdditionalScope);
+    }
+
+    @Override
+    public void onClearCacheClicked() {
+
+    }
+
+    @Override
+    public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+    }
+
+    void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
+        mAuthority = getAuthority(requestOptions.getAuthorityType());
+        mLoginhint = requestOptions.getLoginHint();
+        mUiBehavior = requestOptions.getUiBehavior();
+        mEnablePiiLogging = requestOptions.enablePiiLogging();
+        mForceRefresh = requestOptions.forceRefresh();
+
+        final String scopes = requestOptions.getScope();
+        if (scopes == null) {
+            throw new IllegalArgumentException("null scope");
+        }
+
+        mScopes = scopes.toLowerCase().split(" ");
+    }
+
+    final String getAuthority(Constants.AuthorityType authorityTypeType) {
+        switch (authorityTypeType) {
+            case AAD :
+                return Constants.AAD_AUTHORITY;
+            case B2C:
+                return "B2c is not configured yet";
+        }
+
+        throw new IllegalArgumentException("Not supported authority type");
     }
 
 
