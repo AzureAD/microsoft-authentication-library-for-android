@@ -26,6 +26,7 @@ package com.microsoft.identity.client;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
+import java.util.UUID;
 
 import static com.microsoft.identity.client.EventConstants.EventProperty;
 
@@ -38,6 +39,9 @@ final class ApiEvent extends Event implements IApiEvent {
 
     private ApiEvent(Builder builder) {
         super(builder);
+        if (null != builder.mCorrelationId) {
+            setProperty(EventProperty.CORRELATION_ID, builder.mCorrelationId.toString());
+        }
         setAuthority(builder.mAuthority);
         setProperty(EventProperty.UI_BEHAVIOR, builder.mUiBehavior);
         setProperty(EventProperty.API_ID, builder.mApiId);
@@ -171,6 +175,7 @@ final class ApiEvent extends Event implements IApiEvent {
         private boolean mIsDeprecated;
         private boolean mExtendedExpiresOnStatus;
         private boolean mWasApiCallSuccessful;
+        private UUID mCorrelationId;
 
         Builder(final Telemetry.RequestId requestId) {
             super(requestId, EventName.API_EVENT);
@@ -272,6 +277,11 @@ final class ApiEvent extends Event implements IApiEvent {
          */
         Builder apiCallWasSuccessful(final boolean callWasSuccessful) {
             mWasApiCallSuccessful = callWasSuccessful;
+            return this;
+        }
+
+        Builder correlationId(final UUID correlationId) {
+            mCorrelationId = correlationId;
             return this;
         }
 

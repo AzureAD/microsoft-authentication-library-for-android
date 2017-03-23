@@ -32,6 +32,7 @@ import android.util.Pair;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import static com.microsoft.identity.client.EventConstants.EventProperty;
 
@@ -125,6 +126,24 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
     @Override
     public EventName getEventName() {
         return new EventName(getProperty(EventProperty.EVENT_NAME));
+    }
+
+    @Override
+    public void setCorrelationId(UUID correlationId) {
+        if (null != correlationId) {
+            setProperty(EventProperty.CORRELATION_ID, correlationId.toString());
+        }
+    }
+
+    @Override
+    public UUID getCorrelationId() {
+        UUID correlationId;
+        try {
+            correlationId = UUID.fromString(getProperty(EventProperty.CORRELATION_ID));
+        } catch (NullPointerException | IllegalArgumentException e) {
+            correlationId = null;
+        }
+        return correlationId;
     }
 
     /**

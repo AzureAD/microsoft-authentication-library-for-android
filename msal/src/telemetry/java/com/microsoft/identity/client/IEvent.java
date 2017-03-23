@@ -26,6 +26,7 @@ package com.microsoft.identity.client;
 import android.util.Pair;
 
 import java.util.Collection;
+import java.util.UUID;
 
 /**
  * Internal interface for Event telemetry data.
@@ -99,5 +100,19 @@ interface IEvent extends Collection<Pair<String, String>> {
      * @return the EventName to get
      */
     EventName getEventName();
+
+    /**
+     * Sets the {@link UUID} correlationId.
+     *
+     * @param correlationId the correlationId to set
+     */
+    void setCorrelationId(UUID correlationId);
+
+    /**
+     * Gets the {@link UUID} correlationId.
+     *
+     * @return the correlationId
+     */
+    UUID getCorrelationId();
 
 }
