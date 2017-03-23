@@ -192,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void callAcquireToken(final String[] scopes, final UIBehavior uiBehavior, final String loginHint,
                                   final String extraQueryParam, final String[] additionalScope) {
-        mApplication.acquireToken(scopes, loginHint, uiBehavior, extraQueryParam, additionalScope,
+        mApplication.acquireToken(this, scopes, loginHint, uiBehavior, extraQueryParam, additionalScope,
                 null, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult o) {
