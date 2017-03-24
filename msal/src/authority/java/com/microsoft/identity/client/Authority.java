@@ -26,6 +26,8 @@ package com.microsoft.identity.client;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -40,13 +42,15 @@ abstract class Authority {
     static final String DEFAULT_OPENID_CONFIGURATION_ENDPOINT = "/v2.0/.well-known/openid-configuration";
     // default_authorize_endpoint is used for instance discovery sent as query parameter for instance discovery.
     static final String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/v2.0/authorize";
+    static final String[] TENANTLESS_TENANT_NAME = {"common", "consumers", "organizations"};
 
     static final String ADFS_AUTHORITY_PREFIX = "adfs";
     static final String B2C_AUTHORITY_PREFIX = "tfp";
 
-    final URL mAuthorityUrl;
     final boolean mValidateAuthority;
 
+    URL mAuthorityUrl;
+    boolean mIsTenantless;
     String mAuthorizationEndpoint;
     String mTokenEndpoint;
     AuthorityType mAuthorityType;
@@ -170,6 +174,9 @@ abstract class Authority {
     protected Authority(final URL authorityUrl, final boolean validateAuthority) {
         mAuthorityUrl = updateAuthority(authorityUrl);
         mValidateAuthority = validateAuthority;
+
+        // default value for tenant less is false. B2c and Adfs authority will never be tenant less.
+        mIsTenantless = isTenantLess();
     }
 
     /**
@@ -214,6 +221,40 @@ abstract class Authority {
         }
 
         return updatedAuthority;
+    }
+
+    boolean getIsTenantless() {
+        return mIsTenantless;
+    }
+
+    void updateTenantLessAuthority(final String tenantId) throws MsalClientException {
+        if (!mIsTenantless || MSALUtils.isEmpty(tenantId)) {
+            return;
+        }
+
+        final List<String> tenantLessNameList = Arrays.asList(TENANTLESS_TENANT_NAME);
+        String authorityString = mAuthorityUrl.toString();
+        for (final String name : tenantLessNameList) {
+            authorityString = authorityString.replace(name, tenantId);
+        }
+
+        try {
+            mAuthorityUrl = new URL(authorityString);
+            mIsTenantless = false;
+        } catch (final MalformedURLException e) {
+            throw new MsalClientException(MSALError.MALFORMED_URL, "Fail to update tenant id for tenant less authority, ", e);
+        }
+    }
+
+    private boolean isTenantLess() {
+        final String[] pathSegments = mAuthorityUrl.getPath().replaceFirst("/", "").split("/");
+        final String tenant = pathSegments[0];
+        final List<String> tenantLessNames = Arrays.asList(TENANTLESS_TENANT_NAME);
+        if (tenantLessNames.contains(tenant)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

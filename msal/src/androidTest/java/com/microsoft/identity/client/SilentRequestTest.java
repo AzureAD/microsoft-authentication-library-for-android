@@ -52,6 +52,9 @@ public final class SilentRequestTest extends AndroidTestCase {
     static final String ACCESS_TOKEN = "I am an access token";
     static final String REFRESH_TOKEN = "I am an new refresh token";
 
+    static final String AUTHORIZE_ENDPOINT = "https://login.microsoftonline.com/sometenant/authorize";
+    static final String TOKEN_ENDPOINT = "https://login.microsoftonline.com/sometenant/token";
+
     private Context mAppContext;
     private TokenCache mTokenCache;
     private User mDefaultUser;
@@ -61,6 +64,9 @@ public final class SilentRequestTest extends AndroidTestCase {
         super.setUp();
         System.setProperty("dexmaker.dexcache",
                 InstrumentationRegistry.getContext().getCacheDir().getPath());
+
+        Authority.VALIDATED_AUTHORITY.clear();
+        AndroidTestMockUtil.mockSuccessTenantDiscovery(AUTHORIZE_ENDPOINT, TOKEN_ENDPOINT);
 
         mAppContext = new InteractiveRequestTest.MockContext(InstrumentationRegistry.getContext().getApplicationContext());
         InteractiveRequestTest.mockNetworkConnected(mAppContext, true);
@@ -86,7 +92,7 @@ public final class SilentRequestTest extends AndroidTestCase {
     @Test
     public void testNetworkNotConnected() throws MsalException, IOException, InterruptedException {
         final String singleScope = "scope1";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY, TokenCacheTest.CLIENT_ID,
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
                 TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope,
                         AndroidTestUtil.getExpiredDate()));
 
@@ -97,7 +103,8 @@ public final class SilentRequestTest extends AndroidTestCase {
 
         InteractiveRequestTest.mockNetworkConnected(mAppContext, false);
 
-        final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope)), false, mDefaultUser);
+        final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope)),
+                false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
         request.getToken(new AuthenticationCallback() {
             @Override
@@ -127,7 +134,7 @@ public final class SilentRequestTest extends AndroidTestCase {
     @Test
     public void testValidAccessTokenInTheCache() throws MsalException, InterruptedException {
         final String singleScope = "scope1";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY, TokenCacheTest.CLIENT_ID,
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
                 TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn()));
 
         final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope));
@@ -165,7 +172,8 @@ public final class SilentRequestTest extends AndroidTestCase {
     @Test
     public void testSavedTokenInCacheNotHaveAccessToken() throws MsalException, InterruptedException {
         final String singleScope = "scope1";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY, TokenCacheTest.CLIENT_ID,
+
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
                 TokenCacheTest.getTokenResponseForDefaultUser(AndroidTestUtil.ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn()));
 
         final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope));
@@ -203,7 +211,7 @@ public final class SilentRequestTest extends AndroidTestCase {
     public void testAccessTokenNotValidRTIsUsed() throws MsalException,
             InterruptedException, IOException {
         final String singleScope = "scope1";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY, TokenCacheTest.CLIENT_ID,
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
                 TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getExpiredDate()));
 
         final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(
@@ -220,6 +228,7 @@ public final class SilentRequestTest extends AndroidTestCase {
                 assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
 
                 verifyUserReturnedInResult(authenticationResult);
+                // verify that access token is stored with tenant specific authority.
 
                 assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(mTokenCache.findAccessToken(requestParameters, mDefaultUser).getAccessToken()));
                 assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 1);
@@ -256,7 +265,7 @@ public final class SilentRequestTest extends AndroidTestCase {
     public void testScopeNotProvidedTheSameOrder() throws MsalException, InterruptedException, IOException {
         // store valid token in the cache
         final String scopeInResponse = "user.read email.read scope2";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY, TokenCacheTest.CLIENT_ID,
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
                 TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, scopeInResponse,
                         AndroidTestUtil.getValidExpiresOn()));
 
@@ -265,7 +274,6 @@ public final class SilentRequestTest extends AndroidTestCase {
                 requestedScope))), false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
 
-        assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
         request.getToken(new AuthenticationCallback() {
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
@@ -293,7 +301,7 @@ public final class SilentRequestTest extends AndroidTestCase {
     public void testSilentRequestScopeNotSameAsTokenCacheItem() throws MsalException,
             InterruptedException, IOException {
         final String singleScope = "scope1";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY, TokenCacheTest.CLIENT_ID,
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
                 TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getExpiredDate()));
 
         final String anotherScope = "scope2";
@@ -314,7 +322,7 @@ public final class SilentRequestTest extends AndroidTestCase {
                 assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 2);
 
                 assertNotNull(AndroidTestUtil.getAccessTokenSharedPreference(mAppContext).getString(TokenCacheKey.createKeyForAT(
-                        AndroidTestUtil.DEFAULT_AUTHORITY, TokenCacheTest.CLIENT_ID, Collections.singleton(singleScope), mDefaultUser).toString(), null));
+                        AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID, Collections.singleton(singleScope), mDefaultUser).toString(), null));
                 // find token with the single scope1
                 // The access token for scope1 in the cache is no longer valid
                 assertNull(mTokenCache.findAccessToken(getRequestParameters(Collections.singleton(singleScope)), mDefaultUser));
@@ -353,7 +361,7 @@ public final class SilentRequestTest extends AndroidTestCase {
     public void testNoRefreshTokenIsFound() throws MsalException,
             InterruptedException, IOException {
         final String singleScope = "scope1";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY, TokenCacheTest.CLIENT_ID,
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
                 TokenCacheTest.getTokenResponseForDifferentUser(singleScope, AndroidTestUtil.getValidExpiresOn()));
 
         final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope)), false, mDefaultUser);
@@ -387,7 +395,7 @@ public final class SilentRequestTest extends AndroidTestCase {
     public void testForceRefreshRequestFailedWithInvalidGrant() throws MsalException,
             InterruptedException, IOException {
         final String singleScope = "scope1";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY, TokenCacheTest.CLIENT_ID,
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
                 TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn()));
 
         mockFailureResponse("invalid_grant");
@@ -426,7 +434,7 @@ public final class SilentRequestTest extends AndroidTestCase {
     public void testForceRefreshTokenRequestFailedWithInvalidRequest() throws MsalException, InterruptedException,
             IOException {
         final String singleScope = "scope1";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY, TokenCacheTest.CLIENT_ID,
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
                 TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn()));
 
         mockFailureResponse("invalid_request");
@@ -468,7 +476,7 @@ public final class SilentRequestTest extends AndroidTestCase {
     }
 
     private AuthenticationRequestParameters getRequestParameters(final Set<String> scopes) {
-        return AuthenticationRequestParameters.create(Authority.createAuthority(AndroidTestUtil.DEFAULT_AUTHORITY, false),
+        return AuthenticationRequestParameters.create(Authority.createAuthority(AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, false),
                 mTokenCache, scopes, TokenCacheTest.CLIENT_ID, "some redirect", "", "", UIBehavior.SELECT_ACCOUNT,
                 new RequestContext(UUID.randomUUID(), ""));
     }

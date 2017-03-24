@@ -189,9 +189,12 @@ abstract class BaseRequest {
      */
     AuthenticationResult postTokenRequest() throws MsalUiRequiredException, MsalServiceException, MsalClientException  {
         final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
-        final AccessTokenCacheItem accessTokenCacheItem = tokenCache.saveAccessToken(mAuthRequestParameters.getAuthority().getAuthority(),
+
+        final Authority authority = mAuthRequestParameters.getAuthority();
+        authority.updateTenantLessAuthority(new IdToken(mTokenResponse.getRawIdToken()).getTenantId());
+        final AccessTokenCacheItem accessTokenCacheItem = tokenCache.saveAccessToken(authority.getAuthority(),
                 mAuthRequestParameters.getClientId(), mTokenResponse);
-        tokenCache.saveRefreshToken(mAuthRequestParameters.getAuthority().getAuthority(), mAuthRequestParameters.getClientId(),
+        tokenCache.saveRefreshToken(accessTokenCacheItem.getAuthority(), mAuthRequestParameters.getClientId(),
                 mTokenResponse);
 
         return new AuthenticationResult(accessTokenCacheItem);

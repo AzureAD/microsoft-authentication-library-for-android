@@ -77,6 +77,7 @@ public final class AuthorityTest {
         final Authority authority = Authority.createAuthority(
                 "https://login.windows.net/common?resource=2343&client_id=234", false);
         authority.equals("https://login.windows.net/common");
+        Assert.assertTrue(authority.getIsTenantless());
     }
 
     /**
@@ -86,6 +87,8 @@ public final class AuthorityTest {
     public void testAdfsAuthorityValidationEnabled() {
         Authority.createAuthority("https://somehost/adfs", true);
     }
+
+    // TODO: when adfs authority validation is enabled back, we should add tests for adfs authority tenant less check.
 
     /**
      * We don't support adfs as authority for BUILD.
@@ -349,5 +352,6 @@ public final class AuthorityTest {
 
         Assert.assertTrue(authority.getAuthorizeEndpoint().equals(AUTHORIZE_ENDPOINT));
         Assert.assertTrue(authority.getTokenEndpoint().equals(TOKEN_ENDPOINT));
+        Assert.assertFalse(authority.getIsTenantless());
     }
 }

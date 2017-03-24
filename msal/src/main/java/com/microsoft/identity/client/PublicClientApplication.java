@@ -291,6 +291,10 @@ public final class PublicClientApplication {
         return mTokenCache;
     }
 
+    Authority getAuthority() {
+        return mAuthority;
+    }
+
     private void loadMetaDataFromManifest() {
         final ApplicationInfo applicationInfo;
         try {
