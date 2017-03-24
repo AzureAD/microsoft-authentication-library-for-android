@@ -59,7 +59,7 @@ public class UsersFragment extends Fragment {
             serializedUsers.add(mGson.toJson(user, User.class));
         }
 
-        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter(getContext(), android.R.layout.simple_list_item_1, serializedUsers);
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, serializedUsers);
         mUserList.setAdapter(arrayAdapter);
 
         mUserList.setOnItemClickListener(new AdapterView.OnItemClickListener() {

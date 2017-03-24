@@ -35,6 +35,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -60,15 +61,16 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
         AcquireTokenFragment.OnFragmentInteractionListener {
 
-    private PublicClientApplication mApplication;
+    private static final String TAG = MainActivity.class.getSimpleName();
 
-    private Handler mHandler;
+    private PublicClientApplication mApplication;
     private User mUser;
+    private Handler mHandler;
 
     private String mAuthority;
     private String[] mScopes;
     private UIBehavior mUiBehavior;
-    private String mLoginhint;
+    private String mLoginHint;
     private String mExtraQp;
     private String[] mAdditionalScope;
     private boolean mEnablePiiLogging;
@@ -180,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         try {
             return mApplication.getUsers();
         } catch (final MsalClientException e) {
-
+            Log.e(TAG, "Fail to retrieve users: " + e.getMessage(), e);
         }
         return Collections.emptyList();
     }
@@ -202,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Logger.getInstance().setEnableLogcatLog(mEnablePiiLogging);
         }
 
-        callAcquireToken(mScopes, mUiBehavior, mLoginhint, mExtraQp, mAdditionalScope);
+        callAcquireToken(mScopes, mUiBehavior, mLoginHint, mExtraQp, mAdditionalScope);
     }
 
     @Override
@@ -229,7 +231,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
         mAuthority = getAuthority(requestOptions.getAuthorityType());
-        mLoginhint = requestOptions.getLoginHint();
+        mLoginHint = requestOptions.getLoginHint();
         mUiBehavior = requestOptions.getUiBehavior();
         mEnablePiiLogging = requestOptions.enablePiiLogging();
         mForceRefresh = requestOptions.forceRefresh();
@@ -300,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 } else if (exception instanceof MsalUiRequiredException) {
                     // This explicitly indicates that developer needs to prompt the user, it could be refresh token is expired, revoked
                     // or user changes the password; or it could be that no token was found in the token cache.
-                    callAcquireToken(mScopes, mUiBehavior, mLoginhint, mExtraQp, mAdditionalScope);
+                    callAcquireToken(mScopes, mUiBehavior, mLoginHint, mExtraQp, mAdditionalScope);
                 }
             }
 
