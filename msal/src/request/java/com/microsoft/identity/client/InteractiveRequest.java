@@ -29,6 +29,7 @@ import android.content.pm.ResolveInfo;
 import android.util.Base64;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.ref.WeakReference;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -51,7 +52,7 @@ final class InteractiveRequest extends BaseRequest {
     private static AuthorizationResult sAuthorizationResult;
     private static CountDownLatch sResultLock = new CountDownLatch(1);
 
-    private final Activity mActivity;
+    private final ActivityWrapper mActivityWrapper;
     private PKCEChallengeFactory.PKCEChallenge mPKCEChallenge;
 
     /**
@@ -64,7 +65,7 @@ final class InteractiveRequest extends BaseRequest {
     InteractiveRequest(final Activity activity, final AuthenticationRequestParameters authRequestParameters,
                        final String[] additionalScope) {
         super(activity.getApplicationContext(), authRequestParameters);
-        mActivity = activity;
+        mActivityWrapper = new ActivityWrapper(activity);
 
         // validate redirect
         if (MSALUtils.isEmpty(authRequestParameters.getRedirectUri())) {
@@ -103,7 +104,7 @@ final class InteractiveRequest extends BaseRequest {
 
         throwIfNetworkNotAvailable();
 
-        mActivity.startActivityForResult(intentToLaunch, BROWSER_FLOW);
+        mActivityWrapper.startActivityForResult(intentToLaunch, BROWSER_FLOW);
         // lock the thread until onActivityResult release the lock.
         try {
             if (sResultLock.getCount() == 0) {
@@ -388,6 +389,26 @@ final class InteractiveRequest extends BaseRequest {
                         "Every implementation of the Java platform is required to support ISO-8859-1."
                                 + "Consult the release documentation for your implementation.", e);
             }
+        }
+    }
+
+    /**
+     * Internal static class to create a weak reference of the passed-in activity. The library itself doesn't control the
+     * passed-in activity's lifecycle.
+     */
+    static class ActivityWrapper {
+        private WeakReference<Activity> mReferencedActivity;
+
+        ActivityWrapper(final Activity activity) {
+            mReferencedActivity = new WeakReference<Activity>(activity);
+        }
+
+        void startActivityForResult(final Intent intent, int requestCode) throws MsalClientException {
+            if (mReferencedActivity.get() == null) {
+                throw new MsalClientException(MSALError.UNRESOLVABLE_INTENT, "The referenced object is already being garbage collected.");
+            }
+
+            mReferencedActivity.get().startActivityForResult(intent, requestCode);
         }
     }
 }

@@ -87,7 +87,7 @@ final class TokenCacheAccessor {
         editor.putString(key.toString(), mGson.toJson(accessToken));
         editor.apply();
 
-        Logger.verbose(TAG, null, "Access token is into cache.");
+        Logger.verbose(TAG, null, "Access token is saved into cache.");
         Logger.verbosePII(TAG, null, "Access token is saved with key: " + key);
     }
 
