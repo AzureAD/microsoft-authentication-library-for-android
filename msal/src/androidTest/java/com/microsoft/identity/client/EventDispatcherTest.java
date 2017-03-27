@@ -84,13 +84,7 @@ public class EventDispatcherTest {
 
         int index = 0;
         for (final IEvent event : eventList) {
-            Assert.assertEquals(
-                    event.getRequestId(),
-                    new Telemetry.RequestId(
-                            result.get(index)
-                                    .get(EventConstants.EventProperty.REQUEST_ID)
-                    )
-            );
+            Assert.assertEquals(event.getRequestId(), new Telemetry.RequestId(result.get(index).get(EventConstants.EventProperty.REQUEST_ID)));
             index++;
         }
     }
