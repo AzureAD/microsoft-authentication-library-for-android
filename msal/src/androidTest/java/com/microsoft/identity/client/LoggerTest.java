@@ -301,7 +301,7 @@ public final class LoggerTest {
     }
 
     /**
-     * Test log response class to get the log message.
+     * Test log response class to get the log message. 
      */
     static final class LogResponse {
         private String mTag;
