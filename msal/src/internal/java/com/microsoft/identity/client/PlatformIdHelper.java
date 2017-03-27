@@ -67,7 +67,7 @@ final class PlatformIdHelper {
         /**
          * The String representing the sdk platform name.
          */
-        static final String PRODUCT_NAME = "Android";
+        static final String PRODUCT_NAME = "MSAL.Android";
 
         /**
          * The String representing the sdk version.

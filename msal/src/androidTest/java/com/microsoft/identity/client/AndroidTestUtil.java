@@ -46,7 +46,7 @@ import java.util.Set;
 public final class AndroidTestUtil {
     private static final String ACCESS_TOKEN_SHARED_PREFERENCE = "com.microsoft.identity.client.token";
     private static final String REFRESH_TOKEN_SHARED_PREFERENCE = "com.microsoft.identity.client.refreshToken";
-    static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
+    static final String DEFAULT_AUTHORITY_WITH_TENANT = "https://login.microsoftonline.com/tenant";
     static final int TOKEN_EXPIRATION_IN_MINUTES = 60;
 
     static final String AUDIENCE = "audience-for-testing";
@@ -99,13 +99,13 @@ public final class AndroidTestUtil {
     }
 
     static URL getValidRequestUrl() throws MalformedURLException {
-        return new URL(DEFAULT_AUTHORITY);
+        return new URL(DEFAULT_AUTHORITY_WITH_TENANT);
     }
 
     static String getSuccessResponseWithNoRefreshToken(final String idToken) {
         final String tokenResponse = "{\"id_token\":\""
                 + idToken
-                + "\",\"access_token\":\"" + ACCESS_TOKEN + "\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"scope\":\"scope1 scope2\"}";
+                + "\",\"access_token\":\"" + ACCESS_TOKEN + "\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\"scope1 scope2\"}";
         return tokenResponse;
     }
 

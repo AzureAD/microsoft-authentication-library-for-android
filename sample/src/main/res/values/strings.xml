@@ -24,5 +24,25 @@
   -->
 
 <resources>
-    <string name="app_name">Sample</string>
+    <string name="app_name">MSAL Sample App</string>
+    <string name="select_account">Select Account </string>
+    <string name="force_login">Force Login</string>
+    <string name="consent">Consent</string>
+
+    <string name="authority_text">Authority</string>
+    <string name="login_hint_text">Login hint</string>
+    <string name="ui_behavior_text">Ui Behavior</string>
+    <string name="data_profile_text">Data Profile</string>
+    <string name="scope_text">Scope</string>
+    <string name="additional_scope_text">Additional Scopes</string>
+    <string name="scope_text_hint">Type in scopes delimited by space</string>
+    <string name="enable_pii_text">Enable PII logging</string>
+    <string name="force_refresh">Force Refresh</string>
+    <string name="acquire_token_button">AcquireToken</string>
+    <string name="acquire_token_silent_button">AcquireTokenSilent</string>
+    <string name="result_hint_text">Acquire token interactive/silent flow result data goes here...</string>
+    <string name="log_hint_text">Log data goes here...</string>
+    <string name="clear_log_button">clear logs</string>
+    <string name="btn_getUser">Get User</string>
+    <string name="btn_removeUser">Remove User</string>
 </resources>

@@ -58,6 +58,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         InstrumentationRegistry.getContext().getCacheDir();
         System.setProperty("dexmaker.dexcache",
                 InstrumentationRegistry.getContext().getCacheDir().getPath());
+        Authority.VALIDATED_AUTHORITY.clear();
 
         mAppContext = InstrumentationRegistry.getContext().getApplicationContext();
         mRedirectUri = "msauth-client-id://" + mAppContext.getPackageName();
@@ -263,6 +264,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     public void onSuccess(AuthenticationResult authenticationResult) {
                         Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
                         mUser = authenticationResult.getUser();
+
                         releaseLock.countDown();
                     }
 
@@ -288,6 +290,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             protected void makeSilentRequest(final PublicClientApplication application, final CountDownLatch silentResultLock)
                     throws IOException, InterruptedException {
                 final String scopeForSilent = "scope3";
+                AndroidTestMockUtil.mockSuccessTenantDiscovery(SilentRequestTest.AUTHORIZE_ENDPOINT, SilentRequestTest.TOKEN_ENDPOINT);
                 mockSuccessResponse(scopeForSilent, AndroidTestUtil.ACCESS_TOKEN);
 
                 application.acquireTokenSilentAsync(new String[]{scopeForSilent}, mUser, new AuthenticationCallback() {
@@ -549,6 +552,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     throws IOException, InterruptedException {
                 final String silentRequestScope = "scope2";
                 final String newAccessToken = "some new access token";
+                AndroidTestMockUtil.mockSuccessTenantDiscovery(SilentRequestTest.AUTHORIZE_ENDPOINT, SilentRequestTest.TOKEN_ENDPOINT);
                 mockSuccessResponse(silentRequestScope, newAccessToken);
 
                 application.acquireTokenSilentAsync(new String[]{silentRequestScope}, mUser, null, true, new AuthenticationCallback() {
@@ -582,7 +586,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         final PublicClientApplication application = new PublicClientApplication(mAppContext);
 
         // prepare token in the cache
-        saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY, CLIENT_ID, TokenCacheTest.getTokenResponseForDefaultUser(
+        saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, CLIENT_ID, TokenCacheTest.getTokenResponseForDefaultUser(
                 AndroidTestUtil.ACCESS_TOKEN, AndroidTestUtil.REFRESH_TOKEN, "scope1 scope2", AndroidTestUtil.getExpiredDate()));
 
         final IdToken idToken = new IdToken(AndroidTestUtil.getRawIdToken("another Displayable", "another uniqueId", "another homeobj"));
@@ -745,6 +749,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             if (!MSALUtils.isEmpty(getAlternateAuthorityInManifest())) {
                 AndroidTestMockUtil.mockSuccessTenantDiscovery(getAlternateAuthorityInManifest() + Authority.DEFAULT_AUTHORIZE_ENDPOINT,
                         ALTERNATE_AUTHORITY + DEFAULT_TOKEN_ENDPOINT);
+            } else {
+                AndroidTestMockUtil.mockSuccessTenantDiscovery(SilentRequestTest.AUTHORIZE_ENDPOINT, SilentRequestTest.TOKEN_ENDPOINT);
             }
 
             mockHttpRequest();
