@@ -648,12 +648,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                         PackageManager.GET_META_DATA))).thenReturn(applicationInfo);
 
         final PackageInfo mockedPackageInfo = Mockito.mock(PackageInfo.class);
-        Mockito.when(mockedPackageManager
-                .getPackageInfo(
-                        Mockito.anyString(),
-                        Mockito.anyInt()
-                )
-        ).thenReturn(mockedPackageInfo);
+        Mockito.when(mockedPackageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt())).thenReturn(mockedPackageInfo);
     }
 
     private void mockHasCustomTabRedirect(final Context context) {
