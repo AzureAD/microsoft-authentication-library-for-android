@@ -34,7 +34,6 @@ import android.support.customtabs.CustomTabsIntent;
 import android.support.customtabs.CustomTabsServiceConnection;
 import android.support.customtabs.CustomTabsSession;
 
-
 /**
  * Custom tab requires the device to have a browser with custom tab support, chrome with version >= 45 comes with the
  * support and is available on all devices with API version >= 16 . The sdk use chrome custom tab, and before launching
