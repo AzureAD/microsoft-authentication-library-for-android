@@ -215,11 +215,30 @@ public final class Telemetry implements ITelemetry {
                 final String orphanedEventName = key.second.toString();
                 final String orphanedEventStartTime =
                         mEventsInProgress.remove(key).toString(); // remove() this entry
-                // TODO what should I do with this information?
+                // TODO should we do with orphaned Events?
             }
         }
+
         final List<IEvent> eventsToFlush = mCompletedEvents.remove(requestId);
-        if (null != mPublisher) {
+
+        if (mTelemetryOnFailureOnly) {
+            // iterate over Events, if the ApiEvent was successful, don't dispatch
+            boolean shouldRemoveEvents = false;
+
+            for (IEvent event : eventsToFlush) {
+                if (event instanceof IApiEvent) {
+                    IApiEvent apiEvent = (IApiEvent) event;
+                    shouldRemoveEvents = apiEvent.wasSuccessful();
+                    break;
+                }
+            }
+
+            if (shouldRemoveEvents) {
+                eventsToFlush.clear();
+            }
+        }
+
+        if (null != mPublisher && !eventsToFlush.isEmpty()) {
             mPublisher.dispatch(eventsToFlush);
         }
     }

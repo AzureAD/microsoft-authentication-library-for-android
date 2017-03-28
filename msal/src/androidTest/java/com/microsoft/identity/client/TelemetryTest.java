@@ -35,6 +35,7 @@ import org.mockito.Mockito;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static com.microsoft.identity.client.EventConstants.EventProperty;
 
@@ -151,7 +152,77 @@ public class TelemetryTest {
 
     @Test
     public void testTelemetryDataSentOnlyOnFailure() {
-        // TODO
+        // Do not dispatch events if successful....
+        mTestInstance.setTelemetryOnFailure(true);
+
+        // create the mock receiver
+        final MsalEventReceiver mockReceiver1 = Mockito.mock(MsalEventReceiver.class);
+
+        // register the mock receiver
+        mTestInstance.registerReceiver(mockReceiver1);
+
+        // Create some Telemetry data where the parent IApiEvent was successful
+        final Telemetry.RequestId requestId1 = Telemetry.generateNewRequestId();
+        final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(requestId1)
+                .apiId(EventConstants.ApiId.API_ID_ACQUIRE)
+                .correlationId(UUID.randomUUID())
+                .apiCallWasSuccessful(true);
+        final UiEvent.Builder uiEventBuilder = new UiEvent.Builder(requestId1)
+                .redirectCount(0);
+        final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(requestId1, EventName.TOKEN_CACHE_LOOKUP)
+                .tokenType(EventProperty.Value.TOKEN_TYPE_AT);
+
+        mTestInstance.startEvent(apiEventBuilder);
+        mTestInstance.startEvent(uiEventBuilder);
+        mTestInstance.startEvent(cacheEventBuilder);
+        mTestInstance.stopEvent(cacheEventBuilder.build());
+        mTestInstance.stopEvent(uiEventBuilder.build());
+        mTestInstance.stopEvent(apiEventBuilder.build());
+
+        mTestInstance.flush(requestId1);
+
+        // Assert that the mock receiver wasn't called
+        final ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        Mockito.verify(mockReceiver1, Mockito.never()).onEventsReceived(captor.capture());
+
+        // renew the test instance....
+        mTestInstance = Telemetry.getTestInstance();
+        mTestInstance.setTelemetryOnFailure(false);
+
+        // create the mock receiver
+        final MsalEventReceiver mockReceiver2 = Mockito.mock(MsalEventReceiver.class);
+
+        // register the mock receiver
+        mTestInstance.registerReceiver(mockReceiver2);
+
+        // Create some Telemetry data where the parent IApiEvent was successful
+        final Telemetry.RequestId requestId2 = Telemetry.generateNewRequestId();
+        final ApiEvent.Builder apiEventBuilder2 = new ApiEvent.Builder(requestId2)
+                .apiId(EventConstants.ApiId.API_ID_ACQUIRE)
+                .correlationId(UUID.randomUUID())
+                .apiCallWasSuccessful(true);
+        final UiEvent.Builder uiEventBuilder2 = new UiEvent.Builder(requestId2)
+                .redirectCount(0);
+        final CacheEvent.Builder cacheEventBuilder2 = new CacheEvent.Builder(requestId2, EventName.TOKEN_CACHE_LOOKUP)
+                .tokenType(EventProperty.Value.TOKEN_TYPE_AT);
+
+        mTestInstance.startEvent(apiEventBuilder2);
+        mTestInstance.startEvent(uiEventBuilder2);
+        mTestInstance.startEvent(cacheEventBuilder2);
+        mTestInstance.stopEvent(cacheEventBuilder2.build());
+        mTestInstance.stopEvent(uiEventBuilder2.build());
+        mTestInstance.stopEvent(apiEventBuilder2.build());
+
+        mTestInstance.flush(requestId2);
+
+        // Assert that the mock receiver wasn called
+        final ArgumentCaptor<List> captor2 = ArgumentCaptor.forClass(List.class);
+        Mockito.verify(mockReceiver2, Mockito.only()).onEventsReceived(captor2.capture());
+
+        List<Map<String, String>> result = captor2.getValue();
+
+        // verify results
+        Assert.assertEquals(result.size(), 3);
     }
 
     @Test
