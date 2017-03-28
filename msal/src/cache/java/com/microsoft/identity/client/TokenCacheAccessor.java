@@ -95,7 +95,6 @@ final class TokenCacheAccessor {
      */
     void saveAccessToken(final AccessTokenCacheItem accessToken, final Telemetry.RequestId telemetryRequestId) {
         final CacheEvent.Builder cacheEventBuilder = createAndStartNewCacheEvent(telemetryRequestId, EventName.TOKEN_CACHE_WRITE, false);
-
         final TokenCacheKey key = accessToken.extractTokenCacheKey();
 
         final Editor editor = mAccessTokenSharedPreference.edit();
@@ -117,7 +116,6 @@ final class TokenCacheAccessor {
         }
 
         final CacheEvent.Builder cacheEventBuilder = createAndStartNewCacheEvent(telemetryRequestId, EventName.TOKEN_CACHE_WRITE, true);
-
         final TokenCacheKey key = refreshToken.extractTokenCacheKey();
 
         final Editor editor = mRefreshTokenSharedPreference.edit();
@@ -125,7 +123,6 @@ final class TokenCacheAccessor {
         editor.apply();
 
         Telemetry.getInstance().stopEvent(cacheEventBuilder.build());
-
         Logger.verbose(TAG, null, "Refresh token is successfully saved into cache.");
         Logger.verbosePII(TAG, null, "Refresh token is saved with key: " + key);
     }
@@ -138,7 +135,6 @@ final class TokenCacheAccessor {
      */
     List<RefreshTokenCacheItem> getRefreshToken(final TokenCacheKey tokenCacheKey, final Telemetry.RequestId telemetryRequestId) {
         final CacheEvent.Builder cacheEventBuilder = createAndStartNewCacheEvent(telemetryRequestId, EventName.TOKEN_CACHE_LOOKUP, true);
-
         final Map<String, String> refreshTokens = (Map<String, String>) mRefreshTokenSharedPreference.getAll();
         final List<RefreshTokenCacheItem> foundRTs = new ArrayList<>();
         for (final String refreshTokenValue : refreshTokens.values()) {
@@ -149,7 +145,6 @@ final class TokenCacheAccessor {
         }
 
         Telemetry.getInstance().stopEvent(cacheEventBuilder.build());
-
         Logger.verbose(TAG, null, "Retrieve refresh tokens for the given cache key");
         Logger.verbosePII(TAG, null, "Key used to retrieve refresh tokens is: " + tokenCacheKey);
         return foundRTs;
@@ -167,7 +162,6 @@ final class TokenCacheAccessor {
         final Editor editor = mAccessTokenSharedPreference.edit();
         editor.remove(key);
         editor.apply();
-
         Telemetry.getInstance().stopEvent(cacheEventBuilder.build());
     }
 
@@ -182,7 +176,6 @@ final class TokenCacheAccessor {
         }
 
         final CacheEvent.Builder cacheEventBuilder = createAndStartNewCacheEvent(telemetryRequestId, EventName.TOKEN_CACHE_DELETE, true);
-
         final String key = rtItem.extractTokenCacheKey().toString();
         Logger.verbose(TAG, null, "Remove the given refresh token item.");
         Logger.verbosePII(TAG, null, "Refresh token is deleted with key: " + key);
@@ -190,7 +183,6 @@ final class TokenCacheAccessor {
         final Editor editor = mRefreshTokenSharedPreference.edit();
         editor.remove(key);
         editor.apply();
-
         Telemetry.getInstance().stopEvent(cacheEventBuilder.build());
     }
 
@@ -199,7 +191,6 @@ final class TokenCacheAccessor {
      */
     List<AccessTokenCacheItem> getAllAccessTokens(final Telemetry.RequestId telemetryRequestId) {
         final CacheEvent.Builder cacheEventBuilder = createAndStartNewCacheEvent(telemetryRequestId, EventName.TOKEN_CACHE_LOOKUP, false);
-
         final Map<String, String> allAT = (Map<String, String>) mAccessTokenSharedPreference.getAll();
         final List<AccessTokenCacheItem> accessTokenCacheItems = new ArrayList<>(allAT.size());
         for (final String accessTokenValue : allAT.values()) {
@@ -208,7 +199,6 @@ final class TokenCacheAccessor {
         }
 
         Telemetry.getInstance().stopEvent(cacheEventBuilder.build());
-
         Logger.verbose(TAG, null, "Retrieve all the access tokens from cache, the number of access tokens returned is: " + accessTokenCacheItems.size());
         return Collections.unmodifiableList(accessTokenCacheItems);
     }
@@ -218,7 +208,6 @@ final class TokenCacheAccessor {
      */
     List<RefreshTokenCacheItem> getAllRefreshTokens(final Telemetry.RequestId telemetryRequestId) {
         final CacheEvent.Builder cacheEventBuilder = createAndStartNewCacheEvent(telemetryRequestId, EventName.TOKEN_CACHE_LOOKUP, true);
-
         final Map<String, String> allRTs = (Map<String, String>) mRefreshTokenSharedPreference.getAll();
         final List<RefreshTokenCacheItem> refreshTokenCacheItems = new ArrayList<>(allRTs.size());
         for (final String rtValue : allRTs.values()) {
@@ -227,7 +216,6 @@ final class TokenCacheAccessor {
         }
 
         Telemetry.getInstance().stopEvent(cacheEventBuilder.build());
-
         Logger.verbose(TAG, null, "Retrieve all the refresh tokens, the number of refresh tokens returned is: " + refreshTokenCacheItems.size());
         return Collections.unmodifiableList(refreshTokenCacheItems);
     }
