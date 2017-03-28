@@ -237,7 +237,6 @@ public final class PublicClientApplication {
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
      * Default value for {@link UIBehavior} is {@link UIBehavior#SELECT_ACCOUNT}.
-     *
      * @param activity Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
      *                 All the apps doing interactive request are required to call the
      *                 {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
@@ -266,18 +265,15 @@ public final class PublicClientApplication {
     }
 
     // Silent call APIs.
-
     /**
      * Perform acquire token silent call. If there is a valid AT in the cache, the sdk will return the silent AT; If
      * no valid AT exists, the sdk will try to find a RT and use the RT to get a new access token. If RT does not exist
      * or it fails to use RT for a new AT, exception will be sent back via callback.
-     *
-     * @param scopes   The Non-null array of scopes to silently get the token for.
-     * @param user     {@link User} represents the user to silently be signed in.
+     * @param scopes The Non-null array of scopes to silently get the token for.
+     * @param user {@link User} represents the user to silently be signed in.
      * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
      *                 sent back via {@link AuthenticationCallback#onSuccess(AuthenticationResult)}.
-     *                 Failure case will be sent back via {
-     * @link AuthenticationCallback#onError(MsalException)}.
+     *                 Failure case will be sent back via {@link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireTokenSilentAsync(@NonNull final String[] scopes, @NonNull final User user,
                                         @NonNull final AuthenticationCallback callback) {
@@ -289,31 +285,27 @@ public final class PublicClientApplication {
      * Perform acquire token silent call. If there is a valid AT in the cache, the sdk will return the silent AT; If
      * no valid AT exists, the sdk will try to find a RT and use the RT to get a new access token. If RT does not exist
      * or it fails to use RT for a new AT, exception will be sent back via callback.
-     *
-     * @param scopes       The Non-null array of scopes to silently get the token for.
-     * @param user         {@link User} represents the user to silently be signed in.
-     * @param authority    (Optional) The alternate authority to get the token for. If not set, will use the default authority.
+     * @param scopes The Non-null array of scopes to silently get the token for.
+     * @param user {@link User} represents the user to silently be signed in.
+     * @param authority (Optional) The alternate authority to get the token for. If not set, will use the default authority.
      * @param forceRefresh True if the request is forced to refresh, false otherwise.
-     * @param callback     {@link AuthenticationCallback} that is used to send the result back. The success result will be
-     *                     sent back via {@link AuthenticationCallback#onSuccess(AuthenticationResult)}.
-     *                     Failure case will be sent back via {
-     * @link AuthenticationCallback#onError(MsalException)}.
+     * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                 sent back via {@link AuthenticationCallback#onSuccess(AuthenticationResult)}.
+     *                 Failure case will be sent back via {@link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireTokenSilentAsync(@NonNull final String[] scopes, @NonNull final User user, final String authority,
                                         final boolean forceRefresh,
                                         @NonNull final AuthenticationCallback callback) {
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER_AUTHORITY_AND_FORCE_REFRESH);
-        acquireTokenSilent(scopes, user, authority, forceRefresh,
-                wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
+        acquireTokenSilent(scopes, user, authority, forceRefresh, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
     }
 
     /**
      * Deletes all matching tokens (AT & RT) for the supplied {@link User} instance from the application cache.
-     *
      * @param user the {@link User} whose tokens should be deleted.
      */
     public void remove(final User user) {
-        // TODO create an ApiEvent this...
+        // TODO create an ApiEvent for this...
         final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(Telemetry.generateNewRequestId());
         Telemetry.getInstance().startEvent(apiEventBuilder);
         mTokenCache.deleteRefreshTokenByUser(user, apiEventBuilder.getRequestId());
@@ -324,7 +316,6 @@ public final class PublicClientApplication {
 
     /**
      * Keep this method internal only to make it easy for MS apps to do serialize/deserialize on the family tokens.
-     *
      * @return The {@link TokenCache} that is used to persist token items for the running app.
      */
     TokenCache getTokenCache() {
