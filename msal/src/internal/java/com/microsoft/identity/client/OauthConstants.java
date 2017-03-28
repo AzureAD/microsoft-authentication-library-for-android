@@ -43,6 +43,7 @@ final class OauthConstants {
         static final String CODE_CHALLENGE = "code_challenge";
         static final String CODE_VERIFIER = "code_verifier";
         static final String CODE_CHALLENGE_METHOD = "code_challenge_method";
+        static final String CLIENT_INFO = "client_info";
     }
 
     static final class Oauth2ResponseType {
@@ -98,12 +99,12 @@ final class OauthConstants {
         static final String ACCESS_TOKEN = "access_token";
         static final String REFRESH_TOKEN = "refresh_token";
         static final String SCOPE = "scope";
-        static final String FAMILY_ID = "foci";
         static final String ID_TOKEN = "id_token";
         static final String EXPIRES_IN = "expires_in";
         static final String ID_TOKEN_EXPIRES_IN = "id_token_expires_in";
         static final String EXTENDED_EXPIRES_IN = "ext_expires_in";
         static final String STATE = "state";
+        static final String CLIENT_INFO = "client_info";
     }
 
     static final class ErrorCode {
@@ -117,5 +118,10 @@ final class OauthConstants {
     static final class TenantDiscoveryClaim {
         static final String AUTHORIZATION_ENDPOINT = "authorization_endpoint";
         static final String TOKEN_ENDPOINT = "token_endpoint";
+    }
+
+    static final class ClientInfoClaim {
+        static final String UNIQUE_IDENTIFIER = "uid";
+        static final String UNIQUE_TENANT_IDENTIFIER = "utid";
     }
 }

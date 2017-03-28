@@ -619,7 +619,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     private TokenResponse getTokenResponse(final String idToken) throws MsalException {
         return new TokenResponse(AndroidTestUtil.ACCESS_TOKEN, idToken, AndroidTestUtil.REFRESH_TOKEN, new Date(), new Date(),
-                new Date(), "scope", "Bearer");
+                new Date(), "scope", "Bearer", null);
     }
 
     static void saveTokenResponse(final TokenCache tokenCache, final String authority, final String clientId,

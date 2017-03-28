@@ -107,7 +107,7 @@ public final class TokenCacheKeyTest {
         final String idToken = AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", UNIQUE_ID, DISPLAYABLE, "sub", "tenant",
                 "version", HOME_OBJECT_ID);
         final TokenResponse response = new TokenResponse("access_token", idToken, "refresh_token", new Date(), new Date(), new Date(),
-                MSALUtils.convertSetToString(getScopes(), " "), "Bearer");
+                MSALUtils.convertSetToString(getScopes(), " "), "Bearer", null);
         final RefreshTokenCacheItem item = new RefreshTokenCacheItem(CLIENT_ID, response);
 
 
