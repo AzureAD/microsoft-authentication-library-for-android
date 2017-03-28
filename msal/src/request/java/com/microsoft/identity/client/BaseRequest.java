@@ -252,6 +252,7 @@ abstract class BaseRequest {
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.CLIENT_ID, mAuthRequestParameters.getClientId());
         final String scope = MSALUtils.convertSetToString(getDecoratedScope(mAuthRequestParameters.getScope()), " ");
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.SCOPE, scope);
+        oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.CLIENT_INFO, "1");
         setAdditionalOauthParameters(oauth2Client);
     }
 

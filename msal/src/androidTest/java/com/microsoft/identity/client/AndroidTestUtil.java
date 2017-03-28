@@ -94,6 +94,13 @@ public final class AndroidTestUtil {
                         Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE)));
     }
 
+    static String createRawClientInfo(final String uid, final String utid) {
+        final String claims = "{\"uid\":\"" + uid + "\",\"utid\":\"" + utid + "\"}";
+
+        return new String(Base64.encode(claims.getBytes(
+                Charset.forName(MSALUtils.ENCODING_UTF8)), Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE));
+    }
+
     static InputStream createInputStream(final String input) {
         return input == null ? null : new ByteArrayInputStream(input.getBytes());
     }

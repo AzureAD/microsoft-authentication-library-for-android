@@ -41,16 +41,16 @@ final class TokenResponse extends BaseOauth2Response {
     private final Date mIdTokenExpiresOn;
     private final String mScope;
     private final String mTokenType;
-    private final Map<String, String> mAdditionalData = new HashMap<>();
-
+    private final String mRawClientInfo;
     private final String mClaims;
+    private final Map<String, String> mAdditionalData = new HashMap<>();
 
     /**
      * Create token response with token when token is returned.
      */
     public TokenResponse(final String accessToken, final String rawIdToken, final String refreshToken,
                          final Date expiresOn, final Date idTokenExpiresOn, final Date extendedExpiresOn,
-                         final String scope, final String tokenType) {
+                         final String scope, final String tokenType, final String rawClientInfo) {
         // success response: error, errorDescription and errorCodes are all null
         super(null, null, BaseOauth2Response.DEFAULT_STATUS_CODE);
         mClaims = null;
@@ -62,6 +62,7 @@ final class TokenResponse extends BaseOauth2Response {
         mExtendedExpiresOn = extendedExpiresOn;
         mScope = scope;
         mTokenType = tokenType;
+        mRawClientInfo = rawClientInfo;
     }
 
     /**
@@ -79,6 +80,7 @@ final class TokenResponse extends BaseOauth2Response {
         mExtendedExpiresOn = null;
         mScope = null;
         mTokenType = null;
+        mRawClientInfo = null;
     }
 
     TokenResponse(final BaseOauth2Response baseOauth2Response, final String claims) {
@@ -141,8 +143,18 @@ final class TokenResponse extends BaseOauth2Response {
         return mTokenType;
     }
 
+    /**
+     * @return The claims challenge returned along with error response.
+     */
     public String getClaims() {
         return mClaims;
+    }
+
+    /**
+     * @return The raw client info returned from the service.
+     */
+    public String getRawClientInfo() {
+        return mRawClientInfo;
     }
 
     /**
@@ -188,8 +200,11 @@ final class TokenResponse extends BaseOauth2Response {
                 TokenResponseClaim.EXTENDED_EXPIRES_IN));
         additionalData.remove(TokenResponseClaim.EXTENDED_EXPIRES_IN);
 
+        final String clientInfo = responseItems.get(TokenResponseClaim.CLIENT_INFO);
+        additionalData.remove(TokenResponseClaim.CLIENT_INFO);
+
         final TokenResponse tokenResponse = new TokenResponse(accessToken, idToken, refreshToken, expiresOn,
-                idTokenExpiresOn, extendedExpiresOn, scope, tokenType);
+                idTokenExpiresOn, extendedExpiresOn, scope, tokenType, clientInfo);
         tokenResponse.setAdditionalData(additionalData);
 
         return tokenResponse;
