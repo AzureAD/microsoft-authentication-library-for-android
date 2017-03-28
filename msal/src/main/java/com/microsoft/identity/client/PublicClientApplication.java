@@ -209,7 +209,6 @@ public final class PublicClientApplication {
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
      * Default value for {@link UIBehavior} is {@link UIBehavior#SELECT_ACCOUNT}.
-     *
      * @param activity Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
      *                 All the apps doing interactive request are required to call the
      *                 {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
