@@ -44,9 +44,7 @@ final class HttpRequest {
     private static final String TAG = HttpRequest.class.getSimpleName();
 
     private static final String HOST = "Host";
-    /**
-     * The waiting time before doing retry to prevent hitting the server immediately failure.
-     */
+    /**The waiting time before doing retry to prevent hitting the server immediately failure. */
     private static final int RETRY_TIME_WAITING_PERIOD_MSEC = 1000;
     private static final int STREAM_BUFFER_SIZE = 1024;
 
@@ -65,22 +63,19 @@ final class HttpRequest {
 
     /**
      * Constructor for {@link HttpRequest} with request {@link URL} and request headers.
-     *
-     * @param requestUrl     The {@link URL} to make the http request.
+     * @param requestUrl The {@link URL} to make the http request.
      * @param requestHeaders Headers used to send the http request.
      */
-    private HttpRequest(final URL requestUrl, final Map<String, String> requestHeaders,
-                        final String requestMethod, final Telemetry.RequestId telemetryRequestId) {
+    private HttpRequest(final URL requestUrl, final Map<String, String> requestHeaders, final String requestMethod, final Telemetry.RequestId telemetryRequestId) {
         this(requestUrl, requestHeaders, requestMethod, null, null, telemetryRequestId);
     }
 
     /**
      * Constructor for {@link HttpRequest} with request {@link URL}, headers, post message and the request content
      * type.
-     *
-     * @param requestUrl         The {@link URL} to make the http request.
-     * @param requestHeaders     Headers used to send the http request.
-     * @param requestContent     Post message sent in the post request.
+     * @param requestUrl The {@link URL} to make the http request.
+     * @param requestHeaders Headers used to send the http request.
+     * @param requestContent Post message sent in the post request.
      * @param requestContentType Request content type.
      */
     private HttpRequest(final URL requestUrl, final Map<String, String> requestHeaders,
@@ -99,10 +94,9 @@ final class HttpRequest {
 
     /**
      * Send post request {@link URL}, headers, post message and the request content type.
-     *
-     * @param requestUrl         The {@link URL} to make the http request.
-     * @param requestHeaders     Headers used to send the http request.
-     * @param requestContent     Post message sent in the post request.
+     * @param requestUrl The {@link URL} to make the http request.
+     * @param requestHeaders Headers used to send the http request.
+     * @param requestContent Post message sent in the post request.
      * @param requestContentType Request content type.
      */
     public static HttpResponse sendPost(final URL requestUrl, final Map<String, String> requestHeaders,
@@ -117,8 +111,7 @@ final class HttpRequest {
 
     /**
      * Send Get request {@link URL} and request headers.
-     *
-     * @param requestUrl     The {@link URL} to make the http request.
+     * @param requestUrl The {@link URL} to make the http request.
      * @param requestHeaders Headers used to send the http request.
      */
     public static HttpResponse sendGet(final URL requestUrl, final Map<String, String> requestHeaders,
@@ -208,7 +201,6 @@ final class HttpRequest {
         }
 
         Telemetry.getInstance().stopEvent(httpEventBuilder.build());
-
         return response;
     }
 
@@ -303,7 +295,6 @@ final class HttpRequest {
 
     /**
      * Check if the given status code is the retryable status code(500/503/504).
-     *
      * @param statusCode The status to check.
      * @return True if the status code is 500, 503 or 504, false otherwise.
      */
