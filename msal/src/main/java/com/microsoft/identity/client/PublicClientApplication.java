@@ -150,10 +150,9 @@ public final class PublicClientApplication {
     /**
      * The sdk requires calling app to pass in the {@link Activity} which <b> MUST </b> call this method to get the auth
      * code handled back correctly.
-     *
      * @param requestCode The request code for interactive request.
      * @param resultCode The result code for the request to get auth code.
-     * @param data  {@link Intent} either contains the url with auth code as query string or the errors.
+     * @param data {@link Intent} either contains the url with auth code as query string or the errors.
      */
     public void handleInteractiveRequestRedirect(int requestCode, int resultCode, final Intent data) {
         InteractiveRequest.onActivityResult(requestCode, resultCode, data);
