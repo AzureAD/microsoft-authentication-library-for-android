@@ -159,7 +159,6 @@ public final class PublicClientApplication {
     }
 
     // Interactive APIs. Will launch the web UI.
-
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
      * Default value for {@link UIBehavior} is {@link UIBehavior#SELECT_ACCOUNT}.
@@ -211,22 +210,22 @@ public final class PublicClientApplication {
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
      * Default value for {@link UIBehavior} is {@link UIBehavior#SELECT_ACCOUNT}.
      *
-     * @param activity         Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
-     *                         All the apps doing interactive request are required to call the
-     *                         {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
-     *                         activity {@link Activity#onActivityResult(int, int, Intent)}.
-     * @param scopes           An Non-null array of scopes to acquire the token for.
-     * @param loginHint        Optional. If provided, will be used as the query parameter sent for authenticating the user,
-     *                         which will have the UPN pre-populated.
-     * @param uiBehavior       The {@link UIBehavior} for prompting behavior. By default, the sdk use {@link UIBehavior#SELECT_ACCOUNT}.
+     * @param activity Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
+     *                 All the apps doing interactive request are required to call the
+     *                 {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
+     *                 activity {@link Activity#onActivityResult(int, int, Intent)}.
+     * @param scopes An Non-null array of scopes to acquire the token for.
+     * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
+     *                  which will have the UPN pre-populated.
+     * @param uiBehavior The {@link UIBehavior} for prompting behavior. By default, the sdk use {@link UIBehavior#SELECT_ACCOUNT}.
      * @param extraQueryParams Optional. The extra query parameter sent to authorize endpoint.
-     * @param callback         The Non-null {@link AuthenticationCallback} to receive the result back.
-     *                         1) If user cancels the flow by pressing the device back button, the result will be sent
-     *                         back via {@link AuthenticationCallback#onCancel()}.
-     *                         2) If the sdk successfully receives the token back, result will be sent back via
-     *                         {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
-     *                         3) All the other errors will be sent back via
-     *                         {@link AuthenticationCallback#onError(MsalException)}.
+     * @param callback The Non-null {@link AuthenticationCallback} to receive the result back.
+     *                 1) If user cancels the flow by pressing the device back button, the result will be sent
+     *                 back via {@link AuthenticationCallback#onCancel()}.
+     *                 2) If the sdk successfully receives the token back, result will be sent back via
+     *                 {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     *                 3) All the other errors will be sent back via
+     *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint, final UIBehavior uiBehavior,
                              final String extraQueryParams, @NonNull final AuthenticationCallback callback) {
@@ -239,24 +238,24 @@ public final class PublicClientApplication {
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
      * Default value for {@link UIBehavior} is {@link UIBehavior#SELECT_ACCOUNT}.
      *
-     * @param activity         Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
-     *                         All the apps doing interactive request are required to call the
-     *                         {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
-     *                         activity {@link Activity#onActivityResult(int, int, Intent)}.
-     * @param scopes           An Non-null array of scopes to acquire the token for.
-     * @param loginHint        Optional. If provided, will be used as the query parameter sent for authenticating the user,
-     *                         which will have the UPN pre-populated.
-     * @param uiBehavior       The {@link UIBehavior} for prompting behavior. By default, the sdk use {@link UIBehavior#SELECT_ACCOUNT}.
+     * @param activity Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
+     *                 All the apps doing interactive request are required to call the
+     *                 {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
+     *                 activity {@link Activity#onActivityResult(int, int, Intent)}.
+     * @param scopes An Non-null array of scopes to acquire the token for.
+     * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
+     *                  which will have the UPN pre-populated.
+     * @param uiBehavior The {@link UIBehavior} for prompting behavior. By default, the sdk use {@link UIBehavior#SELECT_ACCOUNT}.
      * @param extraQueryParams Optional. The extra query parameter sent to authorize endpoint.
-     * @param additionalScope  Optional. The additional scope to consent for.
-     * @param authority        Should be set if developer wants to get token for a different authority url.
-     * @param callback         The Non-null {@link AuthenticationCallback} to receive the result back.
-     *                         1) If user cancels the flow by pressing the device back button, the result will be sent
-     *                         back via {@link AuthenticationCallback#onCancel()}.
-     *                         2) If the sdk successfully receives the token back, result will be sent back via
-     *                         {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
-     *                         3) All the other errors will be sent back via
-     *                         {@link AuthenticationCallback#onError(MsalException)}.
+     * @param additionalScope Optional. The additional scope to consent for.
+     * @param authority Should be set if developer wants to get token for a different authority url.
+     * @param callback The Non-null {@link AuthenticationCallback} to receive the result back.
+     *                 1) If user cancels the flow by pressing the device back button, the result will be sent
+     *                 back via {@link AuthenticationCallback#onCancel()}.
+     *                 2) If the sdk successfully receives the token back, result will be sent back via
+     *                 {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     *                 3) All the other errors will be sent back via
+     *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint, final UIBehavior uiBehavior,
                              final String extraQueryParams, final String[] additionalScope, final String authority,
