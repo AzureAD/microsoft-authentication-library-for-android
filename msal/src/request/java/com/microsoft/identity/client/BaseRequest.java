@@ -52,7 +52,6 @@ abstract class BaseRequest {
 
     /**
      * Abstract method, implemented by subclass for its own logic before the token request.
-     *
      * @throws MSALUserCancelException If pre token request fails as user cancels the flow.
      * @throws MsalException If error happens during the pre-process.
      */
