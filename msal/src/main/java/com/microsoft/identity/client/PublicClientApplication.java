@@ -36,6 +36,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.microsoft.identity.client.EventConstants.ApiId.ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER;
+import static com.microsoft.identity.client.EventConstants.ApiId.ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER_AUTHORITY_AND_FORCE_REFRESH;
+import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE;
+import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_HINT;
+import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_AND_PARAMETERS;
+import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_PARAMETERS_AND_AUTHORITY;
+
 /**
  * Entry point for developer to create the public native application, and make API call to get token.
  */
@@ -79,6 +86,12 @@ public final class PublicClientApplication {
 
         mAppContext = context;
         loadMetaDataFromManifest();
+
+        // Init Events with defaults (application-wide)
+        Event.initializeAllWithDefaults(
+                Event.EventDefaults.forApplication(mAppContext, mClientId)
+        );
+
         mRedirectUri = createRedirectUri(mClientId);
 
         validateInputParameters();
@@ -125,7 +138,13 @@ public final class PublicClientApplication {
      * @throws MsalClientException If failed to retrieve users from the cache.
      */
     public List<User> getUsers() throws MsalClientException {
-        return mTokenCache.getUsers(mClientId);
+        // TODO Create an ApiEvent for this...
+        ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(Telemetry.generateNewRequestId());
+        Telemetry.getInstance().startEvent(apiEventBuilder);
+        List<User> users = mTokenCache.getUsers(mClientId, apiEventBuilder.getRequestId());
+        apiEventBuilder.apiCallWasSuccessful(true);
+        stopTelemetryEventAndFlush(apiEventBuilder);
+        return users;
     }
 
     /**
@@ -157,7 +176,9 @@ public final class PublicClientApplication {
      *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, @NonNull final AuthenticationCallback callback) {
-        acquireTokenInteractive(activity, scopes, "", UIBehavior.SELECT_ACCOUNT, "", null, "", callback);
+        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(API_ID_ACQUIRE);
+        acquireTokenInteractive(activity, scopes, "", UIBehavior.SELECT_ACCOUNT, "", null, "",
+                wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
     }
 
     /**
@@ -180,7 +201,9 @@ public final class PublicClientApplication {
      */
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint,
                              @NonNull final AuthenticationCallback callback) {
-        acquireTokenInteractive(activity, scopes, loginHint, UIBehavior.SELECT_ACCOUNT, "", null, "", callback);
+        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(API_ID_ACQUIRE_WITH_HINT);
+        acquireTokenInteractive(activity, scopes, loginHint, UIBehavior.SELECT_ACCOUNT, "", null, "",
+                wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
     }
 
     /**
@@ -205,8 +228,9 @@ public final class PublicClientApplication {
      */
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint, final UIBehavior uiBehavior,
                              final String extraQueryParams, @NonNull final AuthenticationCallback callback) {
+        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_AND_PARAMETERS);
         acquireTokenInteractive(activity, scopes, loginHint, uiBehavior == null ? UIBehavior.SELECT_ACCOUNT : uiBehavior,
-                extraQueryParams, null, "", callback);
+                extraQueryParams, null, "", wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
     }
 
     /**
@@ -233,9 +257,10 @@ public final class PublicClientApplication {
      */
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint, final UIBehavior uiBehavior,
                              final String extraQueryParams, final String[] additionalScope, final String authority,
-                             @NonNull  final AuthenticationCallback callback) {
+                             @NonNull final AuthenticationCallback callback) {
+        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_PARAMETERS_AND_AUTHORITY);
         acquireTokenInteractive(activity, scopes, loginHint, uiBehavior == null ? UIBehavior.SELECT_ACCOUNT : uiBehavior,
-                extraQueryParams, additionalScope, authority, callback);
+                extraQueryParams, additionalScope, authority, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
     }
 
     // Silent call APIs.
@@ -246,13 +271,13 @@ public final class PublicClientApplication {
      * @param scopes The Non-null array of scopes to silently get the token for.
      * @param user {@link User} represents the user to silently be signed in.
      * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
-     *                                               sent back via {@link AuthenticationCallback#onSuccess(AuthenticationResult)}.
-     *                                               Failure case will be sent back via {
-     *                                               @link AuthenticationCallback#onError(MsalException)}.
+     *                 sent back via {@link AuthenticationCallback#onSuccess(AuthenticationResult)}.
+     *                 Failure case will be sent back via {@link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireTokenSilentAsync(@NonNull final String[] scopes, @NonNull final User user,
                                         @NonNull final AuthenticationCallback callback) {
-        acquireTokenSilent(scopes, user, "", false, callback);
+        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER);
+        acquireTokenSilent(scopes, user, "", false, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
     }
 
     /**
@@ -264,14 +289,14 @@ public final class PublicClientApplication {
      * @param authority (Optional) The alternate authority to get the token for. If not set, will use the default authority.
      * @param forceRefresh True if the request is forced to refresh, false otherwise.
      * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
-     *                                               sent back via {@link AuthenticationCallback#onSuccess(AuthenticationResult)}.
-     *                                               Failure case will be sent back via {
-     *                                               @link AuthenticationCallback#onError(MsalException)}.
+     *                 sent back via {@link AuthenticationCallback#onSuccess(AuthenticationResult)}.
+     *                 Failure case will be sent back via {@link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireTokenSilentAsync(@NonNull final String[] scopes, @NonNull final User user, final String authority,
                                         final boolean forceRefresh,
                                         @NonNull final AuthenticationCallback callback) {
-        acquireTokenSilent(scopes, user, authority, forceRefresh, callback);
+        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER_AUTHORITY_AND_FORCE_REFRESH);
+        acquireTokenSilent(scopes, user, authority, forceRefresh, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
     }
 
     /**
@@ -279,8 +304,13 @@ public final class PublicClientApplication {
      * @param user the {@link User} whose tokens should be deleted.
      */
     public void remove(final User user) {
-        mTokenCache.deleteRefreshTokenByUser(user);
-        mTokenCache.deleteAccessTokenByUser(user);
+        // TODO create an ApiEvent for this...
+        final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(Telemetry.generateNewRequestId());
+        Telemetry.getInstance().startEvent(apiEventBuilder);
+        mTokenCache.deleteRefreshTokenByUser(user, apiEventBuilder.getRequestId());
+        mTokenCache.deleteAccessTokenByUser(user, apiEventBuilder.getRequestId());
+        apiEventBuilder.apiCallWasSuccessful(true);
+        stopTelemetryEventAndFlush(apiEventBuilder);
     }
 
     /**
@@ -359,13 +389,20 @@ public final class PublicClientApplication {
 
     private void acquireTokenInteractive(final Activity activity, final String[] scopes, final String loginHint, final UIBehavior uiBehavior,
                                          final String extraQueryParams, final String[] additionalScope,
-                                         final String authority, final AuthenticationCallback callback) {
+                                         final String authority, final AuthenticationCallback callback,
+                                         final ApiEvent.Builder apiEventBuilder) {
         if (callback == null) {
             throw new IllegalArgumentException("callback is null");
         }
 
         final AuthenticationRequestParameters requestParameters = getRequestParameters(authority, scopes, loginHint,
-                extraQueryParams, uiBehavior);
+                extraQueryParams, uiBehavior, apiEventBuilder.getRequestId());
+
+        // add properties to our telemetry data
+        apiEventBuilder
+                .loginHint(loginHint)
+                .uiBehavior(uiBehavior.name())
+                .correlationId(requestParameters.getRequestContext().getCorrelationId());
 
         Logger.info(TAG, requestParameters.getRequestContext(), "Preparing a new interactive request");
         final BaseRequest request = new InteractiveRequest(activity, requestParameters, additionalScope);
@@ -374,7 +411,8 @@ public final class PublicClientApplication {
 
     private void acquireTokenSilent(final String[] scopes, final User user, final String authority,
                                     final boolean forceRefresh,
-                                    final AuthenticationCallback callback) {
+                                    final AuthenticationCallback callback,
+                                    final ApiEvent.Builder apiEventBuilder) {
         if (callback == null) {
             throw new IllegalArgumentException("callback is null");
         }
@@ -382,10 +420,18 @@ public final class PublicClientApplication {
         final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? mAuthority
                 : Authority.createAuthority(authority, mValidateAuthority);
         // set correlation if not developer didn't set it.
-        final RequestContext requestContext = new RequestContext(UUID.randomUUID(), mComponent);
+        final RequestContext requestContext = new RequestContext(UUID.randomUUID(), mComponent, apiEventBuilder.getRequestId());
         final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));
         final AuthenticationRequestParameters requestParameters = AuthenticationRequestParameters.create(authorityForRequest, mTokenCache,
                 scopesAsSet, mClientId, requestContext);
+
+        // add properties to our telemetry data
+        apiEventBuilder
+                .loginHint(requestParameters.getLoginHint())
+                .correlationId(requestParameters.getRequestContext().getCorrelationId());
+        if (null != requestParameters.getUiBehavior()) {
+            apiEventBuilder.uiBehavior(requestParameters.getUiBehavior().name());
+        }
 
         Logger.info(TAG, requestContext, "Preparing a new silent request");
         final BaseRequest request = new SilentRequest(mAppContext, requestParameters, forceRefresh, user);
@@ -394,7 +440,7 @@ public final class PublicClientApplication {
 
     private AuthenticationRequestParameters getRequestParameters(final String authority, final String[] scopes,
                                                                  final String loginHint, final String extraQueryParam,
-                                                                 final UIBehavior uiBehavior) {
+                                                                 final UIBehavior uiBehavior, final Telemetry.RequestId telemetryRequestId) {
         final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? mAuthority
                 : Authority.createAuthority(authority, mValidateAuthority);
         // set correlation if not developer didn't set it.
@@ -402,6 +448,63 @@ public final class PublicClientApplication {
         final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));
 
         return AuthenticationRequestParameters.create(authorityForRequest, mTokenCache, scopesAsSet, mClientId,
-                mRedirectUri, loginHint, extraQueryParam, uiBehavior, new RequestContext(correlationId, mComponent));
+                mRedirectUri, loginHint, extraQueryParam, uiBehavior, new RequestContext(correlationId, mComponent, telemetryRequestId));
+    }
+
+    private ApiEvent.Builder createApiEventBuilder(final String apiId) {
+        Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+        // Create the ApiEvent.Builder
+        ApiEvent.Builder eventBuilder =
+                new ApiEvent.Builder(requestId)
+                        .apiId(apiId)
+                        .authority(mAuthority.getAuthority());
+
+        // Start the Event on our Telemetry instance
+        Telemetry.getInstance().startEvent(eventBuilder);
+
+        // Return the Builder
+        return eventBuilder;
+    }
+
+    /**
+     * Wraps {@link AuthenticationCallback} instances to bind Telemetry actions.
+     *
+     * @param eventBinding           the {@link com.microsoft.identity.client.ApiEvent.Builder}
+     *                               monitoring this request.
+     * @param authenticationCallback the original consuming callback
+     * @return the wrapped {@link AuthenticationCallback} instance
+     */
+    private AuthenticationCallback wrapCallbackForTelemetryIntercept(
+            final ApiEvent.Builder eventBinding, final AuthenticationCallback authenticationCallback) {
+        if (null == authenticationCallback) {
+            throw new IllegalArgumentException("callback is null");
+        }
+        return new AuthenticationCallback() {
+            @Override
+            public void onSuccess(final AuthenticationResult authenticationResult) {
+                eventBinding.apiCallWasSuccessful(true);
+                stopTelemetryEventAndFlush(eventBinding);
+                authenticationCallback.onSuccess(authenticationResult);
+            }
+
+            @Override
+            public void onError(final MsalException exception) {
+                eventBinding.apiCallWasSuccessful(false);
+                stopTelemetryEventAndFlush(eventBinding);
+                authenticationCallback.onError(exception);
+            }
+
+            @Override
+            public void onCancel() {
+                stopTelemetryEventAndFlush(eventBinding);
+                authenticationCallback.onCancel();
+            }
+        };
+    }
+
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
+    private void stopTelemetryEventAndFlush(final Event.Builder builder) {
+        Telemetry.getInstance().stopEvent(builder.build());
+        Telemetry.getInstance().flush(builder.getRequestId());
     }
 }

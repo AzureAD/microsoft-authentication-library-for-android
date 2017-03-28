@@ -64,13 +64,15 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         mAppContext = InstrumentationRegistry.getContext().getApplicationContext();
         mAccessor = new TokenCacheAccessor(mAppContext);
         AndroidTestUtil.removeAllTokens(mAppContext);
+        Telemetry.disableForTest(true);
     }
 
     @After
     public void tearDown() {
         AndroidTestUtil.removeAllTokens(mAppContext);
-        assertTrue(mAccessor.getAllAccessTokens().size() == 0);
-        assertTrue(mAccessor.getAllRefreshTokens().size() == 0);
+        assertTrue(mAccessor.getAllAccessTokens(Telemetry.generateNewRequestId()).size() == 0);
+        assertTrue(mAccessor.getAllRefreshTokens(Telemetry.generateNewRequestId()).size() == 0);
+        Telemetry.disableForTest(false);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -93,19 +95,19 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         final User user = getUser(DISPLAYABLE, UNIQUE_ID, HOME_OID);
         final AccessTokenCacheItem tokenCacheItem = new AccessTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse(firstAT, "",
                 scopes, getIdTokenWithDefaultUser()));
-        mAccessor.saveAccessToken(tokenCacheItem);
+        mAccessor.saveAccessToken(tokenCacheItem, Telemetry.generateNewRequestId());
 
         // verify the access token is saved
-        assertTrue(mAccessor.getAllAccessTokens().size() == 1);
+        assertTrue(mAccessor.getAllAccessTokens(Telemetry.generateNewRequestId()).size() == 1);
 
         // save another access token for the same user with scope1 and and scope2
         scopes.add("scope2");
         final AccessTokenCacheItem accessTokenCacheItem2 = new AccessTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse(secondAT, "",
                 scopes, getIdTokenWithDefaultUser()));
-        mAccessor.saveAccessToken(accessTokenCacheItem2);
+        mAccessor.saveAccessToken(accessTokenCacheItem2, Telemetry.generateNewRequestId());
 
         // verify there are two access token entries in the case
-        assertTrue(mAccessor.getAllAccessTokens().size() == 2);
+        assertTrue(mAccessor.getAllAccessTokens(Telemetry.generateNewRequestId()).size() == 2);
     }
 
     /**
@@ -118,7 +120,7 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         // save token for user1
         final AccessTokenCacheItem accessTokenCacheItem = new AccessTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("accessToken",
                 "", scopes, getIdTokenWithDefaultUser()));
-        mAccessor.saveAccessToken(accessTokenCacheItem);
+        mAccessor.saveAccessToken(accessTokenCacheItem, Telemetry.generateNewRequestId());
 
         // save token for user2
         final String anotherDisplayable = "anotherDisplayable";
@@ -126,9 +128,9 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         final String anotherHomeOid = "another-home-oid";
         final AccessTokenCacheItem tokenItemForAnotherUser = new AccessTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("accessToken2",
                 "", scopes, AndroidTestUtil.getRawIdToken(anotherDisplayable, anotherUniqueId, anotherHomeOid)));
-        mAccessor.saveAccessToken(tokenItemForAnotherUser);
+        mAccessor.saveAccessToken(tokenItemForAnotherUser, Telemetry.generateNewRequestId());
 
-        assertTrue(mAccessor.getAllAccessTokens().size() == 2);
+        assertTrue(mAccessor.getAllAccessTokens(Telemetry.generateNewRequestId()).size() == 2);
     }
 
     /**
@@ -139,14 +141,14 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         final Set<String> scopes1 = Collections.singleton("scope1");
         final AccessTokenCacheItem tokenItem1 = new AccessTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("accessToken", "",
                 scopes1, getIdTokenWithDefaultUser()));
-        mAccessor.saveAccessToken(tokenItem1);
+        mAccessor.saveAccessToken(tokenItem1, Telemetry.generateNewRequestId());
 
         final Set<String> scopes2 = Collections.singleton("scope2");
         final AccessTokenCacheItem accessTokenCacheItem2 = new AccessTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("accessToken2", "",
                 scopes2, getIdTokenWithDefaultUser()));
-        mAccessor.saveAccessToken(accessTokenCacheItem2);
+        mAccessor.saveAccessToken(accessTokenCacheItem2, Telemetry.generateNewRequestId());
 
-        assertTrue(mAccessor.getAllAccessTokens().size() == 2);
+        assertTrue(mAccessor.getAllAccessTokens(Telemetry.generateNewRequestId()).size() == 2);
     }
 
     /**
@@ -158,16 +160,16 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         final Set<String> scope1 = Collections.singleton("scope1");
         final RefreshTokenCacheItem rtItem = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", "refreshToken",
                 scope1, getIdTokenWithDefaultUser()));
-        mAccessor.saveRefreshToken(rtItem);
+        mAccessor.saveRefreshToken(rtItem, Telemetry.generateNewRequestId());
 
         // save RT item with scope2 for same user
         final Set<String> scope2 = Collections.singleton("scope2");
         final RefreshTokenCacheItem rtItem2 = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", "refreshToken2",
                 scope2, getIdTokenWithDefaultUser()));
-        mAccessor.saveRefreshToken(rtItem2);
+        mAccessor.saveRefreshToken(rtItem2, Telemetry.generateNewRequestId());
 
         // verify refresh tokens in the cache
-        List<RefreshTokenCacheItem> rts = mAccessor.getAllRefreshTokens();
+        List<RefreshTokenCacheItem> rts = mAccessor.getAllRefreshTokens(Telemetry.generateNewRequestId());
         assertTrue(rts.size() == 1);
         assertTrue(rts.get(0).getRefreshToken().equals("refreshToken2"));
 
@@ -177,10 +179,10 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         scope3.add("scope3");
         final RefreshTokenCacheItem rtItem3 = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", "refreshToken3",
                 scope3, getIdTokenWithDefaultUser()));
-        mAccessor.saveRefreshToken(rtItem3);
+        mAccessor.saveRefreshToken(rtItem3, Telemetry.generateNewRequestId());
 
         // verify saved RTs
-        rts = mAccessor.getAllRefreshTokens();
+        rts = mAccessor.getAllRefreshTokens(Telemetry.generateNewRequestId());
         assertTrue(rts.size() == 1);
         assertTrue(rts.get(0).getRefreshToken().equals("refreshToken3"));
     }
@@ -194,23 +196,23 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
 
         final RefreshTokenCacheItem rtForUser1 = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", "refreshToken1",
                 scope, getIdTokenWithDefaultUser()));
-        mAccessor.saveRefreshToken(rtForUser1);
+        mAccessor.saveRefreshToken(rtForUser1, Telemetry.generateNewRequestId());
 
         final String anotherDisplayable = "anotherDisplayable";
         final String anotherUniqueId = "some-other-unique-id";
         final String anotherHomeOid = "some-other-home-oid";
         final RefreshTokenCacheItem rtForUser2 = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", "refreshToken2",
                 scope, AndroidTestUtil.getRawIdToken(anotherDisplayable, anotherUniqueId, anotherHomeOid)));
-        mAccessor.saveRefreshToken(rtForUser2);
+        mAccessor.saveRefreshToken(rtForUser2, Telemetry.generateNewRequestId());
 
-        assertTrue(mAccessor.getAllRefreshTokens().size() == 2);
+        assertTrue(mAccessor.getAllRefreshTokens(Telemetry.generateNewRequestId()).size() == 2);
         final List<RefreshTokenCacheItem> retrievedRTForUser1 = mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(CLIENT_ID,
-                getUser(DISPLAYABLE, UNIQUE_ID, HOME_OID)));
+                getUser(DISPLAYABLE, UNIQUE_ID, HOME_OID)), Telemetry.generateNewRequestId());
         assertTrue(retrievedRTForUser1.size() == 1);
         assertTrue(retrievedRTForUser1.get(0).getRefreshToken().equals("refreshToken1"));
 
         final List<RefreshTokenCacheItem> retrievedRtForUser2 = mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(CLIENT_ID,
-                getUser(anotherDisplayable, anotherUniqueId, anotherHomeOid)));
+                getUser(anotherDisplayable, anotherUniqueId, anotherHomeOid)), Telemetry.generateNewRequestId());
         assertTrue(retrievedRtForUser2.size() == 1);
         assertTrue(retrievedRtForUser2.get(0).getRefreshToken().equals("refreshToken2"));
     }
@@ -223,32 +225,32 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         // add rt with default client id, authority and user
         final RefreshTokenCacheItem rtForDefaultClient = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", "refreshToken1",
                 scope, getIdTokenWithDefaultUser()));
-        mAccessor.saveRefreshToken(rtForDefaultClient);
+        mAccessor.saveRefreshToken(rtForDefaultClient, Telemetry.generateNewRequestId());
 
         // add rt with default clientid, authority, user
         final RefreshTokenCacheItem differentRtForDefaultClientID = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("",
                 "refreshToken1WithPolicy", scope, getIdTokenWithDefaultUser()));
-        mAccessor.saveRefreshToken(differentRtForDefaultClientID);
+        mAccessor.saveRefreshToken(differentRtForDefaultClientID, Telemetry.generateNewRequestId());
 
         // add rt with another clientid
         final String anotherClientId = "another_clientId";
         final RefreshTokenCacheItem rtForAnotherClientId = new RefreshTokenCacheItem(anotherClientId, getTokenResponse("",
                 "refreshToken2", scope, getIdTokenWithDefaultUser()));
-        mAccessor.saveRefreshToken(rtForAnotherClientId);
+        mAccessor.saveRefreshToken(rtForAnotherClientId, Telemetry.generateNewRequestId());
 
         // add rt for same user, different authority
         final String anotherAuthority = "another_authority";
         final RefreshTokenCacheItem rtForDifferentAuthority = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("",
                 "refreshToken3", scope, getIdTokenWithDefaultUser()));
-        mAccessor.saveRefreshToken(rtForDifferentAuthority);
+        mAccessor.saveRefreshToken(rtForDifferentAuthority, Telemetry.generateNewRequestId());
 
         // TODO: enable or not
-        assertTrue(mAccessor.getAllRefreshTokens().size() == EXPECTED_RT_SIZE);
-        final List<RefreshTokenCacheItem> rtItem = mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(CLIENT_ID, getDefaultUser()));
+        assertTrue(mAccessor.getAllRefreshTokens(Telemetry.generateNewRequestId()).size() == EXPECTED_RT_SIZE);
+        final List<RefreshTokenCacheItem> rtItem = mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(CLIENT_ID, getDefaultUser()), Telemetry.generateNewRequestId());
         assertTrue(rtItem.size() == 1);
         assertTrue(rtItem.get(0).getRefreshToken().equals("refreshToken3"));
-        assertTrue(mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(CLIENT_ID, getDefaultUser())).size() == 1);
-        assertTrue(mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(anotherClientId, getDefaultUser())).size() == 1);
+        assertTrue(mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(CLIENT_ID, getDefaultUser()), Telemetry.generateNewRequestId()).size() == 1);
+        assertTrue(mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(anotherClientId, getDefaultUser()), Telemetry.generateNewRequestId()).size() == 1);
     }
 
     @Test
@@ -257,13 +259,13 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
 
         final RefreshTokenCacheItem rtItem = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("accessToken", "refresh_token",
                 scope, getIdTokenWithDefaultUser()));
-        mAccessor.saveRefreshToken(rtItem);
+        mAccessor.saveRefreshToken(rtItem, Telemetry.generateNewRequestId());
 
-        assertTrue(mAccessor.getAllRefreshTokens().size() == 1);
-        assertTrue(mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(CLIENT_ID, getDefaultUser())).size() == 1);
+        assertTrue(mAccessor.getAllRefreshTokens(Telemetry.generateNewRequestId()).size() == 1);
+        assertTrue(mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(CLIENT_ID, getDefaultUser()), Telemetry.generateNewRequestId()).size() == 1);
 
-        mAccessor.deleteRefreshToken(rtItem);
-        assertTrue(mAccessor.getAllRefreshTokens().size() == 0);
+        mAccessor.deleteRefreshToken(rtItem, Telemetry.generateNewRequestId());
+        assertTrue(mAccessor.getAllRefreshTokens(Telemetry.generateNewRequestId()).size() == 0);
     }
 
     private User getDefaultUser() throws MsalException {
@@ -281,7 +283,7 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
     }
 
     static TokenResponse getTokenResponse(final String accessToken, final String refreshToken, final Set<String> scopes,
-                                           final String idToken)
+                                          final String idToken)
             throws MsalException {
         return new TokenResponse(accessToken, idToken, refreshToken, new Date(), new Date(), new Date(),
                 MSALUtils.convertSetToString(scopes, " "), "Bearer", null);

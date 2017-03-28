@@ -43,11 +43,13 @@ public final class HttpRequestTest {
     @Before
     public void setUp() {
         Logger.getInstance().setEnableLogcatLog(false);
+        Telemetry.disableForTest(true);
     }
 
     @After
     public void tearDown() {
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
+        Telemetry.disableForTest(false);
     }
 
     /**
@@ -55,7 +57,7 @@ public final class HttpRequestTest {
      */
     @Test(expected = NullPointerException.class)
     public void testNullRequestUrl() throws IOException, MsalServiceException {
-        HttpRequest.sendGet(null, Collections.<String, String>emptyMap());
+        HttpRequest.sendGet(null, Collections.<String, String>emptyMap(), Telemetry.generateNewRequestId());
     }
 
     /**
@@ -556,7 +558,7 @@ public final class HttpRequestTest {
         } catch (final MsalServiceException e) {
             Assert.assertNotNull(e);
             Assert.assertNotNull(e.getCause());
-            Assert.assertTrue(e.getCause() instanceof  SocketTimeoutException);
+            Assert.assertTrue(e.getCause() instanceof SocketTimeoutException);
         }
 
         Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
@@ -593,7 +595,7 @@ public final class HttpRequestTest {
         } catch (final MsalServiceException e) {
             Assert.assertNotNull(e);
             Assert.assertNotNull(e.getCause());
-            Assert.assertTrue(e.getCause() instanceof  SocketTimeoutException);
+            Assert.assertTrue(e.getCause() instanceof SocketTimeoutException);
         }
 
         Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
@@ -615,11 +617,12 @@ public final class HttpRequestTest {
         Assert.assertTrue(httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
         Assert.assertTrue(httpResponse.getBody().equals(getSuccessResponse()));
     }
+
     /**
      * Send http get request.
      */
     HttpResponse sendHttpGet() throws IOException, MsalServiceException {
-        return HttpRequest.sendGet(Util.getValidRequestUrl(), Collections.<String, String>emptyMap());
+        return HttpRequest.sendGet(Util.getValidRequestUrl(), Collections.<String, String>emptyMap(), Telemetry.generateNewRequestId());
     }
 
     /**
@@ -627,7 +630,7 @@ public final class HttpRequestTest {
      */
     HttpResponse sendHttpPost() throws IOException, MsalServiceException {
         return HttpRequest.sendPost(Util.getValidRequestUrl(), Collections.<String, String>emptyMap(),
-                "SomeRequestMessage".getBytes(), "application/x-www-form-urlencoded");
+                "SomeRequestMessage".getBytes(), "application/x-www-form-urlencoded", Telemetry.generateNewRequestId());
     }
 
     /**
