@@ -269,7 +269,7 @@ public final class SilentRequestTest extends AndroidTestCase {
                 TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, scopeInResponse,
                         AndroidTestUtil.getValidExpiresOn()));
 
-        final String[] requestedScope = new String[] {"email.read", "scope2", "user.read"};
+        final String[] requestedScope = new String[]{"email.read", "scope2", "user.read"};
         final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(new HashSet<>(Arrays.asList(
                 requestedScope))), false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
@@ -478,7 +478,7 @@ public final class SilentRequestTest extends AndroidTestCase {
     private AuthenticationRequestParameters getRequestParameters(final Set<String> scopes) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, false),
                 mTokenCache, scopes, TokenCacheTest.CLIENT_ID, "some redirect", "", "", UIBehavior.SELECT_ACCOUNT,
-                new RequestContext(UUID.randomUUID(), ""));
+                new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()));
     }
 
     private void mockFailureResponse(final String errorCode) throws IOException {

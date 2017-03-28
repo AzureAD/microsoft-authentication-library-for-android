@@ -50,7 +50,7 @@ abstract class AbstractMetadataRequestor<MetadataType, MetadataRequestOptions> {
     abstract MetadataType parseMetadata(HttpResponse response) throws Exception;
 
     /**
-     * Gets the {@link RequestContext}
+     * Gets the {@link RequestContext}.
      *
      * @return the RequestContext
      */

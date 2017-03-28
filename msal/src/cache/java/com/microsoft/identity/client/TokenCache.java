@@ -54,7 +54,7 @@ class TokenCache {
     /**
      * Create {@link AccessTokenCacheItem} from {@link TokenResponse} and save it into cache.
      */
-    AccessTokenCacheItem saveAccessToken(final String authority, final String clientId, final TokenResponse response)
+    AccessTokenCacheItem saveAccessToken(final String authority, final String clientId, final TokenResponse response, final Telemetry.RequestId telemetryRequestId)
             throws MsalClientException {
         // create the access token cache item
         Logger.info(TAG, null, "Starting to Save access token into cache. Access token will be saved with authority: " + authority
@@ -63,27 +63,28 @@ class TokenCache {
         final TokenCacheKey accessTokenCacheKey = newAccessToken.extractTokenCacheKey();
 
         // check for intersection and delete all the cache entries with intersecting scopes.
-        final List<AccessTokenCacheItem> accessTokenCacheItems = mTokenCacheAccessor.getAllAccessTokensForGivenClientId(clientId);
+        final List<AccessTokenCacheItem> accessTokenCacheItems = mTokenCacheAccessor.getAllAccessTokensForGivenClientId(clientId, telemetryRequestId);
         for (final AccessTokenCacheItem accessTokenCacheItem : accessTokenCacheItems) {
             if (accessTokenCacheKey.matches(accessTokenCacheItem) && MSALUtils.isScopeIntersects(newAccessToken.getScope(), accessTokenCacheItem.getScope())) {
-                mTokenCacheAccessor.deleteAccessToken(accessTokenCacheItem);
+                mTokenCacheAccessor.deleteAccessToken(accessTokenCacheItem, telemetryRequestId);
             }
         }
 
-        mTokenCacheAccessor.saveAccessToken(newAccessToken);
+        mTokenCacheAccessor.saveAccessToken(newAccessToken, telemetryRequestId);
         return newAccessToken;
     }
 
     /**
      * Create {@link RefreshTokenCacheItem} from {@link TokenResponse} and save it into cache.
      */
-    void saveRefreshToken(final String authority, final String clientId, final TokenResponse response) throws MsalClientException {
+    void saveRefreshToken(final String authority, final String clientId, final TokenResponse response, final Telemetry.RequestId telemetryRequestId)
+            throws MsalClientException {
         // if server returns the refresh token back, save it in the cache.
         if (!MSALUtils.isEmpty(response.getRefreshToken())) {
             Logger.info(TAG, null, "Starting to save refresh token into cache. Refresh token will be saved with authority: " + authority
                     + "; Client Id: " + clientId);
             final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(clientId, response);
-            mTokenCacheAccessor.saveRefreshToken(refreshTokenCacheItem);
+            mTokenCacheAccessor.saveRefreshToken(refreshTokenCacheItem, telemetryRequestId);
         }
     }
 
@@ -98,7 +99,7 @@ class TokenCache {
     AccessTokenCacheItem findAccessToken(final AuthenticationRequestParameters requestParam, final User user) {
         final TokenCacheKey key = TokenCacheKey.createKeyForAT(requestParam.getAuthority().getAuthority(),
                 requestParam.getClientId(), requestParam.getScope(), user);
-        final List<AccessTokenCacheItem> accessTokenCacheItems = getAccessToken(key);
+        final List<AccessTokenCacheItem> accessTokenCacheItems = getAccessToken(key, requestParam.getRequestContext().getTelemetryRequestId());
 
         if (accessTokenCacheItems.isEmpty()) {
             Logger.info(TAG, requestParam.getRequestContext(), "No access is found for scopes: "
@@ -133,8 +134,8 @@ class TokenCache {
      * is provided, it also has to be matched. Scope in the cached access token item has to be the exact same with the
      * scopes in the lookup key.
      */
-    List<AccessTokenCacheItem> getAccessToken(final TokenCacheKey tokenCacheKey) {
-        final List<AccessTokenCacheItem> accessTokens = mTokenCacheAccessor.getAllAccessTokens();
+    List<AccessTokenCacheItem> getAccessToken(final TokenCacheKey tokenCacheKey, final Telemetry.RequestId telemetryRequestId) {
+        final List<AccessTokenCacheItem> accessTokens = mTokenCacheAccessor.getAllAccessTokens(telemetryRequestId);
         final List<AccessTokenCacheItem> foundATs = new ArrayList<>();
         for (final AccessTokenCacheItem accessTokenCacheItem : accessTokens) {
             if (tokenCacheKey.matches(accessTokenCacheItem) && accessTokenCacheItem.getScope().containsAll(tokenCacheKey.getScope())) {
@@ -150,7 +151,7 @@ class TokenCache {
     // All the token AAD returns are multi-scopes. MSAL only support ADFS 2016, which issues multi-scope RT.
     RefreshTokenCacheItem findRefreshToken(final AuthenticationRequestParameters requestParam, final User user) throws MsalClientException {
         final TokenCacheKey key = TokenCacheKey.createKeyForRT(requestParam.getClientId(), user);
-        final List<RefreshTokenCacheItem> refreshTokenCacheItems = mTokenCacheAccessor.getRefreshToken(key);
+        final List<RefreshTokenCacheItem> refreshTokenCacheItems = mTokenCacheAccessor.getRefreshToken(key, requestParam.getRequestContext().getTelemetryRequestId());
 
         if (refreshTokenCacheItems.size() == 0) {
             Logger.info(TAG, requestParam.getRequestContext(), "No RT was found for the given user.");
@@ -173,9 +174,9 @@ class TokenCache {
      *
      * @param rtItem The item to delete.
      */
-    void deleteRT(final RefreshTokenCacheItem rtItem) {
+    void deleteRT(final RefreshTokenCacheItem rtItem, final Telemetry.RequestId telemetryRequestId) {
         Logger.info(TAG, null, "Removing refresh tokens from the cache.");
-        mTokenCacheAccessor.deleteRefreshToken(rtItem);
+        mTokenCacheAccessor.deleteRefreshToken(rtItem, telemetryRequestId);
     }
 
     /**
@@ -184,13 +185,13 @@ class TokenCache {
      * @param clientId The application client id that is used to retrieve for all the signed in users.
      * @return The list of signed in users for the given client id.
      */
-    List<User> getUsers(final String clientId) throws MsalClientException {
+    List<User> getUsers(final String clientId, final Telemetry.RequestId telemetryRequestId) throws MsalClientException {
         if (MSALUtils.isEmpty(clientId)) {
             throw new IllegalArgumentException("empty or null clientId");
         }
 
         Logger.verbose(TAG, null, "Retrieve users with the given client id: " + clientId);
-        final List<RefreshTokenCacheItem> allRefreshTokens = mTokenCacheAccessor.getAllRefreshTokensForGivenClientId(clientId);
+        final List<RefreshTokenCacheItem> allRefreshTokens = mTokenCacheAccessor.getAllRefreshTokensForGivenClientId(clientId, telemetryRequestId);
         final Map<String, User> allUsers = new HashMap<>();
         for (final RefreshTokenCacheItem item : allRefreshTokens) {
             final User user = new User(new IdToken(item.getRawIdToken()));
@@ -201,12 +202,12 @@ class TokenCache {
     }
 
     /**
-     * Delegate to handle the deleting of {@link BaseTokenCacheItem}s
+     * Delegate to handle the deleting of {@link BaseTokenCacheItem}s.
      */
     private interface DeleteTokenAction {
 
         /**
-         * Deletes the supplied token
+         * Deletes the supplied token.
          *
          * @param target the {@link BaseTokenCacheItem} to delete
          */
@@ -242,35 +243,35 @@ class TokenCache {
     }
 
     /**
-     * Delete the refresh token associated with the supplied {@link User}
+     * Delete the refresh token associated with the supplied {@link User}.
      *
      * @param user the User whose refresh token should be deleted
      */
-    void deleteRefreshTokenByUser(final User user) {
+    void deleteRefreshTokenByUser(final User user, final Telemetry.RequestId telemetryRequestId) {
         deleteTokenByUser(
                 user,
-                mTokenCacheAccessor.getAllRefreshTokens(),
+                mTokenCacheAccessor.getAllRefreshTokens(telemetryRequestId),
                 new DeleteTokenAction() {
                     @Override
                     public void deleteToken(final BaseTokenCacheItem target) {
-                        mTokenCacheAccessor.deleteRefreshToken((RefreshTokenCacheItem) target);
+                        mTokenCacheAccessor.deleteRefreshToken((RefreshTokenCacheItem) target, telemetryRequestId);
                     }
                 });
     }
 
     /**
-     * Delete the access token associated with the supplied {@link User}
+     * Delete the access token associated with the supplied {@link User}.
      *
      * @param user the User whose access token should be deleted
      */
-    void deleteAccessTokenByUser(final User user) {
+    void deleteAccessTokenByUser(final User user, final Telemetry.RequestId telemetryRequestId) {
         deleteTokenByUser(
                 user,
-                mTokenCacheAccessor.getAllAccessTokens(),
+                mTokenCacheAccessor.getAllAccessTokens(telemetryRequestId),
                 new DeleteTokenAction() {
                     @Override
                     public void deleteToken(final BaseTokenCacheItem target) {
-                        mTokenCacheAccessor.deleteAccessToken((AccessTokenCacheItem) target);
+                        mTokenCacheAccessor.deleteAccessToken((AccessTokenCacheItem) target, telemetryRequestId);
                     }
                 });
     }

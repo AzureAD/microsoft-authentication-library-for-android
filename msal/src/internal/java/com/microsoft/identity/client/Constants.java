@@ -35,6 +35,8 @@ final class Constants {
 
     public static final String REQUEST_ID = "com.microsoft.identity.request.id";
 
+    public static final String TELEMETRY_REQUEST_ID = "com.microsoft.identity.telemetry.request.id";
+
     public static final String CUSTOM_TAB_REDIRECT = "com.microsoft.identity.customtab.redirect";
 
     public static final String AUTHORIZATION_FINAL_URL = "com.microsoft.identity.client.finalUrl";
