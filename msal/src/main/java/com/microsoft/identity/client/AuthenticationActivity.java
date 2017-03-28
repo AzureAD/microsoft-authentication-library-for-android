@@ -92,11 +92,7 @@ public final class AuthenticationActivity extends Activity {
 
         mChromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(getApplicationContext());
 
-        mUiEventBuilder = new UiEvent.Builder(
-                new Telemetry.RequestId(
-                        data.getStringExtra(Constants.TELEMETRY_REQUEST_ID)
-                )
-        );
+        mUiEventBuilder = new UiEvent.Builder(new Telemetry.RequestId(data.getStringExtra(Constants.TELEMETRY_REQUEST_ID)));
         Telemetry.getInstance().startEvent(mUiEventBuilder);
     }
 
@@ -118,8 +114,7 @@ public final class AuthenticationActivity extends Activity {
     }
 
     private void warmUpCustomTabs() {
-        //mCustomTabsServiceConnection = createCustomTabsServiceConnection();
-        mCustomTabsServiceConnection = new CustomTabsConnection(this);
+        mCustomTabsServiceConnection = createCustomTabsServiceConnection();
 
         // Initiate the service-bind action
         CustomTabsClient.bindCustomTabsService(
@@ -135,32 +130,22 @@ public final class AuthenticationActivity extends Activity {
         mCustomTabsIntent.intent.setPackage(mChromePackageWithCustomTabSupport);
     }
 
-    private static class CustomTabsConnection extends CustomTabsServiceConnection {
-
-        WeakReference<AuthenticationActivity> mActivityWeakRef;
-
-        CustomTabsConnection(AuthenticationActivity activity) {
-            mActivityWeakRef = new WeakReference<>(activity);
-        }
-
-        @Override
-        public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
-            AuthenticationActivity activity = mActivityWeakRef.get();
-            if (null != activity) {
-                activity.mCustomTabsServiceIsBound = true;
-                activity.mCustomTabsClient = client;
-                activity.mCustomTabsClient.warmup(0L);
-                activity.mCustomTabsSession = activity.mCustomTabsClient.newSession(null);
+    @NonNull
+    private CustomTabsServiceConnection createCustomTabsServiceConnection() {
+        return new CustomTabsServiceConnection() {
+            @Override
+            public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
+                mCustomTabsServiceIsBound = true;
+                mCustomTabsClient = client;
+                mCustomTabsClient.warmup(0L);
+                mCustomTabsSession = mCustomTabsClient.newSession(null);
             }
-        }
 
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            AuthenticationActivity activity = mActivityWeakRef.get();
-            if (null != activity) {
-                activity.mCustomTabsClient = null;
+            @Override
+            public void onServiceDisconnected(ComponentName componentName) {
+                mCustomTabsClient = null;
             }
-        }
+        };
     }
 
     /**
@@ -193,7 +178,7 @@ public final class AuthenticationActivity extends Activity {
 
         final String chromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(
                 this.getApplicationContext());
-        mRequestUrl = this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
+        mRequestUrl =  this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
 
         Logger.infoPII(TAG, null, "Request to launch is: " + mRequestUrl);
         if (chromePackageWithCustomTabSupport != null) {
