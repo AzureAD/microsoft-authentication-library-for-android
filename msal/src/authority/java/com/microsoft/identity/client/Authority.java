@@ -135,7 +135,6 @@ abstract class Authority {
      * endpoint will be returned otherwise exception will be thrown. Returned tenant discovery endpoint will be used for
      * tenant discovery to get authorize and token endpoint. Developer could turn off authority validation, but for all the
      * authority, we'll do tenant discovery.
-     *
      * @param requestContext {@link RequestContext} for the authority validation and tenant discovery.
      * @throws MsalException If error happens during authority or tenant discovery.
      */
