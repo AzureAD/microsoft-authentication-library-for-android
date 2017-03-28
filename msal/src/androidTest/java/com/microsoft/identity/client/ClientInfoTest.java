@@ -41,7 +41,7 @@ public final class ClientInfoTest {
             new ClientInfo("");
             Assert.fail();
         } catch (final MsalClientException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.INVALID_JWT));
+            Assert.assertTrue(e.getErrorCode().equals(MSALError.JSON_PARSE_FAILURE));
         }
     }
 
