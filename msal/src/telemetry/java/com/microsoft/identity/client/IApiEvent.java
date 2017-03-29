@@ -85,13 +85,6 @@ interface IApiEvent extends IEvent {
     String getLoginHint();
 
     /**
-     * Gets the deprecated status.
-     *
-     * @return true if the call is deprecated, otherwise false.
-     */
-    Boolean isDeprecated();
-
-    /**
      * Gets the extended expires-on status.
      *
      * @return true if the status is extended, otherwise false.

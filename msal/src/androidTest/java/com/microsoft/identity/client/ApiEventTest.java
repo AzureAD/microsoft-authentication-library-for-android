@@ -48,7 +48,6 @@ public class ApiEventTest {
     static final String TEST_VALIDATION_STATUS = EventProperty.Value.AUTHORITY_VALIDATION_SUCCESS;
     static final String TEST_ID_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2VwZWhyaSIsImdpdmVuX25hbWUiOiJBZnNoaW4ifQ.";
     static final String TEST_LOGIN_HINT = "user@contoso.com";
-    static final boolean TEST_IS_DEPRECATED = false;
     static final boolean TEST_HAS_EXTENDED_EXPIRES_STATUS = false;
     static final boolean TEST_API_CALL_WAS_SUCCESSFUL = true;
 
@@ -64,7 +63,6 @@ public class ApiEventTest {
                 .setValidationStatus(TEST_VALIDATION_STATUS)
                 .setRawIdToken(TEST_ID_TOKEN)
                 .setLoginHint(TEST_LOGIN_HINT)
-                .setIsDeprecated(TEST_IS_DEPRECATED)
                 .setExtendedExpiresOnStatus(TEST_HAS_EXTENDED_EXPIRES_STATUS)
                 .setApiCallWasSuccessful(TEST_API_CALL_WAS_SUCCESSFUL);
     }
@@ -84,7 +82,6 @@ public class ApiEventTest {
         Assert.assertEquals(TEST_VALIDATION_STATUS, apiEvent.getValidationStatus());
         // Testing token parsing in another test....
         Assert.assertEquals(MSALUtils.createHash(TEST_LOGIN_HINT), apiEvent.getLoginHint());
-        Assert.assertEquals(Boolean.valueOf(TEST_IS_DEPRECATED), apiEvent.isDeprecated());
         Assert.assertEquals(Boolean.valueOf(TEST_HAS_EXTENDED_EXPIRES_STATUS), apiEvent.getExtendedExpiresOnStatus());
         Assert.assertEquals(Boolean.valueOf(TEST_API_CALL_WAS_SUCCESSFUL), apiEvent.wasSuccessful());
     }

@@ -48,7 +48,6 @@ final class ApiEvent extends Event implements IApiEvent {
         setProperty(EventProperty.AUTHORITY_VALIDATION, builder.mValidationStatus);
         setIdToken(builder.mRawIdToken);
         setLoginHint(builder.mLoginHint);
-        setProperty(EventProperty.API_DEPRECATED, String.valueOf(builder.mIsDeprecated));
         setProperty(EventProperty.EXTENDED_EXPIRES_ON_SETTING, String.valueOf(builder.mExtendedExpiresOnStatus));
         setProperty(EventProperty.WAS_SUCCESSFUL, String.valueOf(builder.mWasApiCallSuccessful));
     }
@@ -147,11 +146,6 @@ final class ApiEvent extends Event implements IApiEvent {
     }
 
     @Override
-    public Boolean isDeprecated() {
-        return Boolean.valueOf(getProperty(EventProperty.API_DEPRECATED));
-    }
-
-    @Override
     public Boolean getExtendedExpiresOnStatus() {
         return Boolean.valueOf(getProperty(EventProperty.EXTENDED_EXPIRES_ON_SETTING));
     }
@@ -172,7 +166,6 @@ final class ApiEvent extends Event implements IApiEvent {
         private String mValidationStatus;
         private String mRawIdToken;
         private String mLoginHint;
-        private boolean mIsDeprecated;
         private boolean mExtendedExpiresOnStatus;
         private boolean mWasApiCallSuccessful;
         private UUID mCorrelationId;
@@ -244,17 +237,6 @@ final class ApiEvent extends Event implements IApiEvent {
          */
         Builder setLoginHint(final String loginHint) {
             mLoginHint = loginHint;
-            return this;
-        }
-
-        /**
-         * Sets the deprecated status.
-         *
-         * @param isDeprecated the status to set.
-         * @return the Builder instance.
-         */
-        Builder setIsDeprecated(final boolean isDeprecated) {
-            mIsDeprecated = isDeprecated;
             return this;
         }
 
