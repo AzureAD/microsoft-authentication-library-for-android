@@ -39,7 +39,7 @@ public class UiEventTest {
 
     static IUiEvent getTestUiEvent(final Telemetry.RequestId requestId) {
         return new UiEvent.Builder(requestId)
-                .redirectCount(2)
+                .setRedirectCount(2)
                 .setUserDidCancel()
                 .build();
     }

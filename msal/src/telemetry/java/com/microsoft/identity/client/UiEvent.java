@@ -66,7 +66,7 @@ final class UiEvent extends Event implements IUiEvent {
          * @param redirectCount the redirect count to set.
          * @return the Builder instance.
          */
-        Builder redirectCount(final Integer redirectCount) {
+        Builder setRedirectCount(final Integer redirectCount) {
             mRedirectCount = redirectCount;
             return this;
         }

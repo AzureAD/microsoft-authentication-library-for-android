@@ -142,7 +142,7 @@ public final class PublicClientApplication {
         ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(Telemetry.generateNewRequestId());
         Telemetry.getInstance().startEvent(apiEventBuilder);
         List<User> users = mTokenCache.getUsers(mClientId, apiEventBuilder.getRequestId());
-        apiEventBuilder.apiCallWasSuccessful(true);
+        apiEventBuilder.setApiCallWasSuccessful(true);
         stopTelemetryEventAndFlush(apiEventBuilder);
         return users;
     }
@@ -309,7 +309,7 @@ public final class PublicClientApplication {
         Telemetry.getInstance().startEvent(apiEventBuilder);
         mTokenCache.deleteRefreshTokenByUser(user, apiEventBuilder.getRequestId());
         mTokenCache.deleteAccessTokenByUser(user, apiEventBuilder.getRequestId());
-        apiEventBuilder.apiCallWasSuccessful(true);
+        apiEventBuilder.setApiCallWasSuccessful(true);
         stopTelemetryEventAndFlush(apiEventBuilder);
     }
 
@@ -400,9 +400,9 @@ public final class PublicClientApplication {
 
         // add properties to our telemetry data
         apiEventBuilder
-                .loginHint(loginHint)
-                .uiBehavior(uiBehavior.name())
-                .correlationId(requestParameters.getRequestContext().getCorrelationId());
+                .setLoginHint(loginHint)
+                .setUiBehavior(uiBehavior.name())
+                .setCorrelationId(requestParameters.getRequestContext().getCorrelationId());
 
         Logger.info(TAG, requestParameters.getRequestContext(), "Preparing a new interactive request");
         final BaseRequest request = new InteractiveRequest(activity, requestParameters, additionalScope);
@@ -427,10 +427,10 @@ public final class PublicClientApplication {
 
         // add properties to our telemetry data
         apiEventBuilder
-                .loginHint(requestParameters.getLoginHint())
-                .correlationId(requestParameters.getRequestContext().getCorrelationId());
+                .setLoginHint(requestParameters.getLoginHint())
+                .setCorrelationId(requestParameters.getRequestContext().getCorrelationId());
         if (null != requestParameters.getUiBehavior()) {
-            apiEventBuilder.uiBehavior(requestParameters.getUiBehavior().name());
+            apiEventBuilder.setUiBehavior(requestParameters.getUiBehavior().name());
         }
 
         Logger.info(TAG, requestContext, "Preparing a new silent request");
@@ -456,8 +456,8 @@ public final class PublicClientApplication {
         // Create the ApiEvent.Builder
         ApiEvent.Builder eventBuilder =
                 new ApiEvent.Builder(requestId)
-                        .apiId(apiId)
-                        .authority(mAuthority.getAuthority());
+                        .setApiId(apiId)
+                        .setAuthority(mAuthority.getAuthority());
 
         // Start the Event on our Telemetry instance
         Telemetry.getInstance().startEvent(eventBuilder);
@@ -482,14 +482,14 @@ public final class PublicClientApplication {
         return new AuthenticationCallback() {
             @Override
             public void onSuccess(final AuthenticationResult authenticationResult) {
-                eventBinding.apiCallWasSuccessful(true);
+                eventBinding.setApiCallWasSuccessful(true);
                 stopTelemetryEventAndFlush(eventBinding);
                 authenticationCallback.onSuccess(authenticationResult);
             }
 
             @Override
             public void onError(final MsalException exception) {
-                eventBinding.apiCallWasSuccessful(false);
+                eventBinding.setApiCallWasSuccessful(false);
                 stopTelemetryEventAndFlush(eventBinding);
                 authenticationCallback.onError(exception);
             }

@@ -170,9 +170,9 @@ final class HttpRequest {
     private HttpResponse executeHttpSend() throws IOException {
         final HttpEvent.Builder httpEventBuilder =
                 new HttpEvent.Builder(mTelemetryRequestId)
-                        .httpPath(mRequestUrl)
-                        .httpMethod(mRequestMethod)
-                        .queryParameters(mRequestUrl.getQuery());
+                        .setHttpPath(mRequestUrl)
+                        .setHttpMethod(mRequestMethod)
+                        .setQueryParameters(mRequestUrl.getQuery());
         Telemetry.getInstance().startEvent(httpEventBuilder);
         final HttpURLConnection urlConnection = setupConnection();
         urlConnection.setRequestMethod(mRequestMethod);
@@ -192,7 +192,7 @@ final class HttpRequest {
             }
 
             final int statusCode = urlConnection.getResponseCode();
-            httpEventBuilder.statusCode(statusCode);
+            httpEventBuilder.setStatusCode(statusCode);
             final String responseBody = responseStream == null ? "" : convertStreamToString(responseStream);
             Logger.verbose(TAG, null, "Returned status code is: " + statusCode);
             response = new HttpResponse(statusCode, responseBody, urlConnection.getHeaderFields());

@@ -81,7 +81,7 @@ final class TokenCacheAccessor {
     }
 
     private static CacheEvent.Builder createNewCacheEvent(final Telemetry.RequestId requestId, final EventName eventName, final boolean isRT) {
-        return new CacheEvent.Builder(requestId, eventName).tokenType(isRT ? TOKEN_TYPE_RT : TOKEN_TYPE_AT);
+        return new CacheEvent.Builder(requestId, eventName).setTokenType(isRT ? TOKEN_TYPE_RT : TOKEN_TYPE_AT);
     }
 
     private static CacheEvent.Builder createAndStartNewCacheEvent(final Telemetry.RequestId requestId, final EventName eventName, final boolean isRT) {

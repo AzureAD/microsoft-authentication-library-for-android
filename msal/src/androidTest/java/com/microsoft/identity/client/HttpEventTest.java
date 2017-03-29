@@ -53,14 +53,14 @@ public class HttpEventTest {
             final URL httpPath
     ) {
         return new HttpEvent.Builder(requestId)
-                .userAgent(TEST_USER_AGENT)
-                .httpMethod(TEST_HTTP_METHOD)
-                .queryParameters(TEST_QUERY_PARAMS)
-                .apiVersion(TEST_API_VERSION)
-                .oAuthErrorCode(TEST_O_AUTH_ERROR_CODE)
-                .requestIdHeader(TEST_REQUEST_ID_HEADER)
-                .httpPath(httpPath)
-                .statusCode(TEST_HTTP_RESPONSE_CODE)
+                .setUserAgent(TEST_USER_AGENT)
+                .setHttpMethod(TEST_HTTP_METHOD)
+                .setQueryParameters(TEST_QUERY_PARAMS)
+                .setApiVersion(TEST_API_VERSION)
+                .setOAuthErrorCode(TEST_O_AUTH_ERROR_CODE)
+                .setRequestIdHeader(TEST_REQUEST_ID_HEADER)
+                .setHttpPath(httpPath)
+                .setStatusCode(TEST_HTTP_RESPONSE_CODE)
                 .build();
     }
 

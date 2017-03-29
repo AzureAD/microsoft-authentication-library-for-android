@@ -96,7 +96,7 @@ interface IApiEvent extends IEvent {
      *
      * @return true if the status is extended, otherwise false.
      */
-    Boolean hasExtendedExpiresOnStatus();
+    Boolean getExtendedExpiresOnStatus();
 
     /**
      * Gets the success-status.

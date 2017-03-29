@@ -42,7 +42,7 @@ public class CacheEventTest {
             final String tokenType
     ) {
         return new CacheEvent.Builder(requestId, eventName)
-                .tokenType(tokenType)
+                .setTokenType(tokenType)
                 .build();
     }
 

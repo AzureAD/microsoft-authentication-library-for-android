@@ -37,8 +37,6 @@ interface ICacheEvent extends IEvent {
 
     /**
      * Gets the RT status of the token.
-     * (Must have be explictly set via
-     * {@link com.microsoft.identity.client.CacheEvent.Builder#tokenTypeIsRT(boolean)}
      *
      * @return true if the token type is RT and the field has been explicitly initialized.
      */

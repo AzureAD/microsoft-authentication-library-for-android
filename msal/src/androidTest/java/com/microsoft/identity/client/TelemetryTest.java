@@ -164,13 +164,13 @@ public class TelemetryTest {
         // Create some Telemetry data where the parent IApiEvent was successful
         final Telemetry.RequestId requestId1 = Telemetry.generateNewRequestId();
         final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(requestId1)
-                .apiId(EventConstants.ApiId.API_ID_ACQUIRE)
-                .correlationId(UUID.randomUUID())
-                .apiCallWasSuccessful(true);
+                .setApiId(EventConstants.ApiId.API_ID_ACQUIRE)
+                .setCorrelationId(UUID.randomUUID())
+                .setApiCallWasSuccessful(true);
         final UiEvent.Builder uiEventBuilder = new UiEvent.Builder(requestId1)
-                .redirectCount(0);
+                .setRedirectCount(0);
         final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(requestId1, EventName.TOKEN_CACHE_LOOKUP)
-                .tokenType(EventProperty.Value.TOKEN_TYPE_AT);
+                .setTokenType(EventProperty.Value.TOKEN_TYPE_AT);
 
         mTestInstance.startEvent(apiEventBuilder);
         mTestInstance.startEvent(uiEventBuilder);
@@ -198,13 +198,13 @@ public class TelemetryTest {
         // Create some Telemetry data where the parent IApiEvent was successful
         final Telemetry.RequestId requestId2 = Telemetry.generateNewRequestId();
         final ApiEvent.Builder apiEventBuilder2 = new ApiEvent.Builder(requestId2)
-                .apiId(EventConstants.ApiId.API_ID_ACQUIRE)
-                .correlationId(UUID.randomUUID())
-                .apiCallWasSuccessful(true);
+                .setApiId(EventConstants.ApiId.API_ID_ACQUIRE)
+                .setCorrelationId(UUID.randomUUID())
+                .setApiCallWasSuccessful(true);
         final UiEvent.Builder uiEventBuilder2 = new UiEvent.Builder(requestId2)
-                .redirectCount(0);
+                .setRedirectCount(0);
         final CacheEvent.Builder cacheEventBuilder2 = new CacheEvent.Builder(requestId2, EventName.TOKEN_CACHE_LOOKUP)
-                .tokenType(EventProperty.Value.TOKEN_TYPE_AT);
+                .setTokenType(EventProperty.Value.TOKEN_TYPE_AT);
 
         mTestInstance.startEvent(apiEventBuilder2);
         mTestInstance.startEvent(uiEventBuilder2);

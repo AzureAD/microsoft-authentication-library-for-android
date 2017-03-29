@@ -152,7 +152,7 @@ final class ApiEvent extends Event implements IApiEvent {
     }
 
     @Override
-    public Boolean hasExtendedExpiresOnStatus() {
+    public Boolean getExtendedExpiresOnStatus() {
         return Boolean.valueOf(getProperty(EventProperty.EXTENDED_EXPIRES_ON_SETTING));
     }
 
@@ -187,7 +187,7 @@ final class ApiEvent extends Event implements IApiEvent {
          * @param authority the authority to set.
          * @return the Builder instance.
          */
-        Builder authority(final String authority) {
+        Builder setAuthority(final String authority) {
             mAuthority = authority;
             return this;
         }
@@ -198,7 +198,7 @@ final class ApiEvent extends Event implements IApiEvent {
          * @param uiBehavior the UiBehavior to set.
          * @return the Builder instance.
          */
-        Builder uiBehavior(final String uiBehavior) {
+        Builder setUiBehavior(final String uiBehavior) {
             mUiBehavior = uiBehavior;
             return this;
         }
@@ -209,7 +209,7 @@ final class ApiEvent extends Event implements IApiEvent {
          * @param apiId the apiId to set.
          * @return the Builder instance.
          */
-        Builder apiId(final String apiId) {
+        Builder setApiId(final String apiId) {
             mApiId = apiId;
             return this;
         }
@@ -220,7 +220,7 @@ final class ApiEvent extends Event implements IApiEvent {
          * @param validationStatus the validation status to set.
          * @return the Builder instance.
          */
-        Builder validationStatus(final String validationStatus) {
+        Builder setValidationStatus(final String validationStatus) {
             mValidationStatus = validationStatus;
             return this;
         }
@@ -231,7 +231,7 @@ final class ApiEvent extends Event implements IApiEvent {
          * @param rawIdToken the rawIdToken to set.
          * @return the Builder instance.
          */
-        Builder rawIdToken(final String rawIdToken) {
+        Builder setRawIdToken(final String rawIdToken) {
             mRawIdToken = rawIdToken;
             return this;
         }
@@ -242,7 +242,7 @@ final class ApiEvent extends Event implements IApiEvent {
          * @param loginHint the loginHint to set.
          * @return the Builder instance.
          */
-        Builder loginHint(final String loginHint) {
+        Builder setLoginHint(final String loginHint) {
             mLoginHint = loginHint;
             return this;
         }
@@ -253,18 +253,18 @@ final class ApiEvent extends Event implements IApiEvent {
          * @param isDeprecated the status to set.
          * @return the Builder instance.
          */
-        Builder isDeprecated(final boolean isDeprecated) {
+        Builder setIsDeprecated(final boolean isDeprecated) {
             mIsDeprecated = isDeprecated;
             return this;
         }
 
         /**
-         * Sets the hasExtendedExpiresOnStatus.
+         * Sets the ExtendedExpiresOnStatus.
          *
          * @param hasExtendedExpiresOn the status to set.
          * @return the Builder instance.
          */
-        Builder hasExtendedExpiresOnStatus(final boolean hasExtendedExpiresOn) {
+        Builder setExtendedExpiresOnStatus(final boolean hasExtendedExpiresOn) {
             mExtendedExpiresOnStatus = hasExtendedExpiresOn;
             return this;
         }
@@ -275,12 +275,12 @@ final class ApiEvent extends Event implements IApiEvent {
          * @param callWasSuccessful the status to set.
          * @return the Builder instance.
          */
-        Builder apiCallWasSuccessful(final boolean callWasSuccessful) {
+        Builder setApiCallWasSuccessful(final boolean callWasSuccessful) {
             mWasApiCallSuccessful = callWasSuccessful;
             return this;
         }
 
-        Builder correlationId(final UUID correlationId) {
+        Builder setCorrelationId(final UUID correlationId) {
             mCorrelationId = correlationId;
             return this;
         }

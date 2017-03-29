@@ -58,15 +58,15 @@ public class ApiEventTest {
 
     static ApiEvent.Builder getTestApiEventBuilder(Telemetry.RequestId requestId) {
         return new ApiEvent.Builder(requestId)
-                .authority(TEST_AUTHORITY)
-                .uiBehavior(TEST_UI_BEHAVIOR)
-                .apiId(TEST_API_ID)
-                .validationStatus(TEST_VALIDATION_STATUS)
-                .rawIdToken(TEST_ID_TOKEN)
-                .loginHint(TEST_LOGIN_HINT)
-                .isDeprecated(TEST_IS_DEPRECATED)
-                .hasExtendedExpiresOnStatus(TEST_HAS_EXTENDED_EXPIRES_STATUS)
-                .apiCallWasSuccessful(TEST_API_CALL_WAS_SUCCESSFUL);
+                .setAuthority(TEST_AUTHORITY)
+                .setUiBehavior(TEST_UI_BEHAVIOR)
+                .setApiId(TEST_API_ID)
+                .setValidationStatus(TEST_VALIDATION_STATUS)
+                .setRawIdToken(TEST_ID_TOKEN)
+                .setLoginHint(TEST_LOGIN_HINT)
+                .setIsDeprecated(TEST_IS_DEPRECATED)
+                .setExtendedExpiresOnStatus(TEST_HAS_EXTENDED_EXPIRES_STATUS)
+                .setApiCallWasSuccessful(TEST_API_CALL_WAS_SUCCESSFUL);
     }
 
     static IApiEvent getTestApiEvent(final Telemetry.RequestId requestId) {
@@ -85,7 +85,7 @@ public class ApiEventTest {
         // Testing token parsing in another test....
         Assert.assertEquals(MSALUtils.createHash(TEST_LOGIN_HINT), apiEvent.getLoginHint());
         Assert.assertEquals(Boolean.valueOf(TEST_IS_DEPRECATED), apiEvent.isDeprecated());
-        Assert.assertEquals(Boolean.valueOf(TEST_HAS_EXTENDED_EXPIRES_STATUS), apiEvent.hasExtendedExpiresOnStatus());
+        Assert.assertEquals(Boolean.valueOf(TEST_HAS_EXTENDED_EXPIRES_STATUS), apiEvent.getExtendedExpiresOnStatus());
         Assert.assertEquals(Boolean.valueOf(TEST_API_CALL_WAS_SUCCESSFUL), apiEvent.wasSuccessful());
     }
 

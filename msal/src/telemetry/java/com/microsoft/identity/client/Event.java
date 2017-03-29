@@ -225,20 +225,20 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
         @SuppressLint("HardwareIds")
         static EventDefaults forApplication(final Context context, final String clientId) {
             Builder defaultsBuilder = new Builder()
-                    .clientId(clientId)
-                    .applicationName(context.getPackageName());
+                    .setClientId(clientId)
+                    .setApplicationName(context.getPackageName());
             try {
                 String versionName = context
                         .getPackageManager()
                         .getPackageInfo(defaultsBuilder.mApplicationName, 0).versionName;
                 versionName = null == versionName ? "" : versionName;
-                defaultsBuilder.applicationVersion(versionName);
+                defaultsBuilder.setApplicationVersion(versionName);
             } catch (PackageManager.NameNotFoundException e) {
-                defaultsBuilder.applicationVersion("NA");
+                defaultsBuilder.setApplicationVersion("NA");
             }
 
             try {
-                defaultsBuilder.deviceId(
+                defaultsBuilder.setDeviceId(
                         MSALUtils.createHash(
                                 Settings.Secure.getString(
                                         context.getContentResolver(),
@@ -247,7 +247,7 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
                         )
                 );
             } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
-                defaultsBuilder.deviceId("");
+                defaultsBuilder.setDeviceId("");
             }
 
             return defaultsBuilder.build();
@@ -269,7 +269,7 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
              * @param applicationName the application name to set.
              * @return the Builder instance.
              */
-            Builder applicationName(final String applicationName) {
+            Builder setApplicationName(final String applicationName) {
                 mApplicationName = applicationName;
                 return this;
             }
@@ -280,7 +280,7 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
              * @param applicationVersion the application version to set.
              * @return the Builder instance.
              */
-            Builder applicationVersion(final String applicationVersion) {
+            Builder setApplicationVersion(final String applicationVersion) {
                 mApplicationVersion = applicationVersion;
                 return this;
             }
@@ -291,7 +291,7 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
              * @param clientId the clientId to set.
              * @return the Builder instance.
              */
-            Builder clientId(final String clientId) {
+            Builder setClientId(final String clientId) {
                 mClientId = clientId;
                 return this;
             }
@@ -302,7 +302,7 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
              * @param deviceId the deviceId to set.
              * @return the Builder instance.
              */
-            Builder deviceId(final String deviceId) {
+            Builder setDeviceId(final String deviceId) {
                 mDeviceId = deviceId;
                 return this;
             }

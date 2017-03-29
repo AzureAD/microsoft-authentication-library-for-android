@@ -134,7 +134,7 @@ final class HttpEvent extends Event implements IHttpEvent {
          * @param userAgent the userAgent to set.
          * @return the Builder instance.
          */
-        Builder userAgent(final String userAgent) {
+        Builder setUserAgent(final String userAgent) {
             mUserAgent = userAgent;
             return this;
         }
@@ -145,7 +145,7 @@ final class HttpEvent extends Event implements IHttpEvent {
          * @param httpMethod the http method to set.
          * @return the Builder instance.
          */
-        Builder httpMethod(final String httpMethod) {
+        Builder setHttpMethod(final String httpMethod) {
             mHttpMethod = httpMethod;
             return this;
         }
@@ -156,7 +156,7 @@ final class HttpEvent extends Event implements IHttpEvent {
          * @param queryParams the query parameters to set.
          * @return the Builder instance.
          */
-        Builder queryParameters(final String queryParams) {
+        Builder setQueryParameters(final String queryParams) {
             mQueryParams = queryParams;
             return this;
         }
@@ -167,7 +167,7 @@ final class HttpEvent extends Event implements IHttpEvent {
          * @param apiVersion the api version to set.
          * @return the Builder instance.
          */
-        Builder apiVersion(final String apiVersion) {
+        Builder setApiVersion(final String apiVersion) {
             mApiVersion = apiVersion;
             return this;
         }
@@ -178,7 +178,7 @@ final class HttpEvent extends Event implements IHttpEvent {
          * @param oAuthErrorCode the OAuthErrorCode to set.
          * @return the Builder instance.
          */
-        Builder oAuthErrorCode(final String oAuthErrorCode) {
+        Builder setOAuthErrorCode(final String oAuthErrorCode) {
             mOAuthErrorCode = oAuthErrorCode;
             return this;
         }
@@ -189,7 +189,7 @@ final class HttpEvent extends Event implements IHttpEvent {
          * @param requestIdHeader the header to set.
          * @return the Builder instance.
          */
-        Builder requestIdHeader(final String requestIdHeader) {
+        Builder setRequestIdHeader(final String requestIdHeader) {
             mRequestIdHeader = requestIdHeader;
             return this;
         }
@@ -200,7 +200,7 @@ final class HttpEvent extends Event implements IHttpEvent {
          * @param httpPath the path to set.
          * @return the Builder instance.
          */
-        Builder httpPath(final URL httpPath) {
+        Builder setHttpPath(final URL httpPath) {
             mHttpPath = httpPath;
             return this;
         }
@@ -211,7 +211,7 @@ final class HttpEvent extends Event implements IHttpEvent {
          * @param responseCode the resonse code to set.
          * @return the Builder instance.
          */
-        Builder statusCode(final Integer responseCode) {
+        Builder setStatusCode(final Integer responseCode) {
             mResponseCode = responseCode;
             return this;
         }

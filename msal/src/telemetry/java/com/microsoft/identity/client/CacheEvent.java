@@ -62,7 +62,7 @@ final class CacheEvent extends Event implements ICacheEvent {
          * @param tokenType the tokenType to set.
          * @return the Builder instance.
          */
-        Builder tokenType(final String tokenType) {
+        Builder setTokenType(final String tokenType) {
             mTokenType = tokenType;
             return this;
         }
