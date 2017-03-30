@@ -36,23 +36,29 @@ import java.lang.reflect.Type;
  */
 
 final class TokenCacheItemDeserializer<T extends BaseTokenCacheItem> implements JsonDeserializer<T> {
-    private static final String TAG = TokenCacheItemDeserializer.class.getSimpleName();
 
     @Override
     public T deserialize(JsonElement json, Type type, JsonDeserializationContext context)
             throws JsonParseException {
         T deserializedTokenCacheItem = new Gson().fromJson(json, type);
-        final String rawIdToken = deserializedTokenCacheItem.getRawIdToken();
-        if (!MSALUtils.isEmpty(rawIdToken)) {
+
+        final User user;
+        if (deserializedTokenCacheItem instanceof AccessTokenCacheItem) {
+            final AccessTokenCacheItem accessTokenCacheItem = (AccessTokenCacheItem) deserializedTokenCacheItem;
             try {
-                final IdToken idToken = new IdToken(rawIdToken);;
-                deserializedTokenCacheItem.setIdToken(idToken);
-                deserializedTokenCacheItem.setUser(new User(idToken));
-            } catch (final MsalClientException e) {
-                Logger.error(TAG, null, "Fail to parse Id token", e);
+                final ClientInfo clientInfo = MSALUtils.isEmpty(accessTokenCacheItem.getmRawClientInfo()) ? null
+                        : new ClientInfo(accessTokenCacheItem.getmRawClientInfo());
+                user = User.create(new IdToken(accessTokenCacheItem.getRawIdToken()), clientInfo);
+            } catch (MsalClientException e) {
+                throw new JsonParseException("Fail to deserialize", e);
             }
+        } else {
+            final RefreshTokenCacheItem refreshTokenCacheItem = (RefreshTokenCacheItem) deserializedTokenCacheItem;
+            user = new User(refreshTokenCacheItem.getDisplayableId(), refreshTokenCacheItem.getName(),
+                    refreshTokenCacheItem.getIdentityProvider(), refreshTokenCacheItem.getUid(), refreshTokenCacheItem.getUtid());
         }
 
+        deserializedTokenCacheItem.setUser(user);
         return deserializedTokenCacheItem;
     }
 }

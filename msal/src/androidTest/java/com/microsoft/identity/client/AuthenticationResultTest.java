@@ -109,7 +109,7 @@ public final class AuthenticationResultTest {
     }
 
     @Test
-    public void testHomeOidNotReturned() throws MsalException {
+    public void testClientInfoIsNotReturned() throws MsalException {
         final String uniqueId = "unique";
         final TokenResponse tokenResponse = new TokenResponse(null, PublicClientApplicationTest.getIdToken("displayable",
                 uniqueId, ""), REFRESH_TOKEN, new Date(), new Date(), new Date(), SCOPE, TOKEN_TYPE, null);
@@ -117,7 +117,7 @@ public final class AuthenticationResultTest {
 
         final User user = result.getUser();
         Assert.assertNotNull(user);
-        Assert.assertTrue(user.getHomeObjectId().equals(uniqueId));
+        Assert.assertTrue(user.getUserIdentifier().equals(MSALUtils.getUniqueUserIdentifier(uniqueId, AndroidTestUtil.TENANT_ID)));
     }
 
     private void verifyScopeIsEmpty(final AuthenticationResult authenticationResult) {

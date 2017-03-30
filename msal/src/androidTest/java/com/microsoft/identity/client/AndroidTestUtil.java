@@ -61,6 +61,9 @@ public final class AndroidTestUtil {
     static final String ACCESS_TOKEN = "access_token";
     static final String REFRESH_TOKEN = "refresh_token";
 
+    static final String UID = OBJECT_ID;
+    static final String UTID = TENANT_ID;
+
     /**
      * Private to prevent util class from being initiated.
      */
@@ -123,11 +126,17 @@ public final class AndroidTestUtil {
         return tokenResponse;
     }
 
-    static String getSuccessResponse(final String idToken, final String accessToken, final String scopes) {
-        final String tokenResponse = "{\"id_token\":\""
+    static String getSuccessResponse(final String idToken, final String accessToken, final String scopes, final String clientInfo) {
+        String tokenResponse = "{\"id_token\":\""
                 + idToken
                 + "\",\"access_token\":\"" + accessToken + "\", \"token_type\":\"Bearer\",\"refresh_token\":\"" + REFRESH_TOKEN + "\","
-                + "\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\"" + scopes + "\"}";
+                + "\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\"" + scopes + "\""; //}";
+        if (!MSALUtils.isEmpty(clientInfo)) {
+            tokenResponse += ",\"client_info\":\"" + clientInfo + "\"";
+        }
+
+        tokenResponse += "}";
+
         return tokenResponse;
     }
 
@@ -188,9 +197,9 @@ public final class AndroidTestUtil {
         return accessor.getAllRefreshTokens();
     }
 
-    static String getRawIdToken(final String displaybleId, final String uniqueId, final String homeOID) {
-        return AndroidTestUtil.createIdToken(AUDIENCE, ISSUER, NAME, uniqueId, displaybleId, SUBJECT, TENANT_ID,
-                VERSION, homeOID);
+    static String getRawIdToken(final String displaybleId, final String uniqueId, final String tenantId) {
+        return AndroidTestUtil.createIdToken(AUDIENCE, ISSUER, NAME, uniqueId, displaybleId, SUBJECT, tenantId,
+                VERSION, HOME_OBJECT_ID);
     }
 
     static SharedPreferences getAccessTokenSharedPreference(final Context appContext) {

@@ -36,6 +36,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -373,5 +375,9 @@ final class MSALUtils {
      */
     static boolean isScopeContains(final Set<String> scopes, final Set<String> otherScopes) {
         return scopes.containsAll(otherScopes);
+    }
+
+    static String getUniqueUserIdentifier(final String uid, final String utid) {
+        return uid + "." + utid;
     }
 }

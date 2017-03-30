@@ -116,12 +116,12 @@ final class TokenCacheAccessor {
      * @param tokenCacheKey The {@link TokenCacheKey} that is used to find refresh tokens.
      * @return The List of refresh tokens matching the given key.
      */
-    List<RefreshTokenCacheItem> getRefreshToken(final TokenCacheKey tokenCacheKey) {
+    List<RefreshTokenCacheItem> getRefreshToken(final RefreshTokenCacheKey tokenCacheKey) {
         final Map<String, String> refreshTokens = (Map<String, String>) mRefreshTokenSharedPreference.getAll();
         final List<RefreshTokenCacheItem> foundRTs = new ArrayList<>();
         for (final String refreshTokenValue : refreshTokens.values()) {
             final RefreshTokenCacheItem refreshTokenCacheItem = mGson.fromJson(refreshTokenValue, RefreshTokenCacheItem.class);
-            if (tokenCacheKey.matches(refreshTokenCacheItem)) {
+            if (tokenCacheKey.match(refreshTokenCacheItem)) {
                 foundRTs.add(refreshTokenCacheItem);
             }
         }

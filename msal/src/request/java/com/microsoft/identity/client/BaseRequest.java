@@ -194,7 +194,7 @@ abstract class BaseRequest {
         authority.updateTenantLessAuthority(new IdToken(mTokenResponse.getRawIdToken()).getTenantId());
         final AccessTokenCacheItem accessTokenCacheItem = tokenCache.saveAccessToken(authority.getAuthority(),
                 mAuthRequestParameters.getClientId(), mTokenResponse);
-        tokenCache.saveRefreshToken(accessTokenCacheItem.getAuthority(), mAuthRequestParameters.getClientId(),
+        tokenCache.saveRefreshToken(authority.getAuthorityHost(), mAuthRequestParameters.getClientId(),
                 mTokenResponse);
 
         return new AuthenticationResult(accessTokenCacheItem);

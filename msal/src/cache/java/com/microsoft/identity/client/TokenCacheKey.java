@@ -23,77 +23,26 @@
 
 package com.microsoft.identity.client;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Locale;
-import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * Object used to group the all the conditions to lookup into token cache.
  */
-final class TokenCacheKey {
-    private final String mAuthority;
-    private final String mClientId;
-    private final TreeSet<String> mScope = new TreeSet<>();
-    private final String mHomeObjectId;
+class TokenCacheKey {
+    final String mClientId;
+    final String mUserIdentifier;
 
-    private TokenCacheKey(final String authority, final String clientId, final Set<String> scope, final User user) {
-        this(authority, clientId, scope, user.getHomeObjectId());
-    }
-
-    private TokenCacheKey(final String authority, final String clientId, final Set<String> scope, final String homeObjectId) {
+    TokenCacheKey(final String clientId, final String uid, final String utid) {
         // All the tokens issued by AAD is cross tenant, ADFS 2016 should work the same as AAD, and client id.
         if (MSALUtils.isEmpty(clientId)) {
             throw new IllegalArgumentException("clientId");
         }
 
-        mAuthority = MSALUtils.isEmpty(authority) ? "" : authority.toLowerCase(Locale.US);
+        if (MSALUtils.isEmpty(uid) || MSALUtils.isEmpty(utid)) {
+            throw new IllegalArgumentException("uid or utid is empty");
+        }
+
         mClientId = clientId.toLowerCase(Locale.US);
-
-        // guarantee the order in the serialized string
-        mScope.addAll(scope);
-
-        mHomeObjectId = MSALUtils.isEmpty(homeObjectId) ? "" : homeObjectId.toLowerCase(Locale.US);
-    }
-
-    static TokenCacheKey createKeyForAT(final String authority, final String clientId, final Set<String> scopes, final User user) {
-        return new TokenCacheKey(authority, clientId, scopes, user);
-    }
-
-    // RT entry doesn't contain scope.
-    static TokenCacheKey createKeyForRT(final String clientId, final User user) {
-        return new TokenCacheKey("", clientId, new HashSet<String>(), user);
-    }
-
-    Set<String> getScope() {
-        return Collections.unmodifiableSet(mScope);
-    }
-
-    /**
-     * {@inheritDoc}
-     * Cache key will be delimited by $, each individual attribute put on the cachekey will be base64 encoded.
-     */
-    @Override
-    public String toString() {
-        final StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(MSALUtils.base64EncodeToString(mAuthority) + "$");
-        stringBuilder.append(MSALUtils.base64EncodeToString(mClientId) + "$");
-        // scope is treeSet to guarantee the order of the scopes when converting to string.
-        stringBuilder.append(MSALUtils.base64EncodeToString(MSALUtils.convertSetToString(mScope, " ")) + "$");
-        stringBuilder.append(MSALUtils.base64EncodeToString(mHomeObjectId));
-
-        return stringBuilder.toString();
-    }
-
-    /**
-     * For access token cache item match, scope in the items needs to contain all the scope in the lookup
-     * key, if user is passed in, user needs to be match.
-     * For refresh token cache item, every RT is multi-scope, no need to check for the scope intersection.
-     */
-     boolean matches(final BaseTokenCacheItem item) {
-        return mClientId.equalsIgnoreCase(item.getClientId())
-                && (MSALUtils.isEmpty(mAuthority) || mAuthority.equalsIgnoreCase(item.getAuthority()))
-                && mHomeObjectId.equalsIgnoreCase(item.getHomeObjectId());
+        mUserIdentifier = MSALUtils.getUniqueUserIdentifier(uid, utid);
     }
 }

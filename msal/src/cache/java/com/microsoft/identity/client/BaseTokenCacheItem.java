@@ -33,29 +33,19 @@ abstract class BaseTokenCacheItem {
     @SerializedName("client_id")
     final String mClientId;
 
-    @SerializedName("id_token")
-    String mRawIdToken;
-
-    // excludes the field from being serialized
     transient User mUser;
-    transient IdToken mIdToken;
 
     /**
      * @return {@link TokenCacheKey} for the given token item.
      */
     abstract TokenCacheKey extractTokenCacheKey();
 
+    abstract String getUserIdentifier();
+
     /**
      * Constructor for creating the token cache item.
      */
-    BaseTokenCacheItem(final String clientId, final TokenResponse response)
-            throws MsalClientException {
-        if (!MSALUtils.isEmpty(response.getRawIdToken())) {
-            mRawIdToken = response.getRawIdToken();
-            mIdToken = new IdToken(mRawIdToken);
-            mUser = new User(mIdToken);
-        }
-
+    BaseTokenCacheItem(final String clientId) {
         mClientId = clientId;
     }
 
@@ -63,31 +53,11 @@ abstract class BaseTokenCacheItem {
         return mClientId;
     }
 
-    String getUniqueId() {
-        return mUser != null ? mUser.getUniqueId() : "";
-    }
-
-    String getDisplayableId() {
-        return mUser != null ? mUser.getDisplayableId() : "";
-    }
-
-    String getHomeObjectId() {
-        return mUser != null ? mUser.getHomeObjectId() : "";
-    }
-
-    void setIdToken(final IdToken idToken) {
-        mIdToken = idToken;
-    }
-
-    String getRawIdToken() {
-        return mRawIdToken;
+    User getUser() {
+        return mUser;
     }
 
     void setUser(final User user) {
         mUser = user;
-    }
-
-    String getAuthority() {
-        return "";
     }
 }

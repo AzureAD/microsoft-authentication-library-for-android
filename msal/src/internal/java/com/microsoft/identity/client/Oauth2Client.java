@@ -68,7 +68,7 @@ final class Oauth2Client {
      */
     TokenResponse getToken(final Authority authority) throws IOException, MsalClientException, MsalServiceException {
 
-        return executeHttpRequest(HttpRequest.REQUEST_METHOD_POST, authority.getTokenEndpoint(), new ParseRawJsonResponseDelegate<TokenResponse>() {
+        return executeHttpRequest(HttpRequest.REQUEST_METHOD_POST, authority.getTokenEndpoint() + "?slice=testslice&uid=true", new ParseRawJsonResponseDelegate<TokenResponse>() {
             @Override
             public TokenResponse parseSuccessRawResponse(Map<String, String> responseItems) {
                 return TokenResponse.createSuccessTokenResponse(responseItems);

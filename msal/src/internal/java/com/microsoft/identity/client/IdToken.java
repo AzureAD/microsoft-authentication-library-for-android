@@ -100,6 +100,10 @@ final class IdToken {
         return mHomeObjectId;
     }
 
+    String getUniqueId() {
+        return mObjectId == null ? mSubject : mObjectId;
+    }
+
     private Map<String, String> parseJWT(final String idToken) throws MsalClientException {
         final String idTokenBody = extractJWTBody(idToken);
         final byte[] data = Base64.decode(idTokenBody, Base64.URL_SAFE);

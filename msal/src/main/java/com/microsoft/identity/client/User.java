@@ -27,35 +27,36 @@ package com.microsoft.identity.client;
  * Contains the detailed info to identify an user. Signout functionality is provided at the user level.
  */
 public class User {
-    private String mUniqueId;
     private String mDisplayableId;
     private String mName;
     private String mIdentityProvider;
-    private String mHomeObjectId;
+    private String mUid;
+    private String mUtid;
 
     /**
      * Internal constructor to create {@link User} from the {@link IdToken}.
-     *
-     * @param idToken
+     * User will be created with both {@link IdToken} and {@link ClientInfo}.
      */
-    User(final IdToken idToken) {
-        mDisplayableId = idToken.getPreferredName();
-        if (!MSALUtils.isEmpty(idToken.getObjectId())) {
-            mUniqueId = idToken.getObjectId();
-        } else {
-            mUniqueId = idToken.getSubject();
-        }
-        mHomeObjectId = MSALUtils.isEmpty(idToken.getHomeObjectId()) ? mUniqueId : idToken.getHomeObjectId();
-        mName = idToken.getName();
-        mIdentityProvider = idToken.getIssuer();
+    User(final String displayableId, final String name, final String identityProvider, final String uid, final String uTid) {
+        mDisplayableId = displayableId;
+        mName = name;
+        mIdentityProvider = identityProvider;
+        mUid = uid;
+        mUtid = uTid;
     }
 
-    /**
-     * @return The unique identifier of the user authenticated during token acquisition. Can be null if not returned
-     * from the service.
-     */
-    String getUniqueId() {
-        return mUniqueId;
+    static User create(final IdToken idToken, final ClientInfo clientInfo) throws MsalClientException {
+        final String uid;
+        final String uTid;
+        if (clientInfo == null) {
+            uid = idToken.getUniqueId();
+            uTid = idToken.getTenantId();
+        } else {
+            uid = clientInfo.getUniqueIdentifier();
+            uTid = clientInfo.getUniqueTenantIdentifier();
+        }
+
+        return new User(idToken.getPreferredName(), idToken.getName(), idToken.getIssuer(), uid, uTid);
     }
 
     /**
@@ -79,14 +80,6 @@ public class User {
         return mIdentityProvider;
     }
 
-    /**
-     * Sign out the user from the application. TODO: from all application or the single one?
-     */
-    // TODO: For preview, signout will only be support regarding to delete token for the user in the cache.
-    public void signOut() {
-        // TODO: provide the signout function. Will clear the token cache for the particular user.
-    }
-
     // internal methods provided
 
     /**
@@ -98,11 +91,23 @@ public class User {
         mDisplayableId = displayableId;
     }
 
-    void setHomeObjectId(final String homeObjectId) {
-        mHomeObjectId = homeObjectId;
+    String getUid() {
+        return mUid;
     }
 
-    String getHomeObjectId() {
-        return mHomeObjectId;
+    void setUid(final String uid) {
+        mUid = uid;
+    }
+
+    void setUtid(final String uTid) {
+        mUtid = uTid;
+    }
+
+    String getUtid() {
+        return mUtid;
+    }
+
+    String getUserIdentifier() {
+        return MSALUtils.getUniqueUserIdentifier(mUid, mUtid);
     }
 }

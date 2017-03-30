@@ -27,6 +27,7 @@ import android.util.Base64;
 
 import org.json.JSONException;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.Map;
 
@@ -57,11 +58,19 @@ final class ClientInfo {
         mUniqueTenantIdentifier = clientInfoItems.get(OauthConstants.ClientInfoClaim.UNIQUE_TENANT_IDENTIFIER);
     }
 
-    String getUniqueIdentifier() {
-        return mUniqueIdentifier;
+    String getUniqueIdentifier() throws MsalClientException {
+        try {
+            return MSALUtils.urlEncode(mUniqueIdentifier);
+        } catch (final UnsupportedEncodingException e) {
+            throw new MsalClientException(MSALError.UNSUPPORTED_ENCODING, "Unable to url encode uid.");
+        }
     }
 
-    String getUniqueTenantIdentifier() {
-        return mUniqueTenantIdentifier;
+    String getUniqueTenantIdentifier() throws MsalClientException {
+        try {
+            return MSALUtils.urlEncode(mUniqueTenantIdentifier);
+        } catch (final UnsupportedEncodingException e) {
+            throw new MsalClientException(MSALError.UNSUPPORTED_ENCODING, "Unable to url encode utid.");
+        }
     }
 }

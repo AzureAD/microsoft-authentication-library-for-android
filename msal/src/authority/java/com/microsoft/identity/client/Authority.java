@@ -186,6 +186,10 @@ abstract class Authority {
         return mAuthorityUrl.toString();
     }
 
+    String getAuthorityHost() {
+        return mAuthorityUrl.getHost();
+    }
+
     /**
      * @return The default openid configuration endpoint. If authority validation is turned off or the authority is in the
      * trusted authority list, the default openid configuration endpoint will be used to perform tenant discovery.

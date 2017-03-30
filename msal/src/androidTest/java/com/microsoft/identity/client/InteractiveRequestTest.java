@@ -309,7 +309,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
      * Verify when auth code is successfully returned, result is delivered correctly.
      */
     @Test
-    public void testGetTokenCodeSuccessfullyReturned() throws IOException, InterruptedException {
+    public void testGetTokenCodeSuccessfullyReturnedNoClientInfoReturned() throws IOException, InterruptedException {
         final Activity testActivity = Mockito.mock(Activity.class);
         Mockito.when(testActivity.getPackageName()).thenReturn(mAppContext.getPackageName());
         Mockito.when(testActivity.getApplicationContext()).thenReturn(mAppContext);
@@ -331,7 +331,17 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                 assertNull(mTokenCache.findAccessToken(getAuthenticationParams(AUTHORITY, UIBehavior.FORCE_LOGIN), authenticationResult.getUser()));
                 final String authority = AUTHORITY.replace("common", authenticationResult.getTenantId());
                 assertNotNull(mTokenCache.findAccessToken(getAuthenticationParams(authority, UIBehavior.FORCE_LOGIN), authenticationResult.getUser()));
-                resultLock.countDown();
+
+                final User user = authenticationResult.getUser();
+                try {
+                    final IdToken idToken = new IdToken(AndroidTestUtil.TEST_IDTOKEN);
+                    assertTrue(user.getUid().equals(MSALUtils.urlEncode(idToken.getObjectId())));
+                    assertTrue(user.getUtid().equals(MSALUtils.urlEncode(idToken.getTenantId())));
+                } catch (final MsalClientException |UnsupportedEncodingException e) {
+                    fail();
+                } finally {
+                    resultLock.countDown();
+                }
             }
 
             @Override

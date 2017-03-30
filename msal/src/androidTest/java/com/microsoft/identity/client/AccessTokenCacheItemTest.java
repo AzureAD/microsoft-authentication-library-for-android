@@ -35,6 +35,7 @@ import java.util.Set;
  */
 public final class AccessTokenCacheItemTest {
     private static final String AUTHORITY = "https://login.microsoftonline.com/common";
+    private static final String AUTHORITY_HOST = "http://login.microsoftonline.com";
     private static final String CLIENT_ID = "some-client-id";
     private static final String DISPLAYABLE = "test@contoso.onmicrosoft.com";
     private static final String UNIQUE_ID = "some-unique-id";
@@ -57,15 +58,15 @@ public final class AccessTokenCacheItemTest {
         Assert.assertTrue(scopes.contains(SCOPE_1));
         Assert.assertTrue(scopes.contains(SCOPE_2));
 
-        Assert.assertTrue(item.getUniqueId().equals(UNIQUE_ID));
-        Assert.assertTrue(item.getHomeObjectId().equals(HOME_OBJECT_ID));
+        Assert.assertTrue(item.getmRawClientInfo().equals(AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID)));
+        Assert.assertTrue(item.getUserIdentifier().equalsIgnoreCase(MSALUtils.getUniqueUserIdentifier(AndroidTestUtil.UID, AndroidTestUtil.UTID)));
         Assert.assertTrue(item.getTenantId().equals(TENANT_ID));
         Assert.assertTrue(item.getAccessToken().equals(ACCESS_TOKEN));
     }
 
     @Test
     public void testRefreshTokenCreation() throws MsalClientException, MsalServiceException {
-        final RefreshTokenCacheItem item = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", REFRESH_TOKEN));
+        final RefreshTokenCacheItem item = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, getTokenResponse("", REFRESH_TOKEN));
         Assert.assertTrue(item.getRefreshToken().equals(REFRESH_TOKEN));
     }
 
@@ -79,7 +80,7 @@ public final class AccessTokenCacheItemTest {
 
     static TokenResponse getTokenResponse(final String accessToken, final String refreshToken) {
         return new TokenResponse(accessToken, getIdToken(), refreshToken, new Date(), new Date(), new Date(),
-                MSALUtils.convertSetToString(getScopes(), " "), "Bearer", null);
+                MSALUtils.convertSetToString(getScopes(), " "), "Bearer", AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID));
     }
 
     static String getIdToken() {

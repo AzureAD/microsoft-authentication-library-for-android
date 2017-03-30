@@ -60,12 +60,13 @@ class TokenCache {
         Logger.info(TAG, null, "Starting to Save access token into cache. Access token will be saved with authority: " + authority
                 + "; Client Id: " + clientId + "; Scopes: " + response.getScope());
         final AccessTokenCacheItem newAccessToken = new AccessTokenCacheItem(authority, clientId, response);
-        final TokenCacheKey accessTokenCacheKey = newAccessToken.extractTokenCacheKey();
+        final AccessTokenCacheKey accessTokenCacheKey = newAccessToken.extractTokenCacheKey();
 
         // check for intersection and delete all the cache entries with intersecting scopes.
         final List<AccessTokenCacheItem> accessTokenCacheItems = mTokenCacheAccessor.getAllAccessTokensForGivenClientId(clientId);
         for (final AccessTokenCacheItem accessTokenCacheItem : accessTokenCacheItems) {
-            if (accessTokenCacheKey.matches(accessTokenCacheItem) && MSALUtils.isScopeIntersects(newAccessToken.getScope(), accessTokenCacheItem.getScope())) {
+            if (accessTokenCacheKey.matches(accessTokenCacheItem) && MSALUtils.isScopeIntersects(newAccessToken.getScope(),
+                    accessTokenCacheItem.getScope())) {
                 mTokenCacheAccessor.deleteAccessToken(accessTokenCacheItem);
             }
         }
@@ -77,12 +78,12 @@ class TokenCache {
     /**
      * Create {@link RefreshTokenCacheItem} from {@link TokenResponse} and save it into cache.
      */
-    void saveRefreshToken(final String authority, final String clientId, final TokenResponse response) throws MsalClientException {
+    void saveRefreshToken(final String authorityHost, final String clientId, final TokenResponse response) throws MsalClientException {
         // if server returns the refresh token back, save it in the cache.
         if (!MSALUtils.isEmpty(response.getRefreshToken())) {
-            Logger.info(TAG, null, "Starting to save refresh token into cache. Refresh token will be saved with authority: " + authority
+            Logger.info(TAG, null, "Starting to save refresh token into cache. Refresh token will be saved with authority: " + authorityHost
                     + "; Client Id: " + clientId);
-            final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(clientId, response);
+            final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(authorityHost, clientId, response);
             mTokenCacheAccessor.saveRefreshToken(refreshTokenCacheItem);
         }
     }
@@ -96,7 +97,7 @@ class TokenCache {
      * multiple access token token items in the cache.
      */
     AccessTokenCacheItem findAccessToken(final AuthenticationRequestParameters requestParam, final User user) {
-        final TokenCacheKey key = TokenCacheKey.createKeyForAT(requestParam.getAuthority().getAuthority(),
+        final AccessTokenCacheKey key = AccessTokenCacheKey.createTokenCacheKey(requestParam.getAuthority().getAuthority(),
                 requestParam.getClientId(), requestParam.getScope(), user);
         final List<AccessTokenCacheItem> accessTokenCacheItems = getAccessToken(key);
 
@@ -105,7 +106,8 @@ class TokenCache {
                     + MSALUtils.convertSetToString(requestParam.getScope(), " "));
             if (user != null) {
                 Logger.infoPII(TAG, requestParam.getRequestContext(), "User displayable: " + user.getDisplayableId()
-                        + " ;User home object id: " + user.getHomeObjectId());
+                        + " ;User unique identifier(Base64UrlEncoded(uid).Base64UrlEncoded(utid)): " + MSALUtils.getUniqueUserIdentifier(
+                        user.getUid(), user.getUtid()));
             }
             return null;
         }
@@ -133,7 +135,7 @@ class TokenCache {
      * is provided, it also has to be matched. Scope in the cached access token item has to be the exact same with the
      * scopes in the lookup key.
      */
-    List<AccessTokenCacheItem> getAccessToken(final TokenCacheKey tokenCacheKey) {
+    List<AccessTokenCacheItem> getAccessToken(final AccessTokenCacheKey tokenCacheKey) {
         final List<AccessTokenCacheItem> accessTokens = mTokenCacheAccessor.getAllAccessTokens();
         final List<AccessTokenCacheItem> foundATs = new ArrayList<>();
         for (final AccessTokenCacheItem accessTokenCacheItem : accessTokens) {
@@ -149,13 +151,13 @@ class TokenCache {
 
     // All the token AAD returns are multi-scopes. MSAL only support ADFS 2016, which issues multi-scope RT.
     RefreshTokenCacheItem findRefreshToken(final AuthenticationRequestParameters requestParam, final User user) throws MsalClientException {
-        final TokenCacheKey key = TokenCacheKey.createKeyForRT(requestParam.getClientId(), user);
+        final RefreshTokenCacheKey key = RefreshTokenCacheKey.createTokenCacheKey(requestParam.getAuthority().getAuthorityHost(), requestParam.getClientId(), user);
         final List<RefreshTokenCacheItem> refreshTokenCacheItems = mTokenCacheAccessor.getRefreshToken(key);
 
         if (refreshTokenCacheItems.size() == 0) {
             Logger.info(TAG, requestParam.getRequestContext(), "No RT was found for the given user.");
-            Logger.infoPII(TAG, requestParam.getRequestContext(), "The given user info is: " + user.getDisplayableId() + "; homeOid: "
-                    + user.getHomeObjectId());
+            Logger.infoPII(TAG, requestParam.getRequestContext(), "The given user info is: " + user.getDisplayableId() + "; userIdentifier: "
+                    + MSALUtils.getUniqueUserIdentifier(user.getUid(), user.getUtid()));
             return null;
         }
 
@@ -193,8 +195,8 @@ class TokenCache {
         final List<RefreshTokenCacheItem> allRefreshTokens = mTokenCacheAccessor.getAllRefreshTokensForGivenClientId(clientId);
         final Map<String, User> allUsers = new HashMap<>();
         for (final RefreshTokenCacheItem item : allRefreshTokens) {
-            final User user = new User(new IdToken(item.getRawIdToken()));
-            allUsers.put(item.getHomeObjectId(), user);
+            final User user = item.getUser();
+            allUsers.put(item.getUserIdentifier(), user);
         }
 
         return Collections.unmodifiableList(new ArrayList<>(allUsers.values()));
@@ -213,8 +215,8 @@ class TokenCache {
         void deleteToken(final BaseTokenCacheItem target);
     }
 
-    private boolean tokenHomeObjectIdMatchesUser(final User user, final BaseTokenCacheItem token) {
-        return token.getHomeObjectId().equals(user.getHomeObjectId());
+    private boolean tokenMatchesUser(final User user, final BaseTokenCacheItem token) {
+        return token.getUserIdentifier().equals(user.getUserIdentifier());
     }
 
     /**
@@ -234,7 +236,7 @@ class TokenCache {
             final List<? extends BaseTokenCacheItem> tokens,
             final DeleteTokenAction delegate) {
         for (BaseTokenCacheItem token : tokens) {
-            if (tokenHomeObjectIdMatchesUser(user, token)) {
+            if (tokenMatchesUser(user, token)) {
                 delegate.deleteToken(token);
                 return;
             }

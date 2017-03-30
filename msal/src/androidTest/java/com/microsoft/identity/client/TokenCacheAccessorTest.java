@@ -45,10 +45,12 @@ import java.util.Set;
 @RunWith(AndroidJUnit4.class)
 public final class TokenCacheAccessorTest extends AndroidTestCase {
     private static final String AUTHORITY = "https://login.microsoftonline.com/tenant";
+    private static final String AUTHORITY_HOST = "https://login.microsoftonline.com";
     private static final String CLIENT_ID = "some-client-id";
     private static final String DISPLAYABLE = "test@tenant.onmicrosoft.com";
     private static final String UNIQUE_ID = "some-unique-id";
     private static final String HOME_OID = "some-home-oid";
+    private static final String TENANT_ID = "some-tenant-id";
     private static final int EXPECTED_RT_SIZE = 2;
 
     private TokenCacheAccessor mAccessor;
@@ -123,9 +125,9 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         // save token for user2
         final String anotherDisplayable = "anotherDisplayable";
         final String anotherUniqueId = "another-unique-id";
-        final String anotherHomeOid = "another-home-oid";
+        final String anotherTenantId = "another-tenant-id";
         final AccessTokenCacheItem tokenItemForAnotherUser = new AccessTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse("accessToken2",
-                "", scopes, AndroidTestUtil.getRawIdToken(anotherDisplayable, anotherUniqueId, anotherHomeOid)));
+                "", scopes, AndroidTestUtil.getRawIdToken(anotherDisplayable, anotherUniqueId, anotherTenantId)));
         mAccessor.saveAccessToken(tokenItemForAnotherUser);
 
         assertTrue(mAccessor.getAllAccessTokens().size() == 2);
@@ -156,13 +158,13 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
     public void testSaveRT() throws MsalException {
         // save RT item with scope1
         final Set<String> scope1 = Collections.singleton("scope1");
-        final RefreshTokenCacheItem rtItem = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", "refreshToken",
+        final RefreshTokenCacheItem rtItem = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, getTokenResponse("", "refreshToken",
                 scope1, getIdTokenWithDefaultUser()));
         mAccessor.saveRefreshToken(rtItem);
 
         // save RT item with scope2 for same user
         final Set<String> scope2 = Collections.singleton("scope2");
-        final RefreshTokenCacheItem rtItem2 = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", "refreshToken2",
+        final RefreshTokenCacheItem rtItem2 = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, getTokenResponse("", "refreshToken2",
                 scope2, getIdTokenWithDefaultUser()));
         mAccessor.saveRefreshToken(rtItem2);
 
@@ -175,7 +177,7 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         final Set<String> scope3 = new HashSet<>();
         scope3.add("scope2");
         scope3.add("scope3");
-        final RefreshTokenCacheItem rtItem3 = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", "refreshToken3",
+        final RefreshTokenCacheItem rtItem3 = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, getTokenResponse("", "refreshToken3",
                 scope3, getIdTokenWithDefaultUser()));
         mAccessor.saveRefreshToken(rtItem3);
 
@@ -192,25 +194,25 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
     public void testSaveRTMultipleUsers() throws MsalException {
         final Set<String> scope = Collections.singleton("scope");
 
-        final RefreshTokenCacheItem rtForUser1 = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", "refreshToken1",
+        final RefreshTokenCacheItem rtForUser1 = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, getTokenResponse("", "refreshToken1",
                 scope, getIdTokenWithDefaultUser()));
         mAccessor.saveRefreshToken(rtForUser1);
 
         final String anotherDisplayable = "anotherDisplayable";
         final String anotherUniqueId = "some-other-unique-id";
-        final String anotherHomeOid = "some-other-home-oid";
-        final RefreshTokenCacheItem rtForUser2 = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", "refreshToken2",
-                scope, AndroidTestUtil.getRawIdToken(anotherDisplayable, anotherUniqueId, anotherHomeOid)));
+        final String anotherTenantId = "some-other-tenant-id";
+        final RefreshTokenCacheItem rtForUser2 = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, getTokenResponse("", "refreshToken2",
+                scope, AndroidTestUtil.getRawIdToken(anotherDisplayable, anotherUniqueId, anotherTenantId)));
         mAccessor.saveRefreshToken(rtForUser2);
 
         assertTrue(mAccessor.getAllRefreshTokens().size() == 2);
-        final List<RefreshTokenCacheItem> retrievedRTForUser1 = mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(CLIENT_ID,
-                getUser(DISPLAYABLE, UNIQUE_ID, HOME_OID)));
+        final List<RefreshTokenCacheItem> retrievedRTForUser1 = mAccessor.getRefreshToken(RefreshTokenCacheKey.createTokenCacheKey(AUTHORITY_HOST, CLIENT_ID,
+                getUser(DISPLAYABLE, UNIQUE_ID, TENANT_ID)));
         assertTrue(retrievedRTForUser1.size() == 1);
         assertTrue(retrievedRTForUser1.get(0).getRefreshToken().equals("refreshToken1"));
 
-        final List<RefreshTokenCacheItem> retrievedRtForUser2 = mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(CLIENT_ID,
-                getUser(anotherDisplayable, anotherUniqueId, anotherHomeOid)));
+        final List<RefreshTokenCacheItem> retrievedRtForUser2 = mAccessor.getRefreshToken(RefreshTokenCacheKey.createTokenCacheKey(AUTHORITY_HOST, CLIENT_ID,
+                getUser(anotherDisplayable, anotherUniqueId, anotherTenantId)));
         assertTrue(retrievedRtForUser2.size() == 1);
         assertTrue(retrievedRtForUser2.get(0).getRefreshToken().equals("refreshToken2"));
     }
@@ -221,63 +223,59 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         final Set<String> scope = Collections.singleton("scope1");
 
         // add rt with default client id, authority and user
-        final RefreshTokenCacheItem rtForDefaultClient = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("", "refreshToken1",
+        final RefreshTokenCacheItem rtForDefaultClient = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, getTokenResponse("", "refreshToken1",
                 scope, getIdTokenWithDefaultUser()));
         mAccessor.saveRefreshToken(rtForDefaultClient);
 
         // add rt with default clientid, authority, user
-        final RefreshTokenCacheItem differentRtForDefaultClientID = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("",
+        final RefreshTokenCacheItem differentRtForDefaultClientID = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, getTokenResponse("",
                 "refreshToken1WithPolicy", scope, getIdTokenWithDefaultUser()));
         mAccessor.saveRefreshToken(differentRtForDefaultClientID);
 
         // add rt with another clientid
         final String anotherClientId = "another_clientId";
-        final RefreshTokenCacheItem rtForAnotherClientId = new RefreshTokenCacheItem(anotherClientId, getTokenResponse("",
+        final RefreshTokenCacheItem rtForAnotherClientId = new RefreshTokenCacheItem(AUTHORITY_HOST, anotherClientId, getTokenResponse("",
                 "refreshToken2", scope, getIdTokenWithDefaultUser()));
         mAccessor.saveRefreshToken(rtForAnotherClientId);
 
         // add rt for same user, different authority
         final String anotherAuthority = "another_authority";
-        final RefreshTokenCacheItem rtForDifferentAuthority = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("",
+        final RefreshTokenCacheItem rtForDifferentAuthority = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, getTokenResponse("",
                 "refreshToken3", scope, getIdTokenWithDefaultUser()));
         mAccessor.saveRefreshToken(rtForDifferentAuthority);
 
         // TODO: enable or not
         assertTrue(mAccessor.getAllRefreshTokens().size() == EXPECTED_RT_SIZE);
-        final List<RefreshTokenCacheItem> rtItem = mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(CLIENT_ID, getDefaultUser()));
+        final List<RefreshTokenCacheItem> rtItem = mAccessor.getRefreshToken(RefreshTokenCacheKey.createTokenCacheKey(AUTHORITY_HOST,
+                CLIENT_ID, getDefaultUser()));
         assertTrue(rtItem.size() == 1);
         assertTrue(rtItem.get(0).getRefreshToken().equals("refreshToken3"));
-        assertTrue(mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(CLIENT_ID, getDefaultUser())).size() == 1);
-        assertTrue(mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(anotherClientId, getDefaultUser())).size() == 1);
+        assertTrue(mAccessor.getRefreshToken(RefreshTokenCacheKey.createTokenCacheKey(AUTHORITY_HOST, CLIENT_ID, getDefaultUser())).size() == 1);
+        assertTrue(mAccessor.getRefreshToken(RefreshTokenCacheKey.createTokenCacheKey(AUTHORITY_HOST, anotherClientId, getDefaultUser())).size() == 1);
     }
 
     @Test
     public void testDeleteRTItems() throws MsalException {
         final Set<String> scope = Collections.singleton("scope");
 
-        final RefreshTokenCacheItem rtItem = new RefreshTokenCacheItem(CLIENT_ID, getTokenResponse("accessToken", "refresh_token",
+        final RefreshTokenCacheItem rtItem = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, getTokenResponse("accessToken", "refresh_token",
                 scope, getIdTokenWithDefaultUser()));
         mAccessor.saveRefreshToken(rtItem);
 
         assertTrue(mAccessor.getAllRefreshTokens().size() == 1);
-        assertTrue(mAccessor.getRefreshToken(TokenCacheKey.createKeyForRT(CLIENT_ID, getDefaultUser())).size() == 1);
+        assertTrue(mAccessor.getRefreshToken(RefreshTokenCacheKey.createTokenCacheKey(AUTHORITY_HOST, CLIENT_ID, getDefaultUser())).size() == 1);
 
         mAccessor.deleteRefreshToken(rtItem);
         assertTrue(mAccessor.getAllRefreshTokens().size() == 0);
     }
 
     private User getDefaultUser() throws MsalException {
-        return getUser(DISPLAYABLE, UNIQUE_ID, HOME_OID);
+        return getUser(DISPLAYABLE, UNIQUE_ID, TENANT_ID);
     }
 
-    static User getUser(final String displayable, final String uniqueId, final String homeOid)
+    static User getUser(final String displayable, final String uid, final String utid)
             throws MsalException {
-        final IdToken idToken = new IdToken(AndroidTestUtil.getRawIdToken(displayable, uniqueId, homeOid));
-        final User user = new User(idToken);
-        user.setDisplayableId(displayable);
-        user.setHomeObjectId(homeOid);
-
-        return user;
+        return new User(displayable, displayable, AndroidTestUtil.ISSUER, uid, utid);
     }
 
     static TokenResponse getTokenResponse(final String accessToken, final String refreshToken, final Set<String> scopes,
@@ -288,7 +286,7 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
     }
 
     private String getIdTokenWithDefaultUser() {
-        return AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", UNIQUE_ID, DISPLAYABLE, "sub", "some-tenant",
+        return AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", UNIQUE_ID, DISPLAYABLE, "sub", TENANT_ID,
                 "version", HOME_OID);
     }
 }

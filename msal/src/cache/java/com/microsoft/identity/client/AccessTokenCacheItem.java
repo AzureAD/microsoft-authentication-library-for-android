@@ -48,23 +48,43 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
     @SerializedName("token_type")
     final String mTokenType;
 
+    @SerializedName("id_token")
+    final String mRawIdToken;
+
+    @SerializedName("client_info")
+    final String mRawClientInfo;
+
     /**
      * Constructor for creating the {@link AccessTokenCacheItem}.
      */
     AccessTokenCacheItem(final String authority, final String clientId, final TokenResponse response)
             throws MsalClientException {
-        super(clientId, response);
+        super(clientId);
 
         mAuthority = authority;
         mAccessToken = response.getAccessToken();
         mExpiresOn = response.getExpiresOn();
         mScope = response.getScope();
         mTokenType = response.getTokenType();
+        mRawIdToken = response.getRawIdToken();
+        mRawClientInfo = response.getRawClientInfo();
+
+        final IdToken idToken = new IdToken(mRawIdToken);
+        if (!MSALUtils.isEmpty(mRawClientInfo)) {
+            mUser = User.create(idToken, new ClientInfo(mRawClientInfo));
+        } else {
+            mUser = User.create(idToken, null);
+        }
     }
 
     @Override
-    TokenCacheKey extractTokenCacheKey() {
-        return TokenCacheKey.createKeyForAT(mAuthority, mClientId, MSALUtils.getScopesAsSet(mScope), mUser);
+    AccessTokenCacheKey extractTokenCacheKey() {
+        return AccessTokenCacheKey.createTokenCacheKey(mAuthority, mClientId, MSALUtils.getScopesAsSet(mScope), mUser);
+    }
+
+    @Override
+    String getUserIdentifier() {
+        return mUser.getUserIdentifier();
     }
 
     /**
@@ -91,8 +111,8 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
     /**
      * @return The tenant id.
      */
-    String getTenantId() {
-        return mIdToken != null ? mIdToken.getTenantId() : "";
+    String getTenantId() throws MsalClientException {
+        return getIdToken().getTenantId();
     }
 
     /**
@@ -107,5 +127,20 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
      */
     String getTokenType() {
         return mTokenType;
+    }
+
+    /**
+     * @return The raw id token.
+     */
+    String getRawIdToken() {
+        return mRawIdToken;
+    }
+
+    String getmRawClientInfo() {
+        return mRawClientInfo;
+    }
+
+    private IdToken getIdToken() throws MsalClientException {
+        return new IdToken(mRawIdToken);
     }
 }
