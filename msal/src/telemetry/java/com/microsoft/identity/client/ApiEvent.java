@@ -272,6 +272,7 @@ final class ApiEvent extends Event implements IApiEvent {
          *
          * @return the new ApiEvent.
          */
+        @Override
         IApiEvent build() {
             return new ApiEvent(this);
         }

@@ -208,15 +208,11 @@ public final class Telemetry implements ITelemetry {
      */
     void flush(final RequestId requestId) {
         // check for orphaned events...
-        for (Pair<RequestId, EventName> key : mEventsInProgress.keySet()) {
-            if (key.first.equals(requestId)) {
-                // this event was orphaned...
-                final String orphanedRequestId = key.first.toString();
-                final String orphanedEventName = key.second.toString();
-                final String orphanedEventStartTime =
-                        mEventsInProgress.remove(key).toString(); // remove() this entry
-                // TODO should we do with orphaned Events?
-            }
+        List<IEvent> orphanedEvents = new ArrayList<>();
+        collateOrphanedEvents(requestId, orphanedEvents);
+        // Add the OrphanedEvents to the existing IEventList
+        if (null != mCompletedEvents.get(requestId)) {
+            mCompletedEvents.get(requestId).addAll(orphanedEvents);
         }
 
         final List<IEvent> eventsToFlush = mCompletedEvents.remove(requestId);
@@ -240,6 +236,21 @@ public final class Telemetry implements ITelemetry {
 
         if (null != mPublisher && !eventsToFlush.isEmpty()) {
             mPublisher.dispatch(eventsToFlush);
+        }
+    }
+
+    private void collateOrphanedEvents(RequestId requestId, List<IEvent> orphanedEvents) {
+        for (Pair<RequestId, EventName> key : mEventsInProgress.keySet()) {
+            if (key.first.equals(requestId)) {
+                // this event was orphaned...
+                final RequestId orphanedRequestId = key.first;
+                final EventName orphanedEventName = key.second;
+                final String orphanedEventStartTime =
+                        mEventsInProgress.remove(key).toString(); // remove() this entry (clean up!)
+                // Build the OrphanedEvent...
+                IEvent orphanedEvent = new OrphanedEvent.Builder(orphanedRequestId, orphanedEventName, orphanedEventStartTime).build();
+                orphanedEvents.add(orphanedEvent);
+            }
         }
     }
 

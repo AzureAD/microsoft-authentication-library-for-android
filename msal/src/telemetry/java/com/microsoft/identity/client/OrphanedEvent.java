@@ -23,59 +23,46 @@
 
 package com.microsoft.identity.client;
 
-import static com.microsoft.identity.client.EventConstants.EventProperty;
-
 /**
- * Internal class for CacheEvent telemetry data.
+ * OrphanedEvents are Events which were started but never finished before
+ * {@link Telemetry#flush(Telemetry.RequestId)} was called.
  */
-final class CacheEvent extends Event implements ICacheEvent {
-
-    private CacheEvent(Builder builder) {
-        super(builder);
-        setProperty(EventProperty.TOKEN_TYPE, builder.mTokenType);
-    }
-
-    @Override
-    public String getTokenType() {
-        return getProperty(EventProperty.TOKEN_TYPE);
-    }
-
-    @Override
-    public Boolean tokenTypeisRT() {
-        return getTokenType().equals(EventProperty.Value.TOKEN_TYPE_RT);
-    }
+final class OrphanedEvent extends Event implements IEvent {
 
     /**
-     * Builder object for CacheEvents.
+     * Constructs a new Event.
+     *
+     * @param builder the Builder instance for this Event.
      */
+    OrphanedEvent(Builder builder) {
+        super(builder);
+        // Set execution time properties on the event
+        setProperty(EventConstants.EventProperty.START_TIME, builder.mStartTime);
+        setProperty(EventConstants.EventProperty.STOP_TIME, Builder.sEndTime);
+    }
+
     static class Builder extends Event.Builder<Builder> {
 
-        private String mTokenType;
-
-        Builder(final Telemetry.RequestId requestId, final EventName eventName) {
-            super(requestId, eventName);
-        }
+        /**
+         * OrphanedEvents have negative endTime to indicate incompleteness
+         */
+        static final String sEndTime = "-1";
 
         /**
-         * Sets the tokenType.
-         *
-         * @param tokenType the tokenType to set.
-         * @return the Builder instance.
+         * The startTime of this OrphanedEvent
          */
-        Builder setTokenType(final String tokenType) {
-            mTokenType = tokenType;
-            return this;
+        final String mStartTime;
+
+
+        Builder(final Telemetry.RequestId requestId, final EventName name, final String startTime) {
+            super(requestId, name);
+            mStartTime = startTime;
         }
 
-        /**
-         * Constructs a new CacheEvent.
-         *
-         * @return the newly constructed CacheEvent instance.
-         */
         @Override
-        ICacheEvent build() {
-            return new CacheEvent(this);
+        IEvent build() {
+            return new OrphanedEvent(this);
         }
-
     }
+
 }

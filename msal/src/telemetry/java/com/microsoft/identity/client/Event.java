@@ -188,9 +188,7 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
          *
          * @return the newly constructed Event instance.
          */
-        IEvent build() {
-            return new Event(this);
-        }
+        abstract IEvent build();
     }
 
     /**

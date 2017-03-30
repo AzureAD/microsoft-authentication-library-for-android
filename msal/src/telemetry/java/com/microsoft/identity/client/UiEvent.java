@@ -86,6 +86,7 @@ final class UiEvent extends Event implements IUiEvent {
          *
          * @return the newly created IUiEvent instance.
          */
+        @Override
         IUiEvent build() {
             return new UiEvent(this);
         }

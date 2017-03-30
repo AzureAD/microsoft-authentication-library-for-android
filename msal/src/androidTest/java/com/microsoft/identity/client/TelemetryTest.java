@@ -227,7 +227,50 @@ public class TelemetryTest {
 
     @Test
     public void testOrphanedEventsHandled() {
-        // TODO how should they be handled?
+        final MsalEventReceiver mockReceiver = Mockito.mock(MsalEventReceiver.class);
+
+        mTestInstance.registerReceiver(mockReceiver);
+
+        // Create some Telemetry data, purposefully orphan the UiEvent
+        final Telemetry.RequestId requestId1 = Telemetry.generateNewRequestId();
+        final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(requestId1)
+                .setApiId(EventConstants.ApiId.API_ID_ACQUIRE)
+                .setCorrelationId(UUID.randomUUID())
+                .setApiCallWasSuccessful(true);
+        final UiEvent.Builder uiEventBuilder = new UiEvent.Builder(requestId1)
+                .setRedirectCount(0);
+        final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(requestId1, EventName.TOKEN_CACHE_LOOKUP)
+                .setTokenType(EventProperty.Value.TOKEN_TYPE_AT);
+
+        mTestInstance.startEvent(apiEventBuilder);
+        mTestInstance.startEvent(uiEventBuilder);
+        mTestInstance.startEvent(cacheEventBuilder);
+        mTestInstance.stopEvent(cacheEventBuilder.build());
+        // Do not stop the UiEvent...
+        //mTestInstance.stopEvent(uiEventBuilder.build());
+        mTestInstance.stopEvent(apiEventBuilder.build());
+
+        mTestInstance.flush(requestId1);
+
+        // create a captor to 'catch' the results
+        final ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        Mockito.verify(mockReceiver, Mockito.only()).onEventsReceived(captor.capture());
+
+        // retrive the value from the captor
+        List<Map<String, String>> result = captor.getValue();
+
+        // verify results, should contain 3 events, one orphaned...
+        Assert.assertEquals(result.size(), 3);
+
+        boolean orphanedEventVerified = false;
+        for (final Map<String, String> event : result) {
+            if (event.get(EventProperty.EVENT_NAME).equals(EventName.UI_EVENT.toString())) {
+                Assert.assertEquals(event.get(EventProperty.STOP_TIME), "-1");
+                orphanedEventVerified = true;
+                break;
+            }
+        }
+        Assert.assertTrue(orphanedEventVerified);
     }
 
 }

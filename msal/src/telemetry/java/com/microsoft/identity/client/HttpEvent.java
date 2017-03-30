@@ -221,6 +221,7 @@ final class HttpEvent extends Event implements IHttpEvent {
          *
          * @return the newly constucted HttpEvent instance
          */
+        @Override
         IHttpEvent build() {
             return new HttpEvent(this);
         }
