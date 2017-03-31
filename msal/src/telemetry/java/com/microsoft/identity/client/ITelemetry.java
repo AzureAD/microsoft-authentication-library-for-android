@@ -40,5 +40,5 @@ public interface ITelemetry {
      *
      * @param onFailure flag indicating whether telemetry should only be sent on errors.
      */
-    void setTelemetryOnFailure(boolean onFailure);
+    void setTelemetryOnFailureOnly(boolean onFailure);
 }

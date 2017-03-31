@@ -110,7 +110,7 @@ public final class Telemetry implements ITelemetry {
     }
 
     @Override
-    public void setTelemetryOnFailure(final boolean onFailure) {
+    public void setTelemetryOnFailureOnly(final boolean onFailure) {
         mTelemetryOnFailureOnly = onFailure;
     }
 

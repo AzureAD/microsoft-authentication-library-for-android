@@ -153,7 +153,7 @@ public class TelemetryTest {
     @Test
     public void testTelemetryDataSentOnlyOnFailure() {
         // Do not dispatch events if successful....
-        mTestInstance.setTelemetryOnFailure(true);
+        mTestInstance.setTelemetryOnFailureOnly(true);
 
         // create the mock receiver
         final MsalEventReceiver mockReceiver1 = Mockito.mock(MsalEventReceiver.class);
@@ -187,7 +187,7 @@ public class TelemetryTest {
 
         // renew the test instance....
         mTestInstance = Telemetry.getTestInstance();
-        mTestInstance.setTelemetryOnFailure(false);
+        mTestInstance.setTelemetryOnFailureOnly(false);
 
         // create the mock receiver
         final MsalEventReceiver mockReceiver2 = Mockito.mock(MsalEventReceiver.class);
