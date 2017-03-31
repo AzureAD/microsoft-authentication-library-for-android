@@ -71,7 +71,7 @@ class AADAuthority extends Authority {
             return getDefaultOpenIdConfigurationEndpoint();
         }
 
-        final Oauth2Client oauth2Client = new Oauth2Client(requestContext.getTelemetryRequestId());
+        final Oauth2Client oauth2Client = new Oauth2Client(requestContext);
         oauth2Client.addQueryParameter(API_VERSION, API_VERSION_VALUE);
         oauth2Client.addQueryParameter(AUTHORIZATION_ENDPOINT, mAuthorityUrl.toString() + DEFAULT_AUTHORIZE_ENDPOINT);
         oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID, requestContext.getCorrelationId().toString());

@@ -166,7 +166,7 @@ abstract class BaseRequest {
     void performTokenRequest() throws MsalClientException, MsalServiceException {
         throwIfNetworkNotAvailable();
 
-        final Oauth2Client oauth2Client = new Oauth2Client(mRequestContext.getTelemetryRequestId());
+        final Oauth2Client oauth2Client = new Oauth2Client(mRequestContext);
         buildRequestParameters(oauth2Client);
 
         final TokenResponse tokenResponse;

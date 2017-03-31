@@ -57,7 +57,7 @@ public final class HttpRequestTest {
      */
     @Test(expected = NullPointerException.class)
     public void testNullRequestUrl() throws IOException, MsalServiceException {
-        HttpRequest.sendGet(null, Collections.<String, String>emptyMap(), Telemetry.generateNewRequestId());
+        HttpRequest.sendGet(null, Collections.<String, String>emptyMap(), Util.newDummyRequestContext());
     }
 
     /**
@@ -622,7 +622,7 @@ public final class HttpRequestTest {
      * Send http get request.
      */
     HttpResponse sendHttpGet() throws IOException, MsalServiceException {
-        return HttpRequest.sendGet(Util.getValidRequestUrl(), Collections.<String, String>emptyMap(), Telemetry.generateNewRequestId());
+        return HttpRequest.sendGet(Util.getValidRequestUrl(), Collections.<String, String>emptyMap(), Util.newDummyRequestContext());
     }
 
     /**
@@ -630,7 +630,7 @@ public final class HttpRequestTest {
      */
     HttpResponse sendHttpPost() throws IOException, MsalServiceException {
         return HttpRequest.sendPost(Util.getValidRequestUrl(), Collections.<String, String>emptyMap(),
-                "SomeRequestMessage".getBytes(), "application/x-www-form-urlencoded", Telemetry.generateNewRequestId());
+                "SomeRequestMessage".getBytes(), "application/x-www-form-urlencoded", Util.newDummyRequestContext());
     }
 
     /**
