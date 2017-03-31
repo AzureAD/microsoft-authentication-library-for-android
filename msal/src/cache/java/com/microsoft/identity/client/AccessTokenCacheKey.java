@@ -31,8 +31,7 @@ import java.util.TreeSet;
 /**
  * MSAL internal class for create access token cache key.
  */
-
-final class AccessTokenCacheKey extends TokenCacheKey {
+final class AccessTokenCacheKey extends TokenCacheKey<AccessTokenCacheItem> {
 
     private final String mAuthority;
     private final TreeSet<String> mScope = new TreeSet<>();
@@ -70,6 +69,7 @@ final class AccessTokenCacheKey extends TokenCacheKey {
         return stringBuilder.toString();
     }
 
+    @Override
     boolean matches(final AccessTokenCacheItem item) {
         return mAuthority.equalsIgnoreCase(item.getAuthority())
                 && mClientId.equalsIgnoreCase(item.getClientId())

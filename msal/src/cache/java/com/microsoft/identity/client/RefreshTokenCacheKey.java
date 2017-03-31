@@ -26,8 +26,7 @@ package com.microsoft.identity.client;
 /**
  * MSAL internal class for creating refresh token item cache key.
  */
-
-final class RefreshTokenCacheKey extends TokenCacheKey {
+final class RefreshTokenCacheKey extends TokenCacheKey<RefreshTokenCacheItem> {
 
     /**
      * The host of authority.
@@ -56,7 +55,8 @@ final class RefreshTokenCacheKey extends TokenCacheKey {
         return stringBuilder.toString();
     }
 
-    public boolean match(final RefreshTokenCacheItem item) {
+    @Override
+    public boolean matches(final RefreshTokenCacheItem item) {
         return mEnvironment.equalsIgnoreCase(item.getEnvironment())
                 && mClientId.equalsIgnoreCase(item.getClientId())
                 && mUserIdentifier.equalsIgnoreCase(item.getUserIdentifier());

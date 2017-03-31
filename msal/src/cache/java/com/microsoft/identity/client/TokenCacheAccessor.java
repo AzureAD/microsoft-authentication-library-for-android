@@ -121,7 +121,7 @@ final class TokenCacheAccessor {
         final List<RefreshTokenCacheItem> foundRTs = new ArrayList<>();
         for (final String refreshTokenValue : refreshTokens.values()) {
             final RefreshTokenCacheItem refreshTokenCacheItem = mGson.fromJson(refreshTokenValue, RefreshTokenCacheItem.class);
-            if (tokenCacheKey.match(refreshTokenCacheItem)) {
+            if (tokenCacheKey.matches(refreshTokenCacheItem)) {
                 foundRTs.add(refreshTokenCacheItem);
             }
         }

@@ -28,7 +28,7 @@ import java.util.Locale;
 /**
  * Object used to group the all the conditions to lookup into token cache.
  */
-class TokenCacheKey {
+abstract class TokenCacheKey<T extends BaseTokenCacheItem> {
     final String mClientId;
     final String mUserIdentifier;
 
@@ -45,4 +45,6 @@ class TokenCacheKey {
         mClientId = clientId.toLowerCase(Locale.US);
         mUserIdentifier = MSALUtils.getUniqueUserIdentifier(uid, utid);
     }
+
+    abstract boolean matches(T tokenCacheItem);
 }
