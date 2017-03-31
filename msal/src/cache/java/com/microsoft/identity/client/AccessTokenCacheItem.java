@@ -136,7 +136,7 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
         return mRawIdToken;
     }
 
-    String getmRawClientInfo() {
+    String getRawClientInfo() {
         return mRawClientInfo;
     }
 

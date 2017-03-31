@@ -46,8 +46,8 @@ final class TokenCacheItemDeserializer<T extends BaseTokenCacheItem> implements 
         if (deserializedTokenCacheItem instanceof AccessTokenCacheItem) {
             final AccessTokenCacheItem accessTokenCacheItem = (AccessTokenCacheItem) deserializedTokenCacheItem;
             try {
-                final ClientInfo clientInfo = MSALUtils.isEmpty(accessTokenCacheItem.getmRawClientInfo()) ? null
-                        : new ClientInfo(accessTokenCacheItem.getmRawClientInfo());
+                final ClientInfo clientInfo = MSALUtils.isEmpty(accessTokenCacheItem.getRawClientInfo()) ? null
+                        : new ClientInfo(accessTokenCacheItem.getRawClientInfo());
                 user = User.create(new IdToken(accessTokenCacheItem.getRawIdToken()), clientInfo);
             } catch (MsalClientException e) {
                 throw new JsonParseException("Fail to deserialize", e);

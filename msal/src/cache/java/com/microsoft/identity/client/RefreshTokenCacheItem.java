@@ -36,7 +36,7 @@ final class RefreshTokenCacheItem extends BaseTokenCacheItem {
     @SerializedName("environment")
     private final String mEnvironment;
 
-    // For meta data versio
+    // meta data used to construct user object from refresh token cache item.
     @SerializedName("displayable_id")
     final String mDisplayableId;
 

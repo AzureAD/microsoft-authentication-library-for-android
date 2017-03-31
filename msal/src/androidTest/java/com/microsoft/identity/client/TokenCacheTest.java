@@ -480,7 +480,7 @@ public final class TokenCacheTest extends AndroidTestCase {
     private void verifyUserReturnedFromCacheIsDefaultUser(final BaseTokenCacheItem item) {
         if (item instanceof AccessTokenCacheItem) {
             final AccessTokenCacheItem accessTokenCacheItem = (AccessTokenCacheItem) item;
-            assertTrue(accessTokenCacheItem.getmRawClientInfo().equals(AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID)));
+            assertTrue(accessTokenCacheItem.getRawClientInfo().equals(AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID)));
         } else {
             final RefreshTokenCacheItem refreshTokenCacheItem = (RefreshTokenCacheItem) item;
             assertTrue(refreshTokenCacheItem.getUid().equals(AndroidTestUtil.UID));

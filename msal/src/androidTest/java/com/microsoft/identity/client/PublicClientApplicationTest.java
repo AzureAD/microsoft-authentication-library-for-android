@@ -226,7 +226,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     /**
-     * From the supplied {@link List} of {@link User}, return the instance with a matching displayableId or homeObjectId.
+     * From the supplied {@link List} of {@link User}, return the instance with a matching displayableId.
      *
      * @param userIdentifier The user identifier, could be either displayableId.
      * @param users          the list of Users to traverse
