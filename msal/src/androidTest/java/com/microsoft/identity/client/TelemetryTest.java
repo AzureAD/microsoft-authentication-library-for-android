@@ -76,8 +76,9 @@ public class TelemetryTest {
 
         // create some Telemetry data
         final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
-        mTestInstance.startEvent(requestId, EventName.HTTP_EVENT);
-        mTestInstance.stopEvent(requestId, EventName.HTTP_EVENT, HttpEventTest.getTestHttpEvent(requestId));
+        final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder(requestId);
+        mTestInstance.startEvent(httpEventBuilder);
+        mTestInstance.stopEvent(httpEventBuilder.build());
 
         // flush the data to the receiver
         mTestInstance.flush(requestId);
@@ -112,20 +113,14 @@ public class TelemetryTest {
 
         // create some Telemetry data
         final Telemetry.RequestId requestId1 = Telemetry.generateNewRequestId();
-        mTestInstance.startEvent(requestId1, EventName.HTTP_EVENT);
-        mTestInstance.stopEvent(requestId1, EventName.HTTP_EVENT, HttpEventTest.getTestHttpEvent(requestId1));
+        final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder(requestId1);
+        mTestInstance.startEvent(httpEventBuilder);
+        mTestInstance.stopEvent(httpEventBuilder.build());
 
         final Telemetry.RequestId requestId2 = Telemetry.generateNewRequestId();
-        mTestInstance.startEvent(requestId2, EventName.TOKEN_CACHE_LOOKUP);
-        mTestInstance.stopEvent(
-                requestId2,
-                EventName.TOKEN_CACHE_LOOKUP,
-                CacheEventTest.getTestCacheEvent(
-                        requestId2,
-                        EventName.TOKEN_CACHE_LOOKUP,
-                        CacheEventTest.TEST_TOKEN_TYPE_AT
-                )
-        );
+        final CacheEvent.Builder cacheEventBuilder = CacheEventTest.getTestCacheEventBuilder(requestId2, EventName.TOKEN_CACHE_LOOKUP, EventProperty.Value.TOKEN_TYPE_AT);
+        mTestInstance.startEvent(cacheEventBuilder);
+        mTestInstance.stopEvent(cacheEventBuilder.build());
 
         // flush the data to the receiver
         mTestInstance.flush(requestId2);

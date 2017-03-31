@@ -45,13 +45,18 @@ public class HttpEventTest {
     static final Integer TEST_HTTP_RESPONSE_CODE = 200;
 
     static IHttpEvent getTestHttpEvent(final Telemetry.RequestId requestId) {
-        return getTestHttpEvent(requestId, TEST_HTTP_PATH);
+        return getTestHttpEventBuilder(requestId, TEST_HTTP_PATH).build();
     }
 
-    private static IHttpEvent getTestHttpEvent(
-            final Telemetry.RequestId requestId,
-            final URL httpPath
-    ) {
+    static HttpEvent.Builder getTestHttpEventBuilder(final Telemetry.RequestId requestId) {
+        return getTestHttpEventBuilder(requestId, TEST_HTTP_PATH);
+    }
+
+    private static IHttpEvent getTestHttpEvent(final Telemetry.RequestId requestId, final URL httpPath) {
+        return getTestHttpEventBuilder(requestId, httpPath).build();
+    }
+
+    static HttpEvent.Builder getTestHttpEventBuilder(final Telemetry.RequestId requestId, final URL httpPath) {
         return new HttpEvent.Builder(requestId)
                 .setUserAgent(TEST_USER_AGENT)
                 .setHttpMethod(TEST_HTTP_METHOD)
@@ -60,8 +65,7 @@ public class HttpEventTest {
                 .setOAuthErrorCode(TEST_O_AUTH_ERROR_CODE)
                 .setRequestIdHeader(TEST_REQUEST_ID_HEADER)
                 .setHttpPath(httpPath)
-                .setStatusCode(TEST_HTTP_RESPONSE_CODE)
-                .build();
+                .setStatusCode(TEST_HTTP_RESPONSE_CODE);
     }
 
     @Test

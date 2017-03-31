@@ -117,21 +117,6 @@ public final class Telemetry implements ITelemetry {
     /**
      * Starts recording a new Event, based on {@link RequestId}.
      *
-     * @param requestId the RequestId used to track this Event.
-     * @param eventName the name of the Event which is to be tracked.
-     */
-    void startEvent(final RequestId requestId, final EventName eventName) {
-        if (null == mPublisher || sDisableForTest) {
-            // no publisher, abort
-            return;
-        }
-
-        mEventsInProgress.put(new Pair<>(requestId, eventName), new EventStartTime(Long.toString(System.currentTimeMillis())));
-    }
-
-    /**
-     * Convenience method for {@link #startEvent(RequestId, EventName)}.
-     *
      * @param eventBuilder the Builder used to make the Event in-progress.
      */
     void startEvent(final Event.Builder eventBuilder) {
@@ -139,11 +124,13 @@ public final class Telemetry implements ITelemetry {
             return;
         }
 
-        startEvent(eventBuilder.getRequestId(), eventBuilder.getEventName());
+        final RequestId requestId = eventBuilder.getRequestId();
+        final EventName eventName = eventBuilder.getEventName();
+        mEventsInProgress.put(new Pair<>(requestId, eventName), new EventStartTime(Long.toString(System.currentTimeMillis())));
     }
 
     /**
-     * Convenience method for (@link {@link #stopEvent(RequestId, EventName, IEvent)}.
+     * Stops a previously started event.
      *
      * @param eventToStop the Event to stop.
      */
@@ -152,20 +139,8 @@ public final class Telemetry implements ITelemetry {
             return;
         }
 
-        stopEvent(eventToStop.getRequestId(), eventToStop.getEventName(), eventToStop);
-    }
-
-    /**
-     * Stops a previously started event.
-     *
-     * @param requestId the RequestId of the Event to stop.
-     * @param eventName the name of the Event to stop.
-     * @param event     the Event data.
-     */
-    void stopEvent(final RequestId requestId, final EventName eventName, final IEvent event) {
-        if (null == mPublisher || sDisableForTest) {
-            return;
-        }
+        final RequestId requestId = eventToStop.getRequestId();
+        final EventName eventName = eventToStop.getEventName();
 
         final Pair<RequestId, EventName> eventKey = new Pair<>(requestId, eventName);
 
@@ -177,16 +152,16 @@ public final class Telemetry implements ITelemetry {
         final String stopTime = Long.toString(stopTimeL);
 
         // Set execution time properties on the event
-        event.setProperty(EventProperty.START_TIME, eventStartTime.toString());
-        event.setProperty(EventProperty.STOP_TIME, stopTime);
-        event.setProperty(EventProperty.RESPONSE_TIME, Long.toString(diffTime));
+        eventToStop.setProperty(EventProperty.START_TIME, eventStartTime.toString());
+        eventToStop.setProperty(EventProperty.STOP_TIME, stopTime);
+        eventToStop.setProperty(EventProperty.RESPONSE_TIME, Long.toString(diffTime));
 
         if (null == mCompletedEvents.get(requestId)) {
             // if this is the first event associated to this
             // RequestId we need to initialize a new List to hold
             // all of sibling events
             final List<IEvent> events = new ArrayList<>();
-            events.add(event);
+            events.add(eventToStop);
             mCompletedEvents.put(
                     requestId,
                     events
@@ -194,7 +169,7 @@ public final class Telemetry implements ITelemetry {
         } else {
             // if this event shares a RequestId with other events
             // just add it to the List
-            mCompletedEvents.get(requestId).add(event);
+            mCompletedEvents.get(requestId).add(eventToStop);
         }
 
         // Mark this event as no longer in progress
