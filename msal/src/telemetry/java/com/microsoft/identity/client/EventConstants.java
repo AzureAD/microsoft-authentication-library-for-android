@@ -115,8 +115,8 @@ final class EventConstants {
             static final String AUTHORITY_VALIDATION_SUCCESS = EVENT_PREFIX + "authority_validation_status_success";
             static final String AUTHORITY_VALIDATION_FAILURE = EVENT_PREFIX + "authority_validation_status_failure";
             static final String AUTHORITY_VALIDATION_NOT_DONE = EVENT_PREFIX + "authority_validation_status_not_done";
-            static final String TOKEN_TYPE_AT = EVENT_PREFIX + "at";
-            static final String TOKEN_TYPE_RT = EVENT_PREFIX + "rt"; // Android only
+            static final String TOKEN_TYPE_AT = EVENT_PREFIX + "AT";
+            static final String TOKEN_TYPE_RT = EVENT_PREFIX + "RT"; // Android only
         }
     }
 }
