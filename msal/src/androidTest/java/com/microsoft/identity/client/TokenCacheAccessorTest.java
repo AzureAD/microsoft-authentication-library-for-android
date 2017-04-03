@@ -287,6 +287,6 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
 
     private String getIdTokenWithDefaultUser() {
         return AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", UNIQUE_ID, DISPLAYABLE, "sub", TENANT_ID,
-                "version", HOME_OID);
+                "version");
     }
 }

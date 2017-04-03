@@ -104,7 +104,7 @@ public final class TokenCacheKeyTest {
     @Test
     public void testRefreshTokenKeyExtractionFromTokenCacheItem() throws MsalException {
         final String idToken = AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", UNIQUE_ID, DISPLAYABLE, "sub", "tenant",
-                "version", HOME_OBJECT_ID);
+                "version");
         final String clientInfo = AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID);
         final TokenResponse response = new TokenResponse("access_token", idToken, "refresh_token", new Date(), new Date(), new Date(),
                 MSALUtils.convertSetToString(getScopes(), " "), "Bearer", clientInfo);

@@ -625,7 +625,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     static String getIdToken(final String displayable, final String uniqueId, final String homeOid) {
         return AndroidTestUtil.createIdToken(AndroidTestUtil.AUDIENCE, AndroidTestUtil.ISSUER, AndroidTestUtil.NAME, uniqueId, displayable,
-                AndroidTestUtil.SUBJECT, AndroidTestUtil.TENANT_ID, AndroidTestUtil.VERSION, homeOid);
+                AndroidTestUtil.SUBJECT, AndroidTestUtil.TENANT_ID, AndroidTestUtil.VERSION);
     }
 
     private TokenResponse getTokenResponse(final String idToken, final String clientInfo) throws MsalException {

@@ -134,8 +134,7 @@ public final class IdTokenTest {
         final String rawIdToken = AndroidTestUtil.createIdToken(
                 AndroidTestUtil.AUDIENCE, AndroidTestUtil.ISSUER, AndroidTestUtil.NAME,
                 AndroidTestUtil.OBJECT_ID, AndroidTestUtil.PREFERRED_USERNAME,
-                AndroidTestUtil.SUBJECT, AndroidTestUtil.TENANT_ID, AndroidTestUtil.VERSION,
-                AndroidTestUtil.HOME_OBJECT_ID);
+                AndroidTestUtil.SUBJECT, AndroidTestUtil.TENANT_ID, AndroidTestUtil.VERSION);
         try {
             final IdToken idToken = new IdToken(rawIdToken);
             Assert.assertTrue(idToken.getIssuer().equals(AndroidTestUtil.ISSUER));
@@ -144,7 +143,6 @@ public final class IdTokenTest {
             Assert.assertTrue(idToken.getPreferredName().equals(AndroidTestUtil.PREFERRED_USERNAME));
             Assert.assertTrue(idToken.getVersion().equals(AndroidTestUtil.VERSION));
             Assert.assertTrue(idToken.getTenantId().equals(AndroidTestUtil.TENANT_ID));
-            Assert.assertTrue(idToken.getHomeObjectId().equals(AndroidTestUtil.HOME_OBJECT_ID));
             Assert.assertTrue(idToken.getSubject().equals(AndroidTestUtil.SUBJECT));
         } catch (final MsalException e) {
             Assert.fail("unexpected exception");

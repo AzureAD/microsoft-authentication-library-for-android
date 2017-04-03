@@ -507,7 +507,7 @@ public final class TokenCacheTest extends AndroidTestCase {
 
     static String getIdTokenForDifferentUser() {
         return AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", "other user", "other displayable", "sub", "tenant",
-                "version", "other homeOID");
+                "version");
     }
 
     static String getClientInfoForDifferentUser() {
@@ -528,7 +528,7 @@ public final class TokenCacheTest extends AndroidTestCase {
 
     static String getDefaultIdToken() {
         return AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", UNIQUE_ID, DISPLAYABLE, "sub", "tenant",
-                "version", HOME_OID);
+                "version");
     }
 
     static String getDefaultClientInfo() {
