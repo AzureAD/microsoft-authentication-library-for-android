@@ -46,18 +46,9 @@ final class RefreshTokenCacheItem extends BaseTokenCacheItem {
     @SerializedName("identity_provider")
     final String mIdentityProvider;
 
-    // uid and utid will help to uniquely identify user across tenants. For b2c, current design is that users are never
-    // in more than one tenant, client_info may not be returned at all. When it's not returned, we need id token for the
-    // fallback logic.
-    @SerializedName("uid")
-    final String mUid;
-
-    @SerializedName("utid")
-    final String mUtid;
-
     RefreshTokenCacheItem(final String environment, final String clientId, final TokenResponse response)
             throws MsalClientException {
-        super(clientId);
+        super(clientId, response.getRawClientInfo());
         mEnvironment = environment;
         mRefreshToken = response.getRefreshToken();
 
@@ -66,26 +57,13 @@ final class RefreshTokenCacheItem extends BaseTokenCacheItem {
         mName = idToken.getName();
         mIdentityProvider = idToken.getIssuer();
 
-        if (!MSALUtils.isEmpty(response.getRawClientInfo())) {
-            final ClientInfo clientInfo = new ClientInfo(response.getRawClientInfo());
-            mUid = clientInfo.getUniqueIdentifier();
-            mUtid = clientInfo.getUniqueTenantIdentifier();
-        } else {
-            mUid = idToken.getUniqueId();
-            mUtid = idToken.getTenantId();
-        }
-
-        mUser = new User(mDisplayableId, mName, mIdentityProvider, mUid, mUtid);
+        mUser = new User(mDisplayableId, mName, mIdentityProvider, getClientInfo().getUniqueIdentifier(),
+                getClientInfo().getUniqueTenantIdentifier());
     }
 
     @Override
     RefreshTokenCacheKey extractTokenCacheKey() {
         return RefreshTokenCacheKey.createTokenCacheKey(mEnvironment, mClientId, mUser);
-    }
-
-    @Override
-    String getUserIdentifier() {
-        return MSALUtils.getUniqueUserIdentifier(mUid, mUtid);
     }
 
     String getRefreshToken() {
@@ -106,13 +84,5 @@ final class RefreshTokenCacheItem extends BaseTokenCacheItem {
 
     String getIdentityProvider() {
         return mIdentityProvider;
-    }
-
-    String getUid() {
-        return mUid;
-    }
-
-    String getUtid() {
-        return mUtid;
     }
 }

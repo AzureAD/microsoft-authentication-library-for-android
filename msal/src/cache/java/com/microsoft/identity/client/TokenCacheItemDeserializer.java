@@ -43,11 +43,17 @@ final class TokenCacheItemDeserializer<T extends BaseTokenCacheItem> implements 
         T deserializedTokenCacheItem = new Gson().fromJson(json, type);
 
         final User user;
+        final ClientInfo clientInfo;
+        try {
+            clientInfo = new ClientInfo(deserializedTokenCacheItem.getRawClientInfo());
+        } catch (final MsalClientException e) {
+            throw new JsonParseException("Fail to deserialize", e);
+        }
+
+        deserializedTokenCacheItem.setClientInfo(clientInfo);
         if (deserializedTokenCacheItem instanceof AccessTokenCacheItem) {
             final AccessTokenCacheItem accessTokenCacheItem = (AccessTokenCacheItem) deserializedTokenCacheItem;
             try {
-                final ClientInfo clientInfo = MSALUtils.isEmpty(accessTokenCacheItem.getRawClientInfo()) ? null
-                        : new ClientInfo(accessTokenCacheItem.getRawClientInfo());
                 user = User.create(new IdToken(accessTokenCacheItem.getRawIdToken()), clientInfo);
             } catch (MsalClientException e) {
                 throw new JsonParseException("Fail to deserialize", e);
@@ -55,7 +61,7 @@ final class TokenCacheItemDeserializer<T extends BaseTokenCacheItem> implements 
         } else {
             final RefreshTokenCacheItem refreshTokenCacheItem = (RefreshTokenCacheItem) deserializedTokenCacheItem;
             user = new User(refreshTokenCacheItem.getDisplayableId(), refreshTokenCacheItem.getName(),
-                    refreshTokenCacheItem.getIdentityProvider(), refreshTokenCacheItem.getUid(), refreshTokenCacheItem.getUtid());
+                    refreshTokenCacheItem.getIdentityProvider(), clientInfo.getUniqueIdentifier(), clientInfo.getUniqueTenantIdentifier());
         }
 
         deserializedTokenCacheItem.setUser(user);

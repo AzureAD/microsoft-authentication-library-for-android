@@ -564,8 +564,7 @@ public final class TokenCacheTest extends AndroidTestCase {
             assertTrue(accessTokenCacheItem.getRawClientInfo().equals(AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID)));
         } else {
             final RefreshTokenCacheItem refreshTokenCacheItem = (RefreshTokenCacheItem) item;
-            assertTrue(refreshTokenCacheItem.getUid().equals(AndroidTestUtil.UID));
-            assertTrue(refreshTokenCacheItem.getUtid().equals(AndroidTestUtil.UTID));
+            refreshTokenCacheItem.getUserIdentifier().equals(MSALUtils.getUniqueUserIdentifier(AndroidTestUtil.UID, AndroidTestUtil.UTID));
             assertTrue(refreshTokenCacheItem.getDisplayableId().equals(DISPLAYABLE));
         }
     }

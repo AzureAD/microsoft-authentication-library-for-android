@@ -38,11 +38,8 @@ abstract class TokenCacheKey<T extends BaseTokenCacheItem> {
             throw new IllegalArgumentException("clientId");
         }
 
-        if (MSALUtils.isEmpty(uid) || MSALUtils.isEmpty(utid)) {
-            throw new IllegalArgumentException("uid or utid is empty");
-        }
-
         mClientId = clientId.toLowerCase(Locale.US);
+        // if uid or utid is empty, the unique identifier will be "."
         mUserIdentifier = MSALUtils.getUniqueUserIdentifier(uid, utid);
     }
 

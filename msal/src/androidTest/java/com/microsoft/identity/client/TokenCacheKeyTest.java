@@ -37,7 +37,7 @@ import java.util.Set;
  */
 public final class TokenCacheKeyTest {
     private static final String AUTHORITY = "https://login.microsoftonline.com/common";
-    private static final String AUTHORITY_HOST = "https://login.microsoftonline.com";
+    private static final String AUTHORITY_HOST = "login.microsoftonline.com";
     private static final String CLIENT_ID = "some-client-id";
     private static final String DISPLAYABLE = "test@contoso.onmicrosoft.com";
     private static final String UNIQUE_ID = "some-unique-id";
@@ -111,6 +111,17 @@ public final class TokenCacheKeyTest {
 
         Assert.assertTrue(item.extractTokenCacheKey().toString().equals(MSALUtils.base64UrlEncodeToString(AUTHORITY_HOST) + "$"
                 + MSALUtils.base64UrlEncodeToString(CLIENT_ID)  + "$" + MSALUtils.getUniqueUserIdentifier(AndroidTestUtil.UID, AndroidTestUtil.UTID)));
+    }
+
+    @Test
+    public void testRefreshTokenKeyCreationWithEmptyClientInfo() throws MsalClientException {
+        final String idToken = AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", UNIQUE_ID, DISPLAYABLE, "sub", "tenant",
+                "version");
+        final TokenResponse response = new TokenResponse("access_token", idToken, "refresh_token", new Date(), new Date(), new Date(),
+                MSALUtils.convertSetToString(getScopes(), " "), "Bearer", null);
+        final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, response);
+        Assert.assertTrue(refreshTokenCacheItem.extractTokenCacheKey().toString().equals(MSALUtils.base64UrlEncodeToString(AUTHORITY_HOST) + "$"
+                + MSALUtils.base64UrlEncodeToString(CLIENT_ID) + "$" + "."));
     }
 
     private Set<String> getScopes() {

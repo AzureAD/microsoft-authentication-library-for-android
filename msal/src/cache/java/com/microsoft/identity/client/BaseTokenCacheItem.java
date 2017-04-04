@@ -33,24 +33,40 @@ abstract class BaseTokenCacheItem {
     @SerializedName("client_id")
     final String mClientId;
 
+    @SerializedName("client_info")
+    final String mRawClientInfo;
+
     transient User mUser;
+    transient ClientInfo mClientInfo;
 
     /**
      * @return {@link TokenCacheKey} for the given token item.
      */
     abstract TokenCacheKey extractTokenCacheKey();
 
-    abstract String getUserIdentifier();
-
     /**
      * Constructor for creating the token cache item.
      */
-    BaseTokenCacheItem(final String clientId) {
+    BaseTokenCacheItem(final String clientId, final String rawClientInfo) throws MsalClientException {
         mClientId = clientId;
+        mRawClientInfo = rawClientInfo;
+        mClientInfo = new ClientInfo(rawClientInfo);
     }
 
     String getClientId() {
         return mClientId;
+    }
+
+    String getRawClientInfo() {
+        return mRawClientInfo;
+    }
+
+    ClientInfo getClientInfo() {
+        return mClientInfo;
+    }
+
+    void setClientInfo(final ClientInfo clientInfo) {
+        mClientInfo = clientInfo;
     }
 
     User getUser() {
@@ -59,5 +75,9 @@ abstract class BaseTokenCacheItem {
 
     void setUser(final User user) {
         mUser = user;
+    }
+
+    final String getUserIdentifier() {
+        return MSALUtils.getUniqueUserIdentifier(mClientInfo.getUniqueIdentifier(), mClientInfo.getUniqueTenantIdentifier());
     }
 }

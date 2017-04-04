@@ -117,7 +117,7 @@ public final class AuthenticationResultTest {
 
         final User user = result.getUser();
         Assert.assertNotNull(user);
-        Assert.assertTrue(user.getUserIdentifier().equals(MSALUtils.getUniqueUserIdentifier(uniqueId, AndroidTestUtil.TENANT_ID)));
+        Assert.assertTrue(user.getUserIdentifier().equals("."));
     }
 
     private void verifyScopeIsEmpty(final AuthenticationResult authenticationResult) {

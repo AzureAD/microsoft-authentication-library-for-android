@@ -333,15 +333,11 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                 assertNotNull(mTokenCache.findAccessToken(getAuthenticationParams(authority, UIBehavior.FORCE_LOGIN), authenticationResult.getUser()));
 
                 final User user = authenticationResult.getUser();
-                try {
-                    final IdToken idToken = new IdToken(AndroidTestUtil.TEST_IDTOKEN);
-                    assertTrue(user.getUid().equals(MSALUtils.urlFormEncode(idToken.getObjectId())));
-                    assertTrue(user.getUtid().equals(MSALUtils.urlFormEncode(idToken.getTenantId())));
-                } catch (final MsalClientException |UnsupportedEncodingException e) {
-                    fail();
-                } finally {
-                    resultLock.countDown();
-                }
+                assertTrue(user.getUid().equals(""));
+                assertTrue(user.getUtid().equals(""));
+
+                resultLock.countDown();
+
             }
 
             @Override

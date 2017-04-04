@@ -73,6 +73,6 @@ final class AccessTokenCacheKey extends TokenCacheKey<AccessTokenCacheItem> {
     boolean matches(final AccessTokenCacheItem item) {
         return mAuthority.equalsIgnoreCase(item.getAuthority())
                 && mClientId.equalsIgnoreCase(item.getClientId())
-                && mUserIdentifier.equalsIgnoreCase(item.getUserIdentifier());
+                && mUserIdentifier.equals(item.getUserIdentifier());
     }
 }

@@ -51,15 +51,12 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
     @SerializedName("id_token")
     final String mRawIdToken;
 
-    @SerializedName("client_info")
-    final String mRawClientInfo;
-
     /**
      * Constructor for creating the {@link AccessTokenCacheItem}.
      */
     AccessTokenCacheItem(final String authority, final String clientId, final TokenResponse response)
             throws MsalClientException {
-        super(clientId);
+        super(clientId,response.getRawClientInfo());
 
         mAuthority = authority;
         mAccessToken = response.getAccessToken();
@@ -67,24 +64,14 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
         mScope = response.getScope();
         mTokenType = response.getTokenType();
         mRawIdToken = response.getRawIdToken();
-        mRawClientInfo = response.getRawClientInfo();
 
         final IdToken idToken = new IdToken(mRawIdToken);
-        if (!MSALUtils.isEmpty(mRawClientInfo)) {
-            mUser = User.create(idToken, new ClientInfo(mRawClientInfo));
-        } else {
-            mUser = User.create(idToken, null);
-        }
+        mUser = User.create(idToken, new ClientInfo(mRawClientInfo));
     }
 
     @Override
     AccessTokenCacheKey extractTokenCacheKey() {
         return AccessTokenCacheKey.createTokenCacheKey(mAuthority, mClientId, MSALUtils.getScopesAsSet(mScope), mUser);
-    }
-
-    @Override
-    String getUserIdentifier() {
-        return mUser.getUserIdentifier();
     }
 
     /**
