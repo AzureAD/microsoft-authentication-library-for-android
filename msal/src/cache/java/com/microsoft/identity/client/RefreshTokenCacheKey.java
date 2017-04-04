@@ -48,8 +48,10 @@ final class RefreshTokenCacheKey extends TokenCacheKey<RefreshTokenCacheItem> {
 
     public String toString() {
         final StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(MSALUtils.base64UrlEncodeToString(mEnvironment) + "$");
-        stringBuilder.append(MSALUtils.base64UrlEncodeToString(mClientId) + "$");
+        stringBuilder.append(MSALUtils.base64UrlEncodeToString(mEnvironment));
+        stringBuilder.append(TOKEN_CACHE_KEY_DELIMITER);
+        stringBuilder.append(MSALUtils.base64UrlEncodeToString(mClientId));
+        stringBuilder.append(TOKEN_CACHE_KEY_DELIMITER);
         stringBuilder.append(mUserIdentifier);
 
         return stringBuilder.toString();

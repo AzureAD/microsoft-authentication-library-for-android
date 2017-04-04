@@ -29,6 +29,7 @@ import java.util.Locale;
  * Object used to group the all the conditions to lookup into token cache. Base token cache key class.
  */
 abstract class TokenCacheKey<T extends BaseTokenCacheItem> {
+    static String TOKEN_CACHE_KEY_DELIMITER = "$";
     final String mClientId;
     final String mUserIdentifier;
 

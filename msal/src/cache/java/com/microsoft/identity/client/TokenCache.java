@@ -174,6 +174,8 @@ class TokenCache {
             return;
         }
 
+        Logger.verbosePII(TAG, null, "Removing refresh token for user: " + rtItem.getDisplayableId() + "; user identifier: "
+                + rtItem.getUserIdentifier());
         mTokenCacheAccessor.deleteRefreshToken(rtItem.extractTokenCacheKey().toString());
     }
 
@@ -236,6 +238,8 @@ class TokenCache {
             final DeleteTokenAction delegate) {
         for (BaseTokenCacheItem token : tokens) {
             if (tokenMatchesUser(user, token)) {
+                Logger.verbosePII(TAG, null, "Remove tokens for user with displayable " + user.getDisplayableId()
+                        + "; User identifier: " + user.getUserIdentifier());
                 delegate.deleteToken(token);
                 return;
             }
