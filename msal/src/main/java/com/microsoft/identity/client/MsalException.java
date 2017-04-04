@@ -34,13 +34,13 @@ public class MsalException extends Exception {
     /**
      * Default constructor.
      */
-    public MsalException() { }
+    MsalException() { }
 
     /**
      * Initiates the {@link MsalException} with {@link MSALError}.
      * @param errorCode The {@link MSALError} contained in the exception.
      */
-    public MsalException(final String errorCode) {
+    MsalException(final String errorCode) {
         mErrorCode = errorCode;
     }
 
@@ -49,7 +49,7 @@ public class MsalException extends Exception {
      * @param errorCode The {@link MSALError} contained in the exception.
      * @param errorMessage The error message contained in the exception.
      */
-    public MsalException(final String errorCode, final String errorMessage) {
+    MsalException(final String errorCode, final String errorMessage) {
         super(errorMessage);
         mErrorCode = errorCode;
     }
@@ -60,7 +60,7 @@ public class MsalException extends Exception {
      * @param errorMessage The error message contained in the exception.
      * @param throwable The {@link Throwable} contains the cause for the exception.
      */
-    public MsalException(final String errorCode, final String errorMessage,
+    MsalException(final String errorCode, final String errorMessage,
                          final Throwable throwable) {
         super(errorMessage, throwable);
         mErrorCode = errorCode;
