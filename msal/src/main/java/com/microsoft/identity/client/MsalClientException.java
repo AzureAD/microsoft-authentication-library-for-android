@@ -51,15 +51,15 @@ package com.microsoft.identity.client;
  */
 public final class MsalClientException extends MsalException {
 
-    public MsalClientException(final String errorCode) {
+    MsalClientException(final String errorCode) {
         super(errorCode);
     }
 
-    public MsalClientException(final String errorCode, final String errorMessage) {
+    MsalClientException(final String errorCode, final String errorMessage) {
         super(errorCode, errorMessage);
     }
 
-    public MsalClientException(final String errorCode, final String errorMessage, final Throwable throwable) {
+    MsalClientException(final String errorCode, final String errorMessage, final Throwable throwable) {
         super(errorCode, errorMessage, throwable);
     }
 }

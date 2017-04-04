@@ -24,7 +24,8 @@
 package com.microsoft.identity.client;
 
 /**
- * This exception class is to inform developers that UI is required for authentication to succeed.
+ * This exception class is to inform developers that UI is required for authentication to succeed. If {@link MsalUiRequiredException}
+ * is caused by service error, claims could be possibly returned.
  * <p>
  *     Set of error codes that could be returned from this exception:
  *     <li>
@@ -35,6 +36,7 @@ package com.microsoft.identity.client;
  */
 
 public final class MsalUiRequiredException extends MsalException {
+    private String mClaims = "";
 
     MsalUiRequiredException(final String errorCode) {
         super(errorCode);
@@ -46,5 +48,18 @@ public final class MsalUiRequiredException extends MsalException {
 
     MsalUiRequiredException(final String errorCode, final String errorMessage, final Throwable throwable) {
         super(errorCode, errorMessage, throwable);
+    }
+
+    MsalUiRequiredException(final String errorCode, final String errorMessage, final String claims, final Throwable throwable) {
+        super(errorCode, errorMessage, throwable);
+        mClaims = claims;
+    }
+
+    /**
+     * If {@link MsalUiRequiredException} is caused by a service error i.e. invalid_grant, claims could be returned.
+     * @return
+     */
+    public String getClaims() {
+        return mClaims;
     }
 }

@@ -226,7 +226,7 @@ abstract class BaseRequest {
         }
 
         if (MSALError.INVALID_GRANT.equals(tokenResponse.getError())) {
-            throw new MsalUiRequiredException(MSALError.INVALID_GRANT, tokenResponse.getErrorDescription());
+            throw new MsalUiRequiredException(MSALError.INVALID_GRANT, tokenResponse.getErrorDescription(), tokenResponse.getClaims(), null);
         }
 
         throw new MsalServiceException(tokenResponse.getError(), tokenResponse.getErrorDescription(), tokenResponse.getHttpStatusCode(), tokenResponse.getClaims(), null);
