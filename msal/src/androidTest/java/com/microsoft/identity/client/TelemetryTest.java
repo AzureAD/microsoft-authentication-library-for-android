@@ -135,7 +135,7 @@ public class TelemetryTest {
         // verify results
         Assert.assertEquals(result.size(), 2);
 
-        // get the event entry, pos[1] since DefaultEvent is always first
+        // get the event entry, pos[1] (since DefaultEvent is always first)
         Map<String, String> eventData = result.get(1);
 
         // make sure it contains the correct event
