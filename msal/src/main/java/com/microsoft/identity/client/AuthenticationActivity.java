@@ -54,6 +54,7 @@ public final class AuthenticationActivity extends Activity {
     private CustomTabsIntent mCustomTabsIntent;
     private CustomTabsServiceConnection mCustomTabsServiceConnection;
     private boolean mCustomTabsServiceIsBound;
+    private UiEvent.Builder mUiEventBuilder;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -88,7 +89,9 @@ public final class AuthenticationActivity extends Activity {
         }
 
         mChromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(getApplicationContext());
-        mRequestUrl = this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
+
+        mUiEventBuilder = new UiEvent.Builder(new Telemetry.RequestId(data.getStringExtra(Constants.TELEMETRY_REQUEST_ID)));
+        Telemetry.getInstance().startEvent(mUiEventBuilder);
     }
 
     @Override
@@ -202,6 +205,7 @@ public final class AuthenticationActivity extends Activity {
      */
     void cancelRequest() {
         Logger.verbose(TAG, null, "Cancel the authentication request.");
+        mUiEventBuilder.setUserDidCancel();
         returnToCaller(Constants.UIResponse.CANCEL, new Intent());
     }
 
@@ -214,6 +218,10 @@ public final class AuthenticationActivity extends Activity {
     private void returnToCaller(final int resultCode, final Intent data) {
         Logger.info(TAG, null, "Return to caller with resultCode: " + resultCode + "; requestId: " + mRequestId);
         data.putExtra(Constants.REQUEST_ID, mRequestId);
+
+        if (null != mUiEventBuilder) {
+            Telemetry.getInstance().stopEvent(mUiEventBuilder.build());
+        }
 
         setResult(resultCode, data);
         this.finish();

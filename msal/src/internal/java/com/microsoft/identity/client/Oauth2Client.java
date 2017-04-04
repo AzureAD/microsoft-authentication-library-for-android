@@ -51,6 +51,12 @@ final class Oauth2Client {
     private final Map<String, String> mQueryParameters = new HashMap<>();
     private final Map<String, String> mHeader = new HashMap<>(PlatformIdHelper.getPlatformIdParameters());
 
+    private final RequestContext mRequestContext;
+
+    Oauth2Client(final RequestContext requestContext) {
+        mRequestContext = requestContext;
+    }
+
     void addQueryParameter(final String key, final String value) {
         mQueryParameters.put(key, value);
     }
@@ -131,10 +137,10 @@ final class Oauth2Client {
 
         final HttpResponse response;
         if (HttpRequest.REQUEST_METHOD_GET.equals(requestMethod)) {
-            response = HttpRequest.sendGet(endpointWithQP, mHeader);
+            response = HttpRequest.sendGet(endpointWithQP, mHeader, mRequestContext);
         } else {
             response = HttpRequest.sendPost(endpointWithQP, mHeader,
-                    buildRequestMessage(mBodyParameters), POST_CONTENT_TYPE);
+                    buildRequestMessage(mBodyParameters), POST_CONTENT_TYPE, mRequestContext);
         }
 
         return parseRawResponse(response, delegate);
@@ -147,8 +153,8 @@ final class Oauth2Client {
 
         final Map<String, String> responseItems = parseResponseItems(httpResponse);
 
-        Logger.info(TAG, null, "Http response status code is: " + httpResponse.getStatusCode());
-        Logger.verbosePII(TAG, null, "HttpResponse body is: " + httpResponse.getBody());
+        Logger.info(TAG, mRequestContext, "Http response status code is: " + httpResponse.getStatusCode());
+        Logger.verbosePII(TAG, mRequestContext, "HttpResponse body is: " + httpResponse.getBody());
 
         if (httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK) {
             return delegate.parseSuccessRawResponse(responseItems);
@@ -190,14 +196,14 @@ final class Oauth2Client {
         final Map<String, List<String>> responseHeader = response.getHeaders();
         if (responseHeader == null
                 || !responseHeader.containsKey(OauthConstants.OauthHeader.CORRELATION_ID_IN_RESPONSE)) {
-            Logger.warning(TAG, null, "Returned response doesn't have correlation id in the header.");
+            Logger.warning(TAG, mRequestContext, "Returned response doesn't have correlation id in the header.");
             return;
         }
 
         final List<String> correlationIdsInHeader = responseHeader.get(
                 OauthConstants.OauthHeader.CORRELATION_ID_IN_RESPONSE);
         if (correlationIdsInHeader == null || correlationIdsInHeader.size() == 0) {
-            Logger.warning(TAG, null, "Returned correlation id is empty.");
+            Logger.warning(TAG, mRequestContext, "Returned correlation id is empty.");
             return;
         }
 
@@ -207,11 +213,11 @@ final class Oauth2Client {
                 final UUID correlationId = UUID.fromString(correlationIdInHeader);
                 //CHECKSTYLE:OFF: checkstyle:EmptyBlock
                 if (!correlationId.equals(correlationIdInRequest)) {
-                    Logger.warning(TAG, null, "Returned correlation is: " + correlationId + ", it doesn't match the sent in the "
+                    Logger.warning(TAG, mRequestContext, "Returned correlation is: " + correlationId + ", it doesn't match the sent in the "
                             + "request: " + correlationIdInRequest);
                 }
             } catch (final IllegalArgumentException e) {
-                Logger.error(TAG, null, "Returned correlation id is not formatted correctly", e);
+                Logger.error(TAG, mRequestContext, "Returned correlation id is not formatted correctly", e);
             }
         }
     }

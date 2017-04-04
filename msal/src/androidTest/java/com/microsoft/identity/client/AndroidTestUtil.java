@@ -179,13 +179,15 @@ public final class AndroidTestUtil {
     }
 
     static List<AccessTokenCacheItem> getAllAccessTokens(final Context appContext) {
+        Telemetry.disableForTest(true);
         final TokenCacheAccessor accessor = new TokenCacheAccessor(appContext);
-        return accessor.getAllAccessTokens();
+        return accessor.getAllAccessTokens(Telemetry.generateNewRequestId());
     }
 
     static List<RefreshTokenCacheItem> getAllRefreshTokens(final Context appContext) {
+        Telemetry.disableForTest(true);
         final TokenCacheAccessor accessor = new TokenCacheAccessor(appContext);
-        return accessor.getAllRefreshTokens();
+        return accessor.getAllRefreshTokens(Telemetry.generateNewRequestId());
     }
 
     static String getRawIdToken(final String displaybleId, final String uniqueId, final String homeOID) {

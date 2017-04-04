@@ -42,7 +42,7 @@ import java.util.UUID;
 @SmallTest
 public class DRSMetadataRequestorTest {
 
-    private static final RequestContext REQUEST_CONTEXT = new RequestContext(UUID.randomUUID(), "");
+    private static final RequestContext REQUEST_CONTEXT = new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId());
 
     static final String RESPONSE = "{\n"
             +
