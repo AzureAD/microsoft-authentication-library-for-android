@@ -87,11 +87,16 @@ public final class Logger {
 
     /**
      * Set the custom logger. Developer can configure external logging to configure a callback that
-     * the sdk will use to hand off each log message as it is generated.
+     * the sdk will use to hand off each log message as it is generated. Overriding on the logger callback is not allowed.
      * @param externalLogger The reference to the {@link ILogger} that the developer can config to
      *                       generate the log to the designated places.
+     * @throws IllegalStateException if external logger is already set, and the caller is trying to set it again.
      */
     public void setExternalLogger(final ILogger externalLogger) {
+        if (mExternalLogger != null) {
+            throw new IllegalStateException("External logger is already set, cannot be set again.");
+        }
+
         mExternalLogger = externalLogger;
     }
 
