@@ -39,7 +39,7 @@ class DefaultEvent extends AbstractCorrelatableEvent implements IDefaultEvent {
     private static Defaults sAllDefaults;
 
     /**
-     * Sets the default fields automatically for *all* Events.
+     * Sets the {@link Defaults} used to populate {@link DefaultEvent} properties.
      *
      * @param defaults the defaults to use.
      */
@@ -118,7 +118,7 @@ class DefaultEvent extends AbstractCorrelatableEvent implements IDefaultEvent {
         }
 
         /**
-         * Generates an EventDefaults instance for the supplied {@link Context} and clientId.
+         * Generates a Defaults instance for the supplied {@link Context} and clientId.
          *
          * @param context  the {@link Context} from which these defaults should be created.
          * @param clientId the clientId of the application
@@ -156,7 +156,7 @@ class DefaultEvent extends AbstractCorrelatableEvent implements IDefaultEvent {
         }
 
         /**
-         * Builder object for EventDefaults.
+         * Builder object for Defaults.
          */
         static class Builder {
 
