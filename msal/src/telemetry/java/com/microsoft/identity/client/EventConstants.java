@@ -66,7 +66,7 @@ final class EventConstants {
         static final String API_ID = EVENT_PREFIX + "api_id";
         static final String START_TIME = EVENT_PREFIX + "start_time";
         static final String STOP_TIME = EVENT_PREFIX + "stop_time";
-        static final String RESPONSE_TIME = EVENT_PREFIX + "response_time";
+        static final String ELAPSED_TIME = EVENT_PREFIX + "elapsed_time";
         static final String APPLICATION_NAME = EVENT_PREFIX + "application_name";
         static final String APPLICATION_VERSION = EVENT_PREFIX + "application_version";
         static final String CLIENT_ID = EVENT_PREFIX + "client_id";

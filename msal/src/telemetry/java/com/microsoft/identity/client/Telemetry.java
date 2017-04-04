@@ -154,7 +154,7 @@ public final class Telemetry implements ITelemetry {
         // Set execution time properties on the event
         eventToStop.setProperty(EventProperty.START_TIME, eventStartTime.toString());
         eventToStop.setProperty(EventProperty.STOP_TIME, stopTime);
-        eventToStop.setProperty(EventProperty.RESPONSE_TIME, Long.toString(diffTime));
+        eventToStop.setProperty(EventProperty.ELAPSED_TIME, Long.toString(diffTime));
 
         if (null == mCompletedEvents.get(requestId)) {
             // if this is the first event associated to this
