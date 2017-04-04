@@ -26,7 +26,6 @@ package com.microsoft.identity.client;
 import android.util.Pair;
 
 import java.util.Collection;
-import java.util.UUID;
 
 /**
  * Internal interface for Event telemetry data.
@@ -60,34 +59,6 @@ interface IEvent extends Collection<Pair<String, String>> {
     int getPropertyCount();
 
     /**
-     * Gets the name of this application.
-     *
-     * @return the application's name.
-     */
-    String getApplicationName();
-
-    /**
-     * Gets the version of this application.
-     *
-     * @return the application's version.
-     */
-    String getApplicationVersion();
-
-    /**
-     * Gets the clientId (hashed).
-     *
-     * @return the hashed clientId.
-     */
-    String getClientId();
-
-    /**
-     * Gets the deviceId (hashed).
-     *
-     * @return the hashed deviceId
-     */
-    String getDeviceId();
-
-    /**
      * Gets the {@link com.microsoft.identity.client.Telemetry.RequestId}.
      *
      * @return the RequestId to get
@@ -95,24 +66,15 @@ interface IEvent extends Collection<Pair<String, String>> {
     Telemetry.RequestId getRequestId();
 
     /**
+     * Clears the {@link com.microsoft.identity.client.Telemetry.RequestId} set on this Event.
+     */
+    void clearRequestId();
+
+    /**
      * Gets the {@link EventName}.
      *
      * @return the EventName to get
      */
     EventName getEventName();
-
-    /**
-     * Sets the {@link UUID} correlationId.
-     *
-     * @param correlationId the correlationId to set
-     */
-    void setCorrelationId(UUID correlationId);
-
-    /**
-     * Gets the {@link UUID} correlationId.
-     *
-     * @return the correlationId
-     */
-    UUID getCorrelationId();
 
 }

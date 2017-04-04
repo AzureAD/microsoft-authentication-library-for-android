@@ -23,26 +23,34 @@
 
 package com.microsoft.identity.client;
 
-/**
- * Internal telemetry data-container for the names of Events.
- */
-class EventName extends Telemetry.ValueTypeDef {
-
-    static final EventName DEFAULT_EVENT = new EventName(EventConstants.EVENT_PREFIX + "default");
-    static final EventName API_EVENT = new EventName(EventConstants.EVENT_PREFIX + "api_event");
-    static final EventName AUTHORITY_VALIDATION_EVENT = new EventName(EventConstants.EVENT_PREFIX + "authority_validation");
-    static final EventName HTTP_EVENT = new EventName(EventConstants.EVENT_PREFIX + "http_event");
-    static final EventName UI_EVENT = new EventName(EventConstants.EVENT_PREFIX + "ui_event");
-    static final EventName TOKEN_CACHE_LOOKUP = new EventName(EventConstants.EVENT_PREFIX + "token_cache_lookup");
-    static final EventName TOKEN_CACHE_WRITE = new EventName(EventConstants.EVENT_PREFIX + "token_cache_write");
-    static final EventName TOKEN_CACHE_DELETE = new EventName(EventConstants.EVENT_PREFIX + "token_cache_delete");
+interface IDefaultEvent extends ICorrelatableEvent {
 
     /**
-     * Constructs a new EventName instance.
+     * Gets the name of this application.
      *
-     * @param value the name to use (as a String)
+     * @return the application's name.
      */
-    EventName(String value) {
-        super(value);
-    }
+    String getApplicationName();
+
+    /**
+     * Gets the version of this application.
+     *
+     * @return the application's version.
+     */
+    String getApplicationVersion();
+
+    /**
+     * Gets the clientId (hashed).
+     *
+     * @return the hashed clientId.
+     */
+    String getClientId();
+
+    /**
+     * Gets the deviceId (hashed).
+     *
+     * @return the hashed deviceId
+     */
+    String getDeviceId();
+
 }

@@ -210,8 +210,41 @@ public final class Telemetry implements ITelemetry {
         }
 
         if (null != mPublisher && !eventsToFlush.isEmpty()) {
+            prependDefaultEvent(eventsToFlush);
             mPublisher.dispatch(eventsToFlush);
         }
+    }
+
+    private void prependDefaultEvent(final List<IEvent> eventsToFlush) {
+        final Telemetry.RequestId requestId = eventsToFlush.get(0).getRequestId();
+        final UUID correlationId = getCorrelationIdFromEventList(eventsToFlush);
+        IDefaultEvent defaultEvent = new DefaultEvent.Builder(requestId).build();
+        defaultEvent.setCorrelationId(correlationId);
+
+        // scrub requestIds from the List, as it is now stored once in the DefaultEvent
+        for (final IEvent event : eventsToFlush) {
+            event.clearRequestId();
+            if (event instanceof AbstractCorrelatableEvent) {
+                // clear the correlationId
+                ((AbstractCorrelatableEvent) event).clearCorrelationId();
+            }
+        }
+
+        eventsToFlush.add(0, defaultEvent);
+    }
+
+    private UUID getCorrelationIdFromEventList(final List<IEvent> eventsToFlush) {
+        UUID correlationId = null;
+        for (final IEvent event : eventsToFlush) {
+            if (event instanceof ICorrelatableEvent) {
+                ICorrelatableEvent correlatableEvent = (ICorrelatableEvent) event;
+                if (null != correlatableEvent.getCorrelationId()) {
+                    correlationId = correlatableEvent.getCorrelationId();
+                    break;
+                }
+            }
+        }
+        return correlationId;
     }
 
     private void collateOrphanedEvents(RequestId requestId, List<IEvent> orphanedEvents) {

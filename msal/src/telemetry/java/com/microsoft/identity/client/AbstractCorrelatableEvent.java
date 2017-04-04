@@ -23,26 +23,42 @@
 
 package com.microsoft.identity.client;
 
-/**
- * Internal telemetry data-container for the names of Events.
- */
-class EventName extends Telemetry.ValueTypeDef {
+import android.util.Pair;
 
-    static final EventName DEFAULT_EVENT = new EventName(EventConstants.EVENT_PREFIX + "default");
-    static final EventName API_EVENT = new EventName(EventConstants.EVENT_PREFIX + "api_event");
-    static final EventName AUTHORITY_VALIDATION_EVENT = new EventName(EventConstants.EVENT_PREFIX + "authority_validation");
-    static final EventName HTTP_EVENT = new EventName(EventConstants.EVENT_PREFIX + "http_event");
-    static final EventName UI_EVENT = new EventName(EventConstants.EVENT_PREFIX + "ui_event");
-    static final EventName TOKEN_CACHE_LOOKUP = new EventName(EventConstants.EVENT_PREFIX + "token_cache_lookup");
-    static final EventName TOKEN_CACHE_WRITE = new EventName(EventConstants.EVENT_PREFIX + "token_cache_write");
-    static final EventName TOKEN_CACHE_DELETE = new EventName(EventConstants.EVENT_PREFIX + "token_cache_delete");
+import java.util.UUID;
 
+abstract class AbstractCorrelatableEvent extends Event implements ICorrelatableEvent {
     /**
-     * Constructs a new EventName instance.
+     * Constructs a new Event.
      *
-     * @param value the name to use (as a String)
+     * @param builder the Builder instance for this Event.
      */
-    EventName(String value) {
-        super(value);
+    AbstractCorrelatableEvent(Builder builder) {
+        super(builder);
+    }
+
+    @Override
+    public void setCorrelationId(UUID correlationId) {
+        if (null != correlationId) {
+            setProperty(EventConstants.EventProperty.CORRELATION_ID, correlationId.toString());
+        }
+    }
+
+    @Override
+    public UUID getCorrelationId() {
+        UUID correlationId;
+        try {
+            correlationId = UUID.fromString(getProperty(EventConstants.EventProperty.CORRELATION_ID));
+        } catch (NullPointerException | IllegalArgumentException e) {
+            correlationId = null;
+        }
+        return correlationId;
+    }
+
+    public void clearCorrelationId() {
+        final UUID correlationId = getCorrelationId();
+        if (null != correlationId) {
+            remove(new Pair<>(EventConstants.EventProperty.CORRELATION_ID, correlationId.toString()));
+        }
     }
 }

@@ -33,7 +33,7 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 /**
  * Internal class for ApiEvent telemetry data.
  */
-final class ApiEvent extends Event implements IApiEvent {
+final class ApiEvent extends AbstractCorrelatableEvent implements IApiEvent {
 
     private static final String TAG = ApiEvent.class.getSimpleName();
 

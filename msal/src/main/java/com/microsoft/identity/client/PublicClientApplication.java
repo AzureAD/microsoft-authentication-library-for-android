@@ -88,8 +88,8 @@ public final class PublicClientApplication {
         loadMetaDataFromManifest();
 
         // Init Events with defaults (application-wide)
-        Event.initializeAllWithDefaults(
-                Event.EventDefaults.forApplication(mAppContext, mClientId)
+        DefaultEvent.initializeDefaults(
+                DefaultEvent.Defaults.forApplication(mAppContext, mClientId)
         );
 
         mRedirectUri = createRedirectUri(mClientId);

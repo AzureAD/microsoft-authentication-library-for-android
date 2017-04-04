@@ -91,10 +91,10 @@ public class TelemetryTest {
         List<Map<String, String>> result = captor.getValue();
 
         // verify results
-        Assert.assertEquals(result.size(), 1);
+        Assert.assertEquals(result.size(), 2);
 
-        // get the event entry
-        Map<String, String> eventData = result.get(0);
+        // get the event entry, pos[1] (since DefaultEvent is always first)
+        Map<String, String> eventData = result.get(1);
 
         // make sure it contains the correct event
         Assert.assertEquals(
@@ -133,10 +133,10 @@ public class TelemetryTest {
         List<Map<String, String>> result = captor.getValue();
 
         // verify results
-        Assert.assertEquals(result.size(), 1);
+        Assert.assertEquals(result.size(), 2);
 
-        // get the event entry
-        Map<String, String> eventData = result.get(0);
+        // get the event entry, pos[1] since DefaultEvent is always first
+        Map<String, String> eventData = result.get(1);
 
         // make sure it contains the correct event
         Assert.assertEquals(
@@ -217,7 +217,7 @@ public class TelemetryTest {
         List<Map<String, String>> result = captor2.getValue();
 
         // verify results
-        Assert.assertEquals(result.size(), 3);
+        Assert.assertEquals(result.size(), 4);
     }
 
     @Test
@@ -254,12 +254,12 @@ public class TelemetryTest {
         // retrive the value from the captor
         List<Map<String, String>> result = captor.getValue();
 
-        // verify results, should contain 3 events, one orphaned...
-        Assert.assertEquals(result.size(), 3);
+        // verify results, should contain 4 events, one orphaned...
+        Assert.assertEquals(result.size(), 4);
 
         boolean orphanedEventVerified = false;
         for (final Map<String, String> event : result) {
-            if (event.get(EventProperty.EVENT_NAME).equals(EventName.UI_EVENT.toString())) {
+            if (event.get(EventProperty.EVENT_NAME) != null && event.get(EventProperty.EVENT_NAME).equals(EventName.UI_EVENT.toString())) {
                 Assert.assertEquals(event.get(EventProperty.STOP_TIME), "-1");
                 orphanedEventVerified = true;
                 break;
