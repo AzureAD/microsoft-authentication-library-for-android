@@ -70,6 +70,15 @@ public final class LoggerTest {
         Logger.getInstance().setEnablePII(false);
     }
 
+    @Test (expected = IllegalStateException.class)
+    public void testLoggerOverride() {
+        Logger.getInstance().setExternalLogger(new ILogger() {
+            @Override
+            public void log(String tag, Logger.LogLevel logLevel, String message, boolean containsPII) {
+            }
+        });
+    }
+
     /**
      * Verify that if logger is turned on at verbose level, all level logs will be generated and sent to the external logger.
      */
