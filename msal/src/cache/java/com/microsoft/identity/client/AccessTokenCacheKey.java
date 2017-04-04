@@ -60,10 +60,10 @@ final class AccessTokenCacheKey extends TokenCacheKey<AccessTokenCacheItem> {
 
     public String toString() {
         final StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(MSALUtils.base64EncodeToString(mAuthority) + "$");
-        stringBuilder.append(MSALUtils.base64EncodeToString(mClientId) + "$");
+        stringBuilder.append(MSALUtils.base64UrlEncodeToString(mAuthority) + "$");
+        stringBuilder.append(MSALUtils.base64UrlEncodeToString(mClientId) + "$");
         // scope is treeSet to guarantee the order of the scopes when converting to string.
-        stringBuilder.append(MSALUtils.base64EncodeToString(MSALUtils.convertSetToString(mScope, " ")) + "$");
+        stringBuilder.append(MSALUtils.base64UrlEncodeToString(MSALUtils.convertSetToString(mScope, " ")) + "$");
         stringBuilder.append(mUserIdentifier);
 
         return stringBuilder.toString();

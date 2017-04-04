@@ -176,7 +176,7 @@ final class Oauth2Client {
         final Set<String> requestBodyEntries = new HashSet<>();
         final Set<Map.Entry<String, String>> bodyEntries = bodyParameters.entrySet();
         for (Map.Entry<String, String> bodyEntry : bodyEntries) {
-            requestBodyEntries.add(bodyEntry.getKey() + "=" + MSALUtils.urlEncode(bodyEntry.getValue()));
+            requestBodyEntries.add(bodyEntry.getKey() + "=" + MSALUtils.urlFormEncode(bodyEntry.getValue()));
         }
 
         final String requestMessage = requestBodyEntries.isEmpty() ? "" : MSALUtils.convertSetToString(requestBodyEntries, "&");

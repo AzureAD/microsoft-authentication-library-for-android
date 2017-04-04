@@ -335,8 +335,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                 final User user = authenticationResult.getUser();
                 try {
                     final IdToken idToken = new IdToken(AndroidTestUtil.TEST_IDTOKEN);
-                    assertTrue(user.getUid().equals(MSALUtils.urlEncode(idToken.getObjectId())));
-                    assertTrue(user.getUtid().equals(MSALUtils.urlEncode(idToken.getTenantId())));
+                    assertTrue(user.getUid().equals(MSALUtils.urlFormEncode(idToken.getObjectId())));
+                    assertTrue(user.getUtid().equals(MSALUtils.urlFormEncode(idToken.getTenantId())));
                 } catch (final MsalClientException |UnsupportedEncodingException e) {
                     fail();
                 } finally {
@@ -672,7 +672,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
             @Override
             String getFinalUrl() throws UnsupportedEncodingException {
-                return "?code=1234&state=" + Base64.encodeToString(MSALUtils.urlEncode(
+                return "?code=1234&state=" + Base64.encodeToString(MSALUtils.urlFormEncode(
                         MSALUtils.convertSetToString(getScopes(), " ")).getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
             }
         }.performTest();

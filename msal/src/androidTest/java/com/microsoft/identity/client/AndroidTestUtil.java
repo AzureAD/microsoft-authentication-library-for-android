@@ -153,8 +153,8 @@ public final class AndroidTestUtil {
     }
 
     static String encodeProtocolState(final String authority, final Set<String> scopes) throws UnsupportedEncodingException {
-        String state = String.format("a=%s&r=%s", MSALUtils.urlEncode(authority),
-                MSALUtils.urlEncode(MSALUtils.convertSetToString(scopes, " ")));
+        String state = String.format("a=%s&r=%s", MSALUtils.urlFormEncode(authority),
+                MSALUtils.urlFormEncode(MSALUtils.convertSetToString(scopes, " ")));
         return Base64.encodeToString(state.getBytes(Charset.forName("UTF-8")), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 

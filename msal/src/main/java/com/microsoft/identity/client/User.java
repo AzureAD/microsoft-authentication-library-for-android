@@ -45,7 +45,7 @@ public class User {
         mUtid = uTid;
     }
 
-    static User create(final IdToken idToken, final ClientInfo clientInfo) throws MsalClientException {
+    static User create(final IdToken idToken, final ClientInfo clientInfo) {
         final String uid;
         final String uTid;
         if (clientInfo == null) {

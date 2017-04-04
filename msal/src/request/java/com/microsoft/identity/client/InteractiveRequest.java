@@ -229,9 +229,9 @@ final class InteractiveRequest extends BaseRequest {
     }
 
     private String encodeProtocolState() throws UnsupportedEncodingException {
-        final String state = String.format("a=%s&r=%s", MSALUtils.urlEncode(
+        final String state = String.format("a=%s&r=%s", MSALUtils.urlFormEncode(
                 mAuthRequestParameters.getAuthority().getAuthority()),
-                MSALUtils.urlEncode(MSALUtils.convertSetToString(
+                MSALUtils.urlFormEncode(MSALUtils.convertSetToString(
                         mAuthRequestParameters.getScope(), " ")));
         return Base64.encodeToString(state.getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
     }
