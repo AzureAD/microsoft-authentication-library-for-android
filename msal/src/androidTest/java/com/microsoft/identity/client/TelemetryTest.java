@@ -42,10 +42,21 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 @RunWith(AndroidJUnit4.class)
 public class TelemetryTest {
 
+    private static final String sTestApplicationName = "test-application-name";
+    private static final String sTestApplicationVersion = "v1.0";
+    private static final String sTestApplicationClientId = "12345";
+    private static final String sTestApplicationDeviceId = "678910";
+
     private Telemetry mTestInstance;
 
     @Before
     public void setUp() {
+        final DefaultEvent.Defaults.Builder builder = new DefaultEvent.Defaults.Builder();
+        builder.setApplicationName(sTestApplicationName)
+                .setApplicationVersion(sTestApplicationVersion)
+                .setClientId(sTestApplicationClientId)
+                .setDeviceId(sTestApplicationDeviceId);
+        DefaultEvent.initializeDefaults(new DefaultEvent.Defaults(builder));
         mTestInstance = Telemetry.getTestInstance();
         Telemetry.disableForTest(false);
     }
@@ -64,6 +75,58 @@ public class TelemetryTest {
                 // no functionality needed
             }
         });
+    }
+
+    @Test
+    public void testContainsDefaultEvent() {
+        // mock out receiver object
+        final MsalEventReceiver mockReceiver = Mockito.mock(MsalEventReceiver.class);
+
+        // register it on the Telemetry instance
+        mTestInstance.registerReceiver(mockReceiver);
+
+        // create some Telemetry data
+        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+        final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder(requestId);
+        mTestInstance.startEvent(httpEventBuilder);
+        mTestInstance.stopEvent(httpEventBuilder.build());
+
+        // flush the data to the receiver
+        mTestInstance.flush(requestId);
+
+        // create a captor to 'catch' the results
+        final ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        Mockito.verify(mockReceiver, Mockito.only()).onEventsReceived(captor.capture());
+
+        // retrive the value from the captor
+        List<Map<String, String>> result = captor.getValue();
+
+        // verify results
+        Assert.assertEquals(result.size(), 2);
+
+        // get the event entry, pos[1] (since DefaultEvent is always first)
+        Map<String, String> eventData = result.get(0);
+
+        // make sure it contains the correct event
+        Assert.assertEquals(
+                sTestApplicationName,
+                eventData.get(EventProperty.APPLICATION_NAME)
+        );
+
+        Assert.assertEquals(
+                sTestApplicationVersion,
+                eventData.get(EventProperty.APPLICATION_VERSION)
+        );
+
+        Assert.assertEquals(
+                sTestApplicationClientId,
+                eventData.get(EventProperty.CLIENT_ID)
+        );
+
+        Assert.assertEquals(
+                sTestApplicationDeviceId,
+                eventData.get(EventProperty.DEVICE_ID)
+        );
     }
 
     @Test

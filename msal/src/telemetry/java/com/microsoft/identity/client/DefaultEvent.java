@@ -110,7 +110,7 @@ class DefaultEvent extends AbstractCorrelatableEvent implements IDefaultEvent {
          *
          * @param builder the Builder to use in this construction.
          */
-        private Defaults(final Builder builder) {
+        Defaults(final Builder builder) {
             mApplicationName = builder.mApplicationName;
             mApplicationVersion = builder.mApplicationVersion;
             mClientId = builder.mClientId;
