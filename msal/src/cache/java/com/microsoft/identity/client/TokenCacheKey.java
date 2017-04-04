@@ -26,7 +26,7 @@ package com.microsoft.identity.client;
 import java.util.Locale;
 
 /**
- * Object used to group the all the conditions to lookup into token cache.
+ * Object used to group the all the conditions to lookup into token cache. Base token cache key class.
  */
 abstract class TokenCacheKey<T extends BaseTokenCacheItem> {
     final String mClientId;

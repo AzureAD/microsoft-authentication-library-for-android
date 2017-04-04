@@ -368,7 +368,8 @@ public final class SilentRequestTest extends AndroidTestCase {
             InterruptedException, IOException {
         final String singleScope = "scope1";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
-                TokenCacheTest.getTokenResponseForDifferentUser(singleScope, AndroidTestUtil.getValidExpiresOn(), TokenCacheTest.getClientInfoForDifferentUser()));
+                TokenCacheTest.getTokenResponseForDifferentUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn(),
+                        TokenCacheTest.getClientInfoForDifferentUser()));
 
         final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope)), false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);

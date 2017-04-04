@@ -125,7 +125,7 @@ public final class PublicClientApplication {
      * @throws MsalClientException If failed to retrieve users from the cache.
      */
     public List<User> getUsers() throws MsalClientException {
-        return mTokenCache.getUsers(mClientId);
+        return mTokenCache.getUsers(mAuthority.getAuthorityHost(), mClientId);
     }
 
     /**

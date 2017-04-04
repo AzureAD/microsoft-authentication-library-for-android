@@ -187,13 +187,13 @@ public final class AndroidTestUtil {
     }
 
     static List<AccessTokenCacheItem> getAllAccessTokens(final Context appContext) {
-        final TokenCacheAccessor accessor = new TokenCacheAccessor(appContext);
-        return accessor.getAllAccessTokens();
+        final TokenCache tokenCache = new TokenCache(appContext);
+        return tokenCache.getAllAccessTokens();
     }
 
     static List<RefreshTokenCacheItem> getAllRefreshTokens(final Context appContext) {
-        final TokenCacheAccessor accessor = new TokenCacheAccessor(appContext);
-        return accessor.getAllRefreshTokens();
+        final TokenCache tokenCache = new TokenCache(appContext);
+        return tokenCache.getAllRefreshTokens();
     }
 
     static String getRawIdToken(final String displaybleId, final String uniqueId, final String tenantId) {

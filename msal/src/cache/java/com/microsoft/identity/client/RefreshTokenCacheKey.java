@@ -59,6 +59,6 @@ final class RefreshTokenCacheKey extends TokenCacheKey<RefreshTokenCacheItem> {
     public boolean matches(final RefreshTokenCacheItem item) {
         return mEnvironment.equalsIgnoreCase(item.getEnvironment())
                 && mClientId.equalsIgnoreCase(item.getClientId())
-                && mUserIdentifier.equalsIgnoreCase(item.getUserIdentifier());
+                && mUserIdentifier.equals(item.getUserIdentifier());
     }
 }

@@ -28,13 +28,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -49,12 +43,6 @@ final class TokenCacheAccessor {
     private final Context mContext;
     private final SharedPreferences mAccessTokenSharedPreference;
     private final SharedPreferences mRefreshTokenSharedPreference;
-
-    private Gson mGson = new GsonBuilder()
-            .registerTypeAdapter(Date.class, new DateTimeAdapter())
-            .registerTypeAdapter(AccessTokenCacheItem.class, new TokenCacheItemDeserializer<AccessTokenCacheItem>())
-            .registerTypeAdapter(RefreshTokenCacheItem.class, new TokenCacheItemDeserializer<RefreshTokenCacheItem>())
-            .create();
 
     /**
      * Constructor for {@link TokenCacheAccessor}. Access token and refresh token will be stored separately.
@@ -80,146 +68,69 @@ final class TokenCacheAccessor {
     /**
      * When storing access token, the key needs to be a strict match.
      */
-    void saveAccessToken(final AccessTokenCacheItem accessToken) {
-        final TokenCacheKey key = accessToken.extractTokenCacheKey();
+    void saveAccessToken(final String accessTokenCacheKey, final String accessTokenItem) {
+        // there shouldn't be any case that this method is called with null/empty key or item
+        if (MSALUtils.isEmpty(accessTokenCacheKey) || MSALUtils.isEmpty(accessTokenItem)) {
+            throw new IllegalArgumentException("accessTokenCacheKey/accessTokenItem empty or null");
+        }
 
         final Editor editor = mAccessTokenSharedPreference.edit();
-        editor.putString(key.toString(), mGson.toJson(accessToken));
+        editor.putString(accessTokenCacheKey, accessTokenItem);
         editor.apply();
 
         Logger.verbose(TAG, null, "Access token is saved into cache.");
-        Logger.verbosePII(TAG, null, "Access token is saved with key: " + key);
+        Logger.verbosePII(TAG, null, "Access token is saved with key: " + accessTokenCacheKey);
     }
 
     /**
      * Save the refresh token item.
      */
-    void saveRefreshToken(final RefreshTokenCacheItem refreshToken) {
-        if (refreshToken == null) {
-            Logger.warning(TAG, null, "Refresh token is null, cannot save.");
-            return;
+    void saveRefreshToken(final String refreshTokenCacheKey, final String refreshTokenItem) {
+        // there shouldn't be any case that this method is called with null/empty key or item
+        if (MSALUtils.isEmpty(refreshTokenCacheKey) || MSALUtils.isEmpty(refreshTokenItem)) {
+            throw new IllegalArgumentException("refreshTokenCacheKey/refreshTokenItem empty or null");
         }
 
-        final TokenCacheKey key = refreshToken.extractTokenCacheKey();
-
         final Editor editor = mRefreshTokenSharedPreference.edit();
-        editor.putString(key.toString(), mGson.toJson(refreshToken));
+        editor.putString(refreshTokenCacheKey, refreshTokenItem);
         editor.apply();
 
         Logger.verbose(TAG, null, "Refresh token is successfully saved into cache.");
-        Logger.verbosePII(TAG, null, "Refresh token is saved with key: " + key);
+        Logger.verbosePII(TAG, null, "Refresh token is saved with key: " + refreshTokenCacheKey);
     }
 
-    /**
-     * For refresh token item, all the RTs are multi-scope. If authority, clientid, and user (if applicable)
-     * are matched, try to use the RT.
-     * @param tokenCacheKey The {@link TokenCacheKey} that is used to find refresh tokens.
-     * @return The List of refresh tokens matching the given key.
-     */
-    List<RefreshTokenCacheItem> getRefreshToken(final RefreshTokenCacheKey tokenCacheKey) {
-        final Map<String, String> refreshTokens = (Map<String, String>) mRefreshTokenSharedPreference.getAll();
-        final List<RefreshTokenCacheItem> foundRTs = new ArrayList<>();
-        for (final String refreshTokenValue : refreshTokens.values()) {
-            final RefreshTokenCacheItem refreshTokenCacheItem = mGson.fromJson(refreshTokenValue, RefreshTokenCacheItem.class);
-            if (tokenCacheKey.matches(refreshTokenCacheItem)) {
-                foundRTs.add(refreshTokenCacheItem);
-            }
-        }
-
-        Logger.verbose(TAG, null, "Retrieve refresh tokens for the given cache key");
-        Logger.verbosePII(TAG, null, "Key used to retrieve refresh tokens is: " + tokenCacheKey);
-        return foundRTs;
-    }
-
-    void deleteAccessToken(final AccessTokenCacheItem atItem) {
-        if (atItem == null) {
-            Logger.warning(TAG, null, "AccessTokenCacheItem is null, no need to delete.");
-            return;
-        }
-
-        final String key = atItem.extractTokenCacheKey().toString();
+    void deleteAccessToken(final String accessTokenKey) {
         final Editor editor = mAccessTokenSharedPreference.edit();
-        editor.remove(key);
+        editor.remove(accessTokenKey);
         editor.apply();
     }
 
     /**
      * Delete the refresh token item.
-     * @param rtItem The {@link BaseTokenCacheItem} to remove.
+     * @param refreshTokenCacheKey The string value of the refresh token cache item key to remove.
      */
-    void deleteRefreshToken(final RefreshTokenCacheItem rtItem) {
-        if (rtItem == null) {
-            Logger.warning(TAG, null, "Null refresh token item is passed.");
-            return;
-        }
-
-        final String key = rtItem.extractTokenCacheKey().toString();
+    void deleteRefreshToken(final String refreshTokenCacheKey) {
         Logger.verbose(TAG, null, "Remove the given refresh token item.");
-        Logger.verbosePII(TAG, null, "Refresh token is deleted with key: " + key);
+        Logger.verbosePII(TAG, null, "Refresh token is deleted with key: " + refreshTokenCacheKey);
 
         final Editor editor = mRefreshTokenSharedPreference.edit();
-        editor.remove(key);
+        editor.remove(refreshTokenCacheKey);
         editor.apply();
     }
 
     /**
      * @return Immutable List of all the {@link AccessTokenCacheItem}s.
      */
-    List<AccessTokenCacheItem> getAllAccessTokens() {
+    Collection<String> getAllAccessTokens() {
         final Map<String, String> allAT = (Map<String, String>) mAccessTokenSharedPreference.getAll();
-        final List<AccessTokenCacheItem> accessTokenCacheItems = new ArrayList<>(allAT.size());
-        for (final String accessTokenValue : allAT.values()) {
-            final AccessTokenCacheItem accessTokenCacheItem = mGson.fromJson(accessTokenValue, AccessTokenCacheItem.class);
-            accessTokenCacheItems.add(accessTokenCacheItem);
-        }
-
-        Logger.verbose(TAG, null, "Retrieve all the access tokens from cache, the number of access tokens returned is: " + accessTokenCacheItems.size());
-        return Collections.unmodifiableList(accessTokenCacheItems);
+        return allAT.values();
     }
 
     /**
      * @return Immutable List of all the {@link RefreshTokenCacheItem}s.
      */
-    List<RefreshTokenCacheItem> getAllRefreshTokens() {
+    Collection<String> getAllRefreshTokens() {
         final Map<String, String> allRTs = (Map<String, String>) mRefreshTokenSharedPreference.getAll();
-        final List<RefreshTokenCacheItem> refreshTokenCacheItems = new ArrayList<>(allRTs.size());
-        for (final String rtValue : allRTs.values()) {
-            final RefreshTokenCacheItem refreshTokenCacheItem = mGson.fromJson(rtValue, RefreshTokenCacheItem.class);
-            refreshTokenCacheItems.add(refreshTokenCacheItem);
-        }
-
-        Logger.verbose(TAG, null, "Retrieve all the refresh tokens, the number of refresh tokens returned is: " + refreshTokenCacheItems.size());
-        return Collections.unmodifiableList(refreshTokenCacheItems);
-    }
-
-    /**
-     *
-     * @param clientId The client id to query the refresh token.
-     * @return Immutable List of the {@link RefreshTokenCacheItem}s matching the given client id.
-     */
-    List<RefreshTokenCacheItem> getAllRefreshTokensForGivenClientId(final String clientId) {
-        final List<RefreshTokenCacheItem> allRTs = getAllRefreshTokens();
-
-        final List<RefreshTokenCacheItem> allRTsForApp = new ArrayList<>(allRTs.size());
-        for (final RefreshTokenCacheItem refreshTokenCacheItem : allRTs) {
-            if (clientId.equals(refreshTokenCacheItem.getClientId())) {
-                allRTsForApp.add(refreshTokenCacheItem);
-            }
-        }
-
-        Logger.verbose(TAG, null, "Retrieve all the refresh tokens for given client id: " + clientId + "; Returned refresh token number is " + allRTsForApp.size());
-        return Collections.unmodifiableList(allRTsForApp);
-    }
-
-    List<AccessTokenCacheItem> getAllAccessTokensForGivenClientId(final String clientId) {
-        final List<AccessTokenCacheItem> allATs = getAllAccessTokens();
-        final List<AccessTokenCacheItem> allATsForApp = new ArrayList<>(allATs.size());
-        for (final AccessTokenCacheItem accessTokenCacheItem : allATs) {
-            if (clientId.equals(accessTokenCacheItem.getClientId())) {
-                allATsForApp.add(accessTokenCacheItem);
-            }
-        }
-
-        return Collections.unmodifiableList(allATsForApp);
+        return allRTs.values();
     }
 }

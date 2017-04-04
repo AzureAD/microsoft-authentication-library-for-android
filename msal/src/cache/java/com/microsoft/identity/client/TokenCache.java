@@ -25,8 +25,12 @@ package com.microsoft.identity.client;
 
 import android.content.Context;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -41,6 +45,12 @@ class TokenCache {
 
     private static final int DEFAULT_EXPIRATION_BUFFER = 300;
     private final TokenCacheAccessor mTokenCacheAccessor;
+
+    private Gson mGson = new GsonBuilder()
+            .registerTypeAdapter(Date.class, new DateTimeAdapter())
+            .registerTypeAdapter(AccessTokenCacheItem.class, new TokenCacheItemDeserializer<AccessTokenCacheItem>())
+            .registerTypeAdapter(RefreshTokenCacheItem.class, new TokenCacheItemDeserializer<RefreshTokenCacheItem>())
+            .create();
 
     /**
      * Constructor for {@link TokenCache}.
@@ -63,15 +73,15 @@ class TokenCache {
         final AccessTokenCacheKey accessTokenCacheKey = newAccessToken.extractTokenCacheKey();
 
         // check for intersection and delete all the cache entries with intersecting scopes.
-        final List<AccessTokenCacheItem> accessTokenCacheItems = mTokenCacheAccessor.getAllAccessTokensForGivenClientId(clientId);
+        final List<AccessTokenCacheItem> accessTokenCacheItems = getAllAccessTokensForApp(clientId);
         for (final AccessTokenCacheItem accessTokenCacheItem : accessTokenCacheItems) {
             if (accessTokenCacheKey.matches(accessTokenCacheItem) && MSALUtils.isScopeIntersects(newAccessToken.getScope(),
                     accessTokenCacheItem.getScope())) {
-                mTokenCacheAccessor.deleteAccessToken(accessTokenCacheItem);
+                mTokenCacheAccessor.deleteAccessToken(accessTokenCacheItem.extractTokenCacheKey().toString());
             }
         }
 
-        mTokenCacheAccessor.saveAccessToken(newAccessToken);
+        mTokenCacheAccessor.saveAccessToken(newAccessToken.extractTokenCacheKey().toString(), mGson.toJson(newAccessToken));
         return newAccessToken;
     }
 
@@ -84,7 +94,7 @@ class TokenCache {
             Logger.info(TAG, null, "Starting to save refresh token into cache. Refresh token will be saved with authority: " + authorityHost
                     + "; Client Id: " + clientId);
             final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(authorityHost, clientId, response);
-            mTokenCacheAccessor.saveRefreshToken(refreshTokenCacheItem);
+            mTokenCacheAccessor.saveRefreshToken(refreshTokenCacheItem.extractTokenCacheKey().toString(), mGson.toJson(refreshTokenCacheItem));
         }
     }
 
@@ -99,7 +109,7 @@ class TokenCache {
     AccessTokenCacheItem findAccessToken(final AuthenticationRequestParameters requestParam, final User user) {
         final AccessTokenCacheKey key = AccessTokenCacheKey.createTokenCacheKey(requestParam.getAuthority().getAuthority(),
                 requestParam.getClientId(), requestParam.getScope(), user);
-        final List<AccessTokenCacheItem> accessTokenCacheItems = getAccessToken(key);
+        final List<AccessTokenCacheItem> accessTokenCacheItems = getAccessTokens(key);
 
         if (accessTokenCacheItems.isEmpty()) {
             Logger.info(TAG, requestParam.getRequestContext(), "No access is found for scopes: "
@@ -130,29 +140,10 @@ class TokenCache {
         return null;
     }
 
-    /**
-     * For access token item, authority, clientid, user home oid(if applicable) has to be matched. If user
-     * is provided, it also has to be matched. Scope in the cached access token item has to be the exact same with the
-     * scopes in the lookup key.
-     */
-    List<AccessTokenCacheItem> getAccessToken(final AccessTokenCacheKey tokenCacheKey) {
-        final List<AccessTokenCacheItem> accessTokens = mTokenCacheAccessor.getAllAccessTokens();
-        final List<AccessTokenCacheItem> foundATs = new ArrayList<>();
-        for (final AccessTokenCacheItem accessTokenCacheItem : accessTokens) {
-            if (tokenCacheKey.matches(accessTokenCacheItem) && accessTokenCacheItem.getScope().containsAll(tokenCacheKey.getScope())) {
-                foundATs.add(accessTokenCacheItem);
-            }
-        }
-
-        Logger.verbose(TAG, null, "Retrieve access tokens for the given cache key.");
-        Logger.verbosePII(TAG, null, "Key used to retrieve access tokens is: " + tokenCacheKey);
-        return foundATs;
-    }
-
     // All the token AAD returns are multi-scopes. MSAL only support ADFS 2016, which issues multi-scope RT.
     RefreshTokenCacheItem findRefreshToken(final AuthenticationRequestParameters requestParam, final User user) throws MsalClientException {
         final RefreshTokenCacheKey key = RefreshTokenCacheKey.createTokenCacheKey(requestParam.getAuthority().getAuthorityHost(), requestParam.getClientId(), user);
-        final List<RefreshTokenCacheItem> refreshTokenCacheItems = mTokenCacheAccessor.getRefreshToken(key);
+        final List<RefreshTokenCacheItem> refreshTokenCacheItems = getRefreshTokens(key);
 
         if (refreshTokenCacheItems.size() == 0) {
             Logger.info(TAG, requestParam.getRequestContext(), "No RT was found for the given user.");
@@ -177,7 +168,13 @@ class TokenCache {
      */
     void deleteRT(final RefreshTokenCacheItem rtItem) {
         Logger.info(TAG, null, "Removing refresh tokens from the cache.");
-        mTokenCacheAccessor.deleteRefreshToken(rtItem);
+
+        if (rtItem == null) {
+            Logger.warning(TAG, null, "Null refresh token item is passed.");
+            return;
+        }
+
+        mTokenCacheAccessor.deleteRefreshToken(rtItem.extractTokenCacheKey().toString());
     }
 
     /**
@@ -186,17 +183,19 @@ class TokenCache {
      * @param clientId The application client id that is used to retrieve for all the signed in users.
      * @return The list of signed in users for the given client id.
      */
-    List<User> getUsers(final String clientId) throws MsalClientException {
+    List<User> getUsers(final String environment, final String clientId) throws MsalClientException {
         if (MSALUtils.isEmpty(clientId)) {
             throw new IllegalArgumentException("empty or null clientId");
         }
 
         Logger.verbose(TAG, null, "Retrieve users with the given client id: " + clientId);
-        final List<RefreshTokenCacheItem> allRefreshTokens = mTokenCacheAccessor.getAllRefreshTokensForGivenClientId(clientId);
+        final List<RefreshTokenCacheItem> allRefreshTokensForApp = getAllRefreshTokenForApp(clientId);
         final Map<String, User> allUsers = new HashMap<>();
-        for (final RefreshTokenCacheItem item : allRefreshTokens) {
-            final User user = item.getUser();
-            allUsers.put(item.getUserIdentifier(), user);
+        for (final RefreshTokenCacheItem item : allRefreshTokensForApp) {
+            if (environment.equalsIgnoreCase(item.getEnvironment())) {
+                final User user = item.getUser();
+                allUsers.put(item.getUserIdentifier(), user);
+            }
         }
 
         return Collections.unmodifiableList(new ArrayList<>(allUsers.values()));
@@ -251,11 +250,12 @@ class TokenCache {
     void deleteRefreshTokenByUser(final User user) {
         deleteTokenByUser(
                 user,
-                mTokenCacheAccessor.getAllRefreshTokens(),
+                getAllRefreshTokens(),
                 new DeleteTokenAction() {
                     @Override
                     public void deleteToken(final BaseTokenCacheItem target) {
-                        mTokenCacheAccessor.deleteRefreshToken((RefreshTokenCacheItem) target);
+                        final RefreshTokenCacheItem refreshTokenCacheItem = (RefreshTokenCacheItem) target;
+                        mTokenCacheAccessor.deleteRefreshToken(refreshTokenCacheItem.extractTokenCacheKey().toString());
                     }
                 });
     }
@@ -268,12 +268,122 @@ class TokenCache {
     void deleteAccessTokenByUser(final User user) {
         deleteTokenByUser(
                 user,
-                mTokenCacheAccessor.getAllAccessTokens(),
+                getAllAccessTokens(),
                 new DeleteTokenAction() {
                     @Override
                     public void deleteToken(final BaseTokenCacheItem target) {
-                        mTokenCacheAccessor.deleteAccessToken((AccessTokenCacheItem) target);
+                        final AccessTokenCacheItem accessTokenCacheItem = (AccessTokenCacheItem) target;
+                        mTokenCacheAccessor.deleteAccessToken(accessTokenCacheItem.extractTokenCacheKey().toString());
                     }
                 });
+    }
+
+    /**
+     * @return List of all {@link RefreshTokenCacheItem}s that exist in the cache.
+     */
+    List<RefreshTokenCacheItem> getAllRefreshTokens() {
+        final Collection<String> refreshTokensAsString = mTokenCacheAccessor.getAllRefreshTokens();
+        if (refreshTokensAsString == null) {
+            Logger.verbose(TAG, null, "No refresh tokens existed in the token cache.");
+            return Collections.emptyList();
+        }
+
+        final List<RefreshTokenCacheItem> refreshTokenCacheItems = new ArrayList<>(refreshTokensAsString.size());
+        for (final String refreshTokenAsString : refreshTokensAsString) {
+            final RefreshTokenCacheItem refreshTokenCacheItem = mGson.fromJson(refreshTokenAsString, RefreshTokenCacheItem.class);
+            refreshTokenCacheItems.add(refreshTokenCacheItem);
+        }
+
+        return refreshTokenCacheItems;
+    }
+
+    /**
+     * @return List of all {@link AccessTokenCacheItem}s that exist in the cache.
+     */
+    List<AccessTokenCacheItem> getAllAccessTokens(){
+        final Collection<String> accessTokensAsString = mTokenCacheAccessor.getAllAccessTokens();
+        if (accessTokensAsString == null) {
+            Logger.verbose(TAG, null, "No access tokens existed in the token cache.");
+            return Collections.emptyList();
+        }
+
+        final List<AccessTokenCacheItem> accessTokenCacheItems = new ArrayList<>(accessTokensAsString.size());
+        for (final String accessTokenString : accessTokensAsString) {
+            final AccessTokenCacheItem accessTokenCacheItem = mGson.fromJson(accessTokenString, AccessTokenCacheItem.class);
+            accessTokenCacheItems.add(accessTokenCacheItem);
+        }
+
+        return accessTokenCacheItems;
+    }
+
+    /**
+     * @param clientId Client id that is used to filter all {@link RefreshTokenCacheItem}s that exist in the cache.
+     * @return The unmodifiable List of {@link RefreshTokenCacheItem}s that match the given client id.
+     */
+   private  List<RefreshTokenCacheItem> getAllRefreshTokenForApp(final String clientId) {
+        final List<RefreshTokenCacheItem> allRTs = getAllRefreshTokens();
+
+        final List<RefreshTokenCacheItem> allRTsForApp = new ArrayList<>(allRTs.size());
+        for (final RefreshTokenCacheItem refreshTokenCacheItem : allRTs) {
+            if (clientId.equalsIgnoreCase(refreshTokenCacheItem.getClientId())) {
+                allRTsForApp.add(refreshTokenCacheItem);
+            }
+        }
+
+        Logger.verbose(TAG, null, "Retrieve all the refresh tokens for given client id: " + clientId + "; Returned refresh token number is " + allRTsForApp.size());
+        return Collections.unmodifiableList(allRTsForApp);
+    }
+
+    /**
+     * @param clientId Client id that is used to filter all {@link AccessTokenCacheItem}s that exist in the cache.
+     * @return The unmodifiable List of {@link AccessTokenCacheItem}s that match the given client id.
+     */
+    private List<AccessTokenCacheItem> getAllAccessTokensForApp(final String clientId) {
+        final List<AccessTokenCacheItem> allATs = getAllAccessTokens();
+        final List<AccessTokenCacheItem> allATsForApp = new ArrayList<>(allATs.size());
+        for (final AccessTokenCacheItem accessTokenCacheItem : allATs) {
+            if (clientId.equalsIgnoreCase(accessTokenCacheItem.getClientId())) {
+                allATsForApp.add(accessTokenCacheItem);
+            }
+        }
+
+        return Collections.unmodifiableList(allATsForApp);
+    }
+
+    /**
+     * Look up refresh tokens with the given {@link RefreshTokenCacheKey}. Refresh token item has to match environment,
+     * client id and user identifier.
+     */
+    private List<RefreshTokenCacheItem> getRefreshTokens(final RefreshTokenCacheKey refreshTokenCacheKey) {
+        final List<RefreshTokenCacheItem> allRTs = getAllRefreshTokens();
+
+        final List<RefreshTokenCacheItem> foundRTs = new ArrayList<>();
+        for (final RefreshTokenCacheItem refreshTokenCacheItem : allRTs) {
+            if (refreshTokenCacheKey.matches(refreshTokenCacheItem)) {
+                foundRTs.add(refreshTokenCacheItem);
+            }
+        }
+
+        Logger.verbose(TAG, null, "Retrieve refresh tokens for the given cache key");
+        Logger.verbosePII(TAG, null, "Key used to retrieve refresh tokens is: " + refreshTokenCacheKey.toString());
+        return foundRTs;
+    }
+
+    /**
+     * For access token item, authority, clientid, user identifier has to be matched. Scopes in the item has to contain all
+     * the scopes in the key.
+     */
+    private List<AccessTokenCacheItem> getAccessTokens(final AccessTokenCacheKey tokenCacheKey) {
+        final List<AccessTokenCacheItem> accessTokens = getAllAccessTokens();
+        final List<AccessTokenCacheItem> foundATs = new ArrayList<>();
+        for (final AccessTokenCacheItem accessTokenCacheItem : accessTokens) {
+            if (tokenCacheKey.matches(accessTokenCacheItem) && accessTokenCacheItem.getScope().containsAll(tokenCacheKey.getScope())) {
+                foundATs.add(accessTokenCacheItem);
+            }
+        }
+
+        Logger.verbose(TAG, null, "Retrieve access tokens for the given cache key.");
+        Logger.verbosePII(TAG, null, "Key used to retrieve access tokens is: " + tokenCacheKey);
+        return foundATs;
     }
 }
