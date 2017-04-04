@@ -83,14 +83,14 @@ public final class MSALUtilTest {
 
     @Test
     public void testEmptyEncodeDecodeString() throws UnsupportedEncodingException {
-        Assert.assertTrue(MSALUtils.urlEncode("").equals(""));
-        Assert.assertTrue(MSALUtils.urlDecode("").equals(""));
+        Assert.assertTrue(MSALUtils.urlFormEncode("").equals(""));
+        Assert.assertTrue(MSALUtils.urlFormDecode("").equals(""));
     }
 
     @Test
     public void testEncodeDecodeString() throws UnsupportedEncodingException {
-        Assert.assertTrue(MSALUtils.urlEncode("1 $%&=").equals("1+%24%25%26%3D"));
-        Assert.assertTrue(MSALUtils.urlDecode("+%24%25%26%3D").equals(" $%&="));
+        Assert.assertTrue(MSALUtils.urlFormEncode("1 $%&=").equals("1+%24%25%26%3D"));
+        Assert.assertTrue(MSALUtils.urlFormDecode("+%24%25%26%3D").equals(" $%&="));
     }
 
     @Test
@@ -314,10 +314,10 @@ public final class MSALUtilTest {
     @Test
     public void testBase64Encode() {
         String stringToEncode = "a+b@c.com";
-        Assert.assertTrue(base64Decode(MSALUtils.base64EncodeToString(stringToEncode)).equals(stringToEncode));
+        Assert.assertTrue(base64Decode(MSALUtils.base64UrlEncodeToString(stringToEncode)).equals(stringToEncode));
 
         stringToEncode = "a$c@b.com";
-        Assert.assertTrue(base64Decode(MSALUtils.base64EncodeToString(stringToEncode)).equals(stringToEncode));
+        Assert.assertTrue(base64Decode(MSALUtils.base64UrlEncodeToString(stringToEncode)).equals(stringToEncode));
     }
 
     private String base64Decode(final String encodedString) {

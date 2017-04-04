@@ -41,7 +41,9 @@ final class ClientInfo {
 
     ClientInfo(final String rawClientInfo) throws MsalClientException {
         if (MSALUtils.isEmpty(rawClientInfo)) {
-            throw new MsalClientException(MSALError.JSON_PARSE_FAILURE, "Returned client_info is empty or null, unable to parse it.");
+            mUniqueIdentifier = "";
+            mUniqueTenantIdentifier = "";
+            return;
         }
 
         // decode the client info first

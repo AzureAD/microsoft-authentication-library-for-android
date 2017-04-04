@@ -61,6 +61,9 @@ public final class AndroidTestUtil {
     static final String ACCESS_TOKEN = "access_token";
     static final String REFRESH_TOKEN = "refresh_token";
 
+    static final String UID = "user-uid";
+    static final String UTID = "adbc-user-tenantid";
+
     /**
      * Private to prevent util class from being initiated.
      */
@@ -80,13 +83,12 @@ public final class AndroidTestUtil {
 
     static String createIdToken(final String audience, final String issuer, final String name,
                                 final String objectId, final String preferredName,
-                                final String subject, final String tenantId, final String version,
-                                final String homeObjectId) {
+                                final String subject, final String tenantId, final String version) {
         final String idTokenHeader = "{\"typ\":\"JWT\",\"alg\":\"RS256\"}";
         final String claims = "{\"aud\":\"" + audience + "\",\"iss\":\"" + issuer
                 + "\",\"ver\":\"" + version + "\",\"tid\":\"" + tenantId + "\",\"oid\":\"" + objectId
                 + "\",\"preferred_username\":\"" + preferredName + "\",\"sub\":\"" + subject
-                + "\",\"home_oid\":\"" + homeObjectId + "\",\"name\":\"" + name + "\"}";
+                + "\",\"name\":\"" + name + "\"}";
 
         return String.format("%s.%s.", new String(Base64.encode(idTokenHeader.getBytes(
                 Charset.forName(MSALUtils.ENCODING_UTF8)), Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE)),
@@ -123,11 +125,17 @@ public final class AndroidTestUtil {
         return tokenResponse;
     }
 
-    static String getSuccessResponse(final String idToken, final String accessToken, final String scopes) {
-        final String tokenResponse = "{\"id_token\":\""
+    static String getSuccessResponse(final String idToken, final String accessToken, final String scopes, final String clientInfo) {
+        String tokenResponse = "{\"id_token\":\""
                 + idToken
                 + "\",\"access_token\":\"" + accessToken + "\", \"token_type\":\"Bearer\",\"refresh_token\":\"" + REFRESH_TOKEN + "\","
-                + "\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\"" + scopes + "\"}";
+                + "\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\"" + scopes + "\""; //}";
+        if (!MSALUtils.isEmpty(clientInfo)) {
+            tokenResponse += ",\"client_info\":\"" + clientInfo + "\"";
+        }
+
+        tokenResponse += "}";
+
         return tokenResponse;
     }
 
@@ -145,8 +153,8 @@ public final class AndroidTestUtil {
     }
 
     static String encodeProtocolState(final String authority, final Set<String> scopes) throws UnsupportedEncodingException {
-        String state = String.format("a=%s&r=%s", MSALUtils.urlEncode(authority),
-                MSALUtils.urlEncode(MSALUtils.convertSetToString(scopes, " ")));
+        String state = String.format("a=%s&r=%s", MSALUtils.urlFormEncode(authority),
+                MSALUtils.urlFormEncode(MSALUtils.convertSetToString(scopes, " ")));
         return Base64.encodeToString(state.getBytes(Charset.forName("UTF-8")), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 
@@ -179,18 +187,18 @@ public final class AndroidTestUtil {
     }
 
     static List<AccessTokenCacheItem> getAllAccessTokens(final Context appContext) {
-        final TokenCacheAccessor accessor = new TokenCacheAccessor(appContext);
-        return accessor.getAllAccessTokens();
+        final TokenCache tokenCache = new TokenCache(appContext);
+        return tokenCache.getAllAccessTokens();
     }
 
     static List<RefreshTokenCacheItem> getAllRefreshTokens(final Context appContext) {
-        final TokenCacheAccessor accessor = new TokenCacheAccessor(appContext);
-        return accessor.getAllRefreshTokens();
+        final TokenCache tokenCache = new TokenCache(appContext);
+        return tokenCache.getAllRefreshTokens();
     }
 
-    static String getRawIdToken(final String displaybleId, final String uniqueId, final String homeOID) {
-        return AndroidTestUtil.createIdToken(AUDIENCE, ISSUER, NAME, uniqueId, displaybleId, SUBJECT, TENANT_ID,
-                VERSION, homeOID);
+    static String getRawIdToken(final String displaybleId, final String uniqueId, final String tenantId) {
+        return AndroidTestUtil.createIdToken(AUDIENCE, ISSUER, NAME, uniqueId, displaybleId, SUBJECT, tenantId,
+                VERSION);
     }
 
     static SharedPreferences getAccessTokenSharedPreference(final Context appContext) {

@@ -48,23 +48,30 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
     @SerializedName("token_type")
     final String mTokenType;
 
+    @SerializedName("id_token")
+    final String mRawIdToken;
+
     /**
      * Constructor for creating the {@link AccessTokenCacheItem}.
      */
     AccessTokenCacheItem(final String authority, final String clientId, final TokenResponse response)
             throws MsalClientException {
-        super(clientId, response);
+        super(clientId,response.getRawClientInfo());
 
         mAuthority = authority;
         mAccessToken = response.getAccessToken();
         mExpiresOn = response.getExpiresOn();
         mScope = response.getScope();
         mTokenType = response.getTokenType();
+        mRawIdToken = response.getRawIdToken();
+
+        final IdToken idToken = new IdToken(mRawIdToken);
+        mUser = User.create(idToken, new ClientInfo(mRawClientInfo));
     }
 
     @Override
-    TokenCacheKey extractTokenCacheKey() {
-        return TokenCacheKey.createKeyForAT(mAuthority, mClientId, MSALUtils.getScopesAsSet(mScope), mUser);
+    AccessTokenCacheKey extractTokenCacheKey() {
+        return AccessTokenCacheKey.createTokenCacheKey(mAuthority, mClientId, MSALUtils.getScopesAsSet(mScope), mUser);
     }
 
     /**
@@ -91,8 +98,8 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
     /**
      * @return The tenant id.
      */
-    String getTenantId() {
-        return mIdToken != null ? mIdToken.getTenantId() : "";
+    String getTenantId() throws MsalClientException {
+        return getIdToken().getTenantId();
     }
 
     /**
@@ -107,5 +114,20 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
      */
     String getTokenType() {
         return mTokenType;
+    }
+
+    /**
+     * @return The raw id token.
+     */
+    String getRawIdToken() {
+        return mRawIdToken;
+    }
+
+    String getRawClientInfo() {
+        return mRawClientInfo;
+    }
+
+    private IdToken getIdToken() throws MsalClientException {
+        return new IdToken(mRawIdToken);
     }
 }

@@ -37,12 +37,9 @@ public final class ClientInfoTest {
 
     @Test
     public void testEmptyClientInfo() throws MsalException {
-        try {
-            new ClientInfo("");
-            Assert.fail();
-        } catch (final MsalClientException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.JSON_PARSE_FAILURE));
-        }
+        final ClientInfo clientInfo = new ClientInfo("");
+        Assert.assertTrue(clientInfo.getUniqueIdentifier().equals(""));
+        Assert.assertTrue(clientInfo.getUniqueTenantIdentifier().equals(""));
     }
 
     @Test

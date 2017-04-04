@@ -33,11 +33,13 @@ import java.util.Set;
 public final class AuthenticationResult {
 
     private final AccessTokenCacheItem mAccessTokenCacheItem;
-    private User mUser;
+    private final User mUser;
+    private final String mTenantId;
 
     AuthenticationResult(final AccessTokenCacheItem accessTokenCacheItem) throws MsalClientException {
         mAccessTokenCacheItem = accessTokenCacheItem;
-        mUser = new User(new IdToken(accessTokenCacheItem.getRawIdToken()));
+        mUser = accessTokenCacheItem.getUser();
+        mTenantId = accessTokenCacheItem.getTenantId();
     }
 
     /**
@@ -62,7 +64,7 @@ public final class AuthenticationResult {
      * returned by the service.
      */
     public String getTenantId() {
-        return mAccessTokenCacheItem.getTenantId();
+        return mTenantId;
     }
 
     /**

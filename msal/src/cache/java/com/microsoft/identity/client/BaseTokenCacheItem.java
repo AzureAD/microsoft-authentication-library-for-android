@@ -33,12 +33,11 @@ abstract class BaseTokenCacheItem {
     @SerializedName("client_id")
     final String mClientId;
 
-    @SerializedName("id_token")
-    String mRawIdToken;
+    @SerializedName("client_info")
+    final String mRawClientInfo;
 
-    // excludes the field from being serialized
     transient User mUser;
-    transient IdToken mIdToken;
+    transient ClientInfo mClientInfo;
 
     /**
      * @return {@link TokenCacheKey} for the given token item.
@@ -48,46 +47,37 @@ abstract class BaseTokenCacheItem {
     /**
      * Constructor for creating the token cache item.
      */
-    BaseTokenCacheItem(final String clientId, final TokenResponse response)
-            throws MsalClientException {
-        if (!MSALUtils.isEmpty(response.getRawIdToken())) {
-            mRawIdToken = response.getRawIdToken();
-            mIdToken = new IdToken(mRawIdToken);
-            mUser = new User(mIdToken);
-        }
-
+    BaseTokenCacheItem(final String clientId, final String rawClientInfo) throws MsalClientException {
         mClientId = clientId;
+        mRawClientInfo = rawClientInfo;
+        mClientInfo = new ClientInfo(rawClientInfo);
     }
 
     String getClientId() {
         return mClientId;
     }
 
-    String getUniqueId() {
-        return mUser != null ? mUser.getUniqueId() : "";
+    String getRawClientInfo() {
+        return mRawClientInfo;
     }
 
-    String getDisplayableId() {
-        return mUser != null ? mUser.getDisplayableId() : "";
+    ClientInfo getClientInfo() {
+        return mClientInfo;
     }
 
-    String getHomeObjectId() {
-        return mUser != null ? mUser.getHomeObjectId() : "";
+    void setClientInfo(final ClientInfo clientInfo) {
+        mClientInfo = clientInfo;
     }
 
-    void setIdToken(final IdToken idToken) {
-        mIdToken = idToken;
-    }
-
-    String getRawIdToken() {
-        return mRawIdToken;
+    User getUser() {
+        return mUser;
     }
 
     void setUser(final User user) {
         mUser = user;
     }
 
-    String getAuthority() {
-        return "";
+    final String getUserIdentifier() {
+        return MSALUtils.getUniqueUserIdentifier(mClientInfo.getUniqueIdentifier(), mClientInfo.getUniqueTenantIdentifier());
     }
 }

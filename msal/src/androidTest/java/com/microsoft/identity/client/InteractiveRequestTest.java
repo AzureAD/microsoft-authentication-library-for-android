@@ -309,7 +309,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
      * Verify when auth code is successfully returned, result is delivered correctly.
      */
     @Test
-    public void testGetTokenCodeSuccessfullyReturned() throws IOException, InterruptedException {
+    public void testGetTokenCodeSuccessfullyReturnedNoClientInfoReturned() throws IOException, InterruptedException {
         final Activity testActivity = Mockito.mock(Activity.class);
         Mockito.when(testActivity.getPackageName()).thenReturn(mAppContext.getPackageName());
         Mockito.when(testActivity.getApplicationContext()).thenReturn(mAppContext);
@@ -331,7 +331,13 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                 assertNull(mTokenCache.findAccessToken(getAuthenticationParams(AUTHORITY, UIBehavior.FORCE_LOGIN), authenticationResult.getUser()));
                 final String authority = AUTHORITY.replace("common", authenticationResult.getTenantId());
                 assertNotNull(mTokenCache.findAccessToken(getAuthenticationParams(authority, UIBehavior.FORCE_LOGIN), authenticationResult.getUser()));
+
+                final User user = authenticationResult.getUser();
+                assertTrue(user.getUid().equals(""));
+                assertTrue(user.getUtid().equals(""));
+
                 resultLock.countDown();
+
             }
 
             @Override
@@ -662,7 +668,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
             @Override
             String getFinalUrl() throws UnsupportedEncodingException {
-                return "?code=1234&state=" + Base64.encodeToString(MSALUtils.urlEncode(
+                return "?code=1234&state=" + Base64.encodeToString(MSALUtils.urlFormEncode(
                         MSALUtils.convertSetToString(getScopes(), " ")).getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
             }
         }.performTest();

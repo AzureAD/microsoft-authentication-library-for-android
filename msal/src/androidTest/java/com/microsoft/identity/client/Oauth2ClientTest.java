@@ -56,8 +56,8 @@ public final class Oauth2ClientTest {
 
         final Set<String> expectedRequestMessageSet = new HashSet<>();
         expectedRequestMessageSet.add(OauthConstants.Oauth2Parameters.GRANT_TYPE + "=" + OauthConstants.Oauth2GrantType.REFRESH_TOKEN);
-        expectedRequestMessageSet.add(OauthConstants.Oauth2Parameters.REFRESH_TOKEN + "=" + MSALUtils.urlEncode(REFRESH_TOKEN));
-        expectedRequestMessageSet.add(OauthConstants.Oauth2Parameters.CLIENT_ID + "=" + MSALUtils.urlEncode(CLIENT_ID));
+        expectedRequestMessageSet.add(OauthConstants.Oauth2Parameters.REFRESH_TOKEN + "=" + MSALUtils.urlFormEncode(REFRESH_TOKEN));
+        expectedRequestMessageSet.add(OauthConstants.Oauth2Parameters.CLIENT_ID + "=" + MSALUtils.urlFormEncode(CLIENT_ID));
 
         final String expectedRequestMessage = MSALUtils.convertSetToString(expectedRequestMessageSet, "&");
 

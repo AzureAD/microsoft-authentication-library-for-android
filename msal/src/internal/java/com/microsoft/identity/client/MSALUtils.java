@@ -98,7 +98,7 @@ final class MSALUtils {
      * @return The url encoded string.
      * @throws UnsupportedEncodingException If the named encoding is not supported.
      */
-    static String urlEncode(final String stringToEncode) throws UnsupportedEncodingException {
+    static String urlFormEncode(final String stringToEncode) throws UnsupportedEncodingException {
         if (isEmpty(stringToEncode)) {
             return "";
         }
@@ -113,7 +113,7 @@ final class MSALUtils {
      * @return The decoded string.
      * @throws UnsupportedEncodingException If encoding is not supported.
      */
-    static String urlDecode(final String source) throws UnsupportedEncodingException {
+    static String urlFormDecode(final String source) throws UnsupportedEncodingException {
         if (isEmpty(source)) {
             return "";
         }
@@ -294,8 +294,8 @@ final class MSALUtils {
             }
 
             try {
-                final String key = urlDecode(elements[0]);
-                final String value = urlDecode(elements[1]);
+                final String key = urlFormDecode(elements[0]);
+                final String value = urlFormDecode(elements[1]);
 
                 if (!MSALUtils.isEmpty(key) && !MSALUtils.isEmpty(value)) {
                     decodedUrlMap.put(key, value);
@@ -345,14 +345,14 @@ final class MSALUtils {
 
         final Set<String> queryParamsSet = new HashSet<>();
         for (Map.Entry<String, String> entry : requestParams.entrySet()) {
-            queryParamsSet.add(entry.getKey() + "=" + urlEncode(entry.getValue()));
+            queryParamsSet.add(entry.getKey() + "=" + urlFormEncode(entry.getValue()));
         }
 
         return String.format("%s?%s", url, convertSetToString(queryParamsSet, "&"));
     }
 
-    static String base64EncodeToString(final String message) {
-        return Base64.encodeToString(message.getBytes(Charset.forName(ENCODING_UTF8)), Base64.NO_PADDING);
+    static String base64UrlEncodeToString(final String message) {
+        return Base64.encodeToString(message.getBytes(Charset.forName(ENCODING_UTF8)), Base64.URL_SAFE);
     }
 
     /**
@@ -373,5 +373,9 @@ final class MSALUtils {
      */
     static boolean isScopeContains(final Set<String> scopes, final Set<String> otherScopes) {
         return scopes.containsAll(otherScopes);
+    }
+
+    static String getUniqueUserIdentifier(final String uid, final String utid) {
+        return base64UrlEncodeToString(uid) + "." + base64UrlEncodeToString(utid);
     }
 }

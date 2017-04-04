@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -177,14 +179,19 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         final String displayable1 = "Displayable1";
         final String uniqueId1 = "UniqueId1";
         final String homeOid1 = "HomeOid1";
+        final String uTid1 = "uTid1";
         String idToken = getIdToken(displayable1, uniqueId1, homeOid1);
+        String clientInfo = AndroidTestUtil.createRawClientInfo(uniqueId1, uTid1);
 
-        saveTokenResponse(mTokenCache, TokenCacheTest.AUTHORITY, CLIENT_ID, getTokenResponse(idToken));
+        saveTokenResponse(mTokenCache, TokenCacheTest.AUTHORITY, CLIENT_ID, getTokenResponse(idToken, clientInfo));
 
         // prepare token cache for same client id, same displayable, uniqueId but different oid
         final String homeOid2 = "HomeOid2";
+        final String uid2 = "uniqueId2";
+        final String utid2 = "uTid2";
         idToken = getIdToken(displayable1, uniqueId1, homeOid2);
-        saveTokenResponse(mTokenCache, TokenCacheTest.AUTHORITY, CLIENT_ID, getTokenResponse(idToken));
+        clientInfo = AndroidTestUtil.createRawClientInfo(uid2, utid2);
+        saveTokenResponse(mTokenCache, TokenCacheTest.AUTHORITY, CLIENT_ID, getTokenResponse(idToken, clientInfo));
 
         List<User> users = application.getUsers();
         assertTrue(users.size() == 2);
@@ -193,40 +200,42 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         final String displayable3 = "Displayable3";
         final String uniqueId3 = "UniqueId3";
         final String homeOid3 = "HomeOid3";
+        final String uTid3 = "uTid3";
         idToken = getIdToken(displayable3, uniqueId3, homeOid3);
-        saveTokenResponse(mTokenCache, TokenCacheTest.AUTHORITY, CLIENT_ID, getTokenResponse(idToken));
+        clientInfo = AndroidTestUtil.createRawClientInfo(uniqueId3, uTid3);
+        saveTokenResponse(mTokenCache, TokenCacheTest.AUTHORITY, CLIENT_ID, getTokenResponse(idToken, clientInfo));
 
         users = application.getUsers();
         assertTrue(users.size() == EXPECTED_USER_SIZE);
         final User userForDisplayable3 = getUser(displayable3, users);
         assertNotNull(userForDisplayable3);
         assertTrue(userForDisplayable3.getDisplayableId().equals(displayable3));
-        assertTrue(userForDisplayable3.getHomeObjectId().equals(homeOid3));
+        assertTrue(userForDisplayable3.getUserIdentifier().equals(MSALUtils.getUniqueUserIdentifier(uniqueId3, uTid3)));
 
         // prepare token cache for different client id, same displayable3 user
         final String anotherClientId = "anotherClientId";
-        saveTokenResponse(mTokenCache, TokenCacheTest.AUTHORITY, anotherClientId, getTokenResponse(idToken));
+        saveTokenResponse(mTokenCache, TokenCacheTest.AUTHORITY, anotherClientId, getTokenResponse(idToken, clientInfo));
         final PublicClientApplication anotherApplication = new PublicClientApplication(getMockedContext(anotherClientId));
         assertTrue(application.getUsers().size() == EXPECTED_USER_SIZE);
         users = anotherApplication.getUsers();
         assertTrue(users.size() == 1);
-        final User userForAnotherClient = getUser(homeOid3, users);
+        final User userForAnotherClient = getUser(displayable3, users);
         assertNotNull(userForAnotherClient);
         assertTrue(userForAnotherClient.getDisplayableId().equals(displayable3));
-        assertTrue(userForAnotherClient.getHomeObjectId().equals(homeOid3));
+        assertTrue(userForAnotherClient.getUserIdentifier().equals(MSALUtils.getUniqueUserIdentifier(uniqueId3, uTid3)));
     }
 
     /**
-     * From the supplied {@link List} of {@link User}, return the instance with a matching displayableId or homeObjectId.
+     * From the supplied {@link List} of {@link User}, return the instance with a matching displayableId.
      *
-     * @param userIdentifier The user identifier, could be either displayableId or homeObjectId
+     * @param userIdentifier The user identifier, could be either displayableId.
      * @param users          the list of Users to traverse
      * @return
      */
-    private User getUser(final String userIdentifier, final List<User> users) {
+    private User getUser(final String userIdentifier, final List<User> users) throws MsalClientException {
         User resultUser = null;
         for (final User user : users) {
-            if (userIdentifier.equals(user.getDisplayableId()) || userIdentifier.equals(user.getHomeObjectId())) {
+            if (userIdentifier.equals(user.getDisplayableId())) {
                 resultUser = user;
                 break;
             }
@@ -583,11 +592,13 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         final PublicClientApplication application = new PublicClientApplication(mAppContext);
 
         // prepare token in the cache
+        final String rawClientInfo = AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID);
         saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, CLIENT_ID, TokenCacheTest.getTokenResponseForDefaultUser(
-                AndroidTestUtil.ACCESS_TOKEN, AndroidTestUtil.REFRESH_TOKEN, "scope1 scope2", AndroidTestUtil.getExpiredDate()));
+                AndroidTestUtil.ACCESS_TOKEN, AndroidTestUtil.REFRESH_TOKEN, "scope1 scope2", AndroidTestUtil.getExpiredDate(), rawClientInfo));
 
         final IdToken idToken = new IdToken(AndroidTestUtil.getRawIdToken("another Displayable", "another uniqueId", "another homeobj"));
-        final User user = new User(idToken);
+        final ClientInfo clientInfoForDifferentUser = new ClientInfo(AndroidTestUtil.createRawClientInfo("another uid", "another utid"));
+        final User user = User.create(idToken, clientInfoForDifferentUser);
 
         final CountDownLatch silentLock = new CountDownLatch(1);
         application.acquireTokenSilentAsync(new String[]{"scope1", "scope2"}, user, new AuthenticationCallback() {
@@ -614,18 +625,24 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     static String getIdToken(final String displayable, final String uniqueId, final String homeOid) {
         return AndroidTestUtil.createIdToken(AndroidTestUtil.AUDIENCE, AndroidTestUtil.ISSUER, AndroidTestUtil.NAME, uniqueId, displayable,
-                AndroidTestUtil.SUBJECT, AndroidTestUtil.TENANT_ID, AndroidTestUtil.VERSION, homeOid);
+                AndroidTestUtil.SUBJECT, AndroidTestUtil.TENANT_ID, AndroidTestUtil.VERSION);
     }
 
-    private TokenResponse getTokenResponse(final String idToken) throws MsalException {
+    private TokenResponse getTokenResponse(final String idToken, final String clientInfo) throws MsalException {
         return new TokenResponse(AndroidTestUtil.ACCESS_TOKEN, idToken, AndroidTestUtil.REFRESH_TOKEN, new Date(), new Date(),
-                new Date(), "scope", "Bearer", null);
+                new Date(), "scope", "Bearer", clientInfo);
     }
 
     static void saveTokenResponse(final TokenCache tokenCache, final String authority, final String clientId,
                                   final TokenResponse response) throws MsalException {
         tokenCache.saveAccessToken(authority, clientId, response);
-        tokenCache.saveRefreshToken(authority, clientId, response);
+
+        try {
+            final URL authorityUrl = new URL(authority);
+            tokenCache.saveRefreshToken(authorityUrl.getHost(), clientId, response);
+        } catch (MalformedURLException e) {
+            throw new MsalClientException(MSALError.MALFORMED_URL, "unable to create url");
+        }
     }
 
     private void mockPackageManagerWithClientId(final Context context, final String alternateAuthorityInManifest,
@@ -674,7 +691,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     private void mockSuccessResponse(final String scopes, final String accessToken) throws IOException {
         final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(
-                AndroidTestUtil.getSuccessResponse(AndroidTestUtil.TEST_IDTOKEN, accessToken, scopes));
+                AndroidTestUtil.getSuccessResponse(AndroidTestUtil.TEST_IDTOKEN, accessToken, scopes, null));
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
     }

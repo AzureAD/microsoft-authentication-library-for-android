@@ -36,23 +36,35 @@ import java.lang.reflect.Type;
  */
 
 final class TokenCacheItemDeserializer<T extends BaseTokenCacheItem> implements JsonDeserializer<T> {
-    private static final String TAG = TokenCacheItemDeserializer.class.getSimpleName();
 
     @Override
     public T deserialize(JsonElement json, Type type, JsonDeserializationContext context)
             throws JsonParseException {
         T deserializedTokenCacheItem = new Gson().fromJson(json, type);
-        final String rawIdToken = deserializedTokenCacheItem.getRawIdToken();
-        if (!MSALUtils.isEmpty(rawIdToken)) {
-            try {
-                final IdToken idToken = new IdToken(rawIdToken);;
-                deserializedTokenCacheItem.setIdToken(idToken);
-                deserializedTokenCacheItem.setUser(new User(idToken));
-            } catch (final MsalClientException e) {
-                Logger.error(TAG, null, "Fail to parse Id token", e);
-            }
+
+        final User user;
+        final ClientInfo clientInfo;
+        try {
+            clientInfo = new ClientInfo(deserializedTokenCacheItem.getRawClientInfo());
+        } catch (final MsalClientException e) {
+            throw new JsonParseException("Fail to deserialize", e);
         }
 
+        deserializedTokenCacheItem.setClientInfo(clientInfo);
+        if (deserializedTokenCacheItem instanceof AccessTokenCacheItem) {
+            final AccessTokenCacheItem accessTokenCacheItem = (AccessTokenCacheItem) deserializedTokenCacheItem;
+            try {
+                user = User.create(new IdToken(accessTokenCacheItem.getRawIdToken()), clientInfo);
+            } catch (MsalClientException e) {
+                throw new JsonParseException("Fail to deserialize", e);
+            }
+        } else {
+            final RefreshTokenCacheItem refreshTokenCacheItem = (RefreshTokenCacheItem) deserializedTokenCacheItem;
+            user = new User(refreshTokenCacheItem.getDisplayableId(), refreshTokenCacheItem.getName(),
+                    refreshTokenCacheItem.getIdentityProvider(), clientInfo.getUniqueIdentifier(), clientInfo.getUniqueTenantIdentifier());
+        }
+
+        deserializedTokenCacheItem.setUser(user);
         return deserializedTokenCacheItem;
     }
 }

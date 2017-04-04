@@ -33,18 +33,56 @@ final class RefreshTokenCacheItem extends BaseTokenCacheItem {
     @SerializedName("refresh_token")
     private final String mRefreshToken;
 
-    RefreshTokenCacheItem(final String clientId, final TokenResponse response)
+    @SerializedName("environment")
+    private final String mEnvironment;
+
+    // meta data used to construct user object from refresh token cache item.
+    @SerializedName("displayable_id")
+    final String mDisplayableId;
+
+    @SerializedName("name")
+    final String mName;
+
+    @SerializedName("identity_provider")
+    final String mIdentityProvider;
+
+    RefreshTokenCacheItem(final String environment, final String clientId, final TokenResponse response)
             throws MsalClientException {
-        super(clientId, response);
+        super(clientId, response.getRawClientInfo());
+        mEnvironment = environment;
         mRefreshToken = response.getRefreshToken();
+
+        final IdToken idToken = new IdToken(response.getRawIdToken());
+        mDisplayableId = idToken.getPreferredName();
+        mName = idToken.getName();
+        mIdentityProvider = idToken.getIssuer();
+
+        mUser = new User(mDisplayableId, mName, mIdentityProvider, getClientInfo().getUniqueIdentifier(),
+                getClientInfo().getUniqueTenantIdentifier());
     }
 
     @Override
-    TokenCacheKey extractTokenCacheKey() {
-        return TokenCacheKey.createKeyForRT(mClientId, mUser);
+    RefreshTokenCacheKey extractTokenCacheKey() {
+        return RefreshTokenCacheKey.createTokenCacheKey(mEnvironment, mClientId, mUser);
     }
 
     String getRefreshToken() {
         return mRefreshToken;
+    }
+
+    String getEnvironment() {
+        return mEnvironment;
+    }
+
+    String getDisplayableId() {
+        return mDisplayableId;
+    }
+
+    String getName() {
+        return mName;
+    }
+
+    String getIdentityProvider() {
+        return mIdentityProvider;
     }
 }
