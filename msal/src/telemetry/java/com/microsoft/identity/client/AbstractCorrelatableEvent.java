@@ -27,6 +27,9 @@ import android.util.Pair;
 
 import java.util.UUID;
 
+/**
+ * An Event that can be correlated by Id.
+ */
 abstract class AbstractCorrelatableEvent extends Event implements ICorrelatableEvent {
     /**
      * Constructs a new Event.
@@ -55,7 +58,7 @@ abstract class AbstractCorrelatableEvent extends Event implements ICorrelatableE
         return correlationId;
     }
 
-    public void clearCorrelationId() {
+    void clearCorrelationId() {
         final UUID correlationId = getCorrelationId();
         if (null != correlationId) {
             remove(new Pair<>(EventConstants.EventProperty.CORRELATION_ID, correlationId.toString()));

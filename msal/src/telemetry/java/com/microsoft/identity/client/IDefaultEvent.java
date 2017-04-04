@@ -23,6 +23,9 @@
 
 package com.microsoft.identity.client;
 
+/**
+ * Internal interface for DefaultEvent telemetry data.
+ */
 interface IDefaultEvent extends ICorrelatableEvent {
 
     /**

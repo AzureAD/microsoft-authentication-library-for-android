@@ -25,6 +25,9 @@ package com.microsoft.identity.client;
 
 import java.util.UUID;
 
+/**
+ * Interface for Events which can be correlated by Id.
+ */
 interface ICorrelatableEvent extends IEvent {
 
     /**

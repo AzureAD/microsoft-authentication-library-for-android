@@ -31,6 +31,9 @@ import android.provider.Settings;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 
+/**
+ * A DefaultEvent stores Event data common to an Application or to a series of Events.
+ */
 class DefaultEvent extends AbstractCorrelatableEvent implements IDefaultEvent {
 
     private static Defaults sAllDefaults;
