@@ -80,8 +80,10 @@ class DefaultEvent extends AbstractCorrelatableEvent implements IDefaultEvent {
         return getProperty(EventConstants.EventProperty.DEVICE_ID);
     }
 
+    /**
+     * Builder for DefaultEvent instances.
+     */
     static class Builder extends Event.Builder<Builder> {
-
 
         Builder(Telemetry.RequestId requestId) {
             super(requestId, EventName.DEFAULT_EVENT);
