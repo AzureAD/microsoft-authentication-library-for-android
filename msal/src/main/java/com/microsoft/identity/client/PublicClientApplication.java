@@ -38,6 +38,9 @@ import java.util.UUID;
 
 /**
  * Entry point for developer to create the public native application, and make API call to get token.
+ * MSAL {@link PublicClientApplication} provides three constructors, developer can choose to set client id in manifest
+ * metadata or using constructor. If developer chooses to not use the default authority, it could also be set via constructor
+ * or manifest metadata.
  */
 public final class PublicClientApplication {
     private static final String TAG = PublicClientApplication.class.getSimpleName();
@@ -49,17 +52,18 @@ public final class PublicClientApplication {
     private static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common/";
 
     private final Context mAppContext;
+    private final TokenCache mTokenCache;
 
-    private Authority mAuthority;
+    private String mAuthorityString;
     private String mClientId;
     private String mComponent;
-    private final TokenCache mTokenCache;
     private String mRedirectUri;
 
     private boolean mValidateAuthority = true;
 
     /**
-     * Constructor for {@link PublicClientApplication}.
+     * {@link PublicClientApplication#PublicClientApplication(Context)} will read the client id (which must be set) from manifest, and if authority
+     * is not set, default authority(https://login.microsoftonline.com/common) will be used.
      * <p>
      *      Client id <b>MUST</b> be set in the manifest as the meta data({@link IllegalArgumentException} will be thrown
      *      if client id is not provided), name for client id in the metadata is: "com.microsoft.identity.client.ClientId"
@@ -67,6 +71,7 @@ public final class PublicClientApplication {
      *      if client id is not provided), name for redirect uri in metadata is: "com.microsoft.identity.client.RedirectUri"
      *      Authority can be set in the meta data, if not provided, the sdk will use the default authority.
      * </p>
+     *
      * @param context Application's {@link Context}. The sdk requires the application context to be passed in
      *                {@link PublicClientApplication}. Cannot be null. @note: The {@link Context} should be the application
      *                context instead of an running activity's context, which could potentially make the sdk hold a strong reference on
@@ -79,17 +84,80 @@ public final class PublicClientApplication {
 
         mAppContext = context;
         loadMetaDataFromManifest();
-        mRedirectUri = createRedirectUri(mClientId);
+        mTokenCache = new TokenCache(mAppContext);
 
+        initializeApplication();
+    }
+
+    /**
+     * Developer can choose {@link PublicClientApplication#PublicClientApplication(Context, String)} to provide client id instead of
+     * providing client id through metadata. If this constructor is called, default authority(https://login.microsoftonline.com/common)
+     * will be used.
+     * @param context Application's {@link Context}. The sdk requires the application context to be passed in
+     *                {@link PublicClientApplication}. Cannot be null. @note: The {@link Context} should be the application
+     *                context instead of an running activity's context, which could potentially make the sdk hold a strong reference on
+     *                the activity, thus preventing correct garbage collection and causing bugs.
+     * @param clientId The application client id.
+     */
+    public PublicClientApplication(@NonNull final Context context, @NonNull final String clientId) {
+        if (context == null) {
+            throw new IllegalArgumentException("Context is null");
+        }
+
+        if (MSALUtils.isEmpty(clientId)) {
+            throw new IllegalArgumentException("client id is empty or null");
+        }
+
+        mAppContext = context;
+        mTokenCache = new TokenCache(mAppContext);
+        mClientId = clientId;
+        mAuthorityString = DEFAULT_AUTHORITY;
+
+        initializeApplication();
+    }
+
+    /**
+     * Developer can choose {@link PublicClientApplication#PublicClientApplication(Context, String, String)} to provide client id and authority instead of
+     * providing them through metadata.
+     *
+     * @param context Application's {@link Context}. The sdk requires the application context to be passed in
+     *                {@link PublicClientApplication}. Cannot be null. @note: The {@link Context} should be the application
+     *                context instead of an running activity's context, which could potentially make the sdk hold a strong reference on
+     *                the activity, thus preventing correct garbage collection and causing bugs.
+     * @param clientId The application client id.
+     * @param authority The default authority to be used for the authority.
+     */
+    public PublicClientApplication(@NonNull final Context context, @NonNull final String clientId, @NonNull final String authority) {
+        if (context == null) {
+            throw new IllegalArgumentException("Context is null");
+        }
+
+        if (MSALUtils.isEmpty(clientId)) {
+            throw new IllegalArgumentException("client id is empty or null");
+        }
+
+        if (MSALUtils.isEmpty(authority)) {
+            throw new IllegalArgumentException("authority is empty or null");
+        }
+
+        mAppContext = context;
+        mTokenCache = new TokenCache(mAppContext);
+        mClientId = clientId;
+        mAuthorityString = authority;
+
+        initializeApplication();
+    }
+
+    private void initializeApplication() {
+        mRedirectUri = createRedirectUri(mClientId);
         validateInputParameters();
 
         // Since network request is sent from the sdk, if calling app doesn't declare the internet permission in the
         // manifest, we cannot make the network call.
         checkInternetPermission();
-
-        mTokenCache = new TokenCache(mAppContext);
         Logger.info(TAG, null, "Create new public client application.");
     }
+
 
     /**
      * @return The current version for the sdk.
@@ -125,7 +193,7 @@ public final class PublicClientApplication {
      * @throws MsalClientException If failed to retrieve users from the cache.
      */
     public List<User> getUsers() throws MsalClientException {
-        return mTokenCache.getUsers(mAuthority.getAuthorityHost(), mClientId);
+        return mTokenCache.getUsers(Authority.createAuthority(mAuthorityString, mValidateAuthority).getAuthorityHost() , mClientId);
     }
 
     /**
@@ -291,10 +359,6 @@ public final class PublicClientApplication {
         return mTokenCache;
     }
 
-    Authority getAuthority() {
-        return mAuthority;
-    }
-
     private void loadMetaDataFromManifest() {
         final ApplicationInfo applicationInfo;
         try {
@@ -311,9 +375,9 @@ public final class PublicClientApplication {
         // read authority from manifest.
         final String authority = applicationInfo.metaData.getString(AUTHORITY_META_DATA);
         if (!MSALUtils.isEmpty(authority)) {
-            mAuthority = Authority.createAuthority(authority, mValidateAuthority);
+            mAuthorityString = authority;
         } else {
-            mAuthority = Authority.createAuthority(DEFAULT_AUTHORITY, mValidateAuthority);
+            mAuthorityString = DEFAULT_AUTHORITY;
         }
 
         // read client id from manifest
@@ -379,7 +443,7 @@ public final class PublicClientApplication {
             throw new IllegalArgumentException("callback is null");
         }
 
-        final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? mAuthority
+        final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? Authority.createAuthority(mAuthorityString, mValidateAuthority)
                 : Authority.createAuthority(authority, mValidateAuthority);
         // set correlation if not developer didn't set it.
         final RequestContext requestContext = new RequestContext(UUID.randomUUID(), mComponent);
@@ -395,7 +459,7 @@ public final class PublicClientApplication {
     private AuthenticationRequestParameters getRequestParameters(final String authority, final String[] scopes,
                                                                  final String loginHint, final String extraQueryParam,
                                                                  final UIBehavior uiBehavior) {
-        final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? mAuthority
+        final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? Authority.createAuthority(mAuthorityString, mValidateAuthority)
                 : Authority.createAuthority(authority, mValidateAuthority);
         // set correlation if not developer didn't set it.
         final UUID correlationId = UUID.randomUUID();
