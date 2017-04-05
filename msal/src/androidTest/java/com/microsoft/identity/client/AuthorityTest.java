@@ -27,6 +27,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -96,6 +97,26 @@ public final class AuthorityTest {
     @Test(expected = IllegalArgumentException.class)
     public void testAdfsAuthorityValidationDisabled() {
         Authority.createAuthority("https://somehost/adfs", false);
+    }
+
+    @Test
+    public void testAuthorityWithPortNumber() {
+        final String authorityString = "https://somehost:100/sometenant";
+        final Authority authority = Authority.createAuthority(authorityString, true);
+        Assert.assertTrue(authority.getAuthority().equals(authorityString));
+
+        final String b2cAuthorityString = "https://somehost:101/tfp/sometenant/signin";
+        final Authority b2cAuthority = Authority.createAuthority(b2cAuthorityString, true);
+        Assert.assertTrue(b2cAuthority.getAuthority().equals(b2cAuthorityString));
+    }
+
+    // adfs authoirty is not supported for build, should be enabled back post-build.
+    @Ignore
+    @Test
+    public void testAdfsAuthorityWithPortNumber() {
+        final String adfsAuthorityString = "https://adfshost:300/adfs";
+        final Authority adfsAuthority = Authority.createAuthority(adfsAuthorityString, false);
+        Assert.assertTrue(adfsAuthority.getAuthority().equals(adfsAuthorityString));
     }
 
     @Test
