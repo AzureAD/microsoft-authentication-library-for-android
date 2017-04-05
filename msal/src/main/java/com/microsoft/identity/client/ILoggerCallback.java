@@ -28,7 +28,7 @@ package com.microsoft.identity.client;
  * Interface for apps to configure the external logging and implement the callback to designate the customize
  * place for where to output the log messages.
  */
-public interface ILogger {
+public interface ILoggerCallback {
     /**
      * Interface method for apps to hand off each log message as it's generated.
      * @param tag The TAG for the log message. The SDK send the component name(the class where the
