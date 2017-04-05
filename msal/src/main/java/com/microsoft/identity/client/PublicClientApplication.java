@@ -128,24 +128,13 @@ public final class PublicClientApplication {
      * @param authority The default authority to be used for the authority.
      */
     public PublicClientApplication(@NonNull final Context context, @NonNull final String clientId, @NonNull final String authority) {
-        if (context == null) {
-            throw new IllegalArgumentException("Context is null");
-        }
-
-        if (MSALUtils.isEmpty(clientId)) {
-            throw new IllegalArgumentException("client id is empty or null");
-        }
+        this(context, clientId);
 
         if (MSALUtils.isEmpty(authority)) {
             throw new IllegalArgumentException("authority is empty or null");
         }
 
-        mAppContext = context;
-        mTokenCache = new TokenCache(mAppContext);
-        mClientId = clientId;
         mAuthorityString = authority;
-
-        initializeApplication();
     }
 
     private void initializeApplication() {
