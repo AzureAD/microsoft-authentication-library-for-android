@@ -115,7 +115,7 @@ public final class Telemetry implements ITelemetry {
     }
 
     /**
-     * Stars recording a new Event, based on {@link Telemetry.RequestId}
+     * Starts recording a new Event, based on {@link Telemetry.RequestId}
      *
      * @param requestId the RequestId used to track this Event.
      * @param eventName the name of the Event which is to be tracked.
