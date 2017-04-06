@@ -205,7 +205,19 @@ final class InteractiveRequest extends BaseRequest {
         // Add PKCE Challenge
         addPKCEChallengeToRequestParameters(requestParameters);
 
+        // Enforce session continuation if user is provided in the API request
+        addSessionContinuationQps(requestParameters);
+
         return requestParameters;
+    }
+
+    private void addSessionContinuationQps(final Map<String, String> requestParams) {
+        final User user = mAuthRequestParameters.getUser();
+        if (user != null) {
+            requestParams.put(OauthConstants.Oauth2Parameters.LOGIN_REQ, user.getUid());
+            requestParams.put(OauthConstants.Oauth2Parameters.DOMAIN_REQ, user.getUtid());
+            requestParams.put(OauthConstants.Oauth2Parameters.LOGIN_HINT, user.getDisplayableId());
+        }
     }
 
     private void addPKCEChallengeToRequestParameters(final Map<String, String> requestParameters) throws MsalClientException {

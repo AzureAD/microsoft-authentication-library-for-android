@@ -54,19 +54,19 @@ public final class AuthenticationRequestParametersTest {
     @Test(expected = IllegalArgumentException.class)
     public void testNullCorrelationId() {
         AuthenticationRequestParameters.create(mAuthority, TOKEN_CACHE, SCOPE, CLIENT_ID, REDIRECT_URI, LOGIN_HINT, "",
-                UIBehavior.SELECT_ACCOUNT, null);
+                UIBehavior.SELECT_ACCOUNT, null, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testNullScope() {
         AuthenticationRequestParameters.create(mAuthority, TOKEN_CACHE, null, CLIENT_ID, REDIRECT_URI, "", LOGIN_HINT,
-                UIBehavior.SELECT_ACCOUNT, new RequestContext(CORRELATION_ID, COMPONENT));
+                UIBehavior.SELECT_ACCOUNT, null, new RequestContext(CORRELATION_ID, COMPONENT));
     }
 
     @Test
     public void testAuthenticationRequestParameterHappyPath() {
         final AuthenticationRequestParameters authRequestParameter = AuthenticationRequestParameters.create(mAuthority, TOKEN_CACHE,
-                SCOPE, CLIENT_ID, REDIRECT_URI, LOGIN_HINT, "", UIBehavior.SELECT_ACCOUNT, new RequestContext(CORRELATION_ID, COMPONENT));
+                SCOPE, CLIENT_ID, REDIRECT_URI, LOGIN_HINT, "", UIBehavior.SELECT_ACCOUNT, null, new RequestContext(CORRELATION_ID, COMPONENT));
         Assert.assertTrue(authRequestParameter.getAuthority().getAuthority().toString().equals(Util.VALID_AUTHORITY));
         Assert.assertTrue(authRequestParameter.getScope().isEmpty());
         Assert.assertTrue(authRequestParameter.getClientId().equals(CLIENT_ID));

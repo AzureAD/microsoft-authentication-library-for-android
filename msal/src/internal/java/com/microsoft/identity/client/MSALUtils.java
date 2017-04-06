@@ -26,6 +26,7 @@ package com.microsoft.identity.client;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
@@ -377,5 +378,17 @@ final class MSALUtils {
 
     static String getUniqueUserIdentifier(final String uid, final String utid) {
         return base64UrlEncodeToString(uid) + "." + base64UrlEncodeToString(utid);
+    }
+
+    static ApplicationInfo getApplicationInfo(final Context context) {
+        final ApplicationInfo applicationInfo;
+        try {
+            applicationInfo = context.getPackageManager().getApplicationInfo(
+                    context.getPackageName(), PackageManager.GET_META_DATA);
+        } catch (PackageManager.NameNotFoundException e) {
+            throw new IllegalStateException("Unable to find the package info, unable to proceed");
+        }
+
+        return applicationInfo;
     }
 }
