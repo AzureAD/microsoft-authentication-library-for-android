@@ -42,6 +42,9 @@ final class ApiEvent extends Event implements IApiEvent {
         if (null != builder.mCorrelationId) {
             setProperty(EventProperty.CORRELATION_ID, builder.mCorrelationId.toString());
         }
+        if (null != builder.mRequestId) {
+            setProperty(EventProperty.REQUEST_ID, builder.mRequestId.toString());
+        }
         setAuthority(builder.mAuthority);
         setProperty(EventProperty.UI_BEHAVIOR, builder.mUiBehavior);
         setProperty(EventProperty.API_ID, builder.mApiId);
@@ -155,6 +158,11 @@ final class ApiEvent extends Event implements IApiEvent {
         return Boolean.valueOf(getProperty(EventProperty.WAS_SUCCESSFUL));
     }
 
+    @Override
+    public Telemetry.RequestId getRequestId() {
+        return new Telemetry.RequestId(getProperty(EventProperty.REQUEST_ID));
+    }
+
     /**
      * Builder object for ApiEvents.
      */
@@ -169,9 +177,11 @@ final class ApiEvent extends Event implements IApiEvent {
         private boolean mExtendedExpiresOnStatus;
         private boolean mWasApiCallSuccessful;
         private UUID mCorrelationId;
+        private Telemetry.RequestId mRequestId;
 
         Builder(final Telemetry.RequestId requestId) {
-            super(requestId, EventName.API_EVENT);
+            super(EventName.API_EVENT);
+            mRequestId = requestId;
         }
 
         /**
@@ -262,6 +272,12 @@ final class ApiEvent extends Event implements IApiEvent {
             return this;
         }
 
+        /**
+         * Sets the correlationId of the api call.
+         *
+         * @param correlationId the correlationId to set
+         * @return the Builder instance
+         */
         Builder setCorrelationId(final UUID correlationId) {
             mCorrelationId = correlationId;
             return this;

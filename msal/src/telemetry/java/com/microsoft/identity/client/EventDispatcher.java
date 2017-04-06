@@ -67,9 +67,6 @@ class EventDispatcher {
             return;
         }
 
-        final UUID requestCorrelationIdForGroup = getCorrelationIdForGroup(eventsToPublish);
-        applyCorrelationIdToGroup(eventsToPublish, requestCorrelationIdForGroup);
-
         List<Map<String, String>> eventsForPublication = new ArrayList<>();
 
         for (final IEvent event : eventsToPublish) {
@@ -83,21 +80,4 @@ class EventDispatcher {
         mEventReceiver.onEventsReceived(eventsForPublication);
     }
 
-    private void applyCorrelationIdToGroup(
-            final List<IEvent> eventsToPublish, UUID requestCorrelationIdForGroup) {
-        for (final IEvent event : eventsToPublish) {
-            event.setCorrelationId(requestCorrelationIdForGroup);
-        }
-    }
-
-    private UUID getCorrelationIdForGroup(List<IEvent> eventsToPublish) {
-        UUID groupCorrelationId = null;
-        for (final IEvent event : eventsToPublish) {
-            if (null != event.getCorrelationId()) {
-                groupCorrelationId = event.getCorrelationId();
-                break;
-            }
-        }
-        return groupCorrelationId;
-    }
 }

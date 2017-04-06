@@ -42,10 +42,21 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 @RunWith(AndroidJUnit4.class)
 public class TelemetryTest {
 
+    private static final String sTestApplicationName = "test-application-name";
+    private static final String sTestApplicationVersion = "v1.0";
+    private static final String sTestApplicationClientId = "12345";
+    private static final String sTestApplicationDeviceId = "678910";
+
     private Telemetry mTestInstance;
 
     @Before
     public void setUp() {
+        final DefaultEvent.Defaults.Builder builder = new DefaultEvent.Defaults.Builder();
+        builder.setApplicationName(sTestApplicationName)
+                .setApplicationVersion(sTestApplicationVersion)
+                .setClientId(sTestApplicationClientId)
+                .setDeviceId(sTestApplicationDeviceId);
+        DefaultEvent.initializeDefaults(new DefaultEvent.Defaults(builder));
         mTestInstance = Telemetry.getTestInstance();
         Telemetry.disableForTest(false);
     }
@@ -67,7 +78,7 @@ public class TelemetryTest {
     }
 
     @Test
-    public void testFlushesEvents() {
+    public void testContainsDefaultEvent() {
         // mock out receiver object
         final MsalEventReceiver mockReceiver = Mockito.mock(MsalEventReceiver.class);
 
@@ -76,9 +87,9 @@ public class TelemetryTest {
 
         // create some Telemetry data
         final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
-        final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder(requestId);
-        mTestInstance.startEvent(httpEventBuilder);
-        mTestInstance.stopEvent(httpEventBuilder.build());
+        final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder();
+        mTestInstance.startEvent(requestId, httpEventBuilder.getEventName());
+        mTestInstance.stopEvent(requestId, httpEventBuilder);
 
         // flush the data to the receiver
         mTestInstance.flush(requestId);
@@ -91,10 +102,62 @@ public class TelemetryTest {
         List<Map<String, String>> result = captor.getValue();
 
         // verify results
-        Assert.assertEquals(result.size(), 1);
+        Assert.assertEquals(result.size(), 2);
 
-        // get the event entry
+        // get the event entry, pos[1] (since DefaultEvent is always first)
         Map<String, String> eventData = result.get(0);
+
+        // make sure it contains the correct event
+        Assert.assertEquals(
+                sTestApplicationName,
+                eventData.get(EventProperty.APPLICATION_NAME)
+        );
+
+        Assert.assertEquals(
+                sTestApplicationVersion,
+                eventData.get(EventProperty.APPLICATION_VERSION)
+        );
+
+        Assert.assertEquals(
+                sTestApplicationClientId,
+                eventData.get(EventProperty.CLIENT_ID)
+        );
+
+        Assert.assertEquals(
+                sTestApplicationDeviceId,
+                eventData.get(EventProperty.DEVICE_ID)
+        );
+    }
+
+    @Test
+    public void testFlushesEvents() {
+        // mock out receiver object
+        final MsalEventReceiver mockReceiver = Mockito.mock(MsalEventReceiver.class);
+
+        // register it on the Telemetry instance
+        mTestInstance.registerReceiver(mockReceiver);
+
+        // create some Telemetry data
+        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+        final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder();
+        mTestInstance.startEvent(requestId, httpEventBuilder.getEventName());
+        mTestInstance.stopEvent(requestId, httpEventBuilder);
+
+        // flush the data to the receiver
+        mTestInstance.flush(requestId);
+
+        // create a captor to 'catch' the results
+        final ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        Mockito.verify(mockReceiver, Mockito.only()).onEventsReceived(captor.capture());
+
+        // retrive the value from the captor
+        List<Map<String, String>> result = captor.getValue();
+
+        // verify results
+        Assert.assertEquals(result.size(), 2);
+
+        // get the event entry, pos[1] (since DefaultEvent is always first)
+        Map<String, String> eventData = result.get(1);
 
         // make sure it contains the correct event
         Assert.assertEquals(
@@ -113,14 +176,14 @@ public class TelemetryTest {
 
         // create some Telemetry data
         final Telemetry.RequestId requestId1 = Telemetry.generateNewRequestId();
-        final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder(requestId1);
-        mTestInstance.startEvent(httpEventBuilder);
-        mTestInstance.stopEvent(httpEventBuilder.build());
+        final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder();
+        mTestInstance.startEvent(requestId1, httpEventBuilder.getEventName());
+        mTestInstance.stopEvent(requestId1, httpEventBuilder);
 
         final Telemetry.RequestId requestId2 = Telemetry.generateNewRequestId();
-        final CacheEvent.Builder cacheEventBuilder = CacheEventTest.getTestCacheEventBuilder(requestId2, EventName.TOKEN_CACHE_LOOKUP, EventProperty.Value.TOKEN_TYPE_AT);
-        mTestInstance.startEvent(cacheEventBuilder);
-        mTestInstance.stopEvent(cacheEventBuilder.build());
+        final CacheEvent.Builder cacheEventBuilder = CacheEventTest.getTestCacheEventBuilder(EventName.TOKEN_CACHE_LOOKUP, EventProperty.Value.TOKEN_TYPE_AT);
+        mTestInstance.startEvent(requestId2, cacheEventBuilder.getEventName());
+        mTestInstance.stopEvent(requestId2, cacheEventBuilder);
 
         // flush the data to the receiver
         mTestInstance.flush(requestId2);
@@ -133,10 +196,10 @@ public class TelemetryTest {
         List<Map<String, String>> result = captor.getValue();
 
         // verify results
-        Assert.assertEquals(result.size(), 1);
+        Assert.assertEquals(result.size(), 2);
 
-        // get the event entry
-        Map<String, String> eventData = result.get(0);
+        // get the event entry, pos[1] (since DefaultEvent is always first)
+        Map<String, String> eventData = result.get(1);
 
         // make sure it contains the correct event
         Assert.assertEquals(
@@ -162,17 +225,17 @@ public class TelemetryTest {
                 .setApiId(EventConstants.ApiId.API_ID_ACQUIRE)
                 .setCorrelationId(UUID.randomUUID())
                 .setApiCallWasSuccessful(true);
-        final UiEvent.Builder uiEventBuilder = new UiEvent.Builder(requestId1)
+        final UiEvent.Builder uiEventBuilder = new UiEvent.Builder()
                 .setRedirectCount(0);
-        final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(requestId1, EventName.TOKEN_CACHE_LOOKUP)
+        final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(EventName.TOKEN_CACHE_LOOKUP)
                 .setTokenType(EventProperty.Value.TOKEN_TYPE_AT);
 
-        mTestInstance.startEvent(apiEventBuilder);
-        mTestInstance.startEvent(uiEventBuilder);
-        mTestInstance.startEvent(cacheEventBuilder);
-        mTestInstance.stopEvent(cacheEventBuilder.build());
-        mTestInstance.stopEvent(uiEventBuilder.build());
-        mTestInstance.stopEvent(apiEventBuilder.build());
+        mTestInstance.startEvent(requestId1, apiEventBuilder.getEventName());
+        mTestInstance.startEvent(requestId1, uiEventBuilder.getEventName());
+        mTestInstance.startEvent(requestId1, cacheEventBuilder.getEventName());
+        mTestInstance.stopEvent(requestId1, cacheEventBuilder);
+        mTestInstance.stopEvent(requestId1, uiEventBuilder);
+        mTestInstance.stopEvent(requestId1, apiEventBuilder);
 
         mTestInstance.flush(requestId1);
 
@@ -196,17 +259,17 @@ public class TelemetryTest {
                 .setApiId(EventConstants.ApiId.API_ID_ACQUIRE)
                 .setCorrelationId(UUID.randomUUID())
                 .setApiCallWasSuccessful(true);
-        final UiEvent.Builder uiEventBuilder2 = new UiEvent.Builder(requestId2)
+        final UiEvent.Builder uiEventBuilder2 = new UiEvent.Builder()
                 .setRedirectCount(0);
-        final CacheEvent.Builder cacheEventBuilder2 = new CacheEvent.Builder(requestId2, EventName.TOKEN_CACHE_LOOKUP)
+        final CacheEvent.Builder cacheEventBuilder2 = new CacheEvent.Builder(EventName.TOKEN_CACHE_LOOKUP)
                 .setTokenType(EventProperty.Value.TOKEN_TYPE_AT);
 
-        mTestInstance.startEvent(apiEventBuilder2);
-        mTestInstance.startEvent(uiEventBuilder2);
-        mTestInstance.startEvent(cacheEventBuilder2);
-        mTestInstance.stopEvent(cacheEventBuilder2.build());
-        mTestInstance.stopEvent(uiEventBuilder2.build());
-        mTestInstance.stopEvent(apiEventBuilder2.build());
+        mTestInstance.startEvent(requestId2, apiEventBuilder2.getEventName());
+        mTestInstance.startEvent(requestId2, uiEventBuilder2.getEventName());
+        mTestInstance.startEvent(requestId2, cacheEventBuilder2.getEventName());
+        mTestInstance.stopEvent(requestId2, cacheEventBuilder2);
+        mTestInstance.stopEvent(requestId2, uiEventBuilder2);
+        mTestInstance.stopEvent(requestId2, apiEventBuilder2);
 
         mTestInstance.flush(requestId2);
 
@@ -217,7 +280,7 @@ public class TelemetryTest {
         List<Map<String, String>> result = captor2.getValue();
 
         // verify results
-        Assert.assertEquals(result.size(), 3);
+        Assert.assertEquals(result.size(), 4);
     }
 
     @Test
@@ -232,18 +295,18 @@ public class TelemetryTest {
                 .setApiId(EventConstants.ApiId.API_ID_ACQUIRE)
                 .setCorrelationId(UUID.randomUUID())
                 .setApiCallWasSuccessful(true);
-        final UiEvent.Builder uiEventBuilder = new UiEvent.Builder(requestId1)
+        final UiEvent.Builder uiEventBuilder = new UiEvent.Builder()
                 .setRedirectCount(0);
-        final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(requestId1, EventName.TOKEN_CACHE_LOOKUP)
+        final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(EventName.TOKEN_CACHE_LOOKUP)
                 .setTokenType(EventProperty.Value.TOKEN_TYPE_AT);
 
-        mTestInstance.startEvent(apiEventBuilder);
-        mTestInstance.startEvent(uiEventBuilder);
-        mTestInstance.startEvent(cacheEventBuilder);
-        mTestInstance.stopEvent(cacheEventBuilder.build());
+        mTestInstance.startEvent(requestId1, apiEventBuilder.getEventName());
+        mTestInstance.startEvent(requestId1, uiEventBuilder.getEventName());
+        mTestInstance.startEvent(requestId1, cacheEventBuilder.getEventName());
+        mTestInstance.stopEvent(requestId1, cacheEventBuilder);
         // Do not stop the UiEvent...
         //mTestInstance.stopEvent(uiEventBuilder.build());
-        mTestInstance.stopEvent(apiEventBuilder.build());
+        mTestInstance.stopEvent(requestId1, apiEventBuilder);
 
         mTestInstance.flush(requestId1);
 
@@ -254,12 +317,12 @@ public class TelemetryTest {
         // retrive the value from the captor
         List<Map<String, String>> result = captor.getValue();
 
-        // verify results, should contain 3 events, one orphaned...
-        Assert.assertEquals(result.size(), 3);
+        // verify results, should contain 4 events, one orphaned...
+        Assert.assertEquals(result.size(), 4);
 
         boolean orphanedEventVerified = false;
         for (final Map<String, String> event : result) {
-            if (event.get(EventProperty.EVENT_NAME).equals(EventName.UI_EVENT.toString())) {
+            if (event.get(EventProperty.EVENT_NAME) != null && event.get(EventProperty.EVENT_NAME).equals(EventName.UI_EVENT.toString())) {
                 Assert.assertEquals(event.get(EventProperty.STOP_TIME), "-1");
                 orphanedEventVerified = true;
                 break;

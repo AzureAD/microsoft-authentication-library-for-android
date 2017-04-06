@@ -98,4 +98,11 @@ interface IApiEvent extends IEvent {
      */
     Boolean wasSuccessful();
 
+    /**
+     * Gets the RequestId.
+     *
+     * @return the RequestId to get.
+     */
+    Telemetry.RequestId getRequestId();
+
 }

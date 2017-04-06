@@ -169,11 +169,11 @@ final class HttpRequest {
 
     private HttpResponse executeHttpSend() throws IOException {
         final HttpEvent.Builder httpEventBuilder =
-                new HttpEvent.Builder(mRequestContext.getTelemetryRequestId())
+                new HttpEvent.Builder()
                         .setHttpPath(mRequestUrl)
                         .setHttpMethod(mRequestMethod)
                         .setQueryParameters(mRequestUrl.getQuery());
-        Telemetry.getInstance().startEvent(httpEventBuilder);
+        Telemetry.getInstance().startEvent(mRequestContext.getTelemetryRequestId(), httpEventBuilder.getEventName());
         final HttpURLConnection urlConnection = setupConnection();
         urlConnection.setRequestMethod(mRequestMethod);
         setRequestBody(urlConnection, mRequestContent, mRequestContentType);
@@ -200,7 +200,7 @@ final class HttpRequest {
             safeCloseStream(responseStream);
         }
 
-        Telemetry.getInstance().stopEvent(httpEventBuilder.build());
+        Telemetry.getInstance().stopEvent(mRequestContext.getTelemetryRequestId(), httpEventBuilder);
         return response;
     }
 

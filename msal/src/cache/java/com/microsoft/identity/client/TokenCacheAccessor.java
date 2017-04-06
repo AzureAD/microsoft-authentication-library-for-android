@@ -80,13 +80,13 @@ final class TokenCacheAccessor {
         }
     }
 
-    private static CacheEvent.Builder createNewCacheEvent(final Telemetry.RequestId requestId, final EventName eventName, final boolean isRT) {
-        return new CacheEvent.Builder(requestId, eventName).setTokenType(isRT ? TOKEN_TYPE_RT : TOKEN_TYPE_AT);
+    private static CacheEvent.Builder createNewCacheEvent(final EventName eventName, final boolean isRT) {
+        return new CacheEvent.Builder(eventName).setTokenType(isRT ? TOKEN_TYPE_RT : TOKEN_TYPE_AT);
     }
 
     private static CacheEvent.Builder createAndStartNewCacheEvent(final Telemetry.RequestId requestId, final EventName eventName, final boolean isRT) {
-        final CacheEvent.Builder cacheEventBuilder = createNewCacheEvent(requestId, eventName, isRT);
-        Telemetry.getInstance().startEvent(cacheEventBuilder);
+        final CacheEvent.Builder cacheEventBuilder = createNewCacheEvent(eventName, isRT);
+        Telemetry.getInstance().startEvent(requestId, eventName);
         return cacheEventBuilder;
     }
 
@@ -101,7 +101,7 @@ final class TokenCacheAccessor {
         editor.putString(key.toString(), mGson.toJson(accessToken));
         editor.apply();
 
-        Telemetry.getInstance().stopEvent(cacheEventBuilder.build());
+        Telemetry.getInstance().stopEvent(telemetryRequestId, cacheEventBuilder);
         Logger.verbose(TAG, null, "Access token is saved into cache.");
         Logger.verbosePII(TAG, null, "Access token is saved with key: " + key);
     }
@@ -122,7 +122,7 @@ final class TokenCacheAccessor {
         editor.putString(key.toString(), mGson.toJson(refreshToken));
         editor.apply();
 
-        Telemetry.getInstance().stopEvent(cacheEventBuilder.build());
+        Telemetry.getInstance().stopEvent(telemetryRequestId, cacheEventBuilder);
         Logger.verbose(TAG, null, "Refresh token is successfully saved into cache.");
         Logger.verbosePII(TAG, null, "Refresh token is saved with key: " + key);
     }
@@ -144,7 +144,7 @@ final class TokenCacheAccessor {
             }
         }
 
-        Telemetry.getInstance().stopEvent(cacheEventBuilder.build());
+        Telemetry.getInstance().stopEvent(telemetryRequestId, cacheEventBuilder);
         Logger.verbose(TAG, null, "Retrieve refresh tokens for the given cache key");
         Logger.verbosePII(TAG, null, "Key used to retrieve refresh tokens is: " + tokenCacheKey);
         return foundRTs;
@@ -162,7 +162,7 @@ final class TokenCacheAccessor {
         final Editor editor = mAccessTokenSharedPreference.edit();
         editor.remove(key);
         editor.apply();
-        Telemetry.getInstance().stopEvent(cacheEventBuilder.build());
+        Telemetry.getInstance().stopEvent(telemetryRequestId, cacheEventBuilder);
     }
 
     /**
@@ -183,7 +183,7 @@ final class TokenCacheAccessor {
         final Editor editor = mRefreshTokenSharedPreference.edit();
         editor.remove(key);
         editor.apply();
-        Telemetry.getInstance().stopEvent(cacheEventBuilder.build());
+        Telemetry.getInstance().stopEvent(telemetryRequestId, cacheEventBuilder);
     }
 
     /**
@@ -198,7 +198,7 @@ final class TokenCacheAccessor {
             accessTokenCacheItems.add(accessTokenCacheItem);
         }
 
-        Telemetry.getInstance().stopEvent(cacheEventBuilder.build());
+        Telemetry.getInstance().stopEvent(telemetryRequestId, cacheEventBuilder);
         Logger.verbose(TAG, null, "Retrieve all the access tokens from cache, the number of access tokens returned is: " + accessTokenCacheItems.size());
         return Collections.unmodifiableList(accessTokenCacheItems);
     }
@@ -215,7 +215,7 @@ final class TokenCacheAccessor {
             refreshTokenCacheItems.add(refreshTokenCacheItem);
         }
 
-        Telemetry.getInstance().stopEvent(cacheEventBuilder.build());
+        Telemetry.getInstance().stopEvent(telemetryRequestId, cacheEventBuilder);
         Logger.verbose(TAG, null, "Retrieve all the refresh tokens, the number of refresh tokens returned is: " + refreshTokenCacheItems.size());
         return Collections.unmodifiableList(refreshTokenCacheItems);
     }

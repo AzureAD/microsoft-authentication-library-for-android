@@ -28,6 +28,7 @@ package com.microsoft.identity.client;
  */
 class EventName extends Telemetry.ValueTypeDef {
 
+    static final EventName DEFAULT_EVENT = new EventName(EventConstants.EVENT_PREFIX + "default");
     static final EventName API_EVENT = new EventName(EventConstants.EVENT_PREFIX + "api_event");
     static final EventName AUTHORITY_VALIDATION_EVENT = new EventName(EventConstants.EVENT_PREFIX + "authority_validation");
     static final EventName HTTP_EVENT = new EventName(EventConstants.EVENT_PREFIX + "http_event");

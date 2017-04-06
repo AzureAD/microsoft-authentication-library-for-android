@@ -23,38 +23,37 @@
 
 package com.microsoft.identity.client;
 
-import android.support.test.runner.AndroidJUnit4;
+/**
+ * Internal interface for DefaultEvent telemetry data.
+ */
+interface IDefaultEvent extends IEvent {
 
-import junit.framework.Assert;
+    /**
+     * Gets the name of this application.
+     *
+     * @return the application's name.
+     */
+    String getApplicationName();
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+    /**
+     * Gets the version of this application.
+     *
+     * @return the application's version.
+     */
+    String getApplicationVersion();
 
-@RunWith(AndroidJUnit4.class)
-public class CacheEventTest {
+    /**
+     * Gets the clientId (hashed).
+     *
+     * @return the hashed clientId.
+     */
+    String getClientId();
 
-    static final String TEST_TOKEN_TYPE_RT = "RT";
-    static final String TEST_TOKEN_TYPE_AT = "AT";
+    /**
+     * Gets the deviceId (hashed).
+     *
+     * @return the hashed deviceId
+     */
+    String getDeviceId();
 
-    static CacheEvent.Builder getTestCacheEventBuilder(final EventName eventName, final String tokenType) {
-        return new CacheEvent.Builder(eventName)
-                .setTokenType(tokenType);
-    }
-
-    static ICacheEvent getTestCacheEvent(
-            final EventName eventName,
-            final String tokenType
-    ) {
-        return getTestCacheEventBuilder(eventName, tokenType).build();
-    }
-
-    @Test
-    public void testCacheEventInitializes() {
-        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
-        final EventName eventName = EventName.TOKEN_CACHE_DELETE;
-        final ICacheEvent cacheEvent = getTestCacheEvent(eventName, TEST_TOKEN_TYPE_AT);
-        Assert.assertEquals(eventName, cacheEvent.getEventName());
-        Assert.assertEquals(TEST_TOKEN_TYPE_AT, cacheEvent.getTokenType());
-        Assert.assertEquals(Boolean.FALSE, cacheEvent.tokenTypeisRT());
-    }
 }

@@ -88,8 +88,8 @@ public final class PublicClientApplication {
         loadMetaDataFromManifest();
 
         // Init Events with defaults (application-wide)
-        Event.initializeAllWithDefaults(
-                Event.EventDefaults.forApplication(mAppContext, mClientId)
+        DefaultEvent.initializeDefaults(
+                DefaultEvent.Defaults.forApplication(mAppContext, mClientId)
         );
 
         mRedirectUri = createRedirectUri(mClientId);
@@ -139,11 +139,12 @@ public final class PublicClientApplication {
      */
     public List<User> getUsers() throws MsalClientException {
         // TODO Create an ApiEvent for this...
-        ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(Telemetry.generateNewRequestId());
-        Telemetry.getInstance().startEvent(apiEventBuilder);
-        List<User> users = mTokenCache.getUsers(mClientId, apiEventBuilder.getRequestId());
+        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+        final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(requestId);
+        Telemetry.getInstance().startEvent(requestId, apiEventBuilder.getEventName());
+        List<User> users = mTokenCache.getUsers(mClientId, requestId);
         apiEventBuilder.setApiCallWasSuccessful(true);
-        stopTelemetryEventAndFlush(apiEventBuilder);
+        stopTelemetryEventAndFlush(apiEventBuilder.build());
         return users;
     }
 
@@ -176,9 +177,10 @@ public final class PublicClientApplication {
      *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, @NonNull final AuthenticationCallback callback) {
-        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(API_ID_ACQUIRE);
+        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(requestId, API_ID_ACQUIRE);
         acquireTokenInteractive(activity, scopes, "", UIBehavior.SELECT_ACCOUNT, "", null, "",
-                wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
+                wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), requestId, apiEventBuilder);
     }
 
     /**
@@ -201,9 +203,10 @@ public final class PublicClientApplication {
      */
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint,
                              @NonNull final AuthenticationCallback callback) {
-        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(API_ID_ACQUIRE_WITH_HINT);
+        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(requestId, API_ID_ACQUIRE_WITH_HINT);
         acquireTokenInteractive(activity, scopes, loginHint, UIBehavior.SELECT_ACCOUNT, "", null, "",
-                wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
+                wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), requestId, apiEventBuilder);
     }
 
     /**
@@ -228,9 +231,10 @@ public final class PublicClientApplication {
      */
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint, final UIBehavior uiBehavior,
                              final String extraQueryParams, @NonNull final AuthenticationCallback callback) {
-        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_AND_PARAMETERS);
+        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(requestId, API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_AND_PARAMETERS);
         acquireTokenInteractive(activity, scopes, loginHint, uiBehavior == null ? UIBehavior.SELECT_ACCOUNT : uiBehavior,
-                extraQueryParams, null, "", wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
+                extraQueryParams, null, "", wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), requestId, apiEventBuilder);
     }
 
     /**
@@ -258,9 +262,10 @@ public final class PublicClientApplication {
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint, final UIBehavior uiBehavior,
                              final String extraQueryParams, final String[] additionalScope, final String authority,
                              @NonNull final AuthenticationCallback callback) {
-        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_PARAMETERS_AND_AUTHORITY);
+        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(requestId, API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_PARAMETERS_AND_AUTHORITY);
         acquireTokenInteractive(activity, scopes, loginHint, uiBehavior == null ? UIBehavior.SELECT_ACCOUNT : uiBehavior,
-                extraQueryParams, additionalScope, authority, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
+                extraQueryParams, additionalScope, authority, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), requestId, apiEventBuilder);
     }
 
     // Silent call APIs.
@@ -276,8 +281,9 @@ public final class PublicClientApplication {
      */
     public void acquireTokenSilentAsync(@NonNull final String[] scopes, @NonNull final User user,
                                         @NonNull final AuthenticationCallback callback) {
-        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER);
-        acquireTokenSilent(scopes, user, "", false, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
+        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(requestId, ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER);
+        acquireTokenSilent(scopes, user, "", false, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), requestId, apiEventBuilder);
     }
 
     /**
@@ -295,8 +301,9 @@ public final class PublicClientApplication {
     public void acquireTokenSilentAsync(@NonNull final String[] scopes, @NonNull final User user, final String authority,
                                         final boolean forceRefresh,
                                         @NonNull final AuthenticationCallback callback) {
-        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER_AUTHORITY_AND_FORCE_REFRESH);
-        acquireTokenSilent(scopes, user, authority, forceRefresh, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), apiEventBuilder);
+        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(requestId, ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER_AUTHORITY_AND_FORCE_REFRESH);
+        acquireTokenSilent(scopes, user, authority, forceRefresh, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), requestId, apiEventBuilder);
     }
 
     /**
@@ -305,12 +312,13 @@ public final class PublicClientApplication {
      */
     public void remove(final User user) {
         // TODO create an ApiEvent for this...
-        final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(Telemetry.generateNewRequestId());
-        Telemetry.getInstance().startEvent(apiEventBuilder);
-        mTokenCache.deleteRefreshTokenByUser(user, apiEventBuilder.getRequestId());
-        mTokenCache.deleteAccessTokenByUser(user, apiEventBuilder.getRequestId());
+        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+        final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(requestId);
+        Telemetry.getInstance().startEvent(requestId, EventName.API_EVENT);
+        mTokenCache.deleteRefreshTokenByUser(user, requestId);
+        mTokenCache.deleteAccessTokenByUser(user, requestId);
         apiEventBuilder.setApiCallWasSuccessful(true);
-        stopTelemetryEventAndFlush(apiEventBuilder);
+        stopTelemetryEventAndFlush(apiEventBuilder.build());
     }
 
     /**
@@ -390,13 +398,13 @@ public final class PublicClientApplication {
     private void acquireTokenInteractive(final Activity activity, final String[] scopes, final String loginHint, final UIBehavior uiBehavior,
                                          final String extraQueryParams, final String[] additionalScope,
                                          final String authority, final AuthenticationCallback callback,
-                                         final ApiEvent.Builder apiEventBuilder) {
+                                         final Telemetry.RequestId requestId, final ApiEvent.Builder apiEventBuilder) {
         if (callback == null) {
             throw new IllegalArgumentException("callback is null");
         }
 
         final AuthenticationRequestParameters requestParameters = getRequestParameters(authority, scopes, loginHint,
-                extraQueryParams, uiBehavior, apiEventBuilder.getRequestId());
+                extraQueryParams, uiBehavior, requestId);
 
         // add properties to our telemetry data
         apiEventBuilder
@@ -412,6 +420,7 @@ public final class PublicClientApplication {
     private void acquireTokenSilent(final String[] scopes, final User user, final String authority,
                                     final boolean forceRefresh,
                                     final AuthenticationCallback callback,
+                                    final Telemetry.RequestId requestId,
                                     final ApiEvent.Builder apiEventBuilder) {
         if (callback == null) {
             throw new IllegalArgumentException("callback is null");
@@ -420,7 +429,7 @@ public final class PublicClientApplication {
         final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? mAuthority
                 : Authority.createAuthority(authority, mValidateAuthority);
         // set correlation if not developer didn't set it.
-        final RequestContext requestContext = new RequestContext(UUID.randomUUID(), mComponent, apiEventBuilder.getRequestId());
+        final RequestContext requestContext = new RequestContext(UUID.randomUUID(), mComponent, requestId);
         final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));
         final AuthenticationRequestParameters requestParameters = AuthenticationRequestParameters.create(authorityForRequest, mTokenCache,
                 scopesAsSet, mClientId, requestContext);
@@ -451,8 +460,7 @@ public final class PublicClientApplication {
                 mRedirectUri, loginHint, extraQueryParam, uiBehavior, new RequestContext(correlationId, mComponent, telemetryRequestId));
     }
 
-    private ApiEvent.Builder createApiEventBuilder(final String apiId) {
-        Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+    private ApiEvent.Builder createApiEventBuilder(final Telemetry.RequestId requestId, final String apiId) {
         // Create the ApiEvent.Builder
         ApiEvent.Builder eventBuilder =
                 new ApiEvent.Builder(requestId)
@@ -460,7 +468,7 @@ public final class PublicClientApplication {
                         .setAuthority(mAuthority.getAuthority());
 
         // Start the Event on our Telemetry instance
-        Telemetry.getInstance().startEvent(eventBuilder);
+        Telemetry.getInstance().startEvent(requestId, EventName.API_EVENT);
 
         // Return the Builder
         return eventBuilder;
@@ -483,28 +491,28 @@ public final class PublicClientApplication {
             @Override
             public void onSuccess(final AuthenticationResult authenticationResult) {
                 eventBinding.setApiCallWasSuccessful(true);
-                stopTelemetryEventAndFlush(eventBinding);
+                stopTelemetryEventAndFlush(eventBinding.build());
                 authenticationCallback.onSuccess(authenticationResult);
             }
 
             @Override
             public void onError(final MsalException exception) {
                 eventBinding.setApiCallWasSuccessful(false);
-                stopTelemetryEventAndFlush(eventBinding);
+                stopTelemetryEventAndFlush(eventBinding.build());
                 authenticationCallback.onError(exception);
             }
 
             @Override
             public void onCancel() {
-                stopTelemetryEventAndFlush(eventBinding);
+                stopTelemetryEventAndFlush(eventBinding.build());
                 authenticationCallback.onCancel();
             }
         };
     }
 
     @SuppressWarnings("PMD.UnusedPrivateMethod")
-    private void stopTelemetryEventAndFlush(final Event.Builder builder) {
-        Telemetry.getInstance().stopEvent(builder.build());
-        Telemetry.getInstance().flush(builder.getRequestId());
+    private void stopTelemetryEventAndFlush(final IApiEvent event) {
+        Telemetry.getInstance().stopEvent(event.getRequestId(), event.getEventName(), event);
+        Telemetry.getInstance().flush(event.getRequestId());
     }
 }
