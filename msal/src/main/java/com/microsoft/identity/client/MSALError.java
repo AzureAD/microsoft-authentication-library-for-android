@@ -109,6 +109,11 @@ public final class MSALError {
      */
     public final static String CHROME_NOT_INSTALLED = "chrome_not_installed";
 
+    /**
+     * Indicates that the user provided in the acquire token request doesn't match the user returned from server.
+     */
+    public final static String USER_MISMATCH = "user_mismatch";
+
     final static String ADFS_AUTHORITY_VALIDATION_FAILED = "adfs_authority_validation_failed";
 
     // Errors codes for MsalServiceException

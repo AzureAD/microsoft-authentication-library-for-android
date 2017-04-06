@@ -187,9 +187,10 @@ abstract class BaseRequest {
      * Interactive request will read the response, and send error back with code as oauth_error.
      * @throws MsalException
      */
-    AuthenticationResult postTokenRequest() throws MsalUiRequiredException, MsalServiceException, MsalClientException  {
-        final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
+    AuthenticationResult postTokenRequest() throws MsalUiRequiredException, MsalServiceException, MsalClientException {
+        checkUserMismatch();
 
+        final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
         final Authority authority = mAuthRequestParameters.getAuthority();
         authority.updateTenantLessAuthority(new IdToken(mTokenResponse.getRawIdToken()).getTenantId());
         final AccessTokenCacheItem accessTokenCacheItem = tokenCache.saveAccessToken(authority.getAuthority(),
@@ -258,6 +259,16 @@ abstract class BaseRequest {
 
     private Set<String> getReservedScopesAsSet() {
         return new HashSet<>(Arrays.asList(OauthConstants.Oauth2Value.RESERVED_SCOPES));
+    }
+
+    private void checkUserMismatch() throws MsalClientException {
+        final ClientInfo returnedClientInfo = new ClientInfo(mTokenResponse.getRawClientInfo());
+        final String uniqueUserIdentifer = MSALUtils.getUniqueUserIdentifier(returnedClientInfo.getUniqueIdentifier(), returnedClientInfo.getUniqueTenantIdentifier());
+        if (mAuthRequestParameters.getUser() != null && !mAuthRequestParameters.getUser().getUserIdentifier().equals(uniqueUserIdentifer)) {
+            Logger.errorPII(TAG, mAuthRequestParameters.getRequestContext(), "User unique identifier provided in the request is: " + mAuthRequestParameters.getUser().getUserIdentifier()
+                    + ". The user unique identifier returned from token endpoint is: " + uniqueUserIdentifer, null);
+            throw new MsalClientException(MSALError.USER_MISMATCH, "User unique identifier provided in the request doesn't match the one returned in the token response");
+        }
     }
 
     private void callbackOnSuccess(final AuthenticationCallback callback,

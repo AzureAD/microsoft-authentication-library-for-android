@@ -639,7 +639,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
                                       final Activity activity,
                                       final CountDownLatch releaseLock) {
-                publicClientApplication.acquireToken(activity, SCOPE, mUser, new AuthenticationCallback() {
+                publicClientApplication.acquireToken(activity, SCOPE, mUser, UIBehavior.SELECT_ACCOUNT, null, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
                         Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
@@ -695,6 +695,57 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                         fail();
                     }
                 });
+            }
+        }.performTest();
+    }
+
+    @Test
+    public void testAcquireTokenUserMismatch() throws PackageManager.NameNotFoundException, InterruptedException, IOException {
+        new GetTokenBaseTestCase() {
+            private User mUser = new User(AndroidTestUtil.PREFERRED_USERNAME, AndroidTestUtil.NAME, AndroidTestUtil.ISSUER, AndroidTestUtil.UID, AndroidTestUtil.UTID);
+            private String mRawClientInfo = AndroidTestUtil.createRawClientInfo("different-uid", "different-utid");
+
+            @Override
+            void mockHttpRequest() throws IOException {
+                final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithFailureResponse(
+                        HttpURLConnection.HTTP_OK, AndroidTestUtil.getSuccessResponse(AndroidTestUtil.TEST_IDTOKEN, AndroidTestUtil.ACCESS_TOKEN,
+                                convertScopesArrayToString(SCOPE), mRawClientInfo));
+                Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+                HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
+            }
+
+            @Override
+            void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
+                                      final Activity activity,
+                                      final CountDownLatch releaseLock) {
+                publicClientApplication.acquireToken(activity, SCOPE, mUser, UIBehavior.SELECT_ACCOUNT, null, null, null, new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(AuthenticationResult authenticationResult) {
+                        fail();
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        assertTrue(exception instanceof MsalClientException);
+                        assertTrue(exception.getErrorCode().equals(MSALError.USER_MISMATCH));
+
+                        // verify that no token is stored.
+                        Assert.assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 0);
+                        Assert.assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 0);
+                        releaseLock.countDown();
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        fail("Unexpected Cancel");
+                    }
+                });
+            }
+
+            @Override
+            String getFinalAuthUrl() throws UnsupportedEncodingException {
+                return mRedirectUri + "?code=1234&state=" + AndroidTestUtil.encodeProtocolState(
+                        DEFAULT_AUTHORITY, new HashSet<>(Arrays.asList(SCOPE)));
             }
         }.performTest();
     }
