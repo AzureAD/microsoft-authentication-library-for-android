@@ -28,8 +28,13 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.provider.Settings;
 
+import com.microsoft.identity.msal.BuildConfig;
+
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+
+import static com.microsoft.identity.client.EventConstants.EventProperty;
+import static com.microsoft.identity.client.PlatformIdHelper.PlatformIdParameters;
 
 /**
  * A DefaultEvent stores Event data common to an Application or to a series of Events.
@@ -54,30 +59,32 @@ class DefaultEvent extends Event implements IDefaultEvent {
      */
     DefaultEvent(Builder builder) {
         super(builder);
-        setProperty(EventConstants.EventProperty.APPLICATION_NAME, sAllDefaults.mApplicationName);
-        setProperty(EventConstants.EventProperty.APPLICATION_VERSION, sAllDefaults.mApplicationVersion);
-        setProperty(EventConstants.EventProperty.CLIENT_ID, sAllDefaults.mClientId);
-        setProperty(EventConstants.EventProperty.DEVICE_ID, sAllDefaults.mDeviceId);
+        setProperty(EventProperty.APPLICATION_NAME, sAllDefaults.mApplicationName);
+        setProperty(EventProperty.APPLICATION_VERSION, sAllDefaults.mApplicationVersion);
+        setProperty(EventProperty.CLIENT_ID, sAllDefaults.mClientId);
+        setProperty(EventProperty.DEVICE_ID, sAllDefaults.mDeviceId);
+        setProperty(EventProperty.SDK_VERSION, sAllDefaults.mSdkVersion);
+        setProperty(EventProperty.SDK_PLATFORM, sAllDefaults.mSdkPlatform);
     }
 
     @Override
     public final String getApplicationName() {
-        return getProperty(EventConstants.EventProperty.APPLICATION_NAME);
+        return getProperty(EventProperty.APPLICATION_NAME);
     }
 
     @Override
     public final String getApplicationVersion() {
-        return getProperty(EventConstants.EventProperty.APPLICATION_VERSION);
+        return getProperty(EventProperty.APPLICATION_VERSION);
     }
 
     @Override
     public final String getClientId() {
-        return getProperty(EventConstants.EventProperty.CLIENT_ID);
+        return getProperty(EventProperty.CLIENT_ID);
     }
 
     @Override
     public final String getDeviceId() {
-        return getProperty(EventConstants.EventProperty.DEVICE_ID);
+        return getProperty(EventProperty.DEVICE_ID);
     }
 
     /**
@@ -100,10 +107,12 @@ class DefaultEvent extends Event implements IDefaultEvent {
      */
     static final class Defaults {
 
-        private String mApplicationName;
-        private String mApplicationVersion;
-        private String mClientId;
-        private String mDeviceId;
+        private final String mApplicationName;
+        private final String mApplicationVersion;
+        private final String mClientId;
+        private final String mDeviceId;
+        private final String mSdkVersion;
+        private final String mSdkPlatform;
 
         /**
          * Constructs a new EventDefaults from the supplied Builder.
@@ -115,6 +124,8 @@ class DefaultEvent extends Event implements IDefaultEvent {
             mApplicationVersion = builder.mApplicationVersion;
             mClientId = builder.mClientId;
             mDeviceId = builder.mDeviceId;
+            mSdkVersion = builder.mSdkVersion;
+            mSdkPlatform = builder.mSdkPlatform;
         }
 
         /**
@@ -128,7 +139,9 @@ class DefaultEvent extends Event implements IDefaultEvent {
         static Defaults forApplication(final Context context, final String clientId) {
             Builder defaultsBuilder = new Builder()
                     .setClientId(clientId)
-                    .setApplicationName(context.getPackageName());
+                    .setApplicationName(context.getPackageName())
+                    .setSdkVersion(BuildConfig.VERSION_NAME)
+                    .setSdkPlatform(PlatformIdParameters.PRODUCT_NAME);
             try {
                 String versionName = context
                         .getPackageManager()
@@ -164,6 +177,8 @@ class DefaultEvent extends Event implements IDefaultEvent {
             private String mApplicationVersion;
             private String mClientId;
             private String mDeviceId;
+            private String mSdkVersion;
+            private String mSdkPlatform;
 
             /**
              * Sets the application name.
@@ -206,6 +221,28 @@ class DefaultEvent extends Event implements IDefaultEvent {
              */
             Builder setDeviceId(final String deviceId) {
                 mDeviceId = deviceId;
+                return this;
+            }
+
+            /**
+             * Sets the sdk version.
+             *
+             * @param sdkVersion the sdk version to set.
+             * @return the Builder instance.
+             */
+            Builder setSdkVersion(final String sdkVersion) {
+                mSdkVersion = sdkVersion;
+                return this;
+            }
+
+            /**
+             * Sets the sdk platform.
+             *
+             * @param sdkPlatform the sdk platform to set.
+             * @return the Builder instance.
+             */
+            Builder setSdkPlatform(final String sdkPlatform) {
+                mSdkPlatform = sdkPlatform;
                 return this;
             }
 
