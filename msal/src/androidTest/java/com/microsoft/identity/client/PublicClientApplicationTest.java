@@ -24,6 +24,7 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -296,7 +297,6 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             protected void makeSilentRequest(final PublicClientApplication application, final CountDownLatch silentResultLock)
                     throws IOException, InterruptedException {
                 final String scopeForSilent = "scope3";
-                AndroidTestMockUtil.mockSuccessTenantDiscovery(SilentRequestTest.AUTHORIZE_ENDPOINT, SilentRequestTest.TOKEN_ENDPOINT);
                 mockSuccessResponse(scopeForSilent, AndroidTestUtil.ACCESS_TOKEN);
 
                 application.acquireTokenSilentAsync(new String[]{scopeForSilent}, mUser, new AuthenticationCallback() {
@@ -558,7 +558,6 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     throws IOException, InterruptedException {
                 final String silentRequestScope = "scope2";
                 final String newAccessToken = "some new access token";
-                AndroidTestMockUtil.mockSuccessTenantDiscovery(SilentRequestTest.AUTHORIZE_ENDPOINT, SilentRequestTest.TOKEN_ENDPOINT);
                 mockSuccessResponse(silentRequestScope, newAccessToken);
 
                 application.acquireTokenSilentAsync(new String[]{silentRequestScope}, mUser, null, true, new AuthenticationCallback() {
@@ -588,7 +587,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     @Test
-    public void testSilentRequestFailure() throws MsalException, InterruptedException {
+    public void testSilentRequestFailure() throws MsalException, InterruptedException, IOException {
         final PublicClientApplication application = new PublicClientApplication(mAppContext);
 
         // prepare token in the cache
@@ -600,6 +599,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         final ClientInfo clientInfoForDifferentUser = new ClientInfo(AndroidTestUtil.createRawClientInfo("another uid", "another utid"));
         final User user = User.create(idToken, clientInfoForDifferentUser);
 
+        AndroidTestMockUtil.mockSuccessTenantDiscovery(SilentRequestTest.AUTHORIZE_ENDPOINT, SilentRequestTest.TOKEN_ENDPOINT);
         final CountDownLatch silentLock = new CountDownLatch(1);
         application.acquireTokenSilentAsync(new String[]{"scope1", "scope2"}, user, new AuthenticationCallback() {
             @Override
@@ -620,6 +620,46 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                 fail();
             }
         });
+        silentLock.await();
+    }
+
+    @Test
+    public void testTurnOffAuthorityValidation() throws MsalException, IOException, InterruptedException {
+        final String testAuthority = "https://someauthority.test.com/sometenant";
+        final PublicClientApplication application = new PublicClientApplication(mAppContext, CLIENT_ID, testAuthority);
+        application.setValidateAuthority(false);
+
+        //mock tenant discovery response
+        // prepare token in the cache
+        final String rawClientInfo = AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID);
+        saveTokenResponse(mTokenCache, testAuthority, CLIENT_ID, TokenCacheTest.getTokenResponseForDefaultUser(
+                AndroidTestUtil.ACCESS_TOKEN, AndroidTestUtil.REFRESH_TOKEN, "scope1 scope2", AndroidTestUtil.getExpiredDate(), rawClientInfo));
+
+
+        final User user = User.create(new IdToken(TokenCacheTest.getDefaultIdToken()), new ClientInfo(rawClientInfo));
+        AndroidTestMockUtil.mockSuccessTenantDiscovery(SilentRequestTest.AUTHORIZE_ENDPOINT, SilentRequestTest.TOKEN_ENDPOINT);
+
+        final String accessToken = "access token from token refresh";
+        mockSuccessResponse("scope1 scope2", accessToken);
+        final CountDownLatch silentLock = new CountDownLatch(1);
+        application.acquireTokenSilentAsync(new String[]{"scope1", "scope2"}, user, null, true, new AuthenticationCallback() {
+            @Override
+            public void onSuccess(AuthenticationResult authenticationResult) {
+                assertTrue(authenticationResult.getAccessToken().equals(accessToken));
+                silentLock.countDown();
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                fail();
+            }
+
+            @Override
+            public void onCancel() {
+                fail();
+            }
+        });
+
         silentLock.await();
     }
 
