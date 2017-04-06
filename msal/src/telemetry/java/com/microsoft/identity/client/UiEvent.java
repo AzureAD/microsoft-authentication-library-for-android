@@ -56,8 +56,8 @@ final class UiEvent extends Event implements IUiEvent {
         private Integer mRedirectCount;
         private String mUserDidCancel = "false";
 
-        Builder(final Telemetry.RequestId requestId) {
-            super(requestId, EventName.UI_EVENT);
+        Builder() {
+            super(EventName.UI_EVENT);
         }
 
         /**

@@ -26,7 +26,7 @@ package com.microsoft.identity.client;
 /**
  * Internal interface for DefaultEvent telemetry data.
  */
-interface IDefaultEvent extends ICorrelatableEvent {
+interface IDefaultEvent extends IEvent {
 
     /**
      * Gets the name of this application.

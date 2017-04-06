@@ -87,9 +87,9 @@ public class TelemetryTest {
 
         // create some Telemetry data
         final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
-        final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder(requestId);
-        mTestInstance.startEvent(httpEventBuilder);
-        mTestInstance.stopEvent(httpEventBuilder.build());
+        final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder();
+        mTestInstance.startEvent(requestId, httpEventBuilder.getEventName());
+        mTestInstance.stopEvent(requestId, httpEventBuilder);
 
         // flush the data to the receiver
         mTestInstance.flush(requestId);
@@ -139,9 +139,9 @@ public class TelemetryTest {
 
         // create some Telemetry data
         final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
-        final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder(requestId);
-        mTestInstance.startEvent(httpEventBuilder);
-        mTestInstance.stopEvent(httpEventBuilder.build());
+        final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder();
+        mTestInstance.startEvent(requestId, httpEventBuilder.getEventName());
+        mTestInstance.stopEvent(requestId, httpEventBuilder);
 
         // flush the data to the receiver
         mTestInstance.flush(requestId);
@@ -176,14 +176,14 @@ public class TelemetryTest {
 
         // create some Telemetry data
         final Telemetry.RequestId requestId1 = Telemetry.generateNewRequestId();
-        final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder(requestId1);
-        mTestInstance.startEvent(httpEventBuilder);
-        mTestInstance.stopEvent(httpEventBuilder.build());
+        final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder();
+        mTestInstance.startEvent(requestId1, httpEventBuilder.getEventName());
+        mTestInstance.stopEvent(requestId1, httpEventBuilder);
 
         final Telemetry.RequestId requestId2 = Telemetry.generateNewRequestId();
-        final CacheEvent.Builder cacheEventBuilder = CacheEventTest.getTestCacheEventBuilder(requestId2, EventName.TOKEN_CACHE_LOOKUP, EventProperty.Value.TOKEN_TYPE_AT);
-        mTestInstance.startEvent(cacheEventBuilder);
-        mTestInstance.stopEvent(cacheEventBuilder.build());
+        final CacheEvent.Builder cacheEventBuilder = CacheEventTest.getTestCacheEventBuilder(EventName.TOKEN_CACHE_LOOKUP, EventProperty.Value.TOKEN_TYPE_AT);
+        mTestInstance.startEvent(requestId2, cacheEventBuilder.getEventName());
+        mTestInstance.stopEvent(requestId2, cacheEventBuilder);
 
         // flush the data to the receiver
         mTestInstance.flush(requestId2);
@@ -225,17 +225,17 @@ public class TelemetryTest {
                 .setApiId(EventConstants.ApiId.API_ID_ACQUIRE)
                 .setCorrelationId(UUID.randomUUID())
                 .setApiCallWasSuccessful(true);
-        final UiEvent.Builder uiEventBuilder = new UiEvent.Builder(requestId1)
+        final UiEvent.Builder uiEventBuilder = new UiEvent.Builder()
                 .setRedirectCount(0);
-        final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(requestId1, EventName.TOKEN_CACHE_LOOKUP)
+        final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(EventName.TOKEN_CACHE_LOOKUP)
                 .setTokenType(EventProperty.Value.TOKEN_TYPE_AT);
 
-        mTestInstance.startEvent(apiEventBuilder);
-        mTestInstance.startEvent(uiEventBuilder);
-        mTestInstance.startEvent(cacheEventBuilder);
-        mTestInstance.stopEvent(cacheEventBuilder.build());
-        mTestInstance.stopEvent(uiEventBuilder.build());
-        mTestInstance.stopEvent(apiEventBuilder.build());
+        mTestInstance.startEvent(requestId1, apiEventBuilder.getEventName());
+        mTestInstance.startEvent(requestId1, uiEventBuilder.getEventName());
+        mTestInstance.startEvent(requestId1, cacheEventBuilder.getEventName());
+        mTestInstance.stopEvent(requestId1, cacheEventBuilder);
+        mTestInstance.stopEvent(requestId1, uiEventBuilder);
+        mTestInstance.stopEvent(requestId1, apiEventBuilder);
 
         mTestInstance.flush(requestId1);
 
@@ -259,17 +259,17 @@ public class TelemetryTest {
                 .setApiId(EventConstants.ApiId.API_ID_ACQUIRE)
                 .setCorrelationId(UUID.randomUUID())
                 .setApiCallWasSuccessful(true);
-        final UiEvent.Builder uiEventBuilder2 = new UiEvent.Builder(requestId2)
+        final UiEvent.Builder uiEventBuilder2 = new UiEvent.Builder()
                 .setRedirectCount(0);
-        final CacheEvent.Builder cacheEventBuilder2 = new CacheEvent.Builder(requestId2, EventName.TOKEN_CACHE_LOOKUP)
+        final CacheEvent.Builder cacheEventBuilder2 = new CacheEvent.Builder(EventName.TOKEN_CACHE_LOOKUP)
                 .setTokenType(EventProperty.Value.TOKEN_TYPE_AT);
 
-        mTestInstance.startEvent(apiEventBuilder2);
-        mTestInstance.startEvent(uiEventBuilder2);
-        mTestInstance.startEvent(cacheEventBuilder2);
-        mTestInstance.stopEvent(cacheEventBuilder2.build());
-        mTestInstance.stopEvent(uiEventBuilder2.build());
-        mTestInstance.stopEvent(apiEventBuilder2.build());
+        mTestInstance.startEvent(requestId2, apiEventBuilder2.getEventName());
+        mTestInstance.startEvent(requestId2, uiEventBuilder2.getEventName());
+        mTestInstance.startEvent(requestId2, cacheEventBuilder2.getEventName());
+        mTestInstance.stopEvent(requestId2, cacheEventBuilder2);
+        mTestInstance.stopEvent(requestId2, uiEventBuilder2);
+        mTestInstance.stopEvent(requestId2, apiEventBuilder2);
 
         mTestInstance.flush(requestId2);
 
@@ -295,18 +295,18 @@ public class TelemetryTest {
                 .setApiId(EventConstants.ApiId.API_ID_ACQUIRE)
                 .setCorrelationId(UUID.randomUUID())
                 .setApiCallWasSuccessful(true);
-        final UiEvent.Builder uiEventBuilder = new UiEvent.Builder(requestId1)
+        final UiEvent.Builder uiEventBuilder = new UiEvent.Builder()
                 .setRedirectCount(0);
-        final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(requestId1, EventName.TOKEN_CACHE_LOOKUP)
+        final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(EventName.TOKEN_CACHE_LOOKUP)
                 .setTokenType(EventProperty.Value.TOKEN_TYPE_AT);
 
-        mTestInstance.startEvent(apiEventBuilder);
-        mTestInstance.startEvent(uiEventBuilder);
-        mTestInstance.startEvent(cacheEventBuilder);
-        mTestInstance.stopEvent(cacheEventBuilder.build());
+        mTestInstance.startEvent(requestId1, apiEventBuilder.getEventName());
+        mTestInstance.startEvent(requestId1, uiEventBuilder.getEventName());
+        mTestInstance.startEvent(requestId1, cacheEventBuilder.getEventName());
+        mTestInstance.stopEvent(requestId1, cacheEventBuilder);
         // Do not stop the UiEvent...
         //mTestInstance.stopEvent(uiEventBuilder.build());
-        mTestInstance.stopEvent(apiEventBuilder.build());
+        mTestInstance.stopEvent(requestId1, apiEventBuilder);
 
         mTestInstance.flush(requestId1);
 

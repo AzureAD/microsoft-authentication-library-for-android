@@ -115,32 +115,40 @@ public final class Telemetry implements ITelemetry {
     }
 
     /**
-     * Starts recording a new Event, based on {@link RequestId}.
+     * Stars recording a new Event, based on {@link Telemetry.RequestId}
      *
-     * @param eventBuilder the Builder used to make the Event in-progress.
+     * @param requestId the RequestId used to track this Event.
+     * @param eventName the name of the Event which is to be tracked.
      */
-    void startEvent(final Event.Builder eventBuilder) {
+    void startEvent(final Telemetry.RequestId requestId, final EventName eventName) {
         if (null == mPublisher || sDisableForTest) {
             return;
         }
 
-        final RequestId requestId = eventBuilder.getRequestId();
-        final EventName eventName = eventBuilder.getEventName();
         mEventsInProgress.put(new Pair<>(requestId, eventName), new EventStartTime(Long.toString(System.currentTimeMillis())));
     }
 
     /**
-     * Stops a previously started event.
+     * Stops a previously started Event using its Event.Builder.
      *
-     * @param eventToStop the Event to stop.
+     * @param requestId    the RequestId of the Event to stop.
+     * @param eventBuilder the Event.Builder used to create the Event.
      */
-    void stopEvent(final IEvent eventToStop) {
+    void stopEvent(final Telemetry.RequestId requestId, final Event.Builder eventBuilder) {
+        stopEvent(requestId, eventBuilder.getEventName(), eventBuilder.build());
+    }
+
+    /**
+     * Stops a previously started Event.
+     *
+     * @param requestId   the RequestId of the Event to stop.
+     * @param eventName   the name of the Event to stop.
+     * @param eventToStop the Event data.
+     */
+    void stopEvent(final Telemetry.RequestId requestId, final EventName eventName, final IEvent eventToStop) {
         if (null == mPublisher || sDisableForTest) {
             return;
         }
-
-        final RequestId requestId = eventToStop.getRequestId();
-        final EventName eventName = eventToStop.getEventName();
 
         final Pair<RequestId, EventName> eventKey = new Pair<>(requestId, eventName);
 
@@ -210,53 +218,19 @@ public final class Telemetry implements ITelemetry {
         }
 
         if (null != mPublisher && !eventsToFlush.isEmpty()) {
-            prependDefaultEvent(eventsToFlush);
+            eventsToFlush.add(0, new DefaultEvent.Builder().build());
             mPublisher.dispatch(eventsToFlush);
         }
-    }
-
-    private void prependDefaultEvent(final List<IEvent> eventsToFlush) {
-        final Telemetry.RequestId requestId = eventsToFlush.get(0).getRequestId();
-        final UUID correlationId = getCorrelationIdFromEventList(eventsToFlush);
-        IDefaultEvent defaultEvent = new DefaultEvent.Builder(requestId).build();
-        defaultEvent.setCorrelationId(correlationId);
-
-        // scrub requestIds from the List, as it is now stored once in the DefaultEvent
-        for (final IEvent event : eventsToFlush) {
-            event.clearRequestId();
-            if (event instanceof AbstractCorrelatableEvent) {
-                // clear the correlationId
-                ((AbstractCorrelatableEvent) event).clearCorrelationId();
-            }
-        }
-
-        eventsToFlush.add(0, defaultEvent);
-    }
-
-    private UUID getCorrelationIdFromEventList(final List<IEvent> eventsToFlush) {
-        UUID correlationId = null;
-        for (final IEvent event : eventsToFlush) {
-            if (event instanceof ICorrelatableEvent) {
-                ICorrelatableEvent correlatableEvent = (ICorrelatableEvent) event;
-                if (null != correlatableEvent.getCorrelationId()) {
-                    correlationId = correlatableEvent.getCorrelationId();
-                    break;
-                }
-            }
-        }
-        return correlationId;
     }
 
     private void collateOrphanedEvents(RequestId requestId, List<IEvent> orphanedEvents) {
         for (Pair<RequestId, EventName> key : mEventsInProgress.keySet()) {
             if (key.first.equals(requestId)) {
-                // this event was orphaned...
-                final RequestId orphanedRequestId = key.first;
                 final EventName orphanedEventName = key.second;
                 final String orphanedEventStartTime =
                         mEventsInProgress.remove(key).toString(); // remove() this entry (clean up!)
                 // Build the OrphanedEvent...
-                IEvent orphanedEvent = new OrphanedEvent.Builder(orphanedRequestId, orphanedEventName, orphanedEventStartTime).build();
+                IEvent orphanedEvent = new OrphanedEvent.Builder(orphanedEventName, orphanedEventStartTime).build();
                 orphanedEvents.add(orphanedEvent);
             }
         }

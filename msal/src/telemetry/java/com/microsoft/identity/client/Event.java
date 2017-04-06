@@ -46,7 +46,6 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
         if (!EventName.DEFAULT_EVENT.equals(builder.mEventName)) {
             setProperty(EventProperty.EVENT_NAME, builder.mEventName.toString());
         }
-        setProperty(EventProperty.REQUEST_ID, builder.mRequestId.toString());
     }
 
     @Override
@@ -74,21 +73,6 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
     }
 
     @Override
-    public Telemetry.RequestId getRequestId() {
-        return new Telemetry.RequestId(getProperty(EventProperty.REQUEST_ID));
-    }
-
-    @Override
-    public void clearRequestId() {
-        for (final Pair<String, String> property : this) {
-            if (property.first.equals(EventProperty.REQUEST_ID)) {
-                remove(property);
-                break;
-            }
-        }
-    }
-
-    @Override
     public EventName getEventName() {
         return new EventName(getProperty(EventProperty.EVENT_NAME));
     }
@@ -100,25 +84,10 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
      */
     abstract static class Builder<T extends Builder> {
 
-        private Telemetry.RequestId mRequestId;
         private final EventName mEventName;
 
-        Builder(Telemetry.RequestId requestId, final EventName name) {
-            if (!Telemetry.RequestId.isValid(requestId)) {
-                throw new IllegalArgumentException("Invalid RequestId");
-            }
-            mRequestId = requestId;
+        Builder(final EventName name) {
             mEventName = name;
-        }
-
-        /**
-         * Gets the {@link com.microsoft.identity.client.Telemetry.RequestId}.
-         * assigned to this Builder.
-         *
-         * @return the requestId.
-         */
-        final Telemetry.RequestId getRequestId() {
-            return mRequestId;
         }
 
         /**

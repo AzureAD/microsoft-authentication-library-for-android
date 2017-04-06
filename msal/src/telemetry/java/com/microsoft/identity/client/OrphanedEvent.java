@@ -54,8 +54,8 @@ final class OrphanedEvent extends Event implements IEvent {
         final String mStartTime;
 
 
-        Builder(final Telemetry.RequestId requestId, final EventName name, final String startTime) {
-            super(requestId, name);
+        Builder(final EventName name, final String startTime) {
+            super(name);
             mStartTime = startTime;
         }
 

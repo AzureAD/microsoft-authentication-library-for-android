@@ -55,6 +55,7 @@ public final class AuthenticationActivity extends Activity {
     private CustomTabsServiceConnection mCustomTabsServiceConnection;
     private boolean mCustomTabsServiceIsBound;
     private UiEvent.Builder mUiEventBuilder;
+    private Telemetry.RequestId mTelemetryRequestId;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -90,8 +91,9 @@ public final class AuthenticationActivity extends Activity {
 
         mChromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(getApplicationContext());
 
-        mUiEventBuilder = new UiEvent.Builder(new Telemetry.RequestId(data.getStringExtra(Constants.TELEMETRY_REQUEST_ID)));
-        Telemetry.getInstance().startEvent(mUiEventBuilder);
+        mTelemetryRequestId = new Telemetry.RequestId(data.getStringExtra(Constants.TELEMETRY_REQUEST_ID));
+        mUiEventBuilder = new UiEvent.Builder();
+        Telemetry.getInstance().startEvent(mTelemetryRequestId, mUiEventBuilder.getEventName());
     }
 
     @Override
@@ -220,7 +222,7 @@ public final class AuthenticationActivity extends Activity {
         data.putExtra(Constants.REQUEST_ID, mRequestId);
 
         if (null != mUiEventBuilder) {
-            Telemetry.getInstance().stopEvent(mUiEventBuilder.build());
+            Telemetry.getInstance().stopEvent(mTelemetryRequestId, mUiEventBuilder);
         }
 
         setResult(resultCode, data);

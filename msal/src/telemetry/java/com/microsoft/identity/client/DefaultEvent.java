@@ -34,7 +34,7 @@ import java.security.NoSuchAlgorithmException;
 /**
  * A DefaultEvent stores Event data common to an Application or to a series of Events.
  */
-class DefaultEvent extends AbstractCorrelatableEvent implements IDefaultEvent {
+class DefaultEvent extends Event implements IDefaultEvent {
 
     private static Defaults sAllDefaults;
 
@@ -85,8 +85,8 @@ class DefaultEvent extends AbstractCorrelatableEvent implements IDefaultEvent {
      */
     static class Builder extends Event.Builder<Builder> {
 
-        Builder(Telemetry.RequestId requestId) {
-            super(requestId, EventName.DEFAULT_EVENT);
+        Builder() {
+            super(EventName.DEFAULT_EVENT);
         }
 
         @Override

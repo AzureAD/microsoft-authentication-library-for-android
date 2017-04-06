@@ -44,20 +44,20 @@ public class HttpEventTest {
     static final URL TEST_HTTP_PATH = MSALUtils.getUrl("https://login.microsoftonline.com/");
     static final Integer TEST_HTTP_RESPONSE_CODE = 200;
 
-    static IHttpEvent getTestHttpEvent(final Telemetry.RequestId requestId) {
-        return getTestHttpEventBuilder(requestId, TEST_HTTP_PATH).build();
+    static IHttpEvent getTestHttpEvent() {
+        return getTestHttpEventBuilder(TEST_HTTP_PATH).build();
     }
 
-    static HttpEvent.Builder getTestHttpEventBuilder(final Telemetry.RequestId requestId) {
-        return getTestHttpEventBuilder(requestId, TEST_HTTP_PATH);
+    static HttpEvent.Builder getTestHttpEventBuilder() {
+        return getTestHttpEventBuilder(TEST_HTTP_PATH);
     }
 
-    private static IHttpEvent getTestHttpEvent(final Telemetry.RequestId requestId, final URL httpPath) {
-        return getTestHttpEventBuilder(requestId, httpPath).build();
+    private static IHttpEvent getTestHttpEvent(final URL httpPath) {
+        return getTestHttpEventBuilder(httpPath).build();
     }
 
-    static HttpEvent.Builder getTestHttpEventBuilder(final Telemetry.RequestId requestId, final URL httpPath) {
-        return new HttpEvent.Builder(requestId)
+    static HttpEvent.Builder getTestHttpEventBuilder(final URL httpPath) {
+        return new HttpEvent.Builder()
                 .setUserAgent(TEST_USER_AGENT)
                 .setHttpMethod(TEST_HTTP_METHOD)
                 .setQueryParameters(TEST_QUERY_PARAMS)
@@ -70,9 +70,7 @@ public class HttpEventTest {
 
     @Test
     public void testHttpEventInitializes() {
-        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
-        final IHttpEvent httpEvent = getTestHttpEvent(requestId);
-        Assert.assertEquals(requestId, httpEvent.getRequestId());
+        final IHttpEvent httpEvent = getTestHttpEvent();
         Assert.assertEquals(EventName.HTTP_EVENT, httpEvent.getEventName());
         Assert.assertEquals(TEST_USER_AGENT, httpEvent.getUserAgent());
         Assert.assertEquals(TEST_HTTP_METHOD, httpEvent.getHttpMethod());
@@ -86,9 +84,8 @@ public class HttpEventTest {
 
     @Test
     public void testOnlyTrustedHostsAddedToEvent() {
-        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
         final IHttpEvent httpEvent =
-                getTestHttpEvent(requestId, MSALUtils.getUrl("https://login.contoso.com/"));
+                getTestHttpEvent(MSALUtils.getUrl("https://login.contoso.com/"));
         Assert.assertNull(httpEvent.getHttpPath());
     }
 }

@@ -59,18 +59,6 @@ interface IEvent extends Collection<Pair<String, String>> {
     int getPropertyCount();
 
     /**
-     * Gets the {@link com.microsoft.identity.client.Telemetry.RequestId}.
-     *
-     * @return the RequestId to get
-     */
-    Telemetry.RequestId getRequestId();
-
-    /**
-     * Clears the {@link com.microsoft.identity.client.Telemetry.RequestId} set on this Event.
-     */
-    void clearRequestId();
-
-    /**
      * Gets the {@link EventName}.
      *
      * @return the EventName to get

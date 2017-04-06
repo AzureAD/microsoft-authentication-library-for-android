@@ -26,7 +26,7 @@ package com.microsoft.identity.client;
 /**
  * Internal interface for ApiEvent telemetry data.
  */
-interface IApiEvent extends ICorrelatableEvent {
+interface IApiEvent extends IEvent {
 
     /**
      * Gets the authority.
@@ -97,5 +97,12 @@ interface IApiEvent extends ICorrelatableEvent {
      * @return true if the call was successful, otherwise false.
      */
     Boolean wasSuccessful();
+
+    /**
+     * Gets the RequestId.
+     *
+     * @return the RequestId to get.
+     */
+    Telemetry.RequestId getRequestId();
 
 }

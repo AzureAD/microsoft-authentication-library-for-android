@@ -36,25 +36,23 @@ public class CacheEventTest {
     static final String TEST_TOKEN_TYPE_RT = "RT";
     static final String TEST_TOKEN_TYPE_AT = "AT";
 
-    static CacheEvent.Builder getTestCacheEventBuilder(final Telemetry.RequestId requestId, final EventName eventName, final String tokenType) {
-        return new CacheEvent.Builder(requestId, eventName)
+    static CacheEvent.Builder getTestCacheEventBuilder(final EventName eventName, final String tokenType) {
+        return new CacheEvent.Builder(eventName)
                 .setTokenType(tokenType);
     }
 
     static ICacheEvent getTestCacheEvent(
-            final Telemetry.RequestId requestId,
             final EventName eventName,
             final String tokenType
     ) {
-        return getTestCacheEventBuilder(requestId, eventName, tokenType).build();
+        return getTestCacheEventBuilder(eventName, tokenType).build();
     }
 
     @Test
     public void testCacheEventInitializes() {
         final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
         final EventName eventName = EventName.TOKEN_CACHE_DELETE;
-        final ICacheEvent cacheEvent = getTestCacheEvent(requestId, eventName, TEST_TOKEN_TYPE_AT);
-        Assert.assertEquals(requestId, cacheEvent.getRequestId());
+        final ICacheEvent cacheEvent = getTestCacheEvent(eventName, TEST_TOKEN_TYPE_AT);
         Assert.assertEquals(eventName, cacheEvent.getEventName());
         Assert.assertEquals(TEST_TOKEN_TYPE_AT, cacheEvent.getTokenType());
         Assert.assertEquals(Boolean.FALSE, cacheEvent.tokenTypeisRT());

@@ -52,8 +52,8 @@ final class CacheEvent extends Event implements ICacheEvent {
 
         private String mTokenType;
 
-        Builder(final Telemetry.RequestId requestId, final EventName eventName) {
-            super(requestId, eventName);
+        Builder(final EventName eventName) {
+            super(eventName);
         }
 
         /**

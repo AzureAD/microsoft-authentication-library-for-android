@@ -124,8 +124,8 @@ final class HttpEvent extends Event implements IHttpEvent {
         private URL mHttpPath;
         private Integer mResponseCode;
 
-        Builder(final Telemetry.RequestId requestId) {
-            super(requestId, EventName.HTTP_EVENT);
+        Builder() {
+            super(EventName.HTTP_EVENT);
         }
 
         /**
