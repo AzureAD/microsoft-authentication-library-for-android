@@ -108,6 +108,14 @@ public final class AuthorityTest {
         final String b2cAuthorityString = "https://somehost:101/tfp/sometenant/signin";
         final Authority b2cAuthority = Authority.createAuthority(b2cAuthorityString, true);
         Assert.assertTrue(b2cAuthority.getAuthority().equals(b2cAuthorityString));
+
+        final String authorityWithIpAddressAsHostString = "https://192.168.0.1:123/sometenant";
+        final Authority authorityWithIpAddressAsHost = Authority.createAuthority(authorityWithIpAddressAsHostString, true);
+        Assert.assertTrue(authorityWithIpAddressAsHost.getAuthority().equals(authorityWithIpAddressAsHostString));
+
+        final String authorityWithFormedUrlString = "https://login.microsoftonline.com:300/sometenant";
+        final Authority authorityWithFormedUrl = Authority.createAuthority(authorityWithFormedUrlString, true);
+        Assert.assertTrue(authorityWithFormedUrl.getAuthority().equals(authorityWithFormedUrlString));
     }
 
     // adfs authoirty is not supported for build, should be enabled back post-build.
