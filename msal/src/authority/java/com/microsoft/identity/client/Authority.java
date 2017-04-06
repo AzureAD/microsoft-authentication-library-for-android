@@ -216,7 +216,7 @@ abstract class Authority {
         final String path = authority.getPath().replaceFirst("/", "");
         int indexOfSecondPath = path.indexOf("/");
         final String firstPath = path.substring(0, indexOfSecondPath == -1 ? path.length() : indexOfSecondPath);
-        final String updatedAuthorityUrl = String.format("https://%s/%s", authority.getHost(), firstPath);
+        final String updatedAuthorityUrl = String.format("https://%s/%s", authority.getAuthority(), firstPath);
         final URL updatedAuthority;
         try {
             updatedAuthority = new URL(updatedAuthorityUrl);
