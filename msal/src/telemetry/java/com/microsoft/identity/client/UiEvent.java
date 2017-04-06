@@ -32,10 +32,16 @@ final class UiEvent extends Event implements IUiEvent {
 
     private UiEvent(Builder builder) {
         super(builder);
+        setProperty(EventProperty.HTTP_USER_AGENT, builder.mUserAgent);
         if (null != builder.mRedirectCount) {
             setProperty(EventProperty.REDIRECT_COUNT, builder.mRedirectCount.toString());
         }
         setProperty(EventProperty.USER_CANCEL, builder.mUserDidCancel);
+    }
+
+    @Override
+    public String getUserAgent() {
+        return getProperty(EventProperty.HTTP_USER_AGENT);
     }
 
     @Override
@@ -53,11 +59,23 @@ final class UiEvent extends Event implements IUiEvent {
      */
     static class Builder extends Event.Builder<Builder> {
 
+        private String mUserAgent;
         private Integer mRedirectCount;
         private String mUserDidCancel = "false";
 
         Builder() {
             super(EventName.UI_EVENT);
+        }
+
+        /**
+         * Sets the userAgent.
+         *
+         * @param userAgent the userAgent to set.
+         * @return the Builder instance.
+         */
+        Builder setUserAgent(final String userAgent) {
+            mUserAgent = userAgent;
+            return this;
         }
 
         /**

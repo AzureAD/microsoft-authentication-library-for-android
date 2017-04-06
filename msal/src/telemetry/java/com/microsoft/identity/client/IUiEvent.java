@@ -29,6 +29,13 @@ package com.microsoft.identity.client;
 interface IUiEvent extends IEvent {
 
     /**
+     * Gets the user agent.
+     *
+     * @return the user agent to get.
+     */
+    String getUserAgent();
+
+    /**
      * Gets the number of redirects.
      *
      * @return the number of redirects.

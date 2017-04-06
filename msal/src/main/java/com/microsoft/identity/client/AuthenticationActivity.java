@@ -33,6 +33,7 @@ import android.support.customtabs.CustomTabsClient;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.customtabs.CustomTabsServiceConnection;
 import android.support.customtabs.CustomTabsSession;
+import android.webkit.WebSettings;
 
 /**
  * Custom tab requires the device to have a browser with custom tab support, chrome with version >= 45 comes with the
@@ -93,6 +94,7 @@ public final class AuthenticationActivity extends Activity {
 
         mTelemetryRequestId = new Telemetry.RequestId(data.getStringExtra(Constants.TELEMETRY_REQUEST_ID));
         mUiEventBuilder = new UiEvent.Builder();
+        mUiEventBuilder.setUserAgent(WebSettings.getDefaultUserAgent(this));
         Telemetry.getInstance().startEvent(mTelemetryRequestId, mUiEventBuilder.getEventName());
     }
 
