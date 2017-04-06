@@ -558,6 +558,31 @@ public final class TokenCacheTest extends AndroidTestCase {
         assertTrue(rtForAnotherUser.getRefreshToken().equals(anotherRefreshToken));
     }
 
+    @Test
+    public void testTokenSavedWithNoClientInfo() throws MsalException {
+        final String scope = "scope1";
+        final Date expirationDate = AndroidTestUtil.getExpirationDate(AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES);
+
+        // save RT for default user
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, getTokenResponseForDefaultUser(
+                ACCESS_TOKEN, REFRESH_TOKEN, scope, expirationDate, null));
+
+        final User user = new User(DISPLAYABLE, "name", "idp", "", "");
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(AUTHORITY, MSALUtils.getScopesAsSet(scope), CLIENT_ID);
+        final AccessTokenCacheItem accessTokenCacheItem = mTokenCache.findAccessToken(requestParameters, user);
+        assertNotNull(accessTokenCacheItem);
+        assertNotNull(accessTokenCacheItem.getUser());
+        final User returnedUser = accessTokenCacheItem.getUser();
+        assertTrue(returnedUser.getUid().equals(""));
+        assertTrue(returnedUser.getUtid().equals(""));
+
+        final RefreshTokenCacheItem refreshTokenCacheItem = mTokenCache.findRefreshToken(requestParameters, user);
+        assertNotNull(refreshTokenCacheItem);
+        assertNotNull(refreshTokenCacheItem.getUser());
+        assertTrue(refreshTokenCacheItem.getUser().getUid().equals(""));
+        assertTrue(refreshTokenCacheItem.getUser().getUtid().equals(""));
+    }
+
     private void verifyUserReturnedFromCacheIsDefaultUser(final BaseTokenCacheItem item) {
         if (item instanceof AccessTokenCacheItem) {
             final AccessTokenCacheItem accessTokenCacheItem = (AccessTokenCacheItem) item;
