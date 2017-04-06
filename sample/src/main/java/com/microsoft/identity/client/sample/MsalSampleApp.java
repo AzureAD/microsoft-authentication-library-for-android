@@ -25,7 +25,7 @@ package com.microsoft.identity.client.sample;
 
 import android.app.Application;
 
-import com.microsoft.identity.client.ILogger;
+import com.microsoft.identity.client.ILoggerCallback;
 import com.microsoft.identity.client.Logger;
 
 /**
@@ -42,7 +42,7 @@ public class MsalSampleApp extends Application {
 
         // Logging can be turned on four different levels: error, warning, info, and verbose. By default the sdk is turning on
         // verbose level logging. Any apps can use Logger.getInstance().setLogLevel(Loglevel) to enable different level of logging.
-        Logger.getInstance().setExternalLogger(new ILogger() {
+        Logger.getInstance().setExternalLogger(new ILoggerCallback() {
             @Override
             public void log(String tag, Logger.LogLevel logLevel, String message, boolean containsPII) {
                 // contains PII indicates that if the log message contains PII information. If Pii logging is

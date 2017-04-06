@@ -42,7 +42,7 @@ import android.widget.Toast;
 
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
-import com.microsoft.identity.client.ILogger;
+import com.microsoft.identity.client.ILoggerCallback;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.MsalClientException;
 import com.microsoft.identity.client.MsalException;
@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      *
      * External Logger should be provided by the Calling app. The sdk logs to the logcat by default, and loglevel is enabled at verbose level.
      * To set external logger,
-     * {@link Logger#setExternalLogger(ILogger)}.
+     * {@link Logger#setExternalLogger(ILoggerCallback)}.
      * To set log level,
      * {@link Logger#setLogLevel(Logger.LogLevel)}
      * By default, the sdk won't give back any Pii logging. However the app can turn it on, this is up to the application's privacy policy.

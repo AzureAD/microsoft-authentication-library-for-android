@@ -53,7 +53,7 @@ public final class LoggerTest {
 
     @BeforeClass
     public static void setUp() {
-        Logger.getInstance().setExternalLogger(new ILogger() {
+        Logger.getInstance().setExternalLogger(new ILoggerCallback() {
             @Override
             public void log(String tag, Logger.LogLevel logLevel, String message, boolean containsPII) {
                 LOG_RESPONSE.setTag(tag);
@@ -68,6 +68,15 @@ public final class LoggerTest {
     public void tearDown() {
         LOG_RESPONSE.reset();
         Logger.getInstance().setEnablePII(false);
+    }
+
+    @Test (expected = IllegalStateException.class)
+    public void testLoggerOverride() {
+        Logger.getInstance().setExternalLogger(new ILoggerCallback() {
+            @Override
+            public void log(String tag, Logger.LogLevel logLevel, String message, boolean containsPII) {
+            }
+        });
     }
 
     /**
