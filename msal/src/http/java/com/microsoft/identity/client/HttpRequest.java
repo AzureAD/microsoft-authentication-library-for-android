@@ -44,7 +44,7 @@ final class HttpRequest {
     private static final String TAG = HttpRequest.class.getSimpleName();
 
     private static final String HOST = "Host";
-    /** The waiting time before doing retry to prevent hitting the server immediately failure. */
+    /**The waiting time before doing retry to prevent hitting the server immediately failure. */
     private static final int RETRY_TIME_WAITING_PERIOD_MSEC = 1000;
     private static final int STREAM_BUFFER_SIZE = 1024;
 
@@ -59,14 +59,15 @@ final class HttpRequest {
     private final String mRequestContentType;
     private final String mRequestMethod;
     private final Map<String, String> mRequestHeaders = new HashMap<>();
+    private final RequestContext mRequestContext;
 
     /**
      * Constructor for {@link HttpRequest} with request {@link URL} and request headers.
      * @param requestUrl The {@link URL} to make the http request.
      * @param requestHeaders Headers used to send the http request.
      */
-    private HttpRequest(final URL requestUrl, final Map<String, String> requestHeaders, final String requestMethod) {
-        this(requestUrl, requestHeaders, requestMethod, null, null);
+    private HttpRequest(final URL requestUrl, final Map<String, String> requestHeaders, final String requestMethod, final RequestContext requestContext) {
+        this(requestUrl, requestHeaders, requestMethod, null, null, requestContext);
     }
 
     /**
@@ -77,8 +78,9 @@ final class HttpRequest {
      * @param requestContent Post message sent in the post request.
      * @param requestContentType Request content type.
      */
-    private HttpRequest(final URL requestUrl, final Map<String, String> requestHeaders, final String requestMethod,
-                        final byte[] requestContent, final String requestContentType) {
+    private HttpRequest(final URL requestUrl, final Map<String, String> requestHeaders,
+                        final String requestMethod, final byte[] requestContent,
+                        final String requestContentType, final RequestContext requestContext) {
         mRequestUrl = requestUrl;
 
         mRequestHeaders.put(HOST, requestUrl.getAuthority());
@@ -87,6 +89,7 @@ final class HttpRequest {
         mRequestMethod = requestMethod;
         mRequestContent = requestContent;
         mRequestContentType = requestContentType;
+        mRequestContext = requestContext;
     }
 
     /**
@@ -97,11 +100,12 @@ final class HttpRequest {
      * @param requestContentType Request content type.
      */
     public static HttpResponse sendPost(final URL requestUrl, final Map<String, String> requestHeaders,
-                                        final byte[] requestContent, final String requestContentType)
+                                        final byte[] requestContent, final String requestContentType,
+                                        final RequestContext requestContext)
             throws IOException, MsalServiceException {
         final HttpRequest httpRequest = new HttpRequest(requestUrl, requestHeaders, REQUEST_METHOD_POST,
-                requestContent, requestContentType);
-        Logger.verbose(TAG, null, "Sending Http Post request.");
+                requestContent, requestContentType, requestContext);
+        Logger.verbose(TAG, requestContext, "Sending Http Post request.");
         return httpRequest.send();
     }
 
@@ -110,11 +114,12 @@ final class HttpRequest {
      * @param requestUrl The {@link URL} to make the http request.
      * @param requestHeaders Headers used to send the http request.
      */
-    public static HttpResponse sendGet(final URL requestUrl, final Map<String, String> requestHeaders)
+    public static HttpResponse sendGet(final URL requestUrl, final Map<String, String> requestHeaders,
+                                       final RequestContext requestContext)
             throws IOException, MsalServiceException {
-        final HttpRequest httpRequest = new HttpRequest(requestUrl, requestHeaders, REQUEST_METHOD_GET);
+        final HttpRequest httpRequest = new HttpRequest(requestUrl, requestHeaders, REQUEST_METHOD_GET, requestContext);
 
-        Logger.verbose(TAG, null, "Sending Http Get request.");
+        Logger.verbose(TAG, requestContext, "Sending Http Get request.");
         return httpRequest.send();
     }
 
@@ -147,14 +152,14 @@ final class HttpRequest {
         } catch (final SocketTimeoutException socketTimeoutException) {
             // In android, network timeout is thrown as the SocketTimeOutException, we need to catch this and perform
             // retry. If retry also fails with timeout, the socketTimeoutException will be bubbled up
-            Logger.verbose(TAG, null, "Request timeout with SocketTimeoutException, will retry one more time.");
+            Logger.verbose(TAG, mRequestContext, "Request timeout with SocketTimeoutException, will retry one more time.");
             waitBeforeRetry();
             return executeHttpSend();
         }
 
         if (isRetryableError(httpResponse.getStatusCode())) {
             // retry if we get 500/503/504
-            Logger.verbose(TAG, null, "Received retryable status code 500/503/504, will retry one more time.");
+            Logger.verbose(TAG, mRequestContext, "Received retryable status code 500/503/504, will retry one more time.");
             waitBeforeRetry();
             return executeHttpSend();
         }
@@ -163,6 +168,12 @@ final class HttpRequest {
     }
 
     private HttpResponse executeHttpSend() throws IOException {
+        final HttpEvent.Builder httpEventBuilder =
+                new HttpEvent.Builder()
+                        .setHttpPath(mRequestUrl)
+                        .setHttpMethod(mRequestMethod)
+                        .setQueryParameters(mRequestUrl.getQuery());
+        Telemetry.getInstance().startEvent(mRequestContext.getTelemetryRequestId(), httpEventBuilder.getEventName());
         final HttpURLConnection urlConnection = setupConnection();
         urlConnection.setRequestMethod(mRequestMethod);
         setRequestBody(urlConnection, mRequestContent, mRequestContentType);
@@ -181,13 +192,15 @@ final class HttpRequest {
             }
 
             final int statusCode = urlConnection.getResponseCode();
+            httpEventBuilder.setStatusCode(statusCode);
             final String responseBody = responseStream == null ? "" : convertStreamToString(responseStream);
-            Logger.verbose(TAG, null, "Returned status code is: " + statusCode);
+            Logger.verbose(TAG, mRequestContext, "Returned status code is: " + statusCode);
             response = new HttpResponse(statusCode, responseBody, urlConnection.getHeaderFields());
         } finally {
             safeCloseStream(responseStream);
         }
 
+        Telemetry.getInstance().stopEvent(mRequestContext.getTelemetryRequestId(), httpEventBuilder);
         return response;
     }
 
@@ -298,7 +311,7 @@ final class HttpRequest {
         try {
             Thread.sleep(RETRY_TIME_WAITING_PERIOD_MSEC);
         } catch (final InterruptedException interrupted) {
-            Logger.info(TAG, null, "Fail the have the thread waiting for 1 second before doing the retry");
+            Logger.info(TAG, mRequestContext, "Fail the have the thread waiting for 1 second before doing the retry");
         }
     }
 }

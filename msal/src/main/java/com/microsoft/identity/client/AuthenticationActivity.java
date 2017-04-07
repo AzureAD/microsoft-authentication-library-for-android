@@ -33,6 +33,7 @@ import android.support.customtabs.CustomTabsClient;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.customtabs.CustomTabsServiceConnection;
 import android.support.customtabs.CustomTabsSession;
+import android.webkit.WebSettings;
 
 /**
  * Custom tab requires the device to have a browser with custom tab support, chrome with version >= 45 comes with the
@@ -54,6 +55,8 @@ public final class AuthenticationActivity extends Activity {
     private CustomTabsIntent mCustomTabsIntent;
     private CustomTabsServiceConnection mCustomTabsServiceConnection;
     private boolean mCustomTabsServiceIsBound;
+    private UiEvent.Builder mUiEventBuilder;
+    private Telemetry.RequestId mTelemetryRequestId;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -88,7 +91,11 @@ public final class AuthenticationActivity extends Activity {
         }
 
         mChromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(getApplicationContext());
-        mRequestUrl = this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
+
+        mTelemetryRequestId = new Telemetry.RequestId(data.getStringExtra(Constants.TELEMETRY_REQUEST_ID));
+        mUiEventBuilder = new UiEvent.Builder();
+        mUiEventBuilder.setUserAgent(WebSettings.getDefaultUserAgent(this));
+        Telemetry.getInstance().startEvent(mTelemetryRequestId, mUiEventBuilder.getEventName());
     }
 
     @Override
@@ -202,6 +209,7 @@ public final class AuthenticationActivity extends Activity {
      */
     void cancelRequest() {
         Logger.verbose(TAG, null, "Cancel the authentication request.");
+        mUiEventBuilder.setUserDidCancel();
         returnToCaller(Constants.UIResponse.CANCEL, new Intent());
     }
 
@@ -214,6 +222,10 @@ public final class AuthenticationActivity extends Activity {
     private void returnToCaller(final int resultCode, final Intent data) {
         Logger.info(TAG, null, "Return to caller with resultCode: " + resultCode + "; requestId: " + mRequestId);
         data.putExtra(Constants.REQUEST_ID, mRequestId);
+
+        if (null != mUiEventBuilder) {
+            Telemetry.getInstance().stopEvent(mTelemetryRequestId, mUiEventBuilder);
+        }
 
         setResult(resultCode, data);
         this.finish();

@@ -39,6 +39,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Util class for instrumentation tests.
@@ -202,13 +203,19 @@ public final class AndroidTestUtil {
     }
 
     static List<AccessTokenCacheItem> getAllAccessTokens(final Context appContext) {
+        Telemetry.disableForTest(true);
         final TokenCache tokenCache = new TokenCache(appContext);
-        return tokenCache.getAllAccessTokens();
+        List<AccessTokenCacheItem> accessTokenCacheItems = tokenCache.getAllAccessTokens(getTestRequestContext());
+        Telemetry.disableForTest(false);
+        return accessTokenCacheItems;
     }
 
     static List<RefreshTokenCacheItem> getAllRefreshTokens(final Context appContext) {
+        Telemetry.disableForTest(true);
         final TokenCache tokenCache = new TokenCache(appContext);
-        return tokenCache.getAllRefreshTokens();
+        List<RefreshTokenCacheItem> refreshTokenCacheItems = tokenCache.getAllRefreshTokens(getTestRequestContext());
+        Telemetry.disableForTest(false);
+        return refreshTokenCacheItems;
     }
 
     static String getRawIdToken(final String displaybleId, final String uniqueId, final String tenantId) {
@@ -233,5 +240,9 @@ public final class AndroidTestUtil {
 
     static String getSuccessInstanceDiscoveryResponse(final String tenantDiscoveryEnpdoint) {
         return "{\"tenant_discovery_endpoint\":\"" + tenantDiscoveryEnpdoint + "\"}";
+    }
+
+    static RequestContext getTestRequestContext() {
+        return new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId());
     }
 }

@@ -191,7 +191,7 @@ public final class Logger {
         }
 
         // Developer turns off PII logging, if the log message contains any PII, we shouldn't send it.
-        if (mEnablePII == false && containsPII) {
+        if (!mEnablePII && containsPII) {
             return;
         }
 
