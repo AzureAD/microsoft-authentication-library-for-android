@@ -441,7 +441,8 @@ public final class PublicClientApplication {
                 scopesAsSet, mClientId, requestContext);
 
         Logger.info(TAG, requestContext, "Preparing a new silent request");
-        final BaseRequest request = new SilentRequest(mAppContext, requestParameters, forceRefresh, user);
+        final SilentRequest request = new SilentRequest(mAppContext, requestParameters, forceRefresh, user);
+        request.setIsAuthorityProvided(!MSALUtils.isEmpty(authority));
         request.getToken(callback);
     }
 
