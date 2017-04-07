@@ -59,7 +59,7 @@ final class B2CAuthority extends AADAuthority {
         try {
             // constructing the expected b2c format with the passed in authority instance. Developer may pass more path in the
             // authority instance, we need trim in this case, only take in the host and the first three path segments.
-            updateAuthority = new URL(String.format("https://%s/%s/%s/%s", authority.getHost(), pathSegments[0], pathSegments[1],
+            updateAuthority = new URL(String.format("https://%s/%s/%s/%s", authority.getAuthority(), pathSegments[0], pathSegments[1],
                     pathSegments[2]));
         } catch (final MalformedURLException e) {
             Logger.error(TAG, null, "Malformed authority url", e);

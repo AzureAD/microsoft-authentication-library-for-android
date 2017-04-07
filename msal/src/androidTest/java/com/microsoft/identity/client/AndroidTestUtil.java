@@ -111,7 +111,8 @@ public final class AndroidTestUtil {
         return new URL(DEFAULT_AUTHORITY_WITH_TENANT);
     }
 
-    static String getSuccessResponseWithNoRefreshToken(final String idToken) {
+    static String
+    getSuccessResponseWithNoRefreshToken(final String idToken) {
         final String tokenResponse = "{\"id_token\":\""
                 + idToken
                 + "\",\"access_token\":\"" + ACCESS_TOKEN + "\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\"scope1 scope2\"}";
@@ -130,6 +131,20 @@ public final class AndroidTestUtil {
                 + idToken
                 + "\",\"access_token\":\"" + accessToken + "\", \"token_type\":\"Bearer\",\"refresh_token\":\"" + REFRESH_TOKEN + "\","
                 + "\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\"" + scopes + "\""; //}";
+        if (!MSALUtils.isEmpty(clientInfo)) {
+            tokenResponse += ",\"client_info\":\"" + clientInfo + "\"";
+        }
+
+        tokenResponse += "}";
+
+        return tokenResponse;
+    }
+
+    static String getSuccessResponseNoExpires(final String idToken, final String accessToken, final String scopes, final String clientInfo) {
+        String tokenResponse = "{\"id_token\":\""
+                + idToken
+                + "\",\"access_token\":\"" + accessToken + "\", \"token_type\":\"Bearer\",\"refresh_token\":\"" + REFRESH_TOKEN + "\","
+                + "\"scope\":\"" + scopes + "\"";
         if (!MSALUtils.isEmpty(clientInfo)) {
             tokenResponse += ",\"client_info\":\"" + clientInfo + "\"";
         }

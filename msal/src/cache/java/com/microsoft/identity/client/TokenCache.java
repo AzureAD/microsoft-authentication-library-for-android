@@ -47,7 +47,6 @@ class TokenCache {
     private final TokenCacheAccessor mTokenCacheAccessor;
 
     private Gson mGson = new GsonBuilder()
-            .registerTypeAdapter(Date.class, new DateTimeAdapter())
             .registerTypeAdapter(AccessTokenCacheItem.class, new TokenCacheItemDeserializer<AccessTokenCacheItem>())
             .registerTypeAdapter(RefreshTokenCacheItem.class, new TokenCacheItemDeserializer<RefreshTokenCacheItem>())
             .create();

@@ -40,7 +40,7 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
     private String mAccessToken;
 
     @SerializedName("expires_on")
-    private Date mExpiresOn;
+    private long mExpiresOn;
 
     @SerializedName("scope")
     final String mScope;
@@ -60,7 +60,7 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
 
         mAuthority = authority;
         mAccessToken = response.getAccessToken();
-        mExpiresOn = response.getExpiresOn();
+        mExpiresOn = response.getExpiresOn().getTime();
         mScope = response.getScope();
         mTokenType = response.getTokenType();
         mRawIdToken = response.getRawIdToken();
@@ -92,7 +92,7 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
      * @return The access token expires on.
      */
     Date getExpiresOn() {
-        return mExpiresOn;
+        return new Date(mExpiresOn);
     }
 
     /**

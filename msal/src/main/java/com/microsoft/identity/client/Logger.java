@@ -29,6 +29,7 @@ import android.util.Log;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * MSAL Logger for diagnostic purpose. The sdk can generate logs with both the default logcat logging or the external logger.
@@ -38,9 +39,9 @@ import java.util.TimeZone;
  * </code>
  *
  * To enable the custom logger, developer needs to explicitly set the external logger implementing
- * the {@link ILogger}.
+ * the {@link ILoggerCallback}.
  * <code>
- *     Logger.getInstance().setExternalLogger(new Logger.ILogger() {
+ *     Logger.getInstance().setExternalLogger(new Logger.ILoggerCallback() {
  *     @Override
  *     public void log(String tag, Logger.LogLevel logLevel, String message,
  *         String additionalMessage) { }
@@ -66,7 +67,7 @@ public final class Logger {
 
     // Turn on the verbose level logging by default.
     private LogLevel mLogLevel = LogLevel.VERBOSE;
-    private ILogger mExternalLogger;
+    private AtomicReference<ILoggerCallback> mExternalLogger = new AtomicReference<>(null);
     private boolean mLogcatLogEnabled = true;
     private boolean mEnablePII = false;
 
@@ -87,12 +88,21 @@ public final class Logger {
 
     /**
      * Set the custom logger. Developer can configure external logging to configure a callback that
-     * the sdk will use to hand off each log message as it is generated.
-     * @param externalLogger The reference to the {@link ILogger} that the developer can config to
+     * the sdk will use to hand off each log message as it is generated. Overriding on the logger callback is not allowed.
+     * @param externalLogger The reference to the {@link ILoggerCallback} that the developer can config to
      *                       generate the log to the designated places.
+     * @throws IllegalStateException if external logger is already set, and the caller is trying to set it again.
      */
-    public void setExternalLogger(final ILogger externalLogger) {
-        mExternalLogger = externalLogger;
+    public void setExternalLogger(final ILoggerCallback externalLogger) {
+        if (externalLogger == null) {
+            return;
+        }
+
+        if (mExternalLogger.get() != null) {
+            throw new IllegalStateException("External logger is already set, cannot be set again.");
+        }
+
+        mExternalLogger.set(externalLogger);
     }
 
     /**
@@ -197,8 +207,8 @@ public final class Logger {
             sendLogcatLogs(tag, logLevel, logMessage.toString());
         }
 
-        if (mExternalLogger != null) {
-            mExternalLogger.log(tag, logLevel, logMessage.toString(), containsPII);
+        if (mExternalLogger.get() != null) {
+            mExternalLogger.get().log(tag, logLevel, logMessage.toString(), containsPII);
         }
     }
 
