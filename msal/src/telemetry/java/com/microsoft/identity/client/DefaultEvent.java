@@ -137,7 +137,7 @@ class DefaultEvent extends Event implements IDefaultEvent {
          */
         @SuppressLint("HardwareIds")
         static Defaults forApplication(final Context context, final String clientId) {
-            Builder defaultsBuilder = new Builder()
+            final Builder defaultsBuilder = new Builder()
                     .setClientId(clientId)
                     .setApplicationName(context.getPackageName())
                     .setSdkVersion(BuildConfig.VERSION_NAME)
