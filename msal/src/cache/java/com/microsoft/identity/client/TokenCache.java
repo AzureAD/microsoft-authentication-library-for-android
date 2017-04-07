@@ -160,11 +160,11 @@ class TokenCache {
         }
 
         final AccessTokenCacheItem tokenCacheItem = matchingATs.get(0);
+        requestParameters.setAuthority(tokenCacheItem.getAuthority(), requestParameters.getAuthority().mValidateAuthority);
         if (!tokenCacheItem.isExpired()) {
             return tokenCacheItem;
         }
 
-        requestParameters.setAuthority(tokenCacheItem.getAuthority(), requestParameters.getAuthority().mValidateAuthority);
         return null;
     }
 

@@ -50,10 +50,12 @@ final class SilentRequest extends BaseRequest {
     void preTokenRequest() throws MsalClientException, MsalUiRequiredException, MsalServiceException, MSALUserCancelException {
         final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
 
+        final AccessTokenCacheItem tokenCacheItemAuthorityNotProvided = mIsAuthorityProvided ? null : tokenCache.findAccessTokenItemAuthorityNotProvided(
+                mAuthRequestParameters, mUser);
         // lookup AT first.
         if (!mForceRefresh) {
             final AccessTokenCacheItem accessTokenCacheItem = mIsAuthorityProvided ? tokenCache.findAccessToken(mAuthRequestParameters, mUser)
-                    :tokenCache.findAccessTokenItemAuthorityNotProvided(mAuthRequestParameters, mUser);
+                    :tokenCacheItemAuthorityNotProvided;
 
             if (accessTokenCacheItem != null) {
                 Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Access token is found, returning cached AT.");

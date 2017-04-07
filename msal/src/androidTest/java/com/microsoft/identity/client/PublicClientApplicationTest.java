@@ -658,6 +658,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     throws IOException, InterruptedException {
                 final String silentRequestScope = "scope2";
                 final String newAccessToken = "some new access token";
+                AndroidTestMockUtil.mockSuccessTenantDiscovery(SilentRequestTest.AUTHORIZE_ENDPOINT, SilentRequestTest.TOKEN_ENDPOINT);
                 mockSuccessResponse(silentRequestScope, newAccessToken, DEFAULT_CLIENT_INFO);
 
                 application.acquireTokenSilentAsync(new String[]{silentRequestScope}, mUser, null, true, new AuthenticationCallback() {
