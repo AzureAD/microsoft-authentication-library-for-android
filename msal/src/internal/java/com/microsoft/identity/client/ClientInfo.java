@@ -60,10 +60,10 @@ final class ClientInfo {
     }
 
     String getUniqueIdentifier() {
-        return mUniqueIdentifier;
+        return MSALUtils.isEmpty(mUniqueIdentifier) ? "" : mUniqueIdentifier;
     }
 
     String getUniqueTenantIdentifier() {
-        return mUniqueTenantIdentifier;
+        return MSALUtils.isEmpty(mUniqueTenantIdentifier) ? "" : mUniqueTenantIdentifier;
     }
 }
