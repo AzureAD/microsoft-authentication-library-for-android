@@ -80,6 +80,13 @@ public class User {
         return mIdentityProvider;
     }
 
+    /**
+     * @return The unique identifier for a user.
+     */
+    String getUserIdentifier() {
+        return MSALUtils.getUniqueUserIdentifier(mUid, mUtid);
+    }
+
     // internal methods provided
 
     /**
@@ -105,9 +112,5 @@ public class User {
 
     String getUtid() {
         return mUtid;
-    }
-
-    String getUserIdentifier() {
-        return MSALUtils.getUniqueUserIdentifier(mUid, mUtid);
     }
 }
