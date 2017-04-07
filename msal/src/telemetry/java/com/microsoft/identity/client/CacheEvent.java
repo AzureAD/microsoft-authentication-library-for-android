@@ -76,6 +76,5 @@ final class CacheEvent extends Event implements ICacheEvent {
         ICacheEvent build() {
             return new CacheEvent(this);
         }
-
     }
 }
