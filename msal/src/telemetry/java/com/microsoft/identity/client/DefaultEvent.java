@@ -146,7 +146,7 @@ class DefaultEvent extends Event implements IDefaultEvent {
                 String versionName = context
                         .getPackageManager()
                         .getPackageInfo(defaultsBuilder.mApplicationName, 0).versionName;
-                versionName = null == versionName ? "" : versionName;
+                versionName = null == versionName ? "NA" : versionName;
                 defaultsBuilder.setApplicationVersion(versionName);
             } catch (PackageManager.NameNotFoundException e) {
                 defaultsBuilder.setApplicationVersion("NA");
