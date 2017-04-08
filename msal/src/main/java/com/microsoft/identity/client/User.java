@@ -49,8 +49,8 @@ public class User {
         final String uid;
         final String uTid;
         if (clientInfo == null) {
-            uid = idToken.getUniqueId();
-            uTid = idToken.getTenantId();
+            uid = "";
+            uTid = "";
         } else {
             uid = clientInfo.getUniqueIdentifier();
             uTid = clientInfo.getUniqueTenantIdentifier();
@@ -80,6 +80,13 @@ public class User {
         return mIdentityProvider;
     }
 
+    /**
+     * @return The unique identifier of the user, which is across tenant.
+     */
+    public String getUserIdentifier() {
+        return MSALUtils.getUniqueUserIdentifier(mUid, mUtid);
+    }
+
     // internal methods provided
 
     /**
@@ -105,9 +112,5 @@ public class User {
 
     String getUtid() {
         return mUtid;
-    }
-
-    String getUserIdentifier() {
-        return MSALUtils.getUniqueUserIdentifier(mUid, mUtid);
     }
 }

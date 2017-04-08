@@ -323,6 +323,56 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         }.performTest();
     }
 
+    @Test
+    public void testClientInfoNotReturned() throws PackageManager.NameNotFoundException, IOException,
+            InterruptedException {
+        new GetTokenBaseTestCase() {
+
+            @Override
+            void mockHttpRequest() throws IOException {
+                final String idToken = TokenCacheTest.getDefaultIdToken();
+                final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithFailureResponse(
+                        HttpURLConnection.HTTP_OK, AndroidTestUtil.getSuccessResponse(idToken, AndroidTestUtil.ACCESS_TOKEN, AndroidTestUtil.REFRESH_TOKEN, ""));
+                Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+                HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
+            }
+
+            @Override
+            void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
+                                      final Activity activity,
+                                      final CountDownLatch releaseLock) {
+                publicClientApplication.acquireToken(activity, SCOPE, new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(AuthenticationResult authenticationResult) {
+                        Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
+                        final User user = authenticationResult.getUser();
+                        Assert.assertTrue(user.getUid().equals(""));
+                        Assert.assertTrue(user.getUtid().equals(""));
+                        Assert.assertTrue(user.getDisplayableId().equals(TokenCacheTest.DISPLAYABLE));
+
+                        releaseLock.countDown();
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        fail("Unexpected Error");
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        fail("Unexpected Cancel");
+                    }
+                });
+            }
+
+            @Override
+            String getFinalAuthUrl() throws UnsupportedEncodingException {
+                return mRedirectUri + "?code=1234&state=" + AndroidTestUtil.encodeProtocolState(
+                        DEFAULT_AUTHORITY, new HashSet<>(Arrays.asList(SCOPE)));
+            }
+        }.performTest();
+    }
+
     /**
      * Verify {@link PublicClientApplication#acquireToken(Activity, String[], String, UIBehavior, String, String[],
      * String, AuthenticationCallback)}. Also check if authority is set on the manifest, we read the authority
