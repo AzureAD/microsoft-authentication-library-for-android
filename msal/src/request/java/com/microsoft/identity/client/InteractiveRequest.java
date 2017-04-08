@@ -193,10 +193,7 @@ final class InteractiveRequest extends BaseRequest {
                 mAuthRequestParameters.getRequestContext().getCorrelationId().toString());
         requestParameters.putAll(PlatformIdHelper.getPlatformIdParameters());
 
-        if (!MSALUtils.isEmpty(mAuthRequestParameters.getLoginHint())) {
-            requestParameters.put(OauthConstants.Oauth2Parameters.LOGIN_HINT, mAuthRequestParameters.getLoginHint());
-        }
-
+        addExtraQueryParameter(OauthConstants.Oauth2Parameters.LOGIN_HINT, mAuthRequestParameters.getLoginHint(), requestParameters);
         addUiBehaviorToRequestParameters(requestParameters);
 
         // append state in the query parameters
@@ -214,9 +211,9 @@ final class InteractiveRequest extends BaseRequest {
     private void addSessionContinuationQps(final Map<String, String> requestParams) {
         final User user = mAuthRequestParameters.getUser();
         if (user != null) {
-            requestParams.put(OauthConstants.Oauth2Parameters.LOGIN_REQ, user.getUid());
-            requestParams.put(OauthConstants.Oauth2Parameters.DOMAIN_REQ, user.getUtid());
-            requestParams.put(OauthConstants.Oauth2Parameters.LOGIN_HINT, user.getDisplayableId());
+            addExtraQueryParameter(OauthConstants.Oauth2Parameters.LOGIN_REQ, user.getUid(), requestParams);
+            addExtraQueryParameter(OauthConstants.Oauth2Parameters.DOMAIN_REQ, user.getUtid(), requestParams);
+            addExtraQueryParameter(OauthConstants.Oauth2Parameters.LOGIN_HINT, user.getDisplayableId(), requestParams);
         }
     }
 
@@ -299,6 +296,12 @@ final class InteractiveRequest extends BaseRequest {
 
         final byte[] stateBytes = Base64.decode(encodedState, Base64.NO_PADDING | Base64.URL_SAFE);
         return new String(stateBytes);
+    }
+
+    private void addExtraQueryParameter(final String key, final String value, final Map<String, String> requestParams) {
+        if (!MSALUtils.isEmpty(key) && !MSALUtils.isEmpty(value)) {
+            requestParams.put(key, value);
+        }
     }
 
     /**
