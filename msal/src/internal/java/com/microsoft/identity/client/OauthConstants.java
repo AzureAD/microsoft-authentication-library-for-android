@@ -44,8 +44,8 @@ final class OauthConstants {
         static final String CODE_VERIFIER = "code_verifier";
         static final String CODE_CHALLENGE_METHOD = "code_challenge_method";
         static final String CLIENT_INFO = "client_info";
-        static final String LOGIN_REQ = "uid";
-        static final String DOMAIN_REQ = "utid";
+        static final String LOGIN_REQ = "login_req";
+        static final String DOMAIN_REQ = "domain_req";
     }
 
     static final class Oauth2ResponseType {

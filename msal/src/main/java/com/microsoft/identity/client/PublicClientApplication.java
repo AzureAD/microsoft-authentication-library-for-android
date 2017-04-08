@@ -235,7 +235,7 @@ public final class PublicClientApplication {
      *                 3) All the other errors will be sent back via
      *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
-    public void acquireToken(@NonNull final Activity activity, final String[] scopes, final String loginHint,
+    public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint,
                              @NonNull final AuthenticationCallback callback) {
         acquireTokenInteractive(activity, scopes, loginHint, UIBehavior.SELECT_ACCOUNT, "", null, "", null, callback);
     }
