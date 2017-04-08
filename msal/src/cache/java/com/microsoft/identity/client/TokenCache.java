@@ -156,15 +156,18 @@ class TokenCache {
         }
 
         if (matchingATs.size() > 1) {
+            Logger.error(TAG, requestParameters.getRequestContext(), "Authority is not provided for the silent request. Multiple matching token entries found.", null);
             throw new MsalClientException(MSALError.MULTIPLE_CACHE_ENTRY_FOUND, "Authority is not provided for the silent request. There are multiple matching token cache entries found. ");
         }
 
         final AccessTokenCacheItem tokenCacheItem = matchingATs.get(0);
+        Logger.verbosePII(TAG, requestParameters.getRequestContext(), "Authority is not provided but found one matching access token item, authority is: " + tokenCacheItem.getAuthority());
         requestParameters.setAuthority(tokenCacheItem.getAuthority(), requestParameters.getAuthority().mValidateAuthority);
         if (!tokenCacheItem.isExpired()) {
             return tokenCacheItem;
         }
 
+        Logger.verbose(TAG, requestParameters.getRequestContext(), "Access token item found in the cache is already expired.");
         return null;
     }
 
