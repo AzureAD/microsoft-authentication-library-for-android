@@ -222,14 +222,14 @@ abstract class BaseRequest {
     void throwExceptionFromTokenResponse(final TokenResponse tokenResponse) throws MsalUiRequiredException, MsalServiceException {
         if (MSALUtils.isEmpty(tokenResponse.getError())) {
             throw new MsalServiceException(MSALError.UNKNOWN_ERROR, "Request failed, but no error returned back from service.", tokenResponse.getHttpStatusCode(),
-                    tokenResponse.getClaims(), null);
+                    null);
         }
 
         if (MSALError.INVALID_GRANT.equals(tokenResponse.getError())) {
-            throw new MsalUiRequiredException(MSALError.INVALID_GRANT, tokenResponse.getErrorDescription(), tokenResponse.getClaims(), null);
+            throw new MsalUiRequiredException(MSALError.INVALID_GRANT, tokenResponse.getErrorDescription(), null);
         }
 
-        throw new MsalServiceException(tokenResponse.getError(), tokenResponse.getErrorDescription(), tokenResponse.getHttpStatusCode(), tokenResponse.getClaims(), null);
+        throw new MsalServiceException(tokenResponse.getError(), tokenResponse.getErrorDescription(), tokenResponse.getHttpStatusCode(), null);
     }
 
     private synchronized Handler getHandler() {

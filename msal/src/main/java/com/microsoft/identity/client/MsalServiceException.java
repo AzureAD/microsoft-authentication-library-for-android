@@ -55,7 +55,6 @@ package com.microsoft.identity.client;
 public final class MsalServiceException extends MsalException {
 
     private final int mHttpStatusCode;
-    private final String mClaims;
 
     /**
      * When {@link java.net.SocketTimeoutException} is thrown, no status code will be caught. Will use 0 instead.
@@ -66,21 +65,12 @@ public final class MsalServiceException extends MsalException {
         super(errorCode, errorMessage, throwable);
 
         mHttpStatusCode = DEFAULT_STATUS_CODE;
-        mClaims = "";
     }
 
     MsalServiceException(final String errorCode, final String errorMessage, final int httpStatusCode, final Throwable throwable) {
         super(errorCode, errorMessage, throwable);
 
         mHttpStatusCode = httpStatusCode;
-        mClaims = "";
-    }
-
-    MsalServiceException(final String errorCode, final String errorMessge, final int httpStatusCode, final String claims, final Throwable throwable) {
-        super(errorCode, errorMessge, throwable);
-
-        mHttpStatusCode = httpStatusCode;
-        mClaims = claims;
     }
 
     /**
@@ -88,13 +78,5 @@ public final class MsalServiceException extends MsalException {
      */
     public int getHttpStatusCode() {
         return mHttpStatusCode;
-    }
-
-    /**
-     * @return The claims challenge returned back from the service, will be in the original JSON format sent back from the service.
-     * The sdk doesn't parse it.
-     */
-    public String getClaims() {
-        return mClaims;
     }
 }
