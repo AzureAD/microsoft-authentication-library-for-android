@@ -32,7 +32,7 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 /**
  * Internal base-class for Event telemetry data.
  */
-class Event extends ArrayList<Pair<String, String>> implements IEvent {
+class Event extends ArrayList<Pair<String, String>> {
 
     /**
      * Constructs a new Event.
@@ -48,15 +48,13 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
         }
     }
 
-    @Override
-    public void setProperty(final String propertyName, final String propertyValue) {
+    void setProperty(final String propertyName, final String propertyValue) {
         if (!MSALUtils.isEmpty(propertyName) && !MSALUtils.isEmpty(propertyValue)) {
             add(new Pair<>(propertyName, propertyValue));
         }
     }
 
-    @Override
-    public String getProperty(final String propertyName) {
+    String getProperty(final String propertyName) {
         String propertyValue = null;
         for (final Pair<String, String> property : this) {
             if (property.first.equals(propertyName)) {
@@ -67,13 +65,11 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
         return propertyValue;
     }
 
-    @Override
-    public int getPropertyCount() {
+    int getPropertyCount() {
         return size();
     }
 
-    @Override
-    public EventName getEventName() {
+    EventName getEventName() {
         return new EventName(getProperty(EventProperty.EVENT_NAME));
     }
 
@@ -104,7 +100,7 @@ class Event extends ArrayList<Pair<String, String>> implements IEvent {
          *
          * @return the newly constructed Event instance.
          */
-        abstract IEvent build();
+        abstract Event build();
     }
 
 }

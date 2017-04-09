@@ -51,12 +51,12 @@ public class TelemetryTest {
 
     @Before
     public void setUp() {
-        final DefaultEvent.Defaults.Builder builder = new DefaultEvent.Defaults.Builder();
+        final Defaults.Builder builder = new Defaults.Builder();
         builder.setApplicationName(sTestApplicationName)
                 .setApplicationVersion(sTestApplicationVersion)
                 .setClientId(sTestApplicationClientId)
                 .setDeviceId(sTestApplicationDeviceId);
-        DefaultEvent.initializeDefaults(new DefaultEvent.Defaults(builder));
+        DefaultEvent.initializeDefaults(new Defaults(builder));
         mTestInstance = Telemetry.getTestInstance();
         Telemetry.disableForTest(false);
     }
@@ -181,7 +181,7 @@ public class TelemetryTest {
         mTestInstance.stopEvent(requestId1, httpEventBuilder);
 
         final Telemetry.RequestId requestId2 = Telemetry.generateNewRequestId();
-        final CacheEvent.Builder cacheEventBuilder = CacheEventTest.getTestCacheEventBuilder(EventName.TOKEN_CACHE_LOOKUP, EventProperty.Value.TOKEN_TYPE_AT);
+        final CacheEvent.Builder cacheEventBuilder = CacheEventTest.getTestCacheEventBuilder(EventName.TOKEN_CACHE_LOOKUP, "bearer");
         mTestInstance.startEvent(requestId2, cacheEventBuilder.getEventName());
         mTestInstance.stopEvent(requestId2, cacheEventBuilder);
 
@@ -225,10 +225,9 @@ public class TelemetryTest {
                 .setApiId(EventConstants.ApiId.API_ID_ACQUIRE)
                 .setCorrelationId(UUID.randomUUID())
                 .setApiCallWasSuccessful(true);
-        final UiEvent.Builder uiEventBuilder = new UiEvent.Builder()
-                .setRedirectCount(0);
+        final UiEvent.Builder uiEventBuilder = new UiEvent.Builder();
         final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(EventName.TOKEN_CACHE_LOOKUP)
-                .setTokenType(EventProperty.Value.TOKEN_TYPE_AT);
+                .setTokenType("bearer");
 
         mTestInstance.startEvent(requestId1, apiEventBuilder.getEventName());
         mTestInstance.startEvent(requestId1, uiEventBuilder.getEventName());
@@ -259,10 +258,9 @@ public class TelemetryTest {
                 .setApiId(EventConstants.ApiId.API_ID_ACQUIRE)
                 .setCorrelationId(UUID.randomUUID())
                 .setApiCallWasSuccessful(true);
-        final UiEvent.Builder uiEventBuilder2 = new UiEvent.Builder()
-                .setRedirectCount(0);
+        final UiEvent.Builder uiEventBuilder2 = new UiEvent.Builder();
         final CacheEvent.Builder cacheEventBuilder2 = new CacheEvent.Builder(EventName.TOKEN_CACHE_LOOKUP)
-                .setTokenType(EventProperty.Value.TOKEN_TYPE_AT);
+                .setTokenType("bearer");
 
         mTestInstance.startEvent(requestId2, apiEventBuilder2.getEventName());
         mTestInstance.startEvent(requestId2, uiEventBuilder2.getEventName());
@@ -295,10 +293,9 @@ public class TelemetryTest {
                 .setApiId(EventConstants.ApiId.API_ID_ACQUIRE)
                 .setCorrelationId(UUID.randomUUID())
                 .setApiCallWasSuccessful(true);
-        final UiEvent.Builder uiEventBuilder = new UiEvent.Builder()
-                .setRedirectCount(0);
+        final UiEvent.Builder uiEventBuilder = new UiEvent.Builder();
         final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(EventName.TOKEN_CACHE_LOOKUP)
-                .setTokenType(EventProperty.Value.TOKEN_TYPE_AT);
+                .setTokenType("bearer").setIsAT(true);
 
         mTestInstance.startEvent(requestId1, apiEventBuilder.getEventName());
         mTestInstance.startEvent(requestId1, uiEventBuilder.getEventName());

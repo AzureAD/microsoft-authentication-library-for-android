@@ -33,15 +33,15 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class CacheEventTest {
 
-    static final String TEST_TOKEN_TYPE_RT = "RT";
-    static final String TEST_TOKEN_TYPE_AT = "AT";
+    static final String TEST_TOKEN_TYPE = "bearer";
 
     static CacheEvent.Builder getTestCacheEventBuilder(final EventName eventName, final String tokenType) {
         return new CacheEvent.Builder(eventName)
-                .setTokenType(tokenType);
+                .setTokenType(tokenType)
+                .setIsAT(true);
     }
 
-    static ICacheEvent getTestCacheEvent(
+    static CacheEvent getTestCacheEvent(
             final EventName eventName,
             final String tokenType
     ) {
@@ -50,11 +50,10 @@ public class CacheEventTest {
 
     @Test
     public void testCacheEventInitializes() {
-        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
         final EventName eventName = EventName.TOKEN_CACHE_DELETE;
-        final ICacheEvent cacheEvent = getTestCacheEvent(eventName, TEST_TOKEN_TYPE_AT);
+        final CacheEvent cacheEvent = getTestCacheEvent(eventName, TEST_TOKEN_TYPE);
         Assert.assertEquals(eventName, cacheEvent.getEventName());
-        Assert.assertEquals(TEST_TOKEN_TYPE_AT, cacheEvent.getTokenType());
-        Assert.assertEquals(Boolean.FALSE, cacheEvent.tokenTypeisRT());
+        Assert.assertEquals(TEST_TOKEN_TYPE, cacheEvent.getTokenType());
+        Assert.assertEquals(Boolean.TRUE, Boolean.valueOf(cacheEvent.isAT()));
     }
 }

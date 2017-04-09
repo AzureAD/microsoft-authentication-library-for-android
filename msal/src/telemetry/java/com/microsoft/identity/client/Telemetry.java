@@ -37,7 +37,7 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 /**
  * Collects and publishes telemetry key/value pairs to subscribers.
  */
-public final class Telemetry implements ITelemetry {
+public final class Telemetry {
 
     private static final Telemetry INSTANCE = new Telemetry();
 
@@ -45,7 +45,7 @@ public final class Telemetry implements ITelemetry {
 
     private final Map<Pair<RequestId, EventName>, EventStartTime> mEventsInProgress;
 
-    private final Map<RequestId, List<IEvent>> mCompletedEvents;
+    private final Map<RequestId, List<Event>> mCompletedEvents;
 
     private EventDispatcher mPublisher;
 
@@ -56,7 +56,7 @@ public final class Telemetry implements ITelemetry {
                 new LinkedHashMap<Pair<RequestId, EventName>, EventStartTime>()
         );
         mCompletedEvents = Collections.synchronizedMap(
-                new LinkedHashMap<RequestId, List<IEvent>>()
+                new LinkedHashMap<RequestId, List<Event>>()
         );
     }
 
@@ -95,7 +95,6 @@ public final class Telemetry implements ITelemetry {
         sDisableForTest = disabled;
     }
 
-    @Override
     public synchronized void registerReceiver(MsalEventReceiver receiver) {
         // check to make sure we're not already dispatching elsewhere
         if (null != mPublisher) {
@@ -109,7 +108,6 @@ public final class Telemetry implements ITelemetry {
         mPublisher = new EventDispatcher(receiver);
     }
 
-    @Override
     public void setTelemetryOnFailureOnly(final boolean onFailure) {
         mTelemetryOnFailureOnly = onFailure;
     }
@@ -145,7 +143,7 @@ public final class Telemetry implements ITelemetry {
      * @param eventName   the name of the Event to stop.
      * @param eventToStop the Event data.
      */
-    void stopEvent(final Telemetry.RequestId requestId, final EventName eventName, final IEvent eventToStop) {
+    void stopEvent(final Telemetry.RequestId requestId, final EventName eventName, final Event eventToStop) {
         if (null == mPublisher || sDisableForTest) {
             return;
         }
@@ -168,7 +166,7 @@ public final class Telemetry implements ITelemetry {
             // if this is the first event associated to this
             // RequestId we need to initialize a new List to hold
             // all of sibling events
-            final List<IEvent> events = new ArrayList<>();
+            final List<Event> events = new ArrayList<>();
             events.add(eventToStop);
             mCompletedEvents.put(
                     requestId,
@@ -191,22 +189,22 @@ public final class Telemetry implements ITelemetry {
      */
     void flush(final RequestId requestId) {
         // check for orphaned events...
-        List<IEvent> orphanedEvents = new ArrayList<>();
+        final List<Event> orphanedEvents = new ArrayList<>();
         collateOrphanedEvents(requestId, orphanedEvents);
         // Add the OrphanedEvents to the existing IEventList
         if (null != mCompletedEvents.get(requestId)) {
             mCompletedEvents.get(requestId).addAll(orphanedEvents);
         }
 
-        final List<IEvent> eventsToFlush = mCompletedEvents.remove(requestId);
+        final List<Event> eventsToFlush = mCompletedEvents.remove(requestId);
 
         if (mTelemetryOnFailureOnly) {
             // iterate over Events, if the ApiEvent was successful, don't dispatch
             boolean shouldRemoveEvents = false;
 
-            for (IEvent event : eventsToFlush) {
-                if (event instanceof IApiEvent) {
-                    IApiEvent apiEvent = (IApiEvent) event;
+            for (Event event : eventsToFlush) {
+                if (event instanceof ApiEvent) {
+                    ApiEvent apiEvent = (ApiEvent) event;
                     shouldRemoveEvents = apiEvent.wasSuccessful();
                     break;
                 }
@@ -223,14 +221,14 @@ public final class Telemetry implements ITelemetry {
         }
     }
 
-    private void collateOrphanedEvents(RequestId requestId, List<IEvent> orphanedEvents) {
+    private void collateOrphanedEvents(RequestId requestId, List<Event> orphanedEvents) {
         for (Pair<RequestId, EventName> key : mEventsInProgress.keySet()) {
             if (key.first.equals(requestId)) {
                 final EventName orphanedEventName = key.second;
                 final String orphanedEventStartTime =
                         mEventsInProgress.remove(key).toString(); // remove() this entry (clean up!)
                 // Build the OrphanedEvent...
-                IEvent orphanedEvent = new OrphanedEvent.Builder(orphanedEventName, orphanedEventStartTime).build();
+                final Event orphanedEvent = new OrphanedEvent.Builder(orphanedEventName, orphanedEventStartTime).build();
                 orphanedEvents.add(orphanedEvent);
             }
         }
@@ -284,7 +282,7 @@ public final class Telemetry implements ITelemetry {
         static boolean isValid(final String requestIdValue) {
             boolean isValid;
             try {
-                UUID uuid = UUID.fromString(requestIdValue);
+                final UUID uuid = UUID.fromString(requestIdValue);
                 isValid = true;
             } catch (IllegalArgumentException e) {
                 isValid = false;

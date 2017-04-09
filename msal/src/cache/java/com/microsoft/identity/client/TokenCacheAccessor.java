@@ -31,9 +31,6 @@ import android.content.SharedPreferences.Editor;
 import java.util.Collection;
 import java.util.Map;
 
-import static com.microsoft.identity.client.EventConstants.EventProperty.Value.TOKEN_TYPE_AT;
-import static com.microsoft.identity.client.EventConstants.EventProperty.Value.TOKEN_TYPE_RT;
-
 /**
  * MSAL Internal class for access data storage for token read and write.
  */
@@ -69,7 +66,13 @@ final class TokenCacheAccessor {
     }
 
     private static CacheEvent.Builder createNewCacheEventBuilder(final EventName eventName, final boolean isRT) {
-        return new CacheEvent.Builder(eventName).setTokenType(isRT ? TOKEN_TYPE_RT : TOKEN_TYPE_AT);
+        final CacheEvent.Builder builder = new CacheEvent.Builder(eventName);
+        if (isRT) {
+            builder.setIsRT(true);
+        } else {
+            builder.setIsAT(true);
+        }
+        return builder;
     }
 
     private static CacheEvent.Builder createAndStartNewCacheEvent(final Telemetry.RequestId requestId, final EventName eventName, final boolean isRT) {

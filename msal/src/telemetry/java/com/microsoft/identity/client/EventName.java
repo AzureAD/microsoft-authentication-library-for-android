@@ -26,7 +26,7 @@ package com.microsoft.identity.client;
 /**
  * Internal telemetry data-container for the names of Events.
  */
-class EventName extends Telemetry.ValueTypeDef {
+final class EventName extends Telemetry.ValueTypeDef {
 
     static final EventName DEFAULT_EVENT = new EventName(EventConstants.EVENT_PREFIX + "default");
     static final EventName API_EVENT = new EventName(EventConstants.EVENT_PREFIX + "api_event");

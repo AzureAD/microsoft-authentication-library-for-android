@@ -24,7 +24,6 @@
 package com.microsoft.identity.client;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
@@ -33,7 +32,7 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 /**
  * Internal class for ApiEvent telemetry data.
  */
-final class ApiEvent extends Event implements IApiEvent {
+final class ApiEvent extends Event {
 
     private static final String TAG = ApiEvent.class.getSimpleName();
 
@@ -45,14 +44,35 @@ final class ApiEvent extends Event implements IApiEvent {
         if (null != builder.mRequestId) {
             setProperty(EventProperty.REQUEST_ID, builder.mRequestId.toString());
         }
-        setAuthority(builder.mAuthority);
+        setProperty(EventProperty.AUTHORITY_NAME, builder.mAuthority);
+        setAuthorityType(builder.mAuthorityType);
         setProperty(EventProperty.UI_BEHAVIOR, builder.mUiBehavior);
         setProperty(EventProperty.API_ID, builder.mApiId);
         setProperty(EventProperty.AUTHORITY_VALIDATION, builder.mValidationStatus);
         setIdToken(builder.mUser);
         setLoginHint(builder.mLoginHint);
-        setProperty(EventProperty.EXTENDED_EXPIRES_ON_SETTING, String.valueOf(builder.mExtendedExpiresOnStatus));
         setProperty(EventProperty.WAS_SUCCESSFUL, String.valueOf(builder.mWasApiCallSuccessful));
+    }
+
+    private void setAuthorityType(Authority.AuthorityType type) {
+        if (type == null) {
+            return;
+        }
+        final String authorityType;
+        switch (type) {
+            case AAD:
+                authorityType = EventProperty.Value.AUTHORITY_TYPE_AAD;
+                break;
+            case ADFS:
+                authorityType = EventProperty.Value.AUTHORITY_TYPE_ADFS;
+                break;
+            case B2C:
+                authorityType = EventProperty.Value.AUTHORITY_TYPE_B2C;
+                break;
+            default:
+                authorityType = EventProperty.Value.AUTHORITY_TYPE_UNKNOWN;
+        }
+        setProperty(EventProperty.AUTHORITY_TYPE, authorityType);
     }
 
     private void setLoginHint(final String loginHint) {
@@ -77,81 +97,48 @@ final class ApiEvent extends Event implements IApiEvent {
         }
     }
 
-    private void setAuthority(final String authority) {
-        if (MSALUtils.isEmpty(authority)) {
-            return;
-        }
-
-        setProperty(EventProperty.AUTHORITY_NAME, authority);
-        final URL authorityUrl = MSALUtils.getUrl(authority);
-        if (authorityUrl == null) {
-            return;
-        }
-
-        if (Authority.isAdfsAuthority(authorityUrl)) {
-            setAuthorityType(EventProperty.Value.AUTHORITY_TYPE_ADFS);
-        } else {
-            setAuthorityType(EventProperty.Value.AUTHORITY_TYPE_AAD);
-        }
-    }
-
-    private void setAuthorityType(final String authorityType) {
-        setProperty(EventProperty.AUTHORITY_TYPE, authorityType);
-    }
-
-    @Override
-    public String getAuthority() {
+    String getAuthority() {
         return getProperty(EventProperty.AUTHORITY_NAME);
     }
 
-    @Override
-    public String getUiBehavior() {
+    String getUiBehavior() {
         return getProperty(EventProperty.UI_BEHAVIOR);
     }
 
-    @Override
-    public String getApiId() {
+    String getApiId() {
         return getProperty(EventProperty.API_ID);
     }
 
-    @Override
-    public String getValidationStatus() {
+    String getValidationStatus() {
         return getProperty(EventProperty.AUTHORITY_VALIDATION);
     }
 
-    @Override
-    public String getIdpName() {
+    String getIdpName() {
         return getProperty(EventProperty.IDP_NAME);
     }
 
-    @Override
-    public String getTenantId() {
+    String getTenantId() {
         return getProperty(EventProperty.TENANT_ID);
     }
 
-    @Override
-    public String getUserId() {
+    String getUserId() {
         return getProperty(EventProperty.USER_ID);
     }
 
-    @Override
-    public String getLoginHint() {
+    String getLoginHint() {
         return getProperty(EventProperty.LOGIN_HINT);
     }
 
-    @Override
-    public Boolean getExtendedExpiresOnStatus() {
-        return Boolean.valueOf(getProperty(EventProperty.EXTENDED_EXPIRES_ON_SETTING));
-    }
-
-    @Override
-    public Boolean wasSuccessful() {
+    Boolean wasSuccessful() {
         return Boolean.valueOf(getProperty(EventProperty.WAS_SUCCESSFUL));
     }
 
-    @Override
-    public Telemetry.RequestId getRequestId() {
+    Telemetry.RequestId getRequestId() {
         return new Telemetry.RequestId(getProperty(EventProperty.REQUEST_ID));
+    }
+
+    String getAuthorityType() {
+        return getProperty(EventProperty.AUTHORITY_TYPE);
     }
 
     /**
@@ -160,12 +147,12 @@ final class ApiEvent extends Event implements IApiEvent {
     static class Builder extends Event.Builder<Builder> {
 
         private String mAuthority;
+        private Authority.AuthorityType mAuthorityType;
         private String mUiBehavior;
         private String mApiId;
         private String mValidationStatus;
         private User mUser;
         private String mLoginHint;
-        private boolean mExtendedExpiresOnStatus;
         private boolean mWasApiCallSuccessful;
         private UUID mCorrelationId;
         private Telemetry.RequestId mRequestId;
@@ -183,6 +170,11 @@ final class ApiEvent extends Event implements IApiEvent {
          */
         Builder setAuthority(final String authority) {
             mAuthority = authority;
+            return this;
+        }
+
+        Builder setAuthorityType(final Authority.AuthorityType authorityType) {
+            mAuthorityType = authorityType;
             return this;
         }
 
@@ -242,17 +234,6 @@ final class ApiEvent extends Event implements IApiEvent {
         }
 
         /**
-         * Sets the ExtendedExpiresOnStatus.
-         *
-         * @param hasExtendedExpiresOn the status to set.
-         * @return the Builder instance.
-         */
-        Builder setExtendedExpiresOnStatus(final boolean hasExtendedExpiresOn) {
-            mExtendedExpiresOnStatus = hasExtendedExpiresOn;
-            return this;
-        }
-
-        /**
          * Sets the success status of the api call.
          *
          * @param callWasSuccessful the status to set.
@@ -280,7 +261,7 @@ final class ApiEvent extends Event implements IApiEvent {
          * @return the new ApiEvent.
          */
         @Override
-        IApiEvent build() {
+        ApiEvent build() {
             return new ApiEvent(this);
         }
 

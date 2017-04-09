@@ -28,21 +28,26 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 /**
  * Internal class for CacheEvent telemetry data.
  */
-final class CacheEvent extends Event implements ICacheEvent {
+final class CacheEvent extends Event {
 
     private CacheEvent(Builder builder) {
         super(builder);
         setProperty(EventProperty.TOKEN_TYPE, builder.mTokenType);
+        setProperty(EventProperty.IS_AT, String.valueOf(builder.mIsAT));
+        setProperty(EventProperty.IS_RT, String.valueOf(builder.mIsRT));
     }
 
-    @Override
-    public String getTokenType() {
+    String getTokenType() {
         return getProperty(EventProperty.TOKEN_TYPE);
     }
 
-    @Override
-    public Boolean tokenTypeisRT() {
-        return getTokenType().equals(EventProperty.Value.TOKEN_TYPE_RT);
+
+    boolean isRT() {
+        return Boolean.valueOf(getProperty(EventProperty.IS_RT));
+    }
+
+    boolean isAT() {
+        return Boolean.valueOf(getProperty(EventProperty.IS_AT));
     }
 
     /**
@@ -51,6 +56,8 @@ final class CacheEvent extends Event implements ICacheEvent {
     static class Builder extends Event.Builder<Builder> {
 
         private String mTokenType;
+        private boolean mIsAT;
+        private boolean mIsRT;
 
         Builder(final EventName eventName) {
             super(eventName);
@@ -67,13 +74,23 @@ final class CacheEvent extends Event implements ICacheEvent {
             return this;
         }
 
+        Builder setIsAT(boolean isAT) {
+            mIsAT = isAT;
+            return this;
+        }
+
+        Builder setIsRT(boolean isRT) {
+            mIsRT = isRT;
+            return this;
+        }
+
         /**
          * Constructs a new CacheEvent.
          *
          * @return the newly constructed CacheEvent instance.
          */
         @Override
-        ICacheEvent build() {
+        CacheEvent build() {
             return new CacheEvent(this);
         }
     }

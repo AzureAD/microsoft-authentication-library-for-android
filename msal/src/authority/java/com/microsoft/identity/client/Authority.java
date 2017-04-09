@@ -103,8 +103,9 @@ abstract class Authority {
             throw new IllegalArgumentException("Invalid authority url");
         }
 
-        final boolean isAdfsAuthority = isAdfsAuthority(authority);
-        final boolean isB2cAuthority = isB2cAuthority(authority);
+        final String[] pathSegments = authority.getPath().replaceFirst("/", "").split("/");
+        final boolean isAdfsAuthority = pathSegments[0].equals(ADFS_AUTHORITY_PREFIX);
+        final boolean isB2cAuthority = pathSegments[0].equals(B2C_AUTHORITY_PREFIX);
 
         if (isAdfsAuthority) {
             Logger.error(TAG, null, "ADFS authority is not a supported authority instance", null);
@@ -116,18 +117,6 @@ abstract class Authority {
 
         Logger.info(TAG, null, "Passed in authority string is a aad authority, create an new aad authority instance.");
         return new AADAuthority(authority, validateAuthority);
-    }
-
-    private static String[] chunkUrlPaths(final URL targetAuthorityUrl) {
-        return targetAuthorityUrl.getPath().replaceFirst("/", "").split("/");
-    }
-
-    static boolean isAdfsAuthority(final URL authorityUrl) {
-        return chunkUrlPaths(authorityUrl)[0].equals(ADFS_AUTHORITY_PREFIX);
-    }
-
-    static boolean isB2cAuthority(final URL authorityUrl) {
-        return chunkUrlPaths(authorityUrl)[0].equals(B2C_AUTHORITY_PREFIX);
     }
 
     /**

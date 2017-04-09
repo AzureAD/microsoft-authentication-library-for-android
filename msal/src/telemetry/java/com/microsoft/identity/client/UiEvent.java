@@ -28,29 +28,23 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 /**
  * Internal class for UiEvent telemetry data.
  */
-final class UiEvent extends Event implements IUiEvent {
+final class UiEvent extends Event {
 
     private UiEvent(Builder builder) {
         super(builder);
         setProperty(EventProperty.HTTP_USER_AGENT, builder.mUserAgent);
-        if (null != builder.mRedirectCount) {
-            setProperty(EventProperty.REDIRECT_COUNT, builder.mRedirectCount.toString());
-        }
         setProperty(EventProperty.USER_CANCEL, builder.mUserDidCancel);
     }
 
-    @Override
-    public String getUserAgent() {
+    String getUserAgent() {
         return getProperty(EventProperty.HTTP_USER_AGENT);
     }
 
-    @Override
-    public Integer getRedirectCount() {
+    Integer getRedirectCount() {
         return Integer.valueOf(getProperty(EventProperty.REDIRECT_COUNT));
     }
 
-    @Override
-    public Boolean userCancelled() {
+    Boolean userCancelled() {
         return Boolean.valueOf(getProperty(EventProperty.USER_CANCEL));
     }
 
@@ -60,7 +54,6 @@ final class UiEvent extends Event implements IUiEvent {
     static class Builder extends Event.Builder<Builder> {
 
         private String mUserAgent;
-        private Integer mRedirectCount;
         private String mUserDidCancel = "false";
 
         Builder() {
@@ -75,17 +68,6 @@ final class UiEvent extends Event implements IUiEvent {
          */
         Builder setUserAgent(final String userAgent) {
             mUserAgent = userAgent;
-            return this;
-        }
-
-        /**
-         * Sets the redirect count.
-         *
-         * @param redirectCount the redirect count to set.
-         * @return the Builder instance.
-         */
-        Builder setRedirectCount(final Integer redirectCount) {
-            mRedirectCount = redirectCount;
             return this;
         }
 
@@ -105,7 +87,7 @@ final class UiEvent extends Event implements IUiEvent {
          * @return the newly created IUiEvent instance.
          */
         @Override
-        IUiEvent build() {
+        UiEvent build() {
             return new UiEvent(this);
         }
     }

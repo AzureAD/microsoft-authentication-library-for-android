@@ -31,7 +31,7 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 /**
  * Internal class for HttpEvent telemetry data.
  */
-final class HttpEvent extends Event implements IHttpEvent {
+final class HttpEvent extends Event {
 
     private HttpEvent(Builder builder) {
         super(builder);
@@ -70,43 +70,35 @@ final class HttpEvent extends Event implements IHttpEvent {
         setProperty(EventProperty.HTTP_PATH, logPath.toString());
     }
 
-    @Override
-    public String getUserAgent() {
+    String getUserAgent() {
         return getProperty(EventProperty.HTTP_USER_AGENT);
     }
 
-    @Override
-    public String getHttpMethod() {
+    String getHttpMethod() {
         return getProperty(EventProperty.HTTP_METHOD);
     }
 
-    @Override
-    public String getQueryParameters() {
+    String getQueryParameters() {
         return getProperty(EventProperty.HTTP_QUERY_PARAMETERS);
     }
 
-    @Override
-    public String getApiVersion() {
+    String getApiVersion() {
         return getProperty(EventProperty.HTTP_API_VERSION);
     }
 
-    @Override
-    public String getOAuthErrorCode() {
+    String getOAuthErrorCode() {
         return getProperty(EventProperty.OAUTH_ERROR_CODE);
     }
 
-    @Override
-    public String getRequestIdHeader() {
+    String getRequestIdHeader() {
         return getProperty(EventProperty.REQUEST_ID_HEADER);
     }
 
-    @Override
-    public URL getHttpPath() {
+    URL getHttpPath() {
         return MSALUtils.getUrl(getProperty(EventProperty.HTTP_PATH));
     }
 
-    @Override
-    public Integer getResponseCode() {
+    Integer getResponseCode() {
         return Integer.valueOf(getProperty(EventProperty.HTTP_RESPONSE_CODE));
     }
 
@@ -222,10 +214,9 @@ final class HttpEvent extends Event implements IHttpEvent {
          * @return the newly constucted HttpEvent instance
          */
         @Override
-        IHttpEvent build() {
+        HttpEvent build() {
             return new HttpEvent(this);
         }
 
     }
-
 }

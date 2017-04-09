@@ -62,15 +62,15 @@ class EventDispatcher {
      *
      * @param eventsToPublish the Events to publish.
      */
-    void dispatch(final List<IEvent> eventsToPublish) {
+    void dispatch(final List<Event> eventsToPublish) {
         if (null == mEventReceiver) {
             return;
         }
 
-        List<Map<String, String>> eventsForPublication = new ArrayList<>();
+        final List<Map<String, String>> eventsForPublication = new ArrayList<>();
 
-        for (final IEvent event : eventsToPublish) {
-            Map<String, String> eventProperties = new LinkedHashMap<>();
+        for (final Event event : eventsToPublish) {
+            final Map<String, String> eventProperties = new LinkedHashMap<>();
             for (Pair<String, String> property : event) {
                 eventProperties.put(property.first, property.second);
             }

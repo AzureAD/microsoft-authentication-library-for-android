@@ -27,7 +27,7 @@ package com.microsoft.identity.client;
  * OrphanedEvents are Events which were started but never finished before
  * {@link Telemetry#flush(Telemetry.RequestId)} was called.
  */
-final class OrphanedEvent extends Event implements IEvent {
+final class OrphanedEvent extends Event {
 
     /**
      * Constructs a new Event.
@@ -60,9 +60,8 @@ final class OrphanedEvent extends Event implements IEvent {
         }
 
         @Override
-        IEvent build() {
+        Event build() {
             return new OrphanedEvent(this);
         }
     }
-
 }

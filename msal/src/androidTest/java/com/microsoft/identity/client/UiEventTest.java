@@ -34,21 +34,18 @@ import org.junit.runner.RunWith;
 public class UiEventTest {
 
     static final EventName TEST_EXPECTED_EVENT_NAME = EventName.UI_EVENT;
-    static final Integer TEST_REDIRECT_COUNT = 2;
     static final boolean TEST_USER_DID_CANCEL = true;
 
-    static IUiEvent getTestUiEvent() {
+    static UiEvent getTestUiEvent() {
         return new UiEvent.Builder()
-                .setRedirectCount(2)
                 .setUserDidCancel()
                 .build();
     }
 
     @Test
     public void testUiEventInitializes() {
-        final IUiEvent uiEvent = getTestUiEvent();
+        final UiEvent uiEvent = getTestUiEvent();
         Assert.assertEquals(TEST_EXPECTED_EVENT_NAME, uiEvent.getEventName());
-        Assert.assertEquals(TEST_REDIRECT_COUNT, uiEvent.getRedirectCount());
         Assert.assertEquals(Boolean.valueOf(TEST_USER_DID_CANCEL), uiEvent.userCancelled());
     }
 

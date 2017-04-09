@@ -43,11 +43,11 @@ public class ApiEventTest {
     private static final String TEST_USER_ID = "H2oDBkBpuQubaCLk0W2P+bSganOO7XBJ9o/+iHQSbo0="; // test token does not contain id
 
     static final String TEST_AUTHORITY = HttpEventTest.TEST_HTTP_PATH.toString();
+    static final Authority.AuthorityType TEST_AUTHORITY_TYPE = Authority.AuthorityType.AAD;
     static final String TEST_UI_BEHAVIOR = "FORCE_LOGIN";
     static final String TEST_API_ID = "12345";
     static final String TEST_VALIDATION_STATUS = EventProperty.Value.AUTHORITY_VALIDATION_SUCCESS;
     static final String TEST_LOGIN_HINT = "user@contoso.com";
-    static final boolean TEST_HAS_EXTENDED_EXPIRES_STATUS = false;
     static final boolean TEST_API_CALL_WAS_SUCCESSFUL = true;
 
     static ApiEvent.Builder getRandomTestApiEventBuilder() {
@@ -62,38 +62,38 @@ public class ApiEventTest {
     static ApiEvent.Builder getTestApiEventBuilder(Telemetry.RequestId requestId) {
         return new ApiEvent.Builder(requestId)
                 .setAuthority(TEST_AUTHORITY)
+                .setAuthorityType(TEST_AUTHORITY_TYPE)
                 .setUiBehavior(TEST_UI_BEHAVIOR)
                 .setApiId(TEST_API_ID)
                 .setValidationStatus(TEST_VALIDATION_STATUS)
                 .setIdToken(getTestUser())
                 .setLoginHint(TEST_LOGIN_HINT)
-                .setExtendedExpiresOnStatus(TEST_HAS_EXTENDED_EXPIRES_STATUS)
                 .setApiCallWasSuccessful(TEST_API_CALL_WAS_SUCCESSFUL);
     }
 
-    static IApiEvent getTestApiEvent(final Telemetry.RequestId requestId) {
+    static ApiEvent getTestApiEvent(final Telemetry.RequestId requestId) {
         return getTestApiEventBuilder(requestId).build();
     }
 
     @Test
     public void testApiEventInitializes() throws UnsupportedEncodingException, NoSuchAlgorithmException {
         final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
-        final IApiEvent apiEvent = getTestApiEvent(requestId);
+        final ApiEvent apiEvent = getTestApiEvent(requestId);
         Assert.assertEquals(requestId, apiEvent.getRequestId());
         Assert.assertEquals(TEST_AUTHORITY, apiEvent.getAuthority());
+        Assert.assertEquals(EventProperty.Value.AUTHORITY_TYPE_AAD, apiEvent.getAuthorityType());
         Assert.assertEquals(TEST_UI_BEHAVIOR, apiEvent.getUiBehavior());
         Assert.assertEquals(TEST_API_ID, apiEvent.getApiId());
         Assert.assertEquals(TEST_VALIDATION_STATUS, apiEvent.getValidationStatus());
         // Testing token parsing in another test....
         Assert.assertEquals(MSALUtils.createHash(TEST_LOGIN_HINT), apiEvent.getLoginHint());
-        Assert.assertEquals(Boolean.valueOf(TEST_HAS_EXTENDED_EXPIRES_STATUS), apiEvent.getExtendedExpiresOnStatus());
         Assert.assertEquals(Boolean.valueOf(TEST_API_CALL_WAS_SUCCESSFUL), apiEvent.wasSuccessful());
     }
 
     @Test
     public void testIdTokenParsing() {
         final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
-        final IApiEvent apiEvent = getTestApiEvent(requestId);
+        final ApiEvent apiEvent = getTestApiEvent(requestId);
         Assert.assertEquals(TEST_IDP, apiEvent.getIdpName());
         Assert.assertEquals(TEST_TENANT_ID, apiEvent.getTenantId());
         Assert.assertEquals(TEST_USER_ID, apiEvent.getUserId());

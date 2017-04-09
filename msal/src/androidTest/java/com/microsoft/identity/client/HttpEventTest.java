@@ -44,7 +44,7 @@ public class HttpEventTest {
     static final URL TEST_HTTP_PATH = MSALUtils.getUrl("https://login.microsoftonline.com/");
     static final Integer TEST_HTTP_RESPONSE_CODE = 200;
 
-    static IHttpEvent getTestHttpEvent() {
+    static HttpEvent getTestHttpEvent() {
         return getTestHttpEventBuilder(TEST_HTTP_PATH).build();
     }
 
@@ -52,7 +52,7 @@ public class HttpEventTest {
         return getTestHttpEventBuilder(TEST_HTTP_PATH);
     }
 
-    private static IHttpEvent getTestHttpEvent(final URL httpPath) {
+    private static HttpEvent getTestHttpEvent(final URL httpPath) {
         return getTestHttpEventBuilder(httpPath).build();
     }
 
@@ -70,7 +70,7 @@ public class HttpEventTest {
 
     @Test
     public void testHttpEventInitializes() {
-        final IHttpEvent httpEvent = getTestHttpEvent();
+        final HttpEvent httpEvent = getTestHttpEvent();
         Assert.assertEquals(EventName.HTTP_EVENT, httpEvent.getEventName());
         Assert.assertEquals(TEST_USER_AGENT, httpEvent.getUserAgent());
         Assert.assertEquals(TEST_HTTP_METHOD, httpEvent.getHttpMethod());
@@ -84,7 +84,7 @@ public class HttpEventTest {
 
     @Test
     public void testOnlyTrustedHostsAddedToEvent() {
-        final IHttpEvent httpEvent =
+        final HttpEvent httpEvent =
                 getTestHttpEvent(MSALUtils.getUrl("https://login.contoso.com/"));
         Assert.assertNull(httpEvent.getHttpPath());
     }
