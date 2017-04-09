@@ -96,6 +96,10 @@ public final class Telemetry {
     }
 
     public synchronized void registerReceiver(MsalEventReceiver receiver) {
+        if (null == receiver) {
+            throw new IllegalArgumentException("Receiver instance cannot be null");
+        }
+
         // check to make sure we're not already dispatching elsewhere
         if (null != mPublisher) {
             throw new IllegalStateException(
@@ -188,9 +192,12 @@ public final class Telemetry {
      * @param requestId Events matching the supplied RequestId will be flushed.
      */
     void flush(final RequestId requestId) {
+        if (null == mPublisher) {
+            return;
+        }
+
         // check for orphaned events...
-        final List<Event> orphanedEvents = new ArrayList<>();
-        collateOrphanedEvents(requestId, orphanedEvents);
+        final List<Event> orphanedEvents = collateOrphanedEvents(requestId);
         // Add the OrphanedEvents to the existing IEventList
         if (null != mCompletedEvents.get(requestId)) {
             mCompletedEvents.get(requestId).addAll(orphanedEvents);
@@ -215,13 +222,14 @@ public final class Telemetry {
             }
         }
 
-        if (null != mPublisher && !eventsToFlush.isEmpty()) {
+        if (!eventsToFlush.isEmpty()) {
             eventsToFlush.add(0, new DefaultEvent.Builder().build());
             mPublisher.dispatch(eventsToFlush);
         }
     }
 
-    private void collateOrphanedEvents(RequestId requestId, List<Event> orphanedEvents) {
+    private List<Event> collateOrphanedEvents(RequestId requestId) {
+        final List<Event> orphanedEvents = new ArrayList<>();
         for (Pair<RequestId, EventName> key : mEventsInProgress.keySet()) {
             if (key.first.equals(requestId)) {
                 final EventName orphanedEventName = key.second;
@@ -232,6 +240,7 @@ public final class Telemetry {
                 orphanedEvents.add(orphanedEvent);
             }
         }
+        return orphanedEvents;
     }
 
     /**

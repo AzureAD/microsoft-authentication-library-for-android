@@ -35,7 +35,7 @@ final class EventConstants {
     /**
      * Prefixes all event names.
      */
-    static final String EVENT_PREFIX = "Microsoft.MSAL.";
+    static final String EVENT_PREFIX = "microsoft.MSAL.";
 
     /**
      * API Ids for Telemetry.
@@ -93,8 +93,8 @@ final class EventConstants {
 
         // CacheEvent
         static final String TOKEN_TYPE = EVENT_PREFIX + "token_type";
-        static final String IS_AT = EVENT_PREFIX + "is_AT";
-        static final String IS_RT = EVENT_PREFIX + "is_RT";
+        static final String IS_AT = EVENT_PREFIX + "is_at";
+        static final String IS_RT = EVENT_PREFIX + "is_rt";
 
         // HttpEvent
         static final String OAUTH_ERROR_CODE = EVENT_PREFIX + "oauth_error_code";
@@ -119,14 +119,14 @@ final class EventConstants {
                 // Utility class
             }
 
-            static final String AUTHORITY_TYPE_ADFS = EVENT_PREFIX + "adfs";
-            static final String AUTHORITY_TYPE_AAD = EVENT_PREFIX + "aad";
-            static final String AUTHORITY_TYPE_B2C = EVENT_PREFIX + "b2c";
-            static final String AUTHORITY_TYPE_UNKNOWN = EVENT_PREFIX + "unknown";
-            static final String AUTHORITY_VALIDATION_SUCCESS = EVENT_PREFIX + "authority_validation_status_success";
-            static final String AUTHORITY_VALIDATION_FAILURE = EVENT_PREFIX + "authority_validation_status_failure";
-            static final String AUTHORITY_VALIDATION_NOT_DONE = EVENT_PREFIX + "authority_validation_status_not_done";
-            static final String HTTP_METHOD_POST = EVENT_PREFIX + "post";
+            static final String AUTHORITY_TYPE_ADFS = "adfs";
+            static final String AUTHORITY_TYPE_AAD = "aad";
+            static final String AUTHORITY_TYPE_B2C = "b2c";
+            static final String AUTHORITY_TYPE_UNKNOWN = "unknown";
+            static final String AUTHORITY_VALIDATION_SUCCESS = "authority_validation_status_success";
+            static final String AUTHORITY_VALIDATION_FAILURE = "authority_validation_status_failure";
+            static final String AUTHORITY_VALIDATION_NOT_DONE = "authority_validation_status_not_done";
+            static final String HTTP_METHOD_POST = "post";
         }
     }
 }
