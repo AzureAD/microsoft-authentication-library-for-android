@@ -49,7 +49,7 @@ final class ApiEvent extends Event {
         setProperty(EventProperty.UI_BEHAVIOR, builder.mUiBehavior);
         setProperty(EventProperty.API_ID, builder.mApiId);
         setProperty(EventProperty.AUTHORITY_VALIDATION, builder.mValidationStatus);
-        setIdToken(builder.mUser);
+        setIdToken(builder.mRawIdToken);
         setLoginHint(builder.mLoginHint);
         setProperty(EventProperty.WAS_SUCCESSFUL, String.valueOf(builder.mWasApiCallSuccessful));
     }
@@ -83,15 +83,23 @@ final class ApiEvent extends Event {
         }
     }
 
-    private void setIdToken(final User user) {
-        if (null == user) {
+    private void setIdToken(final String rawIdToken) {
+        if (MSALUtils.isEmpty(rawIdToken)) {
             return;
         }
-        setProperty(EventProperty.IDP_NAME, user.getIdentityProvider());
+
+        final IdToken idToken;
+        try {
+            idToken = new IdToken(rawIdToken);
+        } catch (MsalClientException ae) {
+            return;
+        }
+
+        setProperty(EventProperty.IDP_NAME, idToken.getIssuer());
 
         try {
-            setProperty(EventProperty.TENANT_ID, MSALUtils.createHash(user.getUtid()));
-            setProperty(EventProperty.USER_ID, MSALUtils.createHash(user.getDisplayableId()));
+            setProperty(EventProperty.TENANT_ID, MSALUtils.createHash(idToken.getTenantId()));
+            setProperty(EventProperty.USER_ID, MSALUtils.createHash(idToken.getPreferredName()));
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
             Logger.info(TAG, null, "Skipping TENANT_ID and USER_ID");
         }
@@ -151,7 +159,7 @@ final class ApiEvent extends Event {
         private String mUiBehavior;
         private String mApiId;
         private String mValidationStatus;
-        private User mUser;
+        private String mRawIdToken;
         private String mLoginHint;
         private boolean mWasApiCallSuccessful;
         private UUID mCorrelationId;
@@ -214,11 +222,11 @@ final class ApiEvent extends Event {
         /**
          * Sets the IdToken.
          *
-         * @param user the {@link User} used to derive the idToken.
+         * @param rawIdToken the rawIdToken
          * @return the Builder instance.
          */
-        Builder setIdToken(final User user) {
-            mUser = user;
+        Builder setRawIdToken(final String rawIdToken) {
+            mRawIdToken = rawIdToken;
             return this;
         }
 

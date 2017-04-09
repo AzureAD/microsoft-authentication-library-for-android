@@ -38,25 +38,21 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 @RunWith(AndroidJUnit4.class)
 public class ApiEventTest {
 
-    private static final String TEST_IDP = AndroidTestUtil.ISSUER;
-    private static final String TEST_TENANT_ID = "SSK/3ighb7Ip0yNFWm6rjYaAEAqp3/7F9/26jGxcYAQ=";
-    private static final String TEST_USER_ID = "H2oDBkBpuQubaCLk0W2P+bSganOO7XBJ9o/+iHQSbo0="; // test token does not contain id
+    private static final String TEST_IDP = "https://sts.windows.net/30baa666-8df8-48e7-97e6-77cfd0995963/";
+    private static final String TEST_TENANT_ID = "cDlznUzXvRPmsu0nwRE5iZ4/mbYap0jgmkpxSnZzRQY=";
+    private static final String TEST_USER_ID = null; // test token does not contain id
 
     static final String TEST_AUTHORITY = HttpEventTest.TEST_HTTP_PATH.toString();
     static final Authority.AuthorityType TEST_AUTHORITY_TYPE = Authority.AuthorityType.AAD;
     static final String TEST_UI_BEHAVIOR = "FORCE_LOGIN";
     static final String TEST_API_ID = "12345";
+    static final String TEST_ID_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2VwZWhyaSIsImdpdmVuX25hbWUiOiJBZnNoaW4ifQ.";
     static final String TEST_VALIDATION_STATUS = EventProperty.Value.AUTHORITY_VALIDATION_SUCCESS;
     static final String TEST_LOGIN_HINT = "user@contoso.com";
     static final boolean TEST_API_CALL_WAS_SUCCESSFUL = true;
 
     static ApiEvent.Builder getRandomTestApiEventBuilder() {
         return getTestApiEventBuilder(Telemetry.generateNewRequestId());
-    }
-
-    private static User getTestUser() {
-        final String displayable = "test@contoso.onmicrosoft.com";
-        return new User(displayable, displayable, AndroidTestUtil.ISSUER, AndroidTestUtil.UID, AndroidTestUtil.UTID);
     }
 
     static ApiEvent.Builder getTestApiEventBuilder(Telemetry.RequestId requestId) {
@@ -66,7 +62,7 @@ public class ApiEventTest {
                 .setUiBehavior(TEST_UI_BEHAVIOR)
                 .setApiId(TEST_API_ID)
                 .setValidationStatus(TEST_VALIDATION_STATUS)
-                .setIdToken(getTestUser())
+                .setRawIdToken(TEST_ID_TOKEN)
                 .setLoginHint(TEST_LOGIN_HINT)
                 .setApiCallWasSuccessful(TEST_API_CALL_WAS_SUCCESSFUL);
     }
