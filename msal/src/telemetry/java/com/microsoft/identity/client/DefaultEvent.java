@@ -46,7 +46,7 @@ class DefaultEvent extends Event {
      *
      * @param builder the Builder instance for this Event.
      */
-    DefaultEvent(Builder builder) {
+    private DefaultEvent(Builder builder) {
         super(builder);
         setProperty(EventProperty.APPLICATION_NAME, sAllDefaults.mApplicationName);
         setProperty(EventProperty.APPLICATION_VERSION, sAllDefaults.mApplicationVersion);

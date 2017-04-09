@@ -43,7 +43,7 @@ public final class Telemetry {
 
     private static boolean sDisableForTest;
 
-    private final Map<Pair<RequestId, EventName>, EventStartTime> mEventsInProgress;
+    private final Map<Pair<RequestId, EventName>, Long> mEventsInProgress;
 
     private final Map<RequestId, List<Event>> mCompletedEvents;
 
@@ -53,7 +53,7 @@ public final class Telemetry {
 
     private Telemetry() {
         mEventsInProgress = Collections.synchronizedMap(
-                new LinkedHashMap<Pair<RequestId, EventName>, EventStartTime>()
+                new LinkedHashMap<Pair<RequestId, EventName>, Long>()
         );
         mCompletedEvents = Collections.synchronizedMap(
                 new LinkedHashMap<RequestId, List<Event>>()
@@ -123,7 +123,7 @@ public final class Telemetry {
             return;
         }
 
-        mEventsInProgress.put(new Pair<>(requestId, eventName), new EventStartTime(Long.toString(System.currentTimeMillis())));
+        mEventsInProgress.put(new Pair<>(requestId, eventName), System.currentTimeMillis());
     }
 
     /**
@@ -151,7 +151,7 @@ public final class Telemetry {
         final Pair<RequestId, EventName> eventKey = new Pair<>(requestId, eventName);
 
         // Compute execution time
-        final EventStartTime eventStartTime = mEventsInProgress.get(eventKey);
+        final Long eventStartTime = mEventsInProgress.get(eventKey);
         final long startTimeL = Long.parseLong(eventStartTime.toString());
         final long stopTimeL = System.currentTimeMillis();
         final long diffTime = stopTimeL - startTimeL;
@@ -225,8 +225,8 @@ public final class Telemetry {
         for (Pair<RequestId, EventName> key : mEventsInProgress.keySet()) {
             if (key.first.equals(requestId)) {
                 final EventName orphanedEventName = key.second;
-                final String orphanedEventStartTime =
-                        mEventsInProgress.remove(key).toString(); // remove() this entry (clean up!)
+                final Long orphanedEventStartTime =
+                        mEventsInProgress.remove(key); // remove() this entry (clean up!)
                 // Build the OrphanedEvent...
                 final Event orphanedEvent = new OrphanedEvent.Builder(orphanedEventName, orphanedEventStartTime).build();
                 orphanedEvents.add(orphanedEvent);
@@ -292,17 +292,6 @@ public final class Telemetry {
 
         static boolean isValid(final RequestId requestId) {
             return null != requestId && isValid(requestId.toString());
-        }
-
-    }
-
-    /**
-     * Container for Event start times.
-     */
-    private static final class EventStartTime extends ValueTypeDef {
-
-        private EventStartTime(final String value) {
-            super(value);
         }
 
     }
