@@ -71,7 +71,7 @@ public class HttpEventTest {
     @Test
     public void testHttpEventInitializes() {
         final HttpEvent httpEvent = getTestHttpEvent();
-        Assert.assertEquals(EventName.HTTP_EVENT, httpEvent.getEventName());
+        Assert.assertEquals(EventConstants.EventName.HTTP_EVENT, httpEvent.getEventName());
         Assert.assertEquals(TEST_USER_AGENT, httpEvent.getUserAgent());
         Assert.assertEquals(TEST_HTTP_METHOD, httpEvent.getHttpMethod());
         Assert.assertEquals(TEST_QUERY_PARAMS, httpEvent.getQueryParameters());

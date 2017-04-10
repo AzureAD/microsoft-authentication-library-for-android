@@ -161,7 +161,7 @@ public class TelemetryTest {
 
         // make sure it contains the correct event
         Assert.assertEquals(
-                EventName.HTTP_EVENT.toString(),
+                EventConstants.EventName.HTTP_EVENT.toString(),
                 eventData.get(EventProperty.EVENT_NAME)
         );
     }
@@ -181,7 +181,7 @@ public class TelemetryTest {
         mTestInstance.stopEvent(telemetryRequestId1, httpEventBuilder);
 
         final String telemetryRequestId2 = Telemetry.generateNewRequestId();
-        final CacheEvent.Builder cacheEventBuilder = CacheEventTest.getTestCacheEventBuilder(EventName.TOKEN_CACHE_LOOKUP, "bearer");
+        final CacheEvent.Builder cacheEventBuilder = CacheEventTest.getTestCacheEventBuilder(EventConstants.EventName.TOKEN_CACHE_LOOKUP, "bearer");
         mTestInstance.startEvent(telemetryRequestId2, cacheEventBuilder.getEventName());
         mTestInstance.stopEvent(telemetryRequestId2, cacheEventBuilder);
 
@@ -203,7 +203,7 @@ public class TelemetryTest {
 
         // make sure it contains the correct event
         Assert.assertEquals(
-                EventName.TOKEN_CACHE_LOOKUP.toString(),
+                EventConstants.EventName.TOKEN_CACHE_LOOKUP.toString(),
                 eventData.get(EventProperty.EVENT_NAME)
         );
     }
@@ -226,7 +226,7 @@ public class TelemetryTest {
                 .setCorrelationId(UUID.randomUUID())
                 .setApiCallWasSuccessful(true);
         final UiEvent.Builder uiEventBuilder = new UiEvent.Builder();
-        final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(EventName.TOKEN_CACHE_LOOKUP)
+        final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(EventConstants.EventName.TOKEN_CACHE_LOOKUP)
                 .setTokenType("bearer");
 
         mTestInstance.startEvent(telemetryRequestId1, apiEventBuilder.getEventName());
@@ -259,7 +259,7 @@ public class TelemetryTest {
                 .setCorrelationId(UUID.randomUUID())
                 .setApiCallWasSuccessful(true);
         final UiEvent.Builder uiEventBuilder2 = new UiEvent.Builder();
-        final CacheEvent.Builder cacheEventBuilder2 = new CacheEvent.Builder(EventName.TOKEN_CACHE_LOOKUP)
+        final CacheEvent.Builder cacheEventBuilder2 = new CacheEvent.Builder(EventConstants.EventName.TOKEN_CACHE_LOOKUP)
                 .setTokenType("bearer");
 
         mTestInstance.startEvent(telemetryRequestId2, apiEventBuilder2.getEventName());
@@ -294,7 +294,7 @@ public class TelemetryTest {
                 .setCorrelationId(UUID.randomUUID())
                 .setApiCallWasSuccessful(true);
         final UiEvent.Builder uiEventBuilder = new UiEvent.Builder();
-        final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(EventName.TOKEN_CACHE_LOOKUP)
+        final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(EventConstants.EventName.TOKEN_CACHE_LOOKUP)
                 .setTokenType("bearer").setIsAT(true);
 
         mTestInstance.startEvent(telemetryRequestId1, apiEventBuilder.getEventName());
@@ -319,7 +319,7 @@ public class TelemetryTest {
 
         boolean orphanedEventVerified = false;
         for (final Map<String, String> event : result) {
-            if (event.get(EventProperty.EVENT_NAME) != null && event.get(EventProperty.EVENT_NAME).equals(EventName.UI_EVENT.toString())) {
+            if (event.get(EventProperty.EVENT_NAME) != null && event.get(EventProperty.EVENT_NAME).equals(EventConstants.EventName.UI_EVENT.toString())) {
                 Assert.assertEquals(event.get(EventProperty.STOP_TIME), "-1");
                 orphanedEventVerified = true;
                 break;

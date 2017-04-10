@@ -43,7 +43,7 @@ public final class Telemetry {
 
     private static boolean sDisableForTest;
 
-    private final Map<Pair<String, EventName>, Long> mEventsInProgress;
+    private final Map<Pair<String, String>, Long> mEventsInProgress;
 
     private final Map<String, List<Event>> mCompletedEvents;
 
@@ -53,7 +53,7 @@ public final class Telemetry {
 
     private Telemetry() {
         mEventsInProgress = Collections.synchronizedMap(
-                new LinkedHashMap<Pair<String, EventName>, Long>()
+                new LinkedHashMap<Pair<String, String>, Long>()
         );
         mCompletedEvents = Collections.synchronizedMap(
                 new LinkedHashMap<String, List<Event>>()
@@ -122,7 +122,7 @@ public final class Telemetry {
      * @param requestId the RequestId used to track this Event.
      * @param eventName the name of the Event which is to be tracked.
      */
-    void startEvent(final String requestId, final EventName eventName) {
+    void startEvent(final String requestId, final String eventName) {
         if (null == mPublisher || sDisableForTest) {
             return;
         }
@@ -147,12 +147,12 @@ public final class Telemetry {
      * @param eventName   the name of the Event to stop.
      * @param eventToStop the Event data.
      */
-    void stopEvent(final String requestId, final EventName eventName, final Event eventToStop) {
+    void stopEvent(final String requestId, final String eventName, final Event eventToStop) {
         if (null == mPublisher || sDisableForTest) {
             return;
         }
 
-        final Pair<String, EventName> eventKey = new Pair<>(requestId, eventName);
+        final Pair<String, String> eventKey = new Pair<>(requestId, eventName);
 
         // Compute execution time
         final Long eventStartTime = mEventsInProgress.get(eventKey);
@@ -230,9 +230,9 @@ public final class Telemetry {
 
     private List<Event> collateOrphanedEvents(String requestId) {
         final List<Event> orphanedEvents = new ArrayList<>();
-        for (Pair<String, EventName> key : mEventsInProgress.keySet()) {
+        for (Pair<String, String> key : mEventsInProgress.keySet()) {
             if (key.first.equals(requestId)) {
-                final EventName orphanedEventName = key.second;
+                final String orphanedEventName = key.second;
                 final Long orphanedEventStartTime =
                         mEventsInProgress.remove(key); // remove() this entry (clean up!)
                 // Build the OrphanedEvent...
@@ -241,41 +241,5 @@ public final class Telemetry {
             }
         }
         return orphanedEvents;
-    }
-
-    /**
-     * Abstract container class for String values.
-     */
-    abstract static class ValueTypeDef {
-
-        private final String mValue;
-
-        @Override
-        public String toString() {
-            return mValue;
-        }
-
-        ValueTypeDef(final String v) {
-            this.mValue = v;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            ValueTypeDef that = (ValueTypeDef) o;
-
-            return mValue != null ? mValue.equals(that.mValue) : that.mValue == null;
-        }
-
-        @Override
-        public int hashCode() {
-            return mValue != null ? mValue.hashCode() : 0;
-        }
     }
 }

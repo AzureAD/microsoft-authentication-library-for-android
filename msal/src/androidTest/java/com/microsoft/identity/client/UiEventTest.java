@@ -33,7 +33,7 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class UiEventTest {
 
-    static final EventName TEST_EXPECTED_EVENT_NAME = EventName.UI_EVENT;
+    static final String TEST_EXPECTED_EVENT_NAME = EventConstants.EventName.UI_EVENT;
     static final boolean TEST_USER_DID_CANCEL = true;
 
     static UiEvent getTestUiEvent() {

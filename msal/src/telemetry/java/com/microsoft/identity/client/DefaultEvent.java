@@ -116,7 +116,7 @@ class DefaultEvent extends Event {
     static class Builder extends Event.Builder<Builder> {
 
         Builder() {
-            super(EventName.DEFAULT_EVENT);
+            super(EventConstants.EventName.DEFAULT_EVENT);
         }
 
         @Override

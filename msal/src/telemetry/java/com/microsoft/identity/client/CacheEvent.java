@@ -59,7 +59,7 @@ final class CacheEvent extends Event {
         private boolean mIsAT;
         private boolean mIsRT;
 
-        Builder(final EventName eventName) {
+        Builder(final String eventName) {
             super(eventName);
         }
 

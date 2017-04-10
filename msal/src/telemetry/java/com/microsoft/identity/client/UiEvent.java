@@ -57,7 +57,7 @@ final class UiEvent extends Event {
         private String mUserDidCancel = "false";
 
         Builder() {
-            super(EventName.UI_EVENT);
+            super(EventConstants.EventName.UI_EVENT);
         }
 
         /**

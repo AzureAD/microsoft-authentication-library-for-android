@@ -54,6 +54,22 @@ final class EventConstants {
         static final String ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER_AUTHORITY_AND_FORCE_REFRESH = "81";
     }
 
+    static final class EventName {
+
+        private EventName() {
+            // Utility class
+        }
+
+        static final String DEFAULT_EVENT = EVENT_PREFIX + "default";
+        static final String API_EVENT = EVENT_PREFIX + "api_event";
+        static final String AUTHORITY_VALIDATION_EVENT = EVENT_PREFIX + "authority_validation";
+        static final String HTTP_EVENT = EVENT_PREFIX + "http_event";
+        static final String UI_EVENT = EVENT_PREFIX + "ui_event";
+        static final String TOKEN_CACHE_LOOKUP = EVENT_PREFIX + "token_cache_lookup";
+        static final String TOKEN_CACHE_WRITE = EVENT_PREFIX + "token_cache_write";
+        static final String TOKEN_CACHE_DELETE = EVENT_PREFIX + "token_cache_delete";
+    }
+
     /**
      * Properties used by Event key/value pairs.
      */

@@ -25,7 +25,7 @@ package com.microsoft.identity.client;
 
 /**
  * OrphanedEvents are Events which were started but never finished before
- * {@link Telemetry#flush(Telemetry.RequestId)} was called.
+ * {@link Telemetry#flush(String)} was called.
  */
 final class OrphanedEvent extends Event {
 
@@ -54,7 +54,7 @@ final class OrphanedEvent extends Event {
         final Long mStartTime;
 
 
-        Builder(final EventName name, final Long startTime) {
+        Builder(final String name, final Long startTime) {
             super(name);
             mStartTime = startTime;
         }

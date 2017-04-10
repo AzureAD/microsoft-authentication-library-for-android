@@ -117,7 +117,7 @@ final class HttpEvent extends Event {
         private Integer mResponseCode;
 
         Builder() {
-            super(EventName.HTTP_EVENT);
+            super(EventConstants.EventName.HTTP_EVENT);
         }
 
         /**

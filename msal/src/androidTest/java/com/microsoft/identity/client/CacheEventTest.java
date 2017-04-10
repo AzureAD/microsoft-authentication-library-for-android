@@ -35,14 +35,14 @@ public class CacheEventTest {
 
     static final String TEST_TOKEN_TYPE = "bearer";
 
-    static CacheEvent.Builder getTestCacheEventBuilder(final EventName eventName, final String tokenType) {
+    static CacheEvent.Builder getTestCacheEventBuilder(final String eventName, final String tokenType) {
         return new CacheEvent.Builder(eventName)
                 .setTokenType(tokenType)
                 .setIsAT(true);
     }
 
     static CacheEvent getTestCacheEvent(
-            final EventName eventName,
+            final String eventName,
             final String tokenType
     ) {
         return getTestCacheEventBuilder(eventName, tokenType).build();
@@ -50,7 +50,7 @@ public class CacheEventTest {
 
     @Test
     public void testCacheEventInitializes() {
-        final EventName eventName = EventName.TOKEN_CACHE_DELETE;
+        final String eventName = EventConstants.EventName.TOKEN_CACHE_DELETE;
         final CacheEvent cacheEvent = getTestCacheEvent(eventName, TEST_TOKEN_TYPE);
         Assert.assertEquals(eventName, cacheEvent.getEventName());
         Assert.assertEquals(TEST_TOKEN_TYPE, cacheEvent.getTokenType());

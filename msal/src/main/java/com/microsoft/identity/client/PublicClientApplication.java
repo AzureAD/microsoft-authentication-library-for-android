@@ -383,7 +383,7 @@ public final class PublicClientApplication {
     public void remove(final User user) {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(telemetryRequestId);
-        Telemetry.getInstance().startEvent(telemetryRequestId, EventName.API_EVENT);
+        Telemetry.getInstance().startEvent(telemetryRequestId, EventConstants.EventName.API_EVENT);
         final RequestContext requestContext = new RequestContext(UUID.randomUUID(), mComponent, telemetryRequestId);
         mTokenCache.deleteRefreshTokenByUser(user, requestContext);
         mTokenCache.deleteAccessTokenByUser(user, requestContext);
@@ -537,7 +537,7 @@ public final class PublicClientApplication {
                         .setAuthority(mAuthorityString);
 
         // Start the Event on our Telemetry instance
-        Telemetry.getInstance().startEvent(telemetryRequestId, EventName.API_EVENT);
+        Telemetry.getInstance().startEvent(telemetryRequestId, EventConstants.EventName.API_EVENT);
 
         // Return the Builder
         return eventBuilder;

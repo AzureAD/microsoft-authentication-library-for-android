@@ -166,7 +166,7 @@ final class ApiEvent extends Event {
         private String mRequestId;
 
         Builder(final String requestId) {
-            super(EventName.API_EVENT);
+            super(EventConstants.EventName.API_EVENT);
             mRequestId = requestId;
         }
 

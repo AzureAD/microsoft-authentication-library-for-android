@@ -43,8 +43,8 @@ class Event extends ArrayList<Pair<String, String>> {
         if (null == builder.mEventName) {
             throw new IllegalStateException("Event must have a name");
         }
-        if (!EventName.DEFAULT_EVENT.equals(builder.mEventName)) {
-            setProperty(EventProperty.EVENT_NAME, builder.mEventName.toString());
+        if (!EventConstants.EventName.DEFAULT_EVENT.equals(builder.mEventName)) {
+            setProperty(EventProperty.EVENT_NAME, builder.mEventName);
         }
     }
 
@@ -69,8 +69,8 @@ class Event extends ArrayList<Pair<String, String>> {
         return size();
     }
 
-    EventName getEventName() {
-        return new EventName(getProperty(EventProperty.EVENT_NAME));
+    String getEventName() {
+        return getProperty(EventProperty.EVENT_NAME);
     }
 
     /**
@@ -80,18 +80,18 @@ class Event extends ArrayList<Pair<String, String>> {
      */
     abstract static class Builder<T extends Builder> {
 
-        private final EventName mEventName;
+        private final String mEventName;
 
-        Builder(final EventName name) {
+        Builder(final String name) {
             mEventName = name;
         }
 
         /**
-         * Gets the {@link EventName}.
+         * Gets the event name.
          *
          * @return the EventName to get.
          */
-        final EventName getEventName() {
+        final String getEventName() {
             return mEventName;
         }
 
