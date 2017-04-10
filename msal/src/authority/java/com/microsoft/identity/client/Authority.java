@@ -42,7 +42,7 @@ abstract class Authority {
     static final String DEFAULT_OPENID_CONFIGURATION_ENDPOINT = "/v2.0/.well-known/openid-configuration";
     // default_authorize_endpoint is used for instance discovery sent as query parameter for instance discovery.
     static final String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/v2.0/authorize";
-    static final String[] TENANTLESS_TENANT_NAME = {"common", "consumers", "organizations"};
+    static final String[] TENANTLESS_TENANT_NAME = {"common", "organizations"};
 
     static final String ADFS_AUTHORITY_PREFIX = "adfs";
     static final String B2C_AUTHORITY_PREFIX = "tfp";
