@@ -47,8 +47,11 @@ final class HttpEvent extends Event {
 
     private void setHttpPath(final URL httpPath) {
         final String authority = httpPath.getAuthority();
-        // only collect telemetry for well-known hosts
-        if (!Arrays.asList(AADAuthority.TRUSTED_HOSTS).contains(authority)) {
+        final String[] pathSegments = httpPath.getPath().replaceFirst("/", "").split("/");
+        final boolean isB2cAuthority = pathSegments[0].equals(Authority.B2C_AUTHORITY_PREFIX);
+
+        // only collect telemetry for well-known hosts, omit B2C
+        if (!Arrays.asList(AADAuthority.TRUSTED_HOSTS).contains(authority) || isB2cAuthority) {
             return;
         }
 

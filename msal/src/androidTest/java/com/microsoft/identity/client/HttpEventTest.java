@@ -88,4 +88,10 @@ public class HttpEventTest {
                 getTestHttpEvent(MSALUtils.getUrl("https://login.contoso.com/"));
         Assert.assertNull(httpEvent.getHttpPath());
     }
+
+    @Test
+    public void testHttpEventSkipsB2CAuthority() {
+        final HttpEvent httpEvent = getTestHttpEvent(MSALUtils.getUrl(AuthorityTest.TEST_B2C_AUTHORITY));
+        Assert.assertNull(httpEvent.getHttpPath());
+    }
 }

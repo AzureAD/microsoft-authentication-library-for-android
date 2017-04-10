@@ -43,7 +43,6 @@ abstract class BaseRequest {
     private static final ExecutorService THREAD_EXECUTOR = Executors.newSingleThreadExecutor();
     private Handler mHandler;
 
-    //protected final ApiEvent.Builder mApiEventBuilder;
     protected final RequestContext mRequestContext;
     protected final AuthenticationRequestParameters mAuthRequestParameters;
     protected final Context mContext;

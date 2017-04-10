@@ -39,6 +39,8 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
  */
 public final class Telemetry {
 
+    private static final String TAG = Telemetry.class.getSimpleName();
+
     private static final Telemetry INSTANCE = new Telemetry();
 
     private static boolean sDisableForTest;
@@ -156,6 +158,14 @@ public final class Telemetry {
 
         // Compute execution time
         final Long eventStartTime = mEventsInProgress.get(eventKey);
+
+        // If we did not get anything back from the dictionary, most likely its a bug that stopEvent
+        // was called without a corresponding startEvent
+        if (null == eventStartTime) {
+            Logger.warning(TAG, null, "Stop Event called without a corresponding start_event");
+            return;
+        }
+
         final long startTimeL = Long.parseLong(eventStartTime.toString());
         final long stopTimeL = System.currentTimeMillis();
         final long diffTime = stopTimeL - startTimeL;
