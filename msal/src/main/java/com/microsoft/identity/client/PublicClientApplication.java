@@ -186,6 +186,27 @@ public final class PublicClientApplication {
     }
 
     /**
+     * Returns the specific user that is matching the provided user identifier.
+     * @param userIdentifier The unique identifier for a user across tenant.
+     * @return The user matching the provided user identifier.
+     * @throws MsalClientException If failed to retrieve users from the cache.
+     */
+    public User getUser(final String userIdentifier) throws MsalClientException {
+        if (MSALUtils.isEmpty(userIdentifier)) {
+            throw new IllegalArgumentException("Empty or null userIdentifier");
+        }
+
+        final List<User> users = getUsers();
+        for (final User user : users) {
+            if (user.getUserIdentifier().equals(userIdentifier)) {
+                return user;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * The sdk requires calling app to pass in the {@link Activity} which <b> MUST </b> call this method to get the auth
      * code handled back correctly.
      * @param requestCode The request code for interactive request.

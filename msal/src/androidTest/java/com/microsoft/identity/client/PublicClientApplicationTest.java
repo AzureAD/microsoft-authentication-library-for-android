@@ -208,7 +208,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
         users = application.getUsers();
         assertTrue(users.size() == EXPECTED_USER_SIZE);
-        final User userForDisplayable3 = getUser(displayable3, users);
+        final User userForDisplayable3 = application.getUser(MSALUtils.getUniqueUserIdentifier(uniqueId3, uTid3));
         assertNotNull(userForDisplayable3);
         assertTrue(userForDisplayable3.getDisplayableId().equals(displayable3));
         assertTrue(userForDisplayable3.getUserIdentifier().equals(MSALUtils.getUniqueUserIdentifier(uniqueId3, uTid3)));
@@ -220,28 +220,10 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         assertTrue(application.getUsers().size() == EXPECTED_USER_SIZE);
         users = anotherApplication.getUsers();
         assertTrue(users.size() == 1);
-        final User userForAnotherClient = getUser(displayable3, users);
+        final User userForAnotherClient = application.getUser(MSALUtils.getUniqueUserIdentifier(uniqueId3, uTid3));
         assertNotNull(userForAnotherClient);
         assertTrue(userForAnotherClient.getDisplayableId().equals(displayable3));
         assertTrue(userForAnotherClient.getUserIdentifier().equals(MSALUtils.getUniqueUserIdentifier(uniqueId3, uTid3)));
-    }
-
-    /**
-     * From the supplied {@link List} of {@link User}, return the instance with a matching displayableId.
-     *
-     * @param userIdentifier The user identifier, could be either displayableId.
-     * @param users          the list of Users to traverse
-     * @return
-     */
-    private User getUser(final String userIdentifier, final List<User> users) throws MsalClientException {
-        User resultUser = null;
-        for (final User user : users) {
-            if (userIdentifier.equals(user.getDisplayableId())) {
-                resultUser = user;
-                break;
-            }
-        }
-        return resultUser;
     }
 
     /**
