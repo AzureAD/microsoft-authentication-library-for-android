@@ -123,7 +123,6 @@ final class EventConstants {
         static final String REQUEST_ID_HEADER = EVENT_PREFIX + "x_ms_request_id";
 
         // UiEvent
-        static final String REDIRECT_COUNT = EVENT_PREFIX + "redirect_count"; // Android only
         static final String USER_CANCEL = EVENT_PREFIX + "user_cancel";
 
         /**

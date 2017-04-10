@@ -40,10 +40,6 @@ final class UiEvent extends Event {
         return getProperty(EventProperty.HTTP_USER_AGENT);
     }
 
-    Integer getRedirectCount() {
-        return Integer.valueOf(getProperty(EventProperty.REDIRECT_COUNT));
-    }
-
     Boolean userCancelled() {
         return Boolean.valueOf(getProperty(EventProperty.USER_CANCEL));
     }

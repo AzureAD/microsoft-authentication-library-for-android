@@ -92,11 +92,6 @@ public final class PublicClientApplication {
         mAppContext = context;
         loadMetaDataFromManifest();
 
-        // Init Events with defaults (application-wide)
-        DefaultEvent.initializeDefaults(
-                Defaults.forApplication(mAppContext, mClientId)
-        );
-
         mTokenCache = new TokenCache(mAppContext);
 
         initializeApplication();
@@ -151,6 +146,10 @@ public final class PublicClientApplication {
     }
 
     private void initializeApplication() {
+        // Init Events with defaults (application-wide)
+        DefaultEvent.initializeDefaults(
+                Defaults.forApplication(mAppContext, mClientId)
+        );
         mRedirectUri = createRedirectUri(mClientId);
         validateInputParameters();
 
