@@ -72,11 +72,11 @@ public final class PublicClientApplication {
      * {@link PublicClientApplication#PublicClientApplication(Context)} will read the client id (which must be set) from manifest, and if authority
      * is not set, default authority(https://login.microsoftonline.com/common) will be used.
      * <p>
-     * Client id <b>MUST</b> be set in the manifest as the meta data({@link IllegalArgumentException} will be thrown
-     * if client id is not provided), name for client id in the metadata is: "com.microsoft.identity.client.ClientId"
-     * Redirect uri <b>MUST</b> be set in the manifest as the meta data({@link IllegalArgumentException} will be thrown
-     * if client id is not provided), name for redirect uri in metadata is: "com.microsoft.identity.client.RedirectUri"
-     * Authority can be set in the meta data, if not provided, the sdk will use the default authority.
+     *      Client id <b>MUST</b> be set in the manifest as the meta data({@link IllegalArgumentException} will be thrown
+     *      if client id is not provided), name for client id in the metadata is: "com.microsoft.identity.client.ClientId"
+     *      Redirect uri <b>MUST</b> be set in the manifest as the meta data({@link IllegalArgumentException} will be thrown
+     *      if client id is not provided), name for redirect uri in metadata is: "com.microsoft.identity.client.RedirectUri"
+     *      Authority can be set in the meta data, if not provided, the sdk will use the default authority.
      * </p>
      *
      * @param context Application's {@link Context}. The sdk requires the application context to be passed in
@@ -106,11 +106,10 @@ public final class PublicClientApplication {
      * Developer can choose {@link PublicClientApplication#PublicClientApplication(Context, String)} to provide client id instead of
      * providing client id through metadata. If this constructor is called, default authority(https://login.microsoftonline.com/common)
      * will be used.
-     *
-     * @param context  Application's {@link Context}. The sdk requires the application context to be passed in
-     *                 {@link PublicClientApplication}. Cannot be null. @note: The {@link Context} should be the application
-     *                 context instead of an running activity's context, which could potentially make the sdk hold a strong reference on
-     *                 the activity, thus preventing correct garbage collection and causing bugs.
+     * @param context Application's {@link Context}. The sdk requires the application context to be passed in
+     *                {@link PublicClientApplication}. Cannot be null. @note: The {@link Context} should be the application
+     *                context instead of an running activity's context, which could potentially make the sdk hold a strong reference on
+     *                the activity, thus preventing correct garbage collection and causing bugs.
      * @param clientId The application client id.
      */
     public PublicClientApplication(@NonNull final Context context, @NonNull final String clientId) {
@@ -134,11 +133,11 @@ public final class PublicClientApplication {
      * Developer can choose {@link PublicClientApplication#PublicClientApplication(Context, String, String)} to provide client id and authority instead of
      * providing them through metadata.
      *
-     * @param context   Application's {@link Context}. The sdk requires the application context to be passed in
-     *                  {@link PublicClientApplication}. Cannot be null. @note: The {@link Context} should be the application
-     *                  context instead of an running activity's context, which could potentially make the sdk hold a strong reference on
-     *                  the activity, thus preventing correct garbage collection and causing bugs.
-     * @param clientId  The application client id.
+     * @param context Application's {@link Context}. The sdk requires the application context to be passed in
+     *                {@link PublicClientApplication}. Cannot be null. @note: The {@link Context} should be the application
+     *                context instead of an running activity's context, which could potentially make the sdk hold a strong reference on
+     *                the activity, thus preventing correct garbage collection and causing bugs.
+     * @param clientId The application client id.
      * @param authority The default authority to be used for the authority.
      */
     public PublicClientApplication(@NonNull final Context context, @NonNull final String clientId, @NonNull final String authority) {
