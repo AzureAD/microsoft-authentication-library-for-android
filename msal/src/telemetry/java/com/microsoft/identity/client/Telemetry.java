@@ -43,9 +43,9 @@ public final class Telemetry {
 
     private static boolean sDisableForTest;
 
-    private final Map<Pair<RequestId, EventName>, Long> mEventsInProgress;
+    private final Map<Pair<String, EventName>, Long> mEventsInProgress;
 
-    private final Map<RequestId, List<Event>> mCompletedEvents;
+    private final Map<String, List<Event>> mCompletedEvents;
 
     private EventDispatcher mPublisher;
 
@@ -53,10 +53,10 @@ public final class Telemetry {
 
     private Telemetry() {
         mEventsInProgress = Collections.synchronizedMap(
-                new LinkedHashMap<Pair<RequestId, EventName>, Long>()
+                new LinkedHashMap<Pair<String, EventName>, Long>()
         );
         mCompletedEvents = Collections.synchronizedMap(
-                new LinkedHashMap<RequestId, List<Event>>()
+                new LinkedHashMap<String, List<Event>>()
         );
     }
 
@@ -80,12 +80,12 @@ public final class Telemetry {
     }
 
     /**
-     * Generates a new {@link RequestId}.
+     * Generates a new requestId.
      *
      * @return a random UUID (in String format).
      */
-    static RequestId generateNewRequestId() {
-        return new RequestId(UUID.randomUUID().toString());
+    static String generateNewRequestId() {
+        return UUID.randomUUID().toString();
     }
 
     /**
@@ -117,12 +117,12 @@ public final class Telemetry {
     }
 
     /**
-     * Starts recording a new Event, based on {@link Telemetry.RequestId}
+     * Starts recording a new Event, based on requestId
      *
      * @param requestId the RequestId used to track this Event.
      * @param eventName the name of the Event which is to be tracked.
      */
-    void startEvent(final Telemetry.RequestId requestId, final EventName eventName) {
+    void startEvent(final String requestId, final EventName eventName) {
         if (null == mPublisher || sDisableForTest) {
             return;
         }
@@ -136,7 +136,7 @@ public final class Telemetry {
      * @param requestId    the RequestId of the Event to stop.
      * @param eventBuilder the Event.Builder used to create the Event.
      */
-    void stopEvent(final Telemetry.RequestId requestId, final Event.Builder eventBuilder) {
+    void stopEvent(final String requestId, final Event.Builder eventBuilder) {
         stopEvent(requestId, eventBuilder.getEventName(), eventBuilder.build());
     }
 
@@ -147,12 +147,12 @@ public final class Telemetry {
      * @param eventName   the name of the Event to stop.
      * @param eventToStop the Event data.
      */
-    void stopEvent(final Telemetry.RequestId requestId, final EventName eventName, final Event eventToStop) {
+    void stopEvent(final String requestId, final EventName eventName, final Event eventToStop) {
         if (null == mPublisher || sDisableForTest) {
             return;
         }
 
-        final Pair<RequestId, EventName> eventKey = new Pair<>(requestId, eventName);
+        final Pair<String, EventName> eventKey = new Pair<>(requestId, eventName);
 
         // Compute execution time
         final Long eventStartTime = mEventsInProgress.get(eventKey);
@@ -187,11 +187,11 @@ public final class Telemetry {
     }
 
     /**
-     * Flushes collected Events matching the supplied {@link RequestId} to the receiver.
+     * Flushes collected Events matching the supplied requestId to the receiver.
      *
      * @param requestId Events matching the supplied RequestId will be flushed.
      */
-    void flush(final RequestId requestId) {
+    void flush(final String requestId) {
         if (null == mPublisher) {
             return;
         }
@@ -228,9 +228,9 @@ public final class Telemetry {
         }
     }
 
-    private List<Event> collateOrphanedEvents(RequestId requestId) {
+    private List<Event> collateOrphanedEvents(String requestId) {
         final List<Event> orphanedEvents = new ArrayList<>();
-        for (Pair<RequestId, EventName> key : mEventsInProgress.keySet()) {
+        for (Pair<String, EventName> key : mEventsInProgress.keySet()) {
             if (key.first.equals(requestId)) {
                 final EventName orphanedEventName = key.second;
                 final Long orphanedEventStartTime =
@@ -277,31 +277,5 @@ public final class Telemetry {
         public int hashCode() {
             return mValue != null ? mValue.hashCode() : 0;
         }
-    }
-
-    /**
-     * Container for Event request UUIDs.
-     */
-    static final class RequestId extends ValueTypeDef {
-
-        RequestId(final String v) {
-            super(v);
-        }
-
-        static boolean isValid(final String requestIdValue) {
-            boolean isValid;
-            try {
-                final UUID uuid = UUID.fromString(requestIdValue);
-                isValid = true;
-            } catch (IllegalArgumentException e) {
-                isValid = false;
-            }
-            return isValid;
-        }
-
-        static boolean isValid(final RequestId requestId) {
-            return null != requestId && isValid(requestId.toString());
-        }
-
     }
 }

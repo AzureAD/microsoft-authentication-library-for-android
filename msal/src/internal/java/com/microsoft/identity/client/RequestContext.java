@@ -33,10 +33,10 @@ import java.util.UUID;
 final class RequestContext {
     private final UUID mCorrelationId;
     private final String mComponent;
-    private final Telemetry.RequestId mTelemetryRequestId;
+    private final String mTelemetryRequestId;
 
     RequestContext(final UUID correlationId, final String component,
-                   final Telemetry.RequestId telemetryRequestId) {
+                   final String telemetryRequestId) {
         mCorrelationId = correlationId;
         mComponent = component;
         mTelemetryRequestId = telemetryRequestId;
@@ -50,7 +50,7 @@ final class RequestContext {
         return mComponent;
     }
 
-    Telemetry.RequestId getTelemetryRequestId() {
+    String getTelemetryRequestId() {
         return mTelemetryRequestId;
     }
 }

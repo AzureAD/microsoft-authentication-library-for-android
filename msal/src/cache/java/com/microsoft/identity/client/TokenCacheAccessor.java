@@ -75,9 +75,9 @@ final class TokenCacheAccessor {
         return builder;
     }
 
-    private static CacheEvent.Builder createAndStartNewCacheEvent(final Telemetry.RequestId requestId, final EventName eventName, final boolean isRT) {
+    private static CacheEvent.Builder createAndStartNewCacheEvent(final String telemetryRequestId, final EventName eventName, final boolean isRT) {
         final CacheEvent.Builder cacheEventBuilder = createNewCacheEventBuilder(eventName, isRT);
-        Telemetry.getInstance().startEvent(requestId, eventName);
+        Telemetry.getInstance().startEvent(telemetryRequestId, eventName);
         return cacheEventBuilder;
     }
 
@@ -147,7 +147,7 @@ final class TokenCacheAccessor {
     /**
      * @return Immutable List of all the {@link AccessTokenCacheItem}s.
      */
-    Collection<String> getAllAccessTokens(final Telemetry.RequestId telemetryRequestId) {
+    Collection<String> getAllAccessTokens(final String telemetryRequestId) {
         final CacheEvent.Builder cacheEventBuilder = createAndStartNewCacheEvent(telemetryRequestId, EventName.TOKEN_CACHE_LOOKUP, false);
         final Map<String, String> allAT = (Map<String, String>) mAccessTokenSharedPreference.getAll();
         Telemetry.getInstance().stopEvent(telemetryRequestId, cacheEventBuilder);
@@ -157,7 +157,7 @@ final class TokenCacheAccessor {
     /**
      * @return Immutable List of all the {@link RefreshTokenCacheItem}s.
      */
-    Collection<String> getAllRefreshTokens(final Telemetry.RequestId telemetryRequestId) {
+    Collection<String> getAllRefreshTokens(final String telemetryRequestId) {
         final CacheEvent.Builder cacheEventBuilder = createAndStartNewCacheEvent(telemetryRequestId, EventName.TOKEN_CACHE_LOOKUP, true);
         final Map<String, String> allRTs = (Map<String, String>) mRefreshTokenSharedPreference.getAll();
         Telemetry.getInstance().stopEvent(telemetryRequestId, cacheEventBuilder);

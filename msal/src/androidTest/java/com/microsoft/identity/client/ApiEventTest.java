@@ -55,7 +55,7 @@ public class ApiEventTest {
         return getTestApiEventBuilder(Telemetry.generateNewRequestId());
     }
 
-    static ApiEvent.Builder getTestApiEventBuilder(Telemetry.RequestId requestId) {
+    static ApiEvent.Builder getTestApiEventBuilder(final String requestId) {
         return new ApiEvent.Builder(requestId)
                 .setAuthority(TEST_AUTHORITY)
                 .setAuthorityType(TEST_AUTHORITY_TYPE)
@@ -67,15 +67,15 @@ public class ApiEventTest {
                 .setApiCallWasSuccessful(TEST_API_CALL_WAS_SUCCESSFUL);
     }
 
-    static ApiEvent getTestApiEvent(final Telemetry.RequestId requestId) {
+    static ApiEvent getTestApiEvent(final String requestId) {
         return getTestApiEventBuilder(requestId).build();
     }
 
     @Test
     public void testApiEventInitializes() throws UnsupportedEncodingException, NoSuchAlgorithmException {
-        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
-        final ApiEvent apiEvent = getTestApiEvent(requestId);
-        Assert.assertEquals(requestId, apiEvent.getRequestId());
+        final String telemetryRequestId = Telemetry.generateNewRequestId();
+        final ApiEvent apiEvent = getTestApiEvent(telemetryRequestId);
+        Assert.assertEquals(telemetryRequestId, apiEvent.getRequestId());
         Assert.assertEquals(TEST_AUTHORITY, apiEvent.getAuthority());
         Assert.assertEquals(EventProperty.Value.AUTHORITY_TYPE_AAD, apiEvent.getAuthorityType());
         Assert.assertEquals(TEST_UI_BEHAVIOR, apiEvent.getUiBehavior());
@@ -88,8 +88,8 @@ public class ApiEventTest {
 
     @Test
     public void testIdTokenParsing() {
-        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
-        final ApiEvent apiEvent = getTestApiEvent(requestId);
+        final String telemetryRequestId = Telemetry.generateNewRequestId();
+        final ApiEvent apiEvent = getTestApiEvent(telemetryRequestId);
         Assert.assertEquals(TEST_IDP, apiEvent.getIdpName());
         Assert.assertEquals(TEST_TENANT_ID, apiEvent.getTenantId());
         Assert.assertEquals(TEST_USER_ID, apiEvent.getUserId());

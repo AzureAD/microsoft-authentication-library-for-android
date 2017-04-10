@@ -86,13 +86,13 @@ public class TelemetryTest {
         mTestInstance.registerReceiver(mockReceiver);
 
         // create some Telemetry data
-        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+        final String telemetryRequestId = Telemetry.generateNewRequestId();
         final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder();
-        mTestInstance.startEvent(requestId, httpEventBuilder.getEventName());
-        mTestInstance.stopEvent(requestId, httpEventBuilder);
+        mTestInstance.startEvent(telemetryRequestId, httpEventBuilder.getEventName());
+        mTestInstance.stopEvent(telemetryRequestId, httpEventBuilder);
 
         // flush the data to the receiver
-        mTestInstance.flush(requestId);
+        mTestInstance.flush(telemetryRequestId);
 
         // create a captor to 'catch' the results
         final ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
@@ -138,13 +138,13 @@ public class TelemetryTest {
         mTestInstance.registerReceiver(mockReceiver);
 
         // create some Telemetry data
-        final Telemetry.RequestId requestId = Telemetry.generateNewRequestId();
+        final String telemetryRequestId = Telemetry.generateNewRequestId();
         final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder();
-        mTestInstance.startEvent(requestId, httpEventBuilder.getEventName());
-        mTestInstance.stopEvent(requestId, httpEventBuilder);
+        mTestInstance.startEvent(telemetryRequestId, httpEventBuilder.getEventName());
+        mTestInstance.stopEvent(telemetryRequestId, httpEventBuilder);
 
         // flush the data to the receiver
-        mTestInstance.flush(requestId);
+        mTestInstance.flush(telemetryRequestId);
 
         // create a captor to 'catch' the results
         final ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
@@ -175,18 +175,18 @@ public class TelemetryTest {
         mTestInstance.registerReceiver(mockReceiver);
 
         // create some Telemetry data
-        final Telemetry.RequestId requestId1 = Telemetry.generateNewRequestId();
+        final String telemetryRequestId1 = Telemetry.generateNewRequestId();
         final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder();
-        mTestInstance.startEvent(requestId1, httpEventBuilder.getEventName());
-        mTestInstance.stopEvent(requestId1, httpEventBuilder);
+        mTestInstance.startEvent(telemetryRequestId1, httpEventBuilder.getEventName());
+        mTestInstance.stopEvent(telemetryRequestId1, httpEventBuilder);
 
-        final Telemetry.RequestId requestId2 = Telemetry.generateNewRequestId();
+        final String telemetryRequestId2 = Telemetry.generateNewRequestId();
         final CacheEvent.Builder cacheEventBuilder = CacheEventTest.getTestCacheEventBuilder(EventName.TOKEN_CACHE_LOOKUP, "bearer");
-        mTestInstance.startEvent(requestId2, cacheEventBuilder.getEventName());
-        mTestInstance.stopEvent(requestId2, cacheEventBuilder);
+        mTestInstance.startEvent(telemetryRequestId2, cacheEventBuilder.getEventName());
+        mTestInstance.stopEvent(telemetryRequestId2, cacheEventBuilder);
 
         // flush the data to the receiver
-        mTestInstance.flush(requestId2);
+        mTestInstance.flush(telemetryRequestId2);
 
         // create a captor to 'catch' the results
         final ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
@@ -220,8 +220,8 @@ public class TelemetryTest {
         mTestInstance.registerReceiver(mockReceiver1);
 
         // Create some Telemetry data where the parent IApiEvent was successful
-        final Telemetry.RequestId requestId1 = Telemetry.generateNewRequestId();
-        final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(requestId1)
+        final String telemetryRequestId1 = Telemetry.generateNewRequestId();
+        final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(telemetryRequestId1)
                 .setApiId(EventConstants.ApiId.API_ID_ACQUIRE)
                 .setCorrelationId(UUID.randomUUID())
                 .setApiCallWasSuccessful(true);
@@ -229,14 +229,14 @@ public class TelemetryTest {
         final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(EventName.TOKEN_CACHE_LOOKUP)
                 .setTokenType("bearer");
 
-        mTestInstance.startEvent(requestId1, apiEventBuilder.getEventName());
-        mTestInstance.startEvent(requestId1, uiEventBuilder.getEventName());
-        mTestInstance.startEvent(requestId1, cacheEventBuilder.getEventName());
-        mTestInstance.stopEvent(requestId1, cacheEventBuilder);
-        mTestInstance.stopEvent(requestId1, uiEventBuilder);
-        mTestInstance.stopEvent(requestId1, apiEventBuilder);
+        mTestInstance.startEvent(telemetryRequestId1, apiEventBuilder.getEventName());
+        mTestInstance.startEvent(telemetryRequestId1, uiEventBuilder.getEventName());
+        mTestInstance.startEvent(telemetryRequestId1, cacheEventBuilder.getEventName());
+        mTestInstance.stopEvent(telemetryRequestId1, cacheEventBuilder);
+        mTestInstance.stopEvent(telemetryRequestId1, uiEventBuilder);
+        mTestInstance.stopEvent(telemetryRequestId1, apiEventBuilder);
 
-        mTestInstance.flush(requestId1);
+        mTestInstance.flush(telemetryRequestId1);
 
         // Assert that the mock receiver wasn't called
         final ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
@@ -253,8 +253,8 @@ public class TelemetryTest {
         mTestInstance.registerReceiver(mockReceiver2);
 
         // Create some Telemetry data where the parent IApiEvent was successful
-        final Telemetry.RequestId requestId2 = Telemetry.generateNewRequestId();
-        final ApiEvent.Builder apiEventBuilder2 = new ApiEvent.Builder(requestId2)
+        final String telemetryRequestId2 = Telemetry.generateNewRequestId();
+        final ApiEvent.Builder apiEventBuilder2 = new ApiEvent.Builder(telemetryRequestId2)
                 .setApiId(EventConstants.ApiId.API_ID_ACQUIRE)
                 .setCorrelationId(UUID.randomUUID())
                 .setApiCallWasSuccessful(true);
@@ -262,14 +262,14 @@ public class TelemetryTest {
         final CacheEvent.Builder cacheEventBuilder2 = new CacheEvent.Builder(EventName.TOKEN_CACHE_LOOKUP)
                 .setTokenType("bearer");
 
-        mTestInstance.startEvent(requestId2, apiEventBuilder2.getEventName());
-        mTestInstance.startEvent(requestId2, uiEventBuilder2.getEventName());
-        mTestInstance.startEvent(requestId2, cacheEventBuilder2.getEventName());
-        mTestInstance.stopEvent(requestId2, cacheEventBuilder2);
-        mTestInstance.stopEvent(requestId2, uiEventBuilder2);
-        mTestInstance.stopEvent(requestId2, apiEventBuilder2);
+        mTestInstance.startEvent(telemetryRequestId2, apiEventBuilder2.getEventName());
+        mTestInstance.startEvent(telemetryRequestId2, uiEventBuilder2.getEventName());
+        mTestInstance.startEvent(telemetryRequestId2, cacheEventBuilder2.getEventName());
+        mTestInstance.stopEvent(telemetryRequestId2, cacheEventBuilder2);
+        mTestInstance.stopEvent(telemetryRequestId2, uiEventBuilder2);
+        mTestInstance.stopEvent(telemetryRequestId2, apiEventBuilder2);
 
-        mTestInstance.flush(requestId2);
+        mTestInstance.flush(telemetryRequestId2);
 
         // Assert that the mock receiver wasn called
         final ArgumentCaptor<List> captor2 = ArgumentCaptor.forClass(List.class);
@@ -288,8 +288,8 @@ public class TelemetryTest {
         mTestInstance.registerReceiver(mockReceiver);
 
         // Create some Telemetry data, purposefully orphan the UiEvent
-        final Telemetry.RequestId requestId1 = Telemetry.generateNewRequestId();
-        final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(requestId1)
+        final String telemetryRequestId1 = Telemetry.generateNewRequestId();
+        final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(telemetryRequestId1)
                 .setApiId(EventConstants.ApiId.API_ID_ACQUIRE)
                 .setCorrelationId(UUID.randomUUID())
                 .setApiCallWasSuccessful(true);
@@ -297,15 +297,15 @@ public class TelemetryTest {
         final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(EventName.TOKEN_CACHE_LOOKUP)
                 .setTokenType("bearer").setIsAT(true);
 
-        mTestInstance.startEvent(requestId1, apiEventBuilder.getEventName());
-        mTestInstance.startEvent(requestId1, uiEventBuilder.getEventName());
-        mTestInstance.startEvent(requestId1, cacheEventBuilder.getEventName());
-        mTestInstance.stopEvent(requestId1, cacheEventBuilder);
+        mTestInstance.startEvent(telemetryRequestId1, apiEventBuilder.getEventName());
+        mTestInstance.startEvent(telemetryRequestId1, uiEventBuilder.getEventName());
+        mTestInstance.startEvent(telemetryRequestId1, cacheEventBuilder.getEventName());
+        mTestInstance.stopEvent(telemetryRequestId1, cacheEventBuilder);
         // Do not stop the UiEvent...
         //mTestInstance.stopEvent(uiEventBuilder.build());
-        mTestInstance.stopEvent(requestId1, apiEventBuilder);
+        mTestInstance.stopEvent(telemetryRequestId1, apiEventBuilder);
 
-        mTestInstance.flush(requestId1);
+        mTestInstance.flush(telemetryRequestId1);
 
         // create a captor to 'catch' the results
         final ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);

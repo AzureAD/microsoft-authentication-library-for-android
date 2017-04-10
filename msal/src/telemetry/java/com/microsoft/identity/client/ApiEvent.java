@@ -42,7 +42,7 @@ final class ApiEvent extends Event {
             setProperty(EventProperty.CORRELATION_ID, builder.mCorrelationId.toString());
         }
         if (null != builder.mRequestId) {
-            setProperty(EventProperty.REQUEST_ID, builder.mRequestId.toString());
+            setProperty(EventProperty.REQUEST_ID, builder.mRequestId);
         }
         setProperty(EventProperty.AUTHORITY_NAME, builder.mAuthority);
         setAuthorityType(builder.mAuthorityType);
@@ -141,8 +141,8 @@ final class ApiEvent extends Event {
         return Boolean.valueOf(getProperty(EventProperty.WAS_SUCCESSFUL));
     }
 
-    Telemetry.RequestId getRequestId() {
-        return new Telemetry.RequestId(getProperty(EventProperty.REQUEST_ID));
+    String getRequestId() {
+        return getProperty(EventProperty.REQUEST_ID);
     }
 
     String getAuthorityType() {
@@ -163,9 +163,9 @@ final class ApiEvent extends Event {
         private String mLoginHint;
         private boolean mWasApiCallSuccessful;
         private UUID mCorrelationId;
-        private Telemetry.RequestId mRequestId;
+        private String mRequestId;
 
-        Builder(final Telemetry.RequestId requestId) {
+        Builder(final String requestId) {
             super(EventName.API_EVENT);
             mRequestId = requestId;
         }

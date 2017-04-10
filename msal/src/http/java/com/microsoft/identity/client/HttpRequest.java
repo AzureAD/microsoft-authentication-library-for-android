@@ -44,7 +44,7 @@ final class HttpRequest {
     private static final String TAG = HttpRequest.class.getSimpleName();
 
     private static final String HOST = "Host";
-    /**The waiting time before doing retry to prevent hitting the server immediately failure. */
+    /** The waiting time before doing retry to prevent hitting the server immediately failure. */
     private static final int RETRY_TIME_WAITING_PERIOD_MSEC = 1000;
     private static final int STREAM_BUFFER_SIZE = 1024;
 
