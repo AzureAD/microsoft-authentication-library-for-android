@@ -36,9 +36,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
@@ -69,6 +73,8 @@ final class MSALUtils {
 
     private static final String CUSTOM_TABS_SERVICE_ACTION =
             "android.support.customtabs.action.CustomTabsService";
+
+    private static final String TOKEN_HASH_ALGORITHM = "SHA256";
 
     static final String[] CHROME_PACKAGES = {
             "com.android.chrome",
@@ -359,7 +365,7 @@ final class MSALUtils {
      * @return True if there is an intersection between the scopes stored in the token cache key and the request scopes.
      */
     static boolean isScopeIntersects(final Set<String> scopes, final Set<String> otherScopes) {
-        for (final String scope: otherScopes) {
+        for (final String scope : otherScopes) {
             if (scopes.contains(scope)) {
                 return true;
             }
@@ -373,6 +379,33 @@ final class MSALUtils {
      */
     static boolean isScopeContains(final Set<String> scopes, final Set<String> otherScopes) {
         return scopes.containsAll(otherScopes);
+    }
+
+    static String createHash(String msg) throws NoSuchAlgorithmException,
+            UnsupportedEncodingException {
+        if (!isEmpty(msg)) {
+            MessageDigest digester = MessageDigest.getInstance(TOKEN_HASH_ALGORITHM);
+            final byte[] msgInBytes = msg.getBytes(ENCODING_UTF8);
+            return new String(Base64.encode(digester.digest(msgInBytes), Base64.NO_WRAP), ENCODING_UTF8);
+        }
+        return msg;
+    }
+
+    /**
+     * create url from given endpoint. return null if format is not right.
+     *
+     * @param endpoint url as a string
+     * @return URL object for this string
+     */
+    static URL getUrl(String endpoint) {
+        URL url = null;
+        try {
+            url = new URL(endpoint);
+        } catch (MalformedURLException e1) {
+            Logger.error(MSALUtils.class.getSimpleName(), null, "Url is invalid", e1);
+        }
+
+        return url;
     }
 
     static String getUniqueUserIdentifier(final String uid, final String utid) {

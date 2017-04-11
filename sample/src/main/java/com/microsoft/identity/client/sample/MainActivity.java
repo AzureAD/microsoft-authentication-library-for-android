@@ -45,15 +45,18 @@ import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.ILoggerCallback;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.MsalClientException;
+import com.microsoft.identity.client.MsalEventReceiver;
 import com.microsoft.identity.client.MsalException;
 import com.microsoft.identity.client.MsalServiceException;
 import com.microsoft.identity.client.MsalUiRequiredException;
 import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.Telemetry;
 import com.microsoft.identity.client.UIBehavior;
 import com.microsoft.identity.client.User;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The app's main activity.
@@ -62,6 +65,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         AcquireTokenFragment.OnFragmentInteractionListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+
+    static {
+        Telemetry.getInstance().registerReceiver(new MsalEventReceiver() {
+            @Override
+            public void onEventsReceived(List<Map<String, String>> events) {
+                Log.d(TAG, "Received events");
+                Log.d(TAG, "Event count: [" + events.size() + "]");
+                for (final Map<String, String> event : events) {
+                    Log.d(TAG, "Begin event --------");
+                    for (final String key : event.keySet()) {
+                        Log.d(TAG, "\t" + key + " :: " + event.get(key));
+                    }
+                    Log.d(TAG, "End event ----------");
+                }
+            }
+        });
+    }
 
     private PublicClientApplication mApplication;
     private User mUser;

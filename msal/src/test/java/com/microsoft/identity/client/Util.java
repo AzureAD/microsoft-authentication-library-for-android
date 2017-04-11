@@ -27,6 +27,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.UUID;
 
 /**
  * Util class for unit test.
@@ -45,5 +46,9 @@ public final class Util {
 
     static URL getValidRequestUrl() throws MalformedURLException {
         return new URL(Util.VALID_AUTHORITY);
+    }
+
+    static RequestContext newDummyRequestContext() {
+        return new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId());
     }
 }

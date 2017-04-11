@@ -23,34 +23,37 @@
 
 package com.microsoft.identity.client;
 
-import java.util.UUID;
+import android.support.test.runner.AndroidJUnit4;
 
-/**
- * MSAL internal class for representing the request context. It contains correlation id and
- * component name.
- */
+import junit.framework.Assert;
 
-final class RequestContext {
-    private final UUID mCorrelationId;
-    private final String mComponent;
-    private final String mTelemetryRequestId;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-    RequestContext(final UUID correlationId, final String component,
-                   final String telemetryRequestId) {
-        mCorrelationId = correlationId;
-        mComponent = component;
-        mTelemetryRequestId = telemetryRequestId;
+@RunWith(AndroidJUnit4.class)
+public class CacheEventTest {
+
+    static final String TEST_TOKEN_TYPE = "bearer";
+
+    static CacheEvent.Builder getTestCacheEventBuilder(final String eventName, final String tokenType) {
+        return new CacheEvent.Builder(eventName)
+                .setTokenType(tokenType)
+                .setIsAT(true);
     }
 
-    UUID getCorrelationId() {
-        return mCorrelationId;
+    static CacheEvent getTestCacheEvent(
+            final String eventName,
+            final String tokenType
+    ) {
+        return getTestCacheEventBuilder(eventName, tokenType).build();
     }
 
-    String getComponent() {
-        return mComponent;
-    }
-
-    String getTelemetryRequestId() {
-        return mTelemetryRequestId;
+    @Test
+    public void testCacheEventInitializes() {
+        final String eventName = EventConstants.EventName.TOKEN_CACHE_DELETE;
+        final CacheEvent cacheEvent = getTestCacheEvent(eventName, TEST_TOKEN_TYPE);
+        Assert.assertEquals(eventName, cacheEvent.getEventName());
+        Assert.assertEquals(TEST_TOKEN_TYPE, cacheEvent.getTokenType());
+        Assert.assertEquals(Boolean.TRUE, Boolean.valueOf(cacheEvent.isAT()));
     }
 }

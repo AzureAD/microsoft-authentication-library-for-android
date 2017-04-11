@@ -23,34 +23,18 @@
 
 package com.microsoft.identity.client;
 
-import java.util.UUID;
+import java.util.List;
+import java.util.Map;
 
 /**
- * MSAL internal class for representing the request context. It contains correlation id and
- * component name.
+ * The interface function for apps to override if they want to get the Telemetry from MSAL.
  */
+public interface MsalEventReceiver {
 
-final class RequestContext {
-    private final UUID mCorrelationId;
-    private final String mComponent;
-    private final String mTelemetryRequestId;
-
-    RequestContext(final UUID correlationId, final String component,
-                   final String telemetryRequestId) {
-        mCorrelationId = correlationId;
-        mComponent = component;
-        mTelemetryRequestId = telemetryRequestId;
-    }
-
-    UUID getCorrelationId() {
-        return mCorrelationId;
-    }
-
-    String getComponent() {
-        return mComponent;
-    }
-
-    String getTelemetryRequestId() {
-        return mTelemetryRequestId;
-    }
+    /**
+     * Invoked when telemetry data is received.
+     *
+     * @param events List of Maps keyed on event name, valued on event data
+     */
+    void onEventsReceived(final List<Map<String, String>> events);
 }

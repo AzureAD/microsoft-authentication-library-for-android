@@ -65,72 +65,102 @@ final class TokenCacheAccessor {
         }
     }
 
+    private static CacheEvent.Builder createNewCacheEventBuilder(final String eventName, final boolean isRT) {
+        final CacheEvent.Builder builder = new CacheEvent.Builder(eventName);
+        if (isRT) {
+            builder.setIsRT(true);
+        } else {
+            builder.setIsAT(true);
+        }
+        return builder;
+    }
+
+    private static CacheEvent.Builder createAndStartNewCacheEvent(final String telemetryRequestId, final String eventName, final boolean isRT) {
+        final CacheEvent.Builder cacheEventBuilder = createNewCacheEventBuilder(eventName, isRT);
+        Telemetry.getInstance().startEvent(telemetryRequestId, eventName);
+        return cacheEventBuilder;
+    }
+
     /**
      * When storing access token, the key needs to be a strict match.
      */
-    void saveAccessToken(final String accessTokenCacheKey, final String accessTokenItem) {
+    void saveAccessToken(final String accessTokenCacheKey, final String accessTokenItem, final RequestContext requestContext) {
         // there shouldn't be any case that this method is called with null/empty key or item
         if (MSALUtils.isEmpty(accessTokenCacheKey) || MSALUtils.isEmpty(accessTokenItem)) {
             throw new IllegalArgumentException("accessTokenCacheKey/accessTokenItem empty or null");
         }
 
+        final CacheEvent.Builder cacheEventBuilder = createAndStartNewCacheEvent(requestContext.getTelemetryRequestId(), EventConstants.EventName.TOKEN_CACHE_WRITE, false);
+
         final Editor editor = mAccessTokenSharedPreference.edit();
         editor.putString(accessTokenCacheKey, accessTokenItem);
         editor.apply();
 
-        Logger.verbose(TAG, null, "Access token is saved into cache.");
-        Logger.verbosePII(TAG, null, "Access token is saved with key: " + accessTokenCacheKey);
+        Telemetry.getInstance().stopEvent(requestContext.getTelemetryRequestId(), cacheEventBuilder);
+        Logger.verbose(TAG, requestContext, "Access token is saved into cache.");
+        Logger.verbosePII(TAG, requestContext, "Access token is saved with key: " + accessTokenCacheKey);
     }
 
     /**
      * Save the refresh token item.
      */
-    void saveRefreshToken(final String refreshTokenCacheKey, final String refreshTokenItem) {
+    void saveRefreshToken(final String refreshTokenCacheKey, final String refreshTokenItem, final RequestContext requestContext) {
         // there shouldn't be any case that this method is called with null/empty key or item
         if (MSALUtils.isEmpty(refreshTokenCacheKey) || MSALUtils.isEmpty(refreshTokenItem)) {
             throw new IllegalArgumentException("refreshTokenCacheKey/refreshTokenItem empty or null");
         }
 
+        final CacheEvent.Builder cacheEventBuilder = createAndStartNewCacheEvent(requestContext.getTelemetryRequestId(), EventConstants.EventName.TOKEN_CACHE_WRITE, true);
+
         final Editor editor = mRefreshTokenSharedPreference.edit();
         editor.putString(refreshTokenCacheKey, refreshTokenItem);
         editor.apply();
 
-        Logger.verbose(TAG, null, "Refresh token is successfully saved into cache.");
-        Logger.verbosePII(TAG, null, "Refresh token is saved with key: " + refreshTokenCacheKey);
+        Telemetry.getInstance().stopEvent(requestContext.getTelemetryRequestId(), cacheEventBuilder);
+        Logger.verbose(TAG, requestContext, "Refresh token is successfully saved into cache.");
+        Logger.verbosePII(TAG, requestContext, "Refresh token is saved with key: " + refreshTokenCacheKey);
     }
 
-    void deleteAccessToken(final String accessTokenKey) {
+    void deleteAccessToken(final String accessTokenKey, final RequestContext requestContext) {
+        final CacheEvent.Builder cacheEventBuilder = createAndStartNewCacheEvent(requestContext.getTelemetryRequestId(), EventConstants.EventName.TOKEN_CACHE_DELETE, false);
         final Editor editor = mAccessTokenSharedPreference.edit();
         editor.remove(accessTokenKey);
         editor.apply();
+        Telemetry.getInstance().stopEvent(requestContext.getTelemetryRequestId(), cacheEventBuilder);
     }
 
     /**
      * Delete the refresh token item.
      * @param refreshTokenCacheKey The string value of the refresh token cache item key to remove.
      */
-    void deleteRefreshToken(final String refreshTokenCacheKey) {
-        Logger.verbose(TAG, null, "Remove the given refresh token item.");
-        Logger.verbosePII(TAG, null, "Refresh token is deleted with key: " + refreshTokenCacheKey);
+    void deleteRefreshToken(final String refreshTokenCacheKey, final RequestContext requestContext) {
+        Logger.verbose(TAG, requestContext, "Remove the given refresh token item.");
+        Logger.verbosePII(TAG, requestContext, "Refresh token is deleted with key: " + refreshTokenCacheKey);
 
+        final CacheEvent.Builder cacheEventBuilder = createAndStartNewCacheEvent(requestContext.getTelemetryRequestId(), EventConstants.EventName.TOKEN_CACHE_DELETE, true);
         final Editor editor = mRefreshTokenSharedPreference.edit();
         editor.remove(refreshTokenCacheKey);
         editor.apply();
+        Telemetry.getInstance().stopEvent(requestContext.getTelemetryRequestId(), cacheEventBuilder);
     }
 
     /**
      * @return Immutable List of all the {@link AccessTokenCacheItem}s.
      */
-    Collection<String> getAllAccessTokens() {
+    Collection<String> getAllAccessTokens(final String telemetryRequestId) {
+        final CacheEvent.Builder cacheEventBuilder = createAndStartNewCacheEvent(telemetryRequestId, EventConstants.EventName.TOKEN_CACHE_LOOKUP, false);
         final Map<String, String> allAT = (Map<String, String>) mAccessTokenSharedPreference.getAll();
+        Telemetry.getInstance().stopEvent(telemetryRequestId, cacheEventBuilder);
         return allAT.values();
     }
 
     /**
      * @return Immutable List of all the {@link RefreshTokenCacheItem}s.
      */
-    Collection<String> getAllRefreshTokens() {
+    Collection<String> getAllRefreshTokens(final String telemetryRequestId) {
+        final CacheEvent.Builder cacheEventBuilder = createAndStartNewCacheEvent(telemetryRequestId, EventConstants.EventName.TOKEN_CACHE_LOOKUP, true);
         final Map<String, String> allRTs = (Map<String, String>) mRefreshTokenSharedPreference.getAll();
+        Telemetry.getInstance().stopEvent(telemetryRequestId, cacheEventBuilder);
         return allRTs.values();
     }
 }
