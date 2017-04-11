@@ -106,6 +106,20 @@ public final class AuthenticationResultTest {
         final AuthenticationResult authenticationResult = new AuthenticationResult(new AccessTokenCacheItem(null, null, tokenResponse));
         Assert.assertTrue(authenticationResult.getAccessToken().equals(ACCESS_TOKEN));
         Assert.assertTrue(authenticationResult.getExpiresOn().equals(expiresOn));
+        Assert.assertTrue(authenticationResult.getRawIdToken().equals(AndroidTestUtil.TEST_IDTOKEN));
+
+        final IdToken idToken = new IdToken(AndroidTestUtil.TEST_IDTOKEN);
+        Assert.assertTrue(authenticationResult.getUniqueId().equals(idToken.getUniqueId()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIdTokenNotReturned() throws MsalException {
+        final Date expiresOn = getExpiresOn(TIME_OFFSET);
+        final Date idTokenExpiresOn = getExpiresOn(-TIME_OFFSET);
+
+        final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, null,
+                REFRESH_TOKEN, expiresOn, idTokenExpiresOn, EXPIRES_ON, SCOPE, TOKEN_TYPE, null);
+        new AuthenticationResult(new AccessTokenCacheItem(null, null, tokenResponse));
     }
 
     @Test
