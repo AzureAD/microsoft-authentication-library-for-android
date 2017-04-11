@@ -138,7 +138,7 @@ public final class AuthorityTest {
         AndroidTestMockUtil.mockSuccessTenantDiscovery(AUTHORIZE_ENDPOINT, TOKEN_ENDPOINT);
 
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()), null);
         } catch (MsalException e) {
             Assert.fail();
         }
@@ -154,7 +154,7 @@ public final class AuthorityTest {
         // mock tenant discovery response
         AndroidTestMockUtil.mockSuccessTenantDiscovery(AUTHORIZE_ENDPOINT, TOKEN_ENDPOINT);
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()), null);
         } catch (MsalException e) {
             Assert.fail();
         }
@@ -204,7 +204,7 @@ public final class AuthorityTest {
 
     private void performAuthorityValidationAndVerify(final Authority authority) {
         try {
-            final String openIdConfigEndpoint = authority.performInstanceDiscovery(new RequestContext(UUID.randomUUID(), ""), null);
+            final String openIdConfigEndpoint = authority.performInstanceDiscovery(new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()), null);
             Assert.assertTrue(openIdConfigEndpoint.equals(authority.getDefaultOpenIdConfigurationEndpoint()));
         } catch (MsalException e) {
             Assert.fail();
@@ -220,7 +220,7 @@ public final class AuthorityTest {
         AndroidTestMockUtil.mockSuccessTenantDiscovery(AUTHORIZE_ENDPOINT, TOKEN_ENDPOINT);
 
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()), null);
         } catch (MsalException e) {
             Assert.fail();
         }
@@ -232,7 +232,7 @@ public final class AuthorityTest {
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
 
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()), null);
         } catch (MsalException e) {
             Assert.fail();
         }
@@ -243,7 +243,7 @@ public final class AuthorityTest {
         // create new authority with the same authority url again
         final Authority authority2 = Authority.createAuthority(TEST_AUTHORITY, true);
         try {
-            authority2.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
+            authority2.resolveEndpoints(new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()), null);
         } catch (MsalException e) {
             Assert.fail();
         }
@@ -263,7 +263,7 @@ public final class AuthorityTest {
         AndroidTestMockUtil.mockFailedGetRequest(HttpURLConnection.HTTP_BAD_REQUEST,
                 AndroidTestUtil.getErrorResponseMessage("invalid_request"));
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()), null);
             Assert.fail();
         } catch (final MsalServiceException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.INVALID_REQUEST));
@@ -280,7 +280,7 @@ public final class AuthorityTest {
 
         AndroidTestMockUtil.mockFailedGetRequest(HttpURLConnection.HTTP_BAD_REQUEST, "some_failure_response");
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()), null);
             Assert.fail();
         } catch (final MsalException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.JSON_PARSE_FAILURE));
@@ -298,7 +298,7 @@ public final class AuthorityTest {
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()), null);
             Assert.fail();
         } catch (final MsalException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.REQUEST_TIMEOUT));
@@ -318,7 +318,7 @@ public final class AuthorityTest {
         // mock tenant discovery failed
         AndroidTestMockUtil.mockFailedGetRequest(HttpURLConnection.HTTP_BAD_REQUEST, AndroidTestUtil.getErrorResponseMessage("invalid_instance"));
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()), null);
             Assert.fail();
         } catch (final MsalServiceException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.INVALID_INSTANCE));
@@ -336,7 +336,7 @@ public final class AuthorityTest {
         // mock tenant discovery failed
         AndroidTestMockUtil.mockFailedGetRequest(HttpURLConnection.HTTP_BAD_REQUEST, "some error");
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()), null);
             Assert.fail();
         } catch (final MsalException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.JSON_PARSE_FAILURE));
@@ -356,7 +356,7 @@ public final class AuthorityTest {
         HttpUrlConnectionFactory.addMockedConnection(mockedConnectionWithTimeout);
         HttpUrlConnectionFactory.addMockedConnection(mockedConnectionWithTimeout);
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), ""), null);
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()), null);
             Assert.fail();
         } catch (final MsalException e) {
             Assert.assertTrue(e.getErrorCode().equals(MSALError.REQUEST_TIMEOUT));
@@ -374,7 +374,7 @@ public final class AuthorityTest {
         // mock tenant discovery succeed.
         AndroidTestMockUtil.mockSuccessTenantDiscovery(AUTHORIZE_ENDPOINT, TOKEN_ENDPOINT);
         try {
-            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "test"), null);
+            authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "test", Telemetry.generateNewRequestId()), null);
         } catch (final MsalException e) {
             Assert.fail("Unexpected exception");
         }

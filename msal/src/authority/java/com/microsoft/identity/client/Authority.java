@@ -141,7 +141,7 @@ abstract class Authority {
         final TenantDiscoveryResponse tenantDiscoveryResponse;
         final String openIdConfigurationEndpoint = performInstanceDiscovery(requestContext, userPrincipalName);
         try {
-            final Oauth2Client oauth2Client = new Oauth2Client();
+            final Oauth2Client oauth2Client = new Oauth2Client(requestContext);
             oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID, requestContext.getCorrelationId().toString());
             tenantDiscoveryResponse = oauth2Client.discoverEndpoints(new URL(openIdConfigurationEndpoint));
         } catch (final IOException ioException) {

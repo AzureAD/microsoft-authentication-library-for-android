@@ -23,34 +23,45 @@
 
 package com.microsoft.identity.client;
 
-import java.util.UUID;
-
 /**
- * MSAL internal class for representing the request context. It contains correlation id and
- * component name.
+ * OrphanedEvents are Events which were started but never finished before
+ * {@link Telemetry#flush(String)} was called.
  */
+final class OrphanedEvent extends Event {
 
-final class RequestContext {
-    private final UUID mCorrelationId;
-    private final String mComponent;
-    private final String mTelemetryRequestId;
-
-    RequestContext(final UUID correlationId, final String component,
-                   final String telemetryRequestId) {
-        mCorrelationId = correlationId;
-        mComponent = component;
-        mTelemetryRequestId = telemetryRequestId;
+    /**
+     * Constructs a new Event.
+     *
+     * @param builder the Builder instance for this Event.
+     */
+    private OrphanedEvent(Builder builder) {
+        super(builder);
+        // Set execution time properties on the event
+        setProperty(EventConstants.EventProperty.START_TIME, String.valueOf(builder.mStartTime));
+        setProperty(EventConstants.EventProperty.STOP_TIME, String.valueOf(Builder.sEndTime));
     }
 
-    UUID getCorrelationId() {
-        return mCorrelationId;
-    }
+    static class Builder extends Event.Builder<Builder> {
 
-    String getComponent() {
-        return mComponent;
-    }
+        /**
+         * OrphanedEvents have negative endTime to indicate incompleteness
+         */
+        static final Long sEndTime = -1L;
 
-    String getTelemetryRequestId() {
-        return mTelemetryRequestId;
+        /**
+         * The startTime of this OrphanedEvent
+         */
+        final Long mStartTime;
+
+
+        Builder(final String name, final Long startTime) {
+            super(name);
+            mStartTime = startTime;
+        }
+
+        @Override
+        Event build() {
+            return new OrphanedEvent(this);
+        }
     }
 }

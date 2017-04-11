@@ -69,6 +69,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         AndroidTestUtil.removeAllTokens(mAppContext);
 
         mDefaultUser = getDefaultUser();
+        Telemetry.disableForTest(true);
     }
 
     @After
@@ -77,6 +78,7 @@ public final class TokenCacheTest extends AndroidTestCase {
 
         // clear the state left by the tests.
         AndroidTestUtil.removeAllTokens(mAppContext);
+        Telemetry.disableForTest(false);
     }
 
     private AuthenticationRequestParameters addTokenForUser(final boolean useDefault) throws MsalException {
@@ -98,7 +100,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         // Verify token was inserted
         assertNotNull(mTokenCache.findRefreshToken(requestParameters, mDefaultUser));
         // Delete that token
-        mTokenCache.deleteRefreshTokenByUser(mDefaultUser);
+        mTokenCache.deleteRefreshTokenByUser(mDefaultUser, AndroidTestUtil.getTestRequestContext());
         // Verify that the token is deleted
         assertNull(mTokenCache.findRefreshToken(requestParameters, mDefaultUser));
     }
@@ -110,7 +112,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         // Add a refresh token to the cache for the default user
         addTokenForUser(true);
         // Delete the default user's token
-        mTokenCache.deleteRefreshTokenByUser(mDefaultUser);
+        mTokenCache.deleteRefreshTokenByUser(mDefaultUser, AndroidTestUtil.getTestRequestContext());
         // Verify that that the cache still contains the other token
         assertNotNull(mTokenCache.findRefreshToken(differentUserParams, User.create(new IdToken(getIdTokenForDifferentUser()),
                 new ClientInfo(getClientInfoForDifferentUser()))));
@@ -123,7 +125,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         // Verify that token was inserted
         assertNotNull(mTokenCache.findAccessToken(defaultUserRequestParameters, mDefaultUser));
         // Delete that token
-        mTokenCache.deleteAccessTokenByUser(mDefaultUser);
+        mTokenCache.deleteAccessTokenByUser(mDefaultUser, AndroidTestUtil.getTestRequestContext());
         // Verify that the token is deleted
         assertNull(mTokenCache.findAccessToken(defaultUserRequestParameters, mDefaultUser));
     }
@@ -135,7 +137,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         // Add an access token to the cache for the default user
         addTokenForUser(true);
         // Delete the default user's token
-        mTokenCache.deleteAccessTokenByUser(mDefaultUser);
+        mTokenCache.deleteAccessTokenByUser(mDefaultUser, AndroidTestUtil.getTestRequestContext());
         // Verify that that the cache still contains the other token
         assertNotNull(mTokenCache.findAccessToken(differentUserParams,
                 User.create(new IdToken(getIdTokenForDifferentUser()), new ClientInfo(getClientInfoForDifferentUser()))));
@@ -506,7 +508,7 @@ public final class TokenCacheTest extends AndroidTestCase {
 
         // verify that there should be 3 refresh tokens stored in the cache
         int expectedRtSize = 3;
-        assertTrue(mTokenCache.getAllRefreshTokens().size() == expectedRtSize);
+        assertTrue(mTokenCache.getAllRefreshTokens(AndroidTestUtil.getTestRequestContext()).size() == expectedRtSize);
 
         // verify rt for default authority host and default client
         AuthenticationRequestParameters requestParameters = getRequestParameters(AUTHORITY, scope, CLIENT_ID);
@@ -543,7 +545,7 @@ public final class TokenCacheTest extends AndroidTestCase {
                 anotherRefreshToken, scope, expirationDate, getClientInfoForDifferentUser()));
 
         // verify the number of refresh token, there should be 2
-        assertTrue(mTokenCache.getAllRefreshTokens().size() == 2);
+        assertTrue(mTokenCache.getAllRefreshTokens(AndroidTestUtil.getTestRequestContext()).size() == 2);
 
         // verify RT for each user
         final AuthenticationRequestParameters requestParameters = getRequestParameters(AUTHORITY, MSALUtils.getScopesAsSet(scope), CLIENT_ID);
@@ -644,6 +646,6 @@ public final class TokenCacheTest extends AndroidTestCase {
     private AuthenticationRequestParameters getRequestParameters(final String authority, final Set<String> scopes, final String clientId) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(authority, false),
                 mTokenCache, scopes, clientId, "some redirect", "", "", UIBehavior.SELECT_ACCOUNT,
-                new RequestContext(UUID.randomUUID(), ""));
+                new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()));
     }
 }

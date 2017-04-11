@@ -59,7 +59,7 @@ public class ADFSWebFingerValidatorTest {
         Assert.assertEquals(
                 false,
                 ADFSWebFingerValidator.realmIsTrusted(
-                        new RequestContext(UUID.randomUUID(), ""),
+                        new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()),
                         testAuthority,
                         metadata
                 )
@@ -79,7 +79,7 @@ public class ADFSWebFingerValidatorTest {
         Assert.assertEquals(
                 true,
                 ADFSWebFingerValidator.realmIsTrusted(
-                        new RequestContext(UUID.randomUUID(), ""),
+                        new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()),
                         testAuthority,
                         metadata
                 )
@@ -95,7 +95,7 @@ public class ADFSWebFingerValidatorTest {
         Assert.assertEquals(
                 false,
                 ADFSWebFingerValidator.realmIsTrusted(
-                        new RequestContext(UUID.randomUUID(), ""),
+                        new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()),
                         testAuthority,
                         metadata
                 )
