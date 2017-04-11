@@ -46,6 +46,7 @@ package com.microsoft.identity.client;
  *         b2c authority, but we don't support b2c authority validation yet. Only well-known host will be supported. </ul>
  *         <ul>chrome_not_installed: Indicates that chrome is not installed on the device. The sdk uses chrome custom tab for
  *         authorize request if applicable or fall back to chrome browser. </ul>
+ *         <ul>user_mismatch: Indicates that the user provided in the acquire token request doesn't match the user returned from server.</ul>
  *     </li>
  * </p>
  */

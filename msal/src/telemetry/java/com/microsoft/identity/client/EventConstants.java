@@ -50,6 +50,8 @@ final class EventConstants {
         static final String API_ID_ACQUIRE_WITH_HINT = "180";
         static final String API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_AND_PARAMETERS = "181";
         static final String API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_PARAMETERS_AND_AUTHORITY = "182";
+        static final String API_ID_ACQUIRE_WITH_USER_BEHAVIOR_AND_PARAMETERS = "183";
+        static final String API_ID_ACQUIRE_WITH_USER_BEHAVIOR_PARAMETERS_AND_AUTHORITY = "184";
         static final String ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER = "80";
         static final String ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER_AUTHORITY_AND_FORCE_REFRESH = "81";
     }
