@@ -54,8 +54,13 @@ abstract class BaseRequest {
      * @throws MSALUserCancelException If pre token request fails as user cancels the flow.
      * @throws MsalException If error happens during the pre-process.
      */
-    abstract void preTokenRequest() throws MsalUiRequiredException, MSALUserCancelException,
-            MsalServiceException, MsalClientException;
+    void preTokenRequest() throws MsalUiRequiredException, MSALUserCancelException,
+            MsalServiceException, MsalClientException {
+        mAuthRequestParameters.getAuthority().resolveEndpoints(
+                mAuthRequestParameters.getRequestContext(),
+                mAuthRequestParameters.getLoginHint()
+        );
+    }
 
     /**
      * Abstract method to set the additional body parameters for specific request.
@@ -97,14 +102,8 @@ abstract class BaseRequest {
             @Override
             public void run() {
                 try {
-                    // perform authority validation before doing any token request
-                    mAuthRequestParameters.getAuthority().resolveEndpoints(
-                            mAuthRequestParameters.getRequestContext(),
-                            mAuthRequestParameters.getLoginHint()
-                    );
                     preTokenRequest();
                     performTokenRequest();
-
                     final AuthenticationResult result = postTokenRequest();
 
                     Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Token request succeeds.");
@@ -188,8 +187,9 @@ abstract class BaseRequest {
      * @throws MsalException
      */
     AuthenticationResult postTokenRequest() throws MsalUiRequiredException, MsalServiceException, MsalClientException {
-        final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
+        checkUserMismatch();
 
+        final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
         final Authority authority = mAuthRequestParameters.getAuthority();
         authority.updateTenantLessAuthority(new IdToken(mTokenResponse.getRawIdToken()).getTenantId());
         final AccessTokenCacheItem accessTokenCacheItem = tokenCache.saveAccessToken(authority.getAuthority(),
@@ -258,6 +258,16 @@ abstract class BaseRequest {
 
     private Set<String> getReservedScopesAsSet() {
         return new HashSet<>(Arrays.asList(OauthConstants.Oauth2Value.RESERVED_SCOPES));
+    }
+
+    private void checkUserMismatch() throws MsalClientException {
+        final ClientInfo returnedClientInfo = new ClientInfo(mTokenResponse.getRawClientInfo());
+        final String uniqueUserIdentifer = MSALUtils.getUniqueUserIdentifier(returnedClientInfo.getUniqueIdentifier(), returnedClientInfo.getUniqueTenantIdentifier());
+        if (mAuthRequestParameters.getUser() != null && !mAuthRequestParameters.getUser().getUserIdentifier().equals(uniqueUserIdentifer)) {
+            Logger.errorPII(TAG, mAuthRequestParameters.getRequestContext(), "User unique identifier provided in the request is: " + mAuthRequestParameters.getUser().getUserIdentifier()
+                    + ". The user unique identifier returned from token endpoint is: " + uniqueUserIdentifer, null);
+            throw new MsalClientException(MSALError.USER_MISMATCH, "User unique identifier provided in the request doesn't match the one returned in the token response");
+        }
     }
 
     private void callbackOnSuccess(final AuthenticationCallback callback,

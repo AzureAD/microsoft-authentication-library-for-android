@@ -110,6 +110,11 @@ public final class MSALError {
     public final static String CHROME_NOT_INSTALLED = "chrome_not_installed";
 
     /**
+     * Indicates that the user provided in the acquire token request doesn't match the user returned from server.
+     */
+    public final static String USER_MISMATCH = "user_mismatch";
+
+    /**
      * Indicates that extra parameters set by the client app is already sent by the sdk.
      */
     public final static String DUPLICATE_QUERY_PARAMETER = "duplicate_query_parameter";

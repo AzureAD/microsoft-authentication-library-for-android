@@ -25,6 +25,7 @@ package com.microsoft.identity.client;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Set;
 
@@ -32,6 +33,8 @@ import java.util.Set;
  * MSAL internal class for representing the access token cache item.
  */
 final class AccessTokenCacheItem extends BaseTokenCacheItem {
+
+    private static final int DEFAULT_EXPIRATION_BUFFER = 300;
 
     @SerializedName("authority")
     final String mAuthority;
@@ -125,6 +128,18 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
 
     String getRawClientInfo() {
         return mRawClientInfo;
+    }
+
+    /**
+     * @return True if the token cache item is already expired, false otherwise.
+     */
+    boolean isExpired() {
+        final Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.SECOND, DEFAULT_EXPIRATION_BUFFER);
+        final Date validity = calendar.getTime();
+
+        final Date expiresOn = getExpiresOn();
+        return expiresOn != null && expiresOn.before(validity);
     }
 
     private IdToken getIdToken() throws MsalClientException {
