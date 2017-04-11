@@ -35,11 +35,21 @@ public final class AuthenticationResult {
     private final AccessTokenCacheItem mAccessTokenCacheItem;
     private final User mUser;
     private final String mTenantId;
+    private final String mRawIdToken;
+    private final String mUniqueId;
 
     AuthenticationResult(final AccessTokenCacheItem accessTokenCacheItem) throws MsalClientException {
         mAccessTokenCacheItem = accessTokenCacheItem;
         mUser = accessTokenCacheItem.getUser();
-        mTenantId = accessTokenCacheItem.getTenantId();
+        mRawIdToken = accessTokenCacheItem.getRawIdToken();
+        final IdToken idToken = accessTokenCacheItem.getIdToken();
+        if (idToken != null) {
+            mTenantId = idToken.getTenantId();
+            mUniqueId = idToken.getUniqueId();
+        } else {
+            mTenantId = "";
+            mUniqueId = "";
+        }
     }
 
     /**
@@ -65,6 +75,20 @@ public final class AuthenticationResult {
      */
     public String getTenantId() {
         return mTenantId;
+    }
+
+    /**
+     * @return The unique id of the user.
+     */
+    public String getUniqueId () {
+        return mUniqueId;
+    }
+
+    /**
+     * @return The raw id token if it's returned by the service or null if no id token is returned.
+     */
+    public String getRawIdToken() {
+        return mRawIdToken;
     }
 
     /**
