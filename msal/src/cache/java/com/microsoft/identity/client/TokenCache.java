@@ -29,10 +29,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -131,11 +129,43 @@ class TokenCache {
         // Since server may return us more scopes, for access token lookup, we need to check if the scope contains all the
         // sopces in the request.
         final AccessTokenCacheItem accessTokenCacheItem = accessTokenCacheItems.get(0);
-        if (!isExpired(accessTokenCacheItem.getExpiresOn())) {
+        if (!accessTokenCacheItem.isExpired()) {
             return accessTokenCacheItem;
         }
 
         Logger.info(TAG, requestParam.getRequestContext(), "Access token is found but it's expired.");
+        return null;
+    }
+
+    AccessTokenCacheItem findAccessTokenItemAuthorityNotProvided(final AuthenticationRequestParameters requestParameters, final User user)
+            throws MsalClientException {
+        // find AccessTokenItems with scopes, client id and user matching
+        final List<AccessTokenCacheItem> accessTokenCacheItems = getAllAccessTokensForApp(requestParameters.getClientId(), requestParameters.getRequestContext());
+        final List<AccessTokenCacheItem> matchingATs = new ArrayList<>();
+        for (final AccessTokenCacheItem accessTokenCacheItem : accessTokenCacheItems) {
+            if (user.getUserIdentifier().equals(accessTokenCacheItem.getUserIdentifier()) && accessTokenCacheItem.getScope().containsAll(requestParameters.getScope())) {
+                matchingATs.add(accessTokenCacheItem);
+            }
+        }
+
+        if (matchingATs.isEmpty()) {
+            Logger.info(TAG, requestParameters.getRequestContext(), "Authority is not provided for the silent request. No access tokens matching the scopes and user exist.");
+            return null;
+        }
+
+        if (matchingATs.size() > 1) {
+            Logger.error(TAG, requestParameters.getRequestContext(), "Authority is not provided for the silent request. Multiple matching token entries found.", null);
+            throw new MsalClientException(MSALError.MULTIPLE_CACHE_ENTRY_FOUND, "Authority is not provided for the silent request. There are multiple matching token cache entries found. ");
+        }
+
+        final AccessTokenCacheItem tokenCacheItem = matchingATs.get(0);
+        Logger.verbosePII(TAG, requestParameters.getRequestContext(), "Authority is not provided but found one matching access token item, authority is: " + tokenCacheItem.getAuthority());
+        requestParameters.setAuthority(tokenCacheItem.getAuthority(), requestParameters.getAuthority().mValidateAuthority);
+        if (!tokenCacheItem.isExpired()) {
+            return tokenCacheItem;
+        }
+
+        Logger.verbose(TAG, requestParameters.getRequestContext(), "Access token item found in the cache is already expired.");
         return null;
     }
 
@@ -219,18 +249,6 @@ class TokenCache {
 
     private boolean tokenMatchesUser(final User user, final BaseTokenCacheItem token) {
         return token.getUserIdentifier().equals(user.getUserIdentifier());
-    }
-
-    /**
-     * @param expiresOn The expires on to check for.
-     * @return True if the given date is already expired, false otherwise.
-     */
-    private boolean isExpired(final Date expiresOn) {
-        final Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.SECOND, DEFAULT_EXPIRATION_BUFFER);
-        final Date validity = calendar.getTime();
-
-        return expiresOn != null && expiresOn.before(validity);
     }
 
     private void deleteTokenByUser(

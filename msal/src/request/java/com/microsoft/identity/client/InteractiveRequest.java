@@ -85,7 +85,9 @@ final class InteractiveRequest extends BaseRequest {
      * Pre token request. Launch either chrome custom tab or chrome to get the auth code back.
      */
     @Override
-    synchronized void preTokenRequest() throws MSALUserCancelException, MsalClientException, MsalServiceException {
+    synchronized void preTokenRequest() throws MSALUserCancelException, MsalClientException, MsalServiceException,
+            MsalUiRequiredException {
+        super.preTokenRequest();
         final String authorizeUri;
         try {
             Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Prepare authorize request uri for interactive flow.");

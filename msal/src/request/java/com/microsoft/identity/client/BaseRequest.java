@@ -54,8 +54,13 @@ abstract class BaseRequest {
      * @throws MSALUserCancelException If pre token request fails as user cancels the flow.
      * @throws MsalException If error happens during the pre-process.
      */
-    abstract void preTokenRequest() throws MsalUiRequiredException, MSALUserCancelException,
-            MsalServiceException, MsalClientException;
+    void preTokenRequest() throws MsalUiRequiredException, MSALUserCancelException,
+            MsalServiceException, MsalClientException {
+        mAuthRequestParameters.getAuthority().resolveEndpoints(
+                mAuthRequestParameters.getRequestContext(),
+                mAuthRequestParameters.getLoginHint()
+        );
+    }
 
     /**
      * Abstract method to set the additional body parameters for specific request.
@@ -97,14 +102,8 @@ abstract class BaseRequest {
             @Override
             public void run() {
                 try {
-                    // perform authority validation before doing any token request
-                    mAuthRequestParameters.getAuthority().resolveEndpoints(
-                            mAuthRequestParameters.getRequestContext(),
-                            mAuthRequestParameters.getLoginHint()
-                    );
                     preTokenRequest();
                     performTokenRequest();
-
                     final AuthenticationResult result = postTokenRequest();
 
                     Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Token request succeeds.");
