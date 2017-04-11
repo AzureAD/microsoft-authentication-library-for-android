@@ -243,9 +243,8 @@ final class MSALUtils {
     }
 
     /**
-     * CHROME_PACKAGE array contains all the chrome packages that is currently available on play store, we always check
-     * the chrome packages in the order of 1)the currently stable one com.android.chrome 2) beta version com.chrome.beta
-     * 3) the dev version com.chrome.dev.
+     * CHROME_PACKAGE array contains all the chrome packages that is currently available on play store, we will only support
+     * chrome stable.
      *
      * @param context The app context that is used to check the chrome packages.
      * @return The chrome package name that exists on the device.
