@@ -232,10 +232,9 @@ final class MSALUtils {
             return null;
         }
 
-        final Set<String> chromePackage = new HashSet<>(Arrays.asList(CHROME_PACKAGE));
         for (final ResolveInfo resolveInfo : resolveInfoList) {
             final ServiceInfo serviceInfo = resolveInfo.serviceInfo;
-            if (serviceInfo != null && chromePackage.contains(serviceInfo.packageName)) {
+            if (serviceInfo != null && CHROME_PACKAGE.equals(serviceInfo.packageName)) {
                 return serviceInfo.packageName;
             }
         }
