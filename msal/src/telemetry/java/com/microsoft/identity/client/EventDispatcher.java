@@ -79,5 +79,4 @@ class EventDispatcher {
 
         mEventReceiver.onEventsReceived(eventsForPublication);
     }
-
 }

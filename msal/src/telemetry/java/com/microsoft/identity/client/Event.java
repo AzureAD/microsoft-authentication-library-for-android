@@ -102,5 +102,4 @@ class Event extends ArrayList<Pair<String, String>> {
          */
         abstract Event build();
     }
-
 }

@@ -209,9 +209,12 @@ public final class Telemetry {
         // check for orphaned events...
         final List<Event> orphanedEvents = collateOrphanedEvents(requestId);
         // Add the OrphanedEvents to the existing IEventList
-        if (null != mCompletedEvents.get(requestId)) {
-            mCompletedEvents.get(requestId).addAll(orphanedEvents);
+        if (null == mCompletedEvents.get(requestId)) {
+            Logger.warning(TAG, null, "No completed Events returned for RequestId.");
+            return;
         }
+
+        mCompletedEvents.get(requestId).addAll(orphanedEvents);
 
         final List<Event> eventsToFlush = mCompletedEvents.remove(requestId);
 

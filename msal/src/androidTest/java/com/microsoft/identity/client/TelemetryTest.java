@@ -51,12 +51,11 @@ public class TelemetryTest {
 
     @Before
     public void setUp() {
-        final Defaults.Builder builder = new Defaults.Builder();
-        builder.setApplicationName(sTestApplicationName)
-                .setApplicationVersion(sTestApplicationVersion)
-                .setClientId(sTestApplicationClientId)
-                .setDeviceId(sTestApplicationDeviceId);
-        DefaultEvent.initializeDefaults(new Defaults(builder));
+        DefaultEvent.initializeDefaults(
+                new Defaults(sTestApplicationName, sTestApplicationVersion,
+                        sTestApplicationClientId, sTestApplicationDeviceId,
+                        "v1.0", PlatformIdHelper.PlatformIdParameters.PRODUCT_NAME)
+        );
         mTestInstance = Telemetry.getTestInstance();
         Telemetry.disableForTest(false);
     }

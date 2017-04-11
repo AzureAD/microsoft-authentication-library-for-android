@@ -23,17 +23,16 @@ final class Defaults {
     final String mSdkPlatform;
 
     /**
-     * Constructs a new Defaults from the supplied Builder.
-     *
-     * @param builder the Builder to use in this construction.
+     * Constructs a new Defaults
      */
-    Defaults(final Builder builder) {
-        mApplicationName = builder.mApplicationName;
-        mApplicationVersion = builder.mApplicationVersion;
-        mClientId = builder.mClientId;
-        mDeviceId = builder.mDeviceId;
-        mSdkVersion = builder.mSdkVersion;
-        mSdkPlatform = builder.mSdkPlatform;
+    Defaults(final String applicationName, final String applicationVersion, final String clientId,
+             final String deviceId, final String sdkVersion, final String sdkPlatform) {
+        mApplicationName = applicationName;
+        mApplicationVersion = applicationVersion;
+        mClientId = clientId;
+        mDeviceId = deviceId;
+        mSdkVersion = sdkVersion;
+        mSdkPlatform = sdkPlatform;
     }
 
     /**
@@ -45,123 +44,32 @@ final class Defaults {
      */
     @SuppressLint("HardwareIds")
     static Defaults forApplication(final Context context, final String clientId) {
-        final Builder defaultsBuilder = new Builder()
-                .setClientId(clientId)
-                .setApplicationName(context.getPackageName())
-                .setSdkVersion(BuildConfig.VERSION_NAME)
-                .setSdkPlatform(PlatformIdHelper.PlatformIdParameters.PRODUCT_NAME);
+        final String applicationName = context.getPackageName();
+        final String sdkVersion = BuildConfig.VERSION_NAME;
+        final String sdkPlatform = PlatformIdHelper.PlatformIdParameters.PRODUCT_NAME;
+
+        String applicationVersion;
         try {
             String versionName = context
                     .getPackageManager()
-                    .getPackageInfo(defaultsBuilder.mApplicationName, 0).versionName;
-            versionName = null == versionName ? "NA" : versionName;
-            defaultsBuilder.setApplicationVersion(versionName);
+                    .getPackageInfo(applicationName, 0).versionName;
+            applicationVersion = null == versionName ? "NA" : versionName;
         } catch (PackageManager.NameNotFoundException e) {
-            defaultsBuilder.setApplicationVersion("NA");
+            applicationVersion = "NA";
         }
 
+        String deviceId;
         try {
-            defaultsBuilder.setDeviceId(
-                    MSALUtils.createHash(
-                            Settings.Secure.getString(
-                                    context.getContentResolver(),
-                                    Settings.Secure.ANDROID_ID
-                            )
+            deviceId = MSALUtils.createHash(
+                    Settings.Secure.getString(
+                            context.getContentResolver(),
+                            Settings.Secure.ANDROID_ID
                     )
             );
         } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
-            defaultsBuilder.setDeviceId("");
+            deviceId = "";
         }
 
-        return defaultsBuilder.build();
+        return new Defaults(applicationName, applicationVersion, clientId, deviceId, sdkVersion, sdkPlatform);
     }
-
-    /**
-     * Builder object for Defaults.
-     */
-    static class Builder {
-
-        private String mApplicationName;
-        private String mApplicationVersion;
-        private String mClientId;
-        private String mDeviceId;
-        private String mSdkVersion;
-        private String mSdkPlatform;
-
-        /**
-         * Sets the application name.
-         *
-         * @param applicationName the application name to set.
-         * @return the Builder instance.
-         */
-        Builder setApplicationName(final String applicationName) {
-            mApplicationName = applicationName;
-            return this;
-        }
-
-        /**
-         * Sets the application version.
-         *
-         * @param applicationVersion the application version to set.
-         * @return the Builder instance.
-         */
-        Builder setApplicationVersion(final String applicationVersion) {
-            mApplicationVersion = applicationVersion;
-            return this;
-        }
-
-        /**
-         * Sets the clientId.
-         *
-         * @param clientId the clientId to set.
-         * @return the Builder instance.
-         */
-        Builder setClientId(final String clientId) {
-            mClientId = clientId;
-            return this;
-        }
-
-        /**
-         * Sets the deviceId.
-         *
-         * @param deviceId the deviceId to set.
-         * @return the Builder instance.
-         */
-        Builder setDeviceId(final String deviceId) {
-            mDeviceId = deviceId;
-            return this;
-        }
-
-        /**
-         * Sets the sdk version.
-         *
-         * @param sdkVersion the sdk version to set.
-         * @return the Builder instance.
-         */
-        Builder setSdkVersion(final String sdkVersion) {
-            mSdkVersion = sdkVersion;
-            return this;
-        }
-
-        /**
-         * Sets the sdk platform.
-         *
-         * @param sdkPlatform the sdk platform to set.
-         * @return the Builder instance.
-         */
-        Builder setSdkPlatform(final String sdkPlatform) {
-            mSdkPlatform = sdkPlatform;
-            return this;
-        }
-
-        /**
-         * Constructs a new EventDefaults.
-         *
-         * @return the newly constructed EventDefaults instance.
-         */
-        Defaults build() {
-            return new Defaults(this);
-        }
-    }
-
 }

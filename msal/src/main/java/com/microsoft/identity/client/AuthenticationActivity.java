@@ -94,7 +94,6 @@ public final class AuthenticationActivity extends Activity {
 
         mTelemetryRequestId = data.getStringExtra(Constants.TELEMETRY_REQUEST_ID);
         mUiEventBuilder = new UiEvent.Builder();
-        mUiEventBuilder.setUserAgent(WebSettings.getDefaultUserAgent(this));
         Telemetry.getInstance().startEvent(mTelemetryRequestId, mUiEventBuilder.getEventName());
     }
 
