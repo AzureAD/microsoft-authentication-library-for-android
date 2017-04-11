@@ -85,7 +85,9 @@ final class InteractiveRequest extends BaseRequest {
      * Pre token request. Launch either chrome custom tab or chrome to get the auth code back.
      */
     @Override
-    synchronized void preTokenRequest() throws MSALUserCancelException, MsalClientException, MsalServiceException {
+    synchronized void preTokenRequest() throws MSALUserCancelException, MsalClientException, MsalServiceException,
+            MsalUiRequiredException {
+        super.preTokenRequest();
         final String authorizeUri;
         try {
             Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Prepare authorize request uri for interactive flow.");
@@ -97,6 +99,10 @@ final class InteractiveRequest extends BaseRequest {
         final Intent intentToLaunch = new Intent(mContext, AuthenticationActivity.class);
         intentToLaunch.putExtra(Constants.REQUEST_URL_KEY, authorizeUri);
         intentToLaunch.putExtra(Constants.REQUEST_ID, mRequestId);
+        intentToLaunch.putExtra(
+                Constants.TELEMETRY_REQUEST_ID,
+                mAuthRequestParameters.getRequestContext().getTelemetryRequestId().toString()
+        );
 
         if (!resolveIntent(intentToLaunch)) {
             throw new MsalClientException(MSALError.UNRESOLVABLE_INTENT, "The intent is not resolvable");
@@ -128,7 +134,7 @@ final class InteractiveRequest extends BaseRequest {
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.REDIRECT_URI,
                 mAuthRequestParameters.getRedirectUri());
         // Adding code verifier per PKCE spec. See https://tools.ietf.org/html/rfc7636
-        oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.CODE_VERIFIER, mPKCEChallenge.codeVerifier);
+        oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.CODE_VERIFIER, mPKCEChallenge.mCodeVerifier);
     }
 
     @Override
@@ -222,7 +228,7 @@ final class InteractiveRequest extends BaseRequest {
         mPKCEChallenge = PKCEChallengeFactory.newPKCEChallenge();
 
         // Add it to our Authorization request
-        requestParameters.put(OauthConstants.Oauth2Parameters.CODE_CHALLENGE, mPKCEChallenge.codeChallenge);
+        requestParameters.put(OauthConstants.Oauth2Parameters.CODE_CHALLENGE, mPKCEChallenge.mCodeChallenge);
         requestParameters.put(OauthConstants.Oauth2Parameters.CODE_CHALLENGE_METHOD, PKCEChallengeFactory.PKCEChallenge.ChallengeMethod.S256.name());
     }
 
@@ -305,7 +311,7 @@ final class InteractiveRequest extends BaseRequest {
     }
 
     /**
-     * Factory class for PKCE Challenges
+     * Factory class for PKCE Challenges.
      */
     private static class PKCEChallengeFactory {
 
@@ -346,28 +352,22 @@ final class InteractiveRequest extends BaseRequest {
              * ALPHA = %x41-5A / %x61-7A
              * DIGIT = %x30-39
              */
-            final String codeVerifier;
+            private final String mCodeVerifier;
 
             /**
              * A challenge derived from the code verifier that is sent in the
              * authorization request, to be verified against later.
              */
-            final String codeChallenge;
+            private final String mCodeChallenge;
 
-            /**
-             * A method that was used to derive code challenge.
-             */
-            final ChallengeMethod method;
-
-            PKCEChallenge(String codeVerifier, String codeChallenge, ChallengeMethod method) {
-                this.codeVerifier = codeVerifier;
-                this.codeChallenge = codeChallenge;
-                this.method = method;
+            PKCEChallenge(String codeVerifier, String codeChallenge) {
+                this.mCodeVerifier = codeVerifier;
+                this.mCodeChallenge = codeChallenge;
             }
         }
 
         /**
-         * Creates a new instance of {@link PKCEChallenge}
+         * Creates a new instance of {@link PKCEChallenge}.
          *
          * @return the newly created Challenge
          * @throws MsalException if the Challenge could not be created
@@ -379,10 +379,7 @@ final class InteractiveRequest extends BaseRequest {
             // Create a code_challenge derived from the code_verifier
             final String codeChallenge = generateCodeVerifierChallenge(codeVerifier);
 
-            // Set the challenge_method - only SHA-256 should be used
-            final PKCEChallenge.ChallengeMethod challengeMethod = PKCEChallenge.ChallengeMethod.S256;
-
-            return new PKCEChallenge(codeVerifier, codeChallenge, challengeMethod);
+            return new PKCEChallenge(codeVerifier, codeChallenge);
         }
 
         private static String generateCodeVerifier() {

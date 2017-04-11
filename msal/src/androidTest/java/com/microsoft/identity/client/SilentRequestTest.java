@@ -41,6 +41,7 @@ import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -274,7 +275,7 @@ public final class SilentRequestTest extends AndroidTestCase {
                 TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, scopeInResponse,
                         AndroidTestUtil.getValidExpiresOn(), TokenCacheTest.getDefaultClientInfo()));
 
-        final String[] requestedScope = new String[] {"email.read", "scope2", "user.read"};
+        final String[] requestedScope = new String[]{"email.read", "scope2", "user.read"};
         final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(new HashSet<>(Arrays.asList(
                 requestedScope))), false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
@@ -343,6 +344,101 @@ public final class SilentRequestTest extends AndroidTestCase {
                     fail();
                 }
 
+                resultLock.countDown();
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                fail();
+            }
+
+            @Override
+            public void onCancel() {
+                fail();
+            }
+        });
+
+        resultLock.await();
+    }
+
+    @Test
+    public void testSilentRequestNoAuthorityMutipleAccessTokenAuthoritiesInCache() throws MsalException, IOException, InterruptedException {
+        final String scope = "scope1 scope2";
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
+                TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, scope, AndroidTestUtil.getExpiredDate(),
+                        TokenCacheTest.getDefaultClientInfo()));
+
+        // put another token for same user with a different authority
+        final String anotherAuthority = "https://login.microsoftonline.com/othertenant";
+        final String accessToken = "other access token";
+        final String refreshToken = "other refresh token";
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, anotherAuthority, TokenCacheTest.CLIENT_ID, TokenCacheTest.getTokenResponseForDefaultUser(
+                accessToken, refreshToken, scope, AndroidTestUtil.getExpiredDate(), TokenCacheTest.getDefaultClientInfo()));
+
+        final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(
+                AndroidTestUtil.getSuccessResponse(TokenCacheTest.getDefaultIdToken(), AndroidTestUtil.ACCESS_TOKEN, scope,
+                        TokenCacheTest.getDefaultClientInfo()));
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
+
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(MSALUtils.getScopesAsSet(scope));
+        final User user = User.create(new IdToken(TokenCacheTest.getDefaultIdToken()), new ClientInfo(TokenCacheTest.getDefaultClientInfo()));
+        final SilentRequest request = new SilentRequest(mAppContext, requestParameters, false, user);
+        request.setIsAuthorityProvided(false);
+
+        final CountDownLatch resultLock = new CountDownLatch(1);
+        request.getToken(new AuthenticationCallback() {
+            @Override
+            public void onSuccess(AuthenticationResult authenticationResult) {
+                fail();
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                assertTrue(exception instanceof MsalClientException);
+                final MsalClientException msalClientException = (MsalClientException) exception;
+                assertTrue(msalClientException.getErrorCode().equals(MSALError.MULTIPLE_CACHE_ENTRY_FOUND));
+                resultLock.countDown();
+            }
+
+            @Override
+            public void onCancel() {
+                fail();
+            }
+        });
+
+        resultLock.await();
+    }
+
+    @Test
+    public void testAuthorityNotProvidedButOnlyOneExist() throws MsalException, InterruptedException, IOException {
+        final String scope = "scope1 scope2";
+        final String anotherAuthority = "https://login.microsoftonline.com/othertenant";
+        final String accessToken = "other access token";
+        final String refreshToken = "other refresh token";
+        PublicClientApplicationTest.saveTokenResponse(mTokenCache, anotherAuthority, TokenCacheTest.CLIENT_ID, TokenCacheTest.getTokenResponseForDefaultUser(
+                accessToken, refreshToken, scope, AndroidTestUtil.getExpiredDate(), TokenCacheTest.getDefaultClientInfo()));
+
+        final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(
+                AndroidTestUtil.getSuccessResponse(TokenCacheTest.getDefaultIdToken(), AndroidTestUtil.ACCESS_TOKEN, scope,
+                        TokenCacheTest.getDefaultClientInfo()));
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
+
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(MSALUtils.getScopesAsSet(scope));
+        final User user = User.create(new IdToken(TokenCacheTest.getDefaultIdToken()), new ClientInfo(TokenCacheTest.getDefaultClientInfo()));
+        final SilentRequest request = new SilentRequest(mAppContext, requestParameters, false, user);
+        request.setIsAuthorityProvided(false);
+
+        final CountDownLatch resultLock = new CountDownLatch(1);
+        request.getToken(new AuthenticationCallback() {
+            @Override
+            public void onSuccess(AuthenticationResult authenticationResult) {
+                assertTrue(authenticationResult.getAccessToken().equals(AndroidTestUtil.ACCESS_TOKEN));
+                final List<AccessTokenCacheItem> accessTokenCacheItems = AndroidTestUtil.getAllAccessTokens(mAppContext);
+                assertTrue(accessTokenCacheItems.size() == 1);
+                final AccessTokenCacheItem accessTokenCacheItem = accessTokenCacheItems.get(0);
+                assertTrue(accessTokenCacheItem.getAuthority().equals(anotherAuthority));
                 resultLock.countDown();
             }
 
@@ -431,8 +527,9 @@ public final class SilentRequestTest extends AndroidTestCase {
         });
 
         resultLock.await();
-        // verify that no rt existed in the cache
-        assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 0);
+
+        // MSAL will not delete RT if receiving invalid_grant
+        assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 1);
     }
 
     /**
@@ -487,7 +584,7 @@ public final class SilentRequestTest extends AndroidTestCase {
     private AuthenticationRequestParameters getRequestParameters(final Set<String> scopes) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, false),
                 mTokenCache, scopes, TokenCacheTest.CLIENT_ID, "some redirect", "", "", UIBehavior.SELECT_ACCOUNT, null,
-                new RequestContext(UUID.randomUUID(), ""));
+                new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()));
     }
 
     private void mockFailureResponse(final String errorCode) throws IOException {

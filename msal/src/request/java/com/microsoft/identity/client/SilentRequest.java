@@ -36,6 +36,7 @@ final class SilentRequest extends BaseRequest {
     private final boolean mForceRefresh;
     private final User mUser;
     private AuthenticationResult mAuthResult;
+    private boolean mIsAuthorityProvided = true;
 
     SilentRequest(final Context appContext, final AuthenticationRequestParameters authRequestParams,
                   final boolean forceRefresh, final User user) {
@@ -46,12 +47,16 @@ final class SilentRequest extends BaseRequest {
     }
 
     @Override
-    void preTokenRequest() throws MsalClientException, MsalUiRequiredException {
+    void preTokenRequest() throws MsalClientException, MsalUiRequiredException, MsalServiceException, MSALUserCancelException {
         final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
 
+        final AccessTokenCacheItem tokenCacheItemAuthorityNotProvided = mIsAuthorityProvided ? null : tokenCache.findAccessTokenItemAuthorityNotProvided(
+                mAuthRequestParameters, mUser);
         // lookup AT first.
         if (!mForceRefresh) {
-            final AccessTokenCacheItem accessTokenCacheItem = tokenCache.findAccessToken(mAuthRequestParameters, mUser);
+            final AccessTokenCacheItem accessTokenCacheItem = mIsAuthorityProvided ? tokenCache.findAccessToken(mAuthRequestParameters, mUser)
+                    :tokenCacheItemAuthorityNotProvided;
+
             if (accessTokenCacheItem != null) {
                 Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Access token is found, returning cached AT.");
                 mAuthResult = new AuthenticationResult(accessTokenCacheItem);
@@ -66,6 +71,8 @@ final class SilentRequest extends BaseRequest {
             Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "No refresh token item is found.");
             throw new MsalUiRequiredException(MSALError.NO_TOKENS_FOUND, "No refresh token was found. ");
         }
+
+        super.preTokenRequest();
     }
 
     @Override
@@ -80,6 +87,9 @@ final class SilentRequest extends BaseRequest {
      * perform token request. Otherwise, use the base performTokenRequest. Resiliency feather will be enabled here, if we
      * get the SERVICE_NOT_AVAILABLE, check for the extended_expires_on and if the token is still valid with extended expires on,
      * return the token.
+     *
+     * @throws MsalServiceException
+     * @throws MsalClientException
      */
     @Override
     void performTokenRequest() throws MsalServiceException, MsalClientException {
@@ -96,6 +106,7 @@ final class SilentRequest extends BaseRequest {
     /**
      * Return the valid AT. If error happens for request sent to token endpoint, remove the stored refresh token if
      * receiving invalid_grant, and re-wrap the exception with high level error as Interaction_required.
+     *
      * @return {@link AuthenticationResult} containing the auth token.
      */
     @Override
@@ -106,23 +117,13 @@ final class SilentRequest extends BaseRequest {
         }
 
         if (!isAccessTokenReturned()) {
-            removeToken();
             throwExceptionFromTokenResponse(mTokenResponse);
         }
 
         return super.postTokenRequest();
     }
 
-    /**
-     * Check the returned token response, if invalid grant is returned, remove the refresh token from cache.
-     */
-    private void removeToken() {
-        final String errorCode = mTokenResponse.getError();
-        if (!OauthConstants.ErrorCode.INVALID_GRANT.equalsIgnoreCase(errorCode)) {
-            Logger.verbose(TAG, mAuthRequestParameters.getRequestContext(), "Received invalid_grant, removing refresh token");
-            return;
-        }
-
-        mAuthRequestParameters.getTokenCache().deleteRT(mRefreshTokenCacheItem);
+    void setIsAuthorityProvided(final boolean isAuthorityProvided) {
+        mIsAuthorityProvided = isAuthorityProvided;
     }
 }

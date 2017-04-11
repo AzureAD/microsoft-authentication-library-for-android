@@ -42,8 +42,8 @@ abstract class BaseRequest {
     private static final String TAG = BaseRequest.class.getSimpleName();
     private static final ExecutorService THREAD_EXECUTOR = Executors.newSingleThreadExecutor();
     private Handler mHandler;
-    private final RequestContext mRequestContext;
 
+    protected final RequestContext mRequestContext;
     protected final AuthenticationRequestParameters mAuthRequestParameters;
     protected final Context mContext;
     protected int mRequestId;
@@ -54,8 +54,13 @@ abstract class BaseRequest {
      * @throws MSALUserCancelException If pre token request fails as user cancels the flow.
      * @throws MsalException If error happens during the pre-process.
      */
-    abstract void preTokenRequest() throws MsalUiRequiredException, MSALUserCancelException,
-            MsalServiceException, MsalClientException;
+    void preTokenRequest() throws MsalUiRequiredException, MSALUserCancelException,
+            MsalServiceException, MsalClientException {
+        mAuthRequestParameters.getAuthority().resolveEndpoints(
+                mAuthRequestParameters.getRequestContext(),
+                mAuthRequestParameters.getLoginHint()
+        );
+    }
 
     /**
      * Abstract method to set the additional body parameters for specific request.
@@ -97,14 +102,8 @@ abstract class BaseRequest {
             @Override
             public void run() {
                 try {
-                    // perform authority validation before doing any token request
-                    mAuthRequestParameters.getAuthority().resolveEndpoints(
-                            mAuthRequestParameters.getRequestContext(),
-                            mAuthRequestParameters.getLoginHint()
-                    );
                     preTokenRequest();
                     performTokenRequest();
-
                     final AuthenticationResult result = postTokenRequest();
 
                     Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Token request succeeds.");
@@ -165,7 +164,7 @@ abstract class BaseRequest {
     void performTokenRequest() throws MsalClientException, MsalServiceException {
         throwIfNetworkNotAvailable();
 
-        final Oauth2Client oauth2Client = new Oauth2Client();
+        final Oauth2Client oauth2Client = new Oauth2Client(mRequestContext);
         buildRequestParameters(oauth2Client);
 
         final TokenResponse tokenResponse;
@@ -194,9 +193,9 @@ abstract class BaseRequest {
         final Authority authority = mAuthRequestParameters.getAuthority();
         authority.updateTenantLessAuthority(new IdToken(mTokenResponse.getRawIdToken()).getTenantId());
         final AccessTokenCacheItem accessTokenCacheItem = tokenCache.saveAccessToken(authority.getAuthority(),
-                mAuthRequestParameters.getClientId(), mTokenResponse);
+                mAuthRequestParameters.getClientId(), mTokenResponse, mRequestContext);
         tokenCache.saveRefreshToken(authority.getAuthorityHost(), mAuthRequestParameters.getClientId(),
-                mTokenResponse);
+                mTokenResponse, mRequestContext);
 
         return new AuthenticationResult(accessTokenCacheItem);
     }
@@ -223,14 +222,14 @@ abstract class BaseRequest {
     void throwExceptionFromTokenResponse(final TokenResponse tokenResponse) throws MsalUiRequiredException, MsalServiceException {
         if (MSALUtils.isEmpty(tokenResponse.getError())) {
             throw new MsalServiceException(MSALError.UNKNOWN_ERROR, "Request failed, but no error returned back from service.", tokenResponse.getHttpStatusCode(),
-                    tokenResponse.getClaims(), null);
+                    null);
         }
 
         if (MSALError.INVALID_GRANT.equals(tokenResponse.getError())) {
-            throw new MsalUiRequiredException(MSALError.INVALID_GRANT, tokenResponse.getErrorDescription(), tokenResponse.getClaims(), null);
+            throw new MsalUiRequiredException(MSALError.INVALID_GRANT, tokenResponse.getErrorDescription(), null);
         }
 
-        throw new MsalServiceException(tokenResponse.getError(), tokenResponse.getErrorDescription(), tokenResponse.getHttpStatusCode(), tokenResponse.getClaims(), null);
+        throw new MsalServiceException(tokenResponse.getError(), tokenResponse.getErrorDescription(), tokenResponse.getHttpStatusCode(), null);
     }
 
     private synchronized Handler getHandler() {

@@ -54,13 +54,15 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
         mAppContext = InstrumentationRegistry.getContext().getApplicationContext();
         mAccessor = new TokenCacheAccessor(mAppContext);
         AndroidTestUtil.removeAllTokens(mAppContext);
+        Telemetry.disableForTest(true);
     }
 
     @After
     public void tearDown() {
         AndroidTestUtil.removeAllTokens(mAppContext);
-        assertTrue(mAccessor.getAllAccessTokens().size() == 0);
-        assertTrue(mAccessor.getAllRefreshTokens().size() == 0);
+        assertTrue(mAccessor.getAllAccessTokens(Telemetry.generateNewRequestId()).size() == 0);
+        assertTrue(mAccessor.getAllRefreshTokens(Telemetry.generateNewRequestId()).size() == 0);
+        Telemetry.disableForTest(false);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -78,17 +80,17 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
 
         final String accessTokenKey1 = "access-token-key1";
         final String accessToken1 = "access-token-1";
-        mAccessor.saveAccessToken(accessTokenKey1, accessToken1);
+        mAccessor.saveAccessToken(accessTokenKey1, accessToken1, AndroidTestUtil.getTestRequestContext());
 
         // verify the access token is saved
-        assertTrue(mAccessor.getAllAccessTokens().size() == 1);
+        assertTrue(mAccessor.getAllAccessTokens(Telemetry.generateNewRequestId()).size() == 1);
 
         final String accessTokenKey2 = "access-token-key2";
         final String accessToken2 = "access-token-2";
-        mAccessor.saveAccessToken(accessTokenKey2, accessToken2);
+        mAccessor.saveAccessToken(accessTokenKey2, accessToken2, AndroidTestUtil.getTestRequestContext());
 
         // verify there are two access token entries in the case
-        assertTrue(mAccessor.getAllAccessTokens().size() == 2);
+        assertTrue(mAccessor.getAllAccessTokens(Telemetry.generateNewRequestId()).size() == 2);
     }
 
     /**
@@ -98,32 +100,32 @@ public final class TokenCacheAccessorTest extends AndroidTestCase {
     public void testSaveRT() throws MsalException {
         final String refreshTokenKey1 = "refresh-token-key1";
         final String refreshToken1 = "refresh-token2";
-        mAccessor.saveRefreshToken(refreshTokenKey1, refreshToken1);
+        mAccessor.saveRefreshToken(refreshTokenKey1, refreshToken1, AndroidTestUtil.getTestRequestContext());
 
-        assertTrue(mAccessor.getAllRefreshTokens().size() == 1);
+        assertTrue(mAccessor.getAllRefreshTokens(Telemetry.generateNewRequestId()).size() == 1);
     }
 
     @Test
     public void testDeleteRTItems() {
         final String refreshTokenKey = "refresh-token-key1";
         final String refreshToken1 = "refresh-token1";
-        mAccessor.saveRefreshToken(refreshTokenKey, refreshToken1);
+        mAccessor.saveRefreshToken(refreshTokenKey, refreshToken1, AndroidTestUtil.getTestRequestContext());
 
-        assertTrue(mAccessor.getAllRefreshTokens().size() == 1);
+        assertTrue(mAccessor.getAllRefreshTokens(Telemetry.generateNewRequestId()).size() == 1);
 
-        mAccessor.deleteRefreshToken(refreshTokenKey);
-        assertTrue(mAccessor.getAllRefreshTokens().size() == 0);
+        mAccessor.deleteRefreshToken(refreshTokenKey, AndroidTestUtil.getTestRequestContext());
+        assertTrue(mAccessor.getAllRefreshTokens(Telemetry.generateNewRequestId()).size() == 0);
     }
 
     @Test
     public void testDeleteATItems() {
         final String accessTokenKey = "access-token-key";
         final String accessToken = "access-token";
-        mAccessor.saveAccessToken(accessTokenKey, accessToken);
+        mAccessor.saveAccessToken(accessTokenKey, accessToken, AndroidTestUtil.getTestRequestContext());
 
-        assertTrue(mAccessor.getAllAccessTokens().size() == 1);
+        assertTrue(mAccessor.getAllAccessTokens(Telemetry.generateNewRequestId()).size() == 1);
 
-        mAccessor.deleteAccessToken(accessTokenKey);
-        assertTrue(mAccessor.getAllAccessTokens().size() == 0);
+        mAccessor.deleteAccessToken(accessTokenKey, AndroidTestUtil.getTestRequestContext());
+        assertTrue(mAccessor.getAllAccessTokens(Telemetry.generateNewRequestId()).size() == 0);
     }
 }

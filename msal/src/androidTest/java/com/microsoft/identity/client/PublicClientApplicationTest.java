@@ -6,6 +6,7 @@ import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
@@ -53,6 +54,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     private static final String[] SCOPE = {"scope1", "scope2"};
     private static final int EXPECTED_USER_SIZE = 3;
     private static final String DEFAULT_TOKEN_ENDPOINT = "/oauth2/v2.0/token";
+    private static final String DEFAULT_CLIENT_INFO = AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID);
 
     @Before
     public void setUp() throws Exception {
@@ -65,6 +67,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         mAppContext = InstrumentationRegistry.getContext().getApplicationContext();
         mRedirectUri = "msauth-client-id://" + mAppContext.getPackageName();
         mTokenCache = new TokenCache(mAppContext);
+        Telemetry.disableForTest(true);
     }
 
     @After
@@ -72,6 +75,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         super.tearDown();
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
         AndroidTestUtil.removeAllTokens(mAppContext);
+        Telemetry.disableForTest(false);
     }
 
     /**
@@ -208,7 +212,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
         users = application.getUsers();
         assertTrue(users.size() == EXPECTED_USER_SIZE);
-        final User userForDisplayable3 = getUser(displayable3, users);
+        final User userForDisplayable3 = application.getUser(MSALUtils.getUniqueUserIdentifier(uniqueId3, uTid3));
         assertNotNull(userForDisplayable3);
         assertTrue(userForDisplayable3.getDisplayableId().equals(displayable3));
         assertTrue(userForDisplayable3.getUserIdentifier().equals(MSALUtils.getUniqueUserIdentifier(uniqueId3, uTid3)));
@@ -220,28 +224,10 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         assertTrue(application.getUsers().size() == EXPECTED_USER_SIZE);
         users = anotherApplication.getUsers();
         assertTrue(users.size() == 1);
-        final User userForAnotherClient = getUser(displayable3, users);
+        final User userForAnotherClient = application.getUser(MSALUtils.getUniqueUserIdentifier(uniqueId3, uTid3));
         assertNotNull(userForAnotherClient);
         assertTrue(userForAnotherClient.getDisplayableId().equals(displayable3));
         assertTrue(userForAnotherClient.getUserIdentifier().equals(MSALUtils.getUniqueUserIdentifier(uniqueId3, uTid3)));
-    }
-
-    /**
-     * From the supplied {@link List} of {@link User}, return the instance with a matching displayableId.
-     *
-     * @param userIdentifier The user identifier, could be either displayableId.
-     * @param users          the list of Users to traverse
-     * @return
-     */
-    private User getUser(final String userIdentifier, final List<User> users) throws MsalClientException {
-        User resultUser = null;
-        for (final User user : users) {
-            if (userIdentifier.equals(user.getDisplayableId())) {
-                resultUser = user;
-                break;
-            }
-        }
-        return resultUser;
     }
 
     /**
@@ -259,7 +245,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
             @Override
             void mockHttpRequest() throws IOException {
-                mockSuccessResponse(convertScopesArrayToString(SCOPE), AndroidTestUtil.ACCESS_TOKEN, null);
+                mockSuccessResponse(convertScopesArrayToString(SCOPE), AndroidTestUtil.ACCESS_TOKEN, DEFAULT_CLIENT_INFO);
             }
 
             @Override
@@ -297,7 +283,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             protected void makeSilentRequest(final PublicClientApplication application, final CountDownLatch silentResultLock)
                     throws IOException, InterruptedException {
                 final String scopeForSilent = "scope3";
-                mockSuccessResponse(scopeForSilent, AndroidTestUtil.ACCESS_TOKEN, null);
+                mockSuccessResponse(scopeForSilent, AndroidTestUtil.ACCESS_TOKEN, DEFAULT_CLIENT_INFO);
 
                 application.acquireTokenSilentAsync(new String[]{scopeForSilent}, mUser, new AuthenticationCallback() {
 
@@ -312,6 +298,154 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     @Override
                     public void onError(MsalException exception) {
                         fail();
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        fail();
+                    }
+                });
+            }
+        }.performTest();
+    }
+
+    @Test
+    public void testClientInfoNotReturned() throws PackageManager.NameNotFoundException, IOException,
+            InterruptedException {
+        new GetTokenBaseTestCase() {
+
+            @Override
+            void mockHttpRequest() throws IOException {
+                final String idToken = TokenCacheTest.getDefaultIdToken();
+                final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithFailureResponse(
+                        HttpURLConnection.HTTP_OK, AndroidTestUtil.getSuccessResponse(idToken, AndroidTestUtil.ACCESS_TOKEN, AndroidTestUtil.REFRESH_TOKEN, ""));
+                Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+                HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
+            }
+
+            @Override
+            void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
+                                      final Activity activity,
+                                      final CountDownLatch releaseLock) {
+                publicClientApplication.acquireToken(activity, SCOPE, new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(AuthenticationResult authenticationResult) {
+                        Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
+                        final User user = authenticationResult.getUser();
+                        Assert.assertTrue(user.getUid().equals(""));
+                        Assert.assertTrue(user.getUtid().equals(""));
+                        Assert.assertTrue(user.getDisplayableId().equals(TokenCacheTest.DISPLAYABLE));
+
+                        releaseLock.countDown();
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        fail("Unexpected Error");
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        fail("Unexpected Cancel");
+                    }
+                });
+            }
+
+            @Override
+            String getFinalAuthUrl() throws UnsupportedEncodingException {
+                return mRedirectUri + "?code=1234&state=" + AndroidTestUtil.encodeProtocolState(
+                        DEFAULT_AUTHORITY, new HashSet<>(Arrays.asList(SCOPE)));
+            }
+        }.performTest();
+    }
+
+    public void testAcquireTokenSilentNoAuthorityProvidedMultipleInTheCache() throws PackageManager.NameNotFoundException, IOException,
+            InterruptedException {
+        new GetTokenBaseTestCase() {
+            private User mUser;
+
+            @Override
+            void mockHttpRequest() throws IOException {
+                mockSuccessResponse(convertScopesArrayToString(SCOPE), AndroidTestUtil.ACCESS_TOKEN, DEFAULT_CLIENT_INFO);
+            }
+
+            @Override
+            void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
+                                      final Activity activity,
+                                      final CountDownLatch releaseLock) {
+                publicClientApplication.acquireToken(activity, SCOPE, new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(AuthenticationResult authenticationResult) {
+                        Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
+                        mUser = authenticationResult.getUser();
+
+                        releaseLock.countDown();
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        fail("Unexpected Error");
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        fail("Unexpected Cancel");
+                    }
+                });
+            }
+
+            @Override
+            String getFinalAuthUrl() throws UnsupportedEncodingException {
+                return mRedirectUri + "?code=1234&state=" + AndroidTestUtil.encodeProtocolState(
+                        DEFAULT_AUTHORITY, new HashSet<>(Arrays.asList(SCOPE)));
+            }
+
+            @Override
+            protected void makeSilentRequest(final PublicClientApplication application, final CountDownLatch silentResultLock)
+                    throws IOException, InterruptedException {
+                AndroidTestMockUtil.mockSuccessTenantDiscovery(SilentRequestTest.AUTHORIZE_ENDPOINT, SilentRequestTest.TOKEN_ENDPOINT);
+                mockSuccessResponse(convertScopesArrayToString(SCOPE), AndroidTestUtil.ACCESS_TOKEN, DEFAULT_CLIENT_INFO);
+                mockSuccessResponse(convertScopesArrayToString(SCOPE), "new access token", DEFAULT_CLIENT_INFO);
+
+                final String anotherAuthority = "https://login.microsoftonline.com/tenant123";
+                final CountDownLatch resultLock = new CountDownLatch(1);
+                application.acquireTokenSilentAsync(SCOPE, mUser, anotherAuthority, true, new AuthenticationCallback() {
+
+                    @Override
+                    public void onSuccess(AuthenticationResult authenticationResult) {
+                        assertTrue(authenticationResult.getAccessToken().equals(AndroidTestUtil.ACCESS_TOKEN));
+                        assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 2);
+                        assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 1);
+                        resultLock.countDown();
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        fail();
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        fail();
+                    }
+                });
+
+                resultLock.await();
+
+                // make another silent request with no authoirty
+                application.acquireTokenSilentAsync(SCOPE, mUser, new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(AuthenticationResult authenticationResult) {
+                        fail();
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        assertTrue(exception instanceof MsalClientException);
+                        assertTrue(exception.getErrorCode().equals(MSALError.MULTIPLE_CACHE_ENTRY_FOUND));
+
+                        assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 1);
+                        silentResultLock.countDown();
                     }
 
                     @Override
@@ -519,7 +653,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
             @Override
             void mockHttpRequest() throws IOException {
-                mockSuccessResponse(convertScopesArrayToString(SCOPE), AndroidTestUtil.ACCESS_TOKEN, null);
+                mockSuccessResponse(convertScopesArrayToString(SCOPE), AndroidTestUtil.ACCESS_TOKEN, DEFAULT_CLIENT_INFO);
             }
 
             @Override
@@ -558,7 +692,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     throws IOException, InterruptedException {
                 final String silentRequestScope = "scope2";
                 final String newAccessToken = "some new access token";
-                mockSuccessResponse(silentRequestScope, newAccessToken, null);
+                AndroidTestMockUtil.mockSuccessTenantDiscovery(SilentRequestTest.AUTHORIZE_ENDPOINT, SilentRequestTest.TOKEN_ENDPOINT);
+                mockSuccessResponse(silentRequestScope, newAccessToken, DEFAULT_CLIENT_INFO);
 
                 application.acquireTokenSilentAsync(new String[]{silentRequestScope}, mUser, null, true, new AuthenticationCallback() {
                     @Override
@@ -640,7 +775,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         AndroidTestMockUtil.mockSuccessTenantDiscovery(SilentRequestTest.AUTHORIZE_ENDPOINT, SilentRequestTest.TOKEN_ENDPOINT);
 
         final String accessToken = "access token from token refresh";
-        mockSuccessResponse("scope1 scope2", accessToken, rawClientInfo);
+        mockSuccessResponse("scope1 scope2", accessToken, DEFAULT_CLIENT_INFO);
         final CountDownLatch silentLock = new CountDownLatch(1);
         application.acquireTokenSilentAsync(new String[]{"scope1", "scope2"}, user, null, true, new AuthenticationCallback() {
             @Override
@@ -847,11 +982,11 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     static void saveTokenResponse(final TokenCache tokenCache, final String authority, final String clientId,
                                   final TokenResponse response) throws MsalException {
-        tokenCache.saveAccessToken(authority, clientId, response);
+        tokenCache.saveAccessToken(authority, clientId, response, AndroidTestUtil.getTestRequestContext());
 
         try {
             final URL authorityUrl = new URL(authority);
-            tokenCache.saveRefreshToken(authorityUrl.getHost(), clientId, response);
+            tokenCache.saveRefreshToken(authorityUrl.getHost(), clientId, response, AndroidTestUtil.getTestRequestContext());
         } catch (MalformedURLException e) {
             throw new MsalClientException(MSALError.MALFORMED_URL, "unable to create url");
         }
@@ -872,6 +1007,9 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         Mockito.when(mockedPackageManager.getApplicationInfo(
                 Mockito.refEq(mAppContext.getPackageName()), Mockito.eq(
                         PackageManager.GET_META_DATA))).thenReturn(applicationInfo);
+
+        final PackageInfo mockedPackageInfo = Mockito.mock(PackageInfo.class);
+        Mockito.when(mockedPackageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt())).thenReturn(mockedPackageInfo);
     }
 
     private void mockHasCustomTabRedirect(final Context context) {

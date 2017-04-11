@@ -32,12 +32,12 @@ import java.util.Set;
 final class AuthenticationRequestParameters {
     private static final String TAG = AuthenticationRequestParameters.class.getSimpleName();
 
-    private final Authority mAuthority;
     private final TokenCache mTokenCache;
     private final Set<String> mScope = new HashSet<>();
     private final String mClientId;
     private final RequestContext mRequestContext;
 
+    private Authority mAuthority;
     private String mRedirectUri;
     private String mLoginHint;
     private String mExtraQueryParam;
@@ -98,6 +98,10 @@ final class AuthenticationRequestParameters {
 
     Authority getAuthority() {
         return mAuthority;
+    }
+
+    void setAuthority(final String authorityString, final boolean isAuthorityValidationOn) {
+        mAuthority = Authority.createAuthority(authorityString, isAuthorityValidationOn);
     }
 
     TokenCache getTokenCache() {

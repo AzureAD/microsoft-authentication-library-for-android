@@ -127,7 +127,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
 
         // make the request
         try {
-            webResponse = HttpRequest.sendGet(requestURL, headers);
+            webResponse = HttpRequest.sendGet(requestURL, headers, getRequestContext());
             final int statusCode = webResponse.getStatusCode();
             if (HttpURLConnection.HTTP_OK == statusCode) {
                 metadata = parseMetadata(webResponse);
