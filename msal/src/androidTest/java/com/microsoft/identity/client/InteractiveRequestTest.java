@@ -60,6 +60,7 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static android.os.Build.VERSION_CODES.M;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -200,6 +201,31 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                 queryStrings.get(OauthConstants.Oauth2Parameters.SCOPE)));
         assertTrue(OauthConstants.PromptValue.LOGIN.equals(queryStrings.get(OauthConstants.Oauth2Parameters.PROMPT)));
         verifyCommonQueryString(queryStrings);
+    }
+
+    @Test
+    public void testDuplicateExtraQp() throws UnsupportedEncodingException {
+        final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
+                getAuthRequestParameters(AUTHORITY, UIBehavior.CONSENT, "&client_id=1234"), null);
+        try {
+            interactiveRequest.appendQueryStringToAuthorizeEndpoint();
+            fail();
+        } catch (final MsalClientException ex) {
+            assertTrue(MSALError.DUPLICATE_QUERY_PARAMETER.equals(ex.getErrorCode()));
+        }
+    }
+
+    @Test
+    public void testRequestContainsValidExtraQp() throws UnsupportedEncodingException {
+        final String extraQp = "&slice=testslice";
+        final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
+                getAuthRequestParameters(AUTHORITY, UIBehavior.CONSENT, extraQp), null);
+        try {
+            final String authorizationRequestUrl = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
+            assertTrue(authorizationRequestUrl.contains(extraQp));
+        } catch (final MsalClientException ex) {
+            fail("unexpected exception message");
+        }
     }
 
     @Test
@@ -779,6 +805,11 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                                                                      final UIBehavior uiBehavior) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(authority, true), new TokenCache(mAppContext), scopes,
                 CLIENT_ID, redirectUri, loginHint, "", uiBehavior, new RequestContext(CORRELATION_ID, "", Telemetry.generateNewRequestId()));
+    }
+
+    private AuthenticationRequestParameters getAuthRequestParameters(final String authority, final UIBehavior uiBehavior, final String extraQp) {
+        return AuthenticationRequestParameters.create(Authority.createAuthority(authority, true), new TokenCache(mAppContext), getScopes(),
+                CLIENT_ID, mRedirectUri, LOGIN_HINT, extraQp, uiBehavior, new RequestContext(CORRELATION_ID, "", Telemetry.generateNewRequestId()));
     }
 
     private Set<String> getScopes() {
