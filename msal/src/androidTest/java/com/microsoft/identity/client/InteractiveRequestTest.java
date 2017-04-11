@@ -683,7 +683,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                     @Override
                     public void onError(MsalException exception) {
                         assertTrue(exception instanceof MsalClientException);
-                        assertTrue(MSALError.STATE_NOT_MATCH.equals(exception.getErrorCode()));
+                        assertTrue(MSALError.STATE_MISMATCH.equals(exception.getErrorCode()));
                         assertTrue(Constants.MsalErrorMessage.STATE_NOT_THE_SAME.equals(exception.getMessage()));
                         countDownLatch.countDown();
                     }
@@ -715,7 +715,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
                     @Override
                     public void onError(MsalException exception) {
-                        assertTrue(MSALError.STATE_NOT_MATCH.equals(exception.getErrorCode()));
+                        assertTrue(MSALError.STATE_MISMATCH.equals(exception.getErrorCode()));
                         assertTrue(Constants.MsalErrorMessage.STATE_NOT_THE_SAME.equals(exception.getMessage()));
                         countDownLatch.countDown();
                     }
@@ -748,7 +748,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
                     @Override
                     public void onError(MsalException exception) {
-                        assertTrue(MSALError.STATE_NOT_MATCH.equals(exception.getErrorCode()));
+                        assertTrue(MSALError.STATE_MISMATCH.equals(exception.getErrorCode()));
                         assertTrue(exception.getMessage().contains(Constants.MsalErrorMessage.STATE_NOT_RETURNED));
                         countDownLatch.countDown();
                     }

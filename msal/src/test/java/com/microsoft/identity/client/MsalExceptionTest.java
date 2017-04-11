@@ -62,8 +62,8 @@ public final class MsalExceptionTest {
     public void testWithErrorCodeAndDescriptAndCause() {
         final Throwable throwable = new Throwable(TEST_ERROR_DESCRIPTION);
         final MsalException msalException = new MsalException(
-                MSALError.UNSUPPORTED_AUTHORITY_VALIDATION_INSTANCE, TEST_ERROR_DESCRIPTION, throwable);
-        Assert.assertTrue(msalException.getErrorCode().equals(MSALError.UNSUPPORTED_AUTHORITY_VALIDATION_INSTANCE));
+                MSALError.AUTHORITY_VALIDATION_NOT_SUPPORTED, TEST_ERROR_DESCRIPTION, throwable);
+        Assert.assertTrue(msalException.getErrorCode().equals(MSALError.AUTHORITY_VALIDATION_NOT_SUPPORTED));
         Assert.assertTrue(msalException.getMessage().equals(TEST_ERROR_DESCRIPTION));
         Assert.assertNotNull(msalException.getCause());
         Assert.assertTrue(msalException.getCause().getMessage().equals(TEST_ERROR_DESCRIPTION));

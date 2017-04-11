@@ -44,7 +44,7 @@ public final class MSALError {
      * There are multiple cache entries found, the sdk cannot pick the correct access token
      * or refresh token from the cache. When this happens, mostly likely it's an bug in the sdk for storing tokens.
      */
-    public final static String MULTIPLE_CACHE_ENTRY_FOUND = "multiple_cache_entry_found";
+    public final static String MULTIPLE_MATCHING_TOKENS_DETECTED = "multiple_matching_tokens_detected";
 
     /**
      * No active network is available on the device.
@@ -85,7 +85,7 @@ public final class MSALError {
      * For authorize request, the sdk will verify the state returned from redirect and the one sent in the request.
      * This error indicates that it doesn't match.
      */
-    public final static String STATE_NOT_MATCH = "state_not_match";
+    public final static String STATE_MISMATCH = "state_mismatch";
 
     /**
      * The intent to launch {@link AuthenticationActivity} is not resolvable by the OS or the intent doesn't contain the required data.
@@ -101,13 +101,18 @@ public final class MSALError {
      * The authority is not supported for authority validation. The sdk supports b2c authority, but we don't support b2c authority validation yet.
      * Only well-known host will be supported.
      */
-    public final static String UNSUPPORTED_AUTHORITY_VALIDATION_INSTANCE = "unsupported_authority_validation_instance";
+    public final static String AUTHORITY_VALIDATION_NOT_SUPPORTED = "authority_validation_not_supported";
 
     /**
      * Indicates that chrome is not installed on the device. The sdk uses chrome custom tab for authorize request if
      * applicable or fall back to chrome browser.
      */
     public final static String CHROME_NOT_INSTALLED = "chrome_not_installed";
+
+    /**
+     * Indicates that extra parameters set by the client app is already sent by the sdk.
+     */
+    public final static String DUPLICATE_QUERY_PARAMETER = "duplicate_query_parameter";
 
     final static String ADFS_AUTHORITY_VALIDATION_FAILED = "adfs_authority_validation_failed";
 

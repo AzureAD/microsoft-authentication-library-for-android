@@ -154,7 +154,7 @@ class TokenCache {
         // User info already provided, if there are multiple items found will throw since we don't what
         // is the one we should use.
         if (refreshTokenCacheItems.size() > 1) {
-            throw new MsalClientException(MSALError.MULTIPLE_CACHE_ENTRY_FOUND, "Multiple token entries found.");
+            throw new MsalClientException(MSALError.MULTIPLE_MATCHING_TOKENS_DETECTED, "Multiple token entries found.");
         }
 
         return refreshTokenCacheItems.get(0);

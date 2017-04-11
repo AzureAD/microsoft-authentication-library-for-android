@@ -52,7 +52,7 @@ public final class B2CAuthorityTest {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "test"), null);
             Assert.fail("Should reach exception");
         } catch (final MsalClientException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.UNSUPPORTED_AUTHORITY_VALIDATION_INSTANCE));
+            Assert.assertTrue(e.getErrorCode().equals(MSALError.AUTHORITY_VALIDATION_NOT_SUPPORTED));
         }
     }
 }
