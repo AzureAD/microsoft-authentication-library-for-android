@@ -60,7 +60,6 @@ public final class AccessTokenCacheItemTest {
 
         Assert.assertTrue(item.getRawClientInfo().equals(AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID)));
         Assert.assertTrue(item.getUserIdentifier().equalsIgnoreCase(MSALUtils.getUniqueUserIdentifier(AndroidTestUtil.UID, AndroidTestUtil.UTID)));
-        Assert.assertTrue(item.getTenantId().equals(TENANT_ID));
         Assert.assertTrue(item.getAccessToken().equals(ACCESS_TOKEN));
     }
 

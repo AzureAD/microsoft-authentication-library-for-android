@@ -99,13 +99,6 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
     }
 
     /**
-     * @return The tenant id.
-     */
-    String getTenantId() throws MsalClientException {
-        return getIdToken().getTenantId();
-    }
-
-    /**
      * @return Scopes in the format of set.
      */
     Set<String> getScope() {
@@ -142,7 +135,7 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
         return expiresOn != null && expiresOn.before(validity);
     }
 
-    private IdToken getIdToken() throws MsalClientException {
+    IdToken getIdToken() throws MsalClientException {
         return new IdToken(mRawIdToken);
     }
 }
