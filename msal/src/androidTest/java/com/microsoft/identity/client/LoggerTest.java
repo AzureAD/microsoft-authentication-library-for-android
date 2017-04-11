@@ -48,8 +48,8 @@ public final class LoggerTest {
     static final String TAG = "someTestTag";
     static final String MESSAGE = "test message";
     static final LogResponse LOG_RESPONSE = new LogResponse();
-    static final RequestContext REQUEST_CONTEXT_WITH_COMPONENT = new RequestContext(CORRELATION_ID, COMPONENT_NAME);
-    static final RequestContext REQUEST_CONTEXT_NO_COMPONENT = new RequestContext(CORRELATION_ID, null);
+    static final RequestContext REQUEST_CONTEXT_WITH_COMPONENT = new RequestContext(CORRELATION_ID, COMPONENT_NAME, Telemetry.generateNewRequestId());
+    static final RequestContext REQUEST_CONTEXT_NO_COMPONENT = new RequestContext(CORRELATION_ID, null, Telemetry.generateNewRequestId());
 
     @BeforeClass
     public static void setUp() {
@@ -129,8 +129,8 @@ public final class LoggerTest {
         verifyLogMessageEmpty(LOG_RESPONSE);
 
         // verify the log message is correctly formatted when no correlation id exists.
-        final RequestContext requestContext = new RequestContext(null, COMPONENT_NAME);
-        Logger.verbose(TAG, new RequestContext(null, COMPONENT_NAME), MESSAGE);
+        final RequestContext requestContext = new RequestContext(null, COMPONENT_NAME, Telemetry.generateNewRequestId());
+        Logger.verbose(TAG, new RequestContext(null, COMPONENT_NAME, Telemetry.generateNewRequestId()), MESSAGE);
         verifyLogMessageFormat(LOG_RESPONSE, MESSAGE, requestContext, null);
 
         // verify the log message is correctly formatted when no request context exists.
@@ -138,7 +138,7 @@ public final class LoggerTest {
         verifyLogMessageFormat(LOG_RESPONSE, MESSAGE, null, null);
 
         // verify the log message is correctly formatted when neither correlation nor component exists
-        final RequestContext requestContextNoCorrelationNoComponent = new RequestContext(null, null);
+        final RequestContext requestContextNoCorrelationNoComponent = new RequestContext(null, null, Telemetry.generateNewRequestId());
         Logger.verbose(TAG, requestContextNoCorrelationNoComponent, MESSAGE);
         verifyLogMessageFormat(LOG_RESPONSE, MESSAGE, requestContextNoCorrelationNoComponent, null);
         LOG_RESPONSE.reset();

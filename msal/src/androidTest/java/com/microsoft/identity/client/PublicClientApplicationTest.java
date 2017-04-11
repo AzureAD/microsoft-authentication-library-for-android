@@ -6,6 +6,7 @@ import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
@@ -64,6 +65,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         mAppContext = InstrumentationRegistry.getContext().getApplicationContext();
         mRedirectUri = "msauth-client-id://" + mAppContext.getPackageName();
         mTokenCache = new TokenCache(mAppContext);
+        Telemetry.disableForTest(true);
     }
 
     @After
@@ -71,6 +73,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         super.tearDown();
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
         AndroidTestUtil.removeAllTokens(mAppContext);
+        Telemetry.disableForTest(false);
     }
 
     /**
@@ -207,7 +210,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
         users = application.getUsers();
         assertTrue(users.size() == EXPECTED_USER_SIZE);
-        final User userForDisplayable3 = getUser(displayable3, users);
+        final User userForDisplayable3 = application.getUser(MSALUtils.getUniqueUserIdentifier(uniqueId3, uTid3));
         assertNotNull(userForDisplayable3);
         assertTrue(userForDisplayable3.getDisplayableId().equals(displayable3));
         assertTrue(userForDisplayable3.getUserIdentifier().equals(MSALUtils.getUniqueUserIdentifier(uniqueId3, uTid3)));
@@ -219,28 +222,10 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         assertTrue(application.getUsers().size() == EXPECTED_USER_SIZE);
         users = anotherApplication.getUsers();
         assertTrue(users.size() == 1);
-        final User userForAnotherClient = getUser(displayable3, users);
+        final User userForAnotherClient = application.getUser(MSALUtils.getUniqueUserIdentifier(uniqueId3, uTid3));
         assertNotNull(userForAnotherClient);
         assertTrue(userForAnotherClient.getDisplayableId().equals(displayable3));
         assertTrue(userForAnotherClient.getUserIdentifier().equals(MSALUtils.getUniqueUserIdentifier(uniqueId3, uTid3)));
-    }
-
-    /**
-     * From the supplied {@link List} of {@link User}, return the instance with a matching displayableId.
-     *
-     * @param userIdentifier The user identifier, could be either displayableId.
-     * @param users          the list of Users to traverse
-     * @return
-     */
-    private User getUser(final String userIdentifier, final List<User> users) throws MsalClientException {
-        User resultUser = null;
-        for (final User user : users) {
-            if (userIdentifier.equals(user.getDisplayableId())) {
-                resultUser = user;
-                break;
-            }
-        }
-        return resultUser;
     }
 
     /**
@@ -724,11 +709,11 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     static void saveTokenResponse(final TokenCache tokenCache, final String authority, final String clientId,
                                   final TokenResponse response) throws MsalException {
-        tokenCache.saveAccessToken(authority, clientId, response);
+        tokenCache.saveAccessToken(authority, clientId, response, AndroidTestUtil.getTestRequestContext());
 
         try {
             final URL authorityUrl = new URL(authority);
-            tokenCache.saveRefreshToken(authorityUrl.getHost(), clientId, response);
+            tokenCache.saveRefreshToken(authorityUrl.getHost(), clientId, response, AndroidTestUtil.getTestRequestContext());
         } catch (MalformedURLException e) {
             throw new MsalClientException(MSALError.MALFORMED_URL, "unable to create url");
         }
@@ -749,6 +734,9 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         Mockito.when(mockedPackageManager.getApplicationInfo(
                 Mockito.refEq(mAppContext.getPackageName()), Mockito.eq(
                         PackageManager.GET_META_DATA))).thenReturn(applicationInfo);
+
+        final PackageInfo mockedPackageInfo = Mockito.mock(PackageInfo.class);
+        Mockito.when(mockedPackageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt())).thenReturn(mockedPackageInfo);
     }
 
     private void mockHasCustomTabRedirect(final Context context) {

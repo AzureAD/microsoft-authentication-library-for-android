@@ -23,34 +23,30 @@
 
 package com.microsoft.identity.client;
 
-import java.util.UUID;
+import android.support.test.runner.AndroidJUnit4;
 
-/**
- * MSAL internal class for representing the request context. It contains correlation id and
- * component name.
- */
+import junit.framework.Assert;
 
-final class RequestContext {
-    private final UUID mCorrelationId;
-    private final String mComponent;
-    private final String mTelemetryRequestId;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-    RequestContext(final UUID correlationId, final String component,
-                   final String telemetryRequestId) {
-        mCorrelationId = correlationId;
-        mComponent = component;
-        mTelemetryRequestId = telemetryRequestId;
+@RunWith(AndroidJUnit4.class)
+public class UiEventTest {
+
+    static final String TEST_EXPECTED_EVENT_NAME = EventConstants.EventName.UI_EVENT;
+    static final boolean TEST_USER_DID_CANCEL = true;
+
+    static UiEvent getTestUiEvent() {
+        return new UiEvent.Builder()
+                .setUserDidCancel()
+                .build();
     }
 
-    UUID getCorrelationId() {
-        return mCorrelationId;
+    @Test
+    public void testUiEventInitializes() {
+        final UiEvent uiEvent = getTestUiEvent();
+        Assert.assertEquals(TEST_EXPECTED_EVENT_NAME, uiEvent.getEventName());
+        Assert.assertEquals(Boolean.valueOf(TEST_USER_DID_CANCEL), uiEvent.userCancelled());
     }
 
-    String getComponent() {
-        return mComponent;
-    }
-
-    String getTelemetryRequestId() {
-        return mTelemetryRequestId;
-    }
 }
