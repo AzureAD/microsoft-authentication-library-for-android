@@ -26,7 +26,7 @@ package com.microsoft.identity.client;
 /**
  * Constants class represents all the errors that could be returned by the sdk.
  */
-public final class MSALError {
+public final class MsalError {
 
     // Error codes for MsalUiRequiredException
     /**

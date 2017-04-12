@@ -49,7 +49,7 @@ class WebFingerMetadataRequestor
     WebFingerMetadata requestMetadata(final WebFingerMetadataRequestParameters webFingerMetadataRequestParameters)
             throws MsalServiceException, MsalClientException {
         final URL domain = webFingerMetadataRequestParameters.getDomain();
-        final DRSMetadata drsMetadata = webFingerMetadataRequestParameters.getDrsMetadata();
+        final DrsMetadata drsMetadata = webFingerMetadataRequestParameters.getDrsMetadata();
         Logger.verbose(TAG, getRequestContext(), "Validating authority for auth endpoint: " + domain.toString());
         try {
             // create the URL
@@ -64,13 +64,13 @@ class WebFingerMetadataRequestor
             if (HttpURLConnection.HTTP_OK != statusCode) { // check 200 OK
                 // non-200 codes mean not valid/trusted
                 // TODO: will error code returned from web finger request? if so we should parse the response
-                throw new MsalServiceException(MSALError.SERVICE_NOT_AVAILABLE, webResponse.getBody(), webResponse.getStatusCode(), null);
+                throw new MsalServiceException(MsalError.SERVICE_NOT_AVAILABLE, webResponse.getBody(), webResponse.getStatusCode(), null);
             }
 
             // parse the response
             return parseMetadata(webResponse);
         } catch (final IOException e) {
-            throw new MsalClientException(MSALError.IO_ERROR, "Received io exception: " + e.getMessage(), e);
+            throw new MsalClientException(MsalError.IO_ERROR, "Received io exception: " + e.getMessage(), e);
         }
     }
 
@@ -111,7 +111,7 @@ class WebFingerMetadataRequestor
                 webFingerMetadata.getLinks().add(linkElement);
             }
         } catch (final JSONException e) {
-            throw new MsalClientException(MSALError.JSON_PARSE_FAILURE);
+            throw new MsalClientException(MsalError.JSON_PARSE_FAILURE);
         }
 
         return webFingerMetadata;
@@ -121,11 +121,11 @@ class WebFingerMetadataRequestor
      * Create the URL used to retrieve the WebFinger metadata.
      *
      * @param resource    the resource to verify
-     * @param drsMetadata the {@link DRSMetadata} to consult
+     * @param drsMetadata the {@link DrsMetadata} to consult
      * @return the URL of the WebFinger document
      * @throws MalformedURLException if the URL could not be constructed
      */
-    static URL buildWebFingerUrl(final URL resource, final DRSMetadata drsMetadata)
+    static URL buildWebFingerUrl(final URL resource, final DrsMetadata drsMetadata)
             throws MalformedURLException {
         final URL passiveAuthEndpoint = new URL(
                 drsMetadata

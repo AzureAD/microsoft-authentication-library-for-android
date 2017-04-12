@@ -61,8 +61,8 @@ public final class TokenCacheKeyTest {
     @Test
     public void testAccessTokenKeyCreationWithUser() throws MsalException, UnsupportedEncodingException {
         final TokenCacheKey accessTokenCacheKey = AccessTokenCacheKey.createTokenCacheKey(AUTHORITY, CLIENT_ID, getScopes(), getUser());
-        Assert.assertTrue(accessTokenCacheKey.toString().equals(MSALUtils.base64UrlEncodeToString(AUTHORITY) + "$" + MSALUtils.base64UrlEncodeToString(CLIENT_ID)
-                + "$" + MSALUtils.base64UrlEncodeToString("scope1 scope2") + "$" + MSALUtils.getUniqueUserIdentifier(AndroidTestUtil.UID, AndroidTestUtil.UTID)));
+        Assert.assertTrue(accessTokenCacheKey.toString().equals(MsalUtils.base64UrlEncodeToString(AUTHORITY) + "$" + MsalUtils.base64UrlEncodeToString(CLIENT_ID)
+                + "$" + MsalUtils.base64UrlEncodeToString("scope1 scope2") + "$" + MsalUtils.getUniqueUserIdentifier(AndroidTestUtil.UID, AndroidTestUtil.UTID)));
     }
 
     @Test
@@ -88,16 +88,16 @@ public final class TokenCacheKeyTest {
         final TokenCacheKey accessTokenCacheKey = AccessTokenCacheKey.createTokenCacheKey(AUTHORITY.toUpperCase(Locale.US), CLIENT_ID.toUpperCase(Locale.US), getScopes(),
                 user);
 
-        Assert.assertTrue(accessTokenCacheKey.toString().equals(MSALUtils.base64UrlEncodeToString(AUTHORITY) + "$" + MSALUtils.base64UrlEncodeToString(CLIENT_ID) + "$"
-                + MSALUtils.base64UrlEncodeToString("scope1 scope2") + "$" + MSALUtils.getUniqueUserIdentifier("UID", "UTID")));
+        Assert.assertTrue(accessTokenCacheKey.toString().equals(MsalUtils.base64UrlEncodeToString(AUTHORITY) + "$" + MsalUtils.base64UrlEncodeToString(CLIENT_ID) + "$"
+                + MsalUtils.base64UrlEncodeToString("scope1 scope2") + "$" + MsalUtils.getUniqueUserIdentifier("UID", "UTID")));
     }
 
     @Test
     public void testRefreshTokenKeyCreation() throws MsalException {
         final User user = getUser();
         final TokenCacheKey refreshTokenCacheKey = RefreshTokenCacheKey.createTokenCacheKey(AUTHORITY_HOST, CLIENT_ID, getUser());
-        Assert.assertTrue(refreshTokenCacheKey.toString().equals(MSALUtils.base64UrlEncodeToString(AUTHORITY_HOST) + "$"
-                + MSALUtils.base64UrlEncodeToString(CLIENT_ID) + "$" + user.getUserIdentifier()));
+        Assert.assertTrue(refreshTokenCacheKey.toString().equals(MsalUtils.base64UrlEncodeToString(AUTHORITY_HOST) + "$"
+                + MsalUtils.base64UrlEncodeToString(CLIENT_ID) + "$" + user.getUserIdentifier()));
     }
 
     @Test
@@ -106,11 +106,11 @@ public final class TokenCacheKeyTest {
                 "version");
         final String clientInfo = AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID);
         final TokenResponse response = new TokenResponse("access_token", idToken, "refresh_token", new Date(), new Date(), new Date(),
-                MSALUtils.convertSetToString(getScopes(), " "), "Bearer", clientInfo);
+                MsalUtils.convertSetToString(getScopes(), " "), "Bearer", clientInfo);
         final RefreshTokenCacheItem item = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, response);
 
-        Assert.assertTrue(item.extractTokenCacheKey().toString().equals(MSALUtils.base64UrlEncodeToString(AUTHORITY_HOST) + "$"
-                + MSALUtils.base64UrlEncodeToString(CLIENT_ID)  + "$" + MSALUtils.getUniqueUserIdentifier(AndroidTestUtil.UID, AndroidTestUtil.UTID)));
+        Assert.assertTrue(item.extractTokenCacheKey().toString().equals(MsalUtils.base64UrlEncodeToString(AUTHORITY_HOST) + "$"
+                + MsalUtils.base64UrlEncodeToString(CLIENT_ID)  + "$" + MsalUtils.getUniqueUserIdentifier(AndroidTestUtil.UID, AndroidTestUtil.UTID)));
     }
 
     @Test
@@ -118,10 +118,10 @@ public final class TokenCacheKeyTest {
         final String idToken = AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", UNIQUE_ID, DISPLAYABLE, "sub", "tenant",
                 "version");
         final TokenResponse response = new TokenResponse("access_token", idToken, "refresh_token", new Date(), new Date(), new Date(),
-                MSALUtils.convertSetToString(getScopes(), " "), "Bearer", null);
+                MsalUtils.convertSetToString(getScopes(), " "), "Bearer", null);
         final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, response);
-        Assert.assertTrue(refreshTokenCacheItem.extractTokenCacheKey().toString().equals(MSALUtils.base64UrlEncodeToString(AUTHORITY_HOST) + "$"
-                + MSALUtils.base64UrlEncodeToString(CLIENT_ID) + "$" + "."));
+        Assert.assertTrue(refreshTokenCacheItem.extractTokenCacheKey().toString().equals(MsalUtils.base64UrlEncodeToString(AUTHORITY_HOST) + "$"
+                + MsalUtils.base64UrlEncodeToString(CLIENT_ID) + "$" + "."));
     }
 
     private Set<String> getScopes() {

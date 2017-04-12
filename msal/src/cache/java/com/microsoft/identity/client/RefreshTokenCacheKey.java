@@ -36,7 +36,7 @@ final class RefreshTokenCacheKey extends TokenCacheKey<RefreshTokenCacheItem> {
     private RefreshTokenCacheKey(final String environment, final String clientId, final String uid, final String utid) {
         super(clientId, uid, utid);
 
-        if (MSALUtils.isEmpty(environment)) {
+        if (MsalUtils.isEmpty(environment)) {
             throw new IllegalArgumentException("environment");
         }
         mEnvironment = environment;
@@ -48,9 +48,9 @@ final class RefreshTokenCacheKey extends TokenCacheKey<RefreshTokenCacheItem> {
 
     public String toString() {
         final StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(MSALUtils.base64UrlEncodeToString(mEnvironment));
+        stringBuilder.append(MsalUtils.base64UrlEncodeToString(mEnvironment));
         stringBuilder.append(TOKEN_CACHE_KEY_DELIMITER);
-        stringBuilder.append(MSALUtils.base64UrlEncodeToString(mClientId));
+        stringBuilder.append(MsalUtils.base64UrlEncodeToString(mClientId));
         stringBuilder.append(TOKEN_CACHE_KEY_DELIMITER);
         stringBuilder.append(mUserIdentifier);
 

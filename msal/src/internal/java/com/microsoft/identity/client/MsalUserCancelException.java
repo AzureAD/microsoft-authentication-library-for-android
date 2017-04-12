@@ -24,29 +24,11 @@
 package com.microsoft.identity.client;
 
 /**
- * Data container for the DRS discovery document.
+ * MSAL internal exception for user cancelling the flow.
  */
-final class DRSMetadata {
+final class MsalUserCancelException extends Exception {
 
-    static final String JSON_KEY_IDENTITY_PROVIDER_SERVICE = "IdentityProviderService";
-
-    private IdentityProviderService mIdentityProviderService;
-
-    /**
-     * Gets the IdentityProviderService.
-     *
-     * @return the IdentityProviderService
-     */
-    IdentityProviderService getIdentityProviderService() {
-        return mIdentityProviderService;
-    }
-
-    /**
-     * Sets the IdentityProviderService.
-     *
-     * @param identityProviderService the IdentityProviderService to set
-     */
-    void setIdentityProviderService(IdentityProviderService identityProviderService) {
-        this.mIdentityProviderService = identityProviderService;
+    MsalUserCancelException() {
+        super();
     }
 }

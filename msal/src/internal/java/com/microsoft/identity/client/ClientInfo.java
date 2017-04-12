@@ -40,19 +40,19 @@ final class ClientInfo {
     private final String mUniqueTenantIdentifier;
 
     ClientInfo(final String rawClientInfo) throws MsalClientException {
-        if (MSALUtils.isEmpty(rawClientInfo)) {
+        if (MsalUtils.isEmpty(rawClientInfo)) {
             mUniqueIdentifier = "";
             mUniqueTenantIdentifier = "";
             return;
         }
 
         // decode the client info first
-        final String decodedClientInfo = new String(Base64.decode(rawClientInfo, Base64.URL_SAFE), Charset.forName(MSALUtils.ENCODING_UTF8));
+        final String decodedClientInfo = new String(Base64.decode(rawClientInfo, Base64.URL_SAFE), Charset.forName(MsalUtils.ENCODING_UTF8));
         final Map<String, String> clientInfoItems;
         try {
-            clientInfoItems = MSALUtils.extractJsonObjectIntoMap(decodedClientInfo);
+            clientInfoItems = MsalUtils.extractJsonObjectIntoMap(decodedClientInfo);
         } catch (final JSONException e) {
-            throw new MsalClientException(MSALError.JSON_PARSE_FAILURE, "Failed to parse the returned raw client info.");
+            throw new MsalClientException(MsalError.JSON_PARSE_FAILURE, "Failed to parse the returned raw client info.");
         }
 
         mUniqueIdentifier = clientInfoItems.get(OauthConstants.ClientInfoClaim.UNIQUE_IDENTIFIER);
@@ -60,10 +60,10 @@ final class ClientInfo {
     }
 
     String getUniqueIdentifier() {
-        return MSALUtils.isEmpty(mUniqueIdentifier) ? "" : mUniqueIdentifier;
+        return MsalUtils.isEmpty(mUniqueIdentifier) ? "" : mUniqueIdentifier;
     }
 
     String getUniqueTenantIdentifier() {
-        return MSALUtils.isEmpty(mUniqueTenantIdentifier) ? "" : mUniqueTenantIdentifier;
+        return MsalUtils.isEmpty(mUniqueTenantIdentifier) ? "" : mUniqueTenantIdentifier;
     }
 }

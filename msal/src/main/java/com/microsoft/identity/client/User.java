@@ -84,7 +84,7 @@ public class User {
      * @return The unique identifier of the user, which is across tenant.
      */
     public String getUserIdentifier() {
-        return MSALUtils.getUniqueUserIdentifier(mUid, mUtid);
+        return MsalUtils.getUniqueUserIdentifier(mUid, mUtid);
     }
 
     // internal methods provided

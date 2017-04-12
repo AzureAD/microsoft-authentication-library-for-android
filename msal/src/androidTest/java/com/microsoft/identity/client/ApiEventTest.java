@@ -82,7 +82,7 @@ public class ApiEventTest {
         Assert.assertEquals(TEST_API_ID, apiEvent.getApiId());
         Assert.assertEquals(TEST_VALIDATION_STATUS, apiEvent.getValidationStatus());
         // Testing token parsing in another test....
-        Assert.assertEquals(MSALUtils.createHash(TEST_LOGIN_HINT), apiEvent.getLoginHint());
+        Assert.assertEquals(MsalUtils.createHash(TEST_LOGIN_HINT), apiEvent.getLoginHint());
         Assert.assertEquals(Boolean.valueOf(TEST_API_CALL_WAS_SUCCESSFUL), apiEvent.wasSuccessful());
     }
 

@@ -77,14 +77,14 @@ final class ApiEvent extends Event {
 
     private void setLoginHint(final String loginHint) {
         try {
-            setProperty(EventProperty.LOGIN_HINT, MSALUtils.createHash(loginHint));
+            setProperty(EventProperty.LOGIN_HINT, MsalUtils.createHash(loginHint));
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
             Logger.info(TAG, null, "Skipping telemetry for LOGIN_HINT");
         }
     }
 
     private void setIdToken(final String rawIdToken) {
-        if (MSALUtils.isEmpty(rawIdToken)) {
+        if (MsalUtils.isEmpty(rawIdToken)) {
             return;
         }
 
@@ -98,8 +98,8 @@ final class ApiEvent extends Event {
         setProperty(EventProperty.IDP_NAME, idToken.getIssuer());
 
         try {
-            setProperty(EventProperty.TENANT_ID, MSALUtils.createHash(idToken.getTenantId()));
-            setProperty(EventProperty.USER_ID, MSALUtils.createHash(idToken.getPreferredName()));
+            setProperty(EventProperty.TENANT_ID, MsalUtils.createHash(idToken.getTenantId()));
+            setProperty(EventProperty.USER_ID, MsalUtils.createHash(idToken.getPreferredName()));
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
             Logger.info(TAG, null, "Skipping TENANT_ID and USER_ID");
         }

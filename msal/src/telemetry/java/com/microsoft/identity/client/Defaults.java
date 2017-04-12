@@ -60,7 +60,7 @@ final class Defaults {
 
         String deviceId;
         try {
-            deviceId = MSALUtils.createHash(
+            deviceId = MsalUtils.createHash(
                     Settings.Secure.getString(
                             context.getContentResolver(),
                             Settings.Secure.ANDROID_ID

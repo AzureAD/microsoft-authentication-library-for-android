@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class ADFSWebFingerValidatorTest {
+public class AdfsWebFingerValidatorTest {
 
     @Before
     public void setUp() {
@@ -44,7 +44,7 @@ public class ADFSWebFingerValidatorTest {
     @Test
     public void testTrustedRealmFieldInitialized()
             throws NoSuchFieldException, IllegalAccessException {
-        Field trustedRealmURI = ADFSWebFingerValidator.class.getDeclaredField("TRUSTED_REALM_REL");
+        Field trustedRealmURI = AdfsWebFingerValidator.class.getDeclaredField("TRUSTED_REALM_REL");
         trustedRealmURI.setAccessible(true);
         Assert.assertEquals(
                 trustedRealmURI.get(null).toString(),
@@ -58,7 +58,7 @@ public class ADFSWebFingerValidatorTest {
         WebFingerMetadata metadata = new WebFingerMetadata();
         Assert.assertEquals(
                 false,
-                ADFSWebFingerValidator.realmIsTrusted(
+                AdfsWebFingerValidator.realmIsTrusted(
                         new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()),
                         testAuthority,
                         metadata
@@ -78,7 +78,7 @@ public class ADFSWebFingerValidatorTest {
         metadata.setLinks(links);
         Assert.assertEquals(
                 true,
-                ADFSWebFingerValidator.realmIsTrusted(
+                AdfsWebFingerValidator.realmIsTrusted(
                         new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()),
                         testAuthority,
                         metadata
@@ -94,7 +94,7 @@ public class ADFSWebFingerValidatorTest {
         metadata.setLinks(links);
         Assert.assertEquals(
                 false,
-                ADFSWebFingerValidator.realmIsTrusted(
+                AdfsWebFingerValidator.realmIsTrusted(
                         new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()),
                         testAuthority,
                         metadata
