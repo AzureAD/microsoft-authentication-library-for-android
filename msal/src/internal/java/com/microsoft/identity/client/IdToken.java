@@ -55,7 +55,7 @@ final class IdToken {
         // set all the instance variables.
         final Map<String, String> idTokenItems = parseJWT(rawIdToken);
         if (idTokenItems == null || idTokenItems.isEmpty()) {
-            throw new MsalClientException(MSALError.INVALID_JWT, "Empty Id token returned from server.");
+            throw new MsalClientException(MsalClientException.INVALID_JWT, "Empty Id token returned from server.");
         }
 
         mIssuer = idTokenItems.get(IdTokenClaim.ISSUER);
@@ -112,7 +112,7 @@ final class IdToken {
             final String decodedBody = new String(data, Charset.forName(MSALUtils.ENCODING_UTF8));
             return MSALUtils.extractJsonObjectIntoMap(decodedBody);
         } catch (final JSONException e) {
-            throw new MsalClientException(MSALError.INVALID_JWT, "Failed to extract Json object " + e.getMessage(), e);
+            throw new MsalClientException(MsalClientException.INVALID_JWT, "Failed to extract Json object " + e.getMessage(), e);
         }
     }
 
@@ -124,7 +124,7 @@ final class IdToken {
         if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
             return idToken.substring(firstDot + 1, secondDot);
         } else {
-            throw new MsalClientException(MSALError.INVALID_JWT, "Failed to parse id token.", null);
+            throw new MsalClientException(MsalClientException.INVALID_JWT, "Failed to parse id token.", null);
         }
     }
 

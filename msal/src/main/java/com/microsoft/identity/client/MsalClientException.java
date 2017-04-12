@@ -51,6 +51,86 @@ package com.microsoft.identity.client;
  * </p>
  */
 public final class MsalClientException extends MsalException {
+    /**
+     * There are multiple cache entries found, the sdk cannot pick the correct access token
+     * or refresh token from the cache. When this happens, mostly likely it's an bug in the sdk for storing tokens.
+     */
+    public final static String MULTIPLE_MATCHING_TOKENS_DETECTED = "multiple_matching_tokens_detected";
+
+    /**
+     * No active network is available on the device.
+     */
+    public final static String DEVICE_NETWORK_NOT_AVAILABLE = "device_network_not_available";
+
+    /**
+     * Indicates that the sdk failed to parse the Json format
+     */
+    public final static String JSON_PARSE_FAILURE = "json_parse_failure";
+
+    /**
+     * Indicates that IOException happened, could be the device/network errors.
+     */
+    public final static String IO_ERROR = "io_error";
+
+    /**
+     * Indicates that the url is malformed.
+     */
+    public final static String MALFORMED_URL = "malformed_url";
+
+    /**
+     * Indicates that the encoding is not supported by the device.
+     */
+    public final static String UNSUPPORTED_ENCODING = "unsupported_encoding";
+
+    /**
+     * Indicates the algorithm used to generate pkce challenge is not supported.
+     */
+    public final static String NO_SUCH_ALGORITHM = "no_such_algorithm";
+
+    /**
+     * JWT returned by the server is not valid, empty or malformed.
+     */
+    public final static String INVALID_JWT = "invalid_jwt";
+
+    /**
+     * For authorize request, the sdk will verify the state returned from redirect and the one sent in the request.
+     * This error indicates that it doesn't match.
+     */
+    public final static String STATE_MISMATCH = "state_mismatch";
+
+    /**
+     * The intent to launch {@link AuthenticationActivity} is not resolvable by the OS or the intent doesn't contain the required data.
+     */
+    public final static String UNRESOLVABLE_INTENT = "unresolvable_intent";
+
+    /**
+     * The url is not supported, Authority URL/URI must be RFC 2396 compliant to use AD FS validation.
+     */
+    public final static String UNSUPPORTED_URL = "unsupported_url";
+
+    /**
+     * The authority is not supported for authority validation. The sdk supports b2c authority, but we don't support b2c authority validation yet.
+     * Only well-known host will be supported.
+     */
+    public final static String AUTHORITY_VALIDATION_NOT_SUPPORTED = "authority_validation_not_supported";
+
+    /**
+     * Indicates that chrome is not installed on the device. The sdk uses chrome custom tab for authorize request if
+     * applicable or fall back to chrome browser.
+     */
+    public final static String CHROME_NOT_INSTALLED = "chrome_not_installed";
+
+    /**
+     * Indicates that the user provided in the acquire token request doesn't match the user returned from server.
+     */
+    public final static String USER_MISMATCH = "user_mismatch";
+
+    /**
+     * Indicates that extra parameters set by the client app is already sent by the sdk.
+     */
+    public final static String DUPLICATE_QUERY_PARAMETER = "duplicate_query_parameter";
+
+    final static String ADFS_AUTHORITY_VALIDATION_FAILED = "adfs_authority_validation_failed";
 
     MsalClientException(final String errorCode) {
         super(errorCode);

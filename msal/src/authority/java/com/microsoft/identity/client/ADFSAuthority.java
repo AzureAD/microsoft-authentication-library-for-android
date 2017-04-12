@@ -101,13 +101,13 @@ final class ADFSAuthority extends Authority {
             try {
                 authorityURI = mAuthorityUrl.toURI();
             } catch (final URISyntaxException e) {
-                throw new MsalClientException(MSALError.UNSUPPORTED_URL, "Authority url cannot be constructed to be URI. ", e);
+                throw new MsalClientException(MsalClientException.UNSUPPORTED_URL, "Authority url cannot be constructed to be URI. ", e);
             }
 
             // Verify trust
             if (!ADFSWebFingerValidator.realmIsTrusted(requestContext, authorityURI, webFingerMetadata)) {
                 // TODO: we need to read the error and error description, the current error code is not exposed yet.
-                throw new MsalClientException(MSALError.ADFS_AUTHORITY_VALIDATION_FAILED, "Realm is not trusted, adfs authority validation failed.");
+                throw new MsalClientException(MsalClientException.ADFS_AUTHORITY_VALIDATION_FAILED, "Realm is not trusted, adfs authority validation failed.");
             }
         }
 

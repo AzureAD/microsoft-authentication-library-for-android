@@ -93,7 +93,7 @@ final class InteractiveRequest extends BaseRequest {
             Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Prepare authorize request uri for interactive flow.");
             authorizeUri = appendQueryStringToAuthorizeEndpoint();
         } catch (final UnsupportedEncodingException e) {
-            throw new MsalClientException(MSALError.UNSUPPORTED_ENCODING, e.getMessage(), e);
+            throw new MsalClientException(MsalClientException.UNSUPPORTED_ENCODING, e.getMessage(), e);
         }
 
         final Intent intentToLaunch = new Intent(mContext, AuthenticationActivity.class);
@@ -105,7 +105,7 @@ final class InteractiveRequest extends BaseRequest {
         );
 
         if (!resolveIntent(intentToLaunch)) {
-            throw new MsalClientException(MSALError.UNRESOLVABLE_INTENT, "The intent is not resolvable");
+            throw new MsalClientException(MsalClientException.UNRESOLVABLE_INTENT, "The intent is not resolvable");
         }
 
         throwIfNetworkNotAvailable();
@@ -207,7 +207,7 @@ final class InteractiveRequest extends BaseRequest {
             final Set<Map.Entry<String, String>> extraQpEntries = extraQps.entrySet();
             for (final Map.Entry<String, String> extraQpEntry : extraQpEntries) {
                 if (requestParameters.containsKey(extraQpEntry.getKey())) {
-                    throw new MsalClientException(MSALError.DUPLICATE_QUERY_PARAMETER, "Extra query parameter " + extraQpEntry.getKey() + " is already sent by "
+                    throw new MsalClientException(MsalClientException.DUPLICATE_QUERY_PARAMETER, "Extra query parameter " + extraQpEntry.getKey() + " is already sent by "
                             + "the SDK. ");
                 }
 
@@ -259,7 +259,7 @@ final class InteractiveRequest extends BaseRequest {
             MsalServiceException, MsalClientException {
         if (authorizationResult == null) {
             Logger.error(TAG, mAuthRequestParameters.getRequestContext(), "Authorization result is null", null);
-            throw new MsalClientException(MSALError.UNKNOWN_ERROR, "Receives empty result for authorize request");
+            throw new MsalClientException(MsalServiceException.UNKNOWN_ERROR, "Receives empty result for authorize request");
         }
 
         final AuthorizationResult.AuthorizationStatus status = authorizationResult.getAuthorizationStatus();
@@ -289,13 +289,13 @@ final class InteractiveRequest extends BaseRequest {
 
         if (stateMap.size() != 2
                 || !mAuthRequestParameters.getAuthority().getAuthority().equals(stateMap.get("a"))) {
-            throw new MsalClientException(MSALError.STATE_MISMATCH, Constants.MsalErrorMessage.STATE_NOT_THE_SAME);
+            throw new MsalClientException(MsalClientException.STATE_MISMATCH, Constants.MsalErrorMessage.STATE_NOT_THE_SAME);
         }
 
         final Set<String> scopesInState = MSALUtils.getScopesAsSet(stateMap.get("r"));
         final Set<String> scopesInRequest = mAuthRequestParameters.getScope();
         if (scopesInState.size() != scopesInRequest.size() && !scopesInState.containsAll(scopesInRequest)) {
-            throw new MsalClientException(MSALError.STATE_MISMATCH, Constants.MsalErrorMessage.STATE_NOT_THE_SAME);
+            throw new MsalClientException(MsalClientException.STATE_MISMATCH, Constants.MsalErrorMessage.STATE_NOT_THE_SAME);
         }
     }
 
@@ -399,9 +399,9 @@ final class InteractiveRequest extends BaseRequest {
                 byte[] digestBytes = digester.digest();
                 return Base64.encodeToString(digestBytes, ENCODE_MASK);
             } catch (final NoSuchAlgorithmException e) {
-                throw new MsalClientException(MSALError.NO_SUCH_ALGORITHM, "Failed to generate the code verifier challenge", e);
+                throw new MsalClientException(MsalClientException.NO_SUCH_ALGORITHM, "Failed to generate the code verifier challenge", e);
             } catch (final UnsupportedEncodingException e) {
-                throw new MsalClientException(MSALError.UNSUPPORTED_ENCODING,
+                throw new MsalClientException(MsalClientException.UNSUPPORTED_ENCODING,
                         "Every implementation of the Java platform is required to support ISO-8859-1."
                                 + "Consult the release documentation for your implementation.", e);
             }
@@ -421,7 +421,7 @@ final class InteractiveRequest extends BaseRequest {
 
         void startActivityForResult(final Intent intent, int requestCode) throws MsalClientException {
             if (mReferencedActivity.get() == null) {
-                throw new MsalClientException(MSALError.UNRESOLVABLE_INTENT, "The referenced object is already being garbage collected.");
+                throw new MsalClientException(MsalClientException.UNRESOLVABLE_INTENT, "The referenced object is already being garbage collected.");
             }
 
             mReferencedActivity.get().startActivityForResult(intent, requestCode);

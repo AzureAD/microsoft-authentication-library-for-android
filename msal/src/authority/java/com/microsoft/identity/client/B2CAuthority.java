@@ -74,7 +74,7 @@ final class B2CAuthority extends AADAuthority {
         if (mValidateAuthority && !TRUSTED_HOST_SET.contains(mAuthorityUrl.getAuthority())) {
             // we don't support b2c authority validation for BUILD.
             Logger.error(TAG, null, "Authority validation is not supported for b2c authority.", null);
-            throw new MsalClientException(MSALError.AUTHORITY_VALIDATION_NOT_SUPPORTED, "Authority validation cannot be done against B2c instance.");
+            throw new MsalClientException(MsalClientException.AUTHORITY_VALIDATION_NOT_SUPPORTED, "Authority validation cannot be done against B2c instance.");
         }
 
         return getDefaultOpenIdConfigurationEndpoint();

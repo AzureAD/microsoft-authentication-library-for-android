@@ -96,7 +96,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
         try {
             return requestDrsDiscoveryInternal(CLOUD, domain);
         } catch (UnknownHostException e) {
-            throw new MsalClientException(MSALError.IO_ERROR, "Cannot resolve the host. ", e);
+            throw new MsalClientException(MsalClientException.IO_ERROR, "Cannot resolve the host. ", e);
         }
     }
 
@@ -109,7 +109,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
             requestURL = new URL(buildRequestUrlByType(type, domain));
         } catch (MalformedURLException e) {
             // DRS metadata URL invalid
-            throw new MsalClientException(MSALError.UNSUPPORTED_URL, "Drs metadata url is invalid", e);
+            throw new MsalClientException(MsalClientException.UNSUPPORTED_URL, "Drs metadata url is invalid", e);
         }
 
         // init the headers to use in the request
@@ -135,12 +135,12 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
                 // unexpected status code
                 // TODO: Does adfs authority validation returns the error and error description? If so, we should get a list
                 // of possible erros.
-                throw new MsalServiceException(MSALError.SERVICE_NOT_AVAILABLE, "Unexpected error code: [" + webResponse.getBody() + "]", webResponse.getStatusCode(), null);
+                throw new MsalServiceException(MsalServiceException.SERVICE_NOT_AVAILABLE, "Unexpected error code: [" + webResponse.getBody() + "]", webResponse.getStatusCode(), null);
             }
         } catch (UnknownHostException e) {
             throw e;
         } catch (IOException e) {
-            throw new MsalClientException(MSALError.IO_ERROR, "Unexpected error", e);
+            throw new MsalClientException(MsalClientException.IO_ERROR, "Unexpected error", e);
         }
 
         return metadata;
@@ -197,7 +197,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
             drsMetadata.getIdentityProviderService()
                     .setPassiveAuthEndpoint(passiveAuthEndpoint);
         } catch (final JSONException e) {
-            throw new MsalClientException(MSALError.JSON_PARSE_FAILURE, "Failed to parse the Json response", e);
+            throw new MsalClientException(MsalClientException.JSON_PARSE_FAILURE, "Failed to parse the Json response", e);
         }
 
         return drsMetadata;

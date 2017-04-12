@@ -266,7 +266,7 @@ public final class AuthorityTest {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()), null);
             Assert.fail();
         } catch (final MsalServiceException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.INVALID_REQUEST));
+            Assert.assertTrue(e.getErrorCode().equals(MsalServiceException.INVALID_REQUEST));
         }
     }
 
@@ -283,7 +283,7 @@ public final class AuthorityTest {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()), null);
             Assert.fail();
         } catch (final MsalException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.JSON_PARSE_FAILURE));
+            Assert.assertTrue(e.getErrorCode().equals(MsalClientException.JSON_PARSE_FAILURE));
         }
     }
 
@@ -301,7 +301,7 @@ public final class AuthorityTest {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()), null);
             Assert.fail();
         } catch (final MsalException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.REQUEST_TIMEOUT));
+            Assert.assertTrue(e.getErrorCode().equals(MsalServiceException.REQUEST_TIMEOUT));
             Assert.assertNotNull(e.getCause());
             Assert.assertTrue(e.getCause() instanceof SocketTimeoutException);
         }
@@ -321,7 +321,7 @@ public final class AuthorityTest {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()), null);
             Assert.fail();
         } catch (final MsalServiceException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.INVALID_INSTANCE));
+            Assert.assertTrue(e.getErrorCode().equals(MsalServiceException.INVALID_INSTANCE));
         }
     }
 
@@ -339,7 +339,7 @@ public final class AuthorityTest {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()), null);
             Assert.fail();
         } catch (final MsalException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.JSON_PARSE_FAILURE));
+            Assert.assertTrue(e.getErrorCode().equals(MsalClientException.JSON_PARSE_FAILURE));
         }
     }
 
@@ -359,7 +359,7 @@ public final class AuthorityTest {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()), null);
             Assert.fail();
         } catch (final MsalException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.REQUEST_TIMEOUT));
+            Assert.assertTrue(e.getErrorCode().equals(MsalServiceException.REQUEST_TIMEOUT));
             Assert.assertNotNull(e.getCause());
             Assert.assertTrue(e.getCause() instanceof SocketTimeoutException);
         }

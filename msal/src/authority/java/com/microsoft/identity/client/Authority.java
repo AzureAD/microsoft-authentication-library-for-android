@@ -145,7 +145,7 @@ abstract class Authority {
             oauth2Client.addHeader(OauthConstants.OauthHeader.CORRELATION_ID, requestContext.getCorrelationId().toString());
             tenantDiscoveryResponse = oauth2Client.discoverEndpoints(new URL(openIdConfigurationEndpoint));
         } catch (final IOException ioException) {
-            throw new MsalClientException(MSALError.IO_ERROR, ioException.getMessage(), ioException);
+            throw new MsalClientException(MsalClientException.IO_ERROR, ioException.getMessage(), ioException);
         }
 
         if (MSALUtils.isEmpty(tenantDiscoveryResponse.getAuthorizationEndpoint())
@@ -155,7 +155,7 @@ abstract class Authority {
                         tenantDiscoveryResponse.getHttpStatusCode(), null);
             }
 
-            throw new MsalServiceException(MSALError.UNKNOWN_ERROR, "Didn't receive either success or failure response from server",
+            throw new MsalServiceException(MsalServiceException.UNKNOWN_ERROR, "Didn't receive either success or failure response from server",
                     tenantDiscoveryResponse.getHttpStatusCode(), null);
         }
 
@@ -246,7 +246,7 @@ abstract class Authority {
             mAuthorityUrl = new URL(authorityString);
             mIsTenantless = false;
         } catch (final MalformedURLException e) {
-            throw new MsalClientException(MSALError.MALFORMED_URL, "Fail to update tenant id for tenant less authority, ", e);
+            throw new MsalClientException(MsalClientException.MALFORMED_URL, "Fail to update tenant id for tenant less authority, ", e);
         }
     }
 

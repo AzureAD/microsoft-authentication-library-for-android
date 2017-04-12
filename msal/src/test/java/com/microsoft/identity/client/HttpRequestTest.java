@@ -475,7 +475,7 @@ public final class HttpRequestTest {
             Assert.fail("Expect MsalException to be thrown.");
         } catch (final MsalServiceException e) {
             Assert.assertNotNull(e);
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.SERVICE_NOT_AVAILABLE));
+            Assert.assertTrue(e.getErrorCode().equals(MsalServiceException.SERVICE_NOT_AVAILABLE));
             Assert.assertTrue(e.getHttpStatusCode() == HttpURLConnection.HTTP_UNAVAILABLE);
         }
 
@@ -517,7 +517,7 @@ public final class HttpRequestTest {
             Assert.fail("Expect MsalException to be thrown.");
         } catch (final MsalServiceException e) {
             Assert.assertNotNull(e);
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.SERVICE_NOT_AVAILABLE));
+            Assert.assertTrue(e.getErrorCode().equals(MsalServiceException.SERVICE_NOT_AVAILABLE));
             Assert.assertTrue(e.getHttpStatusCode() == HttpURLConnection.HTTP_GATEWAY_TIMEOUT);
         }
 

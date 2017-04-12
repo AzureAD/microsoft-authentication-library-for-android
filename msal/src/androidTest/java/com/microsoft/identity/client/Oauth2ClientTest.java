@@ -167,7 +167,7 @@ public final class Oauth2ClientTest {
             oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT));
             Assert.fail();
         } catch (final MsalServiceException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.REQUEST_TIMEOUT));
+            Assert.assertTrue(e.getErrorCode().equals(MsalServiceException.REQUEST_TIMEOUT));
             Assert.assertNotNull(e.getCause());
             Assert.assertTrue(e.getCause() instanceof SocketTimeoutException);
         }
@@ -193,7 +193,7 @@ public final class Oauth2ClientTest {
             oauth2Client.getToken(getAuthority(AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT));
             Assert.fail();
         } catch (final MsalServiceException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MSALError.SERVICE_NOT_AVAILABLE));
+            Assert.assertTrue(e.getErrorCode().equals(MsalServiceException.SERVICE_NOT_AVAILABLE));
         }
     }
 

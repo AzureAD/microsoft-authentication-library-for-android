@@ -53,6 +53,46 @@ package com.microsoft.identity.client;
  * </li>
  */
 public final class MsalServiceException extends MsalException {
+    /**
+     * This request is missing a required parameter, include an invalid parameter value, include a parameter more than
+     * once or is otherwise malformed
+     */
+    public final static String INVALID_REQUEST = "invalid_request";
+
+    /**
+     * The client is not authorized to request an authorization code.
+     */
+    public final static String UNAUTHORIZED_CLIENT = "unauthorized_client";
+
+    /**
+     * The resource owner or authorization server denied the request.
+     */
+    public final static String ACCESS_DENIED = "access_denied";
+
+    /**
+     * The request scope is invalid, unknown or malformed.
+     */
+    public final static String INVALID_SCOPE = "invalid_scope";
+
+    /**
+     * This is to represent 500/503/504.
+     */
+    public final static String SERVICE_NOT_AVAILABLE = "service_not_available";
+
+    /**
+     * This is to represent {@link java.net.SocketTimeoutException}.
+     */
+    public final static String REQUEST_TIMEOUT = "request_timeout";
+
+    /**
+     * This is returned when authority validation fails.
+     */
+    public final static String INVALID_INSTANCE = "invalid_instance";
+
+    /**
+     * Request to server failed, but no error and error_description is returned back from the service。
+     */
+    public final static String UNKNOWN_ERROR = "unknown_error";
 
     private final int mHttpStatusCode;
 

@@ -441,7 +441,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     @Override
                     public void onError(MsalException exception) {
                         assertTrue(exception instanceof MsalClientException);
-                        assertTrue(exception.getErrorCode().equals(MSALError.MULTIPLE_MATCHING_TOKENS_DETECTED));
+                        assertTrue(exception.getErrorCode().equals(MsalClientException.MULTIPLE_MATCHING_TOKENS_DETECTED));
 
                         assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 1);
                         silentResultLock.countDown();
@@ -494,7 +494,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                         assertTrue(exception instanceof MsalServiceException);
 
                         final MsalServiceException serviceException = (MsalServiceException) exception;
-                        assertTrue(MSALError.INVALID_REQUEST.equals(serviceException.getErrorCode()));
+                        assertTrue(MsalServiceException.INVALID_REQUEST.equals(serviceException.getErrorCode()));
                         assertTrue(!serviceException.getMessage().isEmpty());
                         assertTrue(serviceException.getHttpStatusCode() == HttpURLConnection.HTTP_BAD_REQUEST);
                         releaseLock.countDown();
@@ -618,7 +618,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                             public void onError(MsalException exception) {
                                 try {
                                     assertTrue(exception instanceof MsalClientException);
-                                    assertTrue(exception.getErrorCode().equals(MSALError.AUTHORITY_VALIDATION_NOT_SUPPORTED));
+                                    assertTrue(exception.getErrorCode().equals(MsalClientException.AUTHORITY_VALIDATION_NOT_SUPPORTED));
                                 } finally {
                                     releaseLock.countDown();
                                 }
@@ -744,7 +744,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             @Override
             public void onError(MsalException exception) {
                 assertTrue(exception instanceof MsalUiRequiredException);
-                assertTrue(exception.getErrorCode().equals(MSALError.NO_TOKENS_FOUND));
+                assertTrue(exception.getErrorCode().equals(MsalUiRequiredException.NO_TOKENS_FOUND));
                 assertNull(exception.getCause());
                 silentLock.countDown();
             }
@@ -900,7 +900,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     @Override
                     public void onError(MsalException exception) {
                         assertTrue(exception instanceof MsalClientException);
-                        assertTrue(exception.getErrorCode().equals(MSALError.USER_MISMATCH));
+                        assertTrue(exception.getErrorCode().equals(MsalClientException.USER_MISMATCH));
 
                         // verify that no token is stored.
                         Assert.assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 0);
@@ -949,7 +949,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     @Override
                     public void onError(MsalException exception) {
                         assertTrue(exception instanceof MsalServiceException);
-                        assertTrue(exception.getErrorCode().equals(MSALError.INVALID_REQUEST));
+                        assertTrue(exception.getErrorCode().equals(MsalServiceException.INVALID_REQUEST));
                         releaseLock.countDown();
                     }
 
@@ -987,7 +987,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             final URL authorityUrl = new URL(authority);
             tokenCache.saveRefreshToken(authorityUrl.getHost(), clientId, response, AndroidTestUtil.getTestRequestContext());
         } catch (MalformedURLException e) {
-            throw new MsalClientException(MSALError.MALFORMED_URL, "unable to create url");
+            throw new MsalClientException(MsalClientException.MALFORMED_URL, "unable to create url");
         }
     }
 

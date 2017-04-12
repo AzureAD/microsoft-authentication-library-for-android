@@ -79,7 +79,7 @@ final class AuthorizationResult {
         }
 
         return new AuthorizationResult(AuthorizationStatus.FAIL,
-                MSALError.UNKNOWN_ERROR, "Unknown result code [" + resultCode + "] returned from system webview.");
+                MsalServiceException.UNKNOWN_ERROR, "Unknown result code [" + resultCode + "] returned from system webview.");
     }
 
     public static AuthorizationResult parseAuthorizationResponse(final String returnUri) {
@@ -96,7 +96,7 @@ final class AuthorizationResult {
                 final String state = urlParameters.get(OauthConstants.TokenResponseClaim.STATE);
                 if (MSALUtils.isEmpty(state)) {
                     Logger.warning(TAG, null, "State parameter is not returned from the webview redirect.");
-                    authorizationResult = new AuthorizationResult(AuthorizationStatus.FAIL, MSALError.STATE_MISMATCH,
+                    authorizationResult = new AuthorizationResult(AuthorizationStatus.FAIL, MsalClientException.STATE_MISMATCH,
                             Constants.MsalErrorMessage.STATE_NOT_RETURNED);
                 } else {
                     Logger.info(TAG, null, "Auth code is successfully returned from webview redirect.");
