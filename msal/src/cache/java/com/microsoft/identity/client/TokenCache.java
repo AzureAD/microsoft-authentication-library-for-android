@@ -154,8 +154,8 @@ class TokenCache {
         }
 
         if (matchingATs.size() > 1) {
-            Logger.error(TAG, requestParameters.getRequestContext(), "Authority is not provided for the silent request. Multiple matching token entries found.", null);
-            throw new MsalClientException(MSALError.MULTIPLE_CACHE_ENTRY_FOUND, "Authority is not provided for the silent request. There are multiple matching token cache entries found. ");
+            Logger.error(TAG, requestParameters.getRequestContext(), "Authority is not provided for the silent request. Multiple matching tokens were detected.", null);
+            throw new MsalClientException(MSALError.MULTIPLE_MATCHING_TOKENS_DETECTED, "Authority is not provided for the silent request. There are multiple matching tokens detected. ");
         }
 
         final AccessTokenCacheItem tokenCacheItem = matchingATs.get(0);
@@ -184,7 +184,7 @@ class TokenCache {
         // User info already provided, if there are multiple items found will throw since we don't what
         // is the one we should use.
         if (refreshTokenCacheItems.size() > 1) {
-            throw new MsalClientException(MSALError.MULTIPLE_CACHE_ENTRY_FOUND, "Multiple token entries found.");
+            throw new MsalClientException(MSALError.MULTIPLE_MATCHING_TOKENS_DETECTED, "Multiple tokens were detected.");
         }
 
         return refreshTokenCacheItems.get(0);

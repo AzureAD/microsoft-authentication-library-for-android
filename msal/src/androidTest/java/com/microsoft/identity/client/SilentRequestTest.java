@@ -397,7 +397,7 @@ public final class SilentRequestTest extends AndroidTestCase {
             public void onError(MsalException exception) {
                 assertTrue(exception instanceof MsalClientException);
                 final MsalClientException msalClientException = (MsalClientException) exception;
-                assertTrue(msalClientException.getErrorCode().equals(MSALError.MULTIPLE_CACHE_ENTRY_FOUND));
+                assertTrue(msalClientException.getErrorCode().equals(MSALError.MULTIPLE_MATCHING_TOKENS_DETECTED));
                 resultLock.countDown();
             }
 

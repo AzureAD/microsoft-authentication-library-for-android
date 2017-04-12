@@ -165,16 +165,6 @@ final class InteractiveRequest extends BaseRequest {
                 mAuthRequestParameters.getAuthority().getAuthorizeEndpoint(),
                 createAuthorizationRequestParameters());
 
-        final String extraQP = mAuthRequestParameters.getExtraQueryParam();
-        if (!MSALUtils.isEmpty(extraQP)) {
-            String parsedQP = extraQP;
-            if (!extraQP.startsWith("&")) {
-                parsedQP = "&" + parsedQP;
-            }
-
-            authorizationUrl += parsedQP;
-        }
-
         Logger.infoPII(TAG, mAuthRequestParameters.getRequestContext(), "Request uri to authorize endpoint is: " + authorizationUrl);
         return authorizationUrl;
     }
@@ -210,6 +200,20 @@ final class InteractiveRequest extends BaseRequest {
 
         // Enforce session continuation if user is provided in the API request
         addSessionContinuationQps(requestParameters);
+
+        // adding extra qp
+        if (!MSALUtils.isEmpty(mAuthRequestParameters.getExtraQueryParam())) {
+            final Map<String, String> extraQps = MSALUtils.decodeUrlToMap(mAuthRequestParameters.getExtraQueryParam(), "&");
+            final Set<Map.Entry<String, String>> extraQpEntries = extraQps.entrySet();
+            for (final Map.Entry<String, String> extraQpEntry : extraQpEntries) {
+                if (requestParameters.containsKey(extraQpEntry.getKey())) {
+                    throw new MsalClientException(MSALError.DUPLICATE_QUERY_PARAMETER, "Extra query parameter " + extraQpEntry.getKey() + " is already sent by "
+                            + "the SDK. ");
+                }
+
+                requestParameters.put(extraQpEntry.getKey(), extraQpEntry.getValue());
+            }
+        }
 
         return requestParameters;
     }
@@ -285,13 +289,13 @@ final class InteractiveRequest extends BaseRequest {
 
         if (stateMap.size() != 2
                 || !mAuthRequestParameters.getAuthority().getAuthority().equals(stateMap.get("a"))) {
-            throw new MsalClientException(MSALError.STATE_NOT_MATCH, Constants.MsalErrorMessage.STATE_NOT_THE_SAME);
+            throw new MsalClientException(MSALError.STATE_MISMATCH, Constants.MsalErrorMessage.STATE_NOT_THE_SAME);
         }
 
         final Set<String> scopesInState = MSALUtils.getScopesAsSet(stateMap.get("r"));
         final Set<String> scopesInRequest = mAuthRequestParameters.getScope();
         if (scopesInState.size() != scopesInRequest.size() && !scopesInState.containsAll(scopesInRequest)) {
-            throw new MsalClientException(MSALError.STATE_NOT_MATCH, Constants.MsalErrorMessage.STATE_NOT_THE_SAME);
+            throw new MsalClientException(MSALError.STATE_MISMATCH, Constants.MsalErrorMessage.STATE_NOT_THE_SAME);
         }
     }
 

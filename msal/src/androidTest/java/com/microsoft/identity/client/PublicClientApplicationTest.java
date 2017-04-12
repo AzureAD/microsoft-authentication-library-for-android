@@ -25,7 +25,6 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -442,7 +441,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     @Override
                     public void onError(MsalException exception) {
                         assertTrue(exception instanceof MsalClientException);
-                        assertTrue(exception.getErrorCode().equals(MSALError.MULTIPLE_CACHE_ENTRY_FOUND));
+                        assertTrue(exception.getErrorCode().equals(MSALError.MULTIPLE_MATCHING_TOKENS_DETECTED));
 
                         assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 1);
                         silentResultLock.countDown();
@@ -619,7 +618,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                             public void onError(MsalException exception) {
                                 try {
                                     assertTrue(exception instanceof MsalClientException);
-                                    assertTrue(exception.getErrorCode().equals(MSALError.UNSUPPORTED_AUTHORITY_VALIDATION_INSTANCE));
+                                    assertTrue(exception.getErrorCode().equals(MSALError.AUTHORITY_VALIDATION_NOT_SUPPORTED));
                                 } finally {
                                     releaseLock.countDown();
                                 }
