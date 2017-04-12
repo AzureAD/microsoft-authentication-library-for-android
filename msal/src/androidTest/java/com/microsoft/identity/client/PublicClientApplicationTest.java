@@ -211,10 +211,10 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
         users = application.getUsers();
         assertTrue(users.size() == EXPECTED_USER_SIZE);
-        final User userForDisplayable3 = application.getUser(MSALUtils.getUniqueUserIdentifier(uniqueId3, uTid3));
+        final User userForDisplayable3 = application.getUser(MsalUtils.getUniqueUserIdentifier(uniqueId3, uTid3));
         assertNotNull(userForDisplayable3);
         assertTrue(userForDisplayable3.getDisplayableId().equals(displayable3));
-        assertTrue(userForDisplayable3.getUserIdentifier().equals(MSALUtils.getUniqueUserIdentifier(uniqueId3, uTid3)));
+        assertTrue(userForDisplayable3.getUserIdentifier().equals(MsalUtils.getUniqueUserIdentifier(uniqueId3, uTid3)));
 
         // prepare token cache for different client id, same displayable3 user
         final String anotherClientId = "anotherClientId";
@@ -223,10 +223,10 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         assertTrue(application.getUsers().size() == EXPECTED_USER_SIZE);
         users = anotherApplication.getUsers();
         assertTrue(users.size() == 1);
-        final User userForAnotherClient = application.getUser(MSALUtils.getUniqueUserIdentifier(uniqueId3, uTid3));
+        final User userForAnotherClient = application.getUser(MsalUtils.getUniqueUserIdentifier(uniqueId3, uTid3));
         assertNotNull(userForAnotherClient);
         assertTrue(userForAnotherClient.getDisplayableId().equals(displayable3));
-        assertTrue(userForAnotherClient.getUserIdentifier().equals(MSALUtils.getUniqueUserIdentifier(uniqueId3, uTid3)));
+        assertTrue(userForAnotherClient.getUserIdentifier().equals(MsalUtils.getUniqueUserIdentifier(uniqueId3, uTid3)));
     }
 
     /**
@@ -441,7 +441,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     @Override
                     public void onError(MsalException exception) {
                         assertTrue(exception instanceof MsalClientException);
-                        assertTrue(exception.getErrorCode().equals(MSALError.MULTIPLE_MATCHING_TOKENS_DETECTED));
+                        assertTrue(exception.getErrorCode().equals(MsalError.MULTIPLE_MATCHING_TOKENS_DETECTED));
 
                         assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 1);
                         silentResultLock.countDown();
@@ -457,7 +457,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     /**
-     * Verify {@link PublicClientApplication#acquireToken(Activity, String[], String, UIBehavior, String, String[],
+     * Verify {@link PublicClientApplication#acquireToken(Activity, String[], String, UiBehavior, String, String[],
      * String, AuthenticationCallback)}. Also check if authority is set on the manifest, we read the authority
      * from manifest meta-data.
      */
@@ -494,7 +494,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                         assertTrue(exception instanceof MsalServiceException);
 
                         final MsalServiceException serviceException = (MsalServiceException) exception;
-                        assertTrue(MSALError.INVALID_REQUEST.equals(serviceException.getErrorCode()));
+                        assertTrue(MsalError.INVALID_REQUEST.equals(serviceException.getErrorCode()));
                         assertTrue(!serviceException.getMessage().isEmpty());
                         assertTrue(serviceException.getHttpStatusCode() == HttpURLConnection.HTTP_BAD_REQUEST);
                         releaseLock.countDown();
@@ -528,7 +528,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     /**
-     * Verify {@link PublicClientApplication#acquireToken(Activity, String[], String, UIBehavior, String, String[], String, AuthenticationCallback)}.
+     * Verify {@link PublicClientApplication#acquireToken(Activity, String[], String, UiBehavior, String, String[], String, AuthenticationCallback)}.
      */
     // TODO: suppress the test. The purpose is that the API call will eventually send back the cancel to caller.
     @Ignore
@@ -547,7 +547,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
                                       final Activity activity,
                                       final CountDownLatch releaseLock) {
-                publicClientApplication.acquireToken(activity, SCOPE, "somehint", UIBehavior.FORCE_LOGIN, "extra=param",
+                publicClientApplication.acquireToken(activity, SCOPE, "somehint", UiBehavior.FORCE_LOGIN, "extra=param",
                         null, null, new AuthenticationCallback() {
                             @Override
                             public void onSuccess(AuthenticationResult authenticationResult) {
@@ -607,7 +607,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
                                       final Activity activity,
                                       final CountDownLatch releaseLock) {
-                publicClientApplication.acquireToken(activity, SCOPE, "somehint", UIBehavior.FORCE_LOGIN, "extra=param",
+                publicClientApplication.acquireToken(activity, SCOPE, "somehint", UiBehavior.FORCE_LOGIN, "extra=param",
                         null, null, new AuthenticationCallback() {
                             @Override
                             public void onSuccess(AuthenticationResult authenticationResult) {
@@ -618,7 +618,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                             public void onError(MsalException exception) {
                                 try {
                                     assertTrue(exception instanceof MsalClientException);
-                                    assertTrue(exception.getErrorCode().equals(MSALError.AUTHORITY_VALIDATION_NOT_SUPPORTED));
+                                    assertTrue(exception.getErrorCode().equals(MsalError.AUTHORITY_VALIDATION_NOT_SUPPORTED));
                                 } finally {
                                     releaseLock.countDown();
                                 }
@@ -639,7 +639,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     /**
-     * Verify {@link PublicClientApplication#acquireToken(Activity, String[], String, UIBehavior, String, String[], String, AuthenticationCallback)}.
+     * Verify {@link PublicClientApplication#acquireToken(Activity, String[], String, UiBehavior, String, String[], String, AuthenticationCallback)}.
      * AcquireToken asks token for {scope1, scope2}.
      * AcquireTokenSilent asks for {scope2}. Since forcePrompt is set for the silent request, RT request will be sent. There is
      * intersection, old entry will be removed. There will be only one access token left.
@@ -659,7 +659,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
                                       final Activity activity,
                                       final CountDownLatch releaseLock) {
-                publicClientApplication.acquireToken(activity, SCOPE, "", UIBehavior.FORCE_LOGIN, null, null, null,
+                publicClientApplication.acquireToken(activity, SCOPE, "", UiBehavior.FORCE_LOGIN, null, null, null,
                         new AuthenticationCallback() {
                             @Override
                             public void onSuccess(AuthenticationResult authenticationResult) {
@@ -744,7 +744,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             @Override
             public void onError(MsalException exception) {
                 assertTrue(exception instanceof MsalUiRequiredException);
-                assertTrue(exception.getErrorCode().equals(MSALError.NO_TOKENS_FOUND));
+                assertTrue(exception.getErrorCode().equals(MsalError.NO_TOKENS_FOUND));
                 assertNull(exception.getCause());
                 silentLock.countDown();
             }
@@ -812,7 +812,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
                                       final Activity activity,
                                       final CountDownLatch releaseLock) {
-                publicClientApplication.acquireToken(activity, SCOPE, mUser, UIBehavior.SELECT_ACCOUNT, null, new AuthenticationCallback() {
+                publicClientApplication.acquireToken(activity, SCOPE, mUser, UiBehavior.SELECT_ACCOUNT, null, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
                         Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
@@ -891,7 +891,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
                                       final Activity activity,
                                       final CountDownLatch releaseLock) {
-                publicClientApplication.acquireToken(activity, SCOPE, mUser, UIBehavior.SELECT_ACCOUNT, null, null, null, new AuthenticationCallback() {
+                publicClientApplication.acquireToken(activity, SCOPE, mUser, UiBehavior.SELECT_ACCOUNT, null, null, null, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
                         fail();
@@ -900,7 +900,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     @Override
                     public void onError(MsalException exception) {
                         assertTrue(exception instanceof MsalClientException);
-                        assertTrue(exception.getErrorCode().equals(MSALError.USER_MISMATCH));
+                        assertTrue(exception.getErrorCode().equals(MsalError.USER_MISMATCH));
 
                         // verify that no token is stored.
                         Assert.assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 0);
@@ -940,7 +940,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
                                       final Activity activity,
                                       final CountDownLatch releaseLock) {
-                publicClientApplication.acquireToken(activity, SCOPE, mUser, UIBehavior.SELECT_ACCOUNT, null, null, null, new AuthenticationCallback() {
+                publicClientApplication.acquireToken(activity, SCOPE, mUser, UiBehavior.SELECT_ACCOUNT, null, null, null, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
                         fail();
@@ -949,7 +949,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     @Override
                     public void onError(MsalException exception) {
                         assertTrue(exception instanceof MsalServiceException);
-                        assertTrue(exception.getErrorCode().equals(MSALError.INVALID_REQUEST));
+                        assertTrue(exception.getErrorCode().equals(MsalError.INVALID_REQUEST));
                         releaseLock.countDown();
                     }
 
@@ -987,7 +987,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             final URL authorityUrl = new URL(authority);
             tokenCache.saveRefreshToken(authorityUrl.getHost(), clientId, response, AndroidTestUtil.getTestRequestContext());
         } catch (MalformedURLException e) {
-            throw new MsalClientException(MSALError.MALFORMED_URL, "unable to create url");
+            throw new MsalClientException(MsalError.MALFORMED_URL, "unable to create url");
         }
     }
 
@@ -999,7 +999,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         // meta data is empty, no client id there.
         applicationInfo.metaData = new Bundle();
         applicationInfo.metaData.putString("com.microsoft.identity.client.ClientId", clientId);
-        if (!MSALUtils.isEmpty(alternateAuthorityInManifest)) {
+        if (!MsalUtils.isEmpty(alternateAuthorityInManifest)) {
             applicationInfo.metaData.putString("com.microsoft.identity.client.Authority", alternateAuthorityInManifest);
         }
 
@@ -1047,7 +1047,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     private String convertScopesArrayToString(final String[] scopes) {
         final Set<String> scopesInSet = new HashSet<>(Arrays.asList(scopes));
-        return MSALUtils.convertSetToString(scopesInSet, " ");
+        return MsalUtils.convertSetToString(scopesInSet, " ");
     }
 
     private Context getMockedContext(final String clientId) throws PackageManager.NameNotFoundException {
@@ -1101,7 +1101,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             mockHasCustomTabRedirect(context);
             mockAuthenticationActivityResolvable(context);
 
-            if (!MSALUtils.isEmpty(getAlternateAuthorityInManifest())) {
+            if (!MsalUtils.isEmpty(getAlternateAuthorityInManifest())) {
                 AndroidTestMockUtil.mockSuccessTenantDiscovery(getAlternateAuthorityInManifest() + Authority.DEFAULT_AUTHORIZE_ENDPOINT,
                         ALTERNATE_AUTHORITY + DEFAULT_TOKEN_ENDPOINT);
             } else {

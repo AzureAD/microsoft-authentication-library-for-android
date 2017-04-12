@@ -72,7 +72,7 @@ class TokenCache {
         // check for intersection and delete all the cache entries with intersecting scopes.
         final List<AccessTokenCacheItem> accessTokenCacheItems = getAllAccessTokensForApp(clientId, requestContext);
         for (final AccessTokenCacheItem accessTokenCacheItem : accessTokenCacheItems) {
-            if (accessTokenCacheKey.matches(accessTokenCacheItem) && MSALUtils.isScopeIntersects(newAccessToken.getScope(),
+            if (accessTokenCacheKey.matches(accessTokenCacheItem) && MsalUtils.isScopeIntersects(newAccessToken.getScope(),
                     accessTokenCacheItem.getScope())) {
                 mTokenCacheAccessor.deleteAccessToken(accessTokenCacheItem.extractTokenCacheKey().toString(), requestContext);
             }
@@ -87,7 +87,7 @@ class TokenCache {
      */
     void saveRefreshToken(final String authorityHost, final String clientId, final TokenResponse response, final RequestContext requestContext) throws MsalClientException {
         // if server returns the refresh token back, save it in the cache.
-        if (!MSALUtils.isEmpty(response.getRefreshToken())) {
+        if (!MsalUtils.isEmpty(response.getRefreshToken())) {
             Logger.info(TAG, requestContext, "Starting to save refresh token into cache. Refresh token will be saved with authority: " + authorityHost
                     + "; Client Id: " + clientId);
             final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(authorityHost, clientId, response);
@@ -110,10 +110,10 @@ class TokenCache {
 
         if (accessTokenCacheItems.isEmpty()) {
             Logger.info(TAG, requestParam.getRequestContext(), "No access is found for scopes: "
-                    + MSALUtils.convertSetToString(requestParam.getScope(), " "));
+                    + MsalUtils.convertSetToString(requestParam.getScope(), " "));
             if (user != null) {
                 Logger.infoPII(TAG, requestParam.getRequestContext(), "User displayable: " + user.getDisplayableId()
-                        + " ;User unique identifier(Base64UrlEncoded(uid).Base64UrlEncoded(utid)): " + MSALUtils.getUniqueUserIdentifier(
+                        + " ;User unique identifier(Base64UrlEncoded(uid).Base64UrlEncoded(utid)): " + MsalUtils.getUniqueUserIdentifier(
                         user.getUid(), user.getUtid()));
             }
             return null;
@@ -155,7 +155,7 @@ class TokenCache {
 
         if (matchingATs.size() > 1) {
             Logger.error(TAG, requestParameters.getRequestContext(), "Authority is not provided for the silent request. Multiple matching tokens were detected.", null);
-            throw new MsalClientException(MSALError.MULTIPLE_MATCHING_TOKENS_DETECTED, "Authority is not provided for the silent request. There are multiple matching tokens detected. ");
+            throw new MsalClientException(MsalError.MULTIPLE_MATCHING_TOKENS_DETECTED, "Authority is not provided for the silent request. There are multiple matching tokens detected. ");
         }
 
         final AccessTokenCacheItem tokenCacheItem = matchingATs.get(0);
@@ -177,14 +177,14 @@ class TokenCache {
         if (refreshTokenCacheItems.size() == 0) {
             Logger.info(TAG, requestParam.getRequestContext(), "No RT was found for the given user.");
             Logger.infoPII(TAG, requestParam.getRequestContext(), "The given user info is: " + user.getDisplayableId() + "; userIdentifier: "
-                    + MSALUtils.getUniqueUserIdentifier(user.getUid(), user.getUtid()));
+                    + MsalUtils.getUniqueUserIdentifier(user.getUid(), user.getUtid()));
             return null;
         }
 
         // User info already provided, if there are multiple items found will throw since we don't what
         // is the one we should use.
         if (refreshTokenCacheItems.size() > 1) {
-            throw new MsalClientException(MSALError.MULTIPLE_MATCHING_TOKENS_DETECTED, "Multiple tokens were detected.");
+            throw new MsalClientException(MsalError.MULTIPLE_MATCHING_TOKENS_DETECTED, "Multiple tokens were detected.");
         }
 
         return refreshTokenCacheItems.get(0);
@@ -217,7 +217,7 @@ class TokenCache {
      * @return The list of signed in users for the given client id.
      */
     List<User> getUsers(final String environment, final String clientId, final RequestContext requestContext) throws MsalClientException {
-        if (MSALUtils.isEmpty(clientId)) {
+        if (MsalUtils.isEmpty(clientId)) {
             throw new IllegalArgumentException("empty or null clientId");
         }
 

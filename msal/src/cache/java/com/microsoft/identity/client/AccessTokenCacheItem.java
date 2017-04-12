@@ -74,7 +74,7 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
 
     @Override
     AccessTokenCacheKey extractTokenCacheKey() {
-        return AccessTokenCacheKey.createTokenCacheKey(mAuthority, mClientId, MSALUtils.getScopesAsSet(mScope), mUser);
+        return AccessTokenCacheKey.createTokenCacheKey(mAuthority, mClientId, MsalUtils.getScopesAsSet(mScope), mUser);
     }
 
     /**
@@ -102,7 +102,7 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
      * @return Scopes in the format of set.
      */
     Set<String> getScope() {
-        return MSALUtils.getScopesAsSet(mScope);
+        return MsalUtils.getScopesAsSet(mScope);
     }
 
     /**

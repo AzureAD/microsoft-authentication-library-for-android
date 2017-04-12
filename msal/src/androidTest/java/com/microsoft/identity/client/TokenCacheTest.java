@@ -311,7 +311,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         scopes1.add(scope2);
 
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, getTokenResponseForDefaultUser("accessToken",
-                "refresh_token", MSALUtils.convertSetToString(scopes1, " "), AndroidTestUtil.getValidExpiresOn(), getDefaultClientInfo()));
+                "refresh_token", MsalUtils.convertSetToString(scopes1, " "), AndroidTestUtil.getValidExpiresOn(), getDefaultClientInfo()));
 
 
         // save token with scope2 and scope3
@@ -322,7 +322,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         final String accessToken2 = "accessToken2";
         final String refreshToken2 = "refreshToken2";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, getTokenResponseForDefaultUser(accessToken2,
-                refreshToken2, MSALUtils.convertSetToString(scopes2, " "), AndroidTestUtil.getValidExpiresOn(), getDefaultClientInfo()));
+                refreshToken2, MsalUtils.convertSetToString(scopes2, " "), AndroidTestUtil.getValidExpiresOn(), getDefaultClientInfo()));
 
         // verify the current access token entries in the cache, the first access token entry with s1, s2 will be deleted.
         assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 1);
@@ -374,7 +374,7 @@ public final class TokenCacheTest extends AndroidTestCase {
 
         // save access token for user with scope1
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, getTokenResponseForDefaultUser(firstAT, "",
-                MSALUtils.convertSetToString(scopes1, " "), AndroidTestUtil.getValidExpiresOn(), getDefaultClientInfo()));
+                MsalUtils.convertSetToString(scopes1, " "), AndroidTestUtil.getValidExpiresOn(), getDefaultClientInfo()));
 
         // verify the access token is saved
         final User user = getDefaultUser();
@@ -389,7 +389,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         scopes2.addAll(scopes1);
         scopes2.add("scope2");
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, getTokenResponseForDefaultUser(secondAT, "",
-                MSALUtils.convertSetToString(scopes2, " "), AndroidTestUtil.getValidExpiresOn(), getDefaultClientInfo()));
+                MsalUtils.convertSetToString(scopes2, " "), AndroidTestUtil.getValidExpiresOn(), getDefaultClientInfo()));
 
         // verify there are two access token entries in the case
         assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 1);
@@ -489,14 +489,14 @@ public final class TokenCacheTest extends AndroidTestCase {
 
         // add RT with default authority, default client id
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN,
-                MSALUtils.convertSetToString(scope, " "), expirationDate, getDefaultClientInfo()));
+                MsalUtils.convertSetToString(scope, " "), expirationDate, getDefaultClientInfo()));
 
         // add RT with default authority, different client id
         final String clientId2 = "another-clientid-2";
         final String accessToken2 = "access-token-2";
         final String refreshToken2 = "refresh-token-2";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, clientId2, getTokenResponseForDefaultUser(accessToken2, refreshToken2,
-                MSALUtils.convertSetToString(scope, " "), expirationDate, getDefaultClientInfo()));
+                MsalUtils.convertSetToString(scope, " "), expirationDate, getDefaultClientInfo()));
 
 
         // add rt for same user, different authority
@@ -504,7 +504,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         final String accessToken3 = "access-token-3";
         final String refreshToken3 = "refresh-token-3";
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, anotherAuthority, CLIENT_ID, getTokenResponseForDefaultUser(accessToken3, refreshToken3,
-                MSALUtils.convertSetToString(scope, " "), expirationDate, getDefaultClientInfo()));
+                MsalUtils.convertSetToString(scope, " "), expirationDate, getDefaultClientInfo()));
 
         // verify that there should be 3 refresh tokens stored in the cache
         int expectedRtSize = 3;
@@ -548,7 +548,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         assertTrue(mTokenCache.getAllRefreshTokens(AndroidTestUtil.getTestRequestContext()).size() == 2);
 
         // verify RT for each user
-        final AuthenticationRequestParameters requestParameters = getRequestParameters(AUTHORITY, MSALUtils.getScopesAsSet(scope), CLIENT_ID);
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(AUTHORITY, MsalUtils.getScopesAsSet(scope), CLIENT_ID);
         // retrieve RT for default user
         final RefreshTokenCacheItem rtForDefaultUser = mTokenCache.findRefreshToken(requestParameters, getDefaultUser());
         assertNotNull(rtForDefaultUser);
@@ -570,7 +570,7 @@ public final class TokenCacheTest extends AndroidTestCase {
                 ACCESS_TOKEN, REFRESH_TOKEN, scope, expirationDate, null));
 
         final User user = new User(DISPLAYABLE, "name", "idp", "", "");
-        final AuthenticationRequestParameters requestParameters = getRequestParameters(AUTHORITY, MSALUtils.getScopesAsSet(scope), CLIENT_ID);
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(AUTHORITY, MsalUtils.getScopesAsSet(scope), CLIENT_ID);
         final AccessTokenCacheItem accessTokenCacheItem = mTokenCache.findAccessToken(requestParameters, user);
         assertNotNull(accessTokenCacheItem);
         assertNotNull(accessTokenCacheItem.getUser());
@@ -591,7 +591,7 @@ public final class TokenCacheTest extends AndroidTestCase {
             assertTrue(accessTokenCacheItem.getRawClientInfo().equals(AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID)));
         } else {
             final RefreshTokenCacheItem refreshTokenCacheItem = (RefreshTokenCacheItem) item;
-            refreshTokenCacheItem.getUserIdentifier().equals(MSALUtils.getUniqueUserIdentifier(AndroidTestUtil.UID, AndroidTestUtil.UTID));
+            refreshTokenCacheItem.getUserIdentifier().equals(MsalUtils.getUniqueUserIdentifier(AndroidTestUtil.UID, AndroidTestUtil.UTID));
             assertTrue(refreshTokenCacheItem.getDisplayableId().equals(DISPLAYABLE));
         }
     }
@@ -645,6 +645,6 @@ public final class TokenCacheTest extends AndroidTestCase {
 
     private AuthenticationRequestParameters getRequestParameters(final String authority, final Set<String> scopes, final String clientId) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(authority, false), mTokenCache, scopes, clientId,
-                "some redirect", "", "", UIBehavior.SELECT_ACCOUNT, null, new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()));
+                "some redirect", "", "", UiBehavior.SELECT_ACCOUNT, null, new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()));
     }
 }

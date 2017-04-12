@@ -37,7 +37,7 @@ import java.util.Map;
 import static com.microsoft.identity.client.DRSMetadataRequestor.Type.CLOUD;
 import static com.microsoft.identity.client.DRSMetadataRequestor.Type.ON_PREM;
 
-class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String> {
+class DRSMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String> {
 
     /**
      * Tag used for logging.
@@ -61,7 +61,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
     }
 
     @Override
-    public DRSMetadata requestMetadata(final String domain) throws MsalClientException, MsalServiceException {
+    public DrsMetadata requestMetadata(final String domain) throws MsalClientException, MsalServiceException {
         try {
             return requestOnPrem(domain);
         } catch (UnknownHostException e) {
@@ -77,7 +77,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
      * @throws UnknownHostException    if the on-prem enrollment server cannot be resolved
      * @throws MsalException if there exists an enrollment/domain mismatch (lack of trust)
      */
-    private DRSMetadata requestOnPrem(final String domain)
+    private DrsMetadata requestOnPrem(final String domain)
             throws UnknownHostException, MsalClientException, MsalServiceException {
         Logger.verbose(TAG, getRequestContext(), "Requesting DRS discovery (on-prem)");
         return requestDrsDiscoveryInternal(ON_PREM, domain);
@@ -91,16 +91,16 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
      * @throws MsalException if there exists an enrollment/domain mismatch (lack of trust)
      *                                 or the trust cannot be verified
      */
-    private DRSMetadata requestCloud(final String domain) throws MsalClientException, MsalServiceException {
+    private DrsMetadata requestCloud(final String domain) throws MsalClientException, MsalServiceException {
         Logger.verbose(TAG, getRequestContext(), "Requesting DRS discovery (cloud)");
         try {
             return requestDrsDiscoveryInternal(CLOUD, domain);
         } catch (UnknownHostException e) {
-            throw new MsalClientException(MSALError.IO_ERROR, "Cannot resolve the host. ", e);
+            throw new MsalClientException(MsalError.IO_ERROR, "Cannot resolve the host. ", e);
         }
     }
 
-    private DRSMetadata requestDrsDiscoveryInternal(final Type type, final String domain)
+    private DrsMetadata requestDrsDiscoveryInternal(final Type type, final String domain)
             throws UnknownHostException, MsalClientException, MsalServiceException {
         final URL requestURL;
 
@@ -109,7 +109,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
             requestURL = new URL(buildRequestUrlByType(type, domain));
         } catch (MalformedURLException e) {
             // DRS metadata URL invalid
-            throw new MsalClientException(MSALError.UNSUPPORTED_URL, "Drs metadata url is invalid", e);
+            throw new MsalClientException(MsalError.UNSUPPORTED_URL, "Drs metadata url is invalid", e);
         }
 
         // init the headers to use in the request
@@ -122,7 +122,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
             );
         }
 
-        final DRSMetadata metadata;
+        final DrsMetadata metadata;
         final HttpResponse webResponse;
 
         // make the request
@@ -135,12 +135,12 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
                 // unexpected status code
                 // TODO: Does adfs authority validation returns the error and error description? If so, we should get a list
                 // of possible erros.
-                throw new MsalServiceException(MSALError.SERVICE_NOT_AVAILABLE, "Unexpected error code: [" + webResponse.getBody() + "]", webResponse.getStatusCode(), null);
+                throw new MsalServiceException(MsalError.SERVICE_NOT_AVAILABLE, "Unexpected error code: [" + webResponse.getBody() + "]", webResponse.getStatusCode(), null);
             }
         } catch (UnknownHostException e) {
             throw e;
         } catch (IOException e) {
-            throw new MsalClientException(MSALError.IO_ERROR, "Unexpected error", e);
+            throw new MsalClientException(MsalError.IO_ERROR, "Unexpected error", e);
         }
 
         return metadata;
@@ -173,9 +173,9 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
     }
 
     @Override
-    DRSMetadata parseMetadata(final HttpResponse response) throws MsalClientException {
+    DrsMetadata parseMetadata(final HttpResponse response) throws MsalClientException {
         // Initialize the response container
-        final DRSMetadata drsMetadata = new DRSMetadata();
+        final DrsMetadata drsMetadata = new DrsMetadata();
         drsMetadata.setIdentityProviderService(new IdentityProviderService());
 
         // Grab the response to parse
@@ -187,7 +187,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
 
             // Grab the provider service object field
             final JSONObject identityProviderService = responseJson
-                    .getJSONObject(DRSMetadata.JSON_KEY_IDENTITY_PROVIDER_SERVICE);
+                    .getJSONObject(DrsMetadata.JSON_KEY_IDENTITY_PROVIDER_SERVICE);
 
             // Parse-out the passive auth endpoint
             final String passiveAuthEndpoint = identityProviderService
@@ -197,7 +197,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String
             drsMetadata.getIdentityProviderService()
                     .setPassiveAuthEndpoint(passiveAuthEndpoint);
         } catch (final JSONException e) {
-            throw new MsalClientException(MSALError.JSON_PARSE_FAILURE, "Failed to parse the Json response", e);
+            throw new MsalClientException(MsalError.JSON_PARSE_FAILURE, "Failed to parse the Json response", e);
         }
 
         return drsMetadata;

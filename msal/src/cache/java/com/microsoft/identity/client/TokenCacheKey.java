@@ -35,13 +35,13 @@ abstract class TokenCacheKey<T extends BaseTokenCacheItem> {
 
     TokenCacheKey(final String clientId, final String uid, final String utid) {
         // All the tokens issued by AAD is cross tenant, ADFS 2016 should work the same as AAD, and client id.
-        if (MSALUtils.isEmpty(clientId)) {
+        if (MsalUtils.isEmpty(clientId)) {
             throw new IllegalArgumentException("clientId");
         }
 
         mClientId = clientId.toLowerCase(Locale.US);
         // if uid or utid is empty, the unique identifier will be "."
-        mUserIdentifier = MSALUtils.getUniqueUserIdentifier(uid, utid);
+        mUserIdentifier = MsalUtils.getUniqueUserIdentifier(uid, utid);
     }
 
     abstract boolean matches(T tokenCacheItem);

@@ -40,7 +40,7 @@ import java.util.UUID;
 
 @RunWith(AndroidJUnit4.class)
 @SmallTest
-public class DRSMetadataRequestorTest {
+public class DrsMetadataRequestorTest {
 
     private static final RequestContext REQUEST_CONTEXT = new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId());
 
@@ -87,7 +87,7 @@ public class DRSMetadataRequestorTest {
         HttpUrlConnectionFactory.addMockedConnection(mockedSuccessConnection);
         final DRSMetadataRequestor requestor = new DRSMetadataRequestor(REQUEST_CONTEXT);
 
-        final DRSMetadata metadata = requestor.requestMetadata(DOMAIN);
+        final DrsMetadata metadata = requestor.requestMetadata(DOMAIN);
 
         Assert.assertEquals(
                 TEST_ADFS,
@@ -119,7 +119,7 @@ public class DRSMetadataRequestorTest {
                 mockHeaders
         );
 
-        final DRSMetadata metadata = new DRSMetadataRequestor(REQUEST_CONTEXT).parseMetadata(mockResponse);
+        final DrsMetadata metadata = new DRSMetadataRequestor(REQUEST_CONTEXT).parseMetadata(mockResponse);
 
         Assert.assertEquals(
                 TEST_ADFS,

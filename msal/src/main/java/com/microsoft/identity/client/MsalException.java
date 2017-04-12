@@ -25,7 +25,7 @@ package com.microsoft.identity.client;
 
 /**
  * {@link MsalException} that will be thrown or sent back via callback, represents the detailed exception
- * thrown by the sdk. It will contain the {@link MSALError}, error description(could be null) or
+ * thrown by the sdk. It will contain the {@link MsalError}, error description(could be null) or
  *  throwable(could be null).
  */
 public class MsalException extends Exception {
@@ -37,16 +37,16 @@ public class MsalException extends Exception {
     MsalException() { }
 
     /**
-     * Initiates the {@link MsalException} with {@link MSALError}.
-     * @param errorCode The {@link MSALError} contained in the exception.
+     * Initiates the {@link MsalException} with {@link MsalError}.
+     * @param errorCode The {@link MsalError} contained in the exception.
      */
     MsalException(final String errorCode) {
         mErrorCode = errorCode;
     }
 
     /**
-     * Initiates the {@link MsalException} with {@link MSALError} and error message.
-     * @param errorCode The {@link MSALError} contained in the exception.
+     * Initiates the {@link MsalException} with {@link MsalError} and error message.
+     * @param errorCode The {@link MsalError} contained in the exception.
      * @param errorMessage The error message contained in the exception.
      */
     MsalException(final String errorCode, final String errorMessage) {
@@ -55,8 +55,8 @@ public class MsalException extends Exception {
     }
 
     /**
-     * Initiates the {@link MsalException} with {@link MSALError}, error message and throwable.
-     * @param errorCode The {@link MSALError} contained in the exception.
+     * Initiates the {@link MsalException} with {@link MsalError}, error message and throwable.
+     * @param errorCode The {@link MsalError} contained in the exception.
      * @param errorMessage The error message contained in the exception.
      * @param throwable The {@link Throwable} contains the cause for the exception.
      */
@@ -67,7 +67,7 @@ public class MsalException extends Exception {
     }
 
     /**
-     * @return The {@link MSALError} for the exception, could be null.
+     * @return The {@link MsalError} for the exception, could be null.
      */
     public String getErrorCode() {
         return mErrorCode;
@@ -76,12 +76,12 @@ public class MsalException extends Exception {
     /**
      * {@inheritDoc}
      * If the error description is set on the exception, the error message will be returned. Otherwise, if
-     * {@link MSALError} is provided, will return the description for the error code. If neither error description nor
+     * {@link MsalError} is provided, will return the description for the error code. If neither error description nor
      * error code is provided, will return NULL.
      */
     @Override
     public String getMessage() {
-        if (!MSALUtils.isEmpty(super.getMessage())) {
+        if (!MsalUtils.isEmpty(super.getMessage())) {
             return super.getMessage();
         }
 

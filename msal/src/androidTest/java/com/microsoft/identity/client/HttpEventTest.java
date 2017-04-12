@@ -41,7 +41,7 @@ public class HttpEventTest {
     static final String TEST_API_VERSION = "v1.0";
     static final String TEST_O_AUTH_ERROR_CODE = "invalid grant";
     static final String TEST_REQUEST_ID_HEADER = "a_request_header";
-    static final URL TEST_HTTP_PATH = MSALUtils.getUrl("https://login.microsoftonline.com/");
+    static final URL TEST_HTTP_PATH = MsalUtils.getUrl("https://login.microsoftonline.com/");
     static final Integer TEST_HTTP_RESPONSE_CODE = 200;
 
     static HttpEvent getTestHttpEvent() {
@@ -85,13 +85,13 @@ public class HttpEventTest {
     @Test
     public void testOnlyTrustedHostsAddedToEvent() {
         final HttpEvent httpEvent =
-                getTestHttpEvent(MSALUtils.getUrl("https://login.contoso.com/"));
+                getTestHttpEvent(MsalUtils.getUrl("https://login.contoso.com/"));
         Assert.assertNull(httpEvent.getHttpPath());
     }
 
     @Test
     public void testHttpEventSkipsB2CAuthority() {
-        final HttpEvent httpEvent = getTestHttpEvent(MSALUtils.getUrl(AuthorityTest.TEST_B2C_AUTHORITY));
+        final HttpEvent httpEvent = getTestHttpEvent(MsalUtils.getUrl(AuthorityTest.TEST_B2C_AUTHORITY));
         Assert.assertNull(httpEvent.getHttpPath());
     }
 }

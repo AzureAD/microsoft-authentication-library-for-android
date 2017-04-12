@@ -86,7 +86,7 @@ final class TokenCacheAccessor {
      */
     void saveAccessToken(final String accessTokenCacheKey, final String accessTokenItem, final RequestContext requestContext) {
         // there shouldn't be any case that this method is called with null/empty key or item
-        if (MSALUtils.isEmpty(accessTokenCacheKey) || MSALUtils.isEmpty(accessTokenItem)) {
+        if (MsalUtils.isEmpty(accessTokenCacheKey) || MsalUtils.isEmpty(accessTokenItem)) {
             throw new IllegalArgumentException("accessTokenCacheKey/accessTokenItem empty or null");
         }
 
@@ -106,7 +106,7 @@ final class TokenCacheAccessor {
      */
     void saveRefreshToken(final String refreshTokenCacheKey, final String refreshTokenItem, final RequestContext requestContext) {
         // there shouldn't be any case that this method is called with null/empty key or item
-        if (MSALUtils.isEmpty(refreshTokenCacheKey) || MSALUtils.isEmpty(refreshTokenItem)) {
+        if (MsalUtils.isEmpty(refreshTokenCacheKey) || MsalUtils.isEmpty(refreshTokenItem)) {
             throw new IllegalArgumentException("refreshTokenCacheKey/refreshTokenItem empty or null");
         }
 

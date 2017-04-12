@@ -35,7 +35,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Switch;
 
-import com.microsoft.identity.client.UIBehavior;
+import com.microsoft.identity.client.UiBehavior;
 
 import java.util.ArrayList;
 
@@ -84,7 +84,7 @@ public class AcquireTokenFragment extends Fragment {
         mAcquireTokenSilent = (Button) view.findViewById(R.id.btn_acquiretokensilent);
 
         bindSpinnerChoice(mAuthority, Constants.AuthorityType.class);
-        bindSpinnerChoice(mUiBehavior, UIBehavior.class);
+        bindSpinnerChoice(mUiBehavior, UiBehavior.class);
         bindSpinnerChoice(mDataProfile, Constants.DataProfile.class);
 
         mAcquireToken.setOnClickListener(new View.OnClickListener() {
@@ -151,7 +151,7 @@ public class AcquireTokenFragment extends Fragment {
     RequestOptions getCurrentRequestOptions() {
         final Constants.AuthorityType authorityType = Constants.AuthorityType.valueOf(mAuthority.getSelectedItem().toString()) ;
         final String loginHint = mLoginhint.getText().toString();
-        final UIBehavior uiBehavior = UIBehavior.valueOf(mUiBehavior.getSelectedItem().toString());
+        final UiBehavior uiBehavior = UiBehavior.valueOf(mUiBehavior.getSelectedItem().toString());
         final Constants.DataProfile dataProfile = Constants.DataProfile.valueOf(mDataProfile.getSelectedItem().toString());
         final String scopes = mScope.getText().toString();
         final String additionalScopes = mAdditionalScope.getText().toString();
@@ -163,14 +163,14 @@ public class AcquireTokenFragment extends Fragment {
     static class RequestOptions {
         final Constants.AuthorityType mAuthorityType;
         final String mLoginHint;
-        final UIBehavior mUiBehavior;
+        final UiBehavior mUiBehavior;
         final Constants.DataProfile mDataProfile;
         final String mScope;
         final String mAdditionalScope;
         final boolean mEnablePII;
         final boolean mForceRefresh;
 
-        RequestOptions(final Constants.AuthorityType authorityType, final String loginHint, final UIBehavior uiBehavior,
+        RequestOptions(final Constants.AuthorityType authorityType, final String loginHint, final UiBehavior uiBehavior,
                        final Constants.DataProfile dataProfile, final String scope, final String additionalScope, final boolean enablePII, final boolean forceRefresh) {
             mAuthorityType = authorityType;
             mLoginHint = loginHint;
@@ -182,7 +182,7 @@ public class AcquireTokenFragment extends Fragment {
             mForceRefresh = forceRefresh;
         }
 
-        static RequestOptions create(final Constants.AuthorityType authority, final String loginHint, final UIBehavior uiBehavior, final Constants.DataProfile dataProfile,
+        static RequestOptions create(final Constants.AuthorityType authority, final String loginHint, final UiBehavior uiBehavior, final Constants.DataProfile dataProfile,
                                      final String scope, final String additionalScope, final boolean enablePII, final boolean forceRefresh) {
             return new RequestOptions(authority, loginHint, uiBehavior, dataProfile, scope, additionalScope, enablePII, forceRefresh);
         }
@@ -195,7 +195,7 @@ public class AcquireTokenFragment extends Fragment {
             return mLoginHint;
         }
 
-        UIBehavior getUiBehavior() {
+        UiBehavior getUiBehavior() {
             return mUiBehavior;
         }
 

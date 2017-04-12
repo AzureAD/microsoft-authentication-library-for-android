@@ -39,7 +39,7 @@ final class AccessTokenCacheKey extends TokenCacheKey<AccessTokenCacheItem> {
     private AccessTokenCacheKey(final String authority, final String clientId, final Set<String> scope, final String uid, final String utid) {
         super(clientId, uid, utid);
 
-        if (MSALUtils.isEmpty(authority)) {
+        if (MsalUtils.isEmpty(authority)) {
             throw new IllegalArgumentException("authority");
         }
         mAuthority = authority.toLowerCase(Locale.US);
@@ -60,12 +60,12 @@ final class AccessTokenCacheKey extends TokenCacheKey<AccessTokenCacheItem> {
 
     public String toString() {
         final StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(MSALUtils.base64UrlEncodeToString(mAuthority));
+        stringBuilder.append(MsalUtils.base64UrlEncodeToString(mAuthority));
         stringBuilder.append(TOKEN_CACHE_KEY_DELIMITER);
-        stringBuilder.append(MSALUtils.base64UrlEncodeToString(mClientId));
+        stringBuilder.append(MsalUtils.base64UrlEncodeToString(mClientId));
         stringBuilder.append(TOKEN_CACHE_KEY_DELIMITER);
         // scope is treeSet to guarantee the order of the scopes when converting to string.
-        stringBuilder.append(MSALUtils.base64UrlEncodeToString(MSALUtils.convertSetToString(mScope, " ")));
+        stringBuilder.append(MsalUtils.base64UrlEncodeToString(MsalUtils.convertSetToString(mScope, " ")));
         stringBuilder.append(TOKEN_CACHE_KEY_DELIMITER);
         stringBuilder.append(mUserIdentifier);
 

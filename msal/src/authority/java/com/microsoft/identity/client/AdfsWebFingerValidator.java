@@ -29,16 +29,16 @@ import java.net.URISyntaxException;
 /**
  * Validates trusts between authorities and ADFS instances using DRS metadata and WebFinger.
  */
-final class ADFSWebFingerValidator {
+final class AdfsWebFingerValidator {
 
-    private ADFSWebFingerValidator() {
+    private AdfsWebFingerValidator() {
         // utility class
     }
 
     /**
      * Used for logging.
      */
-    private static final String TAG = ADFSWebFingerValidator.class.getSimpleName();
+    private static final String TAG = AdfsWebFingerValidator.class.getSimpleName();
 
     /**
      * Constant identifying trust between two realms.

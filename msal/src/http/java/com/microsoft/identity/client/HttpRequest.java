@@ -131,11 +131,11 @@ final class HttpRequest {
         try {
             response = sendWithRetry();
         } catch (final SocketTimeoutException socketTimeoutException) {
-            throw new MsalServiceException(MSALError.REQUEST_TIMEOUT, "Retry failed again with SocketTimeout", socketTimeoutException);
+            throw new MsalServiceException(MsalError.REQUEST_TIMEOUT, "Retry failed again with SocketTimeout", socketTimeoutException);
         }
 
         if (response != null && isRetryableError(response.getStatusCode())) {
-            throw new MsalServiceException(MSALError.SERVICE_NOT_AVAILABLE, "Retry failed again with 500/503/504", response.getStatusCode(), null);
+            throw new MsalServiceException(MsalError.SERVICE_NOT_AVAILABLE, "Retry failed again with 500/503/504", response.getStatusCode(), null);
         }
 
         return response;
@@ -231,7 +231,7 @@ final class HttpRequest {
 
         connection.setDoOutput(true);
 
-        if (!MSALUtils.isEmpty(requestContentType)) {
+        if (!MsalUtils.isEmpty(requestContentType)) {
             connection.setRequestProperty("Content-Type", requestContentType);
         }
 

@@ -51,7 +51,7 @@ final class HttpEvent extends Event {
         final boolean isB2cAuthority = pathSegments[0].equals(Authority.B2C_AUTHORITY_PREFIX);
 
         // only collect telemetry for well-known hosts, omit B2C
-        if (!Arrays.asList(AADAuthority.TRUSTED_HOSTS).contains(authority) || isB2cAuthority) {
+        if (!Arrays.asList(AadAuthority.TRUSTED_HOSTS).contains(authority) || isB2cAuthority) {
             return;
         }
 
@@ -98,7 +98,7 @@ final class HttpEvent extends Event {
     }
 
     URL getHttpPath() {
-        return MSALUtils.getUrl(getProperty(EventProperty.HTTP_PATH));
+        return MsalUtils.getUrl(getProperty(EventProperty.HTTP_PATH));
     }
 
     Integer getResponseCode() {

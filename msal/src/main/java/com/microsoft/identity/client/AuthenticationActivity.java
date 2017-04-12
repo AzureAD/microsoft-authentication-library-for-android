@@ -70,26 +70,26 @@ public final class AuthenticationActivity extends Activity {
 
         final Intent data = getIntent();
         if (data == null) {
-            sendError(MSALError.UNRESOLVABLE_INTENT, "Received null data intent from caller");
+            sendError(MsalError.UNRESOLVABLE_INTENT, "Received null data intent from caller");
             return;
         }
 
         mRequestUrl = data.getStringExtra(Constants.REQUEST_URL_KEY);
         mRequestId = data.getIntExtra(Constants.REQUEST_ID, 0);
-        if (MSALUtils.isEmpty(mRequestUrl)) {
-            sendError(MSALError.UNRESOLVABLE_INTENT, "Request url is not set on the intent");
+        if (MsalUtils.isEmpty(mRequestUrl)) {
+            sendError(MsalError.UNRESOLVABLE_INTENT, "Request url is not set on the intent");
             return;
         }
 
         // We'll use custom tab if the chrome installed on the device comes with custom tab support(on 45 and above it
         // does). If the chrome package doesn't contain the support, we'll use chrome to launch the UI.
-        if (MSALUtils.getChromePackage(this.getApplicationContext()) == null) {
+        if (MsalUtils.getChromePackage(this.getApplicationContext()) == null) {
             Logger.info(TAG, null, "Chrome is not installed on the device, cannot continue with auth.");
-            sendError(MSALError.CHROME_NOT_INSTALLED, "Chrome is not installed on the device, cannot proceed with auth");
+            sendError(MsalError.CHROME_NOT_INSTALLED, "Chrome is not installed on the device, cannot proceed with auth");
             return;
         }
 
-        mChromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(getApplicationContext());
+        mChromePackageWithCustomTabSupport = MsalUtils.getChromePackageWithCustomTabSupport(getApplicationContext());
 
         mTelemetryRequestId = data.getStringExtra(Constants.TELEMETRY_REQUEST_ID);
         mUiEventBuilder = new UiEvent.Builder();
@@ -176,7 +176,7 @@ public final class AuthenticationActivity extends Activity {
 
         mRestarted = true;
 
-        final String chromePackageWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(
+        final String chromePackageWithCustomTabSupport = MsalUtils.getChromePackageWithCustomTabSupport(
                 this.getApplicationContext());
         mRequestUrl =  this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
 
@@ -184,12 +184,12 @@ public final class AuthenticationActivity extends Activity {
         if (chromePackageWithCustomTabSupport != null) {
             Logger.info(TAG, null, "ChromeCustomTab support is available, launching chrome tab.");
             final CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder().build();
-            customTabsIntent.intent.setPackage(MSALUtils.getChromePackageWithCustomTabSupport(this));
+            customTabsIntent.intent.setPackage(MsalUtils.getChromePackageWithCustomTabSupport(this));
             customTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
         } else {
             Logger.info(TAG, null, "Chrome tab support is not available, launching chrome browser.");
             final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
-            browserIntent.setPackage(MSALUtils.getChromePackage(this.getApplicationContext()));
+            browserIntent.setPackage(MsalUtils.getChromePackage(this.getApplicationContext()));
             browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
             this.startActivity(browserIntent);
         }
