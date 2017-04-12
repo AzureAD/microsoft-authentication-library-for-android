@@ -43,8 +43,8 @@ public final class MsalExceptionTest {
     @Test
     public void testWithErrorCode() {
         final MsalException msalException = new MsalException(
-                MsalError.INVALID_JWT);
-        Assert.assertTrue(msalException.getErrorCode().equals(MsalError.INVALID_JWT));
+                MsalClientException.INVALID_JWT);
+        Assert.assertTrue(msalException.getErrorCode().equals(MsalClientException.INVALID_JWT));
         Assert.assertTrue(msalException.getMessage().isEmpty());
         Assert.assertNull(msalException.getCause());
     }
@@ -52,8 +52,8 @@ public final class MsalExceptionTest {
     @Test
     public void testWithErrorCodeAndDescription() {
         final MsalException msalException = new MsalException(
-                MsalError.ACCESS_DENIED, TEST_ERROR_DESCRIPTION);
-        Assert.assertTrue(msalException.getErrorCode().equals(MsalError.ACCESS_DENIED));
+                MsalServiceException.ACCESS_DENIED, TEST_ERROR_DESCRIPTION);
+        Assert.assertTrue(msalException.getErrorCode().equals(MsalServiceException.ACCESS_DENIED));
         Assert.assertTrue(msalException.getMessage().equals(TEST_ERROR_DESCRIPTION));
         Assert.assertNull(msalException.getCause());
     }
@@ -62,8 +62,8 @@ public final class MsalExceptionTest {
     public void testWithErrorCodeAndDescriptAndCause() {
         final Throwable throwable = new Throwable(TEST_ERROR_DESCRIPTION);
         final MsalException msalException = new MsalException(
-                MsalError.AUTHORITY_VALIDATION_NOT_SUPPORTED, TEST_ERROR_DESCRIPTION, throwable);
-        Assert.assertTrue(msalException.getErrorCode().equals(MsalError.AUTHORITY_VALIDATION_NOT_SUPPORTED));
+                MsalClientException.AUTHORITY_VALIDATION_NOT_SUPPORTED, TEST_ERROR_DESCRIPTION, throwable);
+        Assert.assertTrue(msalException.getErrorCode().equals(MsalClientException.AUTHORITY_VALIDATION_NOT_SUPPORTED));
         Assert.assertTrue(msalException.getMessage().equals(TEST_ERROR_DESCRIPTION));
         Assert.assertNotNull(msalException.getCause());
         Assert.assertTrue(msalException.getCause().getMessage().equals(TEST_ERROR_DESCRIPTION));

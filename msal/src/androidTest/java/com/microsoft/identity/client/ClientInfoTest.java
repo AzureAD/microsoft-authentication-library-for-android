@@ -47,7 +47,7 @@ public final class ClientInfoTest {
         try {
             new ClientInfo("some_rawClientInfo");
         } catch (final MsalClientException e) {
-            Assert.assertTrue(e.getErrorCode().equals(MsalError.JSON_PARSE_FAILURE));
+            Assert.assertTrue(e.getErrorCode().equals(MsalClientException.JSON_PARSE_FAILURE));
         }
     }
 

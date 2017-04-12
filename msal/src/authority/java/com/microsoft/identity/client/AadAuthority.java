@@ -82,9 +82,9 @@ class AadAuthority extends Authority {
             response = oauth2Client.discoveryAADInstance(new URL(AAD_INSTANCE_DISCOVERY_ENDPOINT));
         } catch (final MalformedURLException e) {
             // instance discovery endpoint is hard-coded, if it's ever going wrong, should be found during runtime
-            throw new MsalClientException(MsalError.MALFORMED_URL, "Malformed URL for instance discovery endpoint.", e);
+            throw new MsalClientException(MsalClientException.MALFORMED_URL, "Malformed URL for instance discovery endpoint.", e);
         } catch (final IOException ioException) {
-            throw new MsalClientException(MsalError.IO_ERROR, ioException.getMessage(), ioException);
+            throw new MsalClientException(MsalClientException.IO_ERROR, ioException.getMessage(), ioException);
         }
 
         // TODO: invalid_instance should be returned in this case. But we should get a list of errors that will be returned from server.

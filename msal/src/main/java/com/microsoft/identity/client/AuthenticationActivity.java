@@ -70,14 +70,14 @@ public final class AuthenticationActivity extends Activity {
 
         final Intent data = getIntent();
         if (data == null) {
-            sendError(MsalError.UNRESOLVABLE_INTENT, "Received null data intent from caller");
+            sendError(MsalClientException.UNRESOLVABLE_INTENT, "Received null data intent from caller");
             return;
         }
 
         mRequestUrl = data.getStringExtra(Constants.REQUEST_URL_KEY);
         mRequestId = data.getIntExtra(Constants.REQUEST_ID, 0);
         if (MsalUtils.isEmpty(mRequestUrl)) {
-            sendError(MsalError.UNRESOLVABLE_INTENT, "Request url is not set on the intent");
+            sendError(MsalClientException.UNRESOLVABLE_INTENT, "Request url is not set on the intent");
             return;
         }
 
@@ -85,7 +85,7 @@ public final class AuthenticationActivity extends Activity {
         // does). If the chrome package doesn't contain the support, we'll use chrome to launch the UI.
         if (MsalUtils.getChromePackage(this.getApplicationContext()) == null) {
             Logger.info(TAG, null, "Chrome is not installed on the device, cannot continue with auth.");
-            sendError(MsalError.CHROME_NOT_INSTALLED, "Chrome is not installed on the device, cannot proceed with auth");
+            sendError(MsalClientException.CHROME_NOT_INSTALLED, "Chrome is not installed on the device, cannot proceed with auth");
             return;
         }
 

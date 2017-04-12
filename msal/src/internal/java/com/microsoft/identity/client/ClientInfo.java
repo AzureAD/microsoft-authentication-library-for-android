@@ -52,7 +52,7 @@ final class ClientInfo {
         try {
             clientInfoItems = MsalUtils.extractJsonObjectIntoMap(decodedClientInfo);
         } catch (final JSONException e) {
-            throw new MsalClientException(MsalError.JSON_PARSE_FAILURE, "Failed to parse the returned raw client info.");
+            throw new MsalClientException(MsalClientException.JSON_PARSE_FAILURE, "Failed to parse the returned raw client info.");
         }
 
         mUniqueIdentifier = clientInfoItems.get(OauthConstants.ClientInfoClaim.UNIQUE_IDENTIFIER);

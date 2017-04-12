@@ -173,7 +173,7 @@ abstract class BaseRequest {
         } catch (final IOException e) {
             Logger.error(TAG, mRequestContext, "Token request failed with error: "
                     + e.getMessage(), e);
-            throw new MsalClientException(MsalError.IO_ERROR, "Auth failed with the error " + e.getMessage(), e);
+            throw new MsalClientException(MsalClientException.IO_ERROR, "Auth failed with the error " + e.getMessage(), e);
         }
 
         mTokenResponse = tokenResponse;
@@ -215,18 +215,18 @@ abstract class BaseRequest {
         final NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         if (networkInfo == null || !networkInfo.isConnected()) {
             Logger.error(TAG, mRequestContext, "No active network is available on the device.", null);
-            throw new MsalClientException(MsalError.DEVICE_NETWORK_NOT_AVAILABLE, "Device network connection is not available.");
+            throw new MsalClientException(MsalClientException.DEVICE_NETWORK_NOT_AVAILABLE, "Device network connection is not available.");
         }
     }
 
     void throwExceptionFromTokenResponse(final TokenResponse tokenResponse) throws MsalUiRequiredException, MsalServiceException {
         if (MsalUtils.isEmpty(tokenResponse.getError())) {
-            throw new MsalServiceException(MsalError.UNKNOWN_ERROR, "Request failed, but no error returned back from service.", tokenResponse.getHttpStatusCode(),
+            throw new MsalServiceException(MsalServiceException.UNKNOWN_ERROR, "Request failed, but no error returned back from service.", tokenResponse.getHttpStatusCode(),
                     null);
         }
 
-        if (MsalError.INVALID_GRANT.equals(tokenResponse.getError())) {
-            throw new MsalUiRequiredException(MsalError.INVALID_GRANT, tokenResponse.getErrorDescription(), null);
+        if (MsalUiRequiredException.INVALID_GRANT.equals(tokenResponse.getError())) {
+            throw new MsalUiRequiredException(MsalUiRequiredException.INVALID_GRANT, tokenResponse.getErrorDescription(), null);
         }
 
         throw new MsalServiceException(tokenResponse.getError(), tokenResponse.getErrorDescription(), tokenResponse.getHttpStatusCode(), null);
@@ -266,7 +266,7 @@ abstract class BaseRequest {
         if (mAuthRequestParameters.getUser() != null && !mAuthRequestParameters.getUser().getUserIdentifier().equals(uniqueUserIdentifer)) {
             Logger.errorPII(TAG, mAuthRequestParameters.getRequestContext(), "User unique identifier provided in the request is: " + mAuthRequestParameters.getUser().getUserIdentifier()
                     + ". The user unique identifier returned from token endpoint is: " + uniqueUserIdentifer, null);
-            throw new MsalClientException(MsalError.USER_MISMATCH, "User unique identifier provided in the request doesn't match the one returned in the token response");
+            throw new MsalClientException(MsalClientException.USER_MISMATCH, "User unique identifier provided in the request doesn't match the one returned in the token response");
         }
     }
 

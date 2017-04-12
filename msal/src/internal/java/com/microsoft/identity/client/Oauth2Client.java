@@ -165,14 +165,14 @@ final class Oauth2Client {
 
     private Map<String, String> parseResponseItems(final HttpResponse response) throws MsalServiceException, MsalClientException {
         if (MsalUtils.isEmpty(response.getBody())) {
-            throw new MsalServiceException(MsalError.SERVICE_NOT_AVAILABLE, "Empty response body", response.getStatusCode(), null);
+            throw new MsalServiceException(MsalServiceException.SERVICE_NOT_AVAILABLE, "Empty response body", response.getStatusCode(), null);
         }
 
         final Map<String, String> responseItems;
         try {
             responseItems = MsalUtils.extractJsonObjectIntoMap(response.getBody());
         } catch (final JSONException e) {
-            throw new MsalClientException(MsalError.JSON_PARSE_FAILURE, "Fail to parse JSON", e);
+            throw new MsalClientException(MsalClientException.JSON_PARSE_FAILURE, "Fail to parse JSON", e);
         }
 
         return responseItems;

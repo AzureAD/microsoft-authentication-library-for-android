@@ -36,6 +36,16 @@ package com.microsoft.identity.client;
  */
 
 public final class MsalUiRequiredException extends MsalException {
+    /**
+     * The refresh token used to redeem access token is invalid, expired, revoked.
+     */
+    public final static String INVALID_GRANT = "invalid_grant";
+
+    /**
+     * Access token doesn't exist and there is no refresh token can be found to redeem access token.
+     */
+    public final static String NO_TOKENS_FOUND = "no_tokens_found";
+
 
     MsalUiRequiredException(final String errorCode) {
         super(errorCode);
