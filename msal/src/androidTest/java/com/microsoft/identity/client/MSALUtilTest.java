@@ -241,12 +241,12 @@ public final class MSALUtilTest {
         // If multiple packages have custom tab support, and chrome package also has the support
         final ResolveInfo mockedResolveInfoForChrome = Mockito.mock(ResolveInfo.class);
         final ServiceInfo mockedServiceInfoForChrome = Mockito.mock(ServiceInfo.class);
-        mockedServiceInfoForChrome.packageName = MSALUtils.CHROME_PACKAGES[0];
+        mockedServiceInfoForChrome.packageName = MSALUtils.CHROME_PACKAGE;
         mockedResolveInfoForChrome.serviceInfo = mockedServiceInfoForChrome;
         resolvedInfos.add(mockedResolveInfoForChrome);
         final String chromePackageNameWithCustomTabSupport = MSALUtils.getChromePackageWithCustomTabSupport(mockedContext);
         Assert.assertNotNull(chromePackageNameWithCustomTabSupport);
-        Assert.assertTrue(chromePackageNameWithCustomTabSupport.equals(MSALUtils.CHROME_PACKAGES[0]));
+        Assert.assertTrue(chromePackageNameWithCustomTabSupport.equals(MSALUtils.CHROME_PACKAGE));
     }
 
     @Test
@@ -260,18 +260,16 @@ public final class MSALUtilTest {
         // no chrome package exists
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
         Mockito.when(mockedContext.getPackageManager()).thenReturn(mockedPackageManager);
-        for (int i = 0; i < MSALUtils.CHROME_PACKAGES.length; i++) {
-            Mockito.when(mockedPackageManager.getPackageInfo(Matchers.refEq(MSALUtils.CHROME_PACKAGES[i]),
-                    Matchers.eq(PackageManager.GET_ACTIVITIES))).thenThrow(PackageManager.NameNotFoundException.class);
-        }
+        Mockito.when(mockedPackageManager.getPackageInfo(Matchers.refEq(MSALUtils.CHROME_PACKAGE),
+                Matchers.eq(PackageManager.GET_ACTIVITIES))).thenThrow(PackageManager.NameNotFoundException.class);
+
         Assert.assertNull(MSALUtils.getChromePackage(mockedContext));
 
         // The three chrome package all exists on the device, return the stable chrome package name.
-        for (int i = 0; i < MSALUtils.CHROME_PACKAGES.length; i++) {
-            Mockito.when(mockedPackageManager.getPackageInfo(Matchers.refEq(MSALUtils.CHROME_PACKAGES[i]),
+        Mockito.when(mockedPackageManager.getPackageInfo(Matchers.refEq(MSALUtils.CHROME_PACKAGE),
                     Matchers.eq(PackageManager.GET_ACTIVITIES))).thenReturn(Mockito.mock(PackageInfo.class));
-        }
-        Assert.assertTrue(MSALUtils.getChromePackage(mockedContext).equals(MSALUtils.CHROME_PACKAGES[0]));
+
+        Assert.assertTrue(MSALUtils.getChromePackage(mockedContext).equals(MSALUtils.CHROME_PACKAGE));
     }
 
     @Test

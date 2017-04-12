@@ -58,6 +58,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import static android.content.ContentValues.TAG;
+
 /**
  * Internal Util class for MSAL.
  */
@@ -77,11 +79,7 @@ final class MSALUtils {
 
     private static final String TOKEN_HASH_ALGORITHM = "SHA256";
 
-    static final String[] CHROME_PACKAGES = {
-            "com.android.chrome",
-            "com.chrome.beta",
-            "com.chrome.dev",
-    };
+    static final String CHROME_PACKAGE = "com.android.chrome";
 
     /**
      * Private constructor to prevent Util class from being initiated.
@@ -235,10 +233,9 @@ final class MSALUtils {
             return null;
         }
 
-        final Set<String> chromePackage = new HashSet<>(Arrays.asList(CHROME_PACKAGES));
         for (final ResolveInfo resolveInfo : resolveInfoList) {
             final ServiceInfo serviceInfo = resolveInfo.serviceInfo;
-            if (serviceInfo != null && chromePackage.contains(serviceInfo.packageName)) {
+            if (serviceInfo != null && CHROME_PACKAGE.equals(serviceInfo.packageName)) {
                 return serviceInfo.packageName;
             }
         }
@@ -247,9 +244,8 @@ final class MSALUtils {
     }
 
     /**
-     * CHROME_PACKAGES array contains all the chrome packages that is currently available on play store, we always check
-     * the chrome packages in the order of 1)the currently stable one com.android.chrome 2) beta version com.chrome.beta
-     * 3) the dev version com.chrome.dev.
+     * CHROME_PACKAGE array contains all the chrome packages that is currently available on play store, we will only support
+     * chrome stable.
      *
      * @param context The app context that is used to check the chrome packages.
      * @return The chrome package name that exists on the device.
@@ -261,16 +257,12 @@ final class MSALUtils {
         }
 
         String installedChromePackage = null;
-        for (int i = 0; i < CHROME_PACKAGES.length; i++) {
-            try {
-                packageManager.getPackageInfo(CHROME_PACKAGES[i], PackageManager.GET_ACTIVITIES);
-                installedChromePackage = CHROME_PACKAGES[i];
-                break;
-                //CHECKSTYLE:OFF: checkstyle:EmptyBlock
-            } catch (final PackageManager.NameNotFoundException e) {
-                //CHECKSTYLE:ON: checkstyle:EmptyBlock
-                // swallow this exception. If the package is not existed, the exception will be thrown.
-            }
+        try {
+            packageManager.getPackageInfo(CHROME_PACKAGE, PackageManager.GET_ACTIVITIES);
+            installedChromePackage = CHROME_PACKAGE;
+        } catch (final PackageManager.NameNotFoundException e) {
+            // swallow this exception. If the package is not existed, the exception will be thrown.
+            Logger.error(TAG, null, "Failed to retrieve chrome package info.", e);
         }
 
         return installedChromePackage;
