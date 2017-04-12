@@ -80,7 +80,7 @@ abstract class Authority {
     abstract void addToValidatedAuthorityCache(final String userPrincipalName);
 
     /**
-     * Create the detailed authority. If the authority url string is for AAD, will create the {@link AADAuthority}, otherwise
+     * Create the detailed authority. If the authority url string is for AAD, will create the {@link AadAuthority}, otherwise
      * ADFS or B2C authority will be created.
      *
      * @param authorityUrl      The authority url used to create the {@link Authority}.
@@ -99,7 +99,7 @@ abstract class Authority {
             throw new IllegalArgumentException("Invalid protocol for the authority url.");
         }
 
-        if (MSALUtils.isEmpty(authority.getPath().replace("/", ""))) {
+        if (MsalUtils.isEmpty(authority.getPath().replace("/", ""))) {
             throw new IllegalArgumentException("Invalid authority url");
         }
 
@@ -112,11 +112,11 @@ abstract class Authority {
             throw new IllegalArgumentException("ADFS authority is not a supported authority instance");
         } else if (isB2cAuthority) {
             Logger.info(TAG, null, "Passed in authority string is a b2c authority, create an new b2c authority instance.");
-            return new B2CAuthority(authority, validateAuthority);
+            return new B2cAuthority(authority, validateAuthority);
         }
 
         Logger.info(TAG, null, "Passed in authority string is a aad authority, create an new aad authority instance.");
-        return new AADAuthority(authority, validateAuthority);
+        return new AadAuthority(authority, validateAuthority);
     }
 
     /**
@@ -148,8 +148,8 @@ abstract class Authority {
             throw new MsalClientException(MsalClientException.IO_ERROR, ioException.getMessage(), ioException);
         }
 
-        if (MSALUtils.isEmpty(tenantDiscoveryResponse.getAuthorizationEndpoint())
-                || MSALUtils.isEmpty(tenantDiscoveryResponse.getTokenEndpoint())) {
+        if (MsalUtils.isEmpty(tenantDiscoveryResponse.getAuthorizationEndpoint())
+                || MsalUtils.isEmpty(tenantDiscoveryResponse.getTokenEndpoint())) {
             if (tenantDiscoveryResponse.getError() != null) {
                 throw new MsalServiceException(tenantDiscoveryResponse.getError(), tenantDiscoveryResponse.getErrorDescription(),
                         tenantDiscoveryResponse.getHttpStatusCode(), null);
@@ -232,7 +232,7 @@ abstract class Authority {
     }
 
     void updateTenantLessAuthority(final String tenantId) throws MsalClientException {
-        if (!mIsTenantless || MSALUtils.isEmpty(tenantId)) {
+        if (!mIsTenantless || MsalUtils.isEmpty(tenantId)) {
             return;
         }
 

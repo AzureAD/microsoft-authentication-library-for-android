@@ -59,7 +59,7 @@ public final class AccessTokenCacheItemTest {
         Assert.assertTrue(scopes.contains(SCOPE_2));
 
         Assert.assertTrue(item.getRawClientInfo().equals(AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID)));
-        Assert.assertTrue(item.getUserIdentifier().equalsIgnoreCase(MSALUtils.getUniqueUserIdentifier(AndroidTestUtil.UID, AndroidTestUtil.UTID)));
+        Assert.assertTrue(item.getUserIdentifier().equalsIgnoreCase(MsalUtils.getUniqueUserIdentifier(AndroidTestUtil.UID, AndroidTestUtil.UTID)));
         Assert.assertTrue(item.getAccessToken().equals(ACCESS_TOKEN));
     }
 
@@ -79,7 +79,7 @@ public final class AccessTokenCacheItemTest {
 
     static TokenResponse getTokenResponse(final String accessToken, final String refreshToken) {
         return new TokenResponse(accessToken, getIdToken(), refreshToken, new Date(), new Date(), new Date(),
-                MSALUtils.convertSetToString(getScopes(), " "), "Bearer", AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID));
+                MsalUtils.convertSetToString(getScopes(), " "), "Bearer", AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID));
     }
 
     static String getIdToken() {

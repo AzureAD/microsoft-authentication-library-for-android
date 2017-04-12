@@ -68,7 +68,7 @@ final class InteractiveRequest extends BaseRequest {
         mActivityWrapper = new ActivityWrapper(activity);
 
         // validate redirect
-        if (MSALUtils.isEmpty(authRequestParameters.getRedirectUri())) {
+        if (MsalUtils.isEmpty(authRequestParameters.getRedirectUri())) {
             throw new IllegalArgumentException("redirect is empty");
         } // TODO: We need to validate redirect is as expected to make custom tab work.
 
@@ -85,7 +85,7 @@ final class InteractiveRequest extends BaseRequest {
      * Pre token request. Launch either chrome custom tab or chrome to get the auth code back.
      */
     @Override
-    synchronized void preTokenRequest() throws MSALUserCancelException, MsalClientException, MsalServiceException,
+    synchronized void preTokenRequest() throws MsalUserCancelException, MsalClientException, MsalServiceException,
             MsalUiRequiredException {
         super.preTokenRequest();
         final String authorizeUri;
@@ -161,7 +161,7 @@ final class InteractiveRequest extends BaseRequest {
     }
 
     String appendQueryStringToAuthorizeEndpoint() throws UnsupportedEncodingException, MsalClientException {
-        String authorizationUrl = MSALUtils.appendQueryParameterToUrl(
+        String authorizationUrl = MsalUtils.appendQueryParameterToUrl(
                 mAuthRequestParameters.getAuthority().getAuthorizeEndpoint(),
                 createAuthorizationRequestParameters());
 
@@ -181,7 +181,7 @@ final class InteractiveRequest extends BaseRequest {
         scopes.addAll(mAdditionalScope);
         final Set<String> requestedScopes = getDecoratedScope(scopes);
         requestParameters.put(OauthConstants.Oauth2Parameters.SCOPE,
-                MSALUtils.convertSetToString(requestedScopes, " "));
+                MsalUtils.convertSetToString(requestedScopes, " "));
         requestParameters.put(OauthConstants.Oauth2Parameters.CLIENT_ID, mAuthRequestParameters.getClientId());
         requestParameters.put(OauthConstants.Oauth2Parameters.REDIRECT_URI, mAuthRequestParameters.getRedirectUri());
         requestParameters.put(OauthConstants.Oauth2Parameters.RESPONSE_TYPE, OauthConstants.Oauth2ResponseType.CODE);
@@ -202,8 +202,8 @@ final class InteractiveRequest extends BaseRequest {
         addSessionContinuationQps(requestParameters);
 
         // adding extra qp
-        if (!MSALUtils.isEmpty(mAuthRequestParameters.getExtraQueryParam())) {
-            final Map<String, String> extraQps = MSALUtils.decodeUrlToMap(mAuthRequestParameters.getExtraQueryParam(), "&");
+        if (!MsalUtils.isEmpty(mAuthRequestParameters.getExtraQueryParam())) {
+            final Map<String, String> extraQps = MsalUtils.decodeUrlToMap(mAuthRequestParameters.getExtraQueryParam(), "&");
             final Set<Map.Entry<String, String>> extraQpEntries = extraQps.entrySet();
             for (final Map.Entry<String, String> extraQpEntry : extraQpEntries) {
                 if (requestParameters.containsKey(extraQpEntry.getKey())) {
@@ -237,25 +237,25 @@ final class InteractiveRequest extends BaseRequest {
     }
 
     private void addUiBehaviorToRequestParameters(final Map<String, String> requestParameters) {
-        final UIBehavior uiBehavior = mAuthRequestParameters.getUiBehavior();
-        if (uiBehavior == UIBehavior.FORCE_LOGIN) {
+        final UiBehavior uiBehavior = mAuthRequestParameters.getUiBehavior();
+        if (uiBehavior == UiBehavior.FORCE_LOGIN) {
             requestParameters.put(OauthConstants.Oauth2Parameters.PROMPT, OauthConstants.PromptValue.LOGIN);
-        } else if (uiBehavior == UIBehavior.SELECT_ACCOUNT) {
+        } else if (uiBehavior == UiBehavior.SELECT_ACCOUNT) {
             requestParameters.put(OauthConstants.Oauth2Parameters.PROMPT, OauthConstants.PromptValue.SELECT_ACCOUNT);
-        } else if (uiBehavior == UIBehavior.CONSENT) {
+        } else if (uiBehavior == UiBehavior.CONSENT) {
             requestParameters.put(OauthConstants.Oauth2Parameters.PROMPT, OauthConstants.PromptValue.CONSENT);
         }
     }
 
     private String encodeProtocolState() throws UnsupportedEncodingException {
-        final String state = String.format("a=%s&r=%s", MSALUtils.urlFormEncode(
+        final String state = String.format("a=%s&r=%s", MsalUtils.urlFormEncode(
                 mAuthRequestParameters.getAuthority().getAuthority()),
-                MSALUtils.urlFormEncode(MSALUtils.convertSetToString(
+                MsalUtils.urlFormEncode(MsalUtils.convertSetToString(
                         mAuthRequestParameters.getScope(), " ")));
         return Base64.encodeToString(state.getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 
-    private void processAuthorizationResult(final AuthorizationResult authorizationResult) throws MSALUserCancelException,
+    private void processAuthorizationResult(final AuthorizationResult authorizationResult) throws MsalUserCancelException,
             MsalServiceException, MsalClientException {
         if (authorizationResult == null) {
             Logger.error(TAG, mAuthRequestParameters.getRequestContext(), "Authorization result is null", null);
@@ -266,7 +266,7 @@ final class InteractiveRequest extends BaseRequest {
         Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Authorize request status is: " + status.toString());
         switch (status) {
             case USER_CANCEL:
-                throw new MSALUserCancelException();
+                throw new MsalUserCancelException();
             case FAIL:
                 // TODO: if clicking on the cancel button in the signin page, we get sub_error with the returned url,
                 // however we cannot take dependency on the sub_error. Then how do we know user click on the cancel button
@@ -285,14 +285,14 @@ final class InteractiveRequest extends BaseRequest {
 
     private void verifyStateInResponse(final String stateInResponse) throws MsalClientException {
         final String decodeState = decodeState(stateInResponse);
-        final Map<String, String> stateMap = MSALUtils.decodeUrlToMap(decodeState, "&");
+        final Map<String, String> stateMap = MsalUtils.decodeUrlToMap(decodeState, "&");
 
         if (stateMap.size() != 2
                 || !mAuthRequestParameters.getAuthority().getAuthority().equals(stateMap.get("a"))) {
             throw new MsalClientException(MsalClientException.STATE_MISMATCH, Constants.MsalErrorMessage.STATE_NOT_THE_SAME);
         }
 
-        final Set<String> scopesInState = MSALUtils.getScopesAsSet(stateMap.get("r"));
+        final Set<String> scopesInState = MsalUtils.getScopesAsSet(stateMap.get("r"));
         final Set<String> scopesInRequest = mAuthRequestParameters.getScope();
         if (scopesInState.size() != scopesInRequest.size() && !scopesInState.containsAll(scopesInRequest)) {
             throw new MsalClientException(MsalClientException.STATE_MISMATCH, Constants.MsalErrorMessage.STATE_NOT_THE_SAME);
@@ -300,7 +300,7 @@ final class InteractiveRequest extends BaseRequest {
     }
 
     private String decodeState(final String encodedState) {
-        if (MSALUtils.isEmpty(encodedState)) {
+        if (MsalUtils.isEmpty(encodedState)) {
             return null;
         }
 
@@ -309,7 +309,7 @@ final class InteractiveRequest extends BaseRequest {
     }
 
     private void addExtraQueryParameter(final String key, final String value, final Map<String, String> requestParams) {
-        if (!MSALUtils.isEmpty(key) && !MSALUtils.isEmpty(value)) {
+        if (!MsalUtils.isEmpty(key) && !MsalUtils.isEmpty(value)) {
             requestParams.put(key, value);
         }
     }

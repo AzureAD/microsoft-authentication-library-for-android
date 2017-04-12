@@ -231,7 +231,7 @@ final class HttpRequest {
 
         connection.setDoOutput(true);
 
-        if (!MSALUtils.isEmpty(requestContentType)) {
+        if (!MsalUtils.isEmpty(requestContentType)) {
             connection.setRequestProperty("Content-Type", requestContentType);
         }
 

@@ -41,7 +41,7 @@ final class AuthenticationRequestParameters {
     private String mRedirectUri;
     private String mLoginHint;
     private String mExtraQueryParam;
-    private UIBehavior mUIBehavior;
+    private UiBehavior mUiBehavior;
     private User mUser;
 
     /**
@@ -75,7 +75,7 @@ final class AuthenticationRequestParameters {
      */
     static AuthenticationRequestParameters create(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
                                                   final String clientId, final String redirectUri, final String loginHint,
-                                                  final String extraQueryParam, final UIBehavior uiBehavior, final User user,
+                                                  final String extraQueryParam, final UiBehavior uiBehavior, final User user,
                                                   final RequestContext requestContext) {
         final AuthenticationRequestParameters requestParameters = new AuthenticationRequestParameters(authority, tokenCache, scope,
                 clientId, requestContext);
@@ -140,12 +140,12 @@ final class AuthenticationRequestParameters {
         mExtraQueryParam = extraQueryParam;
     }
 
-    UIBehavior getUiBehavior() {
-        return mUIBehavior;
+    UiBehavior getUiBehavior() {
+        return mUiBehavior;
     }
 
-    private void setUIBehavior(final UIBehavior uiBehavior) {
-        mUIBehavior = uiBehavior;
+    private void setUIBehavior(final UiBehavior uiBehavior) {
+        mUiBehavior = uiBehavior;
     }
 
     User getUser() {

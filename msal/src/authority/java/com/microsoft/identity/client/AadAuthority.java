@@ -34,8 +34,8 @@ import java.util.Set;
 /**
  * MSAL internal class for representing the AAD authority.
  */
-class AADAuthority extends Authority {
-    private static final String TAG = AADAuthority.class.getSimpleName();
+class AadAuthority extends Authority {
+    private static final String TAG = AadAuthority.class.getSimpleName();
     private static final String AAD_INSTANCE_DISCOVERY_ENDPOINT = "https://login.microsoftonline.com/common/discovery/instance";
     private static final String API_VERSION = "api-version";
     private static final String API_VERSION_VALUE = "1.0";
@@ -53,9 +53,9 @@ class AADAuthority extends Authority {
             new HashSet<>(Arrays.asList(TRUSTED_HOSTS)));
 
     /**
-     * Constructor for creating the {@link AADAuthority}.
+     * Constructor for creating the {@link AadAuthority}.
      */
-    AADAuthority(final URL authority, boolean validateAuthority) {
+    AadAuthority(final URL authority, boolean validateAuthority) {
         super(authority, validateAuthority);
 
         mAuthorityType = AuthorityType.AAD;
@@ -88,7 +88,7 @@ class AADAuthority extends Authority {
         }
 
         // TODO: invalid_instance should be returned in this case. But we should get a list of errors that will be returned from server.
-        if (!MSALUtils.isEmpty(response.getError())) {
+        if (!MsalUtils.isEmpty(response.getError())) {
             throw new MsalServiceException(response.getError(), response.getErrorDescription(), response.getHttpStatusCode(), null);
         }
 

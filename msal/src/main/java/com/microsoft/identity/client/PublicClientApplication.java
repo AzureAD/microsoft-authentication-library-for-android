@@ -114,7 +114,7 @@ public final class PublicClientApplication {
             throw new IllegalArgumentException("Context is null");
         }
 
-        if (MSALUtils.isEmpty(clientId)) {
+        if (MsalUtils.isEmpty(clientId)) {
             throw new IllegalArgumentException("client id is empty or null");
         }
 
@@ -140,7 +140,7 @@ public final class PublicClientApplication {
     public PublicClientApplication(@NonNull final Context context, @NonNull final String clientId, @NonNull final String authority) {
         this(context, clientId);
 
-        if (MSALUtils.isEmpty(authority)) {
+        if (MsalUtils.isEmpty(authority)) {
             throw new IllegalArgumentException("authority is empty or null");
         }
 
@@ -214,7 +214,7 @@ public final class PublicClientApplication {
      * @throws MsalClientException If failed to retrieve users from the cache.
      */
     public User getUser(final String userIdentifier) throws MsalClientException {
-        if (MSALUtils.isEmpty(userIdentifier)) {
+        if (MsalUtils.isEmpty(userIdentifier)) {
             throw new IllegalArgumentException("Empty or null userIdentifier");
         }
 
@@ -242,7 +242,7 @@ public final class PublicClientApplication {
     // Interactive APIs. Will launch the web UI.
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UIBehavior} is {@link UIBehavior#SELECT_ACCOUNT}.
+     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
      * @param activity Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
      *                 All the apps doing interactive request are required to call the
      *                 {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
@@ -260,13 +260,13 @@ public final class PublicClientApplication {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, API_ID_ACQUIRE);
 
-        acquireTokenInteractive(activity, scopes, "", UIBehavior.SELECT_ACCOUNT, "", null, "", null,
+        acquireTokenInteractive(activity, scopes, "", UiBehavior.SELECT_ACCOUNT, "", null, "", null,
                 wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), telemetryRequestId, apiEventBuilder);
     }
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UIBehavior} is {@link UIBehavior#SELECT_ACCOUNT}.
+     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
      * @param activity Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
      *                 All the apps doing interactive request are required to call the
      *                 {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
@@ -287,13 +287,13 @@ public final class PublicClientApplication {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, API_ID_ACQUIRE_WITH_HINT);
 
-        acquireTokenInteractive(activity, scopes, loginHint, UIBehavior.SELECT_ACCOUNT, "", null, "", null,
+        acquireTokenInteractive(activity, scopes, loginHint, UiBehavior.SELECT_ACCOUNT, "", null, "", null,
                 wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), telemetryRequestId, apiEventBuilder);
     }
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UIBehavior} is {@link UIBehavior#SELECT_ACCOUNT}.
+     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
      * @param activity Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
      *                 All the apps doing interactive request are required to call the
      *                 {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
@@ -301,7 +301,7 @@ public final class PublicClientApplication {
      * @param scopes An Non-null array of scopes to acquire the token for.
      * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
      *                  which will have the UPN pre-populated.
-     * @param uiBehavior The {@link UIBehavior} for prompting behavior. By default, the sdk use {@link UIBehavior#SELECT_ACCOUNT}.
+     * @param uiBehavior The {@link UiBehavior} for prompting behavior. By default, the sdk use {@link UiBehavior#SELECT_ACCOUNT}.
      * @param extraQueryParameters Optional. The extra query parameters sent to authorize endpoint.
      * @param callback The Non-null {@link AuthenticationCallback} to receive the result back.
      *                 1) If user cancels the flow by pressing the device back button, the result will be sent
@@ -311,18 +311,18 @@ public final class PublicClientApplication {
      *                 3) All the other errors will be sent back via
      *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
-    public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint, final UIBehavior uiBehavior,
+    public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint, final UiBehavior uiBehavior,
                              final String extraQueryParameters, @NonNull final AuthenticationCallback callback) {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_AND_PARAMETERS);
 
-        acquireTokenInteractive(activity, scopes, loginHint, uiBehavior == null ? UIBehavior.SELECT_ACCOUNT : uiBehavior,
+        acquireTokenInteractive(activity, scopes, loginHint, uiBehavior == null ? UiBehavior.SELECT_ACCOUNT : uiBehavior,
                 extraQueryParameters, null, "", null, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), telemetryRequestId, apiEventBuilder);
     }
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UIBehavior} is {@link UIBehavior#SELECT_ACCOUNT}.
+     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
      * @param activity Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
      *                 All the apps doing interactive request are required to call the
      *                 {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
@@ -330,7 +330,7 @@ public final class PublicClientApplication {
      * @param scopes An Non-null array of scopes to acquire the token for.
      * @param user Optional. If provided, will be used to force the session continuation, if user tries to sign in with a different user,
      *             error will be returned.
-     * @param uiBehavior The {@link UIBehavior} for prompting behavior. By default, the sdk use {@link UIBehavior#SELECT_ACCOUNT}.
+     * @param uiBehavior The {@link UiBehavior} for prompting behavior. By default, the sdk use {@link UiBehavior#SELECT_ACCOUNT}.
      * @param extraQueryParameter Optional. The extra query parameter sent to authorize endpoint.
      * @param callback The Non-null {@link AuthenticationCallback} to receive the result back.
      *                 1) If user cancels the flow by pressing the device back button, the result will be sent
@@ -340,7 +340,7 @@ public final class PublicClientApplication {
      *                 3) All the other errors will be sent back via
      *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
-    public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final User user, final UIBehavior uiBehavior,
+    public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final User user, final UiBehavior uiBehavior,
                              final String extraQueryParameter, @NonNull final AuthenticationCallback callback) {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, API_ID_ACQUIRE_WITH_USER_BEHAVIOR_AND_PARAMETERS);
@@ -351,7 +351,7 @@ public final class PublicClientApplication {
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UIBehavior} is {@link UIBehavior#SELECT_ACCOUNT}.
+     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
      * @param activity Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
      *                 All the apps doing interactive request are required to call the
      *                 {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
@@ -359,7 +359,7 @@ public final class PublicClientApplication {
      * @param scopes An Non-null array of scopes to acquire the token for.
      * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
      *                  which will have the UPN pre-populated.
-     * @param uiBehavior The {@link UIBehavior} for prompting behavior. By default, the sdk use {@link UIBehavior#SELECT_ACCOUNT}.
+     * @param uiBehavior The {@link UiBehavior} for prompting behavior. By default, the sdk use {@link UiBehavior#SELECT_ACCOUNT}.
      * @param extraQueryParams Optional. The extra query parameter sent to authorize endpoint.
      * @param additionalScope Optional. The additional scope to consent for.
      * @param authority Should be set if developer wants to get token for a different authority url.
@@ -371,19 +371,19 @@ public final class PublicClientApplication {
      *                 3) All the other errors will be sent back via
      *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
-    public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint, final UIBehavior uiBehavior,
+    public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint, final UiBehavior uiBehavior,
                              final String extraQueryParams, final String[] additionalScope, final String authority,
                              @NonNull final AuthenticationCallback callback) {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_PARAMETERS_AND_AUTHORITY);
 
-        acquireTokenInteractive(activity, scopes, loginHint, uiBehavior == null ? UIBehavior.SELECT_ACCOUNT : uiBehavior,
+        acquireTokenInteractive(activity, scopes, loginHint, uiBehavior == null ? UiBehavior.SELECT_ACCOUNT : uiBehavior,
                 extraQueryParams, additionalScope, authority, null, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), telemetryRequestId, apiEventBuilder);
     }
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UIBehavior} is {@link UIBehavior#SELECT_ACCOUNT}.
+     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
      * @param activity Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
      *                 All the apps doing interactive request are required to call the
      *                 {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
@@ -391,7 +391,7 @@ public final class PublicClientApplication {
      * @param scopes An Non-null array of scopes to acquire the token for.
      * @param user Optional. If provided, will be used to force the session continuation, if user tries to sign in with a different user, error
      *             will be returned.
-     * @param uiBehavior The {@link UIBehavior} for prompting behavior. By default, the sdk use {@link UIBehavior#SELECT_ACCOUNT}.
+     * @param uiBehavior The {@link UiBehavior} for prompting behavior. By default, the sdk use {@link UiBehavior#SELECT_ACCOUNT}.
      * @param extraQueryParams Optional. The extra query parameter sent to authorize endpoint.
      * @param additionalScope Optional. The additional scope to consent for.
      * @param authority Should be set if developer wants to get token for a different authority url.
@@ -403,13 +403,13 @@ public final class PublicClientApplication {
      *                 3) All the other errors will be sent back via
      *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
-    public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final User user, final UIBehavior uiBehavior,
+    public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final User user, final UiBehavior uiBehavior,
                              final String extraQueryParams, final String[] additionalScope, final String authority,
                              @NonNull final AuthenticationCallback callback) {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, API_ID_ACQUIRE_WITH_USER_BEHAVIOR_PARAMETERS_AND_AUTHORITY);
 
-        acquireTokenInteractive(activity, scopes, "", uiBehavior == null ? UIBehavior.SELECT_ACCOUNT : uiBehavior, extraQueryParams, additionalScope,
+        acquireTokenInteractive(activity, scopes, "", uiBehavior == null ? UiBehavior.SELECT_ACCOUNT : uiBehavior, extraQueryParams, additionalScope,
                 authority, user, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), telemetryRequestId, apiEventBuilder);
     }
 
@@ -482,14 +482,14 @@ public final class PublicClientApplication {
     }
 
     private void loadMetaDataFromManifest() {
-        final ApplicationInfo applicationInfo = MSALUtils.getApplicationInfo(mAppContext);
+        final ApplicationInfo applicationInfo = MsalUtils.getApplicationInfo(mAppContext);
         if (applicationInfo == null || applicationInfo.metaData == null) {
             throw new IllegalArgumentException("No meta-data exists");
         }
 
         // read authority from manifest.
         final String authority = applicationInfo.metaData.getString(AUTHORITY_META_DATA);
-        if (!MSALUtils.isEmpty(authority)) {
+        if (!MsalUtils.isEmpty(authority)) {
             mAuthorityString = authority;
         } else {
             mAuthorityString = DEFAULT_AUTHORITY;
@@ -497,21 +497,21 @@ public final class PublicClientApplication {
 
         // read client id from manifest
         final String clientId = applicationInfo.metaData.getString(CLIENT_ID_META_DATA);
-        if (MSALUtils.isEmpty(clientId)) {
+        if (MsalUtils.isEmpty(clientId)) {
             throw new IllegalArgumentException("client id missing from manifest");
         }
         mClientId = clientId;
 
         // TODO: Comment out for now. As discussed, redirect should be computed during runtime, developer needs to put
 //        final String redirectUri = applicationInfo.metaData.getString(REDIRECT_META_DATA);
-//        if (!MSALUtils.isEmpty(redirectUri)) {
+//        if (!MsalUtils.isEmpty(redirectUri)) {
 //            mRedirectUri = redirectUri;
 //        }
     }
 
     // TODO: if no more input validation is needed, this could be moved back to the constructor.
     private void validateInputParameters() {
-        if (!MSALUtils.hasCustomTabRedirectActivity(mAppContext, mRedirectUri)) {
+        if (!MsalUtils.hasCustomTabRedirectActivity(mAppContext, mRedirectUri)) {
             throw new IllegalStateException("App doesn't have the correct configuration for "
                     + BrowserTabActivity.class.getSimpleName() + ".");
         }
@@ -536,7 +536,7 @@ public final class PublicClientApplication {
     }
 
 
-    private void acquireTokenInteractive(final Activity activity, final String[] scopes, final String loginHint, final UIBehavior uiBehavior,
+    private void acquireTokenInteractive(final Activity activity, final String[] scopes, final String loginHint, final UiBehavior uiBehavior,
                                          final String extraQueryParams, final String[] additionalScope,
                                          final String authority, final User user, final AuthenticationCallback callback,
                                          final String telemetryRequestId, final ApiEvent.Builder apiEventBuilder) {
@@ -568,7 +568,7 @@ public final class PublicClientApplication {
             throw new IllegalArgumentException("callback is null");
         }
 
-        final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? Authority.createAuthority(mAuthorityString, mValidateAuthority)
+        final Authority authorityForRequest = MsalUtils.isEmpty(authority) ? Authority.createAuthority(mAuthorityString, mValidateAuthority)
                 : Authority.createAuthority(authority, mValidateAuthority);
         // set correlation if not developer didn't set it.
         final RequestContext requestContext = new RequestContext(UUID.randomUUID(), mComponent, telemetryRequestId);
@@ -588,14 +588,14 @@ public final class PublicClientApplication {
 
         Logger.info(TAG, requestContext, "Preparing a new silent request");
         final SilentRequest request = new SilentRequest(mAppContext, requestParameters, forceRefresh, user);
-        request.setIsAuthorityProvided(!MSALUtils.isEmpty(authority));
+        request.setIsAuthorityProvided(!MsalUtils.isEmpty(authority));
         request.getToken(callback);
     }
 
     private AuthenticationRequestParameters getRequestParameters(final String authority, final String[] scopes,
                                                                  final String loginHint, final String extraQueryParam,
-                                                                 final UIBehavior uiBehavior, final User user, final String telemetryRequestId) {
-        final Authority authorityForRequest = MSALUtils.isEmpty(authority) ? Authority.createAuthority(mAuthorityString, mValidateAuthority)
+                                                                 final UiBehavior uiBehavior, final User user, final String telemetryRequestId) {
+        final Authority authorityForRequest = MsalUtils.isEmpty(authority) ? Authority.createAuthority(mAuthorityString, mValidateAuthority)
                 : Authority.createAuthority(authority, mValidateAuthority);
         // set correlation if not developer didn't set it.
         final UUID correlationId = UUID.randomUUID();

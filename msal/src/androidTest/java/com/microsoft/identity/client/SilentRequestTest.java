@@ -381,7 +381,7 @@ public final class SilentRequestTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
-        final AuthenticationRequestParameters requestParameters = getRequestParameters(MSALUtils.getScopesAsSet(scope));
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(MsalUtils.getScopesAsSet(scope));
         final User user = User.create(new IdToken(TokenCacheTest.getDefaultIdToken()), new ClientInfo(TokenCacheTest.getDefaultClientInfo()));
         final SilentRequest request = new SilentRequest(mAppContext, requestParameters, false, user);
         request.setIsAuthorityProvided(false);
@@ -425,7 +425,7 @@ public final class SilentRequestTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
-        final AuthenticationRequestParameters requestParameters = getRequestParameters(MSALUtils.getScopesAsSet(scope));
+        final AuthenticationRequestParameters requestParameters = getRequestParameters(MsalUtils.getScopesAsSet(scope));
         final User user = User.create(new IdToken(TokenCacheTest.getDefaultIdToken()), new ClientInfo(TokenCacheTest.getDefaultClientInfo()));
         final SilentRequest request = new SilentRequest(mAppContext, requestParameters, false, user);
         request.setIsAuthorityProvided(false);
@@ -583,7 +583,7 @@ public final class SilentRequestTest extends AndroidTestCase {
 
     private AuthenticationRequestParameters getRequestParameters(final Set<String> scopes) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, false),
-                mTokenCache, scopes, TokenCacheTest.CLIENT_ID, "some redirect", "", "", UIBehavior.SELECT_ACCOUNT, null,
+                mTokenCache, scopes, TokenCacheTest.CLIENT_ID, "some redirect", "", "", UiBehavior.SELECT_ACCOUNT, null,
                 new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()));
     }
 

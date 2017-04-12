@@ -51,7 +51,7 @@ import com.microsoft.identity.client.MsalServiceException;
 import com.microsoft.identity.client.MsalUiRequiredException;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.Telemetry;
-import com.microsoft.identity.client.UIBehavior;
+import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.client.User;
 
 import java.util.Collections;
@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private String mAuthority;
     private String[] mScopes;
-    private UIBehavior mUiBehavior;
+    private UiBehavior mUiBehavior;
     private String mLoginHint;
     private String mExtraQp;
     private String[] mAdditionalScope;
@@ -280,7 +280,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mUser = user;
     }
 
-    private void callAcquireToken(final String[] scopes, final UIBehavior uiBehavior, final String loginHint,
+    private void callAcquireToken(final String[] scopes, final UiBehavior uiBehavior, final String loginHint,
                                   final String extraQueryParam, final String[] additionalScope) {
         // The sample app is having the PII enable setting on the MainActivity. Ideally, app should decide to enable Pii or not,
         // if it's enabled, it should be  the setting when the application is onCreate.

@@ -29,11 +29,11 @@ import java.net.URL;
 /**
  * MSAL internal class for representing the B2C authority instance.
  */
-final class B2CAuthority extends AADAuthority {
-    private static final String TAG = B2CAuthority.class.getSimpleName();
+final class B2cAuthority extends AadAuthority {
+    private static final String TAG = B2cAuthority.class.getSimpleName();
     private static int B2C_AUTHORITY_SEGMENTS_SIZE = 3;
 
-    B2CAuthority(final URL authority, boolean validateAuthority) {
+    B2cAuthority(final URL authority, boolean validateAuthority) {
         super(authority, validateAuthority);
 
         mAuthorityType = AuthorityType.B2C;

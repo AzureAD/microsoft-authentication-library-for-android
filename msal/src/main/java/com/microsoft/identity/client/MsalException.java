@@ -80,7 +80,7 @@ public class MsalException extends Exception {
      */
     @Override
     public String getMessage() {
-        if (!MSALUtils.isEmpty(super.getMessage())) {
+        if (!MsalUtils.isEmpty(super.getMessage())) {
             return super.getMessage();
         }
 

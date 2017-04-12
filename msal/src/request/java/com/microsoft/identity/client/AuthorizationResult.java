@@ -87,14 +87,14 @@ final class AuthorizationResult {
         final String result = responseUri.getQuery();
 
         final AuthorizationResult authorizationResult;
-        if (MSALUtils.isEmpty(result)) {
+        if (MsalUtils.isEmpty(result)) {
             Logger.warning(TAG, null, "Invalid server response, empty query string from the webview redirect.");
             authorizationResult = getAuthorizationResultWithInvalidServerResponse();
         } else {
-            final Map<String, String> urlParameters = MSALUtils.decodeUrlToMap(result, "&");
+            final Map<String, String> urlParameters = MsalUtils.decodeUrlToMap(result, "&");
             if (urlParameters.containsKey(OauthConstants.TokenResponseClaim.CODE)) {
                 final String state = urlParameters.get(OauthConstants.TokenResponseClaim.STATE);
-                if (MSALUtils.isEmpty(state)) {
+                if (MsalUtils.isEmpty(state)) {
                     Logger.warning(TAG, null, "State parameter is not returned from the webview redirect.");
                     authorizationResult = new AuthorizationResult(AuthorizationStatus.FAIL, MsalClientException.STATE_MISMATCH,
                             Constants.MsalErrorMessage.STATE_NOT_RETURNED);

@@ -92,8 +92,8 @@ public final class AndroidTestUtil {
                 + "\",\"name\":\"" + name + "\"}";
 
         return String.format("%s.%s.", new String(Base64.encode(idTokenHeader.getBytes(
-                Charset.forName(MSALUtils.ENCODING_UTF8)), Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE)),
-                new String(Base64.encode(claims.getBytes(Charset.forName(MSALUtils.ENCODING_UTF8)),
+                Charset.forName(MsalUtils.ENCODING_UTF8)), Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE)),
+                new String(Base64.encode(claims.getBytes(Charset.forName(MsalUtils.ENCODING_UTF8)),
                         Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE)));
     }
 
@@ -101,7 +101,7 @@ public final class AndroidTestUtil {
         final String claims = "{\"uid\":\"" + uid + "\",\"utid\":\"" + utid + "\"}";
 
         return new String(Base64.encode(claims.getBytes(
-                Charset.forName(MSALUtils.ENCODING_UTF8)), Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE));
+                Charset.forName(MsalUtils.ENCODING_UTF8)), Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE));
     }
 
     static InputStream createInputStream(final String input) {
@@ -132,7 +132,7 @@ public final class AndroidTestUtil {
                 + idToken
                 + "\",\"access_token\":\"" + accessToken + "\", \"token_type\":\"Bearer\",\"refresh_token\":\"" + REFRESH_TOKEN + "\","
                 + "\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\"" + scopes + "\""; //}";
-        if (!MSALUtils.isEmpty(clientInfo)) {
+        if (!MsalUtils.isEmpty(clientInfo)) {
             tokenResponse += ",\"client_info\":\"" + clientInfo + "\"";
         }
 
@@ -146,7 +146,7 @@ public final class AndroidTestUtil {
                 + idToken
                 + "\",\"access_token\":\"" + accessToken + "\", \"token_type\":\"Bearer\",\"refresh_token\":\"" + REFRESH_TOKEN + "\","
                 + "\"scope\":\"" + scopes + "\"";
-        if (!MSALUtils.isEmpty(clientInfo)) {
+        if (!MsalUtils.isEmpty(clientInfo)) {
             tokenResponse += ",\"client_info\":\"" + clientInfo + "\"";
         }
 
@@ -169,8 +169,8 @@ public final class AndroidTestUtil {
     }
 
     static String encodeProtocolState(final String authority, final Set<String> scopes) throws UnsupportedEncodingException {
-        String state = String.format("a=%s&r=%s", MSALUtils.urlFormEncode(authority),
-                MSALUtils.urlFormEncode(MSALUtils.convertSetToString(scopes, " ")));
+        String state = String.format("a=%s&r=%s", MsalUtils.urlFormEncode(authority),
+                MsalUtils.urlFormEncode(MsalUtils.convertSetToString(scopes, " ")));
         return Base64.encodeToString(state.getBytes(Charset.forName("UTF-8")), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 

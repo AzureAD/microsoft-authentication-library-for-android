@@ -32,10 +32,10 @@ import org.junit.runner.RunWith;
 import java.util.UUID;
 
 /**
- * Tests for {@link B2CAuthority}.
+ * Tests for {@link B2cAuthority}.
  */
 @RunWith(AndroidJUnit4.class)
-public final class B2CAuthorityTest {
+public final class B2cAuthorityTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidPathSegments() {

@@ -47,7 +47,7 @@ final class SilentRequest extends BaseRequest {
     }
 
     @Override
-    void preTokenRequest() throws MsalClientException, MsalUiRequiredException, MsalServiceException, MSALUserCancelException {
+    void preTokenRequest() throws MsalClientException, MsalUiRequiredException, MsalServiceException, MsalUserCancelException {
         final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
 
         final AccessTokenCacheItem tokenCacheItemAuthorityNotProvided = mIsAuthorityProvided ? null : tokenCache.findAccessTokenItemAuthorityNotProvided(

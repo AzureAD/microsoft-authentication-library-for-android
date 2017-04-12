@@ -78,6 +78,6 @@ abstract class BaseTokenCacheItem {
     }
 
     final String getUserIdentifier() {
-        return MSALUtils.getUniqueUserIdentifier(mClientInfo.getUniqueIdentifier(), mClientInfo.getUniqueTenantIdentifier());
+        return MsalUtils.getUniqueUserIdentifier(mClientInfo.getUniqueIdentifier(), mClientInfo.getUniqueTenantIdentifier());
     }
 }

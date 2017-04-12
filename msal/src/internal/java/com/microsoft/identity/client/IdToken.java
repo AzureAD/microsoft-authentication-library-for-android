@@ -48,7 +48,7 @@ final class IdToken {
      * @param rawIdToken The raw Id token used to create the {@link IdToken}.
      */
     IdToken(final String rawIdToken) throws MsalClientException {
-        if (MSALUtils.isEmpty(rawIdToken)) {
+        if (MsalUtils.isEmpty(rawIdToken)) {
             throw new IllegalArgumentException("null or empty raw idtoken");
         }
 
@@ -109,8 +109,8 @@ final class IdToken {
         final byte[] data = Base64.decode(idTokenBody, Base64.URL_SAFE);
 
         try {
-            final String decodedBody = new String(data, Charset.forName(MSALUtils.ENCODING_UTF8));
-            return MSALUtils.extractJsonObjectIntoMap(decodedBody);
+            final String decodedBody = new String(data, Charset.forName(MsalUtils.ENCODING_UTF8));
+            return MsalUtils.extractJsonObjectIntoMap(decodedBody);
         } catch (final JSONException e) {
             throw new MsalClientException(MsalClientException.INVALID_JWT, "Failed to extract Json object " + e.getMessage(), e);
         }

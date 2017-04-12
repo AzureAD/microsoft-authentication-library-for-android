@@ -49,7 +49,7 @@ class WebFingerMetadataRequestor
     WebFingerMetadata requestMetadata(final WebFingerMetadataRequestParameters webFingerMetadataRequestParameters)
             throws MsalServiceException, MsalClientException {
         final URL domain = webFingerMetadataRequestParameters.getDomain();
-        final DRSMetadata drsMetadata = webFingerMetadataRequestParameters.getDrsMetadata();
+        final DrsMetadata drsMetadata = webFingerMetadataRequestParameters.getDrsMetadata();
         Logger.verbose(TAG, getRequestContext(), "Validating authority for auth endpoint: " + domain.toString());
         try {
             // create the URL
@@ -121,11 +121,11 @@ class WebFingerMetadataRequestor
      * Create the URL used to retrieve the WebFinger metadata.
      *
      * @param resource    the resource to verify
-     * @param drsMetadata the {@link DRSMetadata} to consult
+     * @param drsMetadata the {@link DrsMetadata} to consult
      * @return the URL of the WebFinger document
      * @throws MalformedURLException if the URL could not be constructed
      */
-    static URL buildWebFingerUrl(final URL resource, final DRSMetadata drsMetadata)
+    static URL buildWebFingerUrl(final URL resource, final DrsMetadata drsMetadata)
             throws MalformedURLException {
         final URL passiveAuthEndpoint = new URL(
                 drsMetadata
