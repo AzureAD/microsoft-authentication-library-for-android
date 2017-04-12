@@ -53,7 +53,7 @@ package com.microsoft.identity.client;
 public final class MsalClientException extends MsalException {
     /**
      * There are multiple cache entries found, the sdk cannot pick the correct access token
-     * or refresh token from the cache. When this happens, mostly likely it's an bug in the sdk for storing tokens.
+     * or refresh token from the cache. When this happens, mostly likely it's a bug in the sdk for storing tokens.
      */
     public final static String MULTIPLE_MATCHING_TOKENS_DETECTED = "multiple_matching_tokens_detected";
 
@@ -130,6 +130,10 @@ public final class MsalClientException extends MsalException {
      */
     public final static String DUPLICATE_QUERY_PARAMETER = "duplicate_query_parameter";
 
+    /**
+     * Temporary non-exposed error code to indicate that Adfs authority validation fails. Adfs as authority is not supported
+     * for preview.
+     */
     final static String ADFS_AUTHORITY_VALIDATION_FAILED = "adfs_authority_validation_failed";
 
     MsalClientException(final String errorCode) {
