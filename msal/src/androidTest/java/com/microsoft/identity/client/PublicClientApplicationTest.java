@@ -282,6 +282,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             protected void makeSilentRequest(final PublicClientApplication application, final CountDownLatch silentResultLock)
                     throws IOException, InterruptedException {
                 final String scopeForSilent = "scope3";
+                AndroidTestMockUtil.mockSuccessTenantDiscovery(SilentRequestTest.AUTHORIZE_ENDPOINT, SilentRequestTest.TOKEN_ENDPOINT);
                 mockSuccessResponse(scopeForSilent, AndroidTestUtil.ACCESS_TOKEN, DEFAULT_CLIENT_INFO);
 
                 application.acquireTokenSilentAsync(new String[]{scopeForSilent}, mUser, new AuthenticationCallback() {

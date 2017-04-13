@@ -32,8 +32,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * MSAL internal representation for token cache.
@@ -143,26 +145,60 @@ class TokenCache {
         final List<AccessTokenCacheItem> accessTokenCacheItems = getAllAccessTokensForApp(requestParameters.getClientId(), requestParameters.getRequestContext());
         final List<AccessTokenCacheItem> matchingATs = new ArrayList<>();
         for (final AccessTokenCacheItem accessTokenCacheItem : accessTokenCacheItems) {
-            if (user.getUserIdentifier().equals(accessTokenCacheItem.getUserIdentifier()) && accessTokenCacheItem.getScope().containsAll(requestParameters.getScope())) {
+            if (user.getUserIdentifier().equals(accessTokenCacheItem.getUserIdentifier())) {
                 matchingATs.add(accessTokenCacheItem);
             }
         }
 
         if (matchingATs.isEmpty()) {
-            Logger.info(TAG, requestParameters.getRequestContext(), "Authority is not provided for the silent request. No access tokens matching the scopes and user exist.");
+            Logger.verbose(TAG, requestParameters.getRequestContext(), "No tokens matching the user exist.");
             return null;
         }
 
-        if (matchingATs.size() > 1) {
+        // match scope
+        final List<AccessTokenCacheItem> accessTokenWithScopeMatching = new ArrayList<>();
+        for (final AccessTokenCacheItem accessTokenCacheItem : matchingATs) {
+            if (accessTokenCacheItem.getScope().containsAll(requestParameters.getScope())) {
+                accessTokenWithScopeMatching.add(accessTokenCacheItem);
+            }
+        }
+
+        // throw if more than one matching items are found.
+        if (accessTokenWithScopeMatching.size() > 1) {
             Logger.error(TAG, requestParameters.getRequestContext(), "Authority is not provided for the silent request. Multiple matching tokens were detected.", null);
             throw new MsalClientException(MsalClientException.MULTIPLE_MATCHING_TOKENS_DETECTED, "Authority is not provided for the silent request. There are multiple matching tokens detected. ");
         }
 
-        final AccessTokenCacheItem tokenCacheItem = matchingATs.get(0);
-        Logger.verbosePII(TAG, requestParameters.getRequestContext(), "Authority is not provided but found one matching access token item, authority is: " + tokenCacheItem.getAuthority());
-        requestParameters.setAuthority(tokenCacheItem.getAuthority(), requestParameters.getAuthority().mValidateAuthority);
-        if (!tokenCacheItem.isExpired()) {
-            return tokenCacheItem;
+        AccessTokenCacheItem accessTokenCacheItem = null;
+        final String authority;
+        if (accessTokenWithScopeMatching.size() == 1) {
+            accessTokenCacheItem = accessTokenWithScopeMatching.get(0);
+            authority = accessTokenCacheItem.getAuthority();
+        } else {
+            // If no tokens matching the token exists, try to count the unique authorities.
+            final Set<String> uniqueAuthorities = new HashSet<>();
+            for (final AccessTokenCacheItem tokenCacheItem : matchingATs) {
+                uniqueAuthorities.add(tokenCacheItem.getAuthority());
+            }
+
+            if (uniqueAuthorities.size() != 1) {
+                Logger.error(TAG, requestParameters.getRequestContext(), "Authority is not provided for the silent request. Mutiple authorities found.", null);
+                final StringBuilder foundAuthorities = new StringBuilder();
+                while (uniqueAuthorities.iterator().hasNext()) {
+                    foundAuthorities.append(uniqueAuthorities.iterator().next());
+                    foundAuthorities.append("; ");
+                }
+                Logger.errorPII(TAG, requestParameters.getRequestContext(), "The authorities found in the cache are: " + foundAuthorities.toString(), null);
+                throw new MsalClientException(MsalClientException.MULTIPLE_MATCHING_TOKENS_DETECTED, "Authority is not provided for the silent request. There are multiple matching tokens detected. ");
+            }
+
+            authority = uniqueAuthorities.iterator().next();
+        }
+
+        Logger.verbosePII(TAG, requestParameters.getRequestContext(), "Authority is not provided but found one matching access token item, authority is: " + authority);
+        requestParameters.setAuthority(authority, requestParameters.getAuthority().mValidateAuthority);
+        if (accessTokenCacheItem != null && !accessTokenCacheItem.isExpired()) {
+            return accessTokenCacheItem;
         }
 
         Logger.verbose(TAG, requestParameters.getRequestContext(), "Access token item found in the cache is already expired.");
