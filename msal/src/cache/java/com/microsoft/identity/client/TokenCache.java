@@ -146,7 +146,6 @@ class TokenCache {
         final List<AccessTokenCacheItem> matchingATs = new ArrayList<>();
         for (final AccessTokenCacheItem accessTokenCacheItem : accessTokenCacheItems) {
             if (user.getUserIdentifier().equals(accessTokenCacheItem.getUserIdentifier())) {
-                //&& accessTokenCacheItem.getScope().containsAll(requestParameters.getScope())
                 matchingATs.add(accessTokenCacheItem);
             }
         }
