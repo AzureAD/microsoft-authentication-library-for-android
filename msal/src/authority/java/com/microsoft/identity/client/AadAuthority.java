@@ -41,8 +41,8 @@ class AadAuthority extends Authority {
     private static final String API_VERSION_VALUE = "1.0";
     private static final String AUTHORIZATION_ENDPOINT = "authorization_endpoint";
 
+    static final String DEPRECATED_AAD_AUTHORITY_HOST = "login.windows.net";
     static final String[] TRUSTED_HOSTS = new String[] {
-            "login.windows.net", // Microsoft Azure Worldwide
             "login.microsoftonline.com", // Microsoft Azure Worldwide
             "login.chinacloudapi.cn", // Microsoft Azure China
             "login.microsoftonline.de", // Microsoft Azure Germany
@@ -57,6 +57,11 @@ class AadAuthority extends Authority {
      */
     AadAuthority(final URL authority, boolean validateAuthority) {
         super(authority, validateAuthority);
+
+        if (authority.getHost().equalsIgnoreCase(DEPRECATED_AAD_AUTHORITY_HOST)) {
+            throw new IllegalArgumentException("login.windows.net is already deprecated, please use "
+                    + "login.microsoftonline.com instead.");
+        }
 
         mAuthorityType = AuthorityType.AAD;
     }

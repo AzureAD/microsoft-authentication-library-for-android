@@ -67,6 +67,11 @@ public final class AuthorityTest {
         Authority.createAuthority("https://test.com", false);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testDeprecateAuthority() {
+        Authority.createAuthority("https://login.windows.net/common", true);
+    }
+
     @Test
     public void testAuthorityContainFragment() {
         final Authority authority = Authority.createAuthority("https://test.com/abc#token=123", false);
@@ -76,8 +81,8 @@ public final class AuthorityTest {
     @Test
     public void testAuthorityContainQP() {
         final Authority authority = Authority.createAuthority(
-                "https://login.windows.net/common?resource=2343&client_id=234", false);
-        authority.equals("https://login.windows.net/common");
+                "https://login.microsoftonline.com/common?resource=2343&client_id=234", false);
+        authority.equals("https://login.microsoftonline.com/common");
         Assert.assertTrue(authority.getIsTenantless());
     }
 
@@ -167,8 +172,6 @@ public final class AuthorityTest {
     public void testAuthorityValidationWithTrustedHost() {
         // make sure no mocked connection in the queue
         Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
-        final Authority authorityAzure1 = Authority.createAuthority("https://login.windows.net/sometenant", true);
-        performAuthorityValidationAndVerify(authorityAzure1);
 
         final Authority authorityAzure2 = Authority.createAuthority("https://login.microsoftonline.com/sometenant", true);
         performAuthorityValidationAndVerify(authorityAzure2);
@@ -186,8 +189,6 @@ public final class AuthorityTest {
     @Test
     public void testB2cAuthorityValidationWithTrustedHost() {
         Assert.assertTrue(HttpUrlConnectionFactory.getMockedConnectionCountInQueue() == 0);
-        final Authority authorityAzure1 = Authority.createAuthority("https://login.windows.net/tfp/sometenant/policy", true);
-        performAuthorityValidationAndVerify(authorityAzure1);
 
         final Authority authorityAzure2 = Authority.createAuthority("https://login.microsoftonline.com/tfp/sometenant/policy", true);
         performAuthorityValidationAndVerify(authorityAzure2);
