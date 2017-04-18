@@ -45,4 +45,7 @@
     <string name="clear_log_button">clear logs</string>
     <string name="btn_getUser">Get User</string>
     <string name="btn_removeUser">Remove User</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

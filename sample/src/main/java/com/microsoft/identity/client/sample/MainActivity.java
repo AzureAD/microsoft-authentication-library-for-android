@@ -54,6 +54,7 @@ import com.microsoft.identity.client.Telemetry;
 import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.client.User;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +63,7 @@ import java.util.Map;
  * The app's main activity.
  */
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
-        AcquireTokenFragment.OnFragmentInteractionListener {
+        AcquireTokenFragment.OnFragmentInteractionListener, CacheFragment.OnFragmentInteractionListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -173,6 +174,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             fragment.setArguments(bundle);
             mAuthResult = null;
+        } else if (menuItemId == R.id.nav_cache) {
+            fragment = new CacheFragment();
+            final Bundle args = new Bundle();
+            args.putSerializable(CacheFragment.ARG_LIST_CONTENTS, (Serializable) CacheFragment.TEST_LIST_ELEMENTS);
+            fragment.setArguments(args);
         } else if (menuItemId == R.id.nav_log) {
             fragment = new LogFragment();
             final String logs = ((MsalSampleApp)this.getApplication()).getLogs();
@@ -356,5 +362,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         return mHandler;
+    }
+
+    @Override
+    public void onDeleteToken(int position, final CacheFragment cacheFragment) {
+        Log.d(TAG, "onDeleteToken(" + position + ")");
+        cacheFragment.setLoading();
+        // TODO delete the items or whatever
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                cacheFragment.reload(CacheFragment.TEST_LIST_ELEMENTS);
+            }
+        }, 750L);
     }
 }
