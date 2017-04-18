@@ -35,7 +35,7 @@ final class EventConstants {
     /**
      * Prefixes all event names.
      */
-    static final String EVENT_PREFIX = "microsoft.MSAL.";
+    static final String EVENT_PREFIX = "msal.";
 
     /**
      * API Ids for Telemetry.
