@@ -48,6 +48,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -316,6 +317,29 @@ public final class MsalUtilTest {
 
         stringToEncode = "a$c@b.com";
         Assert.assertTrue(base64Decode(MsalUtils.base64UrlEncodeToString(stringToEncode)).equals(stringToEncode));
+    }
+
+    @Test
+    public void testAppendQueryParam() throws UnsupportedEncodingException {
+        final String authorityUrl = "https://login.microsoftonline.com/common/v2/authorize?p=testpolicy";
+        final Map<String, String> queryParamteters = new HashMap<>();
+        queryParamteters.put("qp1", "someqp1");
+
+        final String appendedAuthority = MsalUtils.appendQueryParameterToUrl(authorityUrl, queryParamteters);
+        Assert.assertTrue(appendedAuthority.equals(
+                "https://login.microsoftonline.com/common/v2/authorize?p=testpolicy&qp1=someqp1"));
+    }
+
+    @Test
+    public void testAppendQueryParamWithQueryStringDelimiter() throws UnsupportedEncodingException {
+        final String authorityUrl = "https://login.microsoftonline.com/common/v2/authorize?p=testpolicy&";
+        final Map<String, String> queryParamteters = new HashMap<>();
+        queryParamteters.put("qp1", "someqp1");
+
+        final String appendedAuthority = MsalUtils.appendQueryParameterToUrl(authorityUrl, queryParamteters);
+        Assert.assertTrue(appendedAuthority.equals(
+                "https://login.microsoftonline.com/common/v2/authorize?p=testpolicy&qp1=someqp1"));
+
     }
 
     private String base64Decode(final String encodedString) {

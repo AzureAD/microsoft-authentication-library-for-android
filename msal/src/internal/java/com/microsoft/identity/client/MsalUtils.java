@@ -79,6 +79,8 @@ final class MsalUtils {
     private static final String TOKEN_HASH_ALGORITHM = "SHA256";
 
     static final String CHROME_PACKAGE = "com.android.chrome";
+    static final String QUERY_STRING_SYMBOL = "?";
+    static final String QUERY_STRING_DELIMITER = "&";
 
     /**
      * Private constructor to prevent Util class from being initiated.
@@ -337,6 +339,10 @@ final class MsalUtils {
      */
     static String appendQueryParameterToUrl(final String url, final Map<String, String> requestParams)
             throws UnsupportedEncodingException {
+        if (MsalUtils.isEmpty(url)) {
+            throw new IllegalArgumentException("Empty authority string");
+        }
+
         if (requestParams.isEmpty()) {
             return url;
         }
@@ -346,7 +352,15 @@ final class MsalUtils {
             queryParamsSet.add(entry.getKey() + "=" + urlFormEncode(entry.getValue()));
         }
 
-        return String.format("%s?%s", url, convertSetToString(queryParamsSet, "&"));
+        final String queryString = convertSetToString(queryParamsSet, "&");
+        final String queryStringFormat;
+        if (url.contains(QUERY_STRING_SYMBOL)) {
+            queryStringFormat = url.endsWith(QUERY_STRING_DELIMITER) ? "%s%s" : "%s&%s";
+        } else {
+            queryStringFormat = "%s?%s";
+        }
+
+        return String.format(queryStringFormat, url, queryString);
     }
 
     static String base64UrlEncodeToString(final String message) {
