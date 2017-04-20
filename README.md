@@ -1,4 +1,4 @@
-#Microsoft Authentication Library (MSAL) for Android
+# Microsoft Authentication Library (MSAL) for Android
 ===========
 
 ## Our new SDK is under development!
