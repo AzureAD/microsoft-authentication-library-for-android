@@ -352,12 +352,12 @@ final class MsalUtils {
             queryParamsSet.add(entry.getKey() + "=" + urlFormEncode(entry.getValue()));
         }
 
-        final String queryString = convertSetToString(queryParamsSet, "&");
+        final String queryString = convertSetToString(queryParamsSet, QUERY_STRING_DELIMITER);
         final String queryStringFormat;
         if (url.contains(QUERY_STRING_SYMBOL)) {
-            queryStringFormat = url.endsWith(QUERY_STRING_DELIMITER) ? "%s%s" : "%s&%s";
+            queryStringFormat = url.endsWith(QUERY_STRING_DELIMITER) ? "%s%s" : "%s" + QUERY_STRING_DELIMITER + "%s";
         } else {
-            queryStringFormat = "%s?%s";
+            queryStringFormat = "%s" + QUERY_STRING_SYMBOL + "%s";
         }
 
         return String.format(queryStringFormat, url, queryString);
