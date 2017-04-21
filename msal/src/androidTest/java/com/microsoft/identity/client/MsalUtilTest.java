@@ -310,6 +310,28 @@ public final class MsalUtilTest {
     }
 
     @Test
+    public void testConvertStringToSet() {
+        final String scope1 = "scope1";
+        final String[] scopes = new String[] {" ", scope1, "   "};
+        final Set<String> convertedScope = MsalUtils.convertArrayToSet(scopes);
+
+        Assert.assertNotNull(convertedScope);
+        Assert.assertTrue(convertedScope.size() == 1);
+        Assert.assertTrue(convertedScope.iterator().next().equalsIgnoreCase(scope1));
+
+        final String scope2 = "scope2";
+        final String scope3 = "scope3";
+        final String[] scopesTest2 = new String[] {scope1, scope2, scope3};
+        final Set<String> convertedScope2 = MsalUtils.convertArrayToSet(scopesTest2);
+
+        Assert.assertNotNull(convertedScope2);
+        Assert.assertTrue(convertedScope2.size() == 3);
+        Assert.assertTrue(convertedScope2.contains(scope1));
+        Assert.assertTrue(convertedScope2.contains(scope2));
+        Assert.assertTrue(convertedScope2.contains(scope3));
+    }
+
+    @Test
     public void testBase64Encode() {
         String stringToEncode = "a+b@c.com";
         Assert.assertTrue(base64Decode(MsalUtils.base64UrlEncodeToString(stringToEncode)).equals(stringToEncode));

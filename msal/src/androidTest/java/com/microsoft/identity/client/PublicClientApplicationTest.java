@@ -309,6 +309,55 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         }.performTest();
     }
 
+    @Test (expected = IllegalArgumentException.class)
+    public void testAcquireTokenInteractiveScopeWithEmptyString() throws PackageManager.NameNotFoundException, IOException,
+            InterruptedException {
+        new GetTokenBaseTestCase() {
+            @Override
+            void mockHttpRequest() throws IOException {
+                final String idToken = TokenCacheTest.getDefaultIdToken();
+                final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithFailureResponse(
+                        HttpURLConnection.HTTP_OK, AndroidTestUtil.getSuccessResponse(idToken, AndroidTestUtil.ACCESS_TOKEN, AndroidTestUtil.REFRESH_TOKEN, ""));
+                Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+                HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
+            }
+
+            @Override
+            void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
+                                      final Activity activity,
+                                      final CountDownLatch releaseLock) {
+                publicClientApplication.acquireToken(activity, new String[] {" "}, new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(AuthenticationResult authenticationResult) {
+                        Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
+                        final User user = authenticationResult.getUser();
+                        Assert.assertTrue(user.getUid().equals(""));
+                        Assert.assertTrue(user.getUtid().equals(""));
+                        Assert.assertTrue(user.getDisplayableId().equals(TokenCacheTest.DISPLAYABLE));
+
+                        releaseLock.countDown();
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        fail("Unexpected Error");
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        fail("Unexpected Cancel");
+                    }
+                });
+            }
+
+            @Override
+            String getFinalAuthUrl() throws UnsupportedEncodingException {
+                return mRedirectUri + "?code=1234&state=" + AndroidTestUtil.encodeProtocolState(
+                        DEFAULT_AUTHORITY, new HashSet<>(Arrays.asList(SCOPE)));
+            }
+        }.performTest();
+    }
+
     @Test
     public void testClientInfoNotReturned() throws PackageManager.NameNotFoundException, IOException,
             InterruptedException {
@@ -359,6 +408,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         }.performTest();
     }
 
+    @Test
     public void testAcquireTokenSilentNoAuthorityProvidedMultipleInTheCache() throws PackageManager.NameNotFoundException, IOException,
             InterruptedException {
         new GetTokenBaseTestCase() {
@@ -758,6 +808,43 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         silentLock.await();
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testSilentRequestWithEmptyScope() throws MsalException, InterruptedException, IOException {
+        final PublicClientApplication application = new PublicClientApplication(mAppContext);
+
+        // prepare token in the cache
+        final String rawClientInfo = AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID);
+        saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, CLIENT_ID, TokenCacheTest.getTokenResponseForDefaultUser(
+                AndroidTestUtil.ACCESS_TOKEN, AndroidTestUtil.REFRESH_TOKEN, "scope1 scope2", AndroidTestUtil.getExpiredDate(), rawClientInfo));
+
+        final IdToken idToken = new IdToken(AndroidTestUtil.getRawIdToken("another Displayable", "another uniqueId", "another homeobj"));
+        final ClientInfo clientInfoForDifferentUser = new ClientInfo(AndroidTestUtil.createRawClientInfo("another uid", "another utid"));
+        final User user = User.create(idToken, clientInfoForDifferentUser);
+
+        AndroidTestMockUtil.mockSuccessTenantDiscovery(SilentRequestTest.AUTHORIZE_ENDPOINT, SilentRequestTest.TOKEN_ENDPOINT);
+        final CountDownLatch silentLock = new CountDownLatch(1);
+        application.acquireTokenSilentAsync(new String[]{" "}, user, new AuthenticationCallback() {
+            @Override
+            public void onSuccess(AuthenticationResult authenticationResult) {
+                fail();
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                assertTrue(exception instanceof MsalUiRequiredException);
+                assertTrue(exception.getErrorCode().equals(MsalUiRequiredException.NO_TOKENS_FOUND));
+                assertNull(exception.getCause());
+                silentLock.countDown();
+            }
+
+            @Override
+            public void onCancel() {
+                fail();
+            }
+        });
+        silentLock.await();
+    }
+
     @Test
     public void testTurnOffAuthorityValidation() throws MsalException, IOException, InterruptedException {
         final String testAuthority = "https://someauthority.test.com/sometenant";
@@ -798,6 +885,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         silentLock.await();
     }
 
+    @Test
     public void testAcquireTokenWithUserSucceed() throws PackageManager.NameNotFoundException, InterruptedException, IOException {
         new GetTokenBaseTestCase() {
             private User mUser;
@@ -967,7 +1055,6 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                         DEFAULT_AUTHORITY, new HashSet<>(Arrays.asList(SCOPE)));
             }
         }.performTest();
-
     }
 
     static String getIdToken(final String displayable, final String uniqueId, final String homeOid) {
