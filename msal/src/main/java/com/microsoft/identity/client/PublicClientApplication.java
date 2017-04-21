@@ -166,7 +166,7 @@ public final class PublicClientApplication {
      * @return The current version for the sdk.
      */
     public static String getSdkVersion() {
-        return "1.0.0";
+        return "0.1.0";
     }
 
     /**
