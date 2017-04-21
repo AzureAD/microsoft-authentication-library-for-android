@@ -143,6 +143,15 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     @Test(expected = IllegalArgumentException.class)
+    public void testConstructorClientIdAsSingleScope() {
+        final Set<String> scopes = new HashSet<>();
+        scopes.add(CLIENT_ID);
+
+        new InteractiveRequest(Mockito.mock(Activity.class), getAuthRequestParameters(AUTHORITY, scopes, mRedirectUri,
+                LOGIN_HINT, UiBehavior.FORCE_LOGIN, null), null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
     public void testConstructorEmptyRedirectUri() {
         new InteractiveRequest(Mockito.mock(Activity.class), getAuthRequestParameters(AUTHORITY, getScopes(), "", LOGIN_HINT,
                 UiBehavior.FORCE_LOGIN, null), null);

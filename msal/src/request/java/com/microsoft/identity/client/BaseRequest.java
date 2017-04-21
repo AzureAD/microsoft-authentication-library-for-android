@@ -152,8 +152,8 @@ abstract class BaseRequest {
         }
 
         // client id can only be provided as a single scope.
-        if (inputScopes.contains(mAuthRequestParameters.getClientId()) && inputScopes.size() != 1) {
-            throw new IllegalArgumentException("Client id can only be provided as single scope.");
+        if (inputScopes.contains(mAuthRequestParameters.getClientId())) {
+            throw new IllegalArgumentException("Client id can only be provided as scope.");
         }
     }
 
