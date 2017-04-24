@@ -429,4 +429,19 @@ final class MsalUtils {
 
         return applicationInfo;
     }
+
+    static Set<String> convertArrayToSet(final String[] values) {
+        final Set<String> convertedSet = new HashSet<>();
+        if (values == null) {
+            return convertedSet;
+        }
+
+        for (int i = 0; i < values.length; i++) {
+            if (!MsalUtils.isEmpty(values[i])) {
+                convertedSet.add(values[i]);
+            }
+        }
+
+        return convertedSet;
+    }
 }

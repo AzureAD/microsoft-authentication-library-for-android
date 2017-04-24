@@ -88,6 +88,13 @@ public final class SilentRequestTest extends AndroidTestCase {
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testClientIdProvidedAsSingleScope() {
+        final Set<String> scopes = new HashSet<>();
+        scopes.add(TokenCacheTest.CLIENT_ID);
+
+        new SilentRequest(mAppContext, getRequestParameters(scopes), false, mDefaultUser);
+    }
     /**
      * Verify that correct exception is thrown if device is not connected to the network.
      */

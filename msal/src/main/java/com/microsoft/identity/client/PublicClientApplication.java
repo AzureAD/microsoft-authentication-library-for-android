@@ -574,7 +574,7 @@ public final class PublicClientApplication {
                 : Authority.createAuthority(authority, mValidateAuthority);
         // set correlation if not developer didn't set it.
         final RequestContext requestContext = new RequestContext(UUID.randomUUID(), mComponent, telemetryRequestId);
-        final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));
+        final Set<String> scopesAsSet = MsalUtils.convertArrayToSet(scopes);
         final AuthenticationRequestParameters requestParameters = AuthenticationRequestParameters.create(authorityForRequest, mTokenCache,
                 scopesAsSet, mClientId, requestContext);
 
@@ -601,7 +601,7 @@ public final class PublicClientApplication {
                 : Authority.createAuthority(authority, mValidateAuthority);
         // set correlation if not developer didn't set it.
         final UUID correlationId = UUID.randomUUID();
-        final Set<String> scopesAsSet = new HashSet<>(Arrays.asList(scopes));
+        final Set<String> scopesAsSet = MsalUtils.convertArrayToSet(scopes);
 
         return AuthenticationRequestParameters.create(authorityForRequest, mTokenCache, scopesAsSet, mClientId,
                 mRedirectUri, loginHint, extraQueryParam, uiBehavior, user, new RequestContext(correlationId, mComponent, telemetryRequestId));

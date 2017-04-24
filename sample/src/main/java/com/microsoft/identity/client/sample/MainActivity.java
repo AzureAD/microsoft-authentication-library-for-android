@@ -296,8 +296,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Logger.getInstance().setEnablePII(false);
         }
 
-        mApplication.acquireToken(this, scopes, loginHint, uiBehavior, extraQueryParam, additionalScope,
-                null, getAuthenticationCallback());
+        try {
+            mApplication.acquireToken(this, scopes, loginHint, uiBehavior, extraQueryParam, additionalScope,
+                    null, getAuthenticationCallback());
+        } catch (IllegalArgumentException e) {
+            showMessage("Scope cannot be blank.");
+        }
     }
 
     private void callAcquireTokenSilent(final String[] scopes, final User user,  boolean forceRefresh) {
