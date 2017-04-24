@@ -530,7 +530,7 @@ public final class PublicClientApplication {
      * The sdk will comupte the redirect when the PublicClientApplication is initialized.
      */
     private String createRedirectUri(final String clientId) {
-        return "msauth-" + clientId + "://" + mAppContext.getPackageName();
+        return "msal" + clientId + "://auth";
     }
 
 

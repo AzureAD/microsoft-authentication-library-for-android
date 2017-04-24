@@ -28,8 +28,8 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="msauth-client-id"
-                      android:host="com.microsoft.identity.msal.test" />
+                <data android:scheme="msalclient-id"
+                      android:host="auth" />
             </intent-filter>
         </activity>
 
