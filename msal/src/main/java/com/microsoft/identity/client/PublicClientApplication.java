@@ -30,6 +30,10 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 
+import com.microsoft.identity.msal.BuildConfig;
+
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -164,7 +168,7 @@ public final class PublicClientApplication {
      * @return The current version for the sdk.
      */
     public static String getSdkVersion() {
-        return "1.0.0";
+        return BuildConfig.VERSION_NAME;
     }
 
     /**
