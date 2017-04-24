@@ -41,9 +41,10 @@ class AadAuthority extends Authority {
     private static final String API_VERSION_VALUE = "1.0";
     private static final String AUTHORIZATION_ENDPOINT = "authorization_endpoint";
 
+    static final String DEPRECATED_AAD_AUTHORITY_HOST = "login.windows.net";
+    static final String AAD_AUTHORITY_HOST = "login.microsoftonline.com";
     static final String[] TRUSTED_HOSTS = new String[] {
-            "login.windows.net", // Microsoft Azure Worldwide
-            "login.microsoftonline.com", // Microsoft Azure Worldwide
+            AAD_AUTHORITY_HOST, // Microsoft Azure Worldwide
             "login.chinacloudapi.cn", // Microsoft Azure China
             "login.microsoftonline.de", // Microsoft Azure Germany
             "login-us.microsoftonline.com" // Microsoft Azure US government
@@ -57,6 +58,16 @@ class AadAuthority extends Authority {
      */
     AadAuthority(final URL authority, boolean validateAuthority) {
         super(authority, validateAuthority);
+
+        if (authority.getHost().equalsIgnoreCase(DEPRECATED_AAD_AUTHORITY_HOST)) {
+            try {
+                final String hostWithPort = mAuthorityUrl.getAuthority().replace(DEPRECATED_AAD_AUTHORITY_HOST, AAD_AUTHORITY_HOST);
+                mAuthorityUrl = new URL(String.format("https://%s%s", hostWithPort, mAuthorityUrl.getPath()));
+            } catch (final MalformedURLException e) {
+                Logger.error(TAG, null, "Fail to replace login.windows.net to login.microsoftonline.com", e);
+                throw new IllegalArgumentException("Malformed authority url");
+            }
+        }
 
         mAuthorityType = AuthorityType.AAD;
     }
