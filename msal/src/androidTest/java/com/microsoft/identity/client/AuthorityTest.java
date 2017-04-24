@@ -67,9 +67,14 @@ public final class AuthorityTest {
         Authority.createAuthority("https://test.com", false);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testDeprecateAuthority() {
-        Authority.createAuthority("https://login.windows.net/common", true);
+        final Authority authority = Authority.createAuthority("https://login.windows.net/common", true);
+        Assert.assertTrue(authority.getAuthorityHost().equals(AadAuthority.AAD_AUTHORITY_HOST));
+        Assert.assertTrue(authority.getAuthority().contains(AadAuthority.AAD_AUTHORITY_HOST));
+
+        final Authority authorityWithPort = Authority.createAuthority("https://login.windows.net:1010/sometenant", true);
+        Assert.assertTrue(authorityWithPort.getAuthority().equals("https://login.microsoftonline.com:1010/sometenant"));
     }
 
     @Test
