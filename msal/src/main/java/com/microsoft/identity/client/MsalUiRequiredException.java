@@ -28,10 +28,10 @@ package com.microsoft.identity.client;
  * is caused by service error, claims could be possibly returned.
  * <p>
  *     Set of error codes that could be returned from this exception:
- *     <li>
- *         <ul>invalid_grant: The refresh token used to redeem access token is invalid, expired, revoked. </ul>
- *         <ul>no_tokens_found: Access token doesn't exist and there is no refresh token can be found to redeem access token. </ul>
- *     </li>
+ *     <ul>
+ *         <li>invalid_grant: The refresh token used to redeem access token is invalid, expired or revoked. </li>
+ *         <li>no_tokens_found: Access token doesn't exist and no refresh token can be found to redeem access token. </li>
+ *     </ul>
  * </p>
  */
 

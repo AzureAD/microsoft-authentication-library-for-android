@@ -29,7 +29,7 @@ package com.microsoft.identity.client;
 public interface AuthenticationCallback {
 
     /**
-     * Authentication finishes successfully,{@link AuthenticationResult} will be sent back via the onSuccess.
+     * Authentication finishes successfully, {@link AuthenticationResult} will be sent back via the onSuccess.
      * @param authenticationResult {@link AuthenticationResult} that contains the success response.
      */
     void onSuccess(final AuthenticationResult authenticationResult);

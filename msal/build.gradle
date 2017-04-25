@@ -60,6 +60,28 @@ task jacocoTestReport(type: JacocoReport, dependsOn: 'testDebugUnitTest') {
     ])
 }
 
+// Task to generate javadoc
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += configurations.compile
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+
+    options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PUBLIC
+    options.addStringOption('Xdoclint:none', '-quiet')
+
+    exclude '**/BuildConfig.Java'
+    exclude '**/R.java'
+    classpath = configurations.compile
+    destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
+}
+
+// Task to generate javadoc.jar
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+    destinationDir = reporting.file("$project.buildDir/outputs/jar/")
+}
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:25.1.0'

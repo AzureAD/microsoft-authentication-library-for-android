@@ -29,28 +29,27 @@ package com.microsoft.identity.client;
  * errors generally indicate that they cannot be fixed even if going to UI, developer needs to check about the app configuration on the aad.
  * <p>
  *     Set of error codes that could be returned from this exception:
- *     <li>
- *         <ul>invalid_request: This request is missing a required parameter, include an invalid parameter value, include a parameter more than
- *         once or is otherwise malformed.</ul>
- *         <ul>unauthorized_client: The client is not authorized to request an authorization code. </ul>
- *         <ul>access_denied: The resource owner or authorization server denied the request.</ul>
- *         <ul>invalid_scope: The request scope is invalid, unknown or malformed. </ul>
- *         <ul>service_not_available: This is to represent 500/503/504. </ul>
- *         <ul>request_timeout: This is to represent {@link java.net.SocketTimeoutException}. </ul>
- *         <ul>invalid_instance: This is returned when authority validation fails. </ul>
- *         <ul>unknown_error: Request to server failed, but no error and error_description is returned back from the service. </ul>
- *     </li>
+ *     <ul>
+ *         <li>invalid_request: This request is missing a required parameter or includes an invalid parameter value or includes a parameter more than
+ *         once or is otherwise malformed.</li>
+ *         <li>unauthorized_client: The client is not authorized to request an authorization code. </li>
+ *         <li>access_denied: The resource owner or authorization server denied the request.</li>
+ *         <li>invalid_scope: The request scope is invalid, unknown or malformed. </li>
+ *         <li>service_not_available: This is to represent 500/503/504. </li>
+ *         <li>request_timeout: This is to represent {@link java.net.SocketTimeoutException}. </li>
+ *         <li>invalid_instance: This is returned when authority validation fails. </li>
+ *         <li>unknown_error: Request to server failed, but no error and error_description is returned from the service. </li>
+ *     </ul>
  * </p>
- * @Note: {@link MsalServiceException} provides two extra APIs:
- * <li>
- *     <ul>
+ * <p>
+ * Note: {@link MsalServiceException} provides one extra API:
+ * </p>
+
+ * <ul>
+ *     <li>
  *         {@link MsalServiceException#getHttpStatusCode()} : indicates the http status code for the failed request.
- *     </ul>
- *     <ul>
- *         {@link MsalServiceException#getClaims()} : returns the claim challenge returned by the service. The sdk will not
- *         parse the returned claims, it will be in the original Json format returned by the service.
- *     </ul>
- * </li>
+ *     </li>
+ * </ul>
  */
 public final class MsalServiceException extends MsalException {
     /**

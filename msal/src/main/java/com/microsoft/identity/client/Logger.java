@@ -34,32 +34,37 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * MSAL Logger for diagnostic purpose. The sdk can generate logs with both the default logcat logging or the external logger.
  * By default, the SDK enables the logcat logging. To turn it off, developer needs to explicitly do:
- * <code>
+ * <pre>
+ * {@code
  *     Logger.getInstance().setEnableLogcatLog(false);
- * </code>
- *
+ * }
+ * </pre>
  * To enable the custom logger, developer needs to explicitly set the external logger implementing
  * the {@link ILoggerCallback}.
+ * <pre>
  * <code>
  *     Logger.getInstance().setExternalLogger(new Logger.ILoggerCallback() {
- *     @Override
+ *    {@literal @}Override
  *     public void log(String tag, Logger.LogLevel logLevel, String message,
  *         String additionalMessage) { }
  *     });
  * </code>
- *
+ * </pre>
  * Loglevel can be specified at {@link LogLevel#ERROR}, {@link LogLevel#WARNING}, {@link LogLevel#INFO}
  * and {@link LogLevel#VERBOSE}. The sdk enables the verbose level logging by default, to set different
  * level logging, developer needs to:
- * <code>
- *     Logger.getInstance().setLogLevel({@link LogLevel})
- * </code>
- *
+ * <pre>
+ * {@code
+ *     Logger.getInstance().setLogLevel(Loglevel)
+ * }
+ * </pre>
  * By default, the SDK doesn't send any log messages that contain PII info. App developer can enable PII
  * logging by:
- * <code>
+ * <pre>
+ * {@code
  *     Logger.getInstance().setEnablePII(true);
- * </code>
+ * }
+ * </pre>
  */
 public final class Logger {
     private static final Logger INSTANCE = new Logger();
