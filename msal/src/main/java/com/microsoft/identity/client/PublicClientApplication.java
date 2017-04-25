@@ -32,8 +32,6 @@ import android.support.annotation.NonNull;
 
 import com.microsoft.identity.msal.BuildConfig;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -48,10 +46,28 @@ import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_
 import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_USER_BEHAVIOR_PARAMETERS_AND_AUTHORITY;
 
 /**
- * Entry point for developer to create the public native application, and make API call to get token.
- * MSAL {@link PublicClientApplication} provides three constructors, developer can choose to set client id in manifest
- * metadata or using constructor. If developer chooses to not use the default authority, it could also be set via constructor
- * or manifest metadata.
+ * <p>
+ *     <ul>
+ *         Entry point for developer to create the public native application, and make API call to get token. MSAL {@link PublicClientApplication} provides three constructors, developer can choose to set client id in manifest metadata or using constructors. If developer chooses to not use the default authority, it could also be set via either constructor or manifest metadata.
+ *     </ul>
+ *     <ul>
+ *         Redirect is auto-generated in the library in the format of msal<client-id>://auth, it cannot be overridden.
+ *     </ul>
+ *     <ul>
+ *         Developer <b>MUST</b> have {@link BrowserTabActivity} declared in their manifest, which <b>MUST</b> have the correct intent-filter configured. If the wrong scheme and host is provided, the sdk will fail the {@link PublicClientApplication} creation.
+ *         Expected format will be:
+ *                 <activity
+ *                      android:name="com.microsoft.identity.client.BrowserTabActivity">
+ *                      <intent-filter>
+ *                          <action android:name="android.intent.action.VIEW" />
+ *                          <category android:name="android.intent.category.DEFAULT" />
+ *                          <category android:name="android.intent.category.BROWSABLE" />
+ *                          <data android:scheme="msal<AppClientId>"
+ *                                android:host="auth" />
+ *                      </intent-filter>
+ *                  </activity>
+ *     </ul>
+ * </p>
  */
 public final class PublicClientApplication {
     private static final String TAG = PublicClientApplication.class.getSimpleName();

@@ -41,14 +41,10 @@ package com.microsoft.identity.client;
  *         <ul>unknown_error: Request to server failed, but no error and error_description is returned back from the service. </ul>
  *     </li>
  * </p>
- * @Note: {@link MsalServiceException} provides two extra APIs:
+ * @Note: {@link MsalServiceException} provides one extra API:
  * <li>
  *     <ul>
  *         {@link MsalServiceException#getHttpStatusCode()} : indicates the http status code for the failed request.
- *     </ul>
- *     <ul>
- *         {@link MsalServiceException#getClaims()} : returns the claim challenge returned by the service. The sdk will not
- *         parse the returned claims, it will be in the original Json format returned by the service.
  *     </ul>
  * </li>
  */
