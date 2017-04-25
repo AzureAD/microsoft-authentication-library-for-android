@@ -12,6 +12,7 @@ Microsoft Authentication Library(MSAL) provides easy to use authentication funct
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 // TODO: once we have msal on maven, should pull in the latest version from maven
+
 [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.aad/adal.svg)](http://repo1.maven.org/maven2/com/microsoft/aad/adal/)
 
 ## Samples and Documentation
