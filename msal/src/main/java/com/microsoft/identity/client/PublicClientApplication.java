@@ -47,7 +47,8 @@ import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_
 
 /**
  * <p>
- * Entry point for developer to create the public native application, and make API call to get token. MSAL {@link PublicClientApplication} provides three constructors, developer can choose to set client id in manifest metadata or using constructors. If developer chooses to not use the default authority, it could also be set via either constructor or manifest metadata.
+ * This is the entry point for developer to create the public native applications and make API call to acquire tokens. MSAL {@link PublicClientApplication} provides three constructors allowing the client id to be set either via AndroidManifest.xml metadata or using constructor parameters.
+ * Similarly, if developer chooses not to use the default authority (https://login.microsoftonline.com), an alternate can also be configured using the manifest or constructor parameters.
  * </p>
  * <p>
  * Redirect is auto-generated in the library in the format of msal<client-id>://auth, it cannot be overridden.
@@ -99,14 +100,14 @@ public final class PublicClientApplication {
      *      Redirect uri <b>MUST</b> be set in the manifest as the meta data({@link IllegalArgumentException} will be thrown
      *      if client id is not provided), name for redirect uri in metadata is: "com.microsoft.identity.client.RedirectUri".
      *
-     *      Authority can be set in the meta data, if not provided, the sdk will use the default authority.
+     *      Authority can be set in the meta data, if not provided, the sdk will use the default authority (https://login.microsoftonline.com/common).
      * </p>
      *
      * @param context Application's {@link Context}. The sdk requires the application context to be passed in
      *                {@link PublicClientApplication}. Cannot be null.
      *                <p>
-     *                Note: The {@link Context} should be the application context instead of an running activity's context, which could potentially make the sdk hold a
-     *                strong reference on the activity, thus preventing correct garbage collection and causing bugs.
+     *                Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
+     *                strong reference to the activity, thus preventing correct garbage collection and causing bugs.
      *                </p>
      */
     public PublicClientApplication(@NonNull final Context context) {
@@ -129,8 +130,8 @@ public final class PublicClientApplication {
      * @param context Application's {@link Context}. The sdk requires the application context to be passed in
      *                {@link PublicClientApplication}. Cannot be null.
      *                <p>
-     *                Note: The {@link Context} should be the application context instead of an running activity's context, which could potentially make the sdk hold a
-     *                strong reference on the activity, thus preventing correct garbage collection and causing bugs.
+     *                Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
+     *                strong reference to the activity, thus preventing correct garbage collection and causing bugs.
      *                </p>
      * @param clientId The application client id.
      */
@@ -159,7 +160,7 @@ public final class PublicClientApplication {
      *                {@link PublicClientApplication}. Cannot be null.
      *                <p>
      *                Note: The {@link Context} should be the application context instead of an running activity's context, which could potentially make the sdk hold a
-     *                strong reference on the activity, thus preventing correct garbage collection and causing bugs.
+     *                strong reference to the activity, thus preventing correct garbage collection and causing bugs.
      *                </p>
      * @param clientId The application client id.
      * @param authority The default authority to be used for the authority.

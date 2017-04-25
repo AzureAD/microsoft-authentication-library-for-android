@@ -28,8 +28,10 @@ package com.microsoft.identity.client;
  * <p>
  *     Set of error codes that could be returned from this exception:
  *     <ul>
- *         <li>multiple_matching_tokens_detected: There are multiple cache entries found, the sdk cannot pick the correct access token
- *         or refresh token from the cache. When this happens, mostly likely it's an bug in the sdk for storing tokens. </li>
+ *         <li>multiple_matching_tokens_detected: There are multiple cache entries found and the sdk cannot pick the correct access token
+ *         or refresh token from the cache. When this happens, this usually indicates a bug in the sdk for storing tokens or authority is
+ *         not provided in the silent request and multiple matching tokens found, the sdk doesn't know which authority should be used
+ *         to get the token for. </li>
  *         <li>device_network_not_available: No active network is available on the device. </li>
  *         <li>json_parse_failure: Indicates that the sdk failed to parse the Json format.</li>
  *         <li>io_error: Indicates that IOException happened, could be the device/network errors. </li>

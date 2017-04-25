@@ -30,7 +30,7 @@ package com.microsoft.identity.client;
  * <p>
  *     Set of error codes that could be returned from this exception:
  *     <ul>
- *         <li>invalid_request: This request is missing a required parameter, include an invalid parameter value, include a parameter more than
+ *         <li>invalid_request: This request is missing a required parameter or includes an invalid parameter value or includes a parameter more than
  *         once or is otherwise malformed.</li>
  *         <li>unauthorized_client: The client is not authorized to request an authorization code. </li>
  *         <li>access_denied: The resource owner or authorization server denied the request.</li>
@@ -38,7 +38,7 @@ package com.microsoft.identity.client;
  *         <li>service_not_available: This is to represent 500/503/504. </li>
  *         <li>request_timeout: This is to represent {@link java.net.SocketTimeoutException}. </li>
  *         <li>invalid_instance: This is returned when authority validation fails. </li>
- *         <li>unknown_error: Request to server failed, but no error and error_description is returned back from the service. </li>
+ *         <li>unknown_error: Request to server failed, but no error and error_description is returned from the service. </li>
  *     </ul>
  * </p>
  * <p>
