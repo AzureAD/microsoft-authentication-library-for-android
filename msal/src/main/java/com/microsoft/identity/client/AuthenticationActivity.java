@@ -37,7 +37,7 @@ import android.support.customtabs.CustomTabsSession;
 /**
  * Custom tab requires the device to have a browser with custom tab support, chrome with version >= 45 comes with the
  * support and is available on all devices with API version >= 16 . The sdk use chrome custom tab, and before launching
- * chrome custom tab, we need to check if chrome package is in the device, if it is, it's safe to launch the chrome
+ * chrome custom tab, we need to check if chrome package is in the device. If it is, it's safe to launch the chrome
  * custom tab; Otherwise the sdk will launch chrome.
  * AuthenticationActivity will be responsible for checking if it's safe to launch chrome custom tab, if not, will
  * go with chrome browser, if chrome is not installed, we throw error back.
@@ -196,7 +196,7 @@ public final class AuthenticationActivity extends Activity {
     }
 
     @Override
-    public void onSaveInstanceState(final Bundle outState) {
+    protected void onSaveInstanceState(final Bundle outState) {
         super.onSaveInstanceState(outState);
 
         outState.putString(Constants.REQUEST_URL_KEY, mRequestUrl);

@@ -30,21 +30,25 @@ import android.os.Bundle;
 /**
  * MSAL activity class(needs to be public to be discoverable by the os) to get the redirect with code from authorize
  * endpoint. This activity has to be exposed by "android:exported=true", and intent filter has to be declared in the
- * manifest for the activity. When chrome custom tab is launched, and we're redirected back with the redirect
+ * manifest for the activity.
+ *
+ * When chrome custom tab is launched, and we're redirected back with the redirect
  * uri(with this being said, the redirect has to be unique across apps), the os will fire an intent with the redirect,
  * and the BrowserTabActivity will be launched.
- * &lt intent-filter>
- *     &lt action android:name="android.intent.action.VIEW" />
+ * <pre>
+ * &lt;intent-filter&gt;
+ *     &lt;action android:name="android.intent.action.VIEW" /&gt;
  *
  *     To receive implicit intents, have to put the activity in the category of default.
- *     &lt category android:name="android.intent.category.DEFAULT" />
+ *     &lt;category android:name="android.intent.category.DEFAULT" /&gt;
  *
  *     The target activity allows itself to be started by a web browser to display data.
- *     &lt category android:name="android.intent.category.BROWSABLE" />
+ *     &lt;category android:name="android.intent.category.BROWSABLE" /&gt;
  *
  *     BrowserTabActivity will be launched when matching the custom url scheme.
- *     &lt data android:scheme="msauth-clientid" android:host="appPackageName" />
- * &lt /intent-filter>
+ *     &lt;data android:scheme="msalclientid" android:host="auth" /&gt;
+ * &lt;/intent-filter&gt;
+ * </pre>
  */
 public final class BrowserTabActivity extends Activity {
     private static final String TAG = BrowserTabActivity.class.getSimpleName();

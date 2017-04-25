@@ -53,8 +53,7 @@ public final class AuthenticationResult {
     }
 
     /**
-     * @return The token, could be access token or id token. If client id is the single scope that
-     * is used for token acquisition, id token will be the only one returned.
+     * @return The access token requested.
      */
     public String getAccessToken() {
         return mAccessTokenCacheItem.getAccessToken();
