@@ -41,7 +41,7 @@ package com.microsoft.identity.client;
  *         in the request. This error indicates that it doesn't match. </li>
  *         <li>unresolvable_intent: The intent to launch {@link AuthenticationActivity} is not resolvable by the OS or the intent
  *         doesn't contain the required data. </li>
- *         <li>unsupported_url: The url is not supported, Authority URL/URI must be RFC 2396 compliant to use AD FS validation. </li>
+ *         <li>unsupported_url: Unsupported url, cannot perform adfs authority validation. </li>
  *         <li>authority_validation_not_supported: The authority is not supported for authority validation. The sdk supports
  *         b2c authority, but we don't support b2c authority validation yet. Only well-known host will be supported. </li>
  *         <li>chrome_not_installed: Indicates that chrome is not installed on the device. The sdk uses chrome custom tab for
@@ -104,7 +104,7 @@ public final class MsalClientException extends MsalException {
     public final static String UNRESOLVABLE_INTENT = "unresolvable_intent";
 
     /**
-     * The url is not supported, Authority URL/URI must be RFC 2396 compliant to use AD FS validation.
+     * Unsupported url, cannot perform adfs authority validation.
      */
     public final static String UNSUPPORTED_URL = "unsupported_url";
 
