@@ -45,7 +45,7 @@ import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.ILoggerCallback;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.MsalClientException;
-import com.microsoft.identity.client.MsalEventReceiver;
+import com.microsoft.identity.client.IMsalEventReceiver;
 import com.microsoft.identity.client.MsalException;
 import com.microsoft.identity.client.MsalServiceException;
 import com.microsoft.identity.client.MsalUiRequiredException;
@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static final String TAG = MainActivity.class.getSimpleName();
 
     static {
-        Telemetry.getInstance().registerReceiver(new MsalEventReceiver() {
+        Telemetry.getInstance().registerReceiver(new IMsalEventReceiver() {
             @Override
             public void onEventsReceived(List<Map<String, String>> events) {
                 Log.d(TAG, "Received events");
