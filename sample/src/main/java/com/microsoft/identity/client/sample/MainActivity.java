@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private UiBehavior mUiBehavior;
     private String mLoginHint;
     private String mExtraQp;
-    private String[] mAdditionalScope;
+    private String[] mExtraScopesToConsent;
     private boolean mEnablePiiLogging;
     private boolean mForceRefresh;
     private AuthenticationResult mAuthResult;
@@ -230,7 +230,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Logger.getInstance().setEnableLogcatLog(mEnablePiiLogging);
         }
 
-        callAcquireToken(mScopes, mUiBehavior, mLoginHint, mExtraQp, mAdditionalScope);
+        callAcquireToken(mScopes, mUiBehavior, mLoginHint, mExtraQp, mExtraScopesToConsent);
     }
 
     @Override
@@ -268,7 +268,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         mScopes = scopes.toLowerCase().split(" ");
-        mAdditionalScope = requestOptions.getAdditionalScopes() == null ? null : requestOptions.getAdditionalScopes().toLowerCase().split(" ");
+        mExtraScopesToConsent = requestOptions.getExtraScopesToConsent() == null ? null : requestOptions.getExtraScopesToConsent().toLowerCase().split(" ");
     }
 
     final String getAuthority(Constants.AuthorityType authorityTypeType) {
@@ -287,7 +287,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void callAcquireToken(final String[] scopes, final UiBehavior uiBehavior, final String loginHint,
-                                  final String extraQueryParam, final String[] additionalScope) {
+                                  final String extraQueryParam, final String[] extraScope) {
         // The sample app is having the PII enable setting on the MainActivity. Ideally, app should decide to enable Pii or not,
         // if it's enabled, it should be  the setting when the application is onCreate.
         if (mEnablePiiLogging) {
@@ -297,7 +297,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         try {
-            mApplication.acquireToken(this, scopes, loginHint, uiBehavior, extraQueryParam, additionalScope,
+            mApplication.acquireToken(this, scopes, loginHint, uiBehavior, extraQueryParam, extraScope,
                     null, getAuthenticationCallback());
         } catch (IllegalArgumentException e) {
             showMessage("Scope cannot be blank.");
@@ -332,7 +332,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 } else if (exception instanceof MsalUiRequiredException) {
                     // This explicitly indicates that developer needs to prompt the user, it could be refresh token is expired, revoked
                     // or user changes the password; or it could be that no token was found in the token cache.
-                    callAcquireToken(mScopes, mUiBehavior, mLoginHint, mExtraQp, mAdditionalScope);
+                    callAcquireToken(mScopes, mUiBehavior, mLoginHint, mExtraQp, mExtraScopesToConsent);
                 }
             }
 

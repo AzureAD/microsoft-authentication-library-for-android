@@ -158,10 +158,10 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testAdditionalScopeContainsReservedScope() {
-        final Set<String> additionalScopes = getScopesContainsReservedScope();
+    public void testExtraScopesToConsentContainsReservedScope() {
+        final Set<String> extraScopesToConsent = getScopesContainsReservedScope();
         new InteractiveRequest(Mockito.mock(Activity.class), getAuthRequestParameters(AUTHORITY, getScopes(), "", LOGIN_HINT,
-                UiBehavior.FORCE_LOGIN, null), additionalScopes.toArray(new String[additionalScopes.size()]));
+                UiBehavior.FORCE_LOGIN, null), extraScopesToConsent.toArray(new String[extraScopesToConsent.size()]));
     }
 
     @Test
@@ -208,17 +208,22 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
     @Test
     public void testGetAuthorizationUriUiBehaviorForceLogin() throws UnsupportedEncodingException, MsalException {
-        final String[] additionalScope = {"additionalScope"};
+        final String[] extraScope = {"additionalScope"};
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
-                getAuthenticationParams(AUTHORITY, UiBehavior.FORCE_LOGIN, null), additionalScope);
+                getAuthenticationParams(AUTHORITY, UiBehavior.FORCE_LOGIN, null), extraScope);
         final String actualAuthorizationUri = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
         final Uri authorityUrl = Uri.parse(actualAuthorizationUri);
         Map<String, String> queryStrings = MsalUtils.decodeUrlToMap(authorityUrl.getQuery(), "&");
 
         final Set<String> expectedScopes = getExpectedScopes();
         expectedScopes.add("additionalScope");
-        assertTrue(MsalUtils.convertSetToString(expectedScopes, " ").equals(
-                queryStrings.get(OauthConstants.Oauth2Parameters.SCOPE)));
+        final String[] queryStringScopes = queryStrings.get(OauthConstants.Oauth2Parameters.SCOPE).split(" ");
+        for (final String param : queryStringScopes) {
+            // iterate and remove from set then verify that it is empty
+            assertTrue(expectedScopes.contains(param));
+            expectedScopes.remove(param);
+        }
+        assertTrue(expectedScopes.isEmpty());
         assertTrue(OauthConstants.PromptValue.LOGIN.equals(queryStrings.get(OauthConstants.Oauth2Parameters.PROMPT)));
         verifyCommonQueryString(queryStrings);
     }

@@ -143,10 +143,10 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
-                android:text="@string/additional_scope_text" />
+                android:text="@string/extra_scope_text" />
 
             <EditText
-                android:id="@+id/additionalScope"
+                android:id="@+id/extraScope"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="8"

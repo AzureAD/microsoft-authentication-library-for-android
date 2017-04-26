@@ -51,7 +51,7 @@ public class AcquireTokenFragment extends Fragment {
     private Spinner mUiBehavior;
     private Spinner mDataProfile;
     private EditText mScope;
-    private EditText mAdditionalScope;
+    private EditText mExtraScope;
     private Switch mEnablePII;
     private Switch mForceRefresh;
     private Button mGetUsers;
@@ -74,7 +74,7 @@ public class AcquireTokenFragment extends Fragment {
         mUiBehavior = (Spinner) view.findViewById(R.id.uiBehavior);
         mDataProfile = (Spinner) view.findViewById(R.id.data_profile);
         mScope = (EditText) view.findViewById(R.id.scope);
-        mAdditionalScope = (EditText) view.findViewById(R.id.additionalScope);
+        mExtraScope = (EditText) view.findViewById(R.id.extraScope);
         mEnablePII = (Switch) view.findViewById(enablePII);
         mForceRefresh = (Switch) view.findViewById(R.id.forceRefresh);
 
@@ -154,10 +154,10 @@ public class AcquireTokenFragment extends Fragment {
         final UiBehavior uiBehavior = UiBehavior.valueOf(mUiBehavior.getSelectedItem().toString());
         final Constants.DataProfile dataProfile = Constants.DataProfile.valueOf(mDataProfile.getSelectedItem().toString());
         final String scopes = mScope.getText().toString();
-        final String additionalScopes = mAdditionalScope.getText().toString();
+        final String extraScopesToConsent = mExtraScope.getText().toString();
         final boolean enablePII = mEnablePII.isChecked();
         final boolean forceRefresh = mForceRefresh.isChecked();
-        return RequestOptions.create(authorityType, loginHint, uiBehavior, dataProfile, scopes, additionalScopes, enablePII, forceRefresh);
+        return RequestOptions.create(authorityType, loginHint, uiBehavior, dataProfile, scopes, extraScopesToConsent, enablePII, forceRefresh);
     }
 
     static class RequestOptions {
@@ -166,25 +166,25 @@ public class AcquireTokenFragment extends Fragment {
         final UiBehavior mUiBehavior;
         final Constants.DataProfile mDataProfile;
         final String mScope;
-        final String mAdditionalScope;
+        final String mExtraScope;
         final boolean mEnablePII;
         final boolean mForceRefresh;
 
         RequestOptions(final Constants.AuthorityType authorityType, final String loginHint, final UiBehavior uiBehavior,
-                       final Constants.DataProfile dataProfile, final String scope, final String additionalScope, final boolean enablePII, final boolean forceRefresh) {
+                       final Constants.DataProfile dataProfile, final String scope, final String extraScope, final boolean enablePII, final boolean forceRefresh) {
             mAuthorityType = authorityType;
             mLoginHint = loginHint;
             mUiBehavior = uiBehavior;
             mDataProfile = dataProfile;
             mScope = scope;
-            mAdditionalScope = additionalScope;
+            mExtraScope = extraScope;
             mEnablePII = enablePII;
             mForceRefresh = forceRefresh;
         }
 
         static RequestOptions create(final Constants.AuthorityType authority, final String loginHint, final UiBehavior uiBehavior, final Constants.DataProfile dataProfile,
-                                     final String scope, final String additionalScope, final boolean enablePII, final boolean forceRefresh) {
-            return new RequestOptions(authority, loginHint, uiBehavior, dataProfile, scope, additionalScope, enablePII, forceRefresh);
+                                     final String scope, final String extraScope, final boolean enablePII, final boolean forceRefresh) {
+            return new RequestOptions(authority, loginHint, uiBehavior, dataProfile, scope, extraScope, enablePII, forceRefresh);
         }
 
         Constants.AuthorityType getAuthorityType() {
@@ -207,8 +207,8 @@ public class AcquireTokenFragment extends Fragment {
             return mScope;
         }
 
-        String getAdditionalScopes() {
-            return mAdditionalScope;
+        String getExtraScopesToConsent() {
+            return mExtraScope;
         }
 
         boolean enablePiiLogging() {
