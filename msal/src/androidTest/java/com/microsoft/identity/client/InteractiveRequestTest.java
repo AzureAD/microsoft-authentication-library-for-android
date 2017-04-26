@@ -208,7 +208,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
     @Test
     public void testGetAuthorizationUriUiBehaviorForceLogin() throws UnsupportedEncodingException, MsalException {
-        final String[] extraScope = {"additionalScope"};
+        final String[] extraScope = {"extraScope"};
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
                 getAuthenticationParams(AUTHORITY, UiBehavior.FORCE_LOGIN, null), extraScope);
         final String actualAuthorizationUri = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
@@ -216,7 +216,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         Map<String, String> queryStrings = MsalUtils.decodeUrlToMap(authorityUrl.getQuery(), "&");
 
         final Set<String> expectedScopes = getExpectedScopes();
-        expectedScopes.add("additionalScope");
+        expectedScopes.add("extraScope");
         final String[] queryStringScopes = queryStrings.get(OauthConstants.Oauth2Parameters.SCOPE).split(" ");
         for (final String param : queryStringScopes) {
             // iterate and remove from set then verify that it is empty
