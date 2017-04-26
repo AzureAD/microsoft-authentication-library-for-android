@@ -1,1 +1,1 @@
-include ':msal', ':sample'
+include ':msal', ':sample', ':automationapp'
