@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Dispatcher for telemetry event data.
@@ -37,23 +36,23 @@ import java.util.UUID;
  */
 class EventDispatcher {
 
-    private final MsalEventReceiver mEventReceiver;
+    private final IMsalEventReceiver mEventReceiver;
 
     /**
      * Constructs a new EventDispatcher.
      *
-     * @param receiver the {@link MsalEventReceiver} to receive {@link Event} data.
+     * @param receiver the {@link IMsalEventReceiver} to receive {@link Event} data.
      */
-    EventDispatcher(final MsalEventReceiver receiver) {
+    EventDispatcher(final IMsalEventReceiver receiver) {
         mEventReceiver = receiver;
     }
 
     /**
-     * Returns the {@link MsalEventReceiver} to which telemetry data is dispatched.
+     * Returns the {@link IMsalEventReceiver} to which telemetry data is dispatched.
      *
      * @return the event receiver.
      */
-    MsalEventReceiver getReceiver() {
+    IMsalEventReceiver getReceiver() {
         return mEventReceiver;
     }
 

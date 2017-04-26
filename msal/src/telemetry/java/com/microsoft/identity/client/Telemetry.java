@@ -97,7 +97,7 @@ public final class Telemetry {
         sDisableForTest = disabled;
     }
 
-    public synchronized void registerReceiver(MsalEventReceiver receiver) {
+    public synchronized void registerReceiver(IMsalEventReceiver receiver) {
         if (null == receiver) {
             throw new IllegalArgumentException("Receiver instance cannot be null");
         }
@@ -105,7 +105,7 @@ public final class Telemetry {
         // check to make sure we're not already dispatching elsewhere
         if (null != mPublisher) {
             throw new IllegalStateException(
-                    MsalEventReceiver.class.getSimpleName()
+                    IMsalEventReceiver.class.getSimpleName()
                             + " instances are not swappable at this time."
             );
         }

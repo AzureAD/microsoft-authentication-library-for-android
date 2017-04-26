@@ -62,13 +62,13 @@ public class TelemetryTest {
 
     @Test(expected = IllegalStateException.class)
     public void testTelemetryOnlyAllowsEventReceiverSetOnce() {
-        mTestInstance.registerReceiver(new MsalEventReceiver() {
+        mTestInstance.registerReceiver(new IMsalEventReceiver() {
             @Override
             public void onEventsReceived(List<Map<String, String>> events) {
                 // no functionality needed
             }
         });
-        mTestInstance.registerReceiver(new MsalEventReceiver() {
+        mTestInstance.registerReceiver(new IMsalEventReceiver() {
             @Override
             public void onEventsReceived(List<Map<String, String>> events) {
                 // no functionality needed
@@ -79,7 +79,7 @@ public class TelemetryTest {
     @Test
     public void testContainsDefaultEvent() {
         // mock out receiver object
-        final MsalEventReceiver mockReceiver = Mockito.mock(MsalEventReceiver.class);
+        final IMsalEventReceiver mockReceiver = Mockito.mock(IMsalEventReceiver.class);
 
         // register it on the Telemetry instance
         mTestInstance.registerReceiver(mockReceiver);
@@ -131,7 +131,7 @@ public class TelemetryTest {
     @Test
     public void testFlushesEvents() {
         // mock out receiver object
-        final MsalEventReceiver mockReceiver = Mockito.mock(MsalEventReceiver.class);
+        final IMsalEventReceiver mockReceiver = Mockito.mock(IMsalEventReceiver.class);
 
         // register it on the Telemetry instance
         mTestInstance.registerReceiver(mockReceiver);
@@ -168,7 +168,7 @@ public class TelemetryTest {
     @Test
     public void testFlushesOnlyDesiredEvents() {
         // mock out receiver object
-        final MsalEventReceiver mockReceiver = Mockito.mock(MsalEventReceiver.class);
+        final IMsalEventReceiver mockReceiver = Mockito.mock(IMsalEventReceiver.class);
 
         // register it on the Telemetry instance
         mTestInstance.registerReceiver(mockReceiver);
@@ -213,7 +213,7 @@ public class TelemetryTest {
         mTestInstance.setTelemetryOnFailureOnly(true);
 
         // create the mock receiver
-        final MsalEventReceiver mockReceiver1 = Mockito.mock(MsalEventReceiver.class);
+        final IMsalEventReceiver mockReceiver1 = Mockito.mock(IMsalEventReceiver.class);
 
         // register the mock receiver
         mTestInstance.registerReceiver(mockReceiver1);
@@ -246,7 +246,7 @@ public class TelemetryTest {
         mTestInstance.setTelemetryOnFailureOnly(false);
 
         // create the mock receiver
-        final MsalEventReceiver mockReceiver2 = Mockito.mock(MsalEventReceiver.class);
+        final IMsalEventReceiver mockReceiver2 = Mockito.mock(IMsalEventReceiver.class);
 
         // register the mock receiver
         mTestInstance.registerReceiver(mockReceiver2);
@@ -282,7 +282,7 @@ public class TelemetryTest {
 
     @Test
     public void testOrphanedEventsHandled() {
-        final MsalEventReceiver mockReceiver = Mockito.mock(MsalEventReceiver.class);
+        final IMsalEventReceiver mockReceiver = Mockito.mock(IMsalEventReceiver.class);
 
         mTestInstance.registerReceiver(mockReceiver);
 
