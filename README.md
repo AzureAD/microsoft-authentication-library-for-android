@@ -9,36 +9,26 @@ MSAL for Android is in active development, but not yet ready. We encourage you t
 ## General
 Microsoft Authentication Library(MSAL) provides easy to use authentication functionality for native mobile apps by taking advantage of Azure Active Directory V2 (serves Microsoft Account (MSA) and AAD) and B2C.
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
-
 // TODO: once we have msal on maven, should pull in the latest version from maven
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.aad/adal.svg)](http://repo1.maven.org/maven2/com/microsoft/aad/adal/)
 
-## Samples and Documentation
-TODO: Add samples and documentation link
-
 ## Feedback and Help
 
 TODO: fill in all the links.
-* Issues - [Github issue list](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues).
-* Recommendations -- uservoice link
-* Help and Question -- stackoverflow link
+* Issues - [Github issue list](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues)
+* Recommendations -- [UserVoice](https://feedback.azure.com/forums/169401-azure-active-directory)
+* Help and Question -- [Stack Overflow](http://stackoverflow.com/questions/tagged/azure-active-directory)
 * FAQ -- link
 
 ## Quick Start
 
 ### Requirements/Prerequisites
-* Minimum supported Android SDK version 21
-* AVD image running (API level 21) or higher
-* Android SDK with *ALL* packages installed
+* Android SDK version 21+
 
 ### Downloaded
 
-We've made it easy for you to have multiple options to use this library in your Android project:
-
-* If using Android Studio, you can use *aar* package format and reference the binaries.
-* You can use the source code to import this library into Android Studio and link it to your application.
+We've made it easy for you to have multiple options to use this library in your Android project.
 
 #### Option 1: Binaries via Gradle (Recommended way)
 
@@ -65,12 +55,11 @@ dependencies {
 
 #### Option 2: Source Zip
 
-To download a copy of source code, click "Download Zip" on the right side of the page or go to the the current available [releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases),
-and select the release version and click on download source.
+To download a copy of source code, visit our [releases page](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases).
 
 #### Option 3: Source via Git
 
-To get the source code of the SDK via git just type:
+To download the resource using git:
 
 ```
 git clone https://github.com/AzureAD/microsoft-authentication-library-for-android.git
@@ -84,9 +73,7 @@ You can get the aar file from maven central and drop into **libs** folder in you
 
 ### How to use the library
 
-1. Follow the prerequisites and make sure that the app minimum supported version is 21+
-2. Follow the Download section and pick the right way to pull in the sdk.
-3. Update your project AndroidManifest.xml
+1. Update your project AndroidManifest.xml
 * The SDK *requires* the app to have the correct intent configured for BrowserTabActivity. Every app integrating the sdk should have the following part configured in manifest
 ```xml
 <activity
@@ -95,7 +82,7 @@ You can get the aar file from maven central and drop into **libs** folder in you
         <action android:name="android.intent.action.VIEW" />
         <category android:name="android.intent.category.DEFAULT" />
         <category android:name="android.intent.category.BROWSABLE" />
-        <data android:scheme="msal<clientId>"
+        <data android:scheme="msal<YOUR_CLIENT_ID>"
               android:host="auth" />
     </intent-filter>
 </activity>
@@ -105,7 +92,7 @@ You can get the aar file from maven central and drop into **libs** folder in you
 ```xml
 <meta-data
     android:name="com.microsoft.identity.client.ClientId"
-    android:value="client-id"/>
+    android:value="YOUR_CLIENT_ID"/>
 ```
 
 Authority is optional. If authority is not provided, default authority will be used. To provide the authority through manifest,
@@ -115,7 +102,7 @@ Authority is optional. If authority is not provided, default authority will be u
     android:value="authority string"/>
 ```
 
-4. Create PublicClientApplication.
+2. Create PublicClientApplication.
 
 * The following overload will read client id and authority(if applicable) from manifest. Default authority will be used if value is not provided.
 ```Java
@@ -132,7 +119,7 @@ final PublicClientApplication mApplication = new PublicClientApplication(this.ge
 final PublicClientApplication mApplication = new PublicClientApplication(this.getApplicationContext, clientid, authority);
 ```
 
-5. Acquire token interactively
+3. Acquire token interactively
 Authorization code grant will be used, user will be prompted for username and password. If prompt behavior is not forceLogin, cookies will be used if available.
 
 * Call acquireToken API, which requires an activity to be passed in.
@@ -147,10 +134,10 @@ Authorization code grant will be used, user will be prompted for username and pa
      }
      ```
 
-6. Acquire token silently
+4. Acquire token silently
 AcquireTokenSilent will use refresh token grant. It will look into the cache and try to get a token without prompting the user.
 
-7. Register callback and correctly handle the callback.
+5. Register callback and correctly handle the callback.
 ```Java
 new AuthenticationCallback() {
 
@@ -183,7 +170,7 @@ new AuthenticationCallback() {
         };
 ```
 
-8. Diagnostics
+6. Diagnostics
 You can configure the library to generate log messages that you can use to help diagnose issues. You can configure logging by making the following call to configure callback that MSAL will use to hand off each logs messages as it is.
 ```Java
 Logger.getInstance().setExternalLogger(new ILoggerCallback() {
@@ -198,5 +185,10 @@ Check out [Diagnostics](link) for more info on logging.
 ## Security Reporting
 
 If you find a security issue with our libraries or services please report it to [secure@microsoft.com](mailto:secure@microsoft.com) with as much detail as possible. Your submission may be eligible for a bounty through the [Microsoft Bounty](http://aka.ms/bugbounty) program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting [this page](https://technet.microsoft.com/en-us/security/dd252948) and subscribing to Security Advisory Alerts.
+
+## We Value and Adhere to the Microsoft Open Source Code of Conduct
+
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+
 
 
