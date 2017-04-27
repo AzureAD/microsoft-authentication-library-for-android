@@ -45,11 +45,23 @@ final class HttpEvent extends Event {
         setProperty(EventProperty.HTTP_RESPONSE_CODE, String.valueOf(builder.mResponseCode));
     }
 
+    /**
+     * Convenience method for {@link HttpEvent#sanitizeUrlForTelemetry}.
+     *
+     * @param url the {@link URL} to sanitize.
+     * @return the sanitized URL.
+     */
     static String sanitizeUrlForTelemetry(final String url) {
         final URL urlToSanitize = MsalUtils.getUrl(url);
         return urlToSanitize == null ? null : sanitizeUrlForTelemetry(urlToSanitize);
     }
 
+    /**
+     * Sanitizes {@link URL} of tenant identifiers. B2C authorities are treated as null.
+     *
+     * @param url the URL to sanitize.
+     * @return the sanitized URL.
+     */
     static String sanitizeUrlForTelemetry(final URL url) {
         final String authority = url.getAuthority();
         final String[] pathSegments = url.getPath().replaceFirst("/", "").split("/");
