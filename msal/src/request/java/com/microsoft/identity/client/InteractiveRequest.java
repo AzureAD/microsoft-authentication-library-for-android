@@ -46,7 +46,7 @@ import java.util.concurrent.CountDownLatch;
  */
 final class InteractiveRequest extends BaseRequest {
     private static final String TAG = InteractiveRequest.class.getSimpleName();
-    private final Set<String> mAdditionalScope = new HashSet<>();
+    private final Set<String> mExtraScopesToConsent = new HashSet<>();
 
     static final int BROWSER_FLOW = 1001;
     private static AuthorizationResult sAuthorizationResult;
@@ -60,10 +60,10 @@ final class InteractiveRequest extends BaseRequest {
      *
      * @param activity              {@link Activity} used to launch the {@link AuthenticationActivity}.
      * @param authRequestParameters {@link AuthenticationRequestParameters} that is holding all the parameters for oauth request.
-     * @param additionalScope       An array of additional scopes.
+     * @param extraScopesToConsent       An array of extra scopes.
      */
     InteractiveRequest(final Activity activity, final AuthenticationRequestParameters authRequestParameters,
-                       final String[] additionalScope) {
+                       final String[] extraScopesToConsent) {
         super(activity.getApplicationContext(), authRequestParameters);
         mActivityWrapper = new ActivityWrapper(activity);
 
@@ -72,12 +72,12 @@ final class InteractiveRequest extends BaseRequest {
             throw new IllegalArgumentException("redirect is empty");
         } // TODO: We need to validate redirect is as expected to make custom tab work.
 
-        // validate additional scope
-        if (additionalScope != null && additionalScope.length > 0) {
-            final Set<String> additionalScopeSet = new HashSet<>(Arrays.asList(additionalScope));
-            validateInputScopes(additionalScopeSet);
+        // validate extra scope
+        if (extraScopesToConsent != null && extraScopesToConsent.length > 0) {
+            final Set<String> extraScopesToConsentSet = new HashSet<>(Arrays.asList(extraScopesToConsent));
+            validateInputScopes(extraScopesToConsentSet);
 
-            mAdditionalScope.addAll(additionalScopeSet);
+            mExtraScopesToConsent.addAll(extraScopesToConsentSet);
         }
     }
 
@@ -178,7 +178,7 @@ final class InteractiveRequest extends BaseRequest {
         final Map<String, String> requestParameters = new HashMap<>();
 
         final Set<String> scopes = new HashSet<>(mAuthRequestParameters.getScope());
-        scopes.addAll(mAdditionalScope);
+        scopes.addAll(mExtraScopesToConsent);
         final Set<String> requestedScopes = getDecoratedScope(scopes);
         requestParameters.put(OauthConstants.Oauth2Parameters.SCOPE,
                 MsalUtils.convertSetToString(requestedScopes, " "));
