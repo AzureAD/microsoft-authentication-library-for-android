@@ -45,20 +45,37 @@ final class HttpEvent extends Event {
         setProperty(EventProperty.HTTP_RESPONSE_CODE, String.valueOf(builder.mResponseCode));
     }
 
-    private void setHttpPath(final URL httpPath) {
-        final String authority = httpPath.getAuthority();
-        final String[] pathSegments = httpPath.getPath().replaceFirst("/", "").split("/");
+    /**
+     * Convenience method for {@link HttpEvent#sanitizeUrlForTelemetry}.
+     *
+     * @param url the {@link URL} to sanitize.
+     * @return the sanitized URL.
+     */
+    static String sanitizeUrlForTelemetry(final String url) {
+        final URL urlToSanitize = MsalUtils.getUrl(url);
+        return urlToSanitize == null ? null : sanitizeUrlForTelemetry(urlToSanitize);
+    }
+
+    /**
+     * Sanitizes {@link URL} of tenant identifiers. B2C authorities are treated as null.
+     *
+     * @param url the URL to sanitize.
+     * @return the sanitized URL.
+     */
+    static String sanitizeUrlForTelemetry(final URL url) {
+        final String authority = url.getAuthority();
+        final String[] pathSegments = url.getPath().replaceFirst("/", "").split("/");
         final boolean isB2cAuthority = pathSegments[0].equals(Authority.B2C_AUTHORITY_PREFIX);
 
         // only collect telemetry for well-known hosts, omit B2C
         if (!Arrays.asList(AadAuthority.TRUSTED_HOSTS).contains(authority) || isB2cAuthority) {
-            return;
+            return null; // omit these values
         }
 
-        final String[] splitArray = httpPath.getPath().split("/");
+        final String[] splitArray = url.getPath().split("/");
 
         final StringBuilder logPath = new StringBuilder();
-        logPath.append(httpPath.getProtocol());
+        logPath.append(url.getProtocol());
         logPath.append("://");
         logPath.append(authority);
         logPath.append("/");
@@ -70,7 +87,12 @@ final class HttpEvent extends Event {
             logPath.append(splitArray[i]);
             logPath.append("/");
         }
-        setProperty(EventProperty.HTTP_PATH, logPath.toString());
+
+        return logPath.toString();
+    }
+
+    private void setHttpPath(final URL httpPath) {
+        setProperty(EventProperty.HTTP_PATH, sanitizeUrlForTelemetry(httpPath));
     }
 
     String getUserAgent() {
