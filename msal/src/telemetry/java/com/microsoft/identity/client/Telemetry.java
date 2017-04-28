@@ -159,7 +159,10 @@ public final class Telemetry {
         final Pair<String, String> eventKey = new Pair<>(requestId, eventName);
 
         // Compute execution time
-        final Long eventStartTime = mEventsInProgress.get(eventKey);
+        final Long eventStartTime;
+        synchronized (this) {
+            eventStartTime = mEventsInProgress.get(eventKey);
+        }
 
         // If we did not get anything back from the dictionary, most likely its a bug that stopEvent
         // was called without a corresponding startEvent
