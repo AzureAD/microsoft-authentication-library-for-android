@@ -28,11 +28,12 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.customtabs.CustomTabsClient;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.customtabs.CustomTabsServiceConnection;
 import android.support.customtabs.CustomTabsSession;
+
+import java.lang.ref.WeakReference;
 
 /**
  * Custom tab requires the device to have a browser with custom tab support, chrome with version >= 45 comes with the
@@ -114,7 +115,7 @@ public final class AuthenticationActivity extends Activity {
     }
 
     private void warmUpCustomTabs() {
-        mCustomTabsServiceConnection = createCustomTabsServiceConnection();
+        mCustomTabsServiceConnection = new MsalCustomTabsServiceConnection(this);
 
         // Initiate the service-bind action
         CustomTabsClient.bindCustomTabsService(
@@ -130,22 +131,38 @@ public final class AuthenticationActivity extends Activity {
         mCustomTabsIntent.intent.setPackage(mChromePackageWithCustomTabSupport);
     }
 
-    @NonNull
-    private CustomTabsServiceConnection createCustomTabsServiceConnection() {
-        return new CustomTabsServiceConnection() {
-            @Override
-            public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
-                mCustomTabsServiceIsBound = true;
-                mCustomTabsClient = client;
-                mCustomTabsClient.warmup(0L);
-                mCustomTabsSession = mCustomTabsClient.newSession(null);
+    private static class MsalCustomTabsServiceConnection extends CustomTabsServiceConnection {
+
+        private final WeakReference<AuthenticationActivity> mAuthenticationActivityWeakReference;
+
+        MsalCustomTabsServiceConnection(final AuthenticationActivity authenticationActivity) {
+            mAuthenticationActivityWeakReference = new WeakReference<>(authenticationActivity);
+        }
+
+        @Override
+        public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
+            final AuthenticationActivity activity = mAuthenticationActivityWeakReference.get();
+
+            if (null == activity) {
+                return;
             }
 
-            @Override
-            public void onServiceDisconnected(ComponentName componentName) {
-                mCustomTabsClient = null;
+            activity.mCustomTabsServiceIsBound = true;
+            activity.mCustomTabsClient = client;
+            activity.mCustomTabsClient.warmup(0L);
+            activity.mCustomTabsSession = activity.mCustomTabsClient.newSession(null);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            final AuthenticationActivity activity = mAuthenticationActivityWeakReference.get();
+
+            if (null == activity) {
+                return;
             }
-        };
+
+            activity.mCustomTabsClient = null;
+        }
     }
 
     /**
