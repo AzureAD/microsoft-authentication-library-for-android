@@ -129,7 +129,9 @@ public final class Telemetry {
             return;
         }
 
-        mEventsInProgress.put(new Pair<>(requestId, eventName), System.currentTimeMillis());
+        synchronized (this) {
+            mEventsInProgress.put(new Pair<>(requestId, eventName), System.currentTimeMillis());
+        }
     }
 
     /**
@@ -157,7 +159,10 @@ public final class Telemetry {
         final Pair<String, String> eventKey = new Pair<>(requestId, eventName);
 
         // Compute execution time
-        final Long eventStartTime = mEventsInProgress.get(eventKey);
+        final Long eventStartTime;
+        synchronized (this) {
+            eventStartTime = mEventsInProgress.get(eventKey);
+        }
 
         // If we did not get anything back from the dictionary, most likely its a bug that stopEvent
         // was called without a corresponding startEvent
@@ -176,24 +181,26 @@ public final class Telemetry {
         eventToStop.setProperty(EventProperty.STOP_TIME, stopTime);
         eventToStop.setProperty(EventProperty.ELAPSED_TIME, Long.toString(diffTime));
 
-        if (null == mCompletedEvents.get(requestId)) {
-            // if this is the first event associated to this
-            // RequestId we need to initialize a new List to hold
-            // all of sibling events
-            final List<Event> events = new ArrayList<>();
-            events.add(eventToStop);
-            mCompletedEvents.put(
-                    requestId,
-                    events
-            );
-        } else {
-            // if this event shares a RequestId with other events
-            // just add it to the List
-            mCompletedEvents.get(requestId).add(eventToStop);
-        }
+        synchronized (this) {
+            if (null == mCompletedEvents.get(requestId)) {
+                // if this is the first event associated to this
+                // RequestId we need to initialize a new List to hold
+                // all of sibling events
+                final List<Event> events = new ArrayList<>();
+                events.add(eventToStop);
+                mCompletedEvents.put(
+                        requestId,
+                        events
+                );
+            } else {
+                // if this event shares a RequestId with other events
+                // just add it to the List
+                mCompletedEvents.get(requestId).add(eventToStop);
+            }
 
-        // Mark this event as no longer in progress
-        mEventsInProgress.remove(eventKey);
+            // Mark this event as no longer in progress
+            mEventsInProgress.remove(eventKey);
+        }
     }
 
     /**
@@ -206,38 +213,40 @@ public final class Telemetry {
             return;
         }
 
-        // check for orphaned events...
-        final List<Event> orphanedEvents = collateOrphanedEvents(requestId);
-        // Add the OrphanedEvents to the existing IEventList
-        if (null == mCompletedEvents.get(requestId)) {
-            Logger.warning(TAG, null, "No completed Events returned for RequestId.");
-            return;
-        }
+        synchronized (this) {
+            // check for orphaned events...
+            final List<Event> orphanedEvents = collateOrphanedEvents(requestId);
+            // Add the OrphanedEvents to the existing IEventList
+            if (null == mCompletedEvents.get(requestId)) {
+                Logger.warning(TAG, null, "No completed Events returned for RequestId.");
+                return;
+            }
 
-        mCompletedEvents.get(requestId).addAll(orphanedEvents);
+            mCompletedEvents.get(requestId).addAll(orphanedEvents);
 
-        final List<Event> eventsToFlush = mCompletedEvents.remove(requestId);
+            final List<Event> eventsToFlush = mCompletedEvents.remove(requestId);
 
-        if (mTelemetryOnFailureOnly) {
-            // iterate over Events, if the ApiEvent was successful, don't dispatch
-            boolean shouldRemoveEvents = false;
+            if (mTelemetryOnFailureOnly) {
+                // iterate over Events, if the ApiEvent was successful, don't dispatch
+                boolean shouldRemoveEvents = false;
 
-            for (Event event : eventsToFlush) {
-                if (event instanceof ApiEvent) {
-                    ApiEvent apiEvent = (ApiEvent) event;
-                    shouldRemoveEvents = apiEvent.wasSuccessful();
-                    break;
+                for (Event event : eventsToFlush) {
+                    if (event instanceof ApiEvent) {
+                        ApiEvent apiEvent = (ApiEvent) event;
+                        shouldRemoveEvents = apiEvent.wasSuccessful();
+                        break;
+                    }
+                }
+
+                if (shouldRemoveEvents) {
+                    eventsToFlush.clear();
                 }
             }
 
-            if (shouldRemoveEvents) {
-                eventsToFlush.clear();
+            if (!eventsToFlush.isEmpty()) {
+                eventsToFlush.add(0, new DefaultEvent.Builder().build());
+                mPublisher.dispatch(eventsToFlush);
             }
-        }
-
-        if (!eventsToFlush.isEmpty()) {
-            eventsToFlush.add(0, new DefaultEvent.Builder().build());
-            mPublisher.dispatch(eventsToFlush);
         }
     }
 
