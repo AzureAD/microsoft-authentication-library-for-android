@@ -225,7 +225,7 @@ abstract class BaseRequest {
                     null);
         }
 
-        if (MsalUiRequiredException.INVALID_GRANT.equals(tokenResponse.getError())) {
+        if (OauthConstants.ErrorCode.INVALID_GRANT.equals(tokenResponse.getError())) {
             throw new MsalUiRequiredException(MsalUiRequiredException.INVALID_GRANT, tokenResponse.getErrorDescription(), null);
         }
 
