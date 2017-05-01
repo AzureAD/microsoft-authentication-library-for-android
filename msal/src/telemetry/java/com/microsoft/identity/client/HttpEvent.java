@@ -41,7 +41,9 @@ final class HttpEvent extends Event {
         setProperty(EventProperty.HTTP_API_VERSION, builder.mApiVersion);
         setProperty(EventProperty.OAUTH_ERROR_CODE, builder.mOAuthErrorCode);
         setProperty(EventProperty.REQUEST_ID_HEADER, builder.mRequestIdHeader);
-        setHttpPath(builder.mHttpPath);
+        if (null != builder.mHttpPath) {
+            setHttpPath(builder.mHttpPath);
+        }
         setProperty(EventProperty.HTTP_RESPONSE_CODE, String.valueOf(builder.mResponseCode));
     }
 
