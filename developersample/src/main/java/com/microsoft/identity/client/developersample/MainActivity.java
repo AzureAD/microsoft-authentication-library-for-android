@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
 
     private PublicClientApplication mApplication;
     private Button mGetToken;
-    private Button mSignout;
+
     private static final String[] SCOPES = {"https://graph.microsoft.com/User.Read"};
     private static final String CLIENT_ID = "9851987a-55e5-46e2-8d70-75f8dc060f21";
     final static String MSGRAPH_URL = "https://graph.microsoft.com/v1.0/me";
@@ -125,12 +125,7 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG, "Exception when getting users", exc);
         }
 
-        mSignout = (Button) findViewById(R.id.clearCache);
-        mSignout.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                onSignoutClicked();
-            }
-        });
+
 
         mGetToken = (Button) findViewById(R.id.getToken);
         mGetToken.setOnClickListener(new View.OnClickListener() {
@@ -185,20 +180,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("TAG", "Cancel");
             }
         });
-    }
-
-    void onSignoutClicked() {
-        List<User> users = null;
-        try {
-            users = mApplication.getUsers();
-        } catch (final MsalException exc) {
-            Log.e(TAG, "Exception when getting users", exc);
-            return;
-        }
-        if (users != null && users.size() >= 1) {
-            mApplication.remove(users.get(0));
-        }
-        updateSignedOutUI();
     }
 
     /* Set the UI for successful token acquisition data */

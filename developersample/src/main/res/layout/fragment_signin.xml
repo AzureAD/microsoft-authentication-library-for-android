@@ -1,0 +1,28 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SigninFragment">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/activity_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#0000FF"
+        android:orientation="vertical"
+        tools:context="com.microsoft.identity.client.developersample.MainActivity">
+
+        <Button
+            android:id="@+id/getToken"
+            android:text="Sign in with Microsoft"
+            android:textColor="#000000"
+            android:background="#FFFFFF"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="200dp"
+            android:textAllCaps="false" />
+
+    </LinearLayout>
+
+</FrameLayout>
