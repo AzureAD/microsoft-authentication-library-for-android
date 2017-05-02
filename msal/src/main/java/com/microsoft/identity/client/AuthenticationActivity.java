@@ -66,6 +66,8 @@ public final class AuthenticationActivity extends Activity {
         if (savedInstanceState != null) {
             Logger.verbose(TAG, null, "AuthenticationActivity is re-created after killed by the os.");
             mRestarted = true;
+            mTelemetryRequestId = savedInstanceState.getString(Constants.TELEMETRY_REQUEST_ID);
+            mUiEventBuilder = new UiEvent.Builder();
             return;
         }
 
@@ -217,6 +219,7 @@ public final class AuthenticationActivity extends Activity {
         super.onSaveInstanceState(outState);
 
         outState.putString(Constants.REQUEST_URL_KEY, mRequestUrl);
+        outState.putString(Constants.TELEMETRY_REQUEST_ID, mTelemetryRequestId);
     }
 
     /**

@@ -147,13 +147,13 @@ abstract class BaseRequest {
         // fail if the input scopes contains the reserved scopes.
         // retainAll removes all the objects that are not contained in the reserved scopes.
         if (!scopes.retainAll(reservedScopes)) {
-            throw new IllegalArgumentException("Reserved scopes "
-                    + OauthConstants.Oauth2Value.RESERVED_SCOPES.toString() + " cannot be provided as scopes.");
+            throw new IllegalArgumentException("MSAL always sends the scopes 'openid profile offline_access'. They cannot be suppressed as they are required for the "
+                    + "library to function. Do not include any of these in the scopes parameter.");
         }
 
         // client id can only be provided as a single scope.
         if (inputScopes.contains(mAuthRequestParameters.getClientId())) {
-            throw new IllegalArgumentException("Client id can only be provided as scope.");
+            throw new IllegalArgumentException("Client id cannot be provided as scope.");
         }
     }
 
@@ -225,7 +225,7 @@ abstract class BaseRequest {
                     null);
         }
 
-        if (MsalUiRequiredException.INVALID_GRANT.equals(tokenResponse.getError())) {
+        if (OauthConstants.ErrorCode.INVALID_GRANT.equals(tokenResponse.getError())) {
             throw new MsalUiRequiredException(MsalUiRequiredException.INVALID_GRANT, tokenResponse.getErrorDescription(), null);
         }
 

@@ -51,13 +51,18 @@ public class ApiEventTest {
     static final String TEST_LOGIN_HINT = "user@contoso.com";
     static final boolean TEST_API_CALL_WAS_SUCCESSFUL = true;
 
+    // Authorities
+    private static final String TEST_AUTHORITY_WITH_IDENTIFIER = AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT;
+    private static final String TEST_AUTHORITY_COMMON = "https://login.microsoftonline.com/common";
+    private static final String TEST_AUTHORITY_B2C = "https://login.microsoftonline.com/tfp/tenant/policy";
+
     static ApiEvent.Builder getRandomTestApiEventBuilder() {
-        return getTestApiEventBuilder(Telemetry.generateNewRequestId());
+        return getTestApiEventBuilder(Telemetry.generateNewRequestId(), TEST_AUTHORITY);
     }
 
-    static ApiEvent.Builder getTestApiEventBuilder(final String requestId) {
+    static ApiEvent.Builder getTestApiEventBuilder(final String requestId, final String authority) {
         return new ApiEvent.Builder(requestId)
-                .setAuthority(TEST_AUTHORITY)
+                .setAuthority(authority)
                 .setAuthorityType(TEST_AUTHORITY_TYPE)
                 .setUiBehavior(TEST_UI_BEHAVIOR)
                 .setApiId(TEST_API_ID)
@@ -67,14 +72,32 @@ public class ApiEventTest {
                 .setApiCallWasSuccessful(TEST_API_CALL_WAS_SUCCESSFUL);
     }
 
-    static ApiEvent getTestApiEvent(final String requestId) {
-        return getTestApiEventBuilder(requestId).build();
+    static ApiEvent getTestApiEvent(final String requestId, final String authority) {
+        return getTestApiEventBuilder(requestId, authority).build();
+    }
+
+    @Test
+    public void testCommonAuthorityPresent() {
+        final ApiEvent apiEvent = getTestApiEvent(Telemetry.generateNewRequestId(), TEST_AUTHORITY_COMMON);
+        Assert.assertEquals("https://login.microsoftonline.com/", apiEvent.getAuthority());
+    }
+
+    @Test
+    public void testAuthorityB2cOmitted() {
+        final ApiEvent apiEvent = getTestApiEvent(Telemetry.generateNewRequestId(), TEST_AUTHORITY_B2C);
+        Assert.assertEquals(null, apiEvent.getAuthority());
+    }
+
+    @Test
+    public void testAuthorityWithIdentifierScrubbed() {
+        final ApiEvent apiEvent = getTestApiEvent(Telemetry.generateNewRequestId(), TEST_AUTHORITY_WITH_IDENTIFIER);
+        Assert.assertEquals("https://login.microsoftonline.com/", apiEvent.getAuthority());
     }
 
     @Test
     public void testApiEventInitializes() throws UnsupportedEncodingException, NoSuchAlgorithmException {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
-        final ApiEvent apiEvent = getTestApiEvent(telemetryRequestId);
+        final ApiEvent apiEvent = getTestApiEvent(telemetryRequestId, TEST_AUTHORITY);
         Assert.assertEquals(telemetryRequestId, apiEvent.getRequestId());
         Assert.assertEquals(TEST_AUTHORITY, apiEvent.getAuthority());
         Assert.assertEquals(EventProperty.Value.AUTHORITY_TYPE_AAD, apiEvent.getAuthorityType());
@@ -89,7 +112,7 @@ public class ApiEventTest {
     @Test
     public void testIdTokenParsing() {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
-        final ApiEvent apiEvent = getTestApiEvent(telemetryRequestId);
+        final ApiEvent apiEvent = getTestApiEvent(telemetryRequestId, TEST_AUTHORITY);
         Assert.assertEquals(TEST_IDP, apiEvent.getIdpName());
         Assert.assertEquals(TEST_TENANT_ID, apiEvent.getTenantId());
         Assert.assertEquals(TEST_USER_ID, apiEvent.getUserId());
