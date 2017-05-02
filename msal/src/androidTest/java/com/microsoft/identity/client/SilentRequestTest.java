@@ -67,7 +67,7 @@ public final class SilentRequestTest extends AndroidTestCase {
         System.setProperty("dexmaker.dexcache",
                 InstrumentationRegistry.getContext().getCacheDir().getPath());
 
-        Authority.VALIDATED_AUTHORITY.clear();
+        Authority.RESOLVED_AUTHORITY.clear();
         AndroidTestMockUtil.mockSuccessTenantDiscovery(AUTHORIZE_ENDPOINT, TOKEN_ENDPOINT);
 
         mAppContext = new InteractiveRequestTest.MockContext(InstrumentationRegistry.getContext().getApplicationContext());

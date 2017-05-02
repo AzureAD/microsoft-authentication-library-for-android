@@ -78,15 +78,15 @@ public class AdfsAuthorityTest {
     @Ignore
     @Test
     public void testExistsInValidatedAuthorityCache() {
-        mAdfsAuthority.addToValidatedAuthorityCache(mTestUPN);
-        Assert.assertTrue(mAdfsAuthority.existsInValidatedAuthorityCache(mTestUPN));
+        mAdfsAuthority.addToResolvedAuthorityCache(mTestUPN);
+        Assert.assertTrue(mAdfsAuthority.existsInResolvedAuthorityCache(mTestUPN));
     }
 
     // ADFS is not a supported instance for BUILD.
     @Ignore
     @Test
     public void testDoesntExistInValidatedAuthorityCache() {
-        Assert.assertFalse(mAdfsAuthority.existsInValidatedAuthorityCache(mTestUPN));
+        Assert.assertFalse(mAdfsAuthority.existsInResolvedAuthorityCache(mTestUPN));
     }
 
     // ADFS is not a supported instance for BUILD.
