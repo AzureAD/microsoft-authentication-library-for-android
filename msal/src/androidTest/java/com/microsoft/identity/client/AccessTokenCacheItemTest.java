@@ -23,6 +23,10 @@
 
 package com.microsoft.identity.client;
 
+import com.google.gson.Gson;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -39,7 +43,6 @@ public final class AccessTokenCacheItemTest {
     private static final String CLIENT_ID = "some-client-id";
     private static final String DISPLAYABLE = "test@contoso.onmicrosoft.com";
     private static final String UNIQUE_ID = "some-unique-id";
-    private static final String HOME_OBJECT_ID = "some-home-oid";
     private static final String ACCESS_TOKEN = "access_token";
     private static final String REFRESH_TOKEN = "refresh_token";
     private static final String SCOPE_1 = "scope1";
@@ -67,6 +70,22 @@ public final class AccessTokenCacheItemTest {
     public void testRefreshTokenCreation() throws MsalClientException, MsalServiceException {
         final RefreshTokenCacheItem item = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, getTokenResponse("", REFRESH_TOKEN));
         Assert.assertTrue(item.getRefreshToken().equals(REFRESH_TOKEN));
+    }
+
+    @Test
+    public void testTokenSerialize() throws MsalClientException, JSONException {
+        final AccessTokenCacheItem item = new AccessTokenCacheItem(AUTHORITY, CLIENT_ID, getTokenResponse(ACCESS_TOKEN, ""));
+        final Gson gson = new Gson();
+        final String serializedAccessToken = gson.toJson(item, AccessTokenCacheItem.class);
+        final JSONObject accessTokenJsonObj = new JSONObject(serializedAccessToken);
+        Assert.assertTrue(accessTokenJsonObj.has("ver"));
+        Assert.assertTrue(accessTokenJsonObj.get("ver").equals("1"));
+
+        final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, getTokenResponse("", REFRESH_TOKEN));
+        final String serializedRefreshToken = gson.toJson(refreshTokenCacheItem, RefreshTokenCacheItem.class);
+        final JSONObject refreshTokenJsonObj = new JSONObject(serializedRefreshToken);
+        Assert.assertTrue(refreshTokenJsonObj.has("ver"));
+        Assert.assertTrue(refreshTokenJsonObj.get("ver").equals("1"));
     }
 
     static Set<String> getScopes() {
