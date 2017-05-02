@@ -24,11 +24,13 @@
 package com.microsoft.identity.client.developersample;
 
 import android.content.Intent;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
-import android.view.View;
 import android.widget.TextView;
 import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -52,7 +54,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements GraphData.OnFragmentInteractionListener, SigninFragment.OnFragmentInteractionListener{
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -74,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private PublicClientApplication mApplication;
-    private Button mGetToken;
 
     private static final String[] SCOPES = {"https://graph.microsoft.com/User.Read"};
     private static final String CLIENT_ID = "9851987a-55e5-46e2-8d70-75f8dc060f21";
@@ -125,15 +126,6 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG, "Exception when getting users", exc);
         }
 
-
-
-        mGetToken = (Button) findViewById(R.id.getToken);
-        mGetToken.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                onSigninClicked();
-            }
-        });
-
         if (users != null && users.size() > 0) {
 
             mApplication.acquireTokenSilentAsync(SCOPES, users.get(0), new AuthenticationCallback() {
@@ -153,7 +145,10 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("TAG", "Cancel");
                 }
             });
+        } else {
+            updateSignedOutUI();
         }
+
 
     }
 
@@ -162,16 +157,17 @@ public class MainActivity extends AppCompatActivity {
         mApplication.handleInteractiveRequestRedirect(requestCode, resultCode, data);
     }
 
-    void onSigninClicked() {
+    @Override
+    public void onSigninClicked() {
         mApplication.acquireToken(this, SCOPES, new AuthenticationCallback() {
             @Override
-            public void onSuccess(AuthenticationResult authenticationResult) {
+            public void onSuccess(final AuthenticationResult authenticationResult) {
                 Log.e("TAG", "Success");
                 updateSuccessUI(authenticationResult);
             }
 
             @Override
-            public void onError(MsalException exception) {
+            public void onError(final MsalException exception) {
                 Log.e("TAG", "Error");
             }
 
@@ -184,23 +180,31 @@ public class MainActivity extends AppCompatActivity {
 
     /* Set the UI for successful token acquisition data */
     private void updateSuccessUI(final AuthenticationResult authenticationResult) {
-        mGetToken.setVisibility(View.INVISIBLE);
-        mSignout.setVisibility(View.VISIBLE);
-        findViewById(R.id.welcome).setVisibility(View.VISIBLE);
-        ((TextView) findViewById(R.id.welcome)).setText("Welcome, " +
-                authenticationResult.getUser().getName());
-        callGraphAPI(authenticationResult);
-        findViewById(R.id.graphData).setVisibility(View.VISIBLE);
-
+        //((TextView) findViewById(R.id.welcome)).setText("Welcome, " +
+        //        authenticationResult.getUser().getName());
+        //callGraphAPI(authenticationResult);
+        final Fragment graphDataFragment = GraphData.newInstance();
+        attachFragment(graphDataFragment);
     }
 
-    /* Set the UI for signed out user */
     private void updateSignedOutUI() {
-        mGetToken.setVisibility(View.VISIBLE);
-        mSignout.setVisibility(View.INVISIBLE);
-        findViewById(R.id.welcome).setVisibility(View.INVISIBLE);
-        findViewById(R.id.graphData).setVisibility(View.INVISIBLE);
-        ((TextView) findViewById(R.id.graphData)).setText("No Data");
+        final Fragment signinFragment = new SigninFragment();
+        attachFragment(signinFragment);
+    }
+
+    @Override
+    public void onSignoutClicked() {
+        List<User> users = null;
+        try {
+            users = mApplication.getUsers();
+        } catch (final MsalException exc) {
+            Log.e(TAG, "Exception when getting users", exc);
+            return;
+        }
+        if (users != null && users.size() >= 1) {
+            mApplication.remove(users.get(0));
+        }
+        updateSignedOutUI();
     }
 
     /* Use Volley to make an HTTP request to the /me endpoint from MS Graph using an access token */
@@ -262,5 +266,12 @@ public class MainActivity extends AppCompatActivity {
     private void updateGraphUI(JSONObject graphResponse) {
         TextView graphText = (TextView) findViewById(R.id.graphData);
         graphText.setText(graphResponse.toString());
+    }
+
+    private void attachFragment(final Fragment fragment) {
+        final FragmentManager fragmentManager = getSupportFragmentManager();
+        final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+        fragmentTransaction.replace(R.id.activity_main, fragment).addToBackStack(null).commit();
     }
 }
