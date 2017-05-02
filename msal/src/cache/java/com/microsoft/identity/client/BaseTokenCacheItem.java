@@ -36,6 +36,9 @@ abstract class BaseTokenCacheItem {
     @SerializedName("client_info")
     final String mRawClientInfo;
 
+    @SerializedName("ver")
+    private final String mVersion = "1";
+
     transient User mUser;
     transient ClientInfo mClientInfo;
 
@@ -75,6 +78,10 @@ abstract class BaseTokenCacheItem {
 
     void setUser(final User user) {
         mUser = user;
+    }
+
+    String getVersion () {
+        return mVersion;
     }
 
     final String getUserIdentifier() {
