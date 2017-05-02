@@ -7,21 +7,30 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class GraphData extends Fragment {
 
     private Button mSignout;
     private OnFragmentInteractionListener mListener;
+    private static final String ARG_JSON = "json";
+    private String mJsonBlob;
 
     public GraphData() {
         // Required empty public constructor
     }
 
-    public static GraphData newInstance() {
+    public static GraphData newInstance(String jsonBlob) {
         GraphData fragment = new GraphData();
         Bundle args = new Bundle();
-        //args.putString(ARG_PARAM1, param1);
-        //args.putString(ARG_PARAM2, param2);
+        args.putString(ARG_JSON, jsonBlob);
         fragment.setArguments(args);
         return fragment;
     }
@@ -30,8 +39,7 @@ public class GraphData extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            //mParam1 = getArguments().getString(ARG_PARAM1);
-            //mParam2 = getArguments().getString(ARG_PARAM2);
+            mJsonBlob = getArguments().getString(ARG_JSON);
         }
     }
 
@@ -46,7 +54,57 @@ public class GraphData extends Fragment {
                 mListener.onSignoutClicked();
             }
         });
+
+        final Map map = convertJsonToMap(mJsonBlob);
+
+        final StringBuilder builder = new StringBuilder();
+        builder.append("Hey ");
+        builder.append(map.get("displayName"));
+        builder.append(",\n");
+
+        if (!map.get("businessPhones").equals("[]")) {
+            builder.append("Do you want me to call you at ");
+            builder.append(map.get("businessPhones"));
+            builder.append("?\n\n");
+
+            builder.append("Just Kiddin :) \n");
+        }
+
+        builder.append("Let me just email you at ");
+        builder.append(map.get("userPrincipalName"));
+        builder.append("\n\n");
+
+        builder.append("Still Kiddin :) \n\n");
+
+        builder.append("BTW congratulation on being a ");
+        final String jobTitle = (String)map.get("jobTitle");
+        if (!jobTitle.equals("null")) {
+            builder.append(map.get("jobTitle"));
+            builder.append(" in Microsoft.\n");
+        } else {
+            builder.append("test account");
+        }
+
+
+        TextView graphText = (TextView) view.findViewById(R.id.graphData);
+        graphText.setText(builder.toString());
         return view;
+    }
+
+    private Map convertJsonToMap(final String jsonBlob) {
+        try {
+            JSONObject jsonObject = new JSONObject(jsonBlob);
+            Iterator keys = jsonObject.keys();
+            Map<String, String> map = new HashMap<>();
+            while (keys.hasNext()) {
+                String key = (String) keys.next();
+                map.put(key, jsonObject.getString(key));
+            }
+            return map;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Override
@@ -58,6 +116,7 @@ public class GraphData extends Fragment {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
         }
+
     }
 
     @Override

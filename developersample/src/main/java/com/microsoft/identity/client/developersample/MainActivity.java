@@ -132,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements GraphData.OnFragm
                 @Override
                 public void onSuccess(AuthenticationResult authenticationResult) {
                     Log.e("TAG", "Success");
-                    updateSuccessUI(authenticationResult);
+                    callGraphAPI(authenticationResult);
                 }
 
                 @Override
@@ -163,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements GraphData.OnFragm
             @Override
             public void onSuccess(final AuthenticationResult authenticationResult) {
                 Log.e("TAG", "Success");
-                updateSuccessUI(authenticationResult);
+                callGraphAPI(authenticationResult);
             }
 
             @Override
@@ -180,11 +180,9 @@ public class MainActivity extends AppCompatActivity implements GraphData.OnFragm
 
     /* Set the UI for successful token acquisition data */
     private void updateSuccessUI(final AuthenticationResult authenticationResult) {
-        //((TextView) findViewById(R.id.welcome)).setText("Welcome, " +
-        //        authenticationResult.getUser().getName());
+
         //callGraphAPI(authenticationResult);
-        final Fragment graphDataFragment = GraphData.newInstance();
-        attachFragment(graphDataFragment);
+
     }
 
     private void updateSignedOutUI() {
@@ -254,24 +252,16 @@ public class MainActivity extends AppCompatActivity implements GraphData.OnFragm
         queue.add(request);
     }
 
-    //
-    // Helper methods manage UI updates
-    // ================================
-    // updateGraphUI() - Sets graph response in UI
-    // updateSuccessUI() - Updates UI when token acquisition succeeds
-    // updateSignedOutUI() - Updates UI when app sign out succeeds
-    //
-
-    /* Sets the graph response */
     private void updateGraphUI(JSONObject graphResponse) {
-        TextView graphText = (TextView) findViewById(R.id.graphData);
-        graphText.setText(graphResponse.toString());
+        final Fragment graphDataFragment = GraphData.newInstance(graphResponse.toString());
+
+        attachFragment(graphDataFragment);
     }
 
     private void attachFragment(final Fragment fragment) {
         final FragmentManager fragmentManager = getSupportFragmentManager();
         final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-        fragmentTransaction.replace(R.id.activity_main, fragment).addToBackStack(null).commit();
+        fragmentTransaction.replace(R.id.activity_main, fragment).addToBackStack(null).commitAllowingStateLoss();
     }
 }

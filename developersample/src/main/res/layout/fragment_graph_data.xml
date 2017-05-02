@@ -15,7 +15,7 @@
         tools:context="com.microsoft.identity.client.developersample.MainActivity">
 
         <TextView
-            android:text="Welcome"
+
             android:textColor="#FFFFFF"
             android:textSize="50px"
             android:layout_width="wrap_content"
