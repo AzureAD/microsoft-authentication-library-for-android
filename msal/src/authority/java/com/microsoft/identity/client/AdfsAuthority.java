@@ -109,9 +109,10 @@ final class AdfsAuthority extends Authority {
                 // TODO: we need to read the error and error description, the current error code is not exposed yet.
                 throw new MsalClientException(MsalClientException.ADFS_AUTHORITY_VALIDATION_FAILED, "Realm is not trusted, adfs authority validation failed.");
             }
+
+            mIsAuthorityValidated = true;
         }
 
-        mIsAuthorityValidated = true;
         return getDefaultOpenIdConfigurationEndpoint();
     }
 
