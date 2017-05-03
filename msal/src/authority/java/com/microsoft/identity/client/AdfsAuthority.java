@@ -58,12 +58,12 @@ final class AdfsAuthority extends Authority {
     }
 
     @Override
-    boolean existsInValidatedAuthorityCache(final String userPrincipalName) {
+    boolean existsInResolvedAuthorityCache(final String userPrincipalName) {
         if (MsalUtils.isEmpty(userPrincipalName)) {
             throw new IllegalArgumentException("userPrincipalName cannot be null or blank");
         }
 
-        final Map<String, Authority> authorityMap = Authority.VALIDATED_AUTHORITY;
+        final Map<String, Authority> authorityMap = Authority.RESOLVED_AUTHORITY;
         final String authorityUrlStr = mAuthorityUrl.toString();
 
         return authorityMap.containsKey(authorityUrlStr)
@@ -74,20 +74,20 @@ final class AdfsAuthority extends Authority {
     }
 
     @Override
-    void addToValidatedAuthorityCache(final String userPrincipalName) {
+    void addToResolvedAuthorityCache(final String userPrincipalName) {
         AdfsAuthority adfsInstance = this;
 
         final String authorityUrlStr = mAuthorityUrl.toString();
 
-        if (Authority.VALIDATED_AUTHORITY.containsKey(authorityUrlStr)) {
-            adfsInstance = (AdfsAuthority) VALIDATED_AUTHORITY.get(authorityUrlStr);
+        if (Authority.RESOLVED_AUTHORITY.containsKey(authorityUrlStr)) {
+            adfsInstance = (AdfsAuthority) RESOLVED_AUTHORITY.get(authorityUrlStr);
         }
 
         adfsInstance
                 .getADFSValidatedAuthorities()
                 .add(getDomainFromUPN(userPrincipalName));
 
-        Authority.VALIDATED_AUTHORITY.put(authorityUrlStr, adfsInstance);
+        Authority.RESOLVED_AUTHORITY.put(authorityUrlStr, adfsInstance);
     }
 
     @Override
@@ -109,6 +109,8 @@ final class AdfsAuthority extends Authority {
                 // TODO: we need to read the error and error description, the current error code is not exposed yet.
                 throw new MsalClientException(MsalClientException.ADFS_AUTHORITY_VALIDATION_FAILED, "Realm is not trusted, adfs authority validation failed.");
             }
+
+            mIsAuthorityValidated = true;
         }
 
         return getDefaultOpenIdConfigurationEndpoint();

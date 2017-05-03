@@ -103,18 +103,19 @@ class AadAuthority extends Authority {
             throw new MsalServiceException(response.getError(), response.getErrorDescription(), response.getHttpStatusCode(), null);
         }
 
+        mIsAuthorityValidated = true;
         Logger.info(TAG, requestContext, "Instance discovery succeeded. Tenant discovery endpoint is: "
                 + response.getTenantDiscoveryEndpoint());
         return response.getTenantDiscoveryEndpoint();
     }
 
     @Override
-    boolean existsInValidatedAuthorityCache(final String userPrincipalName) {
-        return VALIDATED_AUTHORITY.containsKey(mAuthorityUrl.toString());
+    boolean existsInResolvedAuthorityCache(final String userPrincipalName) {
+        return RESOLVED_AUTHORITY.containsKey(mAuthorityUrl.toString());
     }
 
     @Override
-    void addToValidatedAuthorityCache(final String userPrincipalName) {
-        VALIDATED_AUTHORITY.put(mAuthorityUrl.toString(), this);
+    void addToResolvedAuthorityCache(final String userPrincipalName) {
+        RESOLVED_AUTHORITY.put(mAuthorityUrl.toString(), this);
     }
 }

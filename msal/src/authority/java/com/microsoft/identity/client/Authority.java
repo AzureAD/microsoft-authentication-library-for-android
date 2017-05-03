@@ -38,7 +38,7 @@ abstract class Authority {
     private static final String TAG = Authority.class.getSimpleName();
     private static final String HTTPS_PROTOCOL = "https";
 
-    static final ConcurrentMap<String, Authority> VALIDATED_AUTHORITY = new ConcurrentHashMap<>();
+    static final ConcurrentMap<String, Authority> RESOLVED_AUTHORITY = new ConcurrentHashMap<>();
     static final String DEFAULT_OPENID_CONFIGURATION_ENDPOINT = "/v2.0/.well-known/openid-configuration";
     // default_authorize_endpoint is used for instance discovery sent as query parameter for instance discovery.
     static final String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/v2.0/authorize";
@@ -54,6 +54,10 @@ abstract class Authority {
     String mAuthorizationEndpoint;
     String mTokenEndpoint;
     AuthorityType mAuthorityType;
+    /**
+     * True if the authority is already validated, which basically means that we have already done authority validation.
+     */
+    boolean mIsAuthorityValidated = false;
 
     /**
      * Perform instance discovery to get the tenant discovery endpoint. If it's a valid authority url, tenant discovery
@@ -70,14 +74,14 @@ abstract class Authority {
     /**
      * @return True if the authority is already validated.
      */
-    abstract boolean existsInValidatedAuthorityCache(final String userPrincipalName);
+    abstract boolean existsInResolvedAuthorityCache(final String userPrincipalName);
 
     /**
-     * Adds this Authority to the {@link Authority#VALIDATED_AUTHORITY} cache
+     * Adds this Authority to the {@link Authority#RESOLVED_AUTHORITY} cache
      *
      * @param userPrincipalName the UPN of the current user (if available)
      */
-    abstract void addToValidatedAuthorityCache(final String userPrincipalName);
+    abstract void addToResolvedAuthorityCache(final String userPrincipalName);
 
     /**
      * Create the detailed authority. If the authority url string is for AAD, will create the {@link AadAuthority}, otherwise
@@ -129,13 +133,17 @@ abstract class Authority {
      */
     void resolveEndpoints(final RequestContext requestContext, final String userPrincipalName) throws MsalClientException, MsalServiceException {
         Logger.info(TAG, requestContext, "Perform authority validation and tenant discovery.");
-        if (existsInValidatedAuthorityCache(userPrincipalName)) {
-            Logger.info(TAG, requestContext, "Authority has been validated.");
+        if (existsInResolvedAuthorityCache(userPrincipalName)) {
+            Logger.info(TAG, requestContext, "Authority has already been resolved. ");
 
-            final Authority preValidatedAuthority = VALIDATED_AUTHORITY.get(mAuthorityUrl.toString());
-            mAuthorizationEndpoint = preValidatedAuthority.mAuthorizationEndpoint;
-            mTokenEndpoint = preValidatedAuthority.mTokenEndpoint;
-            return;
+            final Authority preValidatedAuthority = RESOLVED_AUTHORITY.get(mAuthorityUrl.toString());
+            if (!mValidateAuthority || preValidatedAuthority.mIsAuthorityValidated) {
+                mAuthorizationEndpoint = preValidatedAuthority.mAuthorizationEndpoint;
+                mTokenEndpoint = preValidatedAuthority.mTokenEndpoint;
+                return;
+            } else {
+                Logger.info(TAG, requestContext, "Authority has not been validated, need to perform authority validation first.");
+            }
         }
 
         final TenantDiscoveryResponse tenantDiscoveryResponse;
@@ -162,7 +170,7 @@ abstract class Authority {
         mAuthorizationEndpoint = tenantDiscoveryResponse.getAuthorizationEndpoint();
         mTokenEndpoint = tenantDiscoveryResponse.getTokenEndpoint();
 
-        addToValidatedAuthorityCache(userPrincipalName);
+        addToResolvedAuthorityCache(userPrincipalName);
     }
 
     /**
