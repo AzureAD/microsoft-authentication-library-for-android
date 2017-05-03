@@ -111,11 +111,11 @@ abstract class Authority {
             Logger.error(TAG, null, "ADFS authority is not a supported authority instance", null);
             throw new IllegalArgumentException("ADFS authority is not a supported authority instance");
         } else if (isB2cAuthority) {
-            Logger.info(TAG, null, "Passed in authority string is a b2c authority, create an new b2c authority instance.");
+            Logger.info(TAG, null, "Passed in authority string is a b2c authority, create a new b2c authority instance.");
             return new B2cAuthority(authority, validateAuthority);
         }
 
-        Logger.info(TAG, null, "Passed in authority string is a aad authority, create an new aad authority instance.");
+        Logger.info(TAG, null, "Passed in authority string is an aad authority, create a new aad authority instance.");
         return new AadAuthority(authority, validateAuthority);
     }
 

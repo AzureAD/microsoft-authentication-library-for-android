@@ -74,7 +74,7 @@ class AadAuthority extends Authority {
 
     @Override
     String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws MsalServiceException, MsalClientException  {
-        Logger.info(TAG, requestContext, "Passed in authority " + mAuthorityUrl.toString() + "is AAD authority. "
+        Logger.info(TAG, requestContext, "Passed in authority " + mAuthorityUrl.toString() + " is AAD authority. "
                 + "Start doing Instance discovery.");
         if (!mValidateAuthority || TRUSTED_HOST_SET.contains(mAuthorityUrl.getAuthority())) {
             Logger.verbose(TAG, requestContext, "Authority validation is turned off or the passed-in authority is "
