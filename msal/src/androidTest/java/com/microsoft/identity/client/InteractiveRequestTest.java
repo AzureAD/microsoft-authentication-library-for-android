@@ -824,7 +824,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         authority.mTokenEndpoint = SilentRequestTest.TOKEN_ENDPOINT;
 
         return AuthenticationRequestParameters.create(authority, new TokenCache(mAppContext), getScopes(),
-                CLIENT_ID, mRedirectUri, LOGIN_HINT, "", uiBehavior, user, new RequestContext(CORRELATION_ID, "", Telemetry.generateNewRequestId()));
+                CLIENT_ID, mRedirectUri, LOGIN_HINT, "", uiBehavior, user, "", new RequestContext(CORRELATION_ID, "", Telemetry.generateNewRequestId()));
     }
 
     private AuthenticationRequestParameters getAuthRequestParameters(final String authority,
@@ -834,7 +834,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                                                                      final UiBehavior uiBehavior,
                                                                      final User user) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(authority, true), new TokenCache(mAppContext), scopes,
-                CLIENT_ID, redirectUri, loginHint, "", uiBehavior, user, new RequestContext(CORRELATION_ID, "", Telemetry.generateNewRequestId()));
+                CLIENT_ID, redirectUri, loginHint, "", uiBehavior, user, null, new RequestContext(CORRELATION_ID, "", Telemetry.generateNewRequestId()));
     }
 
     private AuthenticationRequestParameters getAuthRequestParameters(final String authorityString, final UiBehavior uiBehavior, final String extraQp) {
@@ -842,7 +842,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         authority.mAuthorizationEndpoint = SilentRequestTest.AUTHORIZE_ENDPOINT;
         authority.mTokenEndpoint = SilentRequestTest.TOKEN_ENDPOINT;
         return AuthenticationRequestParameters.create(authority, new TokenCache(mAppContext), getScopes(),
-                CLIENT_ID, mRedirectUri, LOGIN_HINT, extraQp, uiBehavior, null, new RequestContext(CORRELATION_ID, "", Telemetry.generateNewRequestId()));
+                CLIENT_ID, mRedirectUri, LOGIN_HINT, extraQp, uiBehavior, null, null, new RequestContext(CORRELATION_ID, "", Telemetry.generateNewRequestId()));
     }
 
     private Set<String> getScopes() {

@@ -51,6 +51,8 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -277,7 +279,7 @@ final class MsalUtils {
      * @return The Map of the items decoded with the given delimiter.
      */
     static Map<String, String> decodeUrlToMap(final String url, final String delimiter) {
-        final Map<String, String> decodedUrlMap = new HashMap<>();
+        final Map<String, String> decodedUrlMap = new LinkedHashMap<>();
 
         // delimiter can be " "
         if (MsalUtils.isEmpty(url) || delimiter == null) {
@@ -347,7 +349,7 @@ final class MsalUtils {
             return url;
         }
 
-        final Set<String> queryParamsSet = new HashSet<>();
+        final Set<String> queryParamsSet = new LinkedHashSet<>();
         for (Map.Entry<String, String> entry : requestParams.entrySet()) {
             queryParamsSet.add(entry.getKey() + "=" + urlFormEncode(entry.getValue()));
         }
