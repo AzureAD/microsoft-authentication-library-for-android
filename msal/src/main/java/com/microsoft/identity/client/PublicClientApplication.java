@@ -32,6 +32,7 @@ import android.support.annotation.NonNull;
 
 import com.microsoft.identity.msal.BuildConfig;
 
+import java.net.URL;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -226,6 +227,8 @@ public final class PublicClientApplication {
     public List<User> getUsers() throws MsalClientException {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(telemetryRequestId);
+        final URL authorityURL = MsalUtils.getUrl(mAuthorityString);
+        apiEventBuilder.setAuthority(authorityURL.getProtocol() + "://" + authorityURL.getHost());
         Telemetry.getInstance().startEvent(telemetryRequestId, apiEventBuilder.getEventName());
 
         List<User> users = mTokenCache.getUsers(Authority.createAuthority(mAuthorityString, mValidateAuthority).getAuthorityHost(), mClientId, new RequestContext(UUID.randomUUID(), mComponent, telemetryRequestId));
