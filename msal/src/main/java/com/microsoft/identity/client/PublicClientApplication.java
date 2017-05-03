@@ -47,11 +47,17 @@ import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_
 
 /**
  * <p>
- * This is the entry point for developer to create the public native applications and make API call to acquire tokens. MSAL {@link PublicClientApplication} provides three constructors allowing the client id to be set either via AndroidManifest.xml metadata or using constructor parameters.
+ * This is the entry point for developers to create the public native application and make API calls to acquire tokens.
+ * <p><b>Client ID:</b>  The clientID of your application is a unique identifier which can be obtained from the app portal.</p>
+ * <p><b>Authority:</b> A URL indicating a directory that MSAL can use to obtain tokens. In Azure AD
+ * it is of the form https://<instance/<tenant>, where <instance> is the directory host (e.g. https://login.microsoftonline.com)
+ * and <tenant> is an identifier within the directory itself (e.g. a domain associated to the
+ * tenant, such as contoso.onmicrosoft.com, or the GUID representing the  TenantID property of the directory)</p>
+ * MSAL {@link PublicClientApplication} provides three constructors allowing the client id to be set either via AndroidManifest.xml metadata or using constructor parameters.
  * Similarly, if developer chooses not to use the default authority (https://login.microsoftonline.com), an alternate can also be configured using the manifest or constructor parameters.
  * </p>
  * <p>
- * Redirect is auto-generated in the library in the format of msal<client-id>://auth, it cannot be overridden.
+ * Redirect is auto-generated in the library in the format of msal<client-id>://auth, and it cannot be overridden.
  * </p>
  * <p>
  * Developer <b>MUST</b> have {@link BrowserTabActivity} declared in their manifest, which <b>MUST</b> have the correct intent-filter configured. If the wrong scheme and host is provided, the sdk will fail the {@link PublicClientApplication} creation.
@@ -70,6 +76,19 @@ import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_
  * &lt;/activity&gt;
  * </pre>
  * </p>
+ * <p>Other Terminology:</p>
+ * <p>
+ *    <p><b>Scopes:</b>Permissions that the developers wants included in the access token received . Not all scopes are
+ *     guaranteed to be included in the access token returned.
+ *     </p>
+ *     <p>
+ *         <b>Login Hint:</b> Usually an email, to pass to the service at the beginning of the interactive authentication flow.
+ *     </p>
+ *     <p>
+ *         <b>Additional Scopes:</b>  Permissions you want the user to consent to in the same authentication flow,
+ *         but won't be included in the returned access token.
+ *     </p>
+ * </p>
  */
 public final class PublicClientApplication {
     private static final String TAG = PublicClientApplication.class.getSimpleName();
@@ -83,11 +102,25 @@ public final class PublicClientApplication {
     private final Context mAppContext;
     private final TokenCache mTokenCache;
 
+    /** The authority the application will use to obtain tokens */
     private String mAuthorityString;
+
+    /** The client ID of the application. This should come from the app developer portal */
     private String mClientId;
+
+    /** Unique String identifier used in logging/telemetry callbacks to identify
+     * component in the application using MSAL
+     */
     private String mComponent;
+
+    /** The redirect URI for the application */
     private String mRedirectUri;
 
+    /**
+    * When set to true (default), MSAL will compare the application's authority against well-known URL
+    * templates representing well-formed authorities. It is useful when the authority is obtained at
+    * run time to prevent MSAL from displaying authentication prompts from malicious pages.
+    */
     private boolean mValidateAuthority = true;
 
     /**
@@ -208,10 +241,10 @@ public final class PublicClientApplication {
     }
 
     /**
-     * App developer can specify the string identifier to identify the component that consumes MSAL.
-     * This is intended for libraries that consume MSAL that are embedded in apps that might also be using MSAL
-     * as well, so for logging or telemetry app or library developers will be able to differentiate MSAL usage
-     * by the app from MSAL usage by component libraries.
+     * App developer can specify a string identifier to identify the component that consumes MSAL.
+     * This is intended for libraries that consume MSAL and are embedded in apps that might be using MSAL
+     * as well. For logging or telemetry, app or library developers will be able to differentiate app MSAL usage
+     * from component libraries' MSAL usage.
      * @param component The component identifier string passed into MSAL when creating the application object
      */
     public void setComponent(final String component) {
