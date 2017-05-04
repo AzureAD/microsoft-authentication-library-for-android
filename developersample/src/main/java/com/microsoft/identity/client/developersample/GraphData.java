@@ -42,6 +42,7 @@ import java.util.Map;
 public class GraphData extends Fragment {
 
     private Button mSignout;
+    private Button mExtraScope;
     private OnFragmentInteractionListener mListener;
     private static final String ARG_JSON = "json";
     private String mJsonBlob;
@@ -51,8 +52,8 @@ public class GraphData extends Fragment {
     }
 
     public static GraphData newInstance(String jsonBlob) {
-        GraphData fragment = new GraphData();
-        Bundle args = new Bundle();
+        final GraphData fragment = new GraphData();
+        final Bundle args = new Bundle();
         args.putString(ARG_JSON, jsonBlob);
         fragment.setArguments(args);
         return fragment;
@@ -78,8 +79,8 @@ public class GraphData extends Fragment {
             }
         });
 
-        mSignout = (Button) view.findViewById(R.id.getAnotherScope);
-        mSignout.setOnClickListener(new View.OnClickListener() {
+        mExtraScope = (Button) view.findViewById(R.id.getAnotherScope);
+        mExtraScope.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 mListener.onExtraScopeRequested();
             }
@@ -88,53 +89,31 @@ public class GraphData extends Fragment {
         final Map map = convertJsonToMap(mJsonBlob);
 
         final StringBuilder builder = new StringBuilder();
-        builder.append("Hey ");
+        builder.append("Hi ");
         builder.append(map.get("displayName"));
         builder.append(",\n");
 
         if (!map.get("businessPhones").equals("[]")) {
-            builder.append("Do you want me to call you at ");
+            builder.append("Business Phone numbers:  ");
             builder.append(map.get("businessPhones"));
             builder.append("?\n\n");
-
-            builder.append("Just Kiddin :) \n");
         }
 
-        builder.append("Let me just email you at ");
+        builder.append("Email address: ");
         builder.append(map.get("userPrincipalName"));
         builder.append("\n\n");
 
-        builder.append("Still Kiddin :) \n\n");
-
-        builder.append("BTW congratulation on being a ");
-        final String jobTitle = (String)map.get("jobTitle");
+        builder.append("Job Title:  ");
+        final String jobTitle = (String) map.get("jobTitle");
         if (!jobTitle.equals("null")) {
             builder.append(map.get("jobTitle"));
-            builder.append(" in Microsoft.\n");
         } else {
-            builder.append("test account");
+            builder.append("NA");
         }
 
-
-        TextView graphText = (TextView) view.findViewById(R.id.graphData);
+        final TextView graphText = (TextView) view.findViewById(R.id.graphData);
         graphText.setText(builder.toString());
         return view;
-    }
-
-    private Map convertJsonToMap(final String jsonBlob) {
-        try {
-            JSONObject jsonObject = new JSONObject(jsonBlob);
-            Iterator keys = jsonObject.keys();
-            Map<String, String> map = new HashMap<>();
-            while (keys.hasNext()) {
-                String key = (String) keys.next();
-                map.put(key, jsonObject.getString(key));
-            }
-            return map;
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 
     @Override
@@ -146,7 +125,6 @@ public class GraphData extends Fragment {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
         }
-
     }
 
     @Override
@@ -155,11 +133,27 @@ public class GraphData extends Fragment {
         mListener = null;
     }
 
+    // The interface implemented by MainActivity, this helps isolate all the UI logic to this class and business logic
+    // stays in MainActivity
     public interface OnFragmentInteractionListener {
         void onSignoutClicked();
 
         void onExtraScopeRequested();
     }
 
-
+    private Map convertJsonToMap(final String jsonBlob) {
+        try {
+            final JSONObject jsonObject = new JSONObject(jsonBlob);
+            final Iterator keys = jsonObject.keys();
+            final Map<String, String> map = new HashMap<>();
+            while (keys.hasNext()) {
+                final String key = (String) keys.next();
+                map.put(key, jsonObject.getString(key));
+            }
+            return map;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

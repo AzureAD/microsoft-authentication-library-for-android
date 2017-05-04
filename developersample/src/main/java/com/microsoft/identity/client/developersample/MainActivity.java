@@ -30,21 +30,16 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+
 import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.microsoft.identity.client.AuthenticationCallback;
-import com.microsoft.identity.client.AuthenticationResult;
-import com.microsoft.identity.client.ILoggerCallback;
-import com.microsoft.identity.client.Logger;
-import com.microsoft.identity.client.MsalClientException;
 import com.microsoft.identity.client.IMsalEventReceiver;
 import com.microsoft.identity.client.MsalException;
-import com.microsoft.identity.client.MsalServiceException;
-import com.microsoft.identity.client.MsalUiRequiredException;
-import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.Telemetry;
 
 import java.util.HashMap;
@@ -56,6 +51,8 @@ public class MainActivity extends AppCompatActivity
         AuthUtil.AuthenticatedTask {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    private final static String MSGRAPH_URL = "https://graph.microsoft.com/v1.0/me";
+    private AuthUtil mAuthUtil;
 
     static {
         Telemetry.getInstance().registerReceiver(new IMsalEventReceiver() {
@@ -74,39 +71,80 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    private AuthUtil mAuthUtil;
+    // Called from SigninFragment when the signin button is clicked
+    @Override
+    public void onSigninClicked() {
+        mAuthUtil.doAcquireToken(this);
+    }
 
-    final static String MSGRAPH_URL = "https://graph.microsoft.com/v1.0/me";
+    // Called from GraphData when the Signout button is clicked
+    @Override
+    public void onSignoutClicked() {
+        mAuthUtil.doSignout();
+        updateSignedOutUI();
+    }
 
-    /**
-     * When initializing the {@link PublicClientApplication}, all the apps should only provide us the application context instead of
-     * the running activity itself. If running activity itself is provided, that will have the sdk hold a strong reference of the activity
-     * which could potentially cause the object not correctly garbage collected and cause activity leak.
-     *
-     * External Logger should be provided by the Calling app. The sdk logs to the logcat by default, and loglevel is enabled at verbose level.
-     * To set external logger,
-     * {@link Logger#setExternalLogger(ILoggerCallback)}.
-     * To set log level,
-     * {@link Logger#setLogLevel(Logger.LogLevel)}
-     * By default, the sdk won't give back any Pii logging. However the app can turn it on, this is up to the application's privacy policy.
-     * To turn on the Pii logging,
-     * {@link Logger#setEnablePII(boolean)}
-     * Application can also set the component name. There are cases that other sdks will also take dependency on MSAL i.e. microsoft graph sdk,
-     * providing the component name will help separate the logs from application and the logs from the sdk running inside of
-     * the apps.
-     * To set component name:
-     * {@link PublicClientApplication#setComponent(String)}
-     *
-     * For the {@link AuthenticationCallback}, MSAL exposes three results 1) Success, which contains the {@link AuthenticationResult} 2) Failure case,
-     * which contains {@link MsalException} and 3) Cancel, specifically for user canceling the flow.
-     *
-     * For the failure case, MSAL exposes three sub exceptions:
-     * 1) {@link MsalClientException}, which is specifically for the exceptions running inside the client app itself, could be no active network,
-     * Json parsing failure, etc.
-     * 2) {@link MsalServiceException}, which is the error that the sdk gets back when communicating to the service, could be oauth2 errors, socket timout
-     * or 500/503/504. For oauth2 erros, MSAL returns back the exact error that server returns back to the sdk.
-     * 3) {@link MsalUiRequiredException}, which means that UI is required.
-     */
+    // Called from GraphData when the extra scope button is clicked
+    @Override
+    public void onExtraScopeRequested() {
+        mAuthUtil.doExtraScopeRequest();
+    }
+
+    // Called from AuthUtil on the failure callback
+    @Override
+    public void onRequestFailure(final MsalException exception) {
+        // Failure UI or mitigation for signin failure should be handled here
+    }
+
+    // Called from AuthUtil from the success callback
+    @Override
+    public void useAccessToken(final String accessToken) {
+        Log.d(TAG, "Starting volley request to graph");
+
+        // Make sure we have a token to send to graph
+        if (accessToken == null) {
+            return;
+        }
+
+        final RequestQueue queue = Volley.newRequestQueue(this);
+        final JSONObject parameters = new JSONObject();
+        try {
+            parameters.put("key", "value");
+        } catch (JSONException e) {
+            Log.e(TAG, "Failed to put parameters: " + e.toString());
+            return;
+        }
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, MSGRAPH_URL,
+                parameters, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                // Successfully called graph, process data and send to UI
+                Log.d(TAG, "Response: " + response.toString());
+
+                updateGraphUI(response);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d(TAG, "Error: " + error.toString());
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + accessToken);
+                return headers;
+            }
+        };
+
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                3000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        queue.add(request);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -126,79 +164,6 @@ public class MainActivity extends AppCompatActivity
         mAuthUtil.doCallback(requestCode, resultCode, data);
     }
 
-    @Override
-    public void onSigninClicked() {
-        mAuthUtil.doAcquireToken(this);
-    }
-
-    private void updateSignedOutUI() {
-        final Fragment signinFragment = new SigninFragment();
-        attachFragment(signinFragment);
-    }
-
-    @Override
-    public void onSignoutClicked() {
-        mAuthUtil.doSignout();
-        updateSignedOutUI();
-    }
-
-    @Override
-    public void onExtraScopeRequested() {
-        mAuthUtil.doExtraScopeRequest();
-    }
-
-    @Override
-    public void onRequestFailure(final MsalException exception) {
-
-    }
-
-    @Override
-    public void useAccessToken(final String accessToken) {
-        Log.d(TAG, "Starting volley request to graph");
-
-        /* Make sure we have a token to send to graph */
-        if (accessToken == null) {return;}
-
-        RequestQueue queue = Volley.newRequestQueue(this);
-        JSONObject parameters = new JSONObject();
-
-        try {
-            parameters.put("key", "value");
-        } catch (Exception e) {
-            Log.d(TAG, "Failed to put parameters: " + e.toString());
-        }
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, MSGRAPH_URL,
-                parameters,new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                /* Successfully called graph, process data and send to UI */
-                Log.d(TAG, "Response: " + response.toString());
-
-                updateGraphUI(response);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d(TAG, "Error: " + error.toString());
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String, String> headers = new HashMap<>();
-                headers.put("Authorization", "Bearer " + accessToken);
-                return headers;
-            }
-        };
-
-        Log.d(TAG, "Adding HTTP GET to Queue, Request: " + request.toString());
-
-        request.setRetryPolicy(new DefaultRetryPolicy(
-                3000,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-        queue.add(request);
-    }
-
     private void updateGraphUI(JSONObject graphResponse) {
         final Fragment graphDataFragment = GraphData.newInstance(graphResponse.toString());
 
@@ -210,5 +175,10 @@ public class MainActivity extends AppCompatActivity
         final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         fragmentTransaction.replace(R.id.activity_main, fragment).addToBackStack(null).commitAllowingStateLoss();
+    }
+
+    private void updateSignedOutUI() {
+        final Fragment signinFragment = new SigninFragment();
+        attachFragment(signinFragment);
     }
 }

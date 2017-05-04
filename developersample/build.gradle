@@ -23,7 +23,6 @@ android {
 dependencies {
     compile project(':msal')
     compile 'com.android.support:appcompat-v7:25.3.0'
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.android.volley:volley:1.0.0'
     compile 'com.android.support:support-v4:25.3.0'
 }

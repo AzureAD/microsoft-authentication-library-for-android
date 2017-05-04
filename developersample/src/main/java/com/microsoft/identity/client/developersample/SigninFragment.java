@@ -42,8 +42,7 @@ public class SigninFragment extends Fragment {
     }
 
     public static SigninFragment newInstance() {
-        SigninFragment fragment = new SigninFragment();
-        return fragment;
+        return new SigninFragment();
     }
 
     @Override
@@ -54,11 +53,11 @@ public class SigninFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_signin, container, false);
+        final View view = inflater.inflate(R.layout.fragment_signin, container, false);
         mGetToken = (Button) view.findViewById(R.id.getToken);
         mGetToken.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                // Call MainActivity.onSigninClicked to handle the business logic of this button click
                 mListener.onSigninClicked();
             }
         });
@@ -69,6 +68,8 @@ public class SigninFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         if (context instanceof OnFragmentInteractionListener) {
+            // Main Activity implemented the SigninFragment.OnFragmentInteractionListener, SigninFragment here gets a
+            // reference to MainActivity to call the onSigninClicked
             mListener = (OnFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
@@ -82,6 +83,8 @@ public class SigninFragment extends Fragment {
         mListener = null;
     }
 
+    // The interface implemented by MainActivity, this helps isolate all the UI logic to this class and business logic
+    // stays in MainActivity
     public interface OnFragmentInteractionListener {
         void onSigninClicked();
     }
