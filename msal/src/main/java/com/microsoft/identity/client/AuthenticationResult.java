@@ -86,7 +86,7 @@ public final class AuthenticationResult {
     /**
      * @return The raw id token if it's returned by the service or null if no id token is returned.
      */
-    public String getRawIdToken() {
+    public String getIdToken() {
         return mRawIdToken;
     }
 
@@ -96,13 +96,6 @@ public final class AuthenticationResult {
      */
     public User getUser() {
         return mUser;
-    }
-
-    /**
-     * @return The raw Id token returned from service. Could be null if it's not returned.
-     */
-    public String getIdToken() {
-        return mAccessTokenCacheItem.getRawIdToken();
     }
 
     /**

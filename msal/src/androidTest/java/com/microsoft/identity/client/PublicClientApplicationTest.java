@@ -61,7 +61,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         InstrumentationRegistry.getContext().getCacheDir();
         System.setProperty("dexmaker.dexcache",
                 InstrumentationRegistry.getContext().getCacheDir().getPath());
-        Authority.VALIDATED_AUTHORITY.clear();
+        Authority.RESOLVED_AUTHORITY.clear();
 
         mAppContext = InstrumentationRegistry.getContext().getApplicationContext();
         mRedirectUri = "msauth-client-id://" + mAppContext.getPackageName();
@@ -307,6 +307,91 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                 });
             }
         }.performTest();
+    }
+
+    @Test
+    public void testAuthorityValidationTurnedOnAfterInteractiveRequest() throws PackageManager.NameNotFoundException, IOException,
+            InterruptedException {
+        new GetTokenBaseTestCase() {
+            private User mUser;
+
+            @Override
+            protected String getAlternateAuthorityInManifest() {
+                return "https://abc.com/sometenant";
+            }
+
+            @Override
+            void mockHttpRequest() throws IOException {
+                mockSuccessResponse(convertScopesArrayToString(SCOPE), AndroidTestUtil.ACCESS_TOKEN, DEFAULT_CLIENT_INFO);
+            }
+
+            @Override
+            void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
+                                      final Activity activity,
+                                      final CountDownLatch releaseLock) {
+                publicClientApplication.setValidateAuthority(false);
+                publicClientApplication.acquireToken(activity, SCOPE, new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(AuthenticationResult authenticationResult) {
+                        Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
+                        mUser = authenticationResult.getUser();
+
+                        releaseLock.countDown();
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        fail("Unexpected Error");
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        fail("Unexpected Cancel");
+                    }
+                });
+            }
+
+            @Override
+            String getFinalAuthUrl() throws UnsupportedEncodingException {
+                return mRedirectUri + "?code=1234&state=" + AndroidTestUtil.encodeProtocolState(
+                        getAlternateAuthorityInManifest(), new HashSet<>(Arrays.asList(SCOPE)));
+            }
+
+            @Override
+            protected void makeSilentRequest(final PublicClientApplication application, final CountDownLatch silentResultLock)
+                    throws IOException, InterruptedException {
+                final String scopeForSilent = "scope3";
+                application.setValidateAuthority(true);
+                // perform instance discovery first
+                AndroidTestMockUtil.mockSuccessInstanceDiscovery(AuthorityTest.TENANT_DISCOVERY_ENDPOINT);
+                // will do tenant discovery again
+                AndroidTestMockUtil.mockSuccessTenantDiscovery(SilentRequestTest.AUTHORIZE_ENDPOINT, SilentRequestTest.TOKEN_ENDPOINT);
+
+                mockSuccessResponse(scopeForSilent, AndroidTestUtil.ACCESS_TOKEN, DEFAULT_CLIENT_INFO);
+
+                application.acquireTokenSilentAsync(new String[]{scopeForSilent}, mUser, new AuthenticationCallback() {
+
+                    @Override
+                    public void onSuccess(AuthenticationResult authenticationResult) {
+                        assertTrue(authenticationResult.getAccessToken().equals(AndroidTestUtil.ACCESS_TOKEN));
+                        assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 2);
+                        assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 1);
+                        silentResultLock.countDown();
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        fail();
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        fail();
+                    }
+                });
+            }
+        }.performTest();
+
     }
 
     @Test (expected = IllegalArgumentException.class)

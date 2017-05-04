@@ -106,7 +106,7 @@ public final class AuthenticationResultTest {
         final AuthenticationResult authenticationResult = new AuthenticationResult(new AccessTokenCacheItem(null, null, tokenResponse));
         Assert.assertTrue(authenticationResult.getAccessToken().equals(ACCESS_TOKEN));
         Assert.assertTrue(authenticationResult.getExpiresOn().equals(expiresOn));
-        Assert.assertTrue(authenticationResult.getRawIdToken().equals(AndroidTestUtil.TEST_IDTOKEN));
+        Assert.assertTrue(authenticationResult.getIdToken().equals(AndroidTestUtil.TEST_IDTOKEN));
 
         final IdToken idToken = new IdToken(AndroidTestUtil.TEST_IDTOKEN);
         Assert.assertTrue(authenticationResult.getUniqueId().equals(idToken.getUniqueId()));
