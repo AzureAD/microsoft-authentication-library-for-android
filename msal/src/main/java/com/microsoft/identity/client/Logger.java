@@ -32,15 +32,15 @@ import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * MSAL Logger for diagnostic purpose. The sdk can generate logs with both the default logcat logging or the external logger.
- * By default, the SDK enables the logcat logging. To turn it off, developer needs to explicitly do:
+ * MSAL Logger for diagnostic purpose. The sdk generates logs with both logcat logging or the external logger.
+ * By default, the sdk enables logging with logcat. To turn it off logging:
  * <pre>
  * {@code
  *     Logger.getInstance().setEnableLogcatLog(false);
  * }
  * </pre>
- * To enable the custom logger, developer needs to explicitly set the external logger implementing
- * the {@link ILoggerCallback}.
+ * To enable the custom logger, set the external logger implementing
+ * {@link ILoggerCallback}.
  * <pre>
  * <code>
  *     Logger.getInstance().setExternalLogger(new Logger.ILoggerCallback() {
@@ -52,14 +52,14 @@ import java.util.concurrent.atomic.AtomicReference;
  * </pre>
  * Loglevel can be specified at {@link LogLevel#ERROR}, {@link LogLevel#WARNING}, {@link LogLevel#INFO}
  * and {@link LogLevel#VERBOSE}. The sdk enables the verbose level logging by default, to set different
- * level logging, developer needs to:
+ * level logging:
  * <pre>
  * {@code
  *     Logger.getInstance().setLogLevel(Loglevel)
  * }
  * </pre>
- * By default, the SDK doesn't send any log messages that contain PII info. App developer can enable PII
- * logging by:
+ * By default, the sdk doesn't send any log messages that contain PII (personal identifiable information) info. To enable PII
+ * logging:
  * <pre>
  * {@code
  *     Logger.getInstance().setEnablePII(true);
@@ -77,7 +77,7 @@ public final class Logger {
     private boolean mEnablePII = false;
 
     /**
-     * @return The single instance for {@link Logger}.
+     * @return The single instance of {@link Logger}.
      */
     public static Logger getInstance() {
         return INSTANCE;
@@ -92,10 +92,10 @@ public final class Logger {
     }
 
     /**
-     * Set the custom logger. Developer can configure external logging to configure a callback that
-     * the sdk will use to hand off each log message as it is generated. Overriding on the logger callback is not allowed.
-     * @param externalLogger The reference to the {@link ILoggerCallback} that the developer can config to
-     *                       generate the log to the designated places.
+     * Set the custom logger. Configures external logging to configure a callback that
+     * the sdk will use to pass each log message. Overriding the logger callback is not allowed.
+     * @param externalLogger The reference to the {@link ILoggerCallback} that can
+     * output the logs to the designated places.
      * @throws IllegalStateException if external logger is already set, and the caller is trying to set it again.
      */
     public void setExternalLogger(final ILoggerCallback externalLogger) {
@@ -119,8 +119,7 @@ public final class Logger {
     }
 
     /**
-     * Enable log message with PII info. By default, MSAL doesn't have any PII logged in the log message.
-     * APP developer can opts in to allow us log PII for diagnostic purpose.
+     * Enable log message with PII (personal identifiable information) info. By default, MSAL doesn't log any PII.
      * @param enablePII True if enabling PII info to be logged, false otherwise.
      */
     public void setEnablePII(final boolean enablePII) {
@@ -218,7 +217,7 @@ public final class Logger {
     }
 
     /**
-     * Send logs to logcat as the default logging if developer doesn't turn of the logcat logging.
+     * Send logs to logcat as the default logging if developer doesn't turn off the logcat logging.
      */
     private void sendLogcatLogs(final String tag, final LogLevel logLevel, final String message) {
         // Append additional message to the message part for logcat logging
@@ -242,9 +241,9 @@ public final class Logger {
 
     /**
      * Wrap the log message, component is optional.
-     * If correlation id exists, log message will be in the format of :
+     * If correlation id exists:
      * MSAL <msal_version> <platform> <platform_version> [<timestamp> - <correlation_id>] (component) <log_message>
-     * If correlation id doesn't exist, log message will be in the format of:
+     * If correlation id doesn't exist:
      * MSAL <msal_version> <platform> <platform_version> [<timestamp>] (component) <log_message>
      */
     private String formatMessage(final RequestContext requestContext, final String message) {

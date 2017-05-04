@@ -28,12 +28,12 @@ import android.content.Intent;
 import android.os.Bundle;
 
 /**
- * MSAL activity class(needs to be public to be discoverable by the os) to get the redirect with code from authorize
+ * MSAL activity class (needs to be public in order to be discoverable by the os) to get the browser redirect with auth code from authorize
  * endpoint. This activity has to be exposed by "android:exported=true", and intent filter has to be declared in the
  * manifest for the activity.
  *
  * When chrome custom tab is launched, and we're redirected back with the redirect
- * uri(with this being said, the redirect has to be unique across apps), the os will fire an intent with the redirect,
+ * uri (the redirect must be unique across apps on a device), the os will fire an intent with the redirect,
  * and the BrowserTabActivity will be launched.
  * <pre>
  * &lt;intent-filter&gt;

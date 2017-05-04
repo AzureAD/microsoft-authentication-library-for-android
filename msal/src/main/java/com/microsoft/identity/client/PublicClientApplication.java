@@ -47,14 +47,14 @@ import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_
 
 /**
  * <p>
- * This is the entry point for developer to create the public native applications and make API call to acquire tokens. MSAL {@link PublicClientApplication} provides three constructors allowing the client id to be set either via AndroidManifest.xml metadata or using constructor parameters.
- * Similarly, if developer chooses not to use the default authority (https://login.microsoftonline.com), an alternate can also be configured using the manifest or constructor parameters.
+ * This is the entry point for developer to create public native applications and make API calls to acquire tokens. MSAL {@link PublicClientApplication} provides three constructors allowing the client id to be set either via AndroidManifest.xml metadata or using constructor parameters.
+ * Similarly, if developer chooses not to use the default authority (https://login.microsoftonline.com), an alternate can also be configured using the manifest, constructor parameters, or in acquire token calls.
  * </p>
  * <p>
  * Redirect is auto-generated in the library in the format of msal<client-id>://auth, it cannot be overridden.
  * </p>
  * <p>
- * Developer <b>MUST</b> have {@link BrowserTabActivity} declared in their manifest, which <b>MUST</b> have the correct intent-filter configured. If the wrong scheme and host is provided, the sdk will fail the {@link PublicClientApplication} creation.
+ * Developer <b>MUST</b> have {@link BrowserTabActivity} declared in their manifest, which must have the correct intent-filter configured. If the wrong scheme and host is provided, the sdk will fail the {@link PublicClientApplication} creation.
  *
  * Expected format will be:
  * <pre>

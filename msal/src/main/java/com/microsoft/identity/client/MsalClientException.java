@@ -24,38 +24,38 @@
 package com.microsoft.identity.client;
 
 /**
- * This exception class represents general errors that are local to the library. Given below is a table of proposed codes and a short description of each.
+ * This exception class represents general errors that are local to the library. Below is the table of proposed codes and a short description of each.
  * <p>
  *     Set of error codes that could be returned from this exception:
  *     <ul>
- *         <li>multiple_matching_tokens_detected: There are multiple cache entries found and the sdk cannot pick the correct access token
- *         or refresh token from the cache. When this happens, this usually indicates a bug in the sdk for storing tokens or authority is
- *         not provided in the silent request and multiple matching tokens found, the sdk doesn't know which authority should be used
- *         to get the token for. </li>
+ *         <li>multiple_matching_tokens_detected: There are multiple cache entries found and the sdk cannot identify the correct access
+ *         or refresh token from the cache. This usually indicates a bug in the sdk for storing tokens or the authority is
+ *         not provided in the silent request and multiple matching tokens found. </li>
  *         <li>device_network_not_available: No active network is available on the device. </li>
- *         <li>json_parse_failure: Indicates that the sdk failed to parse the Json format.</li>
- *         <li>io_error: Indicates that IOException happened, could be the device/network errors. </li>
- *         <li>malformed_url: Indicates that the url is malformed. </li>
- *         <li>unsupported_encoding: Indicates that the encoding is not supported by the device. </li>
- *         <li>no_such_algorithm: Indicates the algorithm used to generate pkce challenge is not supported. </li>
+ *         <li>json_parse_failure: The sdk failed to parse the JSON format.</li>
+ *         <li>io_error: IOException happened, could be the device/network errors. </li>
+ *         <li>malformed_url: The url is malformed. Likely caused when constructing the auth request, authority, or redirect URI. </li>
+ *         <li>unsupported_encoding: The encoding is not supported by the device. </li>
+ *         <li>no_such_algorithm: The algorithm used to generate pkce challenge is not supported. </li>
  *         <li>invalid_jwt: JWT returned by the server is not valid, empty or malformed. </li>
- *         <li>state_mismatch: For authorize request, the sdk will verify the state returned from redirect and the one sent
- *         in the request. This error indicates that it doesn't match. </li>
+ *         <li>state_mismatch: State from authorization response did not match the state in the authorization request.
+*          For authorization requests, the sdk will verify the state returned from redirect and the one sent in the request. </li>
  *         <li>unresolvable_intent: The intent to launch {@link AuthenticationActivity} is not resolvable by the OS or the intent
  *         doesn't contain the required data. </li>
- *         <li>unsupported_url: Unsupported url, cannot perform adfs authority validation. </li>
+ *         <li>unsupported_url: Unsupported url, cannot perform ADFS authority validation. </li>
  *         <li>authority_validation_not_supported: The authority is not supported for authority validation. The sdk supports
- *         b2c authority, but we don't support b2c authority validation yet. Only well-known host will be supported. </li>
- *         <li>chrome_not_installed: Indicates that chrome is not installed on the device. The sdk uses chrome custom tab for
- *         authorize request if applicable or fall back to chrome browser. </li>
- *         <li>user_mismatch: Indicates that the user provided in the acquire token request doesn't match the user returned from server.</li>
+ *         b2c authorities, but doesn't support b2c authority validation. Only well-known host will be supported. </li>
+ *         <li>chrome_not_installed: Chrome is not installed on the device. The sdk uses chrome custom tab for
+ *         authorization requests if available, and will fall back to chrome browser. </li>
+ *         <li>user_mismatch: The user provided in the acquire token request doesn't match the user returned from server.</li>
  *     </ul>
  * </p>
  */
 public final class MsalClientException extends MsalException {
     /**
      * There are multiple cache entries found, the sdk cannot pick the correct access token
-     * or refresh token from the cache. When this happens, mostly likely it's a bug in the sdk for storing tokens.
+     * or refresh token from the cache. Likely it's a bug in the sdk when caching tokens or authority
+     * is not proviced in the silent request and multiple tokens were found.
      */
     public final static String MULTIPLE_MATCHING_TOKENS_DETECTED = "multiple_matching_tokens_detected";
 
@@ -65,27 +65,27 @@ public final class MsalClientException extends MsalException {
     public final static String DEVICE_NETWORK_NOT_AVAILABLE = "device_network_not_available";
 
     /**
-     * Indicates that the sdk failed to parse the Json format
+     * The sdk failed to parse the Json format
      */
     public final static String JSON_PARSE_FAILURE = "json_parse_failure";
 
     /**
-     * Indicates that IOException happened, could be the device/network errors.
+     * IOException happened, could be the device/network errors.
      */
     public final static String IO_ERROR = "io_error";
 
     /**
-     * Indicates that the url is malformed.
+     * The url is malformed.  Likely caused when constructing the auth request, authority, or redirect URI.
      */
     public final static String MALFORMED_URL = "malformed_url";
 
     /**
-     * Indicates that the encoding is not supported by the device.
+     * The encoding is not supported by the device.
      */
     public final static String UNSUPPORTED_ENCODING = "unsupported_encoding";
 
     /**
-     * Indicates the algorithm used to generate pkce challenge is not supported.
+     * The algorithm used to generate pkce challenge is not supported.
      */
     public final static String NO_SUCH_ALGORITHM = "no_such_algorithm";
 
@@ -95,8 +95,8 @@ public final class MsalClientException extends MsalException {
     public final static String INVALID_JWT = "invalid_jwt";
 
     /**
-     * For authorize request, the sdk will verify the state returned from redirect and the one sent in the request.
-     * This error indicates that it doesn't match.
+     * State from authorization response did not match the state in the authorization request.  
+     * For authorization requests, the sdk will verify the state returned from redirect and the one sent in the request.
      */
     public final static String STATE_MISMATCH = "state_mismatch";
 
@@ -117,23 +117,23 @@ public final class MsalClientException extends MsalException {
     public final static String AUTHORITY_VALIDATION_NOT_SUPPORTED = "authority_validation_not_supported";
 
     /**
-     * Indicates that chrome is not installed on the device. The sdk uses chrome custom tab for authorize request if
-     * applicable or fall back to chrome browser.
+     * chrome_not_installed: Chrome is not installed on the device. The sdk uses chrome custom tab for
+     * authorization requests if available, and will fall back to chrome browser. 
      */
     public final static String CHROME_NOT_INSTALLED = "chrome_not_installed";
 
     /**
-     * Indicates that the user provided in the acquire token request doesn't match the user returned from server.
+     * The user provided in the acquire token request doesn't match the user returned from server.
      */
     public final static String USER_MISMATCH = "user_mismatch";
 
     /**
-     * Indicates that extra parameters set by the client app is already sent by the sdk.
+     * Extra query parameters set by the client app is already sent by the sdk.
      */
     public final static String DUPLICATE_QUERY_PARAMETER = "duplicate_query_parameter";
 
     /**
-     * Temporary non-exposed error code to indicate that Adfs authority validation fails. Adfs as authority is not supported
+     * Temporary non-exposed error code to indicate that ADFS authority validation fails. ADFS as authority is not supported
      * for preview.
      */
     final static String ADFS_AUTHORITY_VALIDATION_FAILED = "adfs_authority_validation_failed";

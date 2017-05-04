@@ -24,9 +24,9 @@
 package com.microsoft.identity.client;
 
 /**
- * {@link MsalException} that will be thrown or sent back via callback, represents the detailed exception
- * thrown by the sdk. It will contain the error code, error description(could be null) or
- *  throwable(could be null).
+ * {@link MsalException} thrown or sent back via callback, representing the detailed exception
+ * thrown by the sdk. It will contain the error code, error description (could be null) or
+ *  throwable (could be null).
  */
 public class MsalException extends Exception {
     private String mErrorCode;
@@ -68,7 +68,7 @@ public class MsalException extends Exception {
 
     /**
      * @return The error code for the exception, could be null. {@link MsalException} is the top level base exception, for the
-     * constants value of all the error code, it should be referenced from the subclasses.
+     * constants value of all the error code.
      */
     public String getErrorCode() {
         return mErrorCode;

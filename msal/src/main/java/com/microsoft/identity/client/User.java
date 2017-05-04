@@ -24,7 +24,7 @@
 package com.microsoft.identity.client;
 
 /**
- * Contains the detailed info to identify an user. Signout functionality is provided at the user level.
+ * Contains the detailed info to identify a user. Sign out functionality is provided at the {@link User} level.
  */
 public class User {
     private String mDisplayableId;
@@ -60,7 +60,7 @@ public class User {
     }
 
     /**
-     * @return The displayable value in UserPrincipleName(UPN) format. Can be null if not returned from the service.
+     * @return The displayable value in the UserPrincipleName(UPN) format. Can be null if not returned from the service.
      */
     public String getDisplayableId() {
         return mDisplayableId;
@@ -90,7 +90,7 @@ public class User {
     // internal methods provided
 
     /**
-     * Used by developer to set the User object when making acquire token API call.
+     * Sets the displayableId of a {@link User} when making acquire token API call.
      *
      * @param displayableId
      */
