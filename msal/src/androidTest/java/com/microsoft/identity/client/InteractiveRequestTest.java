@@ -96,7 +96,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         InstrumentationRegistry.getContext().getCacheDir();
         System.setProperty("dexmaker.dexcache",
                 InstrumentationRegistry.getContext().getCacheDir().getPath());
-        Authority.VALIDATED_AUTHORITY.clear();
+        Authority.RESOLVED_AUTHORITY.clear();
 
         mAppContext = new MockContext(InstrumentationRegistry.getContext().getApplicationContext());
         resolveAuthenticationActivity(mAppContext, true);

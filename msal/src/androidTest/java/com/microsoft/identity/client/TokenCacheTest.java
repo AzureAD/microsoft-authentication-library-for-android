@@ -159,6 +159,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         final RefreshTokenCacheItem refreshTokenCacheItem = mTokenCache.findRefreshToken(requestParameters, mDefaultUser);
         assertNotNull(refreshTokenCacheItem);
         assertTrue(refreshTokenCacheItem.getRefreshToken().equals(REFRESH_TOKEN));
+        assertTrue(refreshTokenCacheItem.getVersion().equals("1"));
     }
 
     /**
