@@ -30,8 +30,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Button;
-import android.widget.TextView;
 import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
@@ -48,13 +46,14 @@ import com.microsoft.identity.client.MsalServiceException;
 import com.microsoft.identity.client.MsalUiRequiredException;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.Telemetry;
-import com.microsoft.identity.client.User;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity implements GraphData.OnFragmentInteractionListener, SigninFragment.OnFragmentInteractionListener{
+public class MainActivity extends AppCompatActivity
+        implements GraphData.OnFragmentInteractionListener, SigninFragment.OnFragmentInteractionListener,
+        AuthUtil.AuthenticatedTask {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -75,10 +74,8 @@ public class MainActivity extends AppCompatActivity implements GraphData.OnFragm
         });
     }
 
-    private PublicClientApplication mApplication;
+    private AuthUtil mAuthUtil;
 
-    private static final String[] SCOPES = {"https://graph.microsoft.com/User.Read"};
-    private static final String CLIENT_ID = "9851987a-55e5-46e2-8d70-75f8dc060f21";
     final static String MSGRAPH_URL = "https://graph.microsoft.com/v1.0/me";
 
     /**
@@ -115,74 +112,23 @@ public class MainActivity extends AppCompatActivity implements GraphData.OnFragm
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (mApplication == null) {
-            mApplication = new PublicClientApplication(this.getApplicationContext(), CLIENT_ID);
-        }
+        mAuthUtil = new AuthUtil(this);
 
-        List<User> users = null;
-        try {
-            users = mApplication.getUsers();
-        } catch (final MsalException exc) {
-            Log.e(TAG, "Exception when getting users", exc);
-        }
-
-        if (users != null && users.size() > 0) {
-
-            mApplication.acquireTokenSilentAsync(SCOPES, users.get(0), new AuthenticationCallback() {
-                @Override
-                public void onSuccess(AuthenticationResult authenticationResult) {
-                    Log.e("TAG", "Success");
-                    callGraphAPI(authenticationResult);
-                }
-
-                @Override
-                public void onError(MsalException exception) {
-                    Log.e("TAG", "Error");
-                }
-
-                @Override
-                public void onCancel() {
-                    Log.e("TAG", "Cancel");
-                }
-            });
-        } else {
+        if (mAuthUtil.getUserCount() == 0) {
             updateSignedOutUI();
+        } else {
+            mAuthUtil.doAcquireTokenSilent(this);
         }
-
-
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        mApplication.handleInteractiveRequestRedirect(requestCode, resultCode, data);
+        mAuthUtil.doCallback(requestCode, resultCode, data);
     }
 
     @Override
     public void onSigninClicked() {
-        mApplication.acquireToken(this, SCOPES, new AuthenticationCallback() {
-            @Override
-            public void onSuccess(final AuthenticationResult authenticationResult) {
-                Log.e("TAG", "Success");
-                callGraphAPI(authenticationResult);
-            }
-
-            @Override
-            public void onError(final MsalException exception) {
-                Log.e("TAG", "Error");
-            }
-
-            @Override
-            public void onCancel() {
-                Log.e("TAG", "Cancel");
-            }
-        });
-    }
-
-    /* Set the UI for successful token acquisition data */
-    private void updateSuccessUI(final AuthenticationResult authenticationResult) {
-
-        //callGraphAPI(authenticationResult);
-
+        mAuthUtil.doAcquireToken(this);
     }
 
     private void updateSignedOutUI() {
@@ -192,25 +138,21 @@ public class MainActivity extends AppCompatActivity implements GraphData.OnFragm
 
     @Override
     public void onSignoutClicked() {
-        List<User> users = null;
-        try {
-            users = mApplication.getUsers();
-        } catch (final MsalException exc) {
-            Log.e(TAG, "Exception when getting users", exc);
-            return;
-        }
-        if (users != null && users.size() >= 1) {
-            mApplication.remove(users.get(0));
-        }
+        mAuthUtil.doSignout();
         updateSignedOutUI();
     }
 
-    /* Use Volley to make an HTTP request to the /me endpoint from MS Graph using an access token */
-    private void callGraphAPI(final AuthenticationResult authResult) {
+    @Override
+    public void onRequestFailure(final MsalException exception) {
+
+    }
+
+    @Override
+    public void useAccessToken(final String accessToken) {
         Log.d(TAG, "Starting volley request to graph");
 
         /* Make sure we have a token to send to graph */
-        if (authResult.getAccessToken() == null) {return;}
+        if (accessToken == null) {return;}
 
         RequestQueue queue = Volley.newRequestQueue(this);
         JSONObject parameters = new JSONObject();
@@ -238,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements GraphData.OnFragm
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Authorization", "Bearer " + authResult.getAccessToken());
+                headers.put("Authorization", "Bearer " + accessToken);
                 return headers;
             }
         };
