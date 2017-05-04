@@ -87,28 +87,32 @@ public class GraphData extends Fragment {
         });
 
         final Map map = convertJsonToMap(mJsonBlob);
-
         final StringBuilder builder = new StringBuilder();
-        builder.append("Hi ");
-        builder.append(map.get("displayName"));
-        builder.append(",\n");
 
-        if (!map.get("businessPhones").equals("[]")) {
-            builder.append("Business Phone numbers:  ");
-            builder.append(map.get("businessPhones"));
-            builder.append("?\n\n");
-        }
+        if (map != null) {
+            builder.append("Hi ");
+            builder.append(map.get("displayName"));
+            builder.append(",\n");
 
-        builder.append("Email address: ");
-        builder.append(map.get("userPrincipalName"));
-        builder.append("\n\n");
+            if (!map.get("businessPhones").equals("[]")) {
+                builder.append("Business Phone numbers:  ");
+                builder.append(map.get("businessPhones"));
+                builder.append("?\n\n");
+            }
 
-        builder.append("Job Title:  ");
-        final String jobTitle = (String) map.get("jobTitle");
-        if (!jobTitle.equals("null")) {
-            builder.append(map.get("jobTitle"));
+            builder.append("Email address: ");
+            builder.append(map.get("userPrincipalName"));
+            builder.append("\n\n");
+
+            builder.append("Job Title:  ");
+            final String jobTitle = (String) map.get("jobTitle");
+            if (!jobTitle.equals("null")) {
+                builder.append(map.get("jobTitle"));
+            } else {
+                builder.append("NA");
+            }
         } else {
-            builder.append("NA");
+            builder.append("There was an unexpected error reading data from graph");
         }
 
         final TextView graphText = (TextView) view.findViewById(R.id.graphData);

@@ -46,7 +46,7 @@ final class AuthUtil {
     private static final String TAG = AuthUtil.class.getSimpleName();
     private static final Object LOCK = new Object();
     // There should be only one instance of PublicClientApplication per app
-    private static PublicClientApplication mApplication = null;
+    private PublicClientApplication mApplication = null;
     private static final String[] SCOPES = {"https://graph.microsoft.com/User.Read"};
     private static final String[] EXTRA_SCOPES = {"Calendars.Read"};
     private static final String CLIENT_ID = "9851987a-55e5-46e2-8d70-75f8dc060f21";
