@@ -203,19 +203,27 @@ final class InteractiveRequest extends BaseRequest {
 
         // adding extra qp
         if (!MsalUtils.isEmpty(mAuthRequestParameters.getExtraQueryParam())) {
-            final Map<String, String> extraQps = MsalUtils.decodeUrlToMap(mAuthRequestParameters.getExtraQueryParam(), "&");
-            final Set<Map.Entry<String, String>> extraQpEntries = extraQps.entrySet();
-            for (final Map.Entry<String, String> extraQpEntry : extraQpEntries) {
-                if (requestParameters.containsKey(extraQpEntry.getKey())) {
-                    throw new MsalClientException(MsalClientException.DUPLICATE_QUERY_PARAMETER, "Extra query parameter " + extraQpEntry.getKey() + " is already sent by "
-                            + "the SDK. ");
-                }
+            appendExtraQueryParameters(mAuthRequestParameters.getExtraQueryParam(), requestParameters);
+        }
 
-                requestParameters.put(extraQpEntry.getKey(), extraQpEntry.getValue());
-            }
+        if (!MsalUtils.isEmpty(mAuthRequestParameters.getSliceParameters())) {
+            appendExtraQueryParameters(mAuthRequestParameters.getSliceParameters(), requestParameters);
         }
 
         return requestParameters;
+    }
+
+    private void appendExtraQueryParameters(final String queryParams, final Map<String, String> requestParams) throws MsalClientException {
+        final Map<String, String> extraQps = MsalUtils.decodeUrlToMap(queryParams, "&");
+        final Set<Map.Entry<String, String>> extraQpEntries = extraQps.entrySet();
+        for (final Map.Entry<String, String> extraQpEntry : extraQpEntries) {
+            if (requestParams.containsKey(extraQpEntry.getKey())) {
+                throw new MsalClientException(MsalClientException.DUPLICATE_QUERY_PARAMETER, "Extra query parameter " + extraQpEntry.getKey() + " is already sent by "
+                        + "the SDK. ");
+            }
+
+            requestParams.put(extraQpEntry.getKey(), extraQpEntry.getValue());
+        }
     }
 
     private void addSessionContinuationQps(final Map<String, String> requestParams) {

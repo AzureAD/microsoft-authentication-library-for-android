@@ -220,8 +220,9 @@ public final class PublicClientApplication {
     }
 
     /**
-     * To send extra parameters to token endpoint, which provides the possibility if developer wants to test features that have not been enabled on prod yet.
-     * @param sliceParameters The query parameters sent to token endpoint.
+     * Custom query parameters which maybe sent to the STS for dogfood testing. This parameter should not be set by developers as it may
+     * have adverse effect on the application.
+     * @param sliceParameters The custom query parameters(for dogfood testing) sent to token and authorize endpoint.
      */
     public void setSliceParameters(final String sliceParameters) {
         mSliceParameters = sliceParameters;

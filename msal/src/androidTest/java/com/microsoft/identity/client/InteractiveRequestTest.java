@@ -231,7 +231,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     @Test
     public void testDuplicateExtraQp() throws UnsupportedEncodingException {
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
-                getAuthRequestParameters(AUTHORITY, UiBehavior.CONSENT, "&client_id=1234"), null);
+                getAuthRequestParameters(AUTHORITY, UiBehavior.CONSENT, "&client_id=1234", null), null);
         try {
             interactiveRequest.appendQueryStringToAuthorizeEndpoint();
             fail();
@@ -244,12 +244,46 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     public void testRequestContainsValidExtraQp() throws UnsupportedEncodingException {
         final String extraQp = "&slice=testslice";
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
-                getAuthRequestParameters(AUTHORITY, UiBehavior.CONSENT, extraQp), null);
+                getAuthRequestParameters(AUTHORITY, UiBehavior.CONSENT, extraQp, null), null);
         try {
             final String authorizationRequestUrl = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
             assertTrue(authorizationRequestUrl.contains(extraQp));
         } catch (final MsalClientException ex) {
             fail("unexpected exception message");
+        }
+    }
+
+    @Test
+    public void testRequestContainsSliceParameters() throws MsalClientException, UnsupportedEncodingException {
+        final String sliceParameters = "&slice=testslice&a=b&c=d";
+        final String extraParameters = "&e=f&m=k";
+
+        final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
+                getAuthRequestParameters(AUTHORITY, UiBehavior.CONSENT, extraParameters, sliceParameters), null);
+        try {
+            final String authorizationRequestUrl = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
+            assertTrue(authorizationRequestUrl.contains("slice=testslice"));
+            assertTrue(authorizationRequestUrl.contains("a=b"));
+            assertTrue(authorizationRequestUrl.contains("c=d"));
+
+            assertTrue(authorizationRequestUrl.contains("e=f"));
+            assertTrue(authorizationRequestUrl.contains("m=k"));
+        } catch (final MsalClientException ex) {
+            fail("unexpected exception message");
+        }
+    }
+
+    @Test
+    public void testSliceParametersDuplicated() throws UnsupportedEncodingException {
+        final String sliceParameters = "&slice=testslice&a=b&c=d";
+        final String extraParameters = "slice=testslice&e=f&m=k";
+
+        final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
+                getAuthRequestParameters(AUTHORITY, UiBehavior.CONSENT, extraParameters, sliceParameters), null);
+        try {
+            interactiveRequest.appendQueryStringToAuthorizeEndpoint();
+        } catch (final MsalClientException ex) {
+            assertTrue(MsalClientException.DUPLICATE_QUERY_PARAMETER.equals(ex.getErrorCode()));
         }
     }
 
@@ -837,12 +871,13 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                 CLIENT_ID, redirectUri, loginHint, "", uiBehavior, user, null, new RequestContext(CORRELATION_ID, "", Telemetry.generateNewRequestId()));
     }
 
-    private AuthenticationRequestParameters getAuthRequestParameters(final String authorityString, final UiBehavior uiBehavior, final String extraQp) {
+    private AuthenticationRequestParameters getAuthRequestParameters(final String authorityString, final UiBehavior uiBehavior, final String extraQp,
+                                                                     final String sliceParameter) {
         final Authority authority = Authority.createAuthority(authorityString, true);
         authority.mAuthorizationEndpoint = SilentRequestTest.AUTHORIZE_ENDPOINT;
         authority.mTokenEndpoint = SilentRequestTest.TOKEN_ENDPOINT;
         return AuthenticationRequestParameters.create(authority, new TokenCache(mAppContext), getScopes(),
-                CLIENT_ID, mRedirectUri, LOGIN_HINT, extraQp, uiBehavior, null, null, new RequestContext(CORRELATION_ID, "", Telemetry.generateNewRequestId()));
+                CLIENT_ID, mRedirectUri, LOGIN_HINT, extraQp, uiBehavior, null, sliceParameter, new RequestContext(CORRELATION_ID, "", Telemetry.generateNewRequestId()));
     }
 
     private Set<String> getScopes() {
