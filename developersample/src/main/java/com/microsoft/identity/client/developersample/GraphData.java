@@ -78,6 +78,13 @@ public class GraphData extends Fragment {
             }
         });
 
+        mSignout = (Button) view.findViewById(R.id.getAnotherScope);
+        mSignout.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                mListener.onExtraScopeRequested();
+            }
+        });
+
         final Map map = convertJsonToMap(mJsonBlob);
 
         final StringBuilder builder = new StringBuilder();
@@ -149,7 +156,9 @@ public class GraphData extends Fragment {
     }
 
     public interface OnFragmentInteractionListener {
-       void onSignoutClicked();
+        void onSignoutClicked();
+
+        void onExtraScopeRequested();
     }
 
 

@@ -143,6 +143,11 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onExtraScopeRequested() {
+        mAuthUtil.doExtraScopeRequest();
+    }
+
+    @Override
     public void onRequestFailure(final MsalException exception) {
 
     }

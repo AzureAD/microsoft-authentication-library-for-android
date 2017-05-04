@@ -32,6 +32,7 @@ import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.MsalException;
 import com.microsoft.identity.client.MsalUiRequiredException;
 import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.client.User;
 
 import java.util.List;
@@ -42,6 +43,7 @@ final class AuthUtil {
     private static final Object LOCK = new Object();
     private static PublicClientApplication mApplication = null;
     private static final String[] SCOPES = {"https://graph.microsoft.com/User.Read"};
+    private static final String[] EXTRA_SCOPES = {"Calendars.Read"};
     private static final String CLIENT_ID = "9851987a-55e5-46e2-8d70-75f8dc060f21";
     private List<User> mUsers = null;
     final Activity mActivity;
@@ -94,6 +96,25 @@ final class AuthUtil {
 
     void doCallback(int requestCode, int resultCode, Intent data) {
         mApplication.handleInteractiveRequestRedirect(requestCode, resultCode, data);
+    }
+
+    void doExtraScopeRequest() {
+        mApplication.acquireToken(mActivity, SCOPES, "", UiBehavior.SELECT_ACCOUNT, "", EXTRA_SCOPES, "", new AuthenticationCallback() {
+            @Override
+            public void onSuccess(AuthenticationResult authenticationResult) {
+                // Not filled in for the sample app, ideally the callback should be passed and action taken on success
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                // Not filled in for the sample app, ideally the callback should be passed and error handled
+            }
+
+            @Override
+            public void onCancel() {
+                // Not filled in for the sample app
+            }
+        });
     }
 
     class AuthCallback implements AuthenticationCallback {

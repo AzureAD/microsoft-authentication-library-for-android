@@ -10,7 +10,7 @@
         android:id="@+id/activity_main"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#0000FF"
+        android:background="#438FFF"
         android:orientation="vertical"
         tools:context="com.microsoft.identity.client.developersample.MainActivity">
 
@@ -42,12 +42,21 @@
             android:orientation="vertical" >
 
             <Button
+                android:text="Token for another scope"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:background="#303F9F"
+                android:textAllCaps="false"
+                android:id="@+id/getAnotherScope" />
+
+            <Button
                 android:text="Sign Out"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="15dp"
                 android:textColor="#FFFFFF"
-                android:background="#00a1f1"
+                android:background="#303F9F"
                 android:textAllCaps="false"
                 android:id="@+id/clearCache" />
 
