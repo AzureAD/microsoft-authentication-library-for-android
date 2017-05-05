@@ -31,7 +31,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,7 +48,7 @@ final class Oauth2Client {
     static final String POST_CONTENT_TYPE = "application/x-www-form-urlencoded";
 
     private final Map<String, String> mBodyParameters = new HashMap<>();
-    private final Map<String, String> mQueryParameters = new LinkedHashMap<>();
+    private final Map<String, String> mQueryParameters = new HashMap<>();
     private final Map<String, String> mHeader = new HashMap<>(PlatformIdHelper.getPlatformIdParameters());
 
     private final RequestContext mRequestContext;
