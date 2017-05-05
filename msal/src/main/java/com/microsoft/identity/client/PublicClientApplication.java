@@ -718,6 +718,7 @@ public final class PublicClientApplication {
             @Override
             public void onError(final MsalException exception) {
                 eventBinding.setApiCallWasSuccessful(false);
+                eventBinding.setApiErrorCode(exception.getErrorCode());
                 stopTelemetryEventAndFlush(eventBinding.build());
                 authenticationCallback.onError(exception);
             }

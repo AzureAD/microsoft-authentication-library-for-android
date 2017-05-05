@@ -50,6 +50,7 @@ public class ApiEventTest {
     static final String TEST_VALIDATION_STATUS = EventProperty.Value.AUTHORITY_VALIDATION_SUCCESS;
     static final String TEST_LOGIN_HINT = "user@contoso.com";
     static final boolean TEST_API_CALL_WAS_SUCCESSFUL = true;
+    static final String TEST_API_ERROR_CODE = "test_error_code";
 
     // Authorities
     private static final String TEST_AUTHORITY_WITH_IDENTIFIER = AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT;
@@ -69,6 +70,7 @@ public class ApiEventTest {
                 .setValidationStatus(TEST_VALIDATION_STATUS)
                 .setRawIdToken(TEST_ID_TOKEN)
                 .setLoginHint(TEST_LOGIN_HINT)
+                .setApiErrorCode(TEST_API_ERROR_CODE)
                 .setApiCallWasSuccessful(TEST_API_CALL_WAS_SUCCESSFUL);
     }
 
@@ -107,6 +109,7 @@ public class ApiEventTest {
         // Testing token parsing in another test....
         Assert.assertEquals(MsalUtils.createHash(TEST_LOGIN_HINT), apiEvent.getLoginHint());
         Assert.assertEquals(Boolean.valueOf(TEST_API_CALL_WAS_SUCCESSFUL), apiEvent.wasSuccessful());
+        Assert.assertEquals(TEST_API_ERROR_CODE, apiEvent.getApiErrorCode());
     }
 
     @Test
