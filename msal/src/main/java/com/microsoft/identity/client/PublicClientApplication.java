@@ -538,6 +538,8 @@ public final class PublicClientApplication {
     public void remove(final User user) {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(telemetryRequestId);
+        final URL authorityURL = MsalUtils.getUrl(mAuthorityString);
+        apiEventBuilder.setAuthority(authorityURL.getProtocol() + "://" + authorityURL.getHost());
         Telemetry.getInstance().startEvent(telemetryRequestId, EventConstants.EventName.API_EVENT);
 
         final RequestContext requestContext = new RequestContext(UUID.randomUUID(), mComponent, telemetryRequestId);
