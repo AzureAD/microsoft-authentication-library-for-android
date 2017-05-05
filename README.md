@@ -8,6 +8,7 @@ The MSAL library for Android gives your app the ability to begin using the [Micr
 
 #### Library Snapshot
 
+```Java
     // Instantiates MSAL Public Client App
     PublicClientApplication myApp = new PublicClientApplication(
                     this.getApplicationContext(),
@@ -20,7 +21,7 @@ The MSAL library for Android gives your app the ability to begin using the [Micr
 
     // The access token can now be used to access a protected service!
     String accessToken = authenticationResult.getAccessToken();
-
+```
 
 For a full example of basic usage, checkout our [code sample](https://github.com/Azure-Samples/active-directory-android-native-v2).
 
@@ -31,23 +32,19 @@ For a full example of basic usage, checkout our [code sample](https://github.com
 
 ### Installation
 
-We've made it easy for you to have multiple options to use this library in your Android project.
+#### Binaries via Gradle (Recommended way)
 
-#### Option 1: Binaries via Gradle (Recommended way)
-
-You can get the binaries from Maven central repo. AAR package can be included as follows in your project in AndroidStudio:
+Add to your app's Build.Gradle:
 
 ```gradle
 repositories {
     mavenCentral()
 }
 dependencies {
-    compile('com.microsoft.identity:msal:0.1.0') {
+    compile('com.microsoft.identity.client:msal:0.1.0') {
         // if your app includes android support
-        // libraries or Gson in its dependencies
-        // exclude that groupId from ADAL's compile
-        // task by un-commenting the appropriate
-        // line below
+        // libraries or GSON in its dependencies
+        // uncomment below
 
         // exclude group: 'com.android.support'
         // exclude group: 'com.google.code.gson'
@@ -58,7 +55,7 @@ dependencies {
 #### AAR package inside libs folder
 You can get the AAR file from maven central and drop into **libs** folder in your project.
 
-### Getting a Token: Start to Finish
+### Using MSAL
 
 Make sure you've included MSAL in your app's *build.gradle*.
 
@@ -66,11 +63,11 @@ Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to re
 
 #### Step 1: Configure the AndroidManifest.xml
 
-- Give your app Internet permissions
+1. Give your app Internet permissions
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
-- Configure your Intent filter, make sure you add your App/Client ID
+2. Configure your Intent filter, make sure you add your App/Client ID
         <!--Intent filter to capture System Browser calling back to our app after Sign In-->
         <activity
             android:name="com.microsoft.identity.client.BrowserTabActivity">
@@ -85,7 +82,7 @@ Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to re
 
 #### Step 2: Instantiate MSAL and Acquire a Token
 
-- Create a new PublicClientApplication instance. Make sure to fill in your app/client id
+1.  Create a new PublicClientApplication instance. Make sure to fill in your app/client id
 
 ```Java
     PublicClientApplication myApp = new PublicClientApplication(
@@ -93,7 +90,7 @@ Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to re
                     CLIENT_ID);
 ```
 
-- Acquire a token
+2. Acquire a token
 
 ```Java
     myApp.acquireToken(this, "User.Read", getAuthInteractiveCallback());
@@ -101,7 +98,7 @@ Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to re
 
 #### Step 3: Configure the Auth helpers
 
-- Create an onActivityResult method
+1. Create an onActivityResult method
 
 ```Java
     /* Handles the redirect from the System Browser */
@@ -111,7 +108,7 @@ Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to re
     }
 ```
 
-- Create the getAuthInteractiveCallback method
+2. Create the getAuthInteractiveCallback method
 
 ```Java
     private AuthenticationCallback getAuthInteractiveCallback() {
