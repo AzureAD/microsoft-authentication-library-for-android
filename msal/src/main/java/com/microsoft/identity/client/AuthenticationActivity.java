@@ -54,10 +54,8 @@ public final class AuthenticationActivity extends Activity {
     private int mRequestId;
     private boolean mRestarted;
     private String mChromePackageWithCustomTabSupport;
-    private CustomTabsClient mCustomTabsClient;
-    private CustomTabsSession mCustomTabsSession;
     private CustomTabsIntent mCustomTabsIntent;
-    private CustomTabsServiceConnection mCustomTabsServiceConnection;
+    private MsalCustomTabsServiceConnection mCustomTabsServiceConnection;
     private boolean mCustomTabsServiceIsBound;
     private UiEvent.Builder mUiEventBuilder;
     private String mTelemetryRequestId;
@@ -148,7 +146,8 @@ public final class AuthenticationActivity extends Activity {
             initCustomTabsWithSession = false;
         }
 
-        final CustomTabsIntent.Builder builder = initCustomTabsWithSession ? new CustomTabsIntent.Builder(mCustomTabsSession) : new CustomTabsIntent.Builder();
+        final CustomTabsIntent.Builder builder = initCustomTabsWithSession ?
+                new CustomTabsIntent.Builder(mCustomTabsServiceConnection.getCustomTabsSession()) : new CustomTabsIntent.Builder();
 
         // Create the Intent used to launch the Url
         mCustomTabsIntent = builder.setShowTitle(true).build();
@@ -159,6 +158,8 @@ public final class AuthenticationActivity extends Activity {
 
         private final WeakReference<AuthenticationActivity> mAuthenticationActivityWeakReference;
         private final WeakReference<CountDownLatch> mLatchWeakReference;
+        private CustomTabsClient mCustomTabsClient;
+        private CustomTabsSession mCustomTabsSession;
 
         MsalCustomTabsServiceConnection(final AuthenticationActivity authenticationActivity,
                                         final CountDownLatch latch) {
@@ -171,14 +172,15 @@ public final class AuthenticationActivity extends Activity {
             final AuthenticationActivity activity = mAuthenticationActivityWeakReference.get();
             final CountDownLatch latch = mLatchWeakReference.get();
 
+
             if (null == activity) {
                 return;
             }
 
             activity.mCustomTabsServiceIsBound = true;
-            activity.mCustomTabsClient = client;
-            activity.mCustomTabsClient.warmup(0L);
-            activity.mCustomTabsSession = activity.mCustomTabsClient.newSession(null);
+            mCustomTabsClient = client;
+            mCustomTabsClient.warmup(0L);
+            mCustomTabsSession = mCustomTabsClient.newSession(null);
 
             if (null != latch) {
                 latch.countDown();
@@ -187,13 +189,15 @@ public final class AuthenticationActivity extends Activity {
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
-            final AuthenticationActivity activity = mAuthenticationActivityWeakReference.get();
+            // Unimplemented
+        }
 
-            if (null == activity) {
-                return;
-            }
-
-            activity.mCustomTabsClient = null;
+        /**
+         * Gets the {@link CustomTabsSession} associated to this CustomTabs connection.
+         * @return the session.
+         */
+        CustomTabsSession getCustomTabsSession() {
+            return mCustomTabsSession;
         }
     }
 
