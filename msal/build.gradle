@@ -2,6 +2,12 @@ apply plugin: 'com.android.library'
 apply plugin: 'jacoco'
 apply plugin: 'checkstyle'
 apply plugin: 'pmd'
+apply plugin: "org.ajoberstar.grgit"
+// This plugin publishes adal in to the local maven repo
+apply plugin: 'com.github.dcendents.android-maven'
+
+def grgit = org.ajoberstar.grgit.Grgit.open(dir: '.')
+def versionNumber = grgit.log(includes:['HEAD']).size()
 
 android {
     compileSdkVersion 25
@@ -11,7 +17,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 25
         versionCode 0
-        versionName "0.1.0"
+        versionName '0.1.0'
         project.archivesBaseName = "msal"
         project.version = android.defaultConfig.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -20,8 +26,11 @@ android {
     buildTypes {
         debug {
             testCoverageEnabled true
+            versionNameSuffix = "-SNAPSHOT" + versionNumber
+            project.version = android.defaultConfig.versionName + versionNameSuffix
         }
         release {
+            project.version = android.defaultConfig.versionName
             minifyEnabled false
             debuggable false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -37,6 +46,16 @@ android {
         main {
             manifest.srcFile 'src/main/AndroidManifest.xml'
             java.srcDirs = ['src/main/java', 'src/http/java', 'src/internal/java', 'src/request/java', 'src/cache/java', 'src/authority/java', 'src/telemetry/java']
+        }
+    }
+
+    libraryVariants.all { variant ->
+        variant.outputs.each { output ->
+            def outputFile = output.outputFile
+            if (outputFile != null && outputFile.name.endsWith('.aar')) {
+                def fileName = "${archivesBaseName}-${version}.aar"
+                output.outputFile = new File(outputFile.parent, fileName)
+            }
         }
     }
 }
@@ -80,6 +99,50 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
     from javadoc.destinationDir
     destinationDir = reporting.file("$project.buildDir/outputs/jar/")
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+    destinationDir = reporting.file("$project.buildDir/outputs/jar/")
+}
+
+task createPom {
+    pom {
+        project {
+            groupId 'com.microsoft.identity.client'
+            artifactId 'msal'
+            packaging 'aar'
+            version project.version
+            name 'msal'
+
+            description 'Microsoft Authentication Library(MSAL) provides easy to use authentication functionality for native mobile apps by taking advantage of Azure Active Directory V2 (serves Microsoft Account (MSA) and AAD) and B2C.'
+            url 'https://github.com/AzureAD/microsoft-authentication-library-for-android'
+
+            developers {
+                developer {
+                    id 'microsoft'
+                    name 'Microsoft'
+                }
+            }
+
+            licenses {
+                license {
+                    name 'Apache License, Version 2.0'
+                }
+            }
+            inceptionYear '2014'
+
+            properties {
+                branch 'master'
+                msalVersion = project.version
+            }
+
+            scm {
+                url "https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/master"
+            }
+        }
+    }.writeTo("${archivesBaseName}-${version}.pom")
 }
 
 dependencies {
@@ -140,6 +203,6 @@ task pmd(type: Pmd) {
 
 tasks.whenTaskAdded { task ->
     if (task.name == 'assembleDebug' || task.name == 'assembleRelease') {
-        task.dependsOn 'checkstyle', 'pmd', 'lint', 'jacocoTestReport'
+        task.dependsOn 'checkstyle', 'pmd', 'lint', 'jacocoTestReport', 'createPom', 'javadocJar', 'sourcesJar'
     }
 }

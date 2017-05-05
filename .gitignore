@@ -20,3 +20,4 @@ integration_tests.properties
 *.ipr
 *.iws
 .idea/
+/**/*.pom
