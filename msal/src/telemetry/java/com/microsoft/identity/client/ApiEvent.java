@@ -52,6 +52,7 @@ final class ApiEvent extends Event {
         setIdToken(builder.mRawIdToken);
         setLoginHint(builder.mLoginHint);
         setProperty(EventProperty.WAS_SUCCESSFUL, String.valueOf(builder.mWasApiCallSuccessful));
+        setProperty(EventProperty.API_ERROR_CODE, builder.mApiErrorCode);
     }
 
     private void setAuthorityType(Authority.AuthorityType type) {
@@ -149,6 +150,10 @@ final class ApiEvent extends Event {
         return getProperty(EventProperty.AUTHORITY_TYPE);
     }
 
+    String getApiErrorCode() {
+        return getProperty(EventProperty.API_ERROR_CODE);
+    }
+
     /**
      * Builder object for ApiEvents.
      */
@@ -164,6 +169,7 @@ final class ApiEvent extends Event {
         private boolean mWasApiCallSuccessful;
         private UUID mCorrelationId;
         private String mRequestId;
+        private String mApiErrorCode;
 
         Builder(final String requestId) {
             super(EventConstants.EventName.API_EVENT);
@@ -256,10 +262,21 @@ final class ApiEvent extends Event {
          * Sets the correlationId of the api call.
          *
          * @param correlationId the correlationId to set
-         * @return the Builder instance
+         * @return the Builder instance.
          */
         Builder setCorrelationId(final UUID correlationId) {
             mCorrelationId = correlationId;
+            return this;
+        }
+
+        /**
+         * Sets the api error code.
+         *
+         * @param errorCode the error code to set.
+         * @return the Builder instance.
+         */
+        Builder setApiErrorCode(final String errorCode) {
+            mApiErrorCode = errorCode;
             return this;
         }
 

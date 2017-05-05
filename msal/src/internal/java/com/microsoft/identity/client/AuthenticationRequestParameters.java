@@ -41,6 +41,7 @@ final class AuthenticationRequestParameters {
     private String mRedirectUri;
     private String mLoginHint;
     private String mExtraQueryParam;
+    private String mSliceParameters;
     private UiBehavior mUiBehavior;
     private User mUser;
 
@@ -48,7 +49,7 @@ final class AuthenticationRequestParameters {
      * Creates new {@link AuthenticationRequestParameters}.
      */
     private AuthenticationRequestParameters(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
-                                            final String clientId, final RequestContext requestContext) {
+                                            final String clientId, final String sliceParameters, final RequestContext requestContext) {
         // Every acquireToken API call should contain correlation id.
         if (requestContext == null || requestContext.getCorrelationId() == null) {
             throw new IllegalArgumentException("correlationId");
@@ -67,6 +68,7 @@ final class AuthenticationRequestParameters {
         mTokenCache = tokenCache;
         mScope.addAll(scope);
         mClientId = clientId;
+        mSliceParameters = sliceParameters;
         mRequestContext = requestContext;
     }
 
@@ -76,9 +78,9 @@ final class AuthenticationRequestParameters {
     static AuthenticationRequestParameters create(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
                                                   final String clientId, final String redirectUri, final String loginHint,
                                                   final String extraQueryParam, final UiBehavior uiBehavior, final User user,
-                                                  final RequestContext requestContext) {
+                                                  final String sliceParameters, final RequestContext requestContext) {
         final AuthenticationRequestParameters requestParameters = new AuthenticationRequestParameters(authority, tokenCache, scope,
-                clientId, requestContext);
+                clientId, sliceParameters, requestContext);
         requestParameters.setRedirectUri(redirectUri);
         requestParameters.setLoginHint(loginHint);
         requestParameters.setExtraQueryParam(extraQueryParam);
@@ -92,8 +94,8 @@ final class AuthenticationRequestParameters {
      * Creates the {@link AuthenticationRequestParameters} with all the given parameters.
      */
     static AuthenticationRequestParameters create(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
-                                                  final String clientId, final RequestContext requestContext) {
-        return new AuthenticationRequestParameters(authority, tokenCache, scope, clientId, requestContext);
+                                                  final String clientId, final String sliceParameters, final RequestContext requestContext) {
+        return new AuthenticationRequestParameters(authority, tokenCache, scope, clientId, sliceParameters, requestContext);
     }
 
     Authority getAuthority() {
@@ -138,6 +140,10 @@ final class AuthenticationRequestParameters {
 
     private void setExtraQueryParam(final String extraQueryParam) {
         mExtraQueryParam = extraQueryParam;
+    }
+
+    String getSliceParameters() {
+        return mSliceParameters;
     }
 
     UiBehavior getUiBehavior() {

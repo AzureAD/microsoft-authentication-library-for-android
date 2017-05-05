@@ -32,6 +32,7 @@ import android.support.annotation.NonNull;
 
 import com.microsoft.identity.msal.BuildConfig;
 
+import java.net.URL;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -47,11 +48,18 @@ import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_
 
 /**
  * <p>
- * This is the entry point for developer to create public native applications and make API calls to acquire tokens. MSAL {@link PublicClientApplication} provides three constructors allowing the client id to be set either via AndroidManifest.xml metadata or using constructor parameters.
+ * This is the entry point for developer to create public native applications and make API calls to acquire tokens.
+ * <p><b>Client ID:</b> The clientID of your application is a unique identifier which can be obtained from the app registration portal.</p>
+ * <p><b>Authority:</b> A URL indicating a directory that MSAL can use to obtain tokens. In Azure AD
+ * it is of the form https://<[nstance]/[tenant], where [instance] is the directory host (e.g. https://login.microsoftonline.com)
+ * and [tenant] is an identifier within the directory itself (e.g. a domain associated to the
+ * tenant, such as contoso.onmicrosoft.com, or the GUID representing the  TenantID property of the directory)
+ * For B2C, it is of the form https://[instance]/tfp/[tenant]/[policy] where instance and tenant are same as Azure AD, and [policy] is a string like signup</p>
+ * MSAL {@link PublicClientApplication} provides three constructors allowing the client id to be set either via AndroidManifest.xml metadata or using constructor parameters.
  * Similarly, if developer chooses not to use the default authority https://login.microsoftonline.com, an alternate can also be configured using the manifest, constructor parameters, or in acquire token calls.
  * </p>
  * <p>
- * Redirect is auto-generated in the library in the format of msal<client-id>://auth, it cannot be overridden.
+ * Redirect is auto-generated in the library in the format of msal<client-id>://auth, and it cannot be overridden.
  * </p>
  * <p>
  * Developer <b>MUST</b> have {@link BrowserTabActivity} declared in their manifest, which must have the correct intent-filter configured. If the wrong scheme and host is provided, the sdk will fail the {@link PublicClientApplication} creation.
@@ -70,6 +78,19 @@ import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_
  * &lt;/activity&gt;
  * </pre>
  * </p>
+ * <p>Other Terminology:</p>
+ * <p>
+ *    <p><b>Scopes:</b>Permissions that the developers wants included in the access token received . Not all scopes are
+ *     guaranteed to be included in the access token returned.
+ *     </p>
+ *     <p>
+ *         <b>Login Hint:</b> Usually an email, to pass to the service at the beginning of the interactive authentication flow.
+ *     </p>
+ *     <p>
+ *         <b>Extra Scopes to Consent:</b>  Permissions you want the user to consent to in the same authentication flow,
+ *         but won't be included in the returned access token.
+ *     </p>
+ * </p>
  */
 public final class PublicClientApplication {
     private static final String TAG = PublicClientApplication.class.getSimpleName();
@@ -83,12 +104,27 @@ public final class PublicClientApplication {
     private final Context mAppContext;
     private final TokenCache mTokenCache;
 
+    /** The authority the application will use to obtain tokens */
     private String mAuthorityString;
+
+    /** The client ID of the application. This should come from the app developer portal */
     private String mClientId;
+
+    /** Unique String identifier used in logging/telemetry callbacks to identify
+     * component in the application using MSAL
+     */
     private String mComponent;
+
+    /** The redirect URI for the application */
     private String mRedirectUri;
 
+    /**
+    * When set to true (default), MSAL will compare the application's authority against well-known URL
+    * templates representing well-formed authorities. It is useful when the authority is obtained at
+    * run time to prevent MSAL from displaying authentication prompts from malicious pages.
+    */
     private boolean mValidateAuthority = true;
+    private String mSliceParameters = "";
 
     /**
      * {@link PublicClientApplication#PublicClientApplication(Context)} will read the client id (which must be set) from manifest, and if authority
@@ -218,6 +254,15 @@ public final class PublicClientApplication {
     }
 
     /**
+     * Custom query parameters which maybe sent to the STS for dogfood testing. This parameter should not be set by developers as it may
+     * have adverse effect on the application.
+     * @param sliceParameters The custom query parameters(for dogfood testing) sent to token and authorize endpoint.
+     */
+    public void setSliceParameters(final String sliceParameters) {
+        mSliceParameters = sliceParameters;
+    }
+  
+    /**
      * Returns the list of {@link User}s we have tokens in the cache. 
      * @return Immutable List of {@link User}.
      * @throws MsalClientException If failed to retrieve users from the cache.
@@ -225,6 +270,8 @@ public final class PublicClientApplication {
     public List<User> getUsers() throws MsalClientException {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(telemetryRequestId);
+        final URL authorityURL = MsalUtils.getUrl(mAuthorityString);
+        apiEventBuilder.setAuthority(authorityURL.getProtocol() + "://" + authorityURL.getHost());
         Telemetry.getInstance().startEvent(telemetryRequestId, apiEventBuilder.getEventName());
 
         List<User> users = mTokenCache.getUsers(Authority.createAuthority(mAuthorityString, mValidateAuthority).getAuthorityHost(), mClientId, new RequestContext(UUID.randomUUID(), mComponent, telemetryRequestId));
@@ -609,7 +656,7 @@ public final class PublicClientApplication {
         final RequestContext requestContext = new RequestContext(UUID.randomUUID(), mComponent, telemetryRequestId);
         final Set<String> scopesAsSet = MsalUtils.convertArrayToSet(scopes);
         final AuthenticationRequestParameters requestParameters = AuthenticationRequestParameters.create(authorityForRequest, mTokenCache,
-                scopesAsSet, mClientId, requestContext);
+                scopesAsSet, mClientId, mSliceParameters, requestContext);
 
         // add properties to our telemetry data
         apiEventBuilder
@@ -637,7 +684,7 @@ public final class PublicClientApplication {
         final Set<String> scopesAsSet = MsalUtils.convertArrayToSet(scopes);
 
         return AuthenticationRequestParameters.create(authorityForRequest, mTokenCache, scopesAsSet, mClientId,
-                mRedirectUri, loginHint, extraQueryParam, uiBehavior, user, new RequestContext(correlationId, mComponent, telemetryRequestId));
+                mRedirectUri, loginHint, extraQueryParam, uiBehavior, user, mSliceParameters, new RequestContext(correlationId, mComponent, telemetryRequestId));
     }
 
     private ApiEvent.Builder createApiEventBuilder(final String telemetryRequestId, final String apiId) {
@@ -678,6 +725,7 @@ public final class PublicClientApplication {
             @Override
             public void onError(final MsalException exception) {
                 eventBinding.setApiCallWasSuccessful(false);
+                eventBinding.setApiErrorCode(exception.getErrorCode());
                 stopTelemetryEventAndFlush(eventBinding.build());
                 authenticationCallback.onError(exception);
             }
