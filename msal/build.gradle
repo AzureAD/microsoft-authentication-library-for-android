@@ -2,12 +2,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'jacoco'
 apply plugin: 'checkstyle'
 apply plugin: 'pmd'
-apply plugin: "org.ajoberstar.grgit"
 // This plugin publishes msal in to the local maven repo
 apply plugin: 'com.github.dcendents.android-maven'
-
-def grgit = org.ajoberstar.grgit.Grgit.open(dir: '.')
-def versionNumber = grgit.log(includes:['HEAD']).size()
 
 android {
     compileSdkVersion 25
@@ -26,11 +22,8 @@ android {
     buildTypes {
         debug {
             testCoverageEnabled true
-            versionNameSuffix = "-SNAPSHOT" + versionNumber
-            project.version = android.defaultConfig.versionName + versionNameSuffix
         }
         release {
-            project.version = android.defaultConfig.versionName
             minifyEnabled false
             debuggable false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
