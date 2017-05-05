@@ -37,19 +37,19 @@ For a full example of basic usage, checkout our [code sample](https://github.com
 Add to your app's Build.Gradle:
 
 ```gradle
-repositories {
-    mavenCentral()
-}
-dependencies {
-    compile('com.microsoft.identity.client:msal:0.1.0') {
-        // if your app includes android support
-        // libraries or GSON in its dependencies
-        // uncomment below
-
-        // exclude group: 'com.android.support'
-        // exclude group: 'com.google.code.gson'
+    repositories {
+        mavenCentral()
     }
-}
+    dependencies {
+        compile('com.microsoft.identity.client:msal:0.1.0') {
+            // if your app includes android support
+            // libraries or GSON in its dependencies
+            // uncomment below
+
+            // exclude group: 'com.android.support'
+            // exclude group: 'com.google.code.gson'
+        }
+    }
 ```
 
 #### AAR package inside libs folder
@@ -64,10 +64,15 @@ Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to re
 #### Step 1: Configure the AndroidManifest.xml
 
 1. Give your app Internet permissions
+
+```XML
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+```
 
 2. Configure your Intent filter, make sure you add your App/Client ID
+  
+```XML
         <!--Intent filter to capture System Browser calling back to our app after Sign In-->
         <activity
             android:name="com.microsoft.identity.client.BrowserTabActivity">
@@ -79,6 +84,7 @@ Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to re
                     android:host="auth" />
             </intent-filter>
         </activity>
+```
 
 #### Step 2: Instantiate MSAL and Acquire a Token
 
