@@ -87,27 +87,33 @@ Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to re
 
 - Create a new PublicClientApplication instance. Make sure to fill in your app/client id
 
+```Java
     PublicClientApplication myApp = new PublicClientApplication(
                     this.getApplicationContext(),
-                    YOUR_CLIENT_ID);
+                    CLIENT_ID);
+```
 
 - Acquire a token
 
+```Java
     myApp.acquireToken(this, "User.Read", getAuthInteractiveCallback());
-
+```
 
 #### Step 3: Configure the Auth helpers
 
 - Create an onActivityResult method
 
+```Java
     /* Handles the redirect from the System Browser */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         sampleApp.handleInteractiveRequestRedirect(requestCode, resultCode, data);
     }
+```
 
 - Create the getAuthInteractiveCallback method
 
+```Java
     private AuthenticationCallback getAuthInteractiveCallback() {
         return new AuthenticationCallback() {
             @Override
@@ -132,6 +138,7 @@ Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to re
             }
         };
     }
+```
 
 #### Step 4: Use the token!
 
