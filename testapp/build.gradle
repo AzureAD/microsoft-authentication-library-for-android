@@ -30,7 +30,7 @@ android {
     buildToolsVersion "25.0.2"
 
     defaultConfig {
-        applicationId "com.microsoft.identity.client.developersample"
+        applicationId "com.microsoft.identity.client.sample"
         minSdkVersion 21
         targetSdkVersion 25
         versionCode 1
@@ -45,7 +45,9 @@ android {
 }
 
 dependencies {
+    // Compile Dependency
     compile project(':msal')
     compile 'com.android.support:appcompat-v7:25.2.0'
     compile 'com.android.support:support-v4:25.2.0'
+    compile 'com.android.support:design:25.2.0'
 }

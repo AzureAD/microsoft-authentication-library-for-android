@@ -23,16 +23,31 @@
   ~ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   ~ // THE SOFTWARE.
   -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.microsoft.identity.client.sample">
 
-    <application android:allowBackup="true" android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name" android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true" android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity" android:screenOrientation="portrait">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.microsoft.identity.client.testapp">
+
+    <uses-sdk
+        android:minSdkVersion="21"
+        android:targetSdkVersion="25" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:name="com.microsoft.identity.client.testapp.MsalSampleApp"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name="com.microsoft.identity.client.testapp.MainActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="stateHidden">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
 
@@ -47,10 +62,13 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="msal9851987a-55e5-46e2-8d70-75f8dc060f21"
-                    android:host="auth" />
+                      android:host="auth" />
             </intent-filter>
         </activity>
 
+        <meta-data
+            android:name="com.microsoft.identity.client.ClientId"
+            android:value="9851987a-55e5-46e2-8d70-75f8dc060f21"/>
     </application>
 
 </manifest>
