@@ -11,7 +11,7 @@ The MSAL library for Android gives your app the ability to begin using the [Micr
     PublicClientApplication pApp = new PublicClientApplication(
                     this.getApplicationContext(),
                     CLIENT_ID);
-    pApp.acquireToken(getActivity(), SCOPES, getAuthInteractiveCallback());
+    pApp.acquireToken(this, SCOPES, getAuthInteractiveCallback());
 
     // ...
 
