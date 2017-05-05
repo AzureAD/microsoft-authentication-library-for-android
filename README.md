@@ -9,12 +9,12 @@ The MSAL library for Android gives your app the ability to begin using the [Micr
 #### Library Snapshot
 
     // Instantiates MSAL Public Client App
-    PublicClientApplication pApp = new PublicClientApplication(
+    PublicClientApplication myApp = new PublicClientApplication(
                     this.getApplicationContext(),
                     CLIENT_ID);
 
     // Acquires a token from AzureAD 
-    pApp.acquireToken(this, SCOPES, getAuthInteractiveCallback());
+    myApp.acquireToken(this, SCOPES, getAuthInteractiveCallback());
 
     // ...
 
@@ -57,6 +57,86 @@ dependencies {
 
 #### AAR package inside libs folder
 You can get the AAR file from maven central and drop into **libs** folder in your project.
+
+### Getting a Token: Start to Finish
+
+Make sure you've included MSAL in your app's *build.gradle*.
+
+Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to register an application. For Azure AD v2.0, use [the app registration portal](https://apps.dev.microsoft.com). For Azure AD B2C, checkout [how to register your app with B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-app-registration).  
+
+#### Step 1: Configure the AndroidManifest.xml
+
+- Give your app Internet permissions
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+- Configure your Intent filter, make sure you add your App/Client ID
+        <!--Intent filter to capture System Browser calling back to our app after Sign In-->
+        <activity
+            android:name="com.microsoft.identity.client.BrowserTabActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="msal<YOUR_CLIENT_ID>"
+                    android:host="auth" />
+            </intent-filter>
+        </activity>
+
+#### Step 2: Instantiate MSAL and Acquire a Token
+
+- Create a new PublicClientApplication instance. Make sure to fill in your app/client id
+
+    PublicClientApplication myApp = new PublicClientApplication(
+                    this.getApplicationContext(),
+                    YOUR_CLIENT_ID);
+
+- Acquire a token
+
+    myApp.acquireToken(this, "User.Read", getAuthInteractiveCallback());
+
+
+#### Step 3: Configure the Auth helpers
+
+- Create an onActivityResult method
+
+    /* Handles the redirect from the System Browser */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        sampleApp.handleInteractiveRequestRedirect(requestCode, resultCode, data);
+    }
+
+- Create the getAuthInteractiveCallback method
+
+    private AuthenticationCallback getAuthInteractiveCallback() {
+        return new AuthenticationCallback() {
+            @Override
+            public void onSuccess(AuthenticationResult authenticationResult) {
+                /* Successfully got a token, use it to call a protected resource */
+
+                String accessToken = authenticationResult.getAccessToken();
+            }
+            @Override
+            public void onError(MsalException exception) { 
+                /* Failed to acquireToken */
+
+                if (exception instanceof MsalClientException) {
+                    /* Exception inside MSAL, more info inside MsalError.java */
+                } else if (exception instanceof MsalServiceException) {
+                    /* Exception when communicating with the STS, likely config issue */
+                }
+            }
+            @Override
+            public void onCancel() {
+                /* User canceled the authentication */
+            }
+        };
+    }
+
+#### Step 4: Use the token!
+
+The access token can now be used in an [HTTP Bearer request](https://github.com/Azure-Samples/active-directory-android-native-v2/blob/master/app/src/main/java/com/danieldobalian/msalandroidapp/MainActivity.java#L152).
+
 
 ## Community Help and Support
 
