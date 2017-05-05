@@ -108,6 +108,7 @@ final class EventConstants {
         static final String TENANT_ID = EVENT_PREFIX + "tenant_id";
         static final String LOGIN_HINT = EVENT_PREFIX + "login_hint";
         static final String USER_ID = EVENT_PREFIX + "user_id";
+        static final String API_ERROR_CODE = EVENT_PREFIX + "api_error_code";
 
         // CacheEvent
         static final String TOKEN_TYPE = EVENT_PREFIX + "token_type";
