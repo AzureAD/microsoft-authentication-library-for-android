@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * MSAL Logger for diagnostic purpose. The sdk generates logs with both logcat logging or the external logger.
- * By default, the sdk enables logging with logcat. To turn it off logging:
+ * By default, the sdk enables logging with logcat. To turn off logging:
  * <pre>
  * {@code
  *     Logger.getInstance().setEnableLogcatLog(false);
