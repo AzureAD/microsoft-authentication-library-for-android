@@ -44,9 +44,7 @@ final class ApiEvent extends Event {
         if (null != builder.mRequestId) {
             setProperty(EventProperty.REQUEST_ID, builder.mRequestId);
         }
-        if (!MsalUtils.isEmpty(builder.mAuthority)) {
-            setProperty(EventProperty.AUTHORITY_NAME, HttpEvent.sanitizeUrlForTelemetry(builder.mAuthority));
-        }
+        setProperty(EventProperty.AUTHORITY_NAME, HttpEvent.sanitizeUrlForTelemetry(builder.mAuthority));
         setAuthorityType(builder.mAuthorityType);
         setProperty(EventProperty.UI_BEHAVIOR, builder.mUiBehavior);
         setProperty(EventProperty.API_ID, builder.mApiId);
