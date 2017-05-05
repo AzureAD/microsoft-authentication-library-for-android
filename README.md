@@ -6,8 +6,7 @@
 ## General
 The MSAL library for Android gives your app the ability to begin using the [Microsoft Cloud](https://cloud.microsoft.com) by supporting [Microsoft Azure Active Directory](https://azure.microsoft.com/en-us/services/active-directory/) and [Microsoft Accounts](https://account.microsoft.com) in a converged experience using industry standard OAuth2 and OpenID Connect. The library also supports [Azure AD B2C](https://azure.microsoft.com/services/active-directory-b2c/).
 
-## Example
-
+    // Snapshot of library usage - Please see our Sample Code for complete example. 
 
     PublicClientApplication pApp = new PublicClientApplication(
                     this.getApplicationContext(),
@@ -16,7 +15,9 @@ The MSAL library for Android gives your app the ability to begin using the [Micr
 
     // ...
 
-    authenticationResult.getAccessToken();
+    String accessToken = authenticationResult.getAccessToken();
+
+    // The access token can now be used to access a protected service!
 
 
 For a full example of basic usage, checkout our [code sample](https://github.com/Azure-Samples/active-directory-android-native-v2).
