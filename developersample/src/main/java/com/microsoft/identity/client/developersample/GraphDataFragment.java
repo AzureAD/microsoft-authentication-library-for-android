@@ -91,7 +91,7 @@ public class GraphDataFragment extends Fragment {
             }
         });
 
-        final Map map = convertJsonToMap(mJsonBlob);
+        final Map<String, String> map = convertJsonToMap(mJsonBlob);
         final StringBuilder builder = new StringBuilder();
 
         if (map != null) {
@@ -131,7 +131,7 @@ public class GraphDataFragment extends Fragment {
         if (context instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) context;
         } else {
-            throw new IllegalArgumentException(context.toString()
+            throw new IllegalStateException(context.toString()
                     + " must implement OnFragmentInteractionListener");
         }
     }
@@ -150,11 +150,11 @@ public class GraphDataFragment extends Fragment {
         void onExtraScopeRequested();
     }
 
-    private HashMap convertJsonToMap(final String jsonBlob) {
+    private Map<String, String> convertJsonToMap(final String jsonBlob) {
         try {
             final JSONObject jsonObject = new JSONObject(jsonBlob);
             final Iterator keys = jsonObject.keys();
-            final HashMap<String, String> map = new HashMap<>();
+            final Map<String, String> map = new HashMap<>();
             while (keys.hasNext()) {
                 final String key = (String) keys.next();
                 map.put(key, jsonObject.getString(key));

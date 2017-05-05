@@ -35,6 +35,7 @@ import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.client.User;
 
+import java.util.ArrayList;
 import java.util.List;
 
 final class AuthUtil {
@@ -46,7 +47,7 @@ final class AuthUtil {
     private static final String[] SCOPES = {"User.Read"};
     private static final String[] EXTRA_SCOPES = {"Calendars.Read"};
     private static final String CLIENT_ID = "9851987a-55e5-46e2-8d70-75f8dc060f21";
-    private List<User> mUsers = null;
+    private List<User> mUsers = new ArrayList<>();
 
     public AuthUtil(final Context context) {
         if (mApplication == null) {
@@ -57,10 +58,6 @@ final class AuthUtil {
     // Get the number of users signed into the app. In the context of the current app this method can return 1 or 0
     int getUserCount() {
         getUsers();
-        if (mUsers == null) {
-            return 0;
-        }
-
         return mUsers.size();
     }
 
@@ -87,15 +84,16 @@ final class AuthUtil {
 
     // Remove the user from the list of users being tracked by the application. This does not clear the cookies
     void doSignout() {
-        if (getUserCount() > 0) {
-            mApplication.remove(mUsers.get(0));
+        final int userCount = getUserCount();
+        for (int i = 0; i < userCount; i++) {
+            mApplication.remove(mUsers.get(i));
         }
     }
 
     // This is a shim, so MainActivity's onActivityResult can feed the result back to the PublicClientApplication's
     // handleInteractiveRequestRedirect
     // Any special handling of request or result code that the developer wants to do must be done here.
-    void doCallback(int requestCode, int resultCode, Intent data) {
+    void handleInteractiveRequestRedirect(int requestCode, int resultCode, Intent data) {
         mApplication.handleInteractiveRequestRedirect(requestCode, resultCode, data);
     }
 
@@ -105,7 +103,7 @@ final class AuthUtil {
         mApplication.acquireToken(activity,
                 SCOPES,
                 "", // LoginHint
-                UiBehavior.SELECT_ACCOUNT,
+                UiBehavior.CONSENT,
                 "", // Extra query parameters
                 EXTRA_SCOPES,
                 "", // Authority

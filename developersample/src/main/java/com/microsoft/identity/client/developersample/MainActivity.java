@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity
             return;
         }
 
-        new RequestTask(MSGRAPH_URL, accessToken).execute();
+        new GraphRequestTask(MSGRAPH_URL, accessToken).execute();
     }
 
     @Override
@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        mAuthUtil.doCallback(requestCode, resultCode, data);
+        mAuthUtil.handleInteractiveRequestRedirect(requestCode, resultCode, data);
     }
 
     private void updateGraphUI(final String graphResponse) {
@@ -147,13 +147,13 @@ public class MainActivity extends AppCompatActivity
         attachFragment(signinFragment);
     }
 
-    private final class RequestTask extends AsyncTask<Void, String, String> {
+    private final class GraphRequestTask extends AsyncTask<Void, String, String> {
 
         private final String mUrl;
 
         private final String mToken;
 
-        public RequestTask(String url, String token) {
+        public GraphRequestTask(String url, String token) {
             mUrl = url;
             mToken = token;
         }
@@ -169,6 +169,7 @@ public class MainActivity extends AppCompatActivity
             }
 
             final HttpURLConnection connection;
+            BufferedReader reader = null;
             try {
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestProperty("Authorization", "Bearer " + mToken);
@@ -178,7 +179,7 @@ public class MainActivity extends AppCompatActivity
                     return null;
                 }
 
-                final BufferedReader reader = new BufferedReader(
+                reader = new BufferedReader(
                         new InputStreamReader(connection.getInputStream()));
                 String inputLine;
                 final StringBuilder response = new StringBuilder();
@@ -186,11 +187,18 @@ public class MainActivity extends AppCompatActivity
                     response.append(inputLine);
                 }
 
-                reader.close();
                 return response.toString();
             } catch (final IOException ioexc) {
                 Log.e(TAG, "Connection error", ioexc);
                 return null;
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException exc) {
+                        Log.e(TAG, "Error closing the buffered reader", exc);
+                    }
+                }
             }
         }
 
