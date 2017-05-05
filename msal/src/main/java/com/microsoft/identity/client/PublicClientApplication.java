@@ -48,16 +48,17 @@ import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_
 /**
  * <p>
  * This is the entry point for developers to create the public native application and make API calls to acquire tokens.
- * <p><b>Client ID:</b>  The clientID of your application is a unique identifier which can be obtained from the app portal.</p>
+ * <p><b>Client ID:</b> The clientID of your application is a unique identifier which can be obtained from the app registration portal.</p>
  * <p><b>Authority:</b> A URL indicating a directory that MSAL can use to obtain tokens. In Azure AD
- * it is of the form https://<instance/<tenant>, where <instance> is the directory host (e.g. https://login.microsoftonline.com)
- * and <tenant> is an identifier within the directory itself (e.g. a domain associated to the
- * tenant, such as contoso.onmicrosoft.com, or the GUID representing the  TenantID property of the directory)</p>
- * MSAL {@link PublicClientApplication} provides three constructors allowing the client id to be set either via AndroidManifest.xml metadata or using constructor parameters.
- * Similarly, if developer chooses not to use the default authority (https://login.microsoftonline.com), an alternate can also be configured using the manifest or constructor parameters.
+ * it is of the form https://<[nstance]/[tenant], where [instance] is the directory host (e.g. https://login.microsoftonline.com)
+ * and [tenant] is an identifier within the directory itself (e.g. a domain associated to the
+ * tenant, such as contoso.onmicrosoft.com, or the GUID representing the  TenantID property of the directory)
+ * For B2C, it is of the form https://[instance]/tfp/[tenant]/[policy] where instance and tenant are same as Azure AD, and [policy] is a string like signup</p>
+ * MSAL {@link PublicClientApplication} provides various ways to set the client id. It can be set by using AndroidManifest.xml metadata or using any one of the three constructors.
+ * Similarly, if developer chooses not to use the default authority (https://login.microsoftonline.com/common), an alternate can be configured using the manifest or constructor parameters.
  * </p>
  * <p>
- * Redirect is auto-generated in the library in the format of msal<client-id>://auth, and it cannot be overridden.
+ * Redirect is auto-generated in the library in the format of msal<client-id>://auth.
  * </p>
  * <p>
  * Developer <b>MUST</b> have {@link BrowserTabActivity} declared in their manifest, which <b>MUST</b> have the correct intent-filter configured. If the wrong scheme and host is provided, the sdk will fail the {@link PublicClientApplication} creation.
@@ -85,7 +86,7 @@ import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_
  *         <b>Login Hint:</b> Usually an email, to pass to the service at the beginning of the interactive authentication flow.
  *     </p>
  *     <p>
- *         <b>Additional Scopes:</b>  Permissions you want the user to consent to in the same authentication flow,
+ *         <b>Extra Scopes to Consent:</b>  Permissions you want the user to consent to in the same authentication flow,
  *         but won't be included in the returned access token.
  *     </p>
  * </p>
