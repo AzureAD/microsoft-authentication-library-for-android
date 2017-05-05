@@ -58,7 +58,7 @@ import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_
  * Similarly, if developer chooses not to use the default authority (https://login.microsoftonline.com/common), an alternate can be configured using the manifest or constructor parameters.
  * </p>
  * <p>
- * Redirect is auto-generated in the library in the format of msal<client-id>://auth.
+ * Redirect is auto-generated in the library in the format of msal<client-id>://auth, and it cannot be overridden.
  * </p>
  * <p>
  * Developer <b>MUST</b> have {@link BrowserTabActivity} declared in their manifest, which <b>MUST</b> have the correct intent-filter configured. If the wrong scheme and host is provided, the sdk will fail the {@link PublicClientApplication} creation.
