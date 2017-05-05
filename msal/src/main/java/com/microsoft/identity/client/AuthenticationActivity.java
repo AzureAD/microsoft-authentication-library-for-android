@@ -56,7 +56,6 @@ public final class AuthenticationActivity extends Activity {
     private String mChromePackageWithCustomTabSupport;
     private CustomTabsIntent mCustomTabsIntent;
     private MsalCustomTabsServiceConnection mCustomTabsServiceConnection;
-    private boolean mCustomTabsServiceIsBound;
     private UiEvent.Builder mUiEventBuilder;
     private String mTelemetryRequestId;
 
@@ -112,15 +111,14 @@ public final class AuthenticationActivity extends Activity {
     @Override
     protected void onStop() {
         super.onStop();
-        if (mCustomTabsServiceIsBound) {
+        if (mCustomTabsServiceConnection.getCustomTabsServiceIsBound()) {
             unbindService(mCustomTabsServiceConnection);
-            mCustomTabsServiceIsBound = false;
         }
     }
 
     private void warmUpCustomTabs() {
         final CountDownLatch latch = new CountDownLatch(1);
-        mCustomTabsServiceConnection = new MsalCustomTabsServiceConnection(this, latch);
+        mCustomTabsServiceConnection = new MsalCustomTabsServiceConnection(latch);
 
         // Initiate the service-bind action
         CustomTabsClient.bindCustomTabsService(
@@ -156,28 +154,20 @@ public final class AuthenticationActivity extends Activity {
 
     private static class MsalCustomTabsServiceConnection extends CustomTabsServiceConnection {
 
-        private final WeakReference<AuthenticationActivity> mAuthenticationActivityWeakReference;
         private final WeakReference<CountDownLatch> mLatchWeakReference;
         private CustomTabsClient mCustomTabsClient;
         private CustomTabsSession mCustomTabsSession;
+        private boolean mCustomTabsServiceIsBound;
 
-        MsalCustomTabsServiceConnection(final AuthenticationActivity authenticationActivity,
-                                        final CountDownLatch latch) {
-            mAuthenticationActivityWeakReference = new WeakReference<>(authenticationActivity);
+        MsalCustomTabsServiceConnection(final CountDownLatch latch) {
             mLatchWeakReference = new WeakReference<>(latch);
         }
 
         @Override
         public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
-            final AuthenticationActivity activity = mAuthenticationActivityWeakReference.get();
             final CountDownLatch latch = mLatchWeakReference.get();
 
-
-            if (null == activity) {
-                return;
-            }
-
-            activity.mCustomTabsServiceIsBound = true;
+            mCustomTabsServiceIsBound = true;
             mCustomTabsClient = client;
             mCustomTabsClient.warmup(0L);
             mCustomTabsSession = mCustomTabsClient.newSession(null);
@@ -189,7 +179,7 @@ public final class AuthenticationActivity extends Activity {
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
-            // Unimplemented
+            mCustomTabsServiceIsBound = false;
         }
 
         /**
@@ -198,6 +188,10 @@ public final class AuthenticationActivity extends Activity {
          */
         CustomTabsSession getCustomTabsSession() {
             return mCustomTabsSession;
+        }
+
+        boolean getCustomTabsServiceIsBound() {
+            return mCustomTabsServiceIsBound;
         }
     }
 
