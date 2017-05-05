@@ -1,7 +1,7 @@
 # Microsoft Authentication Library (MSAL) for Android
-===========
+============================================================
 
-| [Getting Started](https://apps.dev.microsoft.com/portal/register-app?appType=mobileAndDesktopApp&appTech=android| [Sample Code](https://github.com/Azure-Samples/active-directory-android-native-v2) | [API Reference](http://javadoc.io/doc/com.microsoft.identity.client/msal) | [Support](README.md#community-help-and-support)
+| [Getting Started](https://apps.dev.microsoft.com/portal/register-app?appType=mobileAndDesktopApp&appTech=android) | [Sample Code](https://github.com/Azure-Samples/active-directory-android-native-v2) | [API Reference](http://javadoc.io/doc/com.microsoft.identity.client/msal) | [Support](README.md#community-help-and-support)
 | --- | --- | --- | --- |
 
 ## General
@@ -9,7 +9,7 @@ The MSAL library for Android gives your app the ability to begin using the [Micr
 
 ## Example
 
-    ```
+
     PublicClientApplication pApp = new PublicClientApplication(
                     this.getApplicationContext(),
                     CLIENT_ID);
@@ -18,13 +18,13 @@ The MSAL library for Android gives your app the ability to begin using the [Micr
     // ...
 
     authenticationResult.getAccessToken();
-    ```
+
 
 For a full example of basic usage, checkout our [code sample](https://github.com/Azure-Samples/active-directory-android-native-v2).
 
 ### Requirements
 * Android SDK 21+
-* Chrome on the device
+* Chrome 
 
 
 ### Installation
