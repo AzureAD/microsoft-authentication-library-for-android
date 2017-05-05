@@ -100,9 +100,10 @@ final class AuthUtil {
     // This function just demonstrates how to request more scopes.
     // The app does nothing with the newly acquired scopes yet.
     void doExtraScopeRequest(final Activity activity) {
+        getUsers();
         mApplication.acquireToken(activity,
                 SCOPES,
-                "", // LoginHint
+                mUsers.get(0), // The user object
                 UiBehavior.CONSENT,
                 "", // Extra query parameters
                 EXTRA_SCOPES,

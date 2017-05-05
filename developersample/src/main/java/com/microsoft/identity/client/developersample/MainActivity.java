@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity
     // Called from AuthUtil from the success callback
     @Override
     public void useAccessToken(final String accessToken) {
-        Log.d(TAG, "Starting volley request to graph");
+        Log.d(TAG, "Starting the request to graph");
 
         // Make sure we have a token to send to graph
         if (accessToken == null) {
@@ -205,7 +205,10 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            updateGraphUI(result);
+
+            if (result != null) {
+                updateGraphUI(result);
+            }
         }
     }
 }
