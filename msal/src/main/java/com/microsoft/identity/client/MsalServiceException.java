@@ -24,21 +24,21 @@
 package com.microsoft.identity.client;
 
 /**
- * This exception class represents errors when communicating to service, could be from authorize endpoint or token endpoint. We'll directly
- * read error and error_description from the server response (redirect for authorize endpoint and JSON response from token endpoint). Those
- * errors generally indicate that they cannot be fixed even if going to UI, developer needs to check about the app configuration on the aad.
+ * This exception class represents errors when communicating to the service, can be from the authorize or token endpoints.
+ * MSAL reads the error and error_description from the server response. Generally, these errors are resolved by fixing app
+ * configurations either in code or in the app registration portal. 
  * <p>
  *     Set of error codes that could be returned from this exception:
  *     <ul>
- *         <li>invalid_request: This request is missing a required parameter or includes an invalid parameter value or includes a parameter more than
- *         once or is otherwise malformed.</li>
+ *         <li>invalid_request: This request is missing a required parameter, includes an invalid parameter, includes a parameter more than
+ *         once, or is otherwise malformed.</li>
  *         <li>unauthorized_client: The client is not authorized to request an authorization code. </li>
  *         <li>access_denied: The resource owner or authorization server denied the request.</li>
  *         <li>invalid_scope: The request scope is invalid, unknown or malformed. </li>
- *         <li>service_not_available: This is to represent 500/503/504. </li>
- *         <li>request_timeout: This is to represent {@link java.net.SocketTimeoutException}. </li>
- *         <li>invalid_instance: This is returned when authority validation fails. </li>
- *         <li>unknown_error: Request to server failed, but no error and error_description is returned from the service. </li>
+ *         <li>service_not_available: Represents 500/503/504 error codes. </li>
+ *         <li>request_timeout: Represents {@link java.net.SocketTimeoutException}. </li>
+ *         <li>invalid_instance: Authority validation failed. </li>
+ *         <li>unknown_error: Request to server failed, but no error and error_description was returned from the service. </li>
  *     </ul>
  * </p>
  * <p>
@@ -53,8 +53,8 @@ package com.microsoft.identity.client;
  */
 public final class MsalServiceException extends MsalException {
     /**
-     * This request is missing a required parameter, include an invalid parameter value, include a parameter more than
-     * once or is otherwise malformed
+     * This request is missing a required parameter, includes an invalid parameter, includes a parameter more than
+     * once, or is otherwise malformed.
      */
     public final static String INVALID_REQUEST = "invalid_request";
 
@@ -74,17 +74,17 @@ public final class MsalServiceException extends MsalException {
     public final static String INVALID_SCOPE = "invalid_scope";
 
     /**
-     * This is to represent 500/503/504.
+     * Represents 500/503/504 error codes.
      */
     public final static String SERVICE_NOT_AVAILABLE = "service_not_available";
 
     /**
-     * This is to represent {@link java.net.SocketTimeoutException}.
+     * Represents {@link java.net.SocketTimeoutException}.
      */
     public final static String REQUEST_TIMEOUT = "request_timeout";
 
     /**
-     * This is returned when authority validation fails.
+     * Authority validation failed.
      */
     public final static String INVALID_INSTANCE = "invalid_instance";
 

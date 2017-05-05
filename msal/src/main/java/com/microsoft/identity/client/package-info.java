@@ -22,7 +22,7 @@
 // THE SOFTWARE.
 
 /**
- * Provides the classes necessary to create a client for azure active directory to get tokens.
+ * Provides the classes necessary to create a client for Azure Active Directory to get tokens.
  *
  *
  * @since 1.0

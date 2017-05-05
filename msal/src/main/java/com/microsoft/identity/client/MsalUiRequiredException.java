@@ -24,10 +24,9 @@
 package com.microsoft.identity.client;
 
 /**
- * This exception class is to inform developers that UI is required for authentication to succeed. If {@link MsalUiRequiredException}
- * is caused by service error, claims could be possibly returned.
+ * This exception indicates that UI is required for authentication to succeed. 
  * <p>
- *     Set of error codes that could be returned from this exception:
+ *     Error codes that can be returned from this exception:
  *     <ul>
  *         <li>invalid_grant: The refresh token used to redeem access token is invalid, expired or revoked. </li>
  *         <li>no_tokens_found: Access token doesn't exist and no refresh token can be found to redeem access token. </li>

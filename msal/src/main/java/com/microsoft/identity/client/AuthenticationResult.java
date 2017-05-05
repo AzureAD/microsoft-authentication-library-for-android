@@ -27,8 +27,8 @@ import java.util.Date;
 import java.util.Set;
 
 /**
- * MSAL success authentication result. When auth succeed, token will be wrapped into the
- * {@link AuthenticationResult} and sent back through the {@link AuthenticationCallback}.
+ * MSAL successful authentication result. When auth succeeds, token will be wrapped into the
+ * {@link AuthenticationResult} and passed back through the {@link AuthenticationCallback}.
  */
 public final class AuthenticationResult {
 
@@ -60,7 +60,7 @@ public final class AuthenticationResult {
     }
 
     /**
-     * @return The time that the access token returned in the Token property ceases to be valid.
+     * @return The expiration time of the access token returned in the Token property.
      * This value is calculated based on current UTC time measured locally and the value expiresIn returned from the
      * service.
      */
@@ -69,7 +69,7 @@ public final class AuthenticationResult {
     }
 
     /**
-     * @return An identifier for the tenant that the token was acquired from. Could be null if tenant information is not
+     * @return A unique tenant identifier that was used in token acquisiton. Could be null if tenant information is not
      * returned by the service.
      */
     public String getTenantId() {
@@ -77,21 +77,21 @@ public final class AuthenticationResult {
     }
 
     /**
-     * @return The unique id of the user.
+     * @return The unique identifier of the user.
      */
     public String getUniqueId () {
         return mUniqueId;
     }
 
     /**
-     * @return The raw id token if it's returned by the service or null if no id token is returned.
+     * @return The id token returned by the service or null if no id token is returned.
      */
     public String getIdToken() {
         return mRawIdToken;
     }
 
     /**
-     * @return {@link User} that identifies the user information. Some elements in {@link User} could be null if not
+     * @return The {@link User} that tokens were acquired. Some elements inside {@link User} could be null if not
      * returned by the service.
      */
     public User getUser() {
@@ -99,7 +99,7 @@ public final class AuthenticationResult {
     }
 
     /**
-     * @return The scope values returned from the service.
+     * @return The scopes returned from the service.
      */
     public String[] getScope() {
         final Set<String> scopes = mAccessTokenCacheItem.getScope();

@@ -24,12 +24,12 @@
 package com.microsoft.identity.client;
 
 /**
- * Callback to use with token request. Authentication result or error will be returned back via callback.
+ * Callback passed with token acquisition. {@link AuthenticationResult} or {@link MsalException} will be returned back via callback.
  */
 public interface AuthenticationCallback {
 
     /**
-     * Authentication finishes successfully, {@link AuthenticationResult} will be sent back via the onSuccess.
+     * Authentication finishes successfully.
      * @param authenticationResult {@link AuthenticationResult} that contains the success response.
      */
     void onSuccess(final AuthenticationResult authenticationResult);
