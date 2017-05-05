@@ -3,7 +3,7 @@ apply plugin: 'jacoco'
 apply plugin: 'checkstyle'
 apply plugin: 'pmd'
 apply plugin: "org.ajoberstar.grgit"
-// This plugin publishes adal in to the local maven repo
+// This plugin publishes msal in to the local maven repo
 apply plugin: 'com.github.dcendents.android-maven'
 
 def grgit = org.ajoberstar.grgit.Grgit.open(dir: '.')
@@ -131,7 +131,7 @@ task createPom {
                     name 'Apache License, Version 2.0'
                 }
             }
-            inceptionYear '2014'
+            inceptionYear '2017'
 
             properties {
                 branch 'master'
