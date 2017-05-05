@@ -1,1 +1,6 @@
-include ':msal', ':sample', ':automationapp', ':developersample'
+include ':msal'
+
+// test apps
+include ':testapps:sample'
+include ':testapps:testapp'
+include ':testapps:automationapp'
