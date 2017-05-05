@@ -47,6 +47,5 @@ android {
 dependencies {
     compile project(':msal')
     compile 'com.android.support:appcompat-v7:25.2.0'
-    compile 'com.android.volley:volley:1.0.0'
     compile 'com.android.support:support-v4:25.2.0'
 }

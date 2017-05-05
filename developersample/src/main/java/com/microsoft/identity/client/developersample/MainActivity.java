@@ -24,6 +24,7 @@
 package com.microsoft.identity.client.developersample;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -31,23 +32,22 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.android.volley.*;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import com.microsoft.identity.client.IMsalEventReceiver;
 import com.microsoft.identity.client.MsalException;
+import com.microsoft.identity.client.MsalUiRequiredException;
 import com.microsoft.identity.client.Telemetry;
 
-import java.util.HashMap;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity
-        implements GraphData.OnFragmentInteractionListener, SigninFragment.OnFragmentInteractionListener,
+        implements GraphDataFragment.OnFragmentInteractionListener, SigninFragment.OnFragmentInteractionListener,
         AuthUtil.AuthenticatedTask {
 
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -74,26 +74,29 @@ public class MainActivity extends AppCompatActivity
     // Called from SigninFragment when the signin button is clicked
     @Override
     public void onSigninClicked() {
-        mAuthUtil.doAcquireToken(this);
+        mAuthUtil.doAcquireToken(this, this);
     }
 
-    // Called from GraphData when the Signout button is clicked
+    // Called from GraphDataFragment when the Signout button is clicked
     @Override
     public void onSignoutClicked() {
         mAuthUtil.doSignout();
         updateSignedOutUI();
     }
 
-    // Called from GraphData when the extra scope button is clicked
+    // Called from GraphDataFragment when the extra scope button is clicked
     @Override
     public void onExtraScopeRequested() {
-        mAuthUtil.doExtraScopeRequest();
+        mAuthUtil.doExtraScopeRequest(this);
     }
 
     // Called from AuthUtil on the failure callback
     @Override
     public void onRequestFailure(final MsalException exception) {
         // Failure UI or mitigation for signin failure should be handled here
+        if (exception instanceof MsalUiRequiredException) {
+            mAuthUtil.doAcquireToken(this, this);
+        }
     }
 
     // Called from AuthUtil from the success callback
@@ -103,46 +106,11 @@ public class MainActivity extends AppCompatActivity
 
         // Make sure we have a token to send to graph
         if (accessToken == null) {
+            Log.e(TAG, "Null access token was passed");
             return;
         }
 
-        final RequestQueue queue = Volley.newRequestQueue(this);
-        final JSONObject parameters = new JSONObject();
-        try {
-            parameters.put("key", "value");
-        } catch (JSONException e) {
-            Log.e(TAG, "Failed to put parameters: " + e.toString());
-            return;
-        }
-
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, MSGRAPH_URL,
-                parameters, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                // Successfully called graph, process data and send to UI
-                Log.d(TAG, "Response: " + response.toString());
-
-                updateGraphUI(response);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d(TAG, "Error: " + error.toString());
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String, String> headers = new HashMap<>();
-                headers.put("Authorization", "Bearer " + accessToken);
-                return headers;
-            }
-        };
-
-        request.setRetryPolicy(new DefaultRetryPolicy(
-                3000,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-        queue.add(request);
+        new RequestTask(MSGRAPH_URL, accessToken).execute();
     }
 
     @Override
@@ -151,7 +119,6 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         mAuthUtil = new AuthUtil(this);
-
         if (mAuthUtil.getUserCount() == 0) {
             updateSignedOutUI();
         } else {
@@ -164,21 +131,73 @@ public class MainActivity extends AppCompatActivity
         mAuthUtil.doCallback(requestCode, resultCode, data);
     }
 
-    private void updateGraphUI(JSONObject graphResponse) {
-        final Fragment graphDataFragment = GraphData.newInstance(graphResponse.toString());
-
+    private void updateGraphUI(final String graphResponse) {
+        final Fragment graphDataFragment = GraphDataFragment.newInstance(graphResponse);
         attachFragment(graphDataFragment);
     }
 
     private void attachFragment(final Fragment fragment) {
         final FragmentManager fragmentManager = getSupportFragmentManager();
         final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-
         fragmentTransaction.replace(R.id.activity_main, fragment).addToBackStack(null).commitAllowingStateLoss();
     }
 
     private void updateSignedOutUI() {
-        final Fragment signinFragment = new SigninFragment();
+        final Fragment signinFragment = SigninFragment.newInstance();
         attachFragment(signinFragment);
+    }
+
+    private final class RequestTask extends AsyncTask<Void, String, String> {
+
+        private final String mUrl;
+
+        private final String mToken;
+
+        public RequestTask(String url, String token) {
+            mUrl = url;
+            mToken = token;
+        }
+
+        @Override
+        protected String doInBackground(Void... empty) {
+            final URL url;
+            try {
+                url = new URL(mUrl);
+            } catch (final MalformedURLException exc) {
+                Log.e(TAG, "Malformed URL", exc);
+                return null;
+            }
+
+            final HttpURLConnection connection;
+            try {
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestProperty("Authorization", "Bearer " + mToken);
+                final int code = connection.getResponseCode();
+                if (code != 200) {
+                    Log.e(TAG, String.format("HTTP request did not succeed. code = %d", code));
+                    return null;
+                }
+
+                final BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(connection.getInputStream()));
+                String inputLine;
+                final StringBuilder response = new StringBuilder();
+                while ((inputLine = reader.readLine()) != null) {
+                    response.append(inputLine);
+                }
+
+                reader.close();
+                return response.toString();
+            } catch (final IOException ioexc) {
+                Log.e(TAG, "Connection error", ioexc);
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            updateGraphUI(result);
+        }
     }
 }

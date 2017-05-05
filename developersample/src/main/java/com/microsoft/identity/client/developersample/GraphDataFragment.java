@@ -39,7 +39,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class GraphData extends Fragment {
+public class GraphDataFragment extends Fragment {
 
     private Button mSignout;
     private Button mExtraScope;
@@ -47,12 +47,17 @@ public class GraphData extends Fragment {
     private static final String ARG_JSON = "json";
     private String mJsonBlob;
 
-    public GraphData() {
+    private static final String DISPLAY_NAME = "displayName";
+    private static final String BUSINESS_PHONE = "businessPhones";
+    private static final String USER_PRINCIPAL_NAME = "userPrincipalName";
+    private static final String JOB_TITLE = "jobTitle";
+
+    public GraphDataFragment() {
         // Required empty public constructor
     }
 
-    public static GraphData newInstance(String jsonBlob) {
-        final GraphData fragment = new GraphData();
+    public static GraphDataFragment newInstance(String jsonBlob) {
+        final GraphDataFragment fragment = new GraphDataFragment();
         final Bundle args = new Bundle();
         args.putString(ARG_JSON, jsonBlob);
         fragment.setArguments(args);
@@ -91,23 +96,23 @@ public class GraphData extends Fragment {
 
         if (map != null) {
             builder.append("Hi ");
-            builder.append(map.get("displayName"));
+            builder.append(map.get(DISPLAY_NAME));
             builder.append(",\n");
 
-            if (!map.get("businessPhones").equals("[]")) {
+            if (!map.get(BUSINESS_PHONE).equals("[]")) {
                 builder.append("Business Phone numbers:  ");
-                builder.append(map.get("businessPhones"));
+                builder.append(map.get(BUSINESS_PHONE));
                 builder.append("?\n\n");
             }
 
             builder.append("Email address: ");
-            builder.append(map.get("userPrincipalName"));
+            builder.append(map.get(USER_PRINCIPAL_NAME));
             builder.append("\n\n");
 
             builder.append("Job Title:  ");
-            final String jobTitle = (String) map.get("jobTitle");
+            final String jobTitle = (String) map.get(JOB_TITLE);
             if (!jobTitle.equals("null")) {
-                builder.append(map.get("jobTitle"));
+                builder.append(jobTitle);
             } else {
                 builder.append("NA");
             }
@@ -126,7 +131,7 @@ public class GraphData extends Fragment {
         if (context instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) context;
         } else {
-            throw new RuntimeException(context.toString()
+            throw new IllegalArgumentException(context.toString()
                     + " must implement OnFragmentInteractionListener");
         }
     }
@@ -145,11 +150,11 @@ public class GraphData extends Fragment {
         void onExtraScopeRequested();
     }
 
-    private Map convertJsonToMap(final String jsonBlob) {
+    private HashMap convertJsonToMap(final String jsonBlob) {
         try {
             final JSONObject jsonObject = new JSONObject(jsonBlob);
             final Iterator keys = jsonObject.keys();
-            final Map<String, String> map = new HashMap<>();
+            final HashMap<String, String> map = new HashMap<>();
             while (keys.hasNext()) {
                 final String key = (String) keys.next();
                 map.put(key, jsonObject.getString(key));

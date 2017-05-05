@@ -72,7 +72,7 @@ public class SigninFragment extends Fragment {
             // reference to MainActivity to call the onSigninClicked
             mListener = (OnFragmentInteractionListener) context;
         } else {
-            throw new RuntimeException(context.toString()
+            throw new IllegalArgumentException(context.toString()
                     + " must implement OnFragmentInteractionListener");
         }
     }
