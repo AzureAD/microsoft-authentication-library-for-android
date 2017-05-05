@@ -90,6 +90,7 @@ public final class PublicClientApplication {
     private String mRedirectUri;
 
     private boolean mValidateAuthority = true;
+    private String mSliceParameters = "";
 
     /**
      * {@link PublicClientApplication#PublicClientApplication(Context)} will read the client id (which must be set) from manifest, and if authority
@@ -217,6 +218,15 @@ public final class PublicClientApplication {
      */
     public void setComponent(final String component) {
         mComponent = component;
+    }
+
+    /**
+     * Custom query parameters which maybe sent to the STS for dogfood testing. This parameter should not be set by developers as it may
+     * have adverse effect on the application.
+     * @param sliceParameters The custom query parameters(for dogfood testing) sent to token and authorize endpoint.
+     */
+    public void setSliceParameters(final String sliceParameters) {
+        mSliceParameters = sliceParameters;
     }
 
     /**
@@ -605,7 +615,7 @@ public final class PublicClientApplication {
         final RequestContext requestContext = new RequestContext(UUID.randomUUID(), mComponent, telemetryRequestId);
         final Set<String> scopesAsSet = MsalUtils.convertArrayToSet(scopes);
         final AuthenticationRequestParameters requestParameters = AuthenticationRequestParameters.create(authorityForRequest, mTokenCache,
-                scopesAsSet, mClientId, requestContext);
+                scopesAsSet, mClientId, mSliceParameters, requestContext);
 
         // add properties to our telemetry data
         apiEventBuilder
@@ -633,7 +643,7 @@ public final class PublicClientApplication {
         final Set<String> scopesAsSet = MsalUtils.convertArrayToSet(scopes);
 
         return AuthenticationRequestParameters.create(authorityForRequest, mTokenCache, scopesAsSet, mClientId,
-                mRedirectUri, loginHint, extraQueryParam, uiBehavior, user, new RequestContext(correlationId, mComponent, telemetryRequestId));
+                mRedirectUri, loginHint, extraQueryParam, uiBehavior, user, mSliceParameters, new RequestContext(correlationId, mComponent, telemetryRequestId));
     }
 
     private ApiEvent.Builder createApiEventBuilder(final String telemetryRequestId, final String apiId) {

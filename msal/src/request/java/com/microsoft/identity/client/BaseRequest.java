@@ -31,6 +31,7 @@ import android.os.Handler;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -254,6 +255,15 @@ abstract class BaseRequest {
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.SCOPE, scope);
         oauth2Client.addBodyParameter(OauthConstants.Oauth2Parameters.CLIENT_INFO, "1");
         setAdditionalOauthParameters(oauth2Client);
+
+        // add slice parameters
+        if (!MsalUtils.isEmpty(mAuthRequestParameters.getSliceParameters())) {
+            final Map<String, String> sliceParameters = MsalUtils.decodeUrlToMap(mAuthRequestParameters.getSliceParameters(), "&");
+            final Set<Map.Entry<String, String>> sliceParameterEntries = sliceParameters.entrySet();
+            for (final Map.Entry<String, String> sliceParameterEntry : sliceParameterEntries) {
+                oauth2Client.addQueryParameter(sliceParameterEntry.getKey(), sliceParameterEntry.getValue());
+            }
+        }
     }
 
     private Set<String> getReservedScopesAsSet() {
