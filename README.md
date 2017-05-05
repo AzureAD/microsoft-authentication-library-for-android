@@ -73,17 +73,17 @@ Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to re
 2. Configure your Intent filter, make sure you add your App/Client ID
   
 ```XML
-        <!--Intent filter to capture System Browser calling back to our app after Sign In-->
-        <activity
-            android:name="com.microsoft.identity.client.BrowserTabActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="msal<YOUR_CLIENT_ID>"
-                    android:host="auth" />
-            </intent-filter>
-        </activity>
+    <!--Intent filter to capture System Browser calling back to our app after Sign In-->
+    <activity
+        android:name="com.microsoft.identity.client.BrowserTabActivity">
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="msal<YOUR_CLIENT_ID>"
+                android:host="auth" />
+        </intent-filter>
+    </activity>
 ```
 
 #### Step 2: Instantiate MSAL and Acquire a Token
