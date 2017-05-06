@@ -121,7 +121,7 @@ task createPom {
 
             licenses {
                 license {
-                    name 'Apache License, Version 2.0'
+                    name 'MIT License'
                 }
             }
             inceptionYear '2017'
