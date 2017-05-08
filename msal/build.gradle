@@ -109,7 +109,7 @@ task createPom {
             version project.version
             name 'msal'
 
-            description 'Microsoft Authentication Library(MSAL) provides easy to use authentication functionality for native mobile apps by taking advantage of Azure Active Directory V2 (serves Microsoft Account (MSA) and AAD) and B2C.'
+            description 'The MSAL library for Android gives your app the ability to begin using the Microsoft Cloud by supporting Microsoft Azure Active Directory and Microsoft Accounts in a converged experience using industry standard OAuth2 and OpenID Connect. The library also supports Azure AD B2C.'
             url 'https://github.com/AzureAD/microsoft-authentication-library-for-android'
 
             developers {
