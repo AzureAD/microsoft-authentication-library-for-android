@@ -3,7 +3,6 @@
 | [Getting Started](https://docs.microsoft.com/en-us/azure/active-directory/develop/guidedsetups/active-directory-mobileanddesktopapp-android-intro) | [Sample Code](https://github.com/Azure-Samples/active-directory-android-native-v2) | [API Reference](http://javadoc.io/doc/com.microsoft.identity.client/msal) | [Support](README.md#community-help-and-support)
 | --- | --- | --- | --- |
 
-## General
 The MSAL library for Android gives your app the ability to begin using the [Microsoft Cloud](https://cloud.microsoft.com) by supporting [Microsoft Azure Active Directory](https://azure.microsoft.com/en-us/services/active-directory/) and [Microsoft Accounts](https://account.microsoft.com) in a converged experience using industry standard OAuth2 and OpenID Connect. The library also supports [Azure AD B2C](https://azure.microsoft.com/services/active-directory-b2c/).
 
 [![Version Badge](https://img.shields.io/maven-central/v/com.microsoft.identity.client/msal.svg)](http://repo1.maven.org/maven2/com/microsoft/identity/client/msal)
@@ -11,9 +10,9 @@ The MSAL library for Android gives your app the ability to begin using the [Micr
 
 ## Important Note about the MSAL Preview
 
-These libraries are suitable to use in a production environment. We provide the same production level support for these libraries as we do our current production libraries. During the preview we reserve the right to make changes to the API, cache format, and other mechanisms of this library without notice which you will be required to take along with bug fixes or feature improvements.  This may impact your application.  For instance, a change to the cache format may impact your users, such as requiring them to sign in again and an API change may require you to update your code. When we provide our General Availability release later, we will require you to update your application to our General Availability version within six months as applications written using the preview library could no longer work.
+This library is suitable for use in a production environment. We provide the same production level support for this library as we do our current production libraries. During the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability release we will require you to update to the General Availability version within six months, as applications written using a preview version of library may no longer work.
 
-#### Library Snapshot
+## Library Snapshot
 
 ```Java
     // Instantiates MSAL Public Client App
@@ -30,16 +29,11 @@ These libraries are suitable to use in a production environment. We provide the 
     String accessToken = authenticationResult.getAccessToken();
 ```
 
-For a full example of basic usage, checkout our [code sample](https://github.com/Azure-Samples/active-directory-android-native-v2).
+For a full example, checkout the full [code sample](https://github.com/Azure-Samples/active-directory-android-native-v2).
 
-### Requirements
-* Android SDK 21+
-* Chrome 
+## Installation
 
-
-### Installation
-
-#### Binaries via Gradle (Recommended way)
+### Binaries via Gradle (Recommended way)
 
 Add to your app's Build.Gradle:
 
@@ -59,16 +53,20 @@ Add to your app's Build.Gradle:
     }
 ```
 
-#### AAR package inside libs folder
+### AAR package inside libs folder
 You can get the AAR file from maven central and drop into **libs** folder in your project.
 
-### Using MSAL
+## Using MSAL
+
+### Requirements
+* Android SDK 21+
+* Chrome 
 
 - Make sure you've included MSAL in your app's *build.gradle*.
 
 - Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to register an application. For Azure AD v2.0, use [the app registration portal](https://apps.dev.microsoft.com). For Azure AD B2C, checkout [how to register your app with B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-app-registration).  
 
-#### Step 1: Configure the AndroidManifest.xml
+### Step 1: Configure the AndroidManifest.xml
 
 1. Give your app Internet permissions
 
@@ -93,7 +91,7 @@ You can get the AAR file from maven central and drop into **libs** folder in you
     </activity>
 ```
 
-#### Step 2: Instantiate MSAL and Acquire a Token
+### Step 2: Instantiate MSAL and Acquire a Token
 
 1.  Create a new PublicClientApplication instance. Make sure to fill in your app/client id
 
@@ -109,7 +107,7 @@ You can get the AAR file from maven central and drop into **libs** folder in you
     myApp.acquireToken(this, "User.Read", getAuthInteractiveCallback());
 ```
 
-#### Step 3: Configure the Auth helpers
+### Step 3: Configure the Auth helpers
 
 1. Create an onActivityResult method
 
@@ -150,7 +148,7 @@ You can get the AAR file from maven central and drop into **libs** folder in you
     }
 ```
 
-#### Step 4: Use the token!
+### Step 4: Use the token!
 
 The access token can now be used in an [HTTP Bearer request](https://github.com/Azure-Samples/active-directory-android-native-v2/blob/master/app/src/main/java/com/danieldobalian/msalandroidapp/MainActivity.java#L152).
 
