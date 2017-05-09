@@ -84,13 +84,13 @@ Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MI
 
 ## Using MSAL
 
-### Requirements
-* Android SDK 21+
-* [Chrome](https://github.com/Azure-Samples/active-directory-general-docs/blob/master/AndroidEmulator.md) 
-
 - Make sure you've included MSAL in your app's *build.gradle*.
 
 - Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to register an application. For Azure AD v2.0, use [the app registration portal](https://apps.dev.microsoft.com). For Azure AD B2C, checkout [how to register your app with B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-app-registration).  
+
+### Requirements
+* Android SDK 21+
+* [Chrome](https://github.com/Azure-Samples/active-directory-general-docs/blob/master/AndroidEmulator.md) 
 
 ### Step 1: Configure the AndroidManifest.xml
 
