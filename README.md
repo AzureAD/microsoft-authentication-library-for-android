@@ -86,7 +86,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MI
 
 ### Requirements
 * Android SDK 21+
-* Chrome 
+* [Chrome](https://github.com/Azure-Samples/active-directory-general-docs/blob/master/AndroidEmulator.md) 
 
 - Make sure you've included MSAL in your app's *build.gradle*.
 
