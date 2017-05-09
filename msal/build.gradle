@@ -13,7 +13,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 25
         versionCode 0
-        versionName '0.1.0'
+        versionName '0.1.1'
         project.archivesBaseName = "msal"
         project.version = android.defaultConfig.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
