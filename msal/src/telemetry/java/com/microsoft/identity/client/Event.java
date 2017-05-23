@@ -46,6 +46,15 @@ class Event extends ArrayList<Pair<String, String>> {
         if (!EventConstants.EventName.DEFAULT_EVENT.equals(builder.mEventName)) {
             setProperty(EventProperty.EVENT_NAME, builder.mEventName);
         }
+        if (null != builder.mEventStartTime) {
+            setProperty(EventProperty.START_TIME, String.valueOf(builder.mEventStartTime));
+        }
+        if (null != builder.mEventStartTime) {
+            setProperty(EventProperty.STOP_TIME, String.valueOf(builder.mEventStopTime));
+        }
+        if (null != builder.mEventElapsedTime) {
+            setProperty(EventProperty.ELAPSED_TIME, String.valueOf(builder.mEventElapsedTime));
+        }
     }
 
     void setProperty(final String propertyName, final String propertyValue) {
@@ -74,6 +83,33 @@ class Event extends ArrayList<Pair<String, String>> {
     }
 
     /**
+     * Gets the Event startTime.
+     *
+     * @return the startTime to get.
+     */
+    Long getStartTime() {
+        return Long.valueOf(getProperty(EventProperty.START_TIME));
+    }
+
+    /**
+     * Gets the Event stopTime.
+     *
+     * @return the stopTime to get.
+     */
+    Long getStopTime() {
+        return Long.valueOf(getProperty(EventProperty.STOP_TIME));
+    }
+
+    /**
+     * Gets the Event elapsedTime.
+     *
+     * @return the elapsedTime to get.
+     */
+    Long getElapsedTime() {
+        return Long.valueOf(getProperty(EventProperty.ELAPSED_TIME));
+    }
+
+    /**
      * Builder object used for Events.
      *
      * @param <T> generic type parameter for Builder subtypes.
@@ -81,6 +117,10 @@ class Event extends ArrayList<Pair<String, String>> {
     abstract static class Builder<T extends Builder> {
 
         private final String mEventName;
+        private Long mEventStartTime;
+        private Long mEventStopTime;
+        private Long mEventElapsedTime;
+        private boolean mIsCompleted;
 
         Builder(final String name) {
             mEventName = name;
@@ -93,6 +133,68 @@ class Event extends ArrayList<Pair<String, String>> {
          */
         final String getEventName() {
             return mEventName;
+        }
+
+        /**
+         * Gets the startTime.
+         *
+         * @return the startTime to get.
+         */
+        final Long getStartTime() {
+            return mEventStartTime;
+        }
+
+        /**
+         * Gets the completion status.
+         *
+         * @return the completion status to get.
+         */
+        final boolean getIsCompleted() {
+            return mIsCompleted;
+        }
+
+        /**
+         * Sets the startTime of this Builder.
+         *
+         * @param startTime the startTime to set.
+         * @return the Builder instance.
+         */
+        final T setStartTime(final long startTime) {
+            mEventStartTime = startTime;
+            return (T) this;
+        }
+
+        /**
+         * Sets the stopTime of this Builder.
+         *
+         * @param stopTime the stopTime to set.
+         * @return the Builder instance.
+         */
+        final T setStopTime(final long stopTime) {
+            mEventStopTime = stopTime;
+            return (T) this;
+        }
+
+        /**
+         * Sets the elapsedTime of this Builder.
+         *
+         * @param elapsedTime the elapsedTime to set.
+         * @return the Builder instance.
+         */
+        final T setElapsedTime(final long elapsedTime) {
+            mEventElapsedTime = elapsedTime;
+            return (T) this;
+        }
+
+        /**
+         * Sets the isCompleted flag of this Builder.
+         *
+         * @param isCompleted the isCompleted status to set.
+         * @return the Builder instance.
+         */
+        final T setIsCompleted(final boolean isCompleted) {
+            mIsCompleted = isCompleted;
+            return (T) this;
         }
 
         /**

@@ -173,7 +173,7 @@ final class HttpRequest {
                         .setHttpPath(mRequestUrl)
                         .setHttpMethod(mRequestMethod)
                         .setQueryParameters(mRequestUrl.getQuery());
-        Telemetry.getInstance().startEvent(mRequestContext.getTelemetryRequestId(), httpEventBuilder.getEventName());
+        Telemetry.getInstance().startEvent(mRequestContext.getTelemetryRequestId(), httpEventBuilder);
         final HttpURLConnection urlConnection = setupConnection();
         urlConnection.setRequestMethod(mRequestMethod);
         setRequestBody(urlConnection, mRequestContent, mRequestContentType);
