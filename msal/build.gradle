@@ -104,7 +104,7 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support:customtabs:25.3.1'
-    compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.google.code.gson:gson:2.8.0'
 
     // test dependencies
     testCompile 'junit:junit:4.12'
