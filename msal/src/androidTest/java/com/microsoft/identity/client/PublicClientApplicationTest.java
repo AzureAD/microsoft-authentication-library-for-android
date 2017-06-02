@@ -9,6 +9,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
@@ -931,9 +932,10 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     @Test
-    public void testTurnOffAuthorityValidation() throws MsalException, IOException, InterruptedException {
+    public void testTurnOffAuthorityValidation() throws MsalException, IOException, InterruptedException, PackageManager.NameNotFoundException {
         final String testAuthority = "https://someauthority.test.com/sometenant";
-        final PublicClientApplication application = new PublicClientApplication(mAppContext, CLIENT_ID, testAuthority);
+
+        final PublicClientApplication application = new PublicClientApplication(getMockedContext(null), CLIENT_ID, testAuthority);
         application.setValidateAuthority(false);
 
         //mock tenant discovery response
@@ -1171,7 +1173,10 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         final ApplicationInfo applicationInfo = Mockito.mock(ApplicationInfo.class);
         // meta data is empty, no client id there.
         applicationInfo.metaData = new Bundle();
-        applicationInfo.metaData.putString("com.microsoft.identity.client.ClientId", clientId);
+        if (!MsalUtils.isEmpty(clientId)) {
+            applicationInfo.metaData.putString("com.microsoft.identity.client.ClientId", clientId);
+        }
+
         if (!MsalUtils.isEmpty(alternateAuthorityInManifest)) {
             applicationInfo.metaData.putString("com.microsoft.identity.client.Authority", alternateAuthorityInManifest);
         }
@@ -1228,21 +1233,33 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         mockPackageManagerWithClientId(context, null, clientId);
         mockHasCustomTabRedirect(context);
         mockAuthenticationActivityResolvable(context);
+        InteractiveRequestTest.mockNetworkConnected(context, true);
 
         return context;
     }
 
     private static class MockContext extends ContextWrapper {
         private final PackageManager mPackageManager;
+        private final ConnectivityManager mConnectivityManager;
 
         MockContext(final Context context) {
             super(context);
             mPackageManager = Mockito.mock(PackageManager.class);
+            mConnectivityManager = Mockito.mock(ConnectivityManager.class);
         }
 
         @Override
         public PackageManager getPackageManager() {
             return mPackageManager;
+        }
+
+        @Override
+        public Object getSystemService(String name) {
+            if (Context.CONNECTIVITY_SERVICE.equals(name)) {
+                return mConnectivityManager;
+            }
+
+            return super.getSystemService(name);
         }
     }
 
@@ -1273,6 +1290,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             mockPackageManagerWithClientId(context, getAlternateAuthorityInManifest(), CLIENT_ID);
             mockHasCustomTabRedirect(context);
             mockAuthenticationActivityResolvable(context);
+            InteractiveRequestTest.mockNetworkConnected(context, true);
 
             if (!MsalUtils.isEmpty(getAlternateAuthorityInManifest())) {
                 AndroidTestMockUtil.mockSuccessTenantDiscovery(getAlternateAuthorityInManifest() + Authority.DEFAULT_AUTHORIZE_ENDPOINT,
