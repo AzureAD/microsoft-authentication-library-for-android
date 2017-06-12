@@ -59,7 +59,7 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
      */
     AccessTokenCacheItem(final String authority, final String clientId, final TokenResponse response)
             throws MsalClientException {
-        super(clientId,response.getRawClientInfo());
+        super(clientId, response.getRawClientInfo());
 
         mAuthority = authority;
         mAccessToken = response.getAccessToken();

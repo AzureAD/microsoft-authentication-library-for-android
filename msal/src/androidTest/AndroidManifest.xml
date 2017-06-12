@@ -2,41 +2,42 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.microsoft.identity.msal"
     android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionName="1.0">
 
-    <uses-sdk android:minSdkVersion="21"
-         android:targetSdkVersion="25"  />
+    <uses-sdk
+        android:minSdkVersion="21"
+        android:targetSdkVersion="25" />
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:label="@string/app_name"
-        android:allowBackup="false" >
+        android:allowBackup="false">
         <uses-library android:name="android.test.runner" />
 
         <activity
             android:name="com.microsoft.identity.client.AuthenticationActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize">
-        </activity>
-        <activity android:name="com.microsoft.identity.client.TestActivity">
-        </activity>
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+        <activity android:name="com.microsoft.identity.client.TestActivity" />
 
-        <activity
-            android:name="com.microsoft.identity.client.BrowserTabActivity">
+        <activity android:name="com.microsoft.identity.client.BrowserTabActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="msalclient-id"
-                      android:host="auth" />
+
+                <data
+                    android:scheme="msalclient-id"
+                    android:host="auth" />
             </intent-filter>
         </activity>
 
         <meta-data
             android:name="com.microsoft.identity.client.ClientId"
-            android:value="client-id"/>
-        
+            android:value="client-id" />
+
     </application>
 
 </manifest>

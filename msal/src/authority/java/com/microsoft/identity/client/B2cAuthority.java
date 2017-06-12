@@ -41,6 +41,7 @@ final class B2cAuthority extends AadAuthority {
 
     /**
      * B2C authority will be in the format of https://<host>/tfp/<tenant>/<policy>/...
+     *
      * @param authority The passed in B2C authority
      * @return updated authority with only host/tfp/tenant/policy
      */

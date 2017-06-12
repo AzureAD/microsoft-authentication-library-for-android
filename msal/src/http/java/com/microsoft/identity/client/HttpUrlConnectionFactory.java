@@ -39,10 +39,12 @@ final class HttpUrlConnectionFactory {
     /**
      * Private constructor to prevent the class from being initiated.
      */
-    private HttpUrlConnectionFactory() { }
+    private HttpUrlConnectionFactory() {
+    }
 
     /**
      * Used by tests to add mocked connection into the queue.
+     *
      * @param mockedConnection The mocked {@link HttpURLConnection} to put in the queue.
      */
     static void addMockedConnection(final HttpURLConnection mockedConnection) {
@@ -58,6 +60,7 @@ final class HttpUrlConnectionFactory {
 
     /**
      * Used by test to get the current number of mocked connections in the queue.
+     *
      * @return The number of mocked connections in the queue.
      */
     static int getMockedConnectionCountInQueue() {
@@ -66,6 +69,7 @@ final class HttpUrlConnectionFactory {
 
     /**
      * Creates the {@link HttpURLConnection} with the given url.
+     *
      * @param url The request URL used to create the connection.
      * @return {@link HttpURLConnection} with the provided URL.
      * @throws IOException if it fails to open connection with the provided URL.
