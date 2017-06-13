@@ -29,7 +29,8 @@ package com.microsoft.identity.client;
 final class Constants {
 
     // Private constructor to prevent class from being initialized.
-    private Constants() { }
+    private Constants() {
+    }
 
     public static final String REQUEST_URL_KEY = "com.microsoft.identity.request.url.key";
 

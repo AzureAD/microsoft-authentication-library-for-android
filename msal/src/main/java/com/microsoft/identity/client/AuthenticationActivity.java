@@ -184,6 +184,7 @@ public final class AuthenticationActivity extends Activity {
 
         /**
          * Gets the {@link CustomTabsSession} associated to this CustomTabs connection.
+         *
          * @return the session.
          */
         CustomTabsSession getCustomTabsSession() {
@@ -223,7 +224,7 @@ public final class AuthenticationActivity extends Activity {
 
         mRestarted = true;
 
-        mRequestUrl =  this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
+        mRequestUrl = this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
 
         Logger.infoPII(TAG, null, "Request to launch is: " + mRequestUrl);
         if (mChromePackageWithCustomTabSupport != null) {

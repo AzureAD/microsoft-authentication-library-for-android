@@ -129,7 +129,7 @@ final class AdfsAuthority extends Authority {
     }
 
     private DrsMetadata loadDRSMetadata(final RequestContext requestContext, final String userPrincipalName)
-            throws MsalClientException, MsalServiceException  {
+            throws MsalClientException, MsalServiceException {
         final DRSMetadataRequestor drsRequestor = new DRSMetadataRequestor(requestContext);
         return drsRequestor.requestMetadata(getDomainFromUPN(userPrincipalName));
     }

@@ -248,7 +248,7 @@ class TokenCache {
      * An immutable list of signed-in users for the given client id.
      *
      * @param environment
-     * @param clientId The application client id that is used to retrieve for all the signed in users.
+     * @param clientId       The application client id that is used to retrieve for all the signed in users.
      * @param requestContext the RequestContext initiating this call
      * @return The list of signed in users for the given client id.
      */
@@ -362,7 +362,7 @@ class TokenCache {
     /**
      * @return List of all {@link AccessTokenCacheItem}s that exist in the cache.
      */
-    List<AccessTokenCacheItem> getAllAccessTokens(final RequestContext requestContext){
+    List<AccessTokenCacheItem> getAllAccessTokens(final RequestContext requestContext) {
         final Collection<String> accessTokensAsString = mTokenCacheAccessor.getAllAccessTokens(requestContext.getTelemetryRequestId());
         if (accessTokensAsString == null) {
             Logger.verbose(TAG, requestContext, "No access tokens existed in the token cache.");
@@ -382,7 +382,7 @@ class TokenCache {
      * @param clientId Client id that is used to filter all {@link RefreshTokenCacheItem}s that exist in the cache.
      * @return The unmodifiable List of {@link RefreshTokenCacheItem}s that match the given client id.
      */
-    private  List<RefreshTokenCacheItem> getAllRefreshTokenForApp(final String clientId, final RequestContext requestContext) {
+    private List<RefreshTokenCacheItem> getAllRefreshTokenForApp(final String clientId, final RequestContext requestContext) {
         final List<RefreshTokenCacheItem> allRTs = getAllRefreshTokens(requestContext);
 
         final List<RefreshTokenCacheItem> allRTsForApp = new ArrayList<>(allRTs.size());

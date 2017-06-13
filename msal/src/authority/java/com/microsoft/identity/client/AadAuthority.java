@@ -43,7 +43,7 @@ class AadAuthority extends Authority {
 
     static final String DEPRECATED_AAD_AUTHORITY_HOST = "login.windows.net";
     static final String AAD_AUTHORITY_HOST = "login.microsoftonline.com";
-    static final String[] TRUSTED_HOSTS = new String[] {
+    static final String[] TRUSTED_HOSTS = new String[]{
             AAD_AUTHORITY_HOST, // Microsoft Azure Worldwide
             "login.chinacloudapi.cn", // Microsoft Azure China
             "login.microsoftonline.de", // Microsoft Azure Germany
@@ -73,7 +73,7 @@ class AadAuthority extends Authority {
     }
 
     @Override
-    String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws MsalServiceException, MsalClientException  {
+    String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws MsalServiceException, MsalClientException {
         Logger.info(TAG, requestContext, "Passed in authority " + mAuthorityUrl.toString() + " is AAD authority. "
                 + "Start doing Instance discovery.");
         if (!mValidateAuthority || TRUSTED_HOST_SET.contains(mAuthorityUrl.getAuthority())) {

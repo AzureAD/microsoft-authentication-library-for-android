@@ -36,8 +36,9 @@ final class HttpResponse {
 
     /**
      * Constructor for {@link HttpResponse}.
-     * @param statusCode The status code from the server response.
-     * @param responseBody Raw response body.
+     *
+     * @param statusCode      The status code from the server response.
+     * @param responseBody    Raw response body.
      * @param responseHeaders Response headers from the connection sent to the server.
      */
     public HttpResponse(final int statusCode, final String responseBody,

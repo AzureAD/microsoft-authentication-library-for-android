@@ -80,7 +80,7 @@ abstract class BaseTokenCacheItem {
         mUser = user;
     }
 
-    String getVersion () {
+    String getVersion() {
         return mVersion;
     }
 

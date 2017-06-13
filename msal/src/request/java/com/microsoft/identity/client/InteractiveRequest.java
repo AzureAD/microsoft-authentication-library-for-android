@@ -60,7 +60,7 @@ final class InteractiveRequest extends BaseRequest {
      *
      * @param activity              {@link Activity} used to launch the {@link AuthenticationActivity}.
      * @param authRequestParameters {@link AuthenticationRequestParameters} that is holding all the parameters for oauth request.
-     * @param extraScopesToConsent       An array of extra scopes.
+     * @param extraScopesToConsent  An array of extra scopes.
      */
     InteractiveRequest(final Activity activity, final AuthenticationRequestParameters authRequestParameters,
                        final String[] extraScopesToConsent) {
@@ -140,7 +140,7 @@ final class InteractiveRequest extends BaseRequest {
     @Override
     AuthenticationResult postTokenRequest() throws MsalUiRequiredException, MsalServiceException, MsalClientException {
         if (!isAccessTokenReturned()) {
-           throwExceptionFromTokenResponse(mTokenResponse);
+            throwExceptionFromTokenResponse(mTokenResponse);
         }
 
         return super.postTokenRequest();
