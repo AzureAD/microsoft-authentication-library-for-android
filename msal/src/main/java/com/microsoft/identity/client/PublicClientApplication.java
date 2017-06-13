@@ -284,12 +284,12 @@ public final class PublicClientApplication {
         final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(telemetryRequestId);
         final URL authorityURL = MsalUtils.getUrl(mAuthorityString);
         apiEventBuilder.setAuthority(authorityURL.getProtocol() + "://" + authorityURL.getHost());
-        Telemetry.getInstance().startEvent(telemetryRequestId, apiEventBuilder.getEventName());
+        Telemetry.getInstance().startEvent(telemetryRequestId, apiEventBuilder);
 
         List<User> users = mTokenCache.getUsers(Authority.createAuthority(mAuthorityString, mValidateAuthority).getAuthorityHost(), mClientId, new RequestContext(UUID.randomUUID(), mComponent, telemetryRequestId));
 
         apiEventBuilder.setApiCallWasSuccessful(true);
-        stopTelemetryEventAndFlush(apiEventBuilder.build());
+        stopTelemetryEventAndFlush(apiEventBuilder);
         return users;
     }
 
@@ -572,14 +572,14 @@ public final class PublicClientApplication {
         final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(telemetryRequestId);
         final URL authorityURL = MsalUtils.getUrl(mAuthorityString);
         apiEventBuilder.setAuthority(authorityURL.getProtocol() + "://" + authorityURL.getHost());
-        Telemetry.getInstance().startEvent(telemetryRequestId, EventConstants.EventName.API_EVENT);
+        Telemetry.getInstance().startEvent(telemetryRequestId, apiEventBuilder);
 
         final RequestContext requestContext = new RequestContext(UUID.randomUUID(), mComponent, telemetryRequestId);
         mTokenCache.deleteRefreshTokenByUser(user, requestContext);
         mTokenCache.deleteAccessTokenByUser(user, requestContext);
 
         apiEventBuilder.setApiCallWasSuccessful(true);
-        stopTelemetryEventAndFlush(apiEventBuilder.build());
+        stopTelemetryEventAndFlush(apiEventBuilder);
     }
 
     /**
@@ -723,7 +723,7 @@ public final class PublicClientApplication {
                         .setAuthority(mAuthorityString);
 
         // Start the Event on our Telemetry instance
-        Telemetry.getInstance().startEvent(telemetryRequestId, EventConstants.EventName.API_EVENT);
+        Telemetry.getInstance().startEvent(telemetryRequestId, eventBuilder);
 
         // Return the Builder
         return eventBuilder;
@@ -746,7 +746,7 @@ public final class PublicClientApplication {
             @Override
             public void onSuccess(final AuthenticationResult authenticationResult) {
                 eventBinding.setApiCallWasSuccessful(true);
-                stopTelemetryEventAndFlush(eventBinding.build());
+                stopTelemetryEventAndFlush(eventBinding);
                 authenticationCallback.onSuccess(authenticationResult);
             }
 
@@ -754,21 +754,22 @@ public final class PublicClientApplication {
             public void onError(final MsalException exception) {
                 eventBinding.setApiCallWasSuccessful(false);
                 eventBinding.setApiErrorCode(exception.getErrorCode());
-                stopTelemetryEventAndFlush(eventBinding.build());
+                stopTelemetryEventAndFlush(eventBinding);
                 authenticationCallback.onError(exception);
             }
 
             @Override
             public void onCancel() {
-                stopTelemetryEventAndFlush(eventBinding.build());
+                stopTelemetryEventAndFlush(eventBinding);
                 authenticationCallback.onCancel();
             }
         };
     }
 
     @SuppressWarnings("PMD.UnusedPrivateMethod")
-    private void stopTelemetryEventAndFlush(final ApiEvent event) {
-        Telemetry.getInstance().stopEvent(event.getRequestId(), event.getEventName(), event);
+    private void stopTelemetryEventAndFlush(final ApiEvent.Builder builder) {
+        final ApiEvent event = builder.build();
+        Telemetry.getInstance().stopEvent(event.getRequestId(), builder);
         Telemetry.getInstance().flush(event.getRequestId());
     }
 }

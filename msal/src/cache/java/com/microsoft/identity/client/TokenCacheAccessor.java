@@ -78,7 +78,7 @@ final class TokenCacheAccessor {
 
     private static CacheEvent.Builder createAndStartNewCacheEvent(final String telemetryRequestId, final String eventName, final boolean isRT) {
         final CacheEvent.Builder cacheEventBuilder = createNewCacheEventBuilder(eventName, isRT);
-        Telemetry.getInstance().startEvent(telemetryRequestId, eventName);
+        Telemetry.getInstance().startEvent(telemetryRequestId, cacheEventBuilder);
         return cacheEventBuilder;
     }
 

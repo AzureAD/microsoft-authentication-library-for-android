@@ -87,7 +87,7 @@ public class TelemetryTest {
         // create some Telemetry data
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder();
-        mTestInstance.startEvent(telemetryRequestId, httpEventBuilder.getEventName());
+        mTestInstance.startEvent(telemetryRequestId, httpEventBuilder);
         mTestInstance.stopEvent(telemetryRequestId, httpEventBuilder);
 
         // flush the data to the receiver
@@ -139,7 +139,7 @@ public class TelemetryTest {
         // create some Telemetry data
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder();
-        mTestInstance.startEvent(telemetryRequestId, httpEventBuilder.getEventName());
+        mTestInstance.startEvent(telemetryRequestId, httpEventBuilder);
         mTestInstance.stopEvent(telemetryRequestId, httpEventBuilder);
 
         // flush the data to the receiver
@@ -176,12 +176,12 @@ public class TelemetryTest {
         // create some Telemetry data
         final String telemetryRequestId1 = Telemetry.generateNewRequestId();
         final HttpEvent.Builder httpEventBuilder = HttpEventTest.getTestHttpEventBuilder();
-        mTestInstance.startEvent(telemetryRequestId1, httpEventBuilder.getEventName());
+        mTestInstance.startEvent(telemetryRequestId1, httpEventBuilder);
         mTestInstance.stopEvent(telemetryRequestId1, httpEventBuilder);
 
         final String telemetryRequestId2 = Telemetry.generateNewRequestId();
         final CacheEvent.Builder cacheEventBuilder = CacheEventTest.getTestCacheEventBuilder(EventConstants.EventName.TOKEN_CACHE_LOOKUP, "bearer");
-        mTestInstance.startEvent(telemetryRequestId2, cacheEventBuilder.getEventName());
+        mTestInstance.startEvent(telemetryRequestId2, cacheEventBuilder);
         mTestInstance.stopEvent(telemetryRequestId2, cacheEventBuilder);
 
         // flush the data to the receiver
@@ -228,9 +228,9 @@ public class TelemetryTest {
         final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(EventConstants.EventName.TOKEN_CACHE_LOOKUP)
                 .setTokenType("bearer");
 
-        mTestInstance.startEvent(telemetryRequestId1, apiEventBuilder.getEventName());
-        mTestInstance.startEvent(telemetryRequestId1, uiEventBuilder.getEventName());
-        mTestInstance.startEvent(telemetryRequestId1, cacheEventBuilder.getEventName());
+        mTestInstance.startEvent(telemetryRequestId1, apiEventBuilder);
+        mTestInstance.startEvent(telemetryRequestId1, uiEventBuilder);
+        mTestInstance.startEvent(telemetryRequestId1, cacheEventBuilder);
         mTestInstance.stopEvent(telemetryRequestId1, cacheEventBuilder);
         mTestInstance.stopEvent(telemetryRequestId1, uiEventBuilder);
         mTestInstance.stopEvent(telemetryRequestId1, apiEventBuilder);
@@ -261,9 +261,9 @@ public class TelemetryTest {
         final CacheEvent.Builder cacheEventBuilder2 = new CacheEvent.Builder(EventConstants.EventName.TOKEN_CACHE_LOOKUP)
                 .setTokenType("bearer");
 
-        mTestInstance.startEvent(telemetryRequestId2, apiEventBuilder2.getEventName());
-        mTestInstance.startEvent(telemetryRequestId2, uiEventBuilder2.getEventName());
-        mTestInstance.startEvent(telemetryRequestId2, cacheEventBuilder2.getEventName());
+        mTestInstance.startEvent(telemetryRequestId2, apiEventBuilder2);
+        mTestInstance.startEvent(telemetryRequestId2, uiEventBuilder2);
+        mTestInstance.startEvent(telemetryRequestId2, cacheEventBuilder2);
         mTestInstance.stopEvent(telemetryRequestId2, cacheEventBuilder2);
         mTestInstance.stopEvent(telemetryRequestId2, uiEventBuilder2);
         mTestInstance.stopEvent(telemetryRequestId2, apiEventBuilder2);
@@ -296,9 +296,9 @@ public class TelemetryTest {
         final CacheEvent.Builder cacheEventBuilder = new CacheEvent.Builder(EventConstants.EventName.TOKEN_CACHE_LOOKUP)
                 .setTokenType("bearer").setIsAT(true);
 
-        mTestInstance.startEvent(telemetryRequestId1, apiEventBuilder.getEventName());
-        mTestInstance.startEvent(telemetryRequestId1, uiEventBuilder.getEventName());
-        mTestInstance.startEvent(telemetryRequestId1, cacheEventBuilder.getEventName());
+        mTestInstance.startEvent(telemetryRequestId1, apiEventBuilder);
+        mTestInstance.startEvent(telemetryRequestId1, uiEventBuilder);
+        mTestInstance.startEvent(telemetryRequestId1, cacheEventBuilder);
         mTestInstance.stopEvent(telemetryRequestId1, cacheEventBuilder);
         // Do not stop the UiEvent...
         //mTestInstance.stopEvent(uiEventBuilder.build());
