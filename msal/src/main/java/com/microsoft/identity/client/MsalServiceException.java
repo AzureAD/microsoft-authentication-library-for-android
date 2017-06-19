@@ -89,7 +89,7 @@ public final class MsalServiceException extends MsalException {
     public final static String INVALID_INSTANCE = "invalid_instance";
 
     /**
-     * Request to server failed, but no error and error_description is returned back from the service。
+     * Request to server failed, but no error and error_description is returned back from the service.
      */
     public final static String UNKNOWN_ERROR = "unknown_error";
 
