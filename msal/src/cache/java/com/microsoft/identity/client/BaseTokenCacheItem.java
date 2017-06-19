@@ -48,6 +48,14 @@ abstract class BaseTokenCacheItem {
     abstract TokenCacheKey extractTokenCacheKey();
 
     /**
+     * No args constructor for use ill serialization for Gson to prevent usage of sun.misc.Unsafe
+     */
+    @SuppressWarnings("unused")
+    BaseTokenCacheItem() throws MsalClientException {
+        this(null, null);
+    }
+
+    /**
      * Constructor for creating the token cache item.
      */
     BaseTokenCacheItem(final String clientId, final String rawClientInfo) throws MsalClientException {

@@ -55,6 +55,14 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
     final String mRawIdToken;
 
     /**
+     * No args constructor for use ill serialization for Gson to prevent usage of sun.misc.Unsafe
+     */
+    @SuppressWarnings("unused")
+    AccessTokenCacheItem() throws MsalClientException {
+      this(null, null, null);
+    }
+
+    /**
      * Constructor for creating the {@link AccessTokenCacheItem}.
      */
     AccessTokenCacheItem(final String authority, final String clientId, final TokenResponse response)

@@ -46,6 +46,14 @@ final class RefreshTokenCacheItem extends BaseTokenCacheItem {
     @SerializedName("identity_provider")
     final String mIdentityProvider;
 
+    /**
+     * No args constructor for use ill serialization for Gson to prevent usage of sun.misc.Unsafe
+     */
+    @SuppressWarnings("unused")
+    RefreshTokenCacheItem() throws MsalClientException {
+        this(null, null, null);
+    }
+
     RefreshTokenCacheItem(final String environment, final String clientId, final TokenResponse response)
             throws MsalClientException {
         super(clientId, response.getRawClientInfo());
