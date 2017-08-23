@@ -300,10 +300,8 @@ final class MsalUtils {
                 if (!MsalUtils.isEmpty(key) && !MsalUtils.isEmpty(value)) {
                     decodedUrlMap.put(key, value);
                 }
-                //CHECKSTYLE:OFF: checkstyle:EmptyBlock
             } catch (final UnsupportedEncodingException e) {
-                //CHECKSTYLE:ON: checkstyle:EmptyBlock
-                // TODO: log here.
+                Logger.error(MsalUtils.class.getSimpleName(), null, "URL form decode failed.", e);
             }
         }
 
