@@ -1,6 +1,7 @@
 # ./travis.yml for MSAL android
 
 language: android
+dist: precise
 
 jdk:
   - oraclejdk8
