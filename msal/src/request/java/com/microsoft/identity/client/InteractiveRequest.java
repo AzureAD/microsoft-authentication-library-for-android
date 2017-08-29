@@ -30,6 +30,7 @@ import android.util.Base64;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -313,7 +314,7 @@ final class InteractiveRequest extends BaseRequest {
         }
 
         final byte[] stateBytes = Base64.decode(encodedState, Base64.NO_PADDING | Base64.URL_SAFE);
-        return new String(stateBytes);
+        return new String(stateBytes, Charset.defaultCharset());
     }
 
     private void addExtraQueryParameter(final String key, final String value, final Map<String, String> requestParams) {
