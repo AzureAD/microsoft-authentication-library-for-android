@@ -57,8 +57,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import static android.content.ContentValues.TAG;
-
 /**
  * Internal Util class for MSAL.
  */
@@ -72,6 +70,8 @@ final class MsalUtils {
      * Default access token expiration time in seconds.
      */
     public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
+
+    private static final String TAG = MsalUtils.class.getSimpleName();
 
     private static final String CUSTOM_TABS_SERVICE_ACTION =
             "android.support.customtabs.action.CustomTabsService";
@@ -300,10 +300,8 @@ final class MsalUtils {
                 if (!MsalUtils.isEmpty(key) && !MsalUtils.isEmpty(value)) {
                     decodedUrlMap.put(key, value);
                 }
-                //CHECKSTYLE:OFF: checkstyle:EmptyBlock
             } catch (final UnsupportedEncodingException e) {
-                //CHECKSTYLE:ON: checkstyle:EmptyBlock
-                // TODO: log here.
+                Logger.error(TAG, null, "URL form decode failed.", e);
             }
         }
 
