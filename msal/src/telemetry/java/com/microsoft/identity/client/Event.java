@@ -57,13 +57,13 @@ class Event extends ArrayList<Pair<String, String>> {
         }
     }
 
-    void setProperty(final String propertyName, final String propertyValue) {
+    final void setProperty(final String propertyName, final String propertyValue) {
         if (!MsalUtils.isEmpty(propertyName) && !MsalUtils.isEmpty(propertyValue)) {
             add(new Pair<>(propertyName, propertyValue));
         }
     }
 
-    String getProperty(final String propertyName) {
+    final String getProperty(final String propertyName) {
         String propertyValue = null;
         for (final Pair<String, String> property : this) {
             if (property.first.equals(propertyName)) {
