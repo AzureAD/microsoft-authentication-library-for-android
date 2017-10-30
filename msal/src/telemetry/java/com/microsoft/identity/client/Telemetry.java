@@ -41,6 +41,8 @@ public final class Telemetry {
 
     private static boolean sDisableForTest;
 
+    private static boolean mAllowPii = false;
+
     private final Map<String, List<Event.Builder>> mEvents;
 
     private EventDispatcher mPublisher;
@@ -86,6 +88,25 @@ public final class Telemetry {
      */
     static void disableForTest(final boolean disabled) {
         sDisableForTest = disabled;
+    }
+
+    /**
+     * Sets the PII/OII allow flag. If set to true, PII/OII fields will not be explicitly blocked
+     * in Telemetry data.
+     *
+     * @param allowFlag true, if PII/OII should be allowed in Telemetry data. False otherwise.
+     */
+    public static void setAllowPii(final boolean allowFlag) {
+        mAllowPii = allowFlag;
+    }
+
+    /**
+     * Gets the state of the PII/OII allow flag.
+     *
+     * @return the flag state.
+     */
+    public static boolean getAllowPii() {
+        return mAllowPii;
     }
 
     public synchronized void registerReceiver(IMsalEventReceiver receiver) {

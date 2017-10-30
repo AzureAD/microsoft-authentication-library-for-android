@@ -57,7 +57,7 @@ public class ApiEventTest {
 
     // Authorities
     private static final String TEST_AUTHORITY_WITH_IDENTIFIER = AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT;
-    private static final String TEST_AUTHORITY_COMMON = "https://login.microsoftonline.com/common";
+    static final String TEST_AUTHORITY_COMMON = "https://login.microsoftonline.com/common";
     private static final String TEST_AUTHORITY_B2C = "https://login.microsoftonline.com/tfp/tenant/policy";
 
     static ApiEvent.Builder getRandomTestApiEventBuilder() {
@@ -104,6 +104,7 @@ public class ApiEventTest {
 
     @Test
     public void testApiEventInitializes() throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        Telemetry.setAllowPii(true);
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         final ApiEvent apiEvent = getTestApiEvent(telemetryRequestId, TEST_AUTHORITY);
         Assert.assertEquals(telemetryRequestId, apiEvent.getRequestId());
@@ -119,14 +120,17 @@ public class ApiEventTest {
         Assert.assertEquals(MsalUtils.createHash(TEST_LOGIN_HINT), apiEvent.getLoginHint());
         Assert.assertEquals(Boolean.valueOf(TEST_API_CALL_WAS_SUCCESSFUL), apiEvent.wasSuccessful());
         Assert.assertEquals(TEST_API_ERROR_CODE, apiEvent.getApiErrorCode());
+        Telemetry.setAllowPii(false);
     }
 
     @Test
-    public void testIdTokenParsing() {
+    public void testIdTokenParsing() throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        Telemetry.setAllowPii(true);
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         final ApiEvent apiEvent = getTestApiEvent(telemetryRequestId, TEST_AUTHORITY);
         Assert.assertEquals(TEST_IDP, apiEvent.getIdpName());
         Assert.assertEquals(TEST_TENANT_ID, apiEvent.getTenantId());
-        Assert.assertEquals(TEST_USER_ID, apiEvent.getUserId());
+        Assert.assertEquals(MsalUtils.createHash(TEST_USER_ID), apiEvent.getUserId());
+        Telemetry.setAllowPii(false);
     }
 }
