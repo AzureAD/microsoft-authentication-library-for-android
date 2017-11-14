@@ -106,11 +106,9 @@ dependencies {
     compile "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
     compile "com.android.support:customtabs:$rootProject.ext.supportLibraryVersion"
     compile "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
-
     // test dependencies
     testCompile "junit:junit:$rootProject.ext.junitVersion"
     testCompile "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
-
     // instrumentation test dependencies
     androidTestCompile "com.android.support.test:runner:$rootProject.ext.runnerVersion"
     // Set this dependency to use JUnit 4 rules
@@ -118,44 +116,7 @@ dependencies {
     androidTestCompile "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
     androidTestCompile "com.google.dexmaker:dexmaker:$rootProject.ext.dexmakerMockitoVersion"
     androidTestCompile "com.google.dexmaker:dexmaker-mockito:$rootProject.ext.dexmakerMockitoVersion"
-}
-
-task createPom {
-    pom {
-        project {
-            groupId 'com.microsoft.identity.client'
-            artifactId 'msal'
-            packaging 'aar'
-            version project.version
-            name 'msal'
-
-            description 'The MSAL library for Android gives your app the ability to begin using the Microsoft Cloud by supporting Microsoft Azure Active Directory and Microsoft Accounts in a converged experience using industry standard OAuth2 and OpenID Connect. The library also supports Azure AD B2C.'
-            url 'https://github.com/AzureAD/microsoft-authentication-library-for-android'
-
-            developers {
-                developer {
-                    id 'microsoft'
-                    name 'Microsoft'
-                }
-            }
-
-            licenses {
-                license {
-                    name 'MIT License'
-                }
-            }
-            inceptionYear '2017'
-
-            properties {
-                branch 'master'
-                msalVersion = project.version
-            }
-
-            scm {
-                url "https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/master"
-            }
-        }
-    }.writeTo("${archivesBaseName}-${version}.pom")
+    compile project(':common')
 }
 
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
@@ -197,6 +158,6 @@ task pmd(type: Pmd) {
 
 tasks.whenTaskAdded { task ->
     if (task.name == 'assembleDebug' || task.name == 'assembleRelease') {
-        task.dependsOn 'checkstyle', 'pmd', 'lint', 'jacocoTestReport', 'createPom', 'javadocJar', 'sourcesJar'
+        task.dependsOn 'checkstyle', 'pmd', 'lint', 'jacocoTestReport', 'javadocJar', 'sourcesJar'
     }
 }
