@@ -1,5 +1,5 @@
 include ':msal', ':common'
-project(':common').projectDir = new File('microsoft-authentication-library-common-for-android/common')
+project(':common').projectDir = new File('common/common')
 
 // test apps
 include ':testapps:sample'
