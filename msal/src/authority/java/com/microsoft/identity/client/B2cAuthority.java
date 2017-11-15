@@ -63,7 +63,7 @@ final class B2cAuthority extends AadAuthority {
             updateAuthority = new URL(String.format("https://%s/%s/%s/%s", authority.getAuthority(), pathSegments[0], pathSegments[1],
                     pathSegments[2]));
         } catch (final MalformedURLException e) {
-            Logger.error(TAG, null, "Malformed authority url", e);
+            Logger.errorPII(TAG, null, "Malformed authority url", e);
             throw new IllegalArgumentException("Malformed updated authority Url", e);
         }
 

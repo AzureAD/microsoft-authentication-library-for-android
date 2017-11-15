@@ -295,7 +295,7 @@ final class HttpRequest {
         try {
             stream.close();
         } catch (final IOException e) {
-            Logger.error(TAG, null, "Encounter IO exception when trying to close the stream", e);
+            Logger.errorPII(TAG, null, "Encounter IO exception when trying to close the stream", e);
         }
     }
 
