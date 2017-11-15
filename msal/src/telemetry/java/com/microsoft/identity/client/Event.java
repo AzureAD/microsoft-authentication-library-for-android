@@ -58,7 +58,7 @@ class Event extends ArrayList<Pair<String, String>> {
     }
 
     final void setProperty(final String propertyName, final String propertyValue) {
-        if (!MsalUtils.isEmpty(propertyName) && !MsalUtils.isEmpty(propertyValue)) {
+        if (!MsalUtils.isEmpty(propertyName) && !MsalUtils.isEmpty(propertyValue) && isPrivacyCompliant(propertyName)) {
             add(new Pair<>(propertyName, propertyValue));
         }
     }
@@ -107,6 +107,15 @@ class Event extends ArrayList<Pair<String, String>> {
      */
     Long getElapsedTime() {
         return Long.valueOf(getProperty(EventProperty.ELAPSED_TIME));
+    }
+
+    /**
+     * Tests supplied EventStrings for privacy compliance.
+     * @param fieldName The EventString to evaluate.
+     * @return True, if the field can be reported. False otherwise.
+     */
+    static boolean isPrivacyCompliant(final String fieldName) {
+        return Telemetry.getAllowPii() || !TelemetryUtils.GDPR_FILTERED_FIELDS.contains(fieldName);
     }
 
     /**
