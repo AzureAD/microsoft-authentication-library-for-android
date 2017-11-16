@@ -64,7 +64,7 @@ class AadAuthority extends Authority {
                 final String hostWithPort = mAuthorityUrl.getAuthority().replace(DEPRECATED_AAD_AUTHORITY_HOST, AAD_AUTHORITY_HOST);
                 mAuthorityUrl = new URL(String.format("https://%s%s", hostWithPort, mAuthorityUrl.getPath()));
             } catch (final MalformedURLException e) {
-                Logger.error(TAG, null, "Fail to replace login.windows.net to login.microsoftonline.com", e);
+                Logger.errorPII(TAG, null, "Fail to replace login.windows.net to login.microsoftonline.com", e);
                 throw new IllegalArgumentException("Malformed authority url");
             }
         }
