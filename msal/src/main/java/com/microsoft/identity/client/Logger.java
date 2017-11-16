@@ -73,7 +73,7 @@ public final class Logger {
     // Turn on the verbose level logging by default.
     private LogLevel mLogLevel = LogLevel.VERBOSE;
     private AtomicReference<ILoggerCallback> mExternalLogger = new AtomicReference<>(null);
-    private boolean mLogcatLogEnabled = true;
+    private boolean mLogcatLogEnabled = false;
     private boolean mEnablePII = false;
 
     /**

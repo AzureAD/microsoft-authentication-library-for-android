@@ -301,7 +301,7 @@ final class MsalUtils {
                     decodedUrlMap.put(key, value);
                 }
             } catch (final UnsupportedEncodingException e) {
-                Logger.error(TAG, null, "URL form decode failed.", e);
+                Logger.errorPII(TAG, null, "URL form decode failed.", e);
             }
         }
 
@@ -406,7 +406,7 @@ final class MsalUtils {
         try {
             url = new URL(endpoint);
         } catch (MalformedURLException e1) {
-            Logger.error(MsalUtils.class.getSimpleName(), null, "Url is invalid", e1);
+            Logger.errorPII(MsalUtils.class.getSimpleName(), null, "Url is invalid", e1);
         }
 
         return url;
