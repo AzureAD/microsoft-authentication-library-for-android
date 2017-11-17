@@ -95,6 +95,7 @@ public final class SilentRequestTest extends AndroidTestCase {
 
         new SilentRequest(mAppContext, getRequestParameters(scopes), false, mDefaultUser);
     }
+
     /**
      * Verify that correct exception is thrown if device is not connected to the network.
      */

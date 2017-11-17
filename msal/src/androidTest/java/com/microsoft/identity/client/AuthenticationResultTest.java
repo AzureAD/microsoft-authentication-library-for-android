@@ -25,9 +25,12 @@ package com.microsoft.identity.client;
 
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.SmallTest;
+
 import junit.framework.Assert;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;

@@ -159,6 +159,7 @@ final class TokenResponse extends BaseOauth2Response {
 
     /**
      * Set additional data returned in the server response.
+     *
      * @param additionalData The additional data in the JSON response.
      */
     public void setAdditionalData(final Map<String, String> additionalData) {

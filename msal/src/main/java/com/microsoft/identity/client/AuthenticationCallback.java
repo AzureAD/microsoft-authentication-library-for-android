@@ -30,12 +30,14 @@ public interface AuthenticationCallback {
 
     /**
      * Authentication finishes successfully.
+     *
      * @param authenticationResult {@link AuthenticationResult} that contains the success response.
      */
     void onSuccess(final AuthenticationResult authenticationResult);
 
     /**
      * Error occurs during the authentication.
+     *
      * @param exception The {@link MsalException} contains the error code, error message and cause if applicable. The exception
      *                  returned in the callback could be {@link MsalClientException}, {@link MsalServiceException} or
      *                  {@link MsalUiRequiredException}.

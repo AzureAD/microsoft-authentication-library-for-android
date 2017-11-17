@@ -34,10 +34,11 @@ import java.net.SocketTimeoutException;
  */
 public final class MockUtil {
     // private constructor for Util class.
-    private MockUtil() { }
+    private MockUtil() {
+    }
 
     static HttpURLConnection getMockedConnectionWithSuccessResponse(final String message) throws IOException {
-        final HttpURLConnection mockedHttpUrlConnection  = getCommonHttpUrlConnection();
+        final HttpURLConnection mockedHttpUrlConnection = getCommonHttpUrlConnection();
 
         Mockito.when(mockedHttpUrlConnection.getInputStream()).thenReturn(Util.createInputStream(message));
         Mockito.when(mockedHttpUrlConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);

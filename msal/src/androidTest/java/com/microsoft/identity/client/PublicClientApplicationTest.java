@@ -395,7 +395,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testAcquireTokenInteractiveScopeWithEmptyString() throws PackageManager.NameNotFoundException, IOException,
             InterruptedException {
         new GetTokenBaseTestCase() {
@@ -412,7 +412,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
                                       final Activity activity,
                                       final CountDownLatch releaseLock) {
-                publicClientApplication.acquireToken(activity, new String[] {" "}, new AuthenticationCallback() {
+                publicClientApplication.acquireToken(activity, new String[]{" "}, new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
                         Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));

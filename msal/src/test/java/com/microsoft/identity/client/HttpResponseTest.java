@@ -26,6 +26,7 @@ package com.microsoft.identity.client;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
 import java.net.HttpURLConnection;
 import java.util.Collections;
 import java.util.List;

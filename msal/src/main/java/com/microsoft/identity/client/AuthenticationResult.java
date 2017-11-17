@@ -79,7 +79,7 @@ public final class AuthenticationResult {
     /**
      * @return The unique identifier of the user.
      */
-    public String getUniqueId () {
+    public String getUniqueId() {
         return mUniqueId;
     }
 

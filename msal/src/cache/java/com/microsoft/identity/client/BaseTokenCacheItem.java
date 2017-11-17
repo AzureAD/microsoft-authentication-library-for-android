@@ -31,13 +31,13 @@ import com.google.gson.annotations.SerializedName;
 abstract class BaseTokenCacheItem {
 
     @SerializedName("client_id")
-    final String mClientId;
+    String mClientId;
 
     @SerializedName("client_info")
-    final String mRawClientInfo;
+    String mRawClientInfo;
 
     @SerializedName("ver")
-    private final String mVersion = "1";
+    private String mVersion = "1";
 
     transient User mUser;
     transient ClientInfo mClientInfo;
@@ -46,6 +46,13 @@ abstract class BaseTokenCacheItem {
      * @return {@link TokenCacheKey} for the given token item.
      */
     abstract TokenCacheKey extractTokenCacheKey();
+
+    /**
+     * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe.
+     */
+    @SuppressWarnings("unused")
+    BaseTokenCacheItem() {
+    }
 
     /**
      * Constructor for creating the token cache item.
@@ -80,7 +87,7 @@ abstract class BaseTokenCacheItem {
         mUser = user;
     }
 
-    String getVersion () {
+    String getVersion() {
         return mVersion;
     }
 

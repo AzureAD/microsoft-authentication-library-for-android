@@ -36,7 +36,8 @@ public final class Util {
     /**
      * Private constructor to prevent Util class from being initiated.
      */
-    private Util() { }
+    private Util() {
+    }
 
     static final String VALID_AUTHORITY = "https://login.microsoftonline.com/common";
 

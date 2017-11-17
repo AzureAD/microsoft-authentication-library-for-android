@@ -46,6 +46,7 @@ final class TokenCacheAccessor {
 
     /**
      * Constructor for {@link TokenCacheAccessor}. Access token and refresh token will be stored separately.
+     *
      * @param context
      */
     TokenCacheAccessor(final Context context) {
@@ -77,7 +78,7 @@ final class TokenCacheAccessor {
 
     private static CacheEvent.Builder createAndStartNewCacheEvent(final String telemetryRequestId, final String eventName, final boolean isRT) {
         final CacheEvent.Builder cacheEventBuilder = createNewCacheEventBuilder(eventName, isRT);
-        Telemetry.getInstance().startEvent(telemetryRequestId, eventName);
+        Telemetry.getInstance().startEvent(telemetryRequestId, cacheEventBuilder);
         return cacheEventBuilder;
     }
 
@@ -131,6 +132,7 @@ final class TokenCacheAccessor {
 
     /**
      * Delete the refresh token item.
+     *
      * @param refreshTokenCacheKey The string value of the refresh token cache item key to remove.
      */
     void deleteRefreshToken(final String refreshTokenCacheKey, final RequestContext requestContext) {

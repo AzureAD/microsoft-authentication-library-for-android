@@ -6,12 +6,12 @@ apply plugin: 'pmd'
 apply plugin: 'com.github.dcendents.android-maven'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.3"
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 25
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 0
         versionName '0.1.1'
         project.archivesBaseName = "msal"
@@ -68,8 +68,9 @@ task jacocoTestReport(type: JacocoReport, dependsOn: 'testDebugUnitTest') {
 
     sourceDirectories = files([mainSrc])
     classDirectories = files([debugTree])
-    executionData = files(["${buildDir}/jacoco/testDebugUnitTest.exec",
-                           "${buildDir}/outputs/code-coverage/connected/coverage.ec"
+    executionData = fileTree(dir: "$buildDir", includes: [
+            "jacoco/testDebugUnitTest.exec",
+            "outputs/code-coverage/connected/*coverage.ec"
     ])
 }
 
@@ -79,7 +80,7 @@ task javadoc(type: Javadoc) {
     classpath += configurations.compile
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 
-    options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PUBLIC
+    options.memberLevel = JavadocMemberLevel.PUBLIC
     options.addStringOption('Xdoclint:none', '-quiet')
 
     exclude '**/BuildConfig.Java'
@@ -102,22 +103,21 @@ task sourcesJar(type: Jar) {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:25.3.1'
-    compile 'com.android.support:customtabs:25.3.1'
-    compile 'com.google.code.gson:gson:2.8.0'
+    compile "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
+    compile "com.android.support:customtabs:$rootProject.ext.supportLibraryVersion"
+    compile "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
 
     // test dependencies
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.mockito:mockito-core:1.10.19'
+    testCompile "junit:junit:$rootProject.ext.junitVersion"
+    testCompile "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
 
     // instrumentation test dependencies
-    androidTestCompile 'com.android.support.test:runner:0.5'
+    androidTestCompile "com.android.support.test:runner:$rootProject.ext.runnerVersion"
     // Set this dependency to use JUnit 4 rules
-    androidTestCompile 'com.android.support.test:rules:0.5'
-    androidTestCompile 'org.mockito:mockito-core:1.10.19'
-    androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
-    androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
+    androidTestCompile "com.android.support.test:rules:$rootProject.ext.rulesVersion"
+    androidTestCompile "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
+    androidTestCompile "com.google.dexmaker:dexmaker:$rootProject.ext.dexmakerMockitoVersion"
+    androidTestCompile "com.google.dexmaker:dexmaker-mockito:$rootProject.ext.dexmakerMockitoVersion"
 }
 
 task createPom {
