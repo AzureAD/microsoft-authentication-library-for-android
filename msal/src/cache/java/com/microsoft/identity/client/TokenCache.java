@@ -27,6 +27,10 @@ import android.content.Context;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
+import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
+import com.microsoft.identity.common.internal.cache.MSALOAuth2TokenCache;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,6 +49,9 @@ class TokenCache {
 
     private static final int DEFAULT_EXPIRATION_BUFFER = 300;
     private final TokenCacheAccessor mTokenCacheAccessor;
+    private OAuth2TokenCache mCommonCache;
+
+    private final boolean mUseCommonCache = true;
 
     private Gson mGson = new GsonBuilder()
             .registerTypeAdapter(AccessTokenCacheItem.class, new TokenCacheItemDeserializer<AccessTokenCacheItem>())
@@ -58,6 +65,10 @@ class TokenCache {
      */
     TokenCache(final Context context) {
         mTokenCacheAccessor = new TokenCacheAccessor(context);
+        List<IShareSingleSignOnState> sharedSSOCaches = new ArrayList<>();
+        // TODO Fix constructor when latest merges
+        sharedSSOCaches.add(new ADALOAuth2TokenCache(context, null, sharedSSOCaches));
+        mCommonCache = new MSALOAuth2TokenCache(context);
     }
 
     /**
@@ -65,23 +76,27 @@ class TokenCache {
      */
     AccessTokenCacheItem saveAccessToken(final String authority, final String clientId, final TokenResponse response, final RequestContext requestContext)
             throws MsalClientException {
-        // create the access token cache item
-        Logger.info(TAG, null, "Starting to Save access token into cache. Access token will be saved with authority: " + authority
-                + "; Client Id: " + clientId + "; Scopes: " + response.getScope());
-        final AccessTokenCacheItem newAccessToken = new AccessTokenCacheItem(authority, clientId, response);
-        final AccessTokenCacheKey accessTokenCacheKey = newAccessToken.extractTokenCacheKey();
+        if (mUseCommonCache) {
+            // create the access token cache item
+            Logger.info(TAG, null, "Starting to Save access token into cache. Access token will be saved with authority: " + authority
+                    + "; Client Id: " + clientId + "; Scopes: " + response.getScope());
+            final AccessTokenCacheItem newAccessToken = new AccessTokenCacheItem(authority, clientId, response);
+            final AccessTokenCacheKey accessTokenCacheKey = newAccessToken.extractTokenCacheKey();
 
-        // check for intersection and delete all the cache entries with intersecting scopes.
-        final List<AccessTokenCacheItem> accessTokenCacheItems = getAllAccessTokensForApp(clientId, requestContext);
-        for (final AccessTokenCacheItem accessTokenCacheItem : accessTokenCacheItems) {
-            if (accessTokenCacheKey.matches(accessTokenCacheItem) && MsalUtils.isScopeIntersects(newAccessToken.getScope(),
-                    accessTokenCacheItem.getScope())) {
-                mTokenCacheAccessor.deleteAccessToken(accessTokenCacheItem.extractTokenCacheKey().toString(), requestContext);
+            // check for intersection and delete all the cache entries with intersecting scopes.
+            final List<AccessTokenCacheItem> accessTokenCacheItems = getAllAccessTokensForApp(clientId, requestContext);
+            for (final AccessTokenCacheItem accessTokenCacheItem : accessTokenCacheItems) {
+                if (accessTokenCacheKey.matches(accessTokenCacheItem) && MsalUtils.isScopeIntersects(newAccessToken.getScope(),
+                        accessTokenCacheItem.getScope())) {
+                    mTokenCacheAccessor.deleteAccessToken(accessTokenCacheItem.extractTokenCacheKey().toString(), requestContext);
+                }
             }
-        }
 
-        mTokenCacheAccessor.saveAccessToken(newAccessToken.extractTokenCacheKey().toString(), mGson.toJson(newAccessToken), requestContext);
-        return newAccessToken;
+            mTokenCacheAccessor.saveAccessToken(newAccessToken.extractTokenCacheKey().toString(), mGson.toJson(newAccessToken), requestContext);
+            return newAccessToken;
+        } else {
+            return null;
+        }
     }
 
     /**
