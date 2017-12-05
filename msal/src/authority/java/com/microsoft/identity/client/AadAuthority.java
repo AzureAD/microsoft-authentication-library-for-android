@@ -120,6 +120,11 @@ class AadAuthority extends Authority {
     }
 
     private void populateCommonCloudDiscoveryMetadata(InstanceDiscoveryResponse response) throws JSONException {
+        if (null == response
+                || null == response.getResponseClaims()
+                || response.getResponseClaims().isEmpty()) {
+            return;
+        }
         //Ideally, this logic would have gone in AadAuthority#addToResolvedAuthorityCache(String)
         // but I'm not going to refactor this too much for now.
         AzureActiveDirectory.initializeCloudMetadata(mAuthorityUrl.getHost(), response.getResponseClaims());
