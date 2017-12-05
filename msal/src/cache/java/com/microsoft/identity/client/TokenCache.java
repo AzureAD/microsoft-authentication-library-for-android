@@ -125,7 +125,10 @@ class TokenCache {
             }
         }
 
-        mTokenCacheAccessor.saveAccessToken(newAccessToken.extractTokenCacheKey().toString(), mGson.toJson(newAccessToken), requestContext);
+        final String atCacheKey = newAccessToken.extractTokenCacheKey().toString();
+        final String atCacheValue = mGson.toJson(newAccessToken);
+
+        mTokenCacheAccessor.saveAccessToken(atCacheKey, atCacheValue, requestContext);
         return newAccessToken;
     }
 
@@ -138,7 +141,9 @@ class TokenCache {
             Logger.info(TAG, requestContext, "Starting to save refresh token into cache. Refresh token will be saved with authority: " + authorityHost
                     + "; Client Id: " + clientId);
             final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(authorityHost, clientId, response);
-            mTokenCacheAccessor.saveRefreshToken(refreshTokenCacheItem.extractTokenCacheKey().toString(), mGson.toJson(refreshTokenCacheItem), requestContext);
+            final String rtCacheKey = refreshTokenCacheItem.extractTokenCacheKey().toString();
+            final String rtCacheValue = mGson.toJson(refreshTokenCacheItem);
+            mTokenCacheAccessor.saveRefreshToken(rtCacheKey, rtCacheValue, requestContext);
         }
     }
 
