@@ -23,6 +23,10 @@
 
 package com.microsoft.identity.client;
 
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectory;
+
+import org.json.JSONException;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -91,10 +95,11 @@ class AadAuthority extends Authority {
         final InstanceDiscoveryResponse response;
         try {
             response = oauth2Client.discoveryAADInstance(new URL(AAD_INSTANCE_DISCOVERY_ENDPOINT));
+            populateCommonCloudDiscoveryMetadata(response);
         } catch (final MalformedURLException e) {
             // instance discovery endpoint is hard-coded, if it's ever going wrong, should be found during runtime
             throw new MsalClientException(MsalClientException.MALFORMED_URL, "Malformed URL for instance discovery endpoint.", e);
-        } catch (final IOException ioException) {
+        } catch (final IOException | JSONException ioException) {
             throw new MsalClientException(MsalClientException.IO_ERROR, ioException.getMessage(), ioException);
         }
 
@@ -112,6 +117,12 @@ class AadAuthority extends Authority {
     @Override
     boolean existsInResolvedAuthorityCache(final String userPrincipalName) {
         return RESOLVED_AUTHORITY.containsKey(mAuthorityUrl.toString());
+    }
+
+    private void populateCommonCloudDiscoveryMetadata(InstanceDiscoveryResponse response) throws JSONException {
+        //Ideally, this logic would have gone in AadAuthority#addToResolvedAuthorityCache(String)
+        // but I'm not going to refactor this too much for now.
+        AzureActiveDirectory.initializeCloudMetadata(mAuthorityUrl.getHost(), response.getResponseClaims());
     }
 
     @Override

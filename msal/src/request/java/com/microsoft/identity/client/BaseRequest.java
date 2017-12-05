@@ -201,10 +201,23 @@ abstract class BaseRequest {
         final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
         final Authority authority = mAuthRequestParameters.getAuthority();
         authority.updateTenantLessAuthority(new IdToken(mTokenResponse.getRawIdToken()).getTenantId());
-        final AccessTokenCacheItem accessTokenCacheItem = tokenCache.saveAccessToken(authority.getAuthority(),
-                mAuthRequestParameters.getClientId(), mTokenResponse, mRequestContext);
-        tokenCache.saveRefreshToken(authority.getAuthorityHost(), mAuthRequestParameters.getClientId(),
-                mTokenResponse, mRequestContext);
+
+        final AccessTokenCacheItem accessTokenCacheItem;
+        // Switch to toggle using common cache (or not)
+        boolean useCommonCache = true;
+
+        if (useCommonCache) {
+            accessTokenCacheItem = tokenCache.saveTokensToCommonCache(
+                    authority.getAuthorityUrl(),
+                    mAuthRequestParameters.getClientId(),
+                    mTokenResponse
+            );
+        } else {
+            accessTokenCacheItem = tokenCache.saveAccessToken(authority.getAuthority(),
+                    mAuthRequestParameters.getClientId(), mTokenResponse, mRequestContext);
+            tokenCache.saveRefreshToken(authority.getAuthorityHost(), mAuthRequestParameters.getClientId(),
+                    mTokenResponse, mRequestContext);
+        }
 
         return new AuthenticationResult(accessTokenCacheItem);
     }

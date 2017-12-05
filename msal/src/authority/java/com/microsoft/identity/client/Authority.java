@@ -188,6 +188,10 @@ abstract class Authority {
         mIsTenantless = isTenantLess();
     }
 
+    URL getAuthorityUrl() {
+        return mAuthorityUrl;
+    }
+
     /**
      * @return The String value for authority url.
      */
