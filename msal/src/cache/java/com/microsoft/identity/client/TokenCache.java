@@ -27,7 +27,17 @@ import android.content.Context;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
+import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
+import com.microsoft.identity.common.internal.cache.MSALOAuth2TokenCache;
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryAuthorizationRequest;
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
+import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryTokenResponse;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,6 +55,7 @@ class TokenCache {
 
     private static final int DEFAULT_EXPIRATION_BUFFER = 300;
     private final TokenCacheAccessor mTokenCacheAccessor;
+    private OAuth2TokenCache mCommonCache;
 
     private Gson mGson = new GsonBuilder()
             .registerTypeAdapter(AccessTokenCacheItem.class, new TokenCacheItemDeserializer<AccessTokenCacheItem>())
@@ -58,6 +69,40 @@ class TokenCache {
      */
     TokenCache(final Context context) {
         mTokenCacheAccessor = new TokenCacheAccessor(context);
+        List<IShareSingleSignOnState> sharedSSOCaches = new ArrayList<>();
+        // TODO Fix constructors when latest merges
+        sharedSSOCaches.add(new ADALOAuth2TokenCache(context, sharedSSOCaches));
+        mCommonCache = new MSALOAuth2TokenCache(context);
+    }
+
+    AccessTokenCacheItem saveTokensToCommonCache(
+            final URL authority,
+            final String clientId,
+            final TokenResponse msalTokenResponse) throws MsalClientException {
+        // TODO where is the displayable id? Why is it missing?
+        final AccessTokenCacheItem newAccessToken = new AccessTokenCacheItem(authority.toString(), clientId, msalTokenResponse);
+
+        // Create the AAD instance
+        final AzureActiveDirectory ad = new AzureActiveDirectory();
+
+        // Convert the TokenResponse to the Common OM
+        final AzureActiveDirectoryTokenResponse tokenResponse = CoreAdapter.asAadTokenResponse(msalTokenResponse);
+
+        // Initialize a config for the strategy to consume
+        final AzureActiveDirectoryOAuth2Configuration config = new AzureActiveDirectoryOAuth2Configuration();
+
+        // Create the OAuth2Strategy
+        // TODO how do I know if Authority Validation is enabled?
+        final OAuth2Strategy strategy = ad.createOAuth2Strategy(config);
+
+        // Create the AuthorizationRequest
+        final AzureActiveDirectoryAuthorizationRequest authorizationRequest = new AzureActiveDirectoryAuthorizationRequest();
+        authorizationRequest.setClientId(clientId);
+        authorizationRequest.setScope(tokenResponse.getScope());
+        authorizationRequest.setAuthority(authority);
+
+        mCommonCache.saveTokens(strategy, authorizationRequest, tokenResponse);
+        return newAccessToken;
     }
 
     /**
@@ -80,7 +125,10 @@ class TokenCache {
             }
         }
 
-        mTokenCacheAccessor.saveAccessToken(newAccessToken.extractTokenCacheKey().toString(), mGson.toJson(newAccessToken), requestContext);
+        final String atCacheKey = newAccessToken.extractTokenCacheKey().toString();
+        final String atCacheValue = mGson.toJson(newAccessToken);
+
+        mTokenCacheAccessor.saveAccessToken(atCacheKey, atCacheValue, requestContext);
         return newAccessToken;
     }
 
@@ -93,7 +141,9 @@ class TokenCache {
             Logger.info(TAG, requestContext, "Starting to save refresh token into cache. Refresh token will be saved with authority: " + authorityHost
                     + "; Client Id: " + clientId);
             final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(authorityHost, clientId, response);
-            mTokenCacheAccessor.saveRefreshToken(refreshTokenCacheItem.extractTokenCacheKey().toString(), mGson.toJson(refreshTokenCacheItem), requestContext);
+            final String rtCacheKey = refreshTokenCacheItem.extractTokenCacheKey().toString();
+            final String rtCacheValue = mGson.toJson(refreshTokenCacheItem);
+            mTokenCacheAccessor.saveRefreshToken(rtCacheKey, rtCacheValue, requestContext);
         }
     }
 

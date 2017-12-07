@@ -297,6 +297,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         try {
+            mApplication.setValidateAuthority(true);
             mApplication.acquireToken(this, scopes, loginHint, uiBehavior, extraQueryParam, extraScope,
                     null, getAuthenticationCallback());
         } catch (IllegalArgumentException e) {
