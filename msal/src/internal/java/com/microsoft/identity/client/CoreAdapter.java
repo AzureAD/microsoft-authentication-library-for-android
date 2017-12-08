@@ -1,6 +1,6 @@
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryTokenResponse;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsTokenResponse;
 
 public class CoreAdapter {
 
@@ -8,8 +8,8 @@ public class CoreAdapter {
         // Utility class.
     }
 
-    static AzureActiveDirectoryTokenResponse asAadTokenResponse(final TokenResponse responseIn) {
-        final AzureActiveDirectoryTokenResponse responseOut = new AzureActiveDirectoryTokenResponse();
+    static MicrosoftStsTokenResponse asMsStsTokenResponse(final TokenResponse responseIn) {
+        final MicrosoftStsTokenResponse responseOut = new MicrosoftStsTokenResponse();
         responseOut.setAccessToken(responseIn.getAccessToken());
         responseOut.setTokenType(responseIn.getTokenType());
         responseOut.setRefreshToken(responseIn.getRefreshToken());
@@ -22,11 +22,7 @@ public class CoreAdapter {
 
         // TODO no response received time?
         //responseOut.setResponseReceivedTime();
-
         responseOut.setExpiresOn(responseIn.getExpiresOn());
-
-        // TODO no resource?
-        //responseOut.setResource();
 
         responseOut.setExtExpiresOn(responseIn.getExtendedExpiresOn());
 

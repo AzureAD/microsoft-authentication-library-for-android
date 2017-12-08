@@ -23,7 +23,7 @@
 
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 
 import org.json.JSONException;
 
