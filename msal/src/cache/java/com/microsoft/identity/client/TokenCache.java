@@ -30,10 +30,10 @@ import com.google.gson.GsonBuilder;
 import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.MSALOAuth2TokenCache;
-import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectory;
-import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryAuthorizationRequest;
-import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
-import com.microsoft.identity.common.internal.providers.azureactivedirectory.AzureActiveDirectoryTokenResponse;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftSts;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsTokenResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 
@@ -70,9 +70,8 @@ class TokenCache {
     TokenCache(final Context context) {
         mTokenCacheAccessor = new TokenCacheAccessor(context);
         List<IShareSingleSignOnState> sharedSSOCaches = new ArrayList<>();
-        // TODO Fix constructors when latest merges
         sharedSSOCaches.add(new ADALOAuth2TokenCache(context, sharedSSOCaches));
-        mCommonCache = new MSALOAuth2TokenCache(context);
+        mCommonCache = new MSALOAuth2TokenCache(context, sharedSSOCaches);
     }
 
     AccessTokenCacheItem saveTokensToCommonCache(
@@ -83,20 +82,20 @@ class TokenCache {
         final AccessTokenCacheItem newAccessToken = new AccessTokenCacheItem(authority.toString(), clientId, msalTokenResponse);
 
         // Create the AAD instance
-        final AzureActiveDirectory ad = new AzureActiveDirectory();
+        final MicrosoftSts msSts = new MicrosoftSts();
 
         // Convert the TokenResponse to the Common OM
-        final AzureActiveDirectoryTokenResponse tokenResponse = CoreAdapter.asAadTokenResponse(msalTokenResponse);
+        final MicrosoftStsTokenResponse tokenResponse = CoreAdapter.asMsStsTokenResponse(msalTokenResponse);
 
         // Initialize a config for the strategy to consume
-        final AzureActiveDirectoryOAuth2Configuration config = new AzureActiveDirectoryOAuth2Configuration();
+        final MicrosoftStsOAuth2Configuration config = new MicrosoftStsOAuth2Configuration();
 
         // Create the OAuth2Strategy
         // TODO how do I know if Authority Validation is enabled?
-        final OAuth2Strategy strategy = ad.createOAuth2Strategy(config);
+        final OAuth2Strategy strategy = msSts.createOAuth2Strategy(config);
 
         // Create the AuthorizationRequest
-        final AzureActiveDirectoryAuthorizationRequest authorizationRequest = new AzureActiveDirectoryAuthorizationRequest();
+        final MicrosoftStsAuthorizationRequest authorizationRequest = new MicrosoftStsAuthorizationRequest();
         authorizationRequest.setClientId(clientId);
         authorizationRequest.setScope(tokenResponse.getScope());
         authorizationRequest.setAuthority(authority);
