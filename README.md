@@ -90,7 +90,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MI
 
 ### Requirements
 * Android SDK 21+
-* [Chrome](https://github.com/Azure-Samples/active-directory-general-docs/blob/master/AndroidEmulator.md) 
+* [Chrome Custom Tabs](https://github.com/Azure-Samples/active-directory-general-docs/blob/master/AndroidEmulator.md) 
 
 ### Step 1: Configure the AndroidManifest.xml
 
@@ -176,6 +176,6 @@ Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MI
 
 ### Step 4: Use the token!
 
-The access token can now be used in an [HTTP Bearer request](https://github.com/Azure-Samples/active-directory-android-native-v2/blob/master/app/src/main/java/com/danieldobalian/msalandroidapp/MainActivity.java#L152).
+The access token can now be used in an [HTTP Bearer request](https://github.com/Azure-Samples/active-directory-android-native-v2/blob/56b8cca297adf616946e9ac2200847b71fd7578a/app/src/main/java/com/azuresamples/msalandroidapp/MainActivity.java#L152).
 
 
