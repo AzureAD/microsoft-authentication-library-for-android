@@ -283,6 +283,7 @@ public final class MsalUtils {
      */
     static String getChromePackageWithCustomTabSupport(final Context context) {
         if (context.getPackageManager() == null) {
+            Logger.warning(TAG, null, "getPackageManager() returned null.");
             return null;
         }
 
@@ -292,7 +293,7 @@ public final class MsalUtils {
 
         // queryIntentServices could return null or an empty list if no matching service existed.
         if (resolveInfoList == null || resolveInfoList.isEmpty()) {
-            // TODO: add logs
+            Logger.warning(TAG, null, "No Service responded to Intent: " + CUSTOM_TABS_SERVICE_ACTION);
             return null;
         }
 
@@ -303,6 +304,7 @@ public final class MsalUtils {
             }
         }
 
+        Logger.warning(TAG, null, "No pkg with CustomTab support found.");
         return null;
     }
 

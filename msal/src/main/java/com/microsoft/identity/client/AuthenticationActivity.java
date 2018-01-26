@@ -111,7 +111,7 @@ public final class AuthenticationActivity extends Activity {
     @Override
     protected void onStop() {
         super.onStop();
-        if (mCustomTabsServiceConnection.getCustomTabsServiceIsBound()) {
+        if (null != mCustomTabsServiceConnection && mCustomTabsServiceConnection.getCustomTabsServiceIsBound()) {
             unbindService(mCustomTabsServiceConnection);
         }
     }
