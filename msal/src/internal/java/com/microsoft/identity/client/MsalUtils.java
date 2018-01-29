@@ -65,7 +65,6 @@ final class MsalUtils {
      * The encoding scheme the sdk uses.
      */
     public static final String ENCODING_UTF8 = "UTF_8";
-    private static final MsalUtils INSTANCE = new MsalUtils();
 
     /**
      * Default access token expiration time in seconds.
@@ -87,14 +86,6 @@ final class MsalUtils {
      * Private constructor to prevent Util class from being initiated.
      */
     private MsalUtils() {
-    }
-
-    /**
-     * Method to get the singleton instance of the MsalUtils object.
-     * @return MsalUtils object
-     */
-    public static synchronized MsalUtils getInstance() {
-        return INSTANCE;
     }
 
     /**
