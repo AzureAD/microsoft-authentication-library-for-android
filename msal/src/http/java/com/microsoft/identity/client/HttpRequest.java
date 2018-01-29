@@ -220,8 +220,8 @@ final class HttpRequest {
             urlConnection.setRequestProperty(entry.getKey(), entry.getValue());
         }
 
-        urlConnection.setConnectTimeout(MsalUtils.getInstance().getConnectTimeOut());
-        urlConnection.setReadTimeout(MsalUtils.getInstance().getReadTimeOut());
+        urlConnection.setConnectTimeout(MsalSettings.INSTANCE.getConnectTimeOut());
+        urlConnection.setReadTimeout(MsalSettings.INSTANCE.getReadTimeOut());
         urlConnection.setInstanceFollowRedirects(true);
         urlConnection.setUseCaches(false);
         urlConnection.setDoInput(true);

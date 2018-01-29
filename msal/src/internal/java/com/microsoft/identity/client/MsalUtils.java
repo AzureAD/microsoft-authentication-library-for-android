@@ -58,9 +58,9 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 /**
- * Util class for MSAL.
+ * Internal Util class for MSAL.
  */
-public final class MsalUtils {
+final class MsalUtils {
     /**
      * The encoding scheme the sdk uses.
      */
@@ -71,8 +71,6 @@ public final class MsalUtils {
      * Default access token expiration time in seconds.
      */
     public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
-    private static final int DEFAULT_READ_TIMEOUT = 30000;
-    private static final int DEFAULT_CONNECT_TIMEOUT = 30000;
 
     private static final String TAG = MsalUtils.class.getSimpleName();
 
@@ -84,9 +82,6 @@ public final class MsalUtils {
     static final String CHROME_PACKAGE = "com.android.chrome";
     static final String QUERY_STRING_SYMBOL = "?";
     static final String QUERY_STRING_DELIMITER = "&";
-
-    private int mConnectTimeOut = DEFAULT_READ_TIMEOUT;
-    private int mReadTimeOut = DEFAULT_CONNECT_TIMEOUT;
 
     /**
      * Private constructor to prevent Util class from being initiated.
@@ -108,54 +103,6 @@ public final class MsalUtils {
      */
     static boolean isEmpty(final String message) {
         return message == null || message.trim().length() == 0;
-    }
-
-    /**
-     * Get the connect timeout.
-     *
-     * @return connect timeout
-     */
-    public int getConnectTimeOut() {
-        return mConnectTimeOut;
-    }
-
-    /**
-     * Sets the maximum time in milliseconds to wait while connecting.
-     * Connecting to a server will fail with a SocketTimeoutException if the
-     * timeout elapses before a connection is established. Default value is
-     * 30000 milliseconds.
-     *
-     * @param timeOutMillis the non-negative connect timeout in milliseconds.
-     */
-    public void setConnectTimeOut(int timeOutMillis) {
-        if (timeOutMillis < 0) {
-            throw new IllegalArgumentException("Invalid timeOutMillis");
-        }
-        this.mConnectTimeOut = timeOutMillis;
-    }
-
-    /**
-     * Get the read timeout.
-     *
-     * @return read timeout
-     */
-    public int getReadTimeOut() {
-        return mReadTimeOut;
-    }
-
-    /**
-     * Sets the maximum time to wait for an input stream read to complete before
-     * giving up. Reading will fail with a SocketTimeoutException if the timeout
-     * elapses before data becomes available. The default value is 30000.
-     *
-     * @param timeOutMillis the read timeout in milliseconds. Non-negative
-     */
-    public void setReadTimeOut(int timeOutMillis) {
-        if (timeOutMillis < 0) {
-            throw new IllegalArgumentException("Invalid timeOutMillis");
-        }
-
-        this.mReadTimeOut = timeOutMillis;
     }
 
     /**
