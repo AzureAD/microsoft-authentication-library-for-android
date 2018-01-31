@@ -233,26 +233,47 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         callAcquireToken(mScopes, mUiBehavior, mLoginHint, mExtraQp, mExtraScopesToConsent);
     }
 
-    @Override
     public void onRemoveUserClicked() {
-        if (mUser == null) {
-            showMessage("Please select a user");
-            return;
+        try {
+            final List<User> users = mApplication.getUsers();
+            for (final User user : users) {
+                mApplication.remove(user);
+            }
+        } catch (final MsalClientException e) {
+            Log.e(TAG, "Fail to retrieve users: " + e.getMessage(), e);
         }
 
-        mApplication.remove(mUser);
         mUser = null;
     }
+
+    User getUser(String loginHint) {
+        try {
+            final List<User> users = mApplication.getUsers();
+            for (final User user : users) {
+                if (user.getDisplayableId().equals(loginHint.trim().toLowerCase())) {
+                    return user;
+                }
+            }
+        } catch (final MsalClientException e) {
+            Log.e(TAG, "Fail to retrieve users: " + e.getMessage(), e);
+        }
+
+        showMessage("Users are removed.");
+        return null;
+    }
+
 
     @Override
     public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
-        if (mUser == null) {
+        final User requestUser = getUser(requestOptions.getLoginHint());
+
+        if (requestUser == null) {
             showMessage("Please select an user.");
             return;
         }
 
-        callAcquireTokenSilent(mScopes, mUser, mForceRefresh);
+        callAcquireTokenSilent(mScopes, requestUser, mForceRefresh);
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
@@ -273,10 +294,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     final String getAuthority(Constants.AuthorityType authorityTypeType) {
         switch (authorityTypeType) {
-            case AAD :
+            case AAD_COMMON :
                 return Constants.AAD_AUTHORITY;
             case B2C:
                 return "B2c is not configured yet";
+            case AAD_MSDEVEX:
+                return Constants.AAD_MSDEVEX;
+            case AAD_GUEST:
+                return Constants.AAD_GUEST;
         }
 
         throw new IllegalArgumentException("Not supported authority type");
