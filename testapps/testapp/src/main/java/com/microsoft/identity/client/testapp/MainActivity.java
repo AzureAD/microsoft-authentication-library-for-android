@@ -210,6 +210,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } catch (final MsalClientException e) {
             Log.e(TAG, "Fail to retrieve users: " + e.getMessage(), e);
         }
+
+        showMessage("No user found.");
         return Collections.emptyList();
     }
 
@@ -254,11 +256,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     return user;
                 }
             }
+
+            showMessage("No record of user with this login hint.");
         } catch (final MsalClientException e) {
             Log.e(TAG, "Fail to retrieve users: " + e.getMessage(), e);
         }
 
-        showMessage("Users are removed.");
         return null;
     }
 
