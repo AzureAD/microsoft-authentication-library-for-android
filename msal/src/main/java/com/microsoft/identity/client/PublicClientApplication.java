@@ -105,23 +105,23 @@ public final class PublicClientApplication {
     private final TokenCache mTokenCache;
 
     /**
-     * The authority the application will use to obtain tokens
+     * The authority the application will use to obtain tokens.
      */
     private String mAuthorityString;
 
     /**
-     * The client ID of the application. This should come from the app developer portal
+     * The client ID of the application. This should come from the app developer portal.
      */
     private String mClientId;
 
     /**
-     * Unique String identifier used in logging/telemetry callbacks to identify
+     * Unique String identifier used in logging/telemetry callbacks to identify.
      * component in the application using MSAL
      */
     private String mComponent;
 
     /**
-     * The redirect URI for the application
+     * The redirect URI for the application.
      */
     private String mRedirectUri;
 
