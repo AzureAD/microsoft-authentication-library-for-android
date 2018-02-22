@@ -41,7 +41,7 @@ final class HttpResponse {
      * @param responseBody    Raw response body.
      * @param responseHeaders Response headers from the connection sent to the server.
      */
-    public HttpResponse(final int statusCode, final String responseBody,
+    HttpResponse(final int statusCode, final String responseBody,
                         final Map<String, List<String>> responseHeaders) {
         mStatusCode = statusCode;
         mResponseBody = responseBody;

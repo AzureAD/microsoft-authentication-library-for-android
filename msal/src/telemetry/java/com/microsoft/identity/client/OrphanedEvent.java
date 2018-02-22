@@ -38,18 +38,18 @@ final class OrphanedEvent extends Event {
         super(builder);
         // Set execution time properties on the event
         setProperty(EventConstants.EventProperty.START_TIME, String.valueOf(builder.mStartTime));
-        setProperty(EventConstants.EventProperty.STOP_TIME, String.valueOf(Builder.sEndTime));
+        setProperty(EventConstants.EventProperty.STOP_TIME, String.valueOf(Builder.EVENT_END_TIME));
     }
 
     static class Builder extends Event.Builder<Builder> {
 
         /**
-         * OrphanedEvents have negative endTime to indicate incompleteness
+         * OrphanedEvents have negative endTime to indicate incompleteness.
          */
-        static final Long sEndTime = -1L;
+        static final Long EVENT_END_TIME = -1L;
 
         /**
-         * The startTime of this OrphanedEvent
+         * The startTime of this OrphanedEvent.
          */
         final Long mStartTime;
 
