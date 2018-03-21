@@ -41,6 +41,7 @@ public class MsalSampleApp extends Application {
     public void onCreate() {
         super.onCreate();
         mLogs = new StringBuilder();
+        Logger.getInstance().setEnableCommonCoreLog(true);
 
         // Logging can be turned on four different levels: error, warning, info, and verbose. By default the sdk is turning on
         // verbose level logging. Any apps can use Logger.getInstance().setLogLevel(Loglevel) to enable different level of logging.

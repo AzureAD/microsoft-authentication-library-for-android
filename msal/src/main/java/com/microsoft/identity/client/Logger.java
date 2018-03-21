@@ -26,6 +26,8 @@ package com.microsoft.identity.client;
 import android.os.Build;
 import android.util.Log;
 
+import com.microsoft.identity.common.internal.logging.CommonCoreLogger;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
@@ -75,6 +77,7 @@ public final class Logger {
     private AtomicReference<ILoggerCallback> mExternalLogger = new AtomicReference<>(null);
     private boolean mLogcatLogEnabled = true;
     private boolean mEnablePII = false;
+    private boolean mEnableCommonCoreLog = false;
 
     /**
      * @return The single instance of {@link Logger}.
@@ -84,12 +87,44 @@ public final class Logger {
     }
 
     /**
+     * Enable/Disable the Common-Core logging. By default, the sdk disables it.
+     * @param commonCoreLogEnabled True if enabling the Common-Core logging, false otherwise.
+     */
+    public void setEnableCommonCoreLog(final boolean commonCoreLogEnabled) {
+        if (commonCoreLogEnabled) {
+            CommonCoreLogger.getInstance().setPIIEnabled(mEnablePII);
+            CommonCoreLogger.getInstance().setLogcatLogEnabled(mLogcatLogEnabled);
+        }
+
+        mEnableCommonCoreLog = commonCoreLogEnabled;
+    }
+
+    /**
      * Set the log level for diagnostic purpose. By default, the sdk enables the verbose level logging.
      *
      * @param logLevel The {@link LogLevel} to be enabled for the diagnostic logging.
      */
     public void setLogLevel(final LogLevel logLevel) {
-        mLogLevel = logLevel;
+        if (mEnableCommonCoreLog) {
+            switch (logLevel) {
+                case ERROR:
+                    CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.ERROR);
+                    break;
+                case WARNING:
+                    CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.WARN);
+                    break;
+                case INFO:
+                    CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.INFO);
+                    break;
+                case VERBOSE:
+                    CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.VERBOSE);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown logLevel");
+            }
+        } else {
+            mLogLevel = logLevel;
+        }
     }
 
     /**
@@ -113,12 +148,28 @@ public final class Logger {
     }
 
     /**
+     * Adapter API in ADAL to set the custom logger in the use of Common-Core.
+     * @param externalLogger The reference to the {@link com.microsoft.identity.common.internal.logging.ILoggerCallback} that can
+     *                       output the logs to the designated places.
+     */
+    public synchronized void setCommonCoreExternalLogger(com.microsoft.identity.common.internal.logging.ILoggerCallback externalLogger) {
+        CommonCoreLogger.getInstance().setExternalLogger(externalLogger);
+
+        //If the dev calls setCommonCoreExternalLogger, it is an explicit enable-flag for common-core logging.
+        setEnableCommonCoreLog(true);
+    }
+
+    /**
      * Enable/Disable the Android logcat logging. By default, the sdk enables it.
      *
      * @param enableLogcatLog True if enabling the logcat logging, false otherwise.
      */
     public void setEnableLogcatLog(final boolean enableLogcatLog) {
-        mLogcatLogEnabled = enableLogcatLog;
+        if (mEnableCommonCoreLog) {
+            CommonCoreLogger.getInstance().setLogcatLogEnabled(enableLogcatLog);
+        } else {
+            mLogcatLogEnabled = enableLogcatLog;
+        }
     }
 
     /**
@@ -127,7 +178,11 @@ public final class Logger {
      * @param enablePII True if enabling PII info to be logged, false otherwise.
      */
     public void setEnablePII(final boolean enablePII) {
-        mEnablePII = enablePII;
+        if (mEnableCommonCoreLog) {
+            CommonCoreLogger.getInstance().setPIIEnabled(enablePII);
+        } else {
+            mEnablePII = enablePII;
+        }
     }
 
     /**
@@ -135,7 +190,7 @@ public final class Logger {
      */
     static void error(final String tag, final RequestContext requestContext, final String errorMessage,
                       final Throwable exception) {
-        getInstance().log(tag, LogLevel.ERROR, requestContext, errorMessage, exception, false);
+        getInstance().commonCoreWrapper(tag, LogLevel.ERROR, requestContext, errorMessage, exception, false);
     }
 
     /**
@@ -143,49 +198,96 @@ public final class Logger {
      */
     static void errorPII(final String tag, final RequestContext requestContext, final String errorMessage,
                          final Throwable exception) {
-        getInstance().log(tag, LogLevel.ERROR, requestContext, errorMessage, exception, true);
+        getInstance().commonCoreWrapper(tag, LogLevel.ERROR, requestContext, errorMessage, exception, true);
     }
 
     /**
      * Send a {@link LogLevel#WARNING} log message without PII.
      */
     static void warning(final String tag, final RequestContext requestContext, final String message) {
-        getInstance().log(tag, LogLevel.WARNING, requestContext, message, null, false);
+        getInstance().commonCoreWrapper(tag, LogLevel.WARNING, requestContext, message, null, false);
     }
 
     /**
      * Send a {@link LogLevel#WARNING} log message with PII.
      */
     static void warningPII(final String tag, final RequestContext requestContext, final String message) {
-        getInstance().log(tag, LogLevel.WARNING, requestContext, message, null, true);
+        getInstance().commonCoreWrapper(tag, LogLevel.WARNING, requestContext, message, null, true);
     }
 
     /**
      * Send a {@link LogLevel#INFO} log message without PII.
      */
     static void info(final String tag, final RequestContext requestContext, final String message) {
-        getInstance().log(tag, LogLevel.INFO, requestContext, message, null, false);
+        getInstance().commonCoreWrapper(tag, LogLevel.INFO, requestContext, message, null, false);
     }
 
     /**
      * Send a {@link LogLevel#INFO} log message with PII.
      */
     static void infoPII(final String tag, final RequestContext requestContext, final String message) {
-        getInstance().log(tag, LogLevel.INFO, requestContext, message, null, true);
+        getInstance().commonCoreWrapper(tag, LogLevel.INFO, requestContext, message, null, true);
     }
 
     /**
      * Send a {@link LogLevel#VERBOSE} log message without PII.
      */
     static void verbose(final String tag, final RequestContext requestContext, final String message) {
-        getInstance().log(tag, LogLevel.VERBOSE, requestContext, message, null, false);
+        getInstance().commonCoreWrapper(tag, LogLevel.VERBOSE, requestContext, message, null, false);
     }
 
     /**
      * Send a {@link LogLevel#VERBOSE} log message with PII.
      */
     static void verbosePII(final String tag, final RequestContext requestContext, final String message) {
-        getInstance().log(tag, LogLevel.VERBOSE, requestContext, message, null, true);
+        getInstance().commonCoreWrapper(tag, LogLevel.VERBOSE, requestContext, message, null, true);
+    }
+
+    private String getCorrelationId(RequestContext requestContext) {
+        if (requestContext != null && requestContext.getCorrelationId() != null) {
+            return requestContext.getCorrelationId().toString();
+        } else {
+            return null;
+        }
+    }
+    private void commonCoreWrapper(final String tag, final LogLevel logLevel, final RequestContext requestContext,
+                                   final String message, final Throwable throwable, final boolean containsPII) {
+        if (mEnableCommonCoreLog) {
+            switch (logLevel) {
+                case ERROR:
+                   if (containsPII) {
+                       CommonCoreLogger.errorPII(tag, getCorrelationId(requestContext), message, null, throwable);
+                   } else {
+                       CommonCoreLogger.error(tag, getCorrelationId(requestContext), message, null, throwable);
+                   }
+                   break;
+                case WARNING:
+                    if (containsPII) {
+                        CommonCoreLogger.warnPII(tag, getCorrelationId(requestContext), message, null);
+                    } else {
+                        CommonCoreLogger.warn(tag, getCorrelationId(requestContext), message, null);
+                    }
+                    break;
+                case INFO:
+                    if (containsPII) {
+                        CommonCoreLogger.infoPII(tag, getCorrelationId(requestContext), message, null);
+                    } else {
+                        CommonCoreLogger.info(tag, getCorrelationId(requestContext), message, null);
+                    }
+                    break;
+                case VERBOSE:
+                    if (containsPII) {
+                        CommonCoreLogger.infoPII(tag, getCorrelationId(requestContext), message, null);
+                    } else {
+                        CommonCoreLogger.info(tag, getCorrelationId(requestContext), message, null);
+                    }
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown logLevel");
+            }
+        } else {
+            getInstance().log(tag, logLevel, requestContext, message, throwable, containsPII);
+        }
     }
 
     /**
