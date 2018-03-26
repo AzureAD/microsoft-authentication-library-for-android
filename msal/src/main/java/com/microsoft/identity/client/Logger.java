@@ -23,14 +23,9 @@
 
 package com.microsoft.identity.client;
 
-import android.os.Build;
-import android.util.Log;
-
 import com.microsoft.identity.common.internal.logging.CommonCoreLogger;
+import com.microsoft.identity.common.internal.logging.LoggerSettings;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -69,34 +64,37 @@ import java.util.concurrent.atomic.AtomicReference;
  * </pre>
  */
 public final class Logger {
-    private static final Logger INSTANCE = new Logger();
-    static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    private static final Logger sINSTANCE = new Logger();
 
-    // Turn on the verbose level logging by default.
-    private LogLevel mLogLevel = LogLevel.VERBOSE;
     private AtomicReference<ILoggerCallback> mExternalLogger = new AtomicReference<>(null);
-    private boolean mLogcatLogEnabled = true;
-    private boolean mEnablePII = false;
-    private boolean mEnableCommonCoreLog = false;
 
     /**
      * @return The single instance of {@link Logger}.
      */
     public static Logger getInstance() {
-        return INSTANCE;
+        return sINSTANCE;
     }
 
     /**
-     * Enable/Disable the Common-Core logging. By default, the sdk disables it.
-     * @param commonCoreLogEnabled True if enabling the Common-Core logging, false otherwise.
+     * Enum class for LogLevel that the sdk recognizes.
      */
-    public void setEnableCommonCoreLog(final boolean commonCoreLogEnabled) {
-        if (commonCoreLogEnabled) {
-            CommonCoreLogger.getInstance().setPIIEnabled(mEnablePII);
-            CommonCoreLogger.getInstance().setLogcatLogEnabled(mLogcatLogEnabled);
-        }
-
-        mEnableCommonCoreLog = commonCoreLogEnabled;
+    public enum LogLevel {
+        /**
+         * Error level logging.
+         */
+        ERROR,
+        /**
+         * Warning level logging.
+         */
+        WARNING,
+        /**
+         * Info level logging.
+         */
+        INFO,
+        /**
+         * Verbose level logging.
+         */
+        VERBOSE
     }
 
     /**
@@ -105,25 +103,21 @@ public final class Logger {
      * @param logLevel The {@link LogLevel} to be enabled for the diagnostic logging.
      */
     public void setLogLevel(final LogLevel logLevel) {
-        if (mEnableCommonCoreLog) {
-            switch (logLevel) {
-                case ERROR:
-                    CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.ERROR);
-                    break;
-                case WARNING:
-                    CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.WARN);
-                    break;
-                case INFO:
-                    CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.INFO);
-                    break;
-                case VERBOSE:
-                    CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.VERBOSE);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unknown logLevel");
-            }
-        } else {
-            mLogLevel = logLevel;
+        switch (logLevel) {
+            case ERROR:
+                CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.ERROR);
+                break;
+            case WARNING:
+                CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.WARN);
+                break;
+            case INFO:
+                CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.INFO);
+                break;
+            case VERBOSE:
+                CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.VERBOSE);
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown logLevel");
         }
     }
 
@@ -144,19 +138,30 @@ public final class Logger {
             throw new IllegalStateException("External logger is already set, cannot be set again.");
         }
 
+        // If mExternalLogger is not set. Then implement the ILoggerCallback interface in common-core.
+        CommonCoreLogger.getInstance().setExternalLogger(new com.microsoft.identity.common.internal.logging.ILoggerCallback() {
+            @Override
+            public void log(String tag, CommonCoreLogger.LogLevel logLevel, String message, boolean containsPII) {
+                switch (logLevel) {
+                    case ERROR:
+                        mExternalLogger.get().log(tag, LogLevel.ERROR, message, containsPII);
+                        break;
+                    case WARN:
+                        mExternalLogger.get().log(tag, LogLevel.WARNING, message, containsPII);
+                        break;
+                    case VERBOSE:
+                        mExternalLogger.get().log(tag, LogLevel.VERBOSE, message, containsPII);
+                        break;
+                    case INFO:
+                        mExternalLogger.get().log(tag, LogLevel.INFO, message, containsPII);
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unknown logLevel");
+                }
+            }
+        });
+
         mExternalLogger.set(externalLogger);
-    }
-
-    /**
-     * Adapter API in ADAL to set the custom logger in the use of Common-Core.
-     * @param externalLogger The reference to the {@link com.microsoft.identity.common.internal.logging.ILoggerCallback} that can
-     *                       output the logs to the designated places.
-     */
-    public synchronized void setCommonCoreExternalLogger(com.microsoft.identity.common.internal.logging.ILoggerCallback externalLogger) {
-        CommonCoreLogger.getInstance().setExternalLogger(externalLogger);
-
-        //If the dev calls setCommonCoreExternalLogger, it is an explicit enable-flag for common-core logging.
-        setEnableCommonCoreLog(true);
     }
 
     /**
@@ -165,11 +170,7 @@ public final class Logger {
      * @param enableLogcatLog True if enabling the logcat logging, false otherwise.
      */
     public void setEnableLogcatLog(final boolean enableLogcatLog) {
-        if (mEnableCommonCoreLog) {
-            CommonCoreLogger.getInstance().setLogcatLogEnabled(enableLogcatLog);
-        } else {
-            mLogcatLogEnabled = enableLogcatLog;
-        }
+        LoggerSettings.getInstance().setAllowLogcat(enableLogcatLog);
     }
 
     /**
@@ -178,11 +179,7 @@ public final class Logger {
      * @param enablePII True if enabling PII info to be logged, false otherwise.
      */
     public void setEnablePII(final boolean enablePII) {
-        if (mEnableCommonCoreLog) {
-            CommonCoreLogger.getInstance().setPIIEnabled(enablePII);
-        } else {
-            mEnablePII = enablePII;
-        }
+        LoggerSettings.getInstance().setAllowPii(enablePII);
     }
 
     /**
@@ -252,121 +249,41 @@ public final class Logger {
     }
     private void commonCoreWrapper(final String tag, final LogLevel logLevel, final RequestContext requestContext,
                                    final String message, final Throwable throwable, final boolean containsPII) {
-        if (mEnableCommonCoreLog) {
-            switch (logLevel) {
-                case ERROR:
-                   if (containsPII) {
-                       CommonCoreLogger.errorPII(tag, getCorrelationId(requestContext), message, null, throwable);
-                   } else {
-                       CommonCoreLogger.error(tag, getCorrelationId(requestContext), message, null, throwable);
-                   }
-                   break;
-                case WARNING:
-                    if (containsPII) {
-                        CommonCoreLogger.warnPII(tag, getCorrelationId(requestContext), message, null);
-                    } else {
-                        CommonCoreLogger.warn(tag, getCorrelationId(requestContext), message, null);
-                    }
-                    break;
-                case INFO:
-                    if (containsPII) {
-                        CommonCoreLogger.infoPII(tag, getCorrelationId(requestContext), message, null);
-                    } else {
-                        CommonCoreLogger.info(tag, getCorrelationId(requestContext), message, null);
-                    }
-                    break;
-                case VERBOSE:
-                    if (containsPII) {
-                        CommonCoreLogger.infoPII(tag, getCorrelationId(requestContext), message, null);
-                    } else {
-                        CommonCoreLogger.info(tag, getCorrelationId(requestContext), message, null);
-                    }
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unknown logLevel");
-            }
-        } else {
-            getInstance().log(tag, logLevel, requestContext, message, throwable, containsPII);
-        }
-    }
+        final String messageWithComponent = appendComponent(requestContext) + message;
+        final String correlationID = getCorrelationId(requestContext);
 
-    /**
-     * Format the log message. Depends on the developer setting, the log message could be sent to logcat
-     * or the external logger set by the calling app.
-     */
-    private void log(final String tag, final LogLevel logLevel, final RequestContext requestContext,
-                     final String message, final Throwable throwable, final boolean containsPII) {
-        if (logLevel.compareTo(mLogLevel) > 0) {
-            return;
-        }
-
-        // Developer turns off PII logging, if the log message contains any PII, we shouldn't send it.
-        if (!mEnablePII && containsPII) {
-            return;
-        }
-
-        final StringBuilder logMessage = new StringBuilder();
-        logMessage.append(formatMessage(requestContext, message));
-
-        // Adding stacktrace to message
-        if (throwable != null) {
-            logMessage.append(' ').append(Log.getStackTraceString(throwable));
-        }
-
-        if (mLogcatLogEnabled) {
-            sendLogcatLogs(tag, logLevel, logMessage.toString());
-        }
-
-        if (mExternalLogger.get() != null) {
-            mExternalLogger.get().log(tag, logLevel, logMessage.toString(), containsPII);
-        }
-    }
-
-    /**
-     * Send logs to logcat as the default logging if developer doesn't turn off the logcat logging.
-     */
-    private void sendLogcatLogs(final String tag, final LogLevel logLevel, final String message) {
-        // Append additional message to the message part for logcat logging
         switch (logLevel) {
             case ERROR:
-                Log.e(tag, message);
-                break;
+               if (containsPII) {
+                   CommonCoreLogger.errorPII(tag, correlationID, messageWithComponent, throwable);
+               } else {
+                   CommonCoreLogger.error(tag, correlationID, messageWithComponent, throwable);
+               }
+               break;
             case WARNING:
-                Log.w(tag, message);
+                if (containsPII) {
+                    CommonCoreLogger.warnPII(tag, correlationID, messageWithComponent);
+                } else {
+                    CommonCoreLogger.warn(tag, correlationID, messageWithComponent);
+                }
                 break;
             case INFO:
-                Log.i(tag, message);
+                if (containsPII) {
+                    CommonCoreLogger.infoPII(tag, correlationID, messageWithComponent);
+                } else {
+                    CommonCoreLogger.info(tag, correlationID, messageWithComponent);
+                }
                 break;
             case VERBOSE:
-                Log.v(tag, message);
+                if (containsPII) {
+                    CommonCoreLogger.verbosePII(tag, correlationID, messageWithComponent);
+                } else {
+                    CommonCoreLogger.verbose(tag, correlationID, messageWithComponent);
+                }
                 break;
             default:
-                throw new IllegalArgumentException("Unknown loglevel");
+                throw new IllegalArgumentException("Unknown logLevel");
         }
-    }
-
-    /**
-     * Wrap the log message, component is optional.
-     * If correlation id exists:
-     * MSAL <msal_version> <platform> <platform_version> [<timestamp> - <correlation_id>] (component) <log_message>
-     * If correlation id doesn't exist:
-     * MSAL <msal_version> <platform> <platform_version> [<timestamp>] (component) <log_message>
-     */
-    private String formatMessage(final RequestContext requestContext, final String message) {
-        final String logMessage = MsalUtils.isEmpty(message) ? "N/A" : message;
-
-        return "MSAL " + PublicClientApplication.getSdkVersion() + " Android "
-                + Build.VERSION.SDK_INT + " [" + getUTCDateTimeAsString() + appendCorrelationId(requestContext)
-                + appendComponent(requestContext) + logMessage;
-    }
-
-    private String appendCorrelationId(final RequestContext requestContext) {
-        String formatMessage = "";
-        if (requestContext != null && requestContext.getCorrelationId() != null) {
-            formatMessage += " - " + requestContext.getCorrelationId().toString();
-        }
-
-        return formatMessage + "] ";
     }
 
     private String appendComponent(final RequestContext requestContext) {
@@ -375,33 +292,5 @@ public final class Logger {
         }
 
         return "";
-    }
-
-    private static String getUTCDateTimeAsString() {
-        final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return dateFormat.format(new Date());
-    }
-
-    /**
-     * Enum class for LogLevel that the sdk recognizes.
-     */
-    public enum LogLevel {
-        /**
-         * Error level logging.
-         */
-        ERROR,
-        /**
-         * Warning level logging.
-         */
-        WARNING,
-        /**
-         * Info level logging.
-         */
-        INFO,
-        /**
-         * Verbose level logging.
-         */
-        VERBOSE
     }
 }
