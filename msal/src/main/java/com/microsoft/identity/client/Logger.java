@@ -23,10 +23,9 @@
 
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.common.internal.logging.CommonCoreLogger;
-import com.microsoft.identity.common.internal.logging.LoggerSettings;
-
 import java.util.concurrent.atomic.AtomicReference;
+
+import static com.microsoft.identity.msal.BuildConfig.VERSION_NAME;
 
 /**
  * MSAL Logger for diagnostic purpose. The sdk generates logs with both logcat logging or the external logger.
@@ -105,16 +104,20 @@ public final class Logger {
     public void setLogLevel(final LogLevel logLevel) {
         switch (logLevel) {
             case ERROR:
-                CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.ERROR);
+                com.microsoft.identity.common.internal.logging.Logger.getInstance()
+                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.ERROR);
                 break;
             case WARNING:
-                CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.WARN);
+                com.microsoft.identity.common.internal.logging.Logger.getInstance()
+                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.WARN);
                 break;
             case INFO:
-                CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.INFO);
+                com.microsoft.identity.common.internal.logging.Logger.getInstance()
+                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.INFO);
                 break;
             case VERBOSE:
-                CommonCoreLogger.getInstance().setLogLevel(CommonCoreLogger.LogLevel.VERBOSE);
+                com.microsoft.identity.common.internal.logging.Logger.getInstance()
+                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.VERBOSE);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown logLevel");
@@ -139,9 +142,9 @@ public final class Logger {
         }
 
         // If mExternalLogger is not set. Then implement the ILoggerCallback interface in common-core.
-        CommonCoreLogger.getInstance().setExternalLogger(new com.microsoft.identity.common.internal.logging.ILoggerCallback() {
+        com.microsoft.identity.common.internal.logging.Logger.getInstance().setExternalLogger(new com.microsoft.identity.common.internal.logging.ILoggerCallback() {
             @Override
-            public void log(String tag, CommonCoreLogger.LogLevel logLevel, String message, boolean containsPII) {
+            public void log(String tag, com.microsoft.identity.common.internal.logging.Logger.LogLevel logLevel, String message, boolean containsPII) {
                 switch (logLevel) {
                     case ERROR:
                         mExternalLogger.get().log(tag, LogLevel.ERROR, message, containsPII);
@@ -170,7 +173,7 @@ public final class Logger {
      * @param enableLogcatLog True if enabling the logcat logging, false otherwise.
      */
     public void setEnableLogcatLog(final boolean enableLogcatLog) {
-        LoggerSettings.getInstance().setAllowLogcat(enableLogcatLog);
+        com.microsoft.identity.common.internal.logging.Logger.setAllowLogcat(enableLogcatLog);
     }
 
     /**
@@ -179,7 +182,7 @@ public final class Logger {
      * @param enablePII True if enabling PII info to be logged, false otherwise.
      */
     public void setEnablePII(final boolean enablePII) {
-        LoggerSettings.getInstance().setAllowPii(enablePII);
+        com.microsoft.identity.common.internal.logging.Logger.setAllowPii(enablePII);
     }
 
     /**
@@ -249,36 +252,36 @@ public final class Logger {
     }
     private void commonCoreWrapper(final String tag, final LogLevel logLevel, final RequestContext requestContext,
                                    final String message, final Throwable throwable, final boolean containsPII) {
-        final String messageWithComponent = appendComponent(requestContext) + message;
+        final String messageWithComponent = appendComponent(requestContext) + message + " SDK ver:" + VERSION_NAME;
         final String correlationID = getCorrelationId(requestContext);
 
         switch (logLevel) {
             case ERROR:
                if (containsPII) {
-                   CommonCoreLogger.errorPII(tag, correlationID, messageWithComponent, throwable);
+                   com.microsoft.identity.common.internal.logging.Logger.errorPII(tag, correlationID, messageWithComponent, throwable);
                } else {
-                   CommonCoreLogger.error(tag, correlationID, messageWithComponent, throwable);
+                   com.microsoft.identity.common.internal.logging.Logger.error(tag, correlationID, messageWithComponent, throwable);
                }
                break;
             case WARNING:
                 if (containsPII) {
-                    CommonCoreLogger.warnPII(tag, correlationID, messageWithComponent);
+                    com.microsoft.identity.common.internal.logging.Logger.warnPII(tag, correlationID, messageWithComponent);
                 } else {
-                    CommonCoreLogger.warn(tag, correlationID, messageWithComponent);
+                    com.microsoft.identity.common.internal.logging.Logger.warn(tag, correlationID, messageWithComponent);
                 }
                 break;
             case INFO:
                 if (containsPII) {
-                    CommonCoreLogger.infoPII(tag, correlationID, messageWithComponent);
+                    com.microsoft.identity.common.internal.logging.Logger.infoPII(tag, correlationID, messageWithComponent);
                 } else {
-                    CommonCoreLogger.info(tag, correlationID, messageWithComponent);
+                    com.microsoft.identity.common.internal.logging.Logger.info(tag, correlationID, messageWithComponent);
                 }
                 break;
             case VERBOSE:
                 if (containsPII) {
-                    CommonCoreLogger.verbosePII(tag, correlationID, messageWithComponent);
+                    com.microsoft.identity.common.internal.logging.Logger.verbosePII(tag, correlationID, messageWithComponent);
                 } else {
-                    CommonCoreLogger.verbose(tag, correlationID, messageWithComponent);
+                    com.microsoft.identity.common.internal.logging.Logger.verbose(tag, correlationID, messageWithComponent);
                 }
                 break;
             default:
