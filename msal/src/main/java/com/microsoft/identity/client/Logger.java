@@ -187,7 +187,9 @@ public final class Logger {
 
     /**
      * Send a {@link LogLevel#ERROR} log message without PII.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#error(String, String, String, Throwable)} instead.
      */
+    @Deprecated
     static void error(final String tag, final RequestContext requestContext, final String errorMessage,
                       final Throwable exception) {
         getInstance().commonCoreWrapper(tag, LogLevel.ERROR, requestContext, errorMessage, exception, false);
@@ -195,7 +197,9 @@ public final class Logger {
 
     /**
      * Send a {@link LogLevel#ERROR} log message with PII.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#errorPII(String, String, String, Throwable)} instead.
      */
+    @Deprecated
     static void errorPII(final String tag, final RequestContext requestContext, final String errorMessage,
                          final Throwable exception) {
         getInstance().commonCoreWrapper(tag, LogLevel.ERROR, requestContext, errorMessage, exception, true);
@@ -203,42 +207,54 @@ public final class Logger {
 
     /**
      * Send a {@link LogLevel#WARNING} log message without PII.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#warn(String, String, String)} instead.
      */
+    @Deprecated
     static void warning(final String tag, final RequestContext requestContext, final String message) {
         getInstance().commonCoreWrapper(tag, LogLevel.WARNING, requestContext, message, null, false);
     }
 
     /**
      * Send a {@link LogLevel#WARNING} log message with PII.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#warnPII(String, String, String)} instead.
      */
+    @Deprecated
     static void warningPII(final String tag, final RequestContext requestContext, final String message) {
         getInstance().commonCoreWrapper(tag, LogLevel.WARNING, requestContext, message, null, true);
     }
 
     /**
      * Send a {@link LogLevel#INFO} log message without PII.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#info(String, String, String)} instead.
      */
+    @Deprecated
     static void info(final String tag, final RequestContext requestContext, final String message) {
         getInstance().commonCoreWrapper(tag, LogLevel.INFO, requestContext, message, null, false);
     }
 
     /**
      * Send a {@link LogLevel#INFO} log message with PII.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#infoPII(String, String, String)} instead.
      */
+    @Deprecated
     static void infoPII(final String tag, final RequestContext requestContext, final String message) {
         getInstance().commonCoreWrapper(tag, LogLevel.INFO, requestContext, message, null, true);
     }
 
     /**
      * Send a {@link LogLevel#VERBOSE} log message without PII.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#verbose(String, String, String)} instead.
      */
+    @Deprecated
     static void verbose(final String tag, final RequestContext requestContext, final String message) {
         getInstance().commonCoreWrapper(tag, LogLevel.VERBOSE, requestContext, message, null, false);
     }
 
     /**
      * Send a {@link LogLevel#VERBOSE} log message with PII.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#verbosePII(String, String, String)} instead.
      */
+    @Deprecated
     static void verbosePII(final String tag, final RequestContext requestContext, final String message) {
         getInstance().commonCoreWrapper(tag, LogLevel.VERBOSE, requestContext, message, null, true);
     }
