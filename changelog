@@ -2,14 +2,13 @@ Version 0.1.2
 ----------------------------
 1. GDPR compliance to Telemetry and Logger
 2. Fix the bug on CustomTabService checking when calling getCustomTabsServiceIsBound()
-3. Add APIs to configure the connect timeout and read timeout for HTTPRequest
-4. Update Telemetry to track telemetry Event data in a single Map instance
-5. Specifies thrown Exception classes in AbstractMetadataRequestor
-6. Create "no-args" constructor for GSON POJOs to prevent using "sun.misc.Unsafe" 
-7. Specifies the default locale to UTF_8 to guarantee consistent behavior across all Android devices.
-8. Use versions.gradle to aggregate versions across subproject
-9. Update Gradle to 4.1
-10. Update Gson to 2.8.0
+3. Update Telemetry to track telemetry Event data in a single Map instance
+4. Specifies thrown Exception classes in AbstractMetadataRequestor
+5. Create "no-args" constructor for GSON POJOs to prevent using "sun.misc.Unsafe" 
+6. Specifies the default locale to UTF_8 to guarantee consistent behavior across all Android devices.
+7. Use versions.gradle to aggregate versions across subproject
+8. Update Gradle to 4.1
+9. Update Gson to 2.8.0
 
 Version 0.1.1
 ----------------------------
