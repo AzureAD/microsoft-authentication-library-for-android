@@ -23,13 +23,9 @@
 
 package com.microsoft.identity.client;
 
-import android.os.Build;
-import android.util.Log;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static com.microsoft.identity.msal.BuildConfig.VERSION_NAME;
 
 /**
  * MSAL Logger for diagnostic purpose. The sdk generates logs with both logcat logging or the external logger.
@@ -67,218 +63,15 @@ import java.util.concurrent.atomic.AtomicReference;
  * </pre>
  */
 public final class Logger {
-    private static final Logger INSTANCE = new Logger();
-    static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    private static final Logger sINSTANCE = new Logger();
 
-    // Turn on the verbose level logging by default.
-    private LogLevel mLogLevel = LogLevel.VERBOSE;
     private AtomicReference<ILoggerCallback> mExternalLogger = new AtomicReference<>(null);
-    private boolean mLogcatLogEnabled = true;
-    private boolean mEnablePII = false;
 
     /**
      * @return The single instance of {@link Logger}.
      */
     public static Logger getInstance() {
-        return INSTANCE;
-    }
-
-    /**
-     * Set the log level for diagnostic purpose. By default, the sdk enables the verbose level logging.
-     *
-     * @param logLevel The {@link LogLevel} to be enabled for the diagnostic logging.
-     */
-    public void setLogLevel(final LogLevel logLevel) {
-        mLogLevel = logLevel;
-    }
-
-    /**
-     * Set the custom logger. Configures external logging to configure a callback that
-     * the sdk will use to pass each log message. Overriding the logger callback is not allowed.
-     *
-     * @param externalLogger The reference to the {@link ILoggerCallback} that can
-     *                       output the logs to the designated places.
-     * @throws IllegalStateException if external logger is already set, and the caller is trying to set it again.
-     */
-    public void setExternalLogger(final ILoggerCallback externalLogger) {
-        if (externalLogger == null) {
-            return;
-        }
-
-        if (mExternalLogger.get() != null) {
-            throw new IllegalStateException("External logger is already set, cannot be set again.");
-        }
-
-        mExternalLogger.set(externalLogger);
-    }
-
-    /**
-     * Enable/Disable the Android logcat logging. By default, the sdk enables it.
-     *
-     * @param enableLogcatLog True if enabling the logcat logging, false otherwise.
-     */
-    public void setEnableLogcatLog(final boolean enableLogcatLog) {
-        mLogcatLogEnabled = enableLogcatLog;
-    }
-
-    /**
-     * Enable log message with PII (personal identifiable information) info. By default, MSAL doesn't log any PII.
-     *
-     * @param enablePII True if enabling PII info to be logged, false otherwise.
-     */
-    public void setEnablePII(final boolean enablePII) {
-        mEnablePII = enablePII;
-    }
-
-    /**
-     * Send a {@link LogLevel#ERROR} log message without PII.
-     */
-    static void error(final String tag, final RequestContext requestContext, final String errorMessage,
-                      final Throwable exception) {
-        getInstance().log(tag, LogLevel.ERROR, requestContext, errorMessage, exception, false);
-    }
-
-    /**
-     * Send a {@link LogLevel#ERROR} log message with PII.
-     */
-    static void errorPII(final String tag, final RequestContext requestContext, final String errorMessage,
-                         final Throwable exception) {
-        getInstance().log(tag, LogLevel.ERROR, requestContext, errorMessage, exception, true);
-    }
-
-    /**
-     * Send a {@link LogLevel#WARNING} log message without PII.
-     */
-    static void warning(final String tag, final RequestContext requestContext, final String message) {
-        getInstance().log(tag, LogLevel.WARNING, requestContext, message, null, false);
-    }
-
-    /**
-     * Send a {@link LogLevel#WARNING} log message with PII.
-     */
-    static void warningPII(final String tag, final RequestContext requestContext, final String message) {
-        getInstance().log(tag, LogLevel.WARNING, requestContext, message, null, true);
-    }
-
-    /**
-     * Send a {@link LogLevel#INFO} log message without PII.
-     */
-    static void info(final String tag, final RequestContext requestContext, final String message) {
-        getInstance().log(tag, LogLevel.INFO, requestContext, message, null, false);
-    }
-
-    /**
-     * Send a {@link LogLevel#INFO} log message with PII.
-     */
-    static void infoPII(final String tag, final RequestContext requestContext, final String message) {
-        getInstance().log(tag, LogLevel.INFO, requestContext, message, null, true);
-    }
-
-    /**
-     * Send a {@link LogLevel#VERBOSE} log message without PII.
-     */
-    static void verbose(final String tag, final RequestContext requestContext, final String message) {
-        getInstance().log(tag, LogLevel.VERBOSE, requestContext, message, null, false);
-    }
-
-    /**
-     * Send a {@link LogLevel#VERBOSE} log message with PII.
-     */
-    static void verbosePII(final String tag, final RequestContext requestContext, final String message) {
-        getInstance().log(tag, LogLevel.VERBOSE, requestContext, message, null, true);
-    }
-
-    /**
-     * Format the log message. Depends on the developer setting, the log message could be sent to logcat
-     * or the external logger set by the calling app.
-     */
-    private void log(final String tag, final LogLevel logLevel, final RequestContext requestContext,
-                     final String message, final Throwable throwable, final boolean containsPII) {
-        if (logLevel.compareTo(mLogLevel) > 0) {
-            return;
-        }
-
-        // Developer turns off PII logging, if the log message contains any PII, we shouldn't send it.
-        if (!mEnablePII && containsPII) {
-            return;
-        }
-
-        final StringBuilder logMessage = new StringBuilder();
-        logMessage.append(formatMessage(requestContext, message));
-
-        // Adding stacktrace to message
-        if (throwable != null) {
-            logMessage.append(' ').append(Log.getStackTraceString(throwable));
-        }
-
-        if (mLogcatLogEnabled) {
-            sendLogcatLogs(tag, logLevel, logMessage.toString());
-        }
-
-        if (mExternalLogger.get() != null) {
-            mExternalLogger.get().log(tag, logLevel, logMessage.toString(), containsPII);
-        }
-    }
-
-    /**
-     * Send logs to logcat as the default logging if developer doesn't turn off the logcat logging.
-     */
-    private void sendLogcatLogs(final String tag, final LogLevel logLevel, final String message) {
-        // Append additional message to the message part for logcat logging
-        switch (logLevel) {
-            case ERROR:
-                Log.e(tag, message);
-                break;
-            case WARNING:
-                Log.w(tag, message);
-                break;
-            case INFO:
-                Log.i(tag, message);
-                break;
-            case VERBOSE:
-                Log.v(tag, message);
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown loglevel");
-        }
-    }
-
-    /**
-     * Wrap the log message, component is optional.
-     * If correlation id exists:
-     * MSAL <msal_version> <platform> <platform_version> [<timestamp> - <correlation_id>] (component) <log_message>
-     * If correlation id doesn't exist:
-     * MSAL <msal_version> <platform> <platform_version> [<timestamp>] (component) <log_message>
-     */
-    private String formatMessage(final RequestContext requestContext, final String message) {
-        final String logMessage = MsalUtils.isEmpty(message) ? "N/A" : message;
-
-        return "MSAL " + PublicClientApplication.getSdkVersion() + " Android "
-                + Build.VERSION.SDK_INT + " [" + getUTCDateTimeAsString() + appendCorrelationId(requestContext)
-                + appendComponent(requestContext) + logMessage;
-    }
-
-    private String appendCorrelationId(final RequestContext requestContext) {
-        String formatMessage = "";
-        if (requestContext != null && requestContext.getCorrelationId() != null) {
-            formatMessage += " - " + requestContext.getCorrelationId().toString();
-        }
-
-        return formatMessage + "] ";
-    }
-
-    private String appendComponent(final RequestContext requestContext) {
-        if (requestContext != null && !MsalUtils.isEmpty(requestContext.getComponent())) {
-            return "(" + requestContext.getComponent() + ") ";
-        }
-
-        return "";
-    }
-
-    private static String getUTCDateTimeAsString() {
-        final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return dateFormat.format(new Date());
+        return sINSTANCE;
     }
 
     /**
@@ -301,5 +94,222 @@ public final class Logger {
          * Verbose level logging.
          */
         VERBOSE
+    }
+
+    /**
+     * Set the log level for diagnostic purpose. By default, the sdk enables the verbose level logging.
+     *
+     * @param logLevel The {@link LogLevel} to be enabled for the diagnostic logging.
+     */
+    public void setLogLevel(final LogLevel logLevel) {
+        switch (logLevel) {
+            case ERROR:
+                com.microsoft.identity.common.internal.logging.Logger.getInstance()
+                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.ERROR);
+                break;
+            case WARNING:
+                com.microsoft.identity.common.internal.logging.Logger.getInstance()
+                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.WARN);
+                break;
+            case INFO:
+                com.microsoft.identity.common.internal.logging.Logger.getInstance()
+                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.INFO);
+                break;
+            case VERBOSE:
+                com.microsoft.identity.common.internal.logging.Logger.getInstance()
+                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.VERBOSE);
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown logLevel");
+        }
+    }
+
+    /**
+     * Set the custom logger. Configures external logging to configure a callback that
+     * the sdk will use to pass each log message. Overriding the logger callback is not allowed.
+     *
+     * @param externalLogger The reference to the {@link ILoggerCallback} that can
+     *                       output the logs to the designated places.
+     * @throws IllegalStateException if external logger is already set, and the caller is trying to set it again.
+     */
+    public void setExternalLogger(final ILoggerCallback externalLogger) {
+        if (externalLogger == null) {
+            return;
+        }
+
+        if (mExternalLogger.get() != null) {
+            throw new IllegalStateException("External logger is already set, cannot be set again.");
+        }
+
+        // If mExternalLogger is not set. Then implement the ILoggerCallback interface in common-core.
+        com.microsoft.identity.common.internal.logging.Logger.getInstance().setExternalLogger(new com.microsoft.identity.common.internal.logging.ILoggerCallback() {
+            @Override
+            public void log(String tag, com.microsoft.identity.common.internal.logging.Logger.LogLevel logLevel, String message, boolean containsPII) {
+                switch (logLevel) {
+                    case ERROR:
+                        mExternalLogger.get().log(tag, LogLevel.ERROR, message, containsPII);
+                        break;
+                    case WARN:
+                        mExternalLogger.get().log(tag, LogLevel.WARNING, message, containsPII);
+                        break;
+                    case VERBOSE:
+                        mExternalLogger.get().log(tag, LogLevel.VERBOSE, message, containsPII);
+                        break;
+                    case INFO:
+                        mExternalLogger.get().log(tag, LogLevel.INFO, message, containsPII);
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unknown logLevel");
+                }
+            }
+        });
+
+        mExternalLogger.set(externalLogger);
+    }
+
+    /**
+     * Enable/Disable the Android logcat logging. By default, the sdk enables it.
+     *
+     * @param enableLogcatLog True if enabling the logcat logging, false otherwise.
+     */
+    public void setEnableLogcatLog(final boolean enableLogcatLog) {
+        com.microsoft.identity.common.internal.logging.Logger.setAllowLogcat(enableLogcatLog);
+    }
+
+    /**
+     * Enable log message with PII (personal identifiable information) info. By default, MSAL doesn't log any PII.
+     *
+     * @param enablePII True if enabling PII info to be logged, false otherwise.
+     */
+    public void setEnablePII(final boolean enablePII) {
+        com.microsoft.identity.common.internal.logging.Logger.setAllowPii(enablePII);
+    }
+
+    /**
+     * Send a {@link LogLevel#ERROR} log message without PII.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#error(String, String, String, Throwable)} instead.
+     */
+    @Deprecated
+    static void error(final String tag, final RequestContext requestContext, final String errorMessage,
+                      final Throwable exception) {
+        getInstance().commonCoreWrapper(tag, LogLevel.ERROR, requestContext, errorMessage, exception, false);
+    }
+
+    /**
+     * Send a {@link LogLevel#ERROR} log message with PII.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#errorPII(String, String, String, Throwable)} instead.
+     */
+    @Deprecated
+    static void errorPII(final String tag, final RequestContext requestContext, final String errorMessage,
+                         final Throwable exception) {
+        getInstance().commonCoreWrapper(tag, LogLevel.ERROR, requestContext, errorMessage, exception, true);
+    }
+
+    /**
+     * Send a {@link LogLevel#WARNING} log message without PII.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#warn(String, String, String)} instead.
+     */
+    @Deprecated
+    static void warning(final String tag, final RequestContext requestContext, final String message) {
+        getInstance().commonCoreWrapper(tag, LogLevel.WARNING, requestContext, message, null, false);
+    }
+
+    /**
+     * Send a {@link LogLevel#WARNING} log message with PII.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#warnPII(String, String, String)} instead.
+     */
+    @Deprecated
+    static void warningPII(final String tag, final RequestContext requestContext, final String message) {
+        getInstance().commonCoreWrapper(tag, LogLevel.WARNING, requestContext, message, null, true);
+    }
+
+    /**
+     * Send a {@link LogLevel#INFO} log message without PII.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#info(String, String, String)} instead.
+     */
+    @Deprecated
+    static void info(final String tag, final RequestContext requestContext, final String message) {
+        getInstance().commonCoreWrapper(tag, LogLevel.INFO, requestContext, message, null, false);
+    }
+
+    /**
+     * Send a {@link LogLevel#INFO} log message with PII.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#infoPII(String, String, String)} instead.
+     */
+    @Deprecated
+    static void infoPII(final String tag, final RequestContext requestContext, final String message) {
+        getInstance().commonCoreWrapper(tag, LogLevel.INFO, requestContext, message, null, true);
+    }
+
+    /**
+     * Send a {@link LogLevel#VERBOSE} log message without PII.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#verbose(String, String, String)} instead.
+     */
+    @Deprecated
+    static void verbose(final String tag, final RequestContext requestContext, final String message) {
+        getInstance().commonCoreWrapper(tag, LogLevel.VERBOSE, requestContext, message, null, false);
+    }
+
+    /**
+     * Send a {@link LogLevel#VERBOSE} log message with PII.
+     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#verbosePII(String, String, String)} instead.
+     */
+    @Deprecated
+    static void verbosePII(final String tag, final RequestContext requestContext, final String message) {
+        getInstance().commonCoreWrapper(tag, LogLevel.VERBOSE, requestContext, message, null, true);
+    }
+
+    private String getCorrelationId(RequestContext requestContext) {
+        if (requestContext != null && requestContext.getCorrelationId() != null) {
+            return requestContext.getCorrelationId().toString();
+        } else {
+            return null;
+        }
+    }
+    private void commonCoreWrapper(final String tag, final LogLevel logLevel, final RequestContext requestContext,
+                                   final String message, final Throwable throwable, final boolean containsPII) {
+        final String messageWithComponent = appendComponent(requestContext) + message + " SDK ver:" + VERSION_NAME;
+        final String correlationID = getCorrelationId(requestContext);
+
+        switch (logLevel) {
+            case ERROR:
+               if (containsPII) {
+                   com.microsoft.identity.common.internal.logging.Logger.errorPII(tag, correlationID, messageWithComponent, throwable);
+               } else {
+                   com.microsoft.identity.common.internal.logging.Logger.error(tag, correlationID, messageWithComponent, throwable);
+               }
+               break;
+            case WARNING:
+                if (containsPII) {
+                    com.microsoft.identity.common.internal.logging.Logger.warnPII(tag, correlationID, messageWithComponent);
+                } else {
+                    com.microsoft.identity.common.internal.logging.Logger.warn(tag, correlationID, messageWithComponent);
+                }
+                break;
+            case INFO:
+                if (containsPII) {
+                    com.microsoft.identity.common.internal.logging.Logger.infoPII(tag, correlationID, messageWithComponent);
+                } else {
+                    com.microsoft.identity.common.internal.logging.Logger.info(tag, correlationID, messageWithComponent);
+                }
+                break;
+            case VERBOSE:
+                if (containsPII) {
+                    com.microsoft.identity.common.internal.logging.Logger.verbosePII(tag, correlationID, messageWithComponent);
+                } else {
+                    com.microsoft.identity.common.internal.logging.Logger.verbose(tag, correlationID, messageWithComponent);
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown logLevel");
+        }
+    }
+
+    private String appendComponent(final RequestContext requestContext) {
+        if (requestContext != null && !MsalUtils.isEmpty(requestContext.getComponent())) {
+            return "(" + requestContext.getComponent() + ") ";
+        }
+
+        return "";
     }
 }
