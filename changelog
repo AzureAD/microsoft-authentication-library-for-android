@@ -1,6 +1,8 @@
+MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
+
 Version 0.1.2
 ----------------------------
-1. GDPR compliance to Telemetry and Logger
+1. GDPR compliance to Telemetry and Logger. Link: https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/Logging
 2. Fix the bug on CustomTabService checking when calling getCustomTabsServiceIsBound()
 3. Update Telemetry to track telemetry Event data in a single Map instance
 4. Specifies thrown Exception classes in AbstractMetadataRequestor
