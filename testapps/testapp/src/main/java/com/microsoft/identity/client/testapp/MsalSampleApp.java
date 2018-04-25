@@ -33,12 +33,14 @@ import com.microsoft.identity.client.Logger;
  */
 
 public class MsalSampleApp extends Application {
-    private StringBuffer mLogs;
+    private static final int LOG_SIZE = 1024 * 1024;
+    private StringBuilder mLogs;
+    private int mLogSize;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        mLogs = new StringBuffer();
+        mLogs = new StringBuilder();
 
         // Logging can be turned on four different levels: error, warning, info, and verbose. By default the sdk is turning on
         // verbose level logging. Any apps can use Logger.getInstance().setLogLevel(Loglevel) to enable different level of logging.
@@ -47,6 +49,10 @@ public class MsalSampleApp extends Application {
             public void log(String tag, Logger.LogLevel logLevel, String message, boolean containsPII) {
                 // contains PII indicates that if the log message contains PII information. If Pii logging is
                 // disabled, the sdk never returns back logs with Pii.
+                mLogSize = mLogs.toString().getBytes().length;
+                if (mLogSize + message.getBytes().length >= LOG_SIZE) {
+                    clearLogs();
+                }
                 mLogs.append(message).append('\n');
             }
         });
@@ -57,6 +63,7 @@ public class MsalSampleApp extends Application {
     }
 
     void clearLogs() {
-        mLogs = new StringBuffer();
+        mLogs = new StringBuilder();
+        mLogSize = 0;
     }
 }

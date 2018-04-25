@@ -30,6 +30,7 @@ import android.util.Base64;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -60,7 +61,7 @@ final class InteractiveRequest extends BaseRequest {
      *
      * @param activity              {@link Activity} used to launch the {@link AuthenticationActivity}.
      * @param authRequestParameters {@link AuthenticationRequestParameters} that is holding all the parameters for oauth request.
-     * @param extraScopesToConsent       An array of extra scopes.
+     * @param extraScopesToConsent  An array of extra scopes.
      */
     InteractiveRequest(final Activity activity, final AuthenticationRequestParameters authRequestParameters,
                        final String[] extraScopesToConsent) {
@@ -140,7 +141,7 @@ final class InteractiveRequest extends BaseRequest {
     @Override
     AuthenticationResult postTokenRequest() throws MsalUiRequiredException, MsalServiceException, MsalClientException {
         if (!isAccessTokenReturned()) {
-           throwExceptionFromTokenResponse(mTokenResponse);
+            throwExceptionFromTokenResponse(mTokenResponse);
         }
 
         return super.postTokenRequest();
@@ -313,7 +314,7 @@ final class InteractiveRequest extends BaseRequest {
         }
 
         final byte[] stateBytes = Base64.decode(encodedState, Base64.NO_PADDING | Base64.URL_SAFE);
-        return new String(stateBytes);
+        return new String(stateBytes, Charset.defaultCharset());
     }
 
     private void addExtraQueryParameter(final String key, final String value, final Map<String, String> requestParams) {

@@ -57,8 +57,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import static android.content.ContentValues.TAG;
-
 /**
  * Internal Util class for MSAL.
  */
@@ -72,6 +70,8 @@ final class MsalUtils {
      * Default access token expiration time in seconds.
      */
     public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
+
+    private static final String TAG = MsalUtils.class.getSimpleName();
 
     private static final String CUSTOM_TABS_SERVICE_ACTION =
             "android.support.customtabs.action.CustomTabsService";
@@ -221,6 +221,7 @@ final class MsalUtils {
      */
     static String getChromePackageWithCustomTabSupport(final Context context) {
         if (context.getPackageManager() == null) {
+            Logger.warning(TAG, null, "getPackageManager() returned null.");
             return null;
         }
 
@@ -230,7 +231,7 @@ final class MsalUtils {
 
         // queryIntentServices could return null or an empty list if no matching service existed.
         if (resolveInfoList == null || resolveInfoList.isEmpty()) {
-            // TODO: add logs
+            Logger.warning(TAG, null, "No Service responded to Intent: " + CUSTOM_TABS_SERVICE_ACTION);
             return null;
         }
 
@@ -241,6 +242,7 @@ final class MsalUtils {
             }
         }
 
+        Logger.warning(TAG, null, "No pkg with CustomTab support found.");
         return null;
     }
 
@@ -300,10 +302,8 @@ final class MsalUtils {
                 if (!MsalUtils.isEmpty(key) && !MsalUtils.isEmpty(value)) {
                     decodedUrlMap.put(key, value);
                 }
-                //CHECKSTYLE:OFF: checkstyle:EmptyBlock
             } catch (final UnsupportedEncodingException e) {
-                //CHECKSTYLE:ON: checkstyle:EmptyBlock
-                // TODO: log here.
+                Logger.errorPII(TAG, null, "URL form decode failed.", e);
             }
         }
 
@@ -408,7 +408,7 @@ final class MsalUtils {
         try {
             url = new URL(endpoint);
         } catch (MalformedURLException e1) {
-            Logger.error(MsalUtils.class.getSimpleName(), null, "Url is invalid", e1);
+            Logger.errorPII(MsalUtils.class.getSimpleName(), null, "Url is invalid", e1);
         }
 
         return url;

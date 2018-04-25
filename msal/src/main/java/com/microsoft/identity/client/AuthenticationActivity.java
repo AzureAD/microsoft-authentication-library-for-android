@@ -97,7 +97,7 @@ public final class AuthenticationActivity extends Activity {
 
         mTelemetryRequestId = data.getStringExtra(Constants.TELEMETRY_REQUEST_ID);
         mUiEventBuilder = new UiEvent.Builder();
-        Telemetry.getInstance().startEvent(mTelemetryRequestId, mUiEventBuilder.getEventName());
+        Telemetry.getInstance().startEvent(mTelemetryRequestId, mUiEventBuilder);
     }
 
     @Override
@@ -111,7 +111,7 @@ public final class AuthenticationActivity extends Activity {
     @Override
     protected void onStop() {
         super.onStop();
-        if (mCustomTabsServiceConnection.getCustomTabsServiceIsBound()) {
+        if (null != mCustomTabsServiceConnection && mCustomTabsServiceConnection.getCustomTabsServiceIsBound()) {
             unbindService(mCustomTabsServiceConnection);
         }
     }
@@ -184,6 +184,7 @@ public final class AuthenticationActivity extends Activity {
 
         /**
          * Gets the {@link CustomTabsSession} associated to this CustomTabs connection.
+         *
          * @return the session.
          */
         CustomTabsSession getCustomTabsSession() {
@@ -223,7 +224,7 @@ public final class AuthenticationActivity extends Activity {
 
         mRestarted = true;
 
-        mRequestUrl =  this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
+        mRequestUrl = this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
 
         Logger.infoPII(TAG, null, "Request to launch is: " + mRequestUrl);
         if (mChromePackageWithCustomTabSupport != null) {

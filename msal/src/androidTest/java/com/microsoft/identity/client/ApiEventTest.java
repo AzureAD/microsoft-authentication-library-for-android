@@ -51,10 +51,13 @@ public class ApiEventTest {
     static final String TEST_LOGIN_HINT = "user@contoso.com";
     static final boolean TEST_API_CALL_WAS_SUCCESSFUL = true;
     static final String TEST_API_ERROR_CODE = "test_error_code";
+    static final Long TEST_START_TIME = 0L;
+    static final Long TEST_STOP_TIME = 1L;
+    static final Long TEST_ELAPSED_TIME = TEST_STOP_TIME - TEST_START_TIME;
 
     // Authorities
     private static final String TEST_AUTHORITY_WITH_IDENTIFIER = AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT;
-    private static final String TEST_AUTHORITY_COMMON = "https://login.microsoftonline.com/common";
+    static final String TEST_AUTHORITY_COMMON = "https://login.microsoftonline.com/common";
     private static final String TEST_AUTHORITY_B2C = "https://login.microsoftonline.com/tfp/tenant/policy";
 
     static ApiEvent.Builder getRandomTestApiEventBuilder() {
@@ -63,6 +66,9 @@ public class ApiEventTest {
 
     static ApiEvent.Builder getTestApiEventBuilder(final String requestId, final String authority) {
         return new ApiEvent.Builder(requestId)
+                .setStartTime(0L)
+                .setStopTime(1L)
+                .setElapsedTime(1L)
                 .setAuthority(authority)
                 .setAuthorityType(TEST_AUTHORITY_TYPE)
                 .setUiBehavior(TEST_UI_BEHAVIOR)
@@ -98,9 +104,13 @@ public class ApiEventTest {
 
     @Test
     public void testApiEventInitializes() throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        Telemetry.setAllowPii(true);
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         final ApiEvent apiEvent = getTestApiEvent(telemetryRequestId, TEST_AUTHORITY);
         Assert.assertEquals(telemetryRequestId, apiEvent.getRequestId());
+        Assert.assertEquals(TEST_START_TIME, apiEvent.getStartTime());
+        Assert.assertEquals(TEST_STOP_TIME, apiEvent.getStopTime());
+        Assert.assertEquals(TEST_ELAPSED_TIME, apiEvent.getElapsedTime());
         Assert.assertEquals(TEST_AUTHORITY, apiEvent.getAuthority());
         Assert.assertEquals(EventProperty.Value.AUTHORITY_TYPE_AAD, apiEvent.getAuthorityType());
         Assert.assertEquals(TEST_UI_BEHAVIOR, apiEvent.getUiBehavior());
@@ -110,14 +120,17 @@ public class ApiEventTest {
         Assert.assertEquals(MsalUtils.createHash(TEST_LOGIN_HINT), apiEvent.getLoginHint());
         Assert.assertEquals(Boolean.valueOf(TEST_API_CALL_WAS_SUCCESSFUL), apiEvent.wasSuccessful());
         Assert.assertEquals(TEST_API_ERROR_CODE, apiEvent.getApiErrorCode());
+        Telemetry.setAllowPii(false);
     }
 
     @Test
-    public void testIdTokenParsing() {
+    public void testIdTokenParsing() throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        Telemetry.setAllowPii(true);
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         final ApiEvent apiEvent = getTestApiEvent(telemetryRequestId, TEST_AUTHORITY);
         Assert.assertEquals(TEST_IDP, apiEvent.getIdpName());
         Assert.assertEquals(TEST_TENANT_ID, apiEvent.getTenantId());
-        Assert.assertEquals(TEST_USER_ID, apiEvent.getUserId());
+        Assert.assertEquals(MsalUtils.createHash(TEST_USER_ID), apiEvent.getUserId());
+        Telemetry.setAllowPii(false);
     }
 }
