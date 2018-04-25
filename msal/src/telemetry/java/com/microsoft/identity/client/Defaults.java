@@ -23,7 +23,7 @@ final class Defaults {
     final String mSdkPlatform;
 
     /**
-     * Constructs a new Defaults
+     * Constructs a new Defaults.
      */
     Defaults(final String applicationName, final String applicationVersion, final String clientId,
              final String deviceId, final String sdkVersion, final String sdkPlatform) {

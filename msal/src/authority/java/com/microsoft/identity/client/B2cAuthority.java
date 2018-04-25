@@ -31,7 +31,7 @@ import java.net.URL;
  */
 final class B2cAuthority extends AadAuthority {
     private static final String TAG = B2cAuthority.class.getSimpleName();
-    private static int B2C_AUTHORITY_SEGMENTS_SIZE = 3;
+    private static final int B2C_AUTHORITY_SEGMENTS_SIZE = 3;
 
     B2cAuthority(final URL authority, boolean validateAuthority) {
         super(authority, validateAuthority);

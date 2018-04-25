@@ -144,8 +144,8 @@ public final class AuthenticationActivity extends Activity {
             initCustomTabsWithSession = false;
         }
 
-        final CustomTabsIntent.Builder builder = initCustomTabsWithSession ?
-                new CustomTabsIntent.Builder(mCustomTabsServiceConnection.getCustomTabsSession()) : new CustomTabsIntent.Builder();
+        final CustomTabsIntent.Builder builder = initCustomTabsWithSession
+                ? new CustomTabsIntent.Builder(mCustomTabsServiceConnection.getCustomTabsSession()) : new CustomTabsIntent.Builder();
 
         // Create the Intent used to launch the Url
         mCustomTabsIntent = builder.setShowTitle(true).build();

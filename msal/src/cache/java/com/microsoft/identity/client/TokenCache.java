@@ -274,12 +274,12 @@ class TokenCache {
     }
 
     /**
-     * Delegate to handle the deleting of {@link BaseTokenCacheItem}s
+     * Delegate to handle the deleting of {@link BaseTokenCacheItem}s.
      */
     private interface DeleteTokenAction {
 
         /**
-         * Deletes the supplied token
+         * Deletes the supplied token.
          *
          * @param target the {@link BaseTokenCacheItem} to delete
          */
@@ -306,7 +306,7 @@ class TokenCache {
     }
 
     /**
-     * Delete the refresh token associated with the supplied {@link User}
+     * Delete the refresh token associated with the supplied {@link User}.
      *
      * @param user the User whose refresh token should be deleted
      */
@@ -325,7 +325,7 @@ class TokenCache {
     }
 
     /**
-     * Delete the access token associated with the supplied {@link User}
+     * Delete the access token associated with the supplied {@link User}.
      *
      * @param user the User whose access token should be deleted
      */
