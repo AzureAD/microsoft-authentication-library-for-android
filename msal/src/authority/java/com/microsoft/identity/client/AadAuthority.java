@@ -43,7 +43,7 @@ class AadAuthority extends Authority {
 
     static final String DEPRECATED_AAD_AUTHORITY_HOST = "login.windows.net";
     static final String AAD_AUTHORITY_HOST = "login.microsoftonline.com";
-    static final String[] TRUSTED_HOSTS = new String[] {
+    static final String[] TRUSTED_HOSTS = new String[]{
             AAD_AUTHORITY_HOST, // Microsoft Azure Worldwide
             "login.chinacloudapi.cn", // Microsoft Azure China
             "login.microsoftonline.de", // Microsoft Azure Germany
@@ -64,7 +64,7 @@ class AadAuthority extends Authority {
                 final String hostWithPort = mAuthorityUrl.getAuthority().replace(DEPRECATED_AAD_AUTHORITY_HOST, AAD_AUTHORITY_HOST);
                 mAuthorityUrl = new URL(String.format("https://%s%s", hostWithPort, mAuthorityUrl.getPath()));
             } catch (final MalformedURLException e) {
-                Logger.error(TAG, null, "Fail to replace login.windows.net to login.microsoftonline.com", e);
+                Logger.errorPII(TAG, null, "Fail to replace login.windows.net to login.microsoftonline.com", e);
                 throw new IllegalArgumentException("Malformed authority url");
             }
         }
@@ -73,8 +73,8 @@ class AadAuthority extends Authority {
     }
 
     @Override
-    String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws MsalServiceException, MsalClientException  {
-        Logger.info(TAG, requestContext, "Passed in authority " + mAuthorityUrl.toString() + " is AAD authority. "
+    String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws MsalServiceException, MsalClientException {
+        Logger.infoPII(TAG, requestContext, "Passed in authority " + mAuthorityUrl.toString() + " is AAD authority. "
                 + "Start doing Instance discovery.");
         if (!mValidateAuthority || TRUSTED_HOST_SET.contains(mAuthorityUrl.getAuthority())) {
             Logger.verbose(TAG, requestContext, "Authority validation is turned off or the passed-in authority is "
@@ -104,7 +104,7 @@ class AadAuthority extends Authority {
         }
 
         mIsAuthorityValidated = true;
-        Logger.info(TAG, requestContext, "Instance discovery succeeded. Tenant discovery endpoint is: "
+        Logger.infoPII(TAG, requestContext, "Instance discovery succeeded. Tenant discovery endpoint is: "
                 + response.getTenantDiscoveryEndpoint());
         return response.getTenantDiscoveryEndpoint();
     }

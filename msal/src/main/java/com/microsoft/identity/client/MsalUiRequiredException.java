@@ -24,13 +24,13 @@
 package com.microsoft.identity.client;
 
 /**
- * This exception indicates that UI is required for authentication to succeed. 
+ * This exception indicates that UI is required for authentication to succeed.
  * <p>
- *     Error codes that can be returned from this exception:
- *     <ul>
- *         <li>invalid_grant: The refresh token used to redeem access token is invalid, expired or revoked. </li>
- *         <li>no_tokens_found: Access token doesn't exist and no refresh token can be found to redeem access token. </li>
- *     </ul>
+ * Error codes that can be returned from this exception:
+ * <ul>
+ * <li>invalid_grant: The refresh token used to redeem access token is invalid, expired or revoked. </li>
+ * <li>no_tokens_found: Access token doesn't exist and no refresh token can be found to redeem access token. </li>
+ * </ul>
  * </p>
  */
 
@@ -38,12 +38,12 @@ public final class MsalUiRequiredException extends MsalException {
     /**
      * The refresh token used to redeem access token is invalid, expired, revoked.
      */
-    public final static String INVALID_GRANT = "invalid_grant";
+    public static final String INVALID_GRANT = "invalid_grant";
 
     /**
      * Access token doesn't exist and there is no refresh token can be found to redeem access token.
      */
-    public final static String NO_TOKENS_FOUND = "no_tokens_found";
+    public static final String NO_TOKENS_FOUND = "no_tokens_found";
 
 
     MsalUiRequiredException(final String errorCode) {

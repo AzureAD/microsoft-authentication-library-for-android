@@ -35,12 +35,12 @@ public enum UiBehavior {
     SELECT_ACCOUNT,
 
     /**
-     * AcquireToken will send prompt=login to the authorize endpoint.  The user will always be prompted for credentials by the service. 
+     * AcquireToken will send prompt=login to the authorize endpoint.  The user will always be prompted for credentials by the service.
      */
     FORCE_LOGIN,
 
     /**
-     * AcquireToken will send prompt=consent to the authorize endpoint.  The user will be prompted to consent even if consent was granted before. 
+     * AcquireToken will send prompt=consent to the authorize endpoint.  The user will be prompted to consent even if consent was granted before.
      */
     CONSENT
 }

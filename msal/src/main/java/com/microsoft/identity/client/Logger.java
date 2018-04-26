@@ -73,7 +73,7 @@ public final class Logger {
     // Turn on the verbose level logging by default.
     private LogLevel mLogLevel = LogLevel.VERBOSE;
     private AtomicReference<ILoggerCallback> mExternalLogger = new AtomicReference<>(null);
-    private boolean mLogcatLogEnabled = true;
+    private boolean mLogcatLogEnabled = false;
     private boolean mEnablePII = false;
 
     /**
@@ -85,6 +85,7 @@ public final class Logger {
 
     /**
      * Set the log level for diagnostic purpose. By default, the sdk enables the verbose level logging.
+     *
      * @param logLevel The {@link LogLevel} to be enabled for the diagnostic logging.
      */
     public void setLogLevel(final LogLevel logLevel) {
@@ -94,8 +95,9 @@ public final class Logger {
     /**
      * Set the custom logger. Configures external logging to configure a callback that
      * the sdk will use to pass each log message. Overriding the logger callback is not allowed.
+     *
      * @param externalLogger The reference to the {@link ILoggerCallback} that can
-     * output the logs to the designated places.
+     *                       output the logs to the designated places.
      * @throws IllegalStateException if external logger is already set, and the caller is trying to set it again.
      */
     public void setExternalLogger(final ILoggerCallback externalLogger) {
@@ -112,6 +114,7 @@ public final class Logger {
 
     /**
      * Enable/Disable the Android logcat logging. By default, the sdk enables it.
+     *
      * @param enableLogcatLog True if enabling the logcat logging, false otherwise.
      */
     public void setEnableLogcatLog(final boolean enableLogcatLog) {
@@ -120,6 +123,7 @@ public final class Logger {
 
     /**
      * Enable log message with PII (personal identifiable information) info. By default, MSAL doesn't log any PII.
+     *
      * @param enablePII True if enabling PII info to be logged, false otherwise.
      */
     public void setEnablePII(final boolean enablePII) {
@@ -278,7 +282,7 @@ public final class Logger {
     }
 
     /**
-     * Enum class for LogLevel that the sdk recognizes. 
+     * Enum class for LogLevel that the sdk recognizes.
      */
     public enum LogLevel {
         /**

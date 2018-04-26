@@ -31,7 +31,7 @@ import java.net.URL;
  */
 final class B2cAuthority extends AadAuthority {
     private static final String TAG = B2cAuthority.class.getSimpleName();
-    private static int B2C_AUTHORITY_SEGMENTS_SIZE = 3;
+    private static final int B2C_AUTHORITY_SEGMENTS_SIZE = 3;
 
     B2cAuthority(final URL authority, boolean validateAuthority) {
         super(authority, validateAuthority);
@@ -41,6 +41,7 @@ final class B2cAuthority extends AadAuthority {
 
     /**
      * B2C authority will be in the format of https://<host>/tfp/<tenant>/<policy>/...
+     *
      * @param authority The passed in B2C authority
      * @return updated authority with only host/tfp/tenant/policy
      */
@@ -62,7 +63,7 @@ final class B2cAuthority extends AadAuthority {
             updateAuthority = new URL(String.format("https://%s/%s/%s/%s", authority.getAuthority(), pathSegments[0], pathSegments[1],
                     pathSegments[2]));
         } catch (final MalformedURLException e) {
-            Logger.error(TAG, null, "Malformed authority url", e);
+            Logger.errorPII(TAG, null, "Malformed authority url", e);
             throw new IllegalArgumentException("Malformed updated authority Url", e);
         }
 
