@@ -110,7 +110,7 @@ public final class TokenCacheKeyTest {
         final RefreshTokenCacheItem item = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, response);
 
         Assert.assertTrue(item.extractTokenCacheKey().toString().equals(MsalUtils.base64UrlEncodeToString(AUTHORITY_HOST) + "$"
-                + MsalUtils.base64UrlEncodeToString(CLIENT_ID) + "$" + MsalUtils.getUniqueUserIdentifier(AndroidTestUtil.UID, AndroidTestUtil.UTID)));
+                + MsalUtils.base64UrlEncodeToString(CLIENT_ID)  + "$" + MsalUtils.getUniqueUserIdentifier(AndroidTestUtil.UID, AndroidTestUtil.UTID)));
     }
 
     @Test

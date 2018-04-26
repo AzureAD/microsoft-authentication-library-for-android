@@ -41,7 +41,6 @@ final class B2cAuthority extends AadAuthority {
 
     /**
      * B2C authority will be in the format of https://<host>/tfp/<tenant>/<policy>/...
-     *
      * @param authority The passed in B2C authority
      * @return updated authority with only host/tfp/tenant/policy
      */
@@ -63,7 +62,7 @@ final class B2cAuthority extends AadAuthority {
             updateAuthority = new URL(String.format("https://%s/%s/%s/%s", authority.getAuthority(), pathSegments[0], pathSegments[1],
                     pathSegments[2]));
         } catch (final MalformedURLException e) {
-            Logger.errorPII(TAG, null, "Malformed authority url", e);
+            Logger.error(TAG, null, "Malformed authority url", e);
             throw new IllegalArgumentException("Malformed updated authority Url", e);
         }
 

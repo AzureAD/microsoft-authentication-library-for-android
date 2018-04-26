@@ -26,29 +26,29 @@ package com.microsoft.identity.client;
 /**
  * This exception class represents errors when communicating to the service, can be from the authorize or token endpoints.
  * MSAL reads the error and error_description from the server response. Generally, these errors are resolved by fixing app
- * configurations either in code or in the app registration portal.
+ * configurations either in code or in the app registration portal. 
  * <p>
- * Set of error codes that could be returned from this exception:
- * <ul>
- * <li>invalid_request: This request is missing a required parameter, includes an invalid parameter, includes a parameter more than
- * once, or is otherwise malformed.</li>
- * <li>unauthorized_client: The client is not authorized to request an authorization code. </li>
- * <li>access_denied: The resource owner or authorization server denied the request.</li>
- * <li>invalid_scope: The request scope is invalid, unknown or malformed. </li>
- * <li>service_not_available: Represents 500/503/504 error codes. </li>
- * <li>request_timeout: Represents {@link java.net.SocketTimeoutException}. </li>
- * <li>invalid_instance: Authority validation failed. </li>
- * <li>unknown_error: Request to server failed, but no error and error_description was returned from the service. </li>
- * </ul>
+ *     Set of error codes that could be returned from this exception:
+ *     <ul>
+ *         <li>invalid_request: This request is missing a required parameter, includes an invalid parameter, includes a parameter more than
+ *         once, or is otherwise malformed.</li>
+ *         <li>unauthorized_client: The client is not authorized to request an authorization code. </li>
+ *         <li>access_denied: The resource owner or authorization server denied the request.</li>
+ *         <li>invalid_scope: The request scope is invalid, unknown or malformed. </li>
+ *         <li>service_not_available: Represents 500/503/504 error codes. </li>
+ *         <li>request_timeout: Represents {@link java.net.SocketTimeoutException}. </li>
+ *         <li>invalid_instance: Authority validation failed. </li>
+ *         <li>unknown_error: Request to server failed, but no error and error_description was returned from the service. </li>
+ *     </ul>
  * </p>
  * <p>
  * Note: {@link MsalServiceException} provides one extra API:
  * </p>
- * <p>
+
  * <ul>
- * <li>
- * {@link MsalServiceException#getHttpStatusCode()} : indicates the http status code for the failed request.
- * </li>
+ *     <li>
+ *         {@link MsalServiceException#getHttpStatusCode()} : indicates the http status code for the failed request.
+ *     </li>
  * </ul>
  */
 public final class MsalServiceException extends MsalException {
@@ -89,7 +89,7 @@ public final class MsalServiceException extends MsalException {
     public final static String INVALID_INSTANCE = "invalid_instance";
 
     /**
-     * Request to server failed, but no error and error_description is returned back from the service.
+     * Request to server failed, but no error and error_description is returned back from the service。
      */
     public final static String UNKNOWN_ERROR = "unknown_error";
 

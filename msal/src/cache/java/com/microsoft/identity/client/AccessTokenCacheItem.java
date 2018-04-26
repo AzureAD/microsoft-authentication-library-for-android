@@ -37,7 +37,7 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
     private static final int DEFAULT_EXPIRATION_BUFFER = 300;
 
     @SerializedName("authority")
-    String mAuthority;
+    final String mAuthority;
 
     @SerializedName("access_token")
     private String mAccessToken;
@@ -46,27 +46,20 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
     private long mExpiresOn;
 
     @SerializedName("scope")
-    String mScope;
+    final String mScope;
 
     @SerializedName("token_type")
-    String mTokenType;
+    final String mTokenType;
 
     @SerializedName("id_token")
-    String mRawIdToken;
-
-    /**
-     * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe.
-     */
-    @SuppressWarnings("unused")
-    AccessTokenCacheItem() {
-    }
+    final String mRawIdToken;
 
     /**
      * Constructor for creating the {@link AccessTokenCacheItem}.
      */
     AccessTokenCacheItem(final String authority, final String clientId, final TokenResponse response)
             throws MsalClientException {
-        super(clientId, response.getRawClientInfo());
+        super(clientId,response.getRawClientInfo());
 
         mAuthority = authority;
         mAccessToken = response.getAccessToken();

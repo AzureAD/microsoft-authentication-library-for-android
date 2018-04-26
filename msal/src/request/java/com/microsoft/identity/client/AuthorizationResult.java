@@ -106,7 +106,7 @@ final class AuthorizationResult {
             } else if (urlParameters.containsKey(OauthConstants.Authorize.ERROR)) {
                 final String error = urlParameters.get(OauthConstants.Authorize.ERROR);
                 final String errorDescription = urlParameters.get(OauthConstants.Authorize.ERROR_DESCRIPTION);
-                Logger.infoPII(TAG, null, "Error is returned from webview redirect, error: " + error + "; errorDescription: "
+                Logger.info(TAG, null, "Error is returned from webview redirect, error: " + error + "; errorDescription: "
                         + errorDescription);
 
                 // TODO: finalize the error handling.

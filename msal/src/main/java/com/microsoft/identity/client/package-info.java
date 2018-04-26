@@ -24,7 +24,8 @@
 /**
  * Provides the classes necessary to create a client for Azure Active Directory to get tokens.
  *
- * @see java.awt
+ *
  * @since 1.0
+ * @see java.awt
  */
 package com.microsoft.identity.client;

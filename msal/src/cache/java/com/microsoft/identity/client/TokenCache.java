@@ -66,10 +66,8 @@ class TokenCache {
     AccessTokenCacheItem saveAccessToken(final String authority, final String clientId, final TokenResponse response, final RequestContext requestContext)
             throws MsalClientException {
         // create the access token cache item
-        Logger.info(TAG, null, "Starting to Save access token into cache.");
-        Logger.infoPII(TAG, null, "Access token will be saved with authority: " + authority
+        Logger.info(TAG, null, "Starting to Save access token into cache. Access token will be saved with authority: " + authority
                 + "; Client Id: " + clientId + "; Scopes: " + response.getScope());
-
         final AccessTokenCacheItem newAccessToken = new AccessTokenCacheItem(authority, clientId, response);
         final AccessTokenCacheKey accessTokenCacheKey = newAccessToken.extractTokenCacheKey();
 
@@ -92,8 +90,7 @@ class TokenCache {
     void saveRefreshToken(final String authorityHost, final String clientId, final TokenResponse response, final RequestContext requestContext) throws MsalClientException {
         // if server returns the refresh token back, save it in the cache.
         if (!MsalUtils.isEmpty(response.getRefreshToken())) {
-            Logger.info(TAG, requestContext, "Starting to save refresh token into cache.");
-            Logger.infoPII(TAG, requestContext, "Refresh token will be saved with authority: " + authorityHost
+            Logger.info(TAG, requestContext, "Starting to save refresh token into cache. Refresh token will be saved with authority: " + authorityHost
                     + "; Client Id: " + clientId);
             final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(authorityHost, clientId, response);
             mTokenCacheAccessor.saveRefreshToken(refreshTokenCacheItem.extractTokenCacheKey().toString(), mGson.toJson(refreshTokenCacheItem), requestContext);
@@ -251,7 +248,7 @@ class TokenCache {
      * An immutable list of signed-in users for the given client id.
      *
      * @param environment
-     * @param clientId       The application client id that is used to retrieve for all the signed in users.
+     * @param clientId The application client id that is used to retrieve for all the signed in users.
      * @param requestContext the RequestContext initiating this call
      * @return The list of signed in users for the given client id.
      */
@@ -260,7 +257,7 @@ class TokenCache {
             throw new IllegalArgumentException("empty or null clientId");
         }
 
-        Logger.verbosePII(TAG, requestContext, "Retrieve users with the given client id: " + clientId);
+        Logger.verbose(TAG, requestContext, "Retrieve users with the given client id: " + clientId);
         final List<RefreshTokenCacheItem> allRefreshTokensForApp = getAllRefreshTokenForApp(clientId, requestContext);
         final Map<String, User> allUsers = new HashMap<>();
         for (final RefreshTokenCacheItem item : allRefreshTokensForApp) {
@@ -365,7 +362,7 @@ class TokenCache {
     /**
      * @return List of all {@link AccessTokenCacheItem}s that exist in the cache.
      */
-    List<AccessTokenCacheItem> getAllAccessTokens(final RequestContext requestContext) {
+    List<AccessTokenCacheItem> getAllAccessTokens(final RequestContext requestContext){
         final Collection<String> accessTokensAsString = mTokenCacheAccessor.getAllAccessTokens(requestContext.getTelemetryRequestId());
         if (accessTokensAsString == null) {
             Logger.verbose(TAG, requestContext, "No access tokens existed in the token cache.");
@@ -385,7 +382,7 @@ class TokenCache {
      * @param clientId Client id that is used to filter all {@link RefreshTokenCacheItem}s that exist in the cache.
      * @return The unmodifiable List of {@link RefreshTokenCacheItem}s that match the given client id.
      */
-    private List<RefreshTokenCacheItem> getAllRefreshTokenForApp(final String clientId, final RequestContext requestContext) {
+    private  List<RefreshTokenCacheItem> getAllRefreshTokenForApp(final String clientId, final RequestContext requestContext) {
         final List<RefreshTokenCacheItem> allRTs = getAllRefreshTokens(requestContext);
 
         final List<RefreshTokenCacheItem> allRTsForApp = new ArrayList<>(allRTs.size());
@@ -395,8 +392,7 @@ class TokenCache {
             }
         }
 
-        Logger.verbosePII(TAG, requestContext, "Retrieve all the refresh tokens for given client id: " + clientId);
-        Logger.verbose(TAG, requestContext, "Returned refresh token number is " + allRTsForApp.size());
+        Logger.verbose(TAG, requestContext, "Retrieve all the refresh tokens for given client id: " + clientId + "; Returned refresh token number is " + allRTsForApp.size());
         return Collections.unmodifiableList(allRTsForApp);
     }
 

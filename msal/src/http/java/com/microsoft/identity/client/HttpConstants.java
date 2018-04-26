@@ -24,7 +24,7 @@
 package com.microsoft.identity.client;
 
 final class HttpConstants {
-
+    
     /**
      * HTTP header fields.
      */

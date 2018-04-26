@@ -26,29 +26,29 @@ package com.microsoft.identity.client;
 /**
  * This exception class represents general errors that are local to the library. Below is the table of proposed codes and a short description of each.
  * <p>
- * Set of error codes that could be returned from this exception:
- * <ul>
- * <li>multiple_matching_tokens_detected: There are multiple cache entries found and the sdk cannot identify the correct access
- * or refresh token from the cache. This usually indicates a bug in the sdk for storing tokens or the authority is
- * not provided in the silent request and multiple matching tokens found. </li>
- * <li>device_network_not_available: No active network is available on the device. </li>
- * <li>json_parse_failure: The sdk failed to parse the JSON format.</li>
- * <li>io_error: IOException happened, could be the device/network errors. </li>
- * <li>malformed_url: The url is malformed. Likely caused when constructing the auth request, authority, or redirect URI. </li>
- * <li>unsupported_encoding: The encoding is not supported by the device. </li>
- * <li>no_such_algorithm: The algorithm used to generate pkce challenge is not supported. </li>
- * <li>invalid_jwt: JWT returned by the server is not valid, empty or malformed. </li>
- * <li>state_mismatch: State from authorization response did not match the state in the authorization request.
- * For authorization requests, the sdk will verify the state returned from redirect and the one sent in the request. </li>
- * <li>unresolvable_intent: The intent to launch {@link AuthenticationActivity} is not resolvable by the OS or the intent
- * doesn't contain the required data. </li>
- * <li>unsupported_url: Unsupported url, cannot perform ADFS authority validation. </li>
- * <li>authority_validation_not_supported: The authority is not supported for authority validation. The sdk supports
- * b2c authorities, but doesn't support b2c authority validation. Only well-known host will be supported. </li>
- * <li>chrome_not_installed: Chrome is not installed on the device. The sdk uses chrome custom tab for
- * authorization requests if available, and will fall back to chrome browser. </li>
- * <li>user_mismatch: The user provided in the acquire token request doesn't match the user returned from server.</li>
- * </ul>
+ *     Set of error codes that could be returned from this exception:
+ *     <ul>
+ *         <li>multiple_matching_tokens_detected: There are multiple cache entries found and the sdk cannot identify the correct access
+ *         or refresh token from the cache. This usually indicates a bug in the sdk for storing tokens or the authority is
+ *         not provided in the silent request and multiple matching tokens found. </li>
+ *         <li>device_network_not_available: No active network is available on the device. </li>
+ *         <li>json_parse_failure: The sdk failed to parse the JSON format.</li>
+ *         <li>io_error: IOException happened, could be the device/network errors. </li>
+ *         <li>malformed_url: The url is malformed. Likely caused when constructing the auth request, authority, or redirect URI. </li>
+ *         <li>unsupported_encoding: The encoding is not supported by the device. </li>
+ *         <li>no_such_algorithm: The algorithm used to generate pkce challenge is not supported. </li>
+ *         <li>invalid_jwt: JWT returned by the server is not valid, empty or malformed. </li>
+ *         <li>state_mismatch: State from authorization response did not match the state in the authorization request.
+*          For authorization requests, the sdk will verify the state returned from redirect and the one sent in the request. </li>
+ *         <li>unresolvable_intent: The intent to launch {@link AuthenticationActivity} is not resolvable by the OS or the intent
+ *         doesn't contain the required data. </li>
+ *         <li>unsupported_url: Unsupported url, cannot perform ADFS authority validation. </li>
+ *         <li>authority_validation_not_supported: The authority is not supported for authority validation. The sdk supports
+ *         b2c authorities, but doesn't support b2c authority validation. Only well-known host will be supported. </li>
+ *         <li>chrome_not_installed: Chrome is not installed on the device. The sdk uses chrome custom tab for
+ *         authorization requests if available, and will fall back to chrome browser. </li>
+ *         <li>user_mismatch: The user provided in the acquire token request doesn't match the user returned from server.</li>
+ *     </ul>
  * </p>
  */
 public final class MsalClientException extends MsalException {
@@ -95,7 +95,7 @@ public final class MsalClientException extends MsalException {
     public final static String INVALID_JWT = "invalid_jwt";
 
     /**
-     * State from authorization response did not match the state in the authorization request.
+     * State from authorization response did not match the state in the authorization request.  
      * For authorization requests, the sdk will verify the state returned from redirect and the one sent in the request.
      */
     public final static String STATE_MISMATCH = "state_mismatch";
@@ -118,7 +118,7 @@ public final class MsalClientException extends MsalException {
 
     /**
      * chrome_not_installed: Chrome is not installed on the device. The sdk uses chrome custom tab for
-     * authorization requests if available, and will fall back to chrome browser.
+     * authorization requests if available, and will fall back to chrome browser. 
      */
     public final static String CHROME_NOT_INSTALLED = "chrome_not_installed";
 

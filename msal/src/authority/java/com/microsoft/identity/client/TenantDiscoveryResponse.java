@@ -55,7 +55,6 @@ final class TenantDiscoveryResponse extends BaseOauth2Response {
 
     /**
      * Constructor for creating the {@link TenantDiscoveryResponse} with error.
-     *
      * @param response
      */
     TenantDiscoveryResponse(final BaseOauth2Response response) {

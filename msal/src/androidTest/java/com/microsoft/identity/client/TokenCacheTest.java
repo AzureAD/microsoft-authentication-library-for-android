@@ -605,7 +605,7 @@ public final class TokenCacheTest extends AndroidTestCase {
 
         return new TokenResponse(accessToken, idToken, refreshToken, expiresOn,
                 expiresOn, AndroidTestUtil.getExpirationDate(AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES * 2), scopesInResponse, "Bearer", rawClientInfo);
-    }
+    };
 
     static TokenResponse getTokenResponseForDifferentUser(final String accessToken, final String refreshToken, final String scopesInResponse,
                                                           final Date expiresOn, final String clientInfo)

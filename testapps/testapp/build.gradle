@@ -26,13 +26,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
 
     defaultConfig {
         applicationId "com.microsoft.identity.client.sample"
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        minSdkVersion 21
+        targetSdkVersion 25
         versionCode 1
         versionName "1.0"
     }
@@ -47,7 +47,7 @@ android {
 dependencies {
     // Compile Dependency
     compile project(':msal')
-    compile "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
-    compile "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
-    compile "com.android.support:design:$rootProject.ext.supportLibraryVersion"
+    compile 'com.android.support:appcompat-v7:25.2.0'
+    compile 'com.android.support:support-v4:25.2.0'
+    compile 'com.android.support:design:25.2.0'
 }

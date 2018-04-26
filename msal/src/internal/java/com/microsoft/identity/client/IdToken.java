@@ -45,7 +45,6 @@ final class IdToken {
 
     /**
      * Constructor to create a new {@link IdToken}. Will parse the raw id token.
-     *
      * @param rawIdToken The raw Id token used to create the {@link IdToken}.
      */
     IdToken(final String rawIdToken) throws MsalClientException {

@@ -74,8 +74,8 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
      *
      * @param domain the domain to validate
      * @return the DRS discovery metadata
-     * @throws UnknownHostException if the on-prem enrollment server cannot be resolved
-     * @throws MsalException        if there exists an enrollment/domain mismatch (lack of trust)
+     * @throws UnknownHostException    if the on-prem enrollment server cannot be resolved
+     * @throws MsalException if there exists an enrollment/domain mismatch (lack of trust)
      */
     private DrsMetadata requestOnPrem(final String domain)
             throws UnknownHostException, MsalClientException, MsalServiceException {
@@ -89,7 +89,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
      * @param domain the domain to validate
      * @return the DRS discovery metadata
      * @throws MsalException if there exists an enrollment/domain mismatch (lack of trust)
-     *                       or the trust cannot be verified
+     *                                 or the trust cannot be verified
      */
     private DrsMetadata requestCloud(final String domain) throws MsalClientException, MsalServiceException {
         Logger.verbose(TAG, getRequestContext(), "Requesting DRS discovery (cloud)");
@@ -167,7 +167,7 @@ class DRSMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
 
         final String requestUrlStr = requestUrl.toString();
 
-        Logger.verbosePII(TAG, getRequestContext(), "Requestor will use DRS url: " + requestUrlStr);
+        Logger.verbose(TAG, getRequestContext(), "Requestor will use DRS url: " + requestUrlStr);
 
         return requestUrlStr;
     }

@@ -23,12 +23,16 @@
 
 package com.microsoft.identity.client;
 
+import android.util.Pair;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import static com.microsoft.identity.client.EventConstants.EventProperty;
 
 /**
  * Collects and publishes telemetry key/value pairs to subscribers.
@@ -41,17 +45,20 @@ public final class Telemetry {
 
     private static boolean sDisableForTest;
 
-    private static boolean mAllowPii = false;
+    private final Map<Pair<String, String>, Long> mEventsInProgress;
 
-    private final Map<String, List<Event.Builder>> mEvents;
+    private final Map<String, List<Event>> mCompletedEvents;
 
     private EventDispatcher mPublisher;
 
     private boolean mTelemetryOnFailureOnly = false;
 
     private Telemetry() {
-        mEvents = Collections.synchronizedMap(
-                new LinkedHashMap<String, List<Event.Builder>>()
+        mEventsInProgress = Collections.synchronizedMap(
+                new LinkedHashMap<Pair<String, String>, Long>()
+        );
+        mCompletedEvents = Collections.synchronizedMap(
+                new LinkedHashMap<String, List<Event>>()
         );
     }
 
@@ -90,25 +97,6 @@ public final class Telemetry {
         sDisableForTest = disabled;
     }
 
-    /**
-     * Sets the PII/OII allow flag. If set to true, PII/OII fields will not be explicitly blocked
-     * in Telemetry data.
-     *
-     * @param allowFlag true, if PII/OII should be allowed in Telemetry data. False otherwise.
-     */
-    public static void setAllowPii(final boolean allowFlag) {
-        mAllowPii = allowFlag;
-    }
-
-    /**
-     * Gets the state of the PII/OII allow flag.
-     *
-     * @return the flag state.
-     */
-    public static boolean getAllowPii() {
-        return mAllowPii;
-    }
-
     public synchronized void registerReceiver(IMsalEventReceiver receiver) {
         if (null == receiver) {
             throw new IllegalArgumentException("Receiver instance cannot be null");
@@ -133,60 +121,48 @@ public final class Telemetry {
     /**
      * Starts recording a new Event, based on requestId
      *
-     * @param requestId    the RequestId used to track this Event.
-     * @param eventBuilder the Builder of the Event to start.
+     * @param requestId the RequestId used to track this Event.
+     * @param eventName the name of the Event which is to be tracked.
      */
-    void startEvent(final String requestId, final Event.Builder eventBuilder) {
+    void startEvent(final String requestId, final String eventName) {
         if (null == mPublisher || sDisableForTest) {
             return;
         }
 
-        eventBuilder.setStartTime(System.currentTimeMillis());
-
         synchronized (this) {
-            if (null == mEvents.get(requestId)) {
-                final List<Event.Builder> eventBuilders = new ArrayList<>();
-                eventBuilders.add(eventBuilder);
-                mEvents.put(requestId, eventBuilders);
-            } else {
-                mEvents.get(requestId).add(eventBuilder);
-            }
+            mEventsInProgress.put(new Pair<>(requestId, eventName), System.currentTimeMillis());
         }
     }
 
     /**
-     * Stops a previously started Event.
+     * Stops a previously started Event using its Event.Builder.
      *
      * @param requestId    the RequestId of the Event to stop.
      * @param eventBuilder the Event.Builder used to create the Event.
      */
     void stopEvent(final String requestId, final Event.Builder eventBuilder) {
+        stopEvent(requestId, eventBuilder.getEventName(), eventBuilder.build());
+    }
+
+    /**
+     * Stops a previously started Event.
+     *
+     * @param requestId   the RequestId of the Event to stop.
+     * @param eventName   the name of the Event to stop.
+     * @param eventToStop the Event data.
+     */
+    void stopEvent(final String requestId, final String eventName, final Event eventToStop) {
         if (null == mPublisher || sDisableForTest) {
             return;
         }
 
-        final List<Event.Builder> eventsForId;
-        synchronized (this) {
-            // Grab the List of Events associated to this requestId
-            eventsForId = mEvents.get(requestId);
-        }
-        // Find the specific Builder we want to stop
-        Event.Builder builderToStop = null;
-        for (final Event.Builder builder : eventsForId) {
-            if (builder.getEventName().equals(eventBuilder.getEventName()) && !builder.getIsCompleted()) {
-                builderToStop = builder;
-                break;
-            }
-        }
-
-        // If we did not find the Builder to stop, log a warning and return
-        if (null == builderToStop) {
-            Logger.warning(TAG, null, "Could not stop Event: [" + eventBuilder.getEventName() + "] because no Event in progress was found.");
-            return;
-        }
+        final Pair<String, String> eventKey = new Pair<>(requestId, eventName);
 
         // Compute execution time
-        final Long eventStartTime = builderToStop.getStartTime();
+        final Long eventStartTime;
+        synchronized (this) {
+            eventStartTime = mEventsInProgress.get(eventKey);
+        }
 
         // If we did not get anything back from the dictionary, most likely its a bug that stopEvent
         // was called without a corresponding startEvent
@@ -198,13 +174,33 @@ public final class Telemetry {
         final long startTimeL = Long.parseLong(eventStartTime.toString());
         final long stopTimeL = System.currentTimeMillis();
         final long diffTime = stopTimeL - startTimeL;
+        final String stopTime = Long.toString(stopTimeL);
 
         // Set execution time properties on the event
-        builderToStop.setStopTime(stopTimeL);
-        builderToStop.setElapsedTime(diffTime);
+        eventToStop.setProperty(EventProperty.START_TIME, eventStartTime.toString());
+        eventToStop.setProperty(EventProperty.STOP_TIME, stopTime);
+        eventToStop.setProperty(EventProperty.ELAPSED_TIME, Long.toString(diffTime));
 
-        // Mark the Event as complete...
-        builderToStop.setIsCompleted(true);
+        synchronized (this) {
+            if (null == mCompletedEvents.get(requestId)) {
+                // if this is the first event associated to this
+                // RequestId we need to initialize a new List to hold
+                // all of sibling events
+                final List<Event> events = new ArrayList<>();
+                events.add(eventToStop);
+                mCompletedEvents.put(
+                        requestId,
+                        events
+                );
+            } else {
+                // if this event shares a RequestId with other events
+                // just add it to the List
+                mCompletedEvents.get(requestId).add(eventToStop);
+            }
+
+            // Mark this event as no longer in progress
+            mEventsInProgress.remove(eventKey);
+        }
     }
 
     /**
@@ -217,50 +213,55 @@ public final class Telemetry {
             return;
         }
 
-        final List<Event.Builder> eventsToBuild;
         synchronized (this) {
-            eventsToBuild = mEvents.remove(requestId);
-        }
-
-        if (null == eventsToBuild) {
-            Logger.warning(TAG, null, "No completed Events returned for RequestId.");
-            return;
-        }
-
-        final List<Event> eventsToDispatch = new ArrayList<>();
-        for (final Event.Builder builder : eventsToBuild) {
-            if (builder.getIsCompleted()) {
-                eventsToDispatch.add(builder.build());
-            } else {
-                // This Event is orphaned
-                final Event orphanedEvent = new OrphanedEvent.Builder(
-                        builder.getEventName(),
-                        builder.getStartTime()
-                ).build();
-                eventsToDispatch.add(orphanedEvent);
+            // check for orphaned events...
+            final List<Event> orphanedEvents = collateOrphanedEvents(requestId);
+            // Add the OrphanedEvents to the existing IEventList
+            if (null == mCompletedEvents.get(requestId)) {
+                Logger.warning(TAG, null, "No completed Events returned for RequestId.");
+                return;
             }
-        }
 
-        if (mTelemetryOnFailureOnly) {
-            // iterate over Events, if the ApiEvent was successful, don't dispatch
-            boolean shouldRemoveEvents = false;
+            mCompletedEvents.get(requestId).addAll(orphanedEvents);
 
-            for (final Event event : eventsToDispatch) {
-                if (event instanceof ApiEvent) {
-                    ApiEvent apiEvent = (ApiEvent) event;
-                    shouldRemoveEvents = apiEvent.wasSuccessful();
-                    break;
+            final List<Event> eventsToFlush = mCompletedEvents.remove(requestId);
+
+            if (mTelemetryOnFailureOnly) {
+                // iterate over Events, if the ApiEvent was successful, don't dispatch
+                boolean shouldRemoveEvents = false;
+
+                for (Event event : eventsToFlush) {
+                    if (event instanceof ApiEvent) {
+                        ApiEvent apiEvent = (ApiEvent) event;
+                        shouldRemoveEvents = apiEvent.wasSuccessful();
+                        break;
+                    }
+                }
+
+                if (shouldRemoveEvents) {
+                    eventsToFlush.clear();
                 }
             }
 
-            if (shouldRemoveEvents) {
-                eventsToDispatch.clear();
+            if (!eventsToFlush.isEmpty()) {
+                eventsToFlush.add(0, new DefaultEvent.Builder().build());
+                mPublisher.dispatch(eventsToFlush);
             }
         }
+    }
 
-        if (!eventsToDispatch.isEmpty()) {
-            eventsToDispatch.add(0, new DefaultEvent.Builder().build());
-            mPublisher.dispatch(eventsToDispatch);
+    private List<Event> collateOrphanedEvents(String requestId) {
+        final List<Event> orphanedEvents = new ArrayList<>();
+        for (Pair<String, String> key : mEventsInProgress.keySet()) {
+            if (key.first.equals(requestId)) {
+                final String orphanedEventName = key.second;
+                final Long orphanedEventStartTime =
+                        mEventsInProgress.remove(key); // remove() this entry (clean up!)
+                // Build the OrphanedEvent...
+                final Event orphanedEvent = new OrphanedEvent.Builder(orphanedEventName, orphanedEventStartTime).build();
+                orphanedEvents.add(orphanedEvent);
+            }
         }
+        return orphanedEvents;
     }
 }

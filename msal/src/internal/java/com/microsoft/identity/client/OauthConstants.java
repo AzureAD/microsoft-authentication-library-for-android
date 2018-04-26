@@ -73,14 +73,10 @@ final class OauthConstants {
      */
     static final class OauthHeader {
 
-        /**
-         * String representing the correlation_id sent in the header.
-         */
+        /** String representing the correlation_id sent in the header. */
         static final String CORRELATION_ID = "client-request-id";
 
-        /**
-         * String representing the correlation id returned from server response.
-         */
+        /** String representing the correlation id returned from server response. */
         static final String CORRELATION_ID_IN_RESPONSE = "return-client-request-id";
     }
 

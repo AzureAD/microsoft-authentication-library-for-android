@@ -29,7 +29,7 @@ import java.net.URL;
  * Encapsulates parameters used to request {@link WebFingerMetadata}.
  */
 final class WebFingerMetadataRequestParameters {
-
+    
     private final URL mDomain;
 
     private final DrsMetadata mMetadata;

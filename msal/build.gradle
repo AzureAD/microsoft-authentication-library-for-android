@@ -4,17 +4,16 @@ apply plugin: 'checkstyle'
 apply plugin: 'pmd'
 // This plugin publishes msal in to the local maven repo
 apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'maven-publish'
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
 
     defaultConfig {
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        minSdkVersion 21
+        targetSdkVersion 25
         versionCode 0
-        versionName '0.1.2'
+        versionName '0.1.1'
         project.archivesBaseName = "msal"
         project.version = android.defaultConfig.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -22,17 +21,14 @@ android {
 
     buildTypes {
         debug {
-            testCoverageEnabled false
+            testCoverageEnabled true
         }
         release {
-            testCoverageEnabled false
             minifyEnabled false
             debuggable false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
-    publishNonDefault true
 
     lintOptions {
         abortOnError true
@@ -71,9 +67,8 @@ task jacocoTestReport(type: JacocoReport, dependsOn: 'testDebugUnitTest') {
 
     sourceDirectories = files([mainSrc])
     classDirectories = files([debugTree])
-    executionData = fileTree(dir: "$buildDir", includes: [
-            "jacoco/testDebugUnitTest.exec",
-            "outputs/code-coverage/connected/*coverage.ec"
+    executionData = files(["${buildDir}/jacoco/testDebugUnitTest.exec",
+                           "${buildDir}/outputs/code-coverage/connected/coverage.ec"
     ])
 }
 
@@ -83,7 +78,7 @@ task javadoc(type: Javadoc) {
     classpath += configurations.compile
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 
-    options.memberLevel = JavadocMemberLevel.PUBLIC
+    options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PUBLIC
     options.addStringOption('Xdoclint:none', '-quiet')
 
     exclude '**/BuildConfig.Java'
@@ -106,21 +101,22 @@ task sourcesJar(type: Jar) {
 }
 
 dependencies {
-    compile "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
-    compile "com.android.support:customtabs:$rootProject.ext.supportLibraryVersion"
-    compile "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:appcompat-v7:25.1.0'
+    compile 'com.android.support:customtabs:25.1.0'
+    compile 'com.google.code.gson:gson:2.2.4'
 
     // test dependencies
-    testCompile "junit:junit:$rootProject.ext.junitVersion"
-    testCompile "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:1.10.19'
 
     // instrumentation test dependencies
-    androidTestCompile "com.android.support.test:runner:$rootProject.ext.runnerVersion"
+    androidTestCompile 'com.android.support.test:runner:0.5'
     // Set this dependency to use JUnit 4 rules
-    androidTestCompile "com.android.support.test:rules:$rootProject.ext.rulesVersion"
-    androidTestCompile "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
-    androidTestCompile "com.google.dexmaker:dexmaker:$rootProject.ext.dexmakerMockitoVersion"
-    androidTestCompile "com.google.dexmaker:dexmaker-mockito:$rootProject.ext.dexmakerMockitoVersion"
+    androidTestCompile 'com.android.support.test:rules:0.5'
+    androidTestCompile 'org.mockito:mockito-core:1.10.19'
+    androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
+    androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
 }
 
 task createPom {
@@ -195,59 +191,6 @@ task pmd(type: Pmd) {
     reports {
         xml.enabled = false
         html.enabled = true
-    }
-}
-
-// For publishing to the remote maven repo.
-publishing {
-    publications {
-        adalUnityFork(MavenPublication) {
-            groupId 'com.microsoft.identity.client'
-            artifactId 'msal'
-            version = project.version
-
-            pom.withXml {
-                def dependenciesNode = asNode().appendNode('dependencies')
-
-                //Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
-                configurations.compile.allDependencies.each {
-                    if (it.group != null && it.name != null) {
-                        def dependencyNode = dependenciesNode.appendNode('dependency')
-                        dependencyNode.appendNode('groupId', it.group)
-                        dependencyNode.appendNode('artifactId', it.name)
-                        dependencyNode.appendNode('version', it.version)
-                    }
-                }
-            }
-
-            artifact(sourcesJar)
-            artifact(javadocJar)
-            artifact("$buildDir/outputs/aar/${archivesBaseName}-${version}.aar")
-        }
-    }
-
-    // Repositories to which Gradle can publish artifacts
-    repositories {
-        maven {
-            name "vsts-maven-adal-android"
-            url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
-            credentials {
-                username project.findProperty("vstsUsername")
-                password project.findProperty("vstsMavenAccessToken")
-            }
-        }
-    }
-}
-
-// Repositories from which Gradle can fetch dependencies
-repositories {
-    maven {
-        name "vsts-maven-adal-android"
-        url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
-        credentials {
-            username project.findProperty("vstsUsername")
-            password project.findProperty("vstsMavenAccessToken")
-        }
     }
 }
 

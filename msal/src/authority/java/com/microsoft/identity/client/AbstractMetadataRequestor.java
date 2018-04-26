@@ -38,7 +38,7 @@ abstract class AbstractMetadataRequestor<MetadataType, MetadataRequestOptions> {
      * @return <MetadataType> metadata of the parameterized type
      * @throws Exception if the metadata fails to load/deserialize
      */
-    abstract MetadataType requestMetadata(MetadataRequestOptions options) throws MsalClientException, MsalServiceException;
+    abstract MetadataType requestMetadata(MetadataRequestOptions options) throws Exception;
 
     /**
      * Deserializes {@link HttpResponse} objects into the specified {@link MetadataType}.
@@ -47,7 +47,7 @@ abstract class AbstractMetadataRequestor<MetadataType, MetadataRequestOptions> {
      * @return the metadata
      * @throws Exception if the metadata fails to deserialize
      */
-    abstract MetadataType parseMetadata(HttpResponse response) throws MsalClientException;
+    abstract MetadataType parseMetadata(HttpResponse response) throws Exception;
 
     /**
      * Gets the {@link RequestContext}.

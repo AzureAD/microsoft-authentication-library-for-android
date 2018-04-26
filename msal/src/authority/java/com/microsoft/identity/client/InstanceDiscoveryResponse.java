@@ -34,7 +34,6 @@ final class InstanceDiscoveryResponse extends BaseOauth2Response {
 
     /**
      * Constructor for creating the success response of instance discovery.
-     *
      * @param tenantDiscoveryEndpoint The tenant discovery endpoint.
      */
     InstanceDiscoveryResponse(final String tenantDiscoveryEndpoint) {
@@ -45,10 +44,9 @@ final class InstanceDiscoveryResponse extends BaseOauth2Response {
 
     /**
      * Constructor for creating the failure response of instance discovery.
-     *
-     * @param error            Error code representing the failure.
+     * @param error Error code representing the failure.
      * @param errorDescription Detailed error description.
-     * @param statusCode       The http status code related with the request.
+     * @param statusCode The http status code related with the request.
      */
     InstanceDiscoveryResponse(final String error, final String errorDescription, final int statusCode) {
         super(error, errorDescription, statusCode);

@@ -50,7 +50,7 @@ class WebFingerMetadataRequestor
             throws MsalServiceException, MsalClientException {
         final URL domain = webFingerMetadataRequestParameters.getDomain();
         final DrsMetadata drsMetadata = webFingerMetadataRequestParameters.getDrsMetadata();
-        Logger.verbosePII(TAG, getRequestContext(), "Validating authority for auth endpoint: " + domain.toString());
+        Logger.verbose(TAG, getRequestContext(), "Validating authority for auth endpoint: " + domain.toString());
         try {
             // create the URL
             URL webFingerUrl = buildWebFingerUrl(domain, drsMetadata);

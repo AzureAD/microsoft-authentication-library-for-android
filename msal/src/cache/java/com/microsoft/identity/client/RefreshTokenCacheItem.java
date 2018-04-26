@@ -31,27 +31,20 @@ import com.google.gson.annotations.SerializedName;
 final class RefreshTokenCacheItem extends BaseTokenCacheItem {
 
     @SerializedName("refresh_token")
-    private String mRefreshToken;
+    private final String mRefreshToken;
 
     @SerializedName("environment")
-    private String mEnvironment;
+    private final String mEnvironment;
 
     // meta data used to construct user object from refresh token cache item.
     @SerializedName("displayable_id")
-    String mDisplayableId;
+    final String mDisplayableId;
 
     @SerializedName("name")
-    String mName;
+    final String mName;
 
     @SerializedName("identity_provider")
-    String mIdentityProvider;
-
-    /**
-     * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe.
-     */
-    @SuppressWarnings("unused")
-    RefreshTokenCacheItem() {
-    }
+    final String mIdentityProvider;
 
     RefreshTokenCacheItem(final String environment, final String clientId, final TokenResponse response)
             throws MsalClientException {

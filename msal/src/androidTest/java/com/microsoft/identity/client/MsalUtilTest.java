@@ -62,7 +62,6 @@ import java.util.Set;
 public final class MsalUtilTest {
     static final int EXPECTED_SINGLE_SCOPE_SIZE = 1;
     static final int EXPECTED_MULTI_SCOPE_SIZE = 3;
-
     @Test
     public void testNullMessage() {
         Assert.assertTrue(MsalUtils.isEmpty(null));
@@ -269,7 +268,7 @@ public final class MsalUtilTest {
 
         // The three chrome package all exists on the device, return the stable chrome package name.
         Mockito.when(mockedPackageManager.getPackageInfo(Matchers.refEq(MsalUtils.CHROME_PACKAGE),
-                Matchers.eq(PackageManager.GET_ACTIVITIES))).thenReturn(Mockito.mock(PackageInfo.class));
+                    Matchers.eq(PackageManager.GET_ACTIVITIES))).thenReturn(Mockito.mock(PackageInfo.class));
 
         Assert.assertTrue(MsalUtils.getChromePackage(mockedContext).equals(MsalUtils.CHROME_PACKAGE));
     }
@@ -314,7 +313,7 @@ public final class MsalUtilTest {
     @Test
     public void testConvertStringToSet() {
         final String scope1 = "scope1";
-        final String[] scopes = new String[]{" ", scope1, "   "};
+        final String[] scopes = new String[] {" ", scope1, "   "};
         final Set<String> convertedScope = MsalUtils.convertArrayToSet(scopes);
 
         Assert.assertNotNull(convertedScope);
@@ -323,7 +322,7 @@ public final class MsalUtilTest {
 
         final String scope2 = "scope2";
         final String scope3 = "scope3";
-        final String[] scopesTest2 = new String[]{scope1, scope2, scope3};
+        final String[] scopesTest2 = new String[] {scope1, scope2, scope3};
         final Set<String> convertedScope2 = MsalUtils.convertArrayToSet(scopesTest2);
 
         Assert.assertNotNull(convertedScope2);

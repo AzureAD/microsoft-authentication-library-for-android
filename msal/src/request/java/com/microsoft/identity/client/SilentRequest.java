@@ -55,7 +55,7 @@ final class SilentRequest extends BaseRequest {
         // lookup AT first.
         if (!mForceRefresh) {
             final AccessTokenCacheItem accessTokenCacheItem = mIsAuthorityProvided ? tokenCache.findAccessToken(mAuthRequestParameters, mUser)
-                    : tokenCacheItemAuthorityNotProvided;
+                    :tokenCacheItemAuthorityNotProvided;
 
             if (accessTokenCacheItem != null) {
                 Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "Access token is found, returning cached AT.");

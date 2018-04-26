@@ -23,7 +23,6 @@ public final class AuthenticationActivityTest {
 
     private final ActivityTestRule mTestActivityRule = new ActivityTestRule<>(TestActivity.class,
             true, false);
-
     @Before
     public void setUp() {
         mAppContext = InstrumentationRegistry.getInstrumentation().getTargetContext();

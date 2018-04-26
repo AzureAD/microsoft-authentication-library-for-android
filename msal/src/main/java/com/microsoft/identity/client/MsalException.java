@@ -26,7 +26,7 @@ package com.microsoft.identity.client;
 /**
  * {@link MsalException} thrown or sent back via callback, representing the detailed exception
  * thrown by the sdk. It will contain the error code, error description (could be null) or
- * throwable (could be null).
+ *  throwable (could be null).
  */
 public class MsalException extends Exception {
     private String mErrorCode;
@@ -34,12 +34,10 @@ public class MsalException extends Exception {
     /**
      * Default constructor.
      */
-    MsalException() {
-    }
+    MsalException() { }
 
     /**
      * Initiates the detailed error code.
-     *
      * @param errorCode The error code contained in the exception.
      */
     MsalException(final String errorCode) {
@@ -48,8 +46,7 @@ public class MsalException extends Exception {
 
     /**
      * Initiates the {@link MsalException} with error code and error message.
-     *
-     * @param errorCode    The error code contained in the exception.
+     * @param errorCode The error code contained in the exception.
      * @param errorMessage The error message contained in the exception.
      */
     MsalException(final String errorCode, final String errorMessage) {
@@ -59,13 +56,12 @@ public class MsalException extends Exception {
 
     /**
      * Initiates the {@link MsalException} with error code, error message and throwable.
-     *
-     * @param errorCode    The error code contained in the exception.
+     * @param errorCode The error code contained in the exception.
      * @param errorMessage The error message contained in the exception.
-     * @param throwable    The {@link Throwable} contains the cause for the exception.
+     * @param throwable The {@link Throwable} contains the cause for the exception.
      */
     MsalException(final String errorCode, final String errorMessage,
-                  final Throwable throwable) {
+                         final Throwable throwable) {
         super(errorMessage, throwable);
         mErrorCode = errorCode;
     }

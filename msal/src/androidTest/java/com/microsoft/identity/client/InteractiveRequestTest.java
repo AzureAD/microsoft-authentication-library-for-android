@@ -59,7 +59,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 import static org.mockito.Mockito.mock;
 
 /**
@@ -195,7 +194,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     @Test
-    public void testGetAuthorizationUriContainsSessionContinuationParams() throws UnsupportedEncodingException, MsalClientException {
+    public void testGetAuthorizationUriContainsSessionContinuationParams()throws UnsupportedEncodingException, MsalClientException {
         final User user = new User(AndroidTestUtil.PREFERRED_USERNAME, "name", AndroidTestUtil.ISSUER, AndroidTestUtil.UID, AndroidTestUtil.UTID);
         final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class), getAuthenticationParams(AUTHORITY,
                 UiBehavior.CONSENT, user), null);

@@ -37,8 +37,7 @@ final class PlatformIdHelper {
     /**
      * Private constructor to prevent a help class from being initiated.
      */
-    private PlatformIdHelper() {
-    }
+    private PlatformIdHelper() { }
 
     static Map<String, String> getPlatformIdParameters() {
         final Map<String, String> platformParameters = new HashMap<>();
