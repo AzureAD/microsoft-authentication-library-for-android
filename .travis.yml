@@ -25,6 +25,11 @@ android:
     #system images
     - sys-img-armeabi-v7a-addon-google_apis-google-21
 
+licenses:
+    - 'android-sdk-preview-license-.+'
+    - 'android-sdk-license-.+'
+    - 'google-gdk-license-.+'
+
 env:
     global:
       # This is to guaratee a clean gradle log
