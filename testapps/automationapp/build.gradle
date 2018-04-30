@@ -46,6 +46,6 @@ android {
 }
 
 dependencies {
-    compile project (':msal')
-    compile "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
+    implementation project (':msal')
+    implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
 }
