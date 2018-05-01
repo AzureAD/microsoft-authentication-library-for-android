@@ -13,8 +13,8 @@ ext {
     // Libraries
     supportLibraryVersion = "25.3.1"
     junitVersion = "4.12"
-    mockitoCoreVersion = "1.10.19"
-    dexmakerMockitoVersion = "1.2"
+    mockitoCoreVersion = "2.18.3"
+    mockitoAndroidVersion = "2.18.3"
     runnerVersion = "0.5"
     rulesVersion = "0.5"
     gsonVersion = "2.8.1"

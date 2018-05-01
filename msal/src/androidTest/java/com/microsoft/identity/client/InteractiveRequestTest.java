@@ -336,8 +336,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         // verify that startActivityResult is called
         Mockito.verify(testActivity, Mockito.never()).startActivityForResult(Mockito.argThat(new ArgumentMatcher<Intent>() {
             @Override
-            public boolean matches(Object argument) {
-                return ((Intent) argument).getStringExtra(Constants.REQUEST_URL_KEY) != null;
+            public boolean matches(Intent argument) {
+                return argument.getStringExtra(Constants.REQUEST_URL_KEY) != null;
             }
         }), Mockito.eq(InteractiveRequest.BROWSER_FLOW));
     }
@@ -395,7 +395,6 @@ public final class InteractiveRequestTest extends AndroidTestCase {
      * Verify when auth code is successfully returned, result is delivered correctly.
      */
     @Test
-    @Ignore
     public void testGetTokenCodeSuccessfullyReturnedNoClientInfoReturned() throws IOException, InterruptedException {
         final Activity testActivity = Mockito.mock(Activity.class);
         Mockito.when(testActivity.getPackageName()).thenReturn(mAppContext.getPackageName());
@@ -455,7 +454,6 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     @Test
-    @Ignore
     public void testAcquireTokenExpiresInNotReturned() throws IOException, InterruptedException {
         final Activity testActivity = Mockito.mock(Activity.class);
         Mockito.when(testActivity.getPackageName()).thenReturn(mAppContext.getPackageName());
@@ -935,8 +933,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     private void verifyStartActivityForResultCalled(final Activity testActivity) {
         Mockito.verify(testActivity).startActivityForResult(Mockito.argThat(new ArgumentMatcher<Intent>() {
             @Override
-            public boolean matches(Object argument) {
-                return ((Intent) argument).getStringExtra(Constants.REQUEST_URL_KEY) != null;
+            public boolean matches(Intent argument) {
+                return argument.getStringExtra(Constants.REQUEST_URL_KEY) != null;
             }
         }), Mockito.eq(InteractiveRequest.BROWSER_FLOW));
     }
