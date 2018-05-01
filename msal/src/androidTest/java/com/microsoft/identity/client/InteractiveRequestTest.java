@@ -395,6 +395,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
      * Verify when auth code is successfully returned, result is delivered correctly.
      */
     @Test
+    @Ignore
     public void testGetTokenCodeSuccessfullyReturnedNoClientInfoReturned() throws IOException, InterruptedException {
         final Activity testActivity = Mockito.mock(Activity.class);
         Mockito.when(testActivity.getPackageName()).thenReturn(mAppContext.getPackageName());
@@ -454,6 +455,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     @Test
+    @Ignore
     public void testAcquireTokenExpiresInNotReturned() throws IOException, InterruptedException {
         final Activity testActivity = Mockito.mock(Activity.class);
         Mockito.when(testActivity.getPackageName()).thenReturn(mAppContext.getPackageName());

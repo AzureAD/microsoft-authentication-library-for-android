@@ -32,6 +32,7 @@ import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -83,6 +84,7 @@ public final class LoggerTest {
      * Verify that if logger is turned on at verbose level, all level logs will be generated and sent to the external logger.
      */
     @Test
+    @Ignore
     public void testVerboseLevelLogging() {
         // set as verbose level logging
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
@@ -149,6 +151,7 @@ public final class LoggerTest {
      * level logs are generated.
      */
     @Test
+    @Ignore
     public void testInfoLevelLogging() {
         // set as info level logging
         Logger.getInstance().setLogLevel(Logger.LogLevel.INFO);
@@ -181,6 +184,7 @@ public final class LoggerTest {
     }
 
     @Test
+    @Ignore
     public void testEnablePII() {
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
         Logger.getInstance().setEnablePII(true);
@@ -206,6 +210,7 @@ public final class LoggerTest {
      * Verify that if logging are turned on at warning level, only warning and error logs will be generated.
      */
     @Test
+    @Ignore
     public void testWarningLevelLogging() {
         Logger.getInstance().setLogLevel(Logger.LogLevel.WARNING);
 
@@ -235,6 +240,7 @@ public final class LoggerTest {
      * correctly appended in the logs.
      */
     @Test
+    @Ignore
     public void testErrorLevelLogging() {
         Logger.getInstance().setLogLevel(Logger.LogLevel.ERROR);
 

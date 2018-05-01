@@ -238,6 +238,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
      * two access token entries in the cache.
      */
     @Test
+    @Ignore
     public void testAcquireTokenSuccess() throws PackageManager.NameNotFoundException, IOException,
             InterruptedException {
         new GetTokenBaseTestCase() {
@@ -311,6 +312,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     @Test
+    @Ignore
     public void testAuthorityValidationTurnedOnAfterInteractiveRequest() throws PackageManager.NameNotFoundException, IOException,
             InterruptedException {
         new GetTokenBaseTestCase() {
@@ -495,6 +497,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     @Test
+    @Ignore
     public void testAcquireTokenSilentNoAuthorityProvidedMultipleInTheCache() throws PackageManager.NameNotFoundException, IOException,
             InterruptedException {
         new GetTokenBaseTestCase() {
@@ -782,6 +785,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
      * intersection, old entry will be removed. There will be only one access token left.
      */
     @Test
+    @Ignore
     public void testGetTokenWithScopeIntersection() throws PackageManager.NameNotFoundException, IOException,
             InterruptedException {
         new GetTokenBaseTestCase() {
@@ -973,6 +977,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     @Test
+    @Ignore
     public void testAcquireTokenWithUserSucceed() throws PackageManager.NameNotFoundException, InterruptedException, IOException {
         new GetTokenBaseTestCase() {
             private User mUser;

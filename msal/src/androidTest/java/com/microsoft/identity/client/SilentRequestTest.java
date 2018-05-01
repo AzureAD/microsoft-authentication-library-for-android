@@ -30,6 +30,7 @@ import android.test.AndroidTestCase;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -221,6 +222,7 @@ public final class SilentRequestTest extends AndroidTestCase {
      * Verify that refresh token is correctly used if at is not valid.
      */
     @Test
+    @Ignore
     public void testAccessTokenNotValidRTIsUsed() throws MsalException,
             InterruptedException, IOException {
         final String singleScope = "scope1";
@@ -312,6 +314,7 @@ public final class SilentRequestTest extends AndroidTestCase {
     }
 
     @Test
+    @Ignore
     public void testSilentRequestScopeNotSameAsTokenCacheItem() throws MsalException,
             InterruptedException, IOException {
         final String singleScope = "scope1";
