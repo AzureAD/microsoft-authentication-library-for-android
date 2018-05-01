@@ -238,7 +238,6 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
      * two access token entries in the cache.
      */
     @Test
-    @Ignore
     public void testAcquireTokenSuccess() throws PackageManager.NameNotFoundException, IOException,
             InterruptedException {
         new GetTokenBaseTestCase() {
@@ -312,7 +311,6 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     @Test
-    @Ignore
     public void testAuthorityValidationTurnedOnAfterInteractiveRequest() throws PackageManager.NameNotFoundException, IOException,
             InterruptedException {
         new GetTokenBaseTestCase() {
@@ -497,7 +495,6 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     @Test
-    @Ignore
     public void testAcquireTokenSilentNoAuthorityProvidedMultipleInTheCache() throws PackageManager.NameNotFoundException, IOException,
             InterruptedException {
         new GetTokenBaseTestCase() {
@@ -658,8 +655,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                 Mockito.verify(testActivity).startActivityForResult(Mockito.argThat(
                         new ArgumentMatcher<Intent>() {
                             @Override
-                            public boolean matches(Object argument) {
-                                final String data = ((Intent) argument).getStringExtra(Constants.REQUEST_URL_KEY);
+                            public boolean matches(Intent argument) {
+                                final String data = argument.getStringExtra(Constants.REQUEST_URL_KEY);
                                 return data.startsWith(ALTERNATE_AUTHORITY);
                             }
                         }), Matchers.eq(InteractiveRequest.BROWSER_FLOW));
@@ -715,8 +712,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             protected void performAdditionalVerify(Activity testActivity) {
                 Mockito.verify(testActivity).startActivityForResult(Mockito.argThat(new ArgumentMatcher<Intent>() {
                     @Override
-                    public boolean matches(Object argument) {
-                        if (((Intent) argument).getStringExtra(Constants.REQUEST_URL_KEY) != null) {
+                    public boolean matches(Intent argument) {
+                        if (argument.getStringExtra(Constants.REQUEST_URL_KEY) != null) {
                             return true;
                         }
 
@@ -785,7 +782,6 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
      * intersection, old entry will be removed. There will be only one access token left.
      */
     @Test
-    @Ignore
     public void testGetTokenWithScopeIntersection() throws PackageManager.NameNotFoundException, IOException,
             InterruptedException {
         new GetTokenBaseTestCase() {
@@ -977,7 +973,6 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     @Test
-    @Ignore
     public void testAcquireTokenWithUserSucceed() throws PackageManager.NameNotFoundException, InterruptedException, IOException {
         new GetTokenBaseTestCase() {
             private User mUser;
