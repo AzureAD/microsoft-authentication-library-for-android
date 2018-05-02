@@ -204,7 +204,7 @@ abstract class BaseRequest {
 
         final AccessTokenCacheItem accessTokenCacheItem;
         // Switch to toggle using common cache (or not)
-        boolean useCommonCache = true;
+        boolean useCommonCache = false;
 
         if (useCommonCache) {
             accessTokenCacheItem = tokenCache.saveTokensToCommonCache(

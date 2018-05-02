@@ -104,8 +104,8 @@ public final class Oauth2ClientTest {
             // Verify body parameters
             Mockito.verify(outputStream).write(Mockito.argThat(new ArgumentMatcher<byte[]>() {
                 @Override
-                public boolean matches(Object argument) {
-                    final String message = new String((byte[]) argument);
+                public boolean matches(byte[] argument) {
+                    final String message = new String(argument);
                     if (message == null) {
                         return false;
                     }
