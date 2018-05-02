@@ -100,9 +100,13 @@ task sourcesJar(type: Jar) {
 }
 
 dependencies {
+    implementation(project(':common')) {
+        transitive = false
+    }
     implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
     implementation "com.android.support:customtabs:$rootProject.ext.supportLibraryVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
+
     // test dependencies
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
     // TODO the below dependency should be mockito-core but the MockMaker isn't working...
@@ -112,17 +116,6 @@ dependencies {
     // Set this dependency to use JUnit 4 rules
     androidTestImplementation "com.android.support.test:rules:$rootProject.ext.rulesVersion"
     androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
-    api(project(":common")) {
-        exclude group: 'com.google.code.gson', module: 'gson'
-        exclude group: 'com.android.support', module: 'appcompat-v7'
-        exclude group: 'com.nimbusds', module: 'nimbus-jose-jwt'
-        exclude group: 'org.mockito', module: 'mockito-core'
-        exclude group: 'com.google.dexmaker', module: 'dexmaker-mockito'
-        exclude group: 'org.powermock', module: 'powermock-module-junit4'
-        exclude group: 'org.powermock', module: 'powermock-module-junit4-rule'
-        exclude group: 'org.powermock', module: 'powermock-api-mockito'
-        exclude group: 'org.powermock', module: 'powermock-classloading-xstream'
-    }
 }
 
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
