@@ -14,9 +14,8 @@ android:
     # Travis has a bug that we need to workaround to use sdk 25
     # https://github.com/travis-ci/travis-ci/issues/6059
     - tools
-    - tools
     - platform-tools
-    - build-tools-25.0.3
+    - build-tools-26.0.2
     - android-25
     - extra
     - extra-android-m2repository
@@ -24,6 +23,11 @@ android:
     - addon-google_apis-google-21
     #system images
     - sys-img-armeabi-v7a-addon-google_apis-google-21
+
+licenses:
+    - 'android-sdk-preview-license-.+'
+    - 'android-sdk-license-.+'
+    - 'google-gdk-license-.+'
 
 env:
     global:

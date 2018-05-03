@@ -336,8 +336,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         // verify that startActivityResult is called
         Mockito.verify(testActivity, Mockito.never()).startActivityForResult(Mockito.argThat(new ArgumentMatcher<Intent>() {
             @Override
-            public boolean matches(Object argument) {
-                return ((Intent) argument).getStringExtra(Constants.REQUEST_URL_KEY) != null;
+            public boolean matches(Intent argument) {
+                return argument.getStringExtra(Constants.REQUEST_URL_KEY) != null;
             }
         }), Mockito.eq(InteractiveRequest.BROWSER_FLOW));
     }
@@ -933,8 +933,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     private void verifyStartActivityForResultCalled(final Activity testActivity) {
         Mockito.verify(testActivity).startActivityForResult(Mockito.argThat(new ArgumentMatcher<Intent>() {
             @Override
-            public boolean matches(Object argument) {
-                return ((Intent) argument).getStringExtra(Constants.REQUEST_URL_KEY) != null;
+            public boolean matches(Intent argument) {
+                return argument.getStringExtra(Constants.REQUEST_URL_KEY) != null;
             }
         }), Mockito.eq(InteractiveRequest.BROWSER_FLOW));
     }
