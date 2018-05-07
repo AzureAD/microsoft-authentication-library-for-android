@@ -105,8 +105,22 @@ public final class TokenCacheKeyTest {
         final String idToken = AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", UNIQUE_ID, DISPLAYABLE, "sub", "tenant",
                 "version");
         final String clientInfo = AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID);
-        final TokenResponse response = new TokenResponse("access_token", idToken, "refresh_token", new Date(), new Date(), new Date(),
-                MsalUtils.convertSetToString(getScopes(), " "), "Bearer", clientInfo);
+        final TokenResponse response = new TokenResponse(
+                "access_token",
+                idToken,
+                "refresh_token",
+                new Date(),
+                0L,
+                new Date(),
+                new Date(),
+                0L,
+                MsalUtils.convertSetToString(
+                        getScopes(),
+                        " "
+                ),
+                "Bearer",
+                clientInfo
+        );
         final RefreshTokenCacheItem item = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, response);
 
         Assert.assertTrue(item.extractTokenCacheKey().toString().equals(MsalUtils.base64UrlEncodeToString(AUTHORITY_HOST) + "$"
@@ -117,8 +131,21 @@ public final class TokenCacheKeyTest {
     public void testRefreshTokenKeyCreationWithEmptyClientInfo() throws MsalClientException {
         final String idToken = AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", UNIQUE_ID, DISPLAYABLE, "sub", "tenant",
                 "version");
-        final TokenResponse response = new TokenResponse("access_token", idToken, "refresh_token", new Date(), new Date(), new Date(),
-                MsalUtils.convertSetToString(getScopes(), " "), "Bearer", null);
+        final TokenResponse response = new TokenResponse(
+                "access_token", idToken,
+                "refresh_token",
+                new Date(),
+                0L,
+                new Date(),
+                new Date(),
+                0L,
+                MsalUtils.convertSetToString(
+                        getScopes(),
+                        " "
+                ),
+                "Bearer",
+                null
+        );
         final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, response);
         Assert.assertTrue(refreshTokenCacheItem.extractTokenCacheKey().toString().equals(MsalUtils.base64UrlEncodeToString(AUTHORITY_HOST) + "$"
                 + MsalUtils.base64UrlEncodeToString(CLIENT_ID) + "$" + "."));

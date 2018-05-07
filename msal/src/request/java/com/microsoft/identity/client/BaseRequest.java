@@ -204,14 +204,20 @@ abstract class BaseRequest {
 
         final AccessTokenCacheItem accessTokenCacheItem;
         // Switch to toggle using common cache (or not)
-        boolean useCommonCache = false;
+        boolean useCommonCache = true;
 
         if (useCommonCache) {
-            accessTokenCacheItem = tokenCache.saveTokensToCommonCache(
+            tokenCache.saveTokensToCommonCache(
                     authority.getAuthorityUrl(),
                     mAuthRequestParameters.getClientId(),
                     mTokenResponse
             );
+
+            // Because the token retrieval API hasn't been written yet, also sync the tokens to the legacy cache for *actual* retrieval
+            accessTokenCacheItem = tokenCache.saveAccessToken(authority.getAuthority(),
+                    mAuthRequestParameters.getClientId(), mTokenResponse, mRequestContext);
+            tokenCache.saveRefreshToken(authority.getAuthorityHost(), mAuthRequestParameters.getClientId(),
+                    mTokenResponse, mRequestContext);
         } else {
             accessTokenCacheItem = tokenCache.saveAccessToken(authority.getAuthority(),
                     mAuthRequestParameters.getClientId(), mTokenResponse, mRequestContext);

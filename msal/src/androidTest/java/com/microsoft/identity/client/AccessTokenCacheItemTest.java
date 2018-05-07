@@ -97,8 +97,25 @@ public final class AccessTokenCacheItemTest {
     }
 
     static TokenResponse getTokenResponse(final String accessToken, final String refreshToken) {
-        return new TokenResponse(accessToken, getIdToken(), refreshToken, new Date(), new Date(), new Date(),
-                MsalUtils.convertSetToString(getScopes(), " "), "Bearer", AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID));
+        return new TokenResponse(
+                accessToken,
+                getIdToken(),
+                refreshToken,
+                new Date(),
+                0L,
+                new Date(),
+                new Date(),
+                0L,
+                MsalUtils.convertSetToString(
+                        getScopes(),
+                        " "
+                ),
+                "Bearer",
+                AndroidTestUtil.createRawClientInfo(
+                        AndroidTestUtil.UID,
+                        AndroidTestUtil.UTID
+                )
+        );
     }
 
     static String getIdToken() {

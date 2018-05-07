@@ -60,6 +60,8 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static com.microsoft.identity.client.AndroidTestUtil.MOCK_UID;
+import static com.microsoft.identity.client.AndroidTestUtil.MOCK_UTID;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -419,8 +421,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                 assertNotNull(mTokenCache.findAccessToken(getAuthenticationParams(authority, UiBehavior.FORCE_LOGIN, null), authenticationResult.getUser()));
 
                 final User user = authenticationResult.getUser();
-                assertTrue(user.getUid().equals(""));
-                assertTrue(user.getUtid().equals(""));
+                assertTrue(user.getUid().equals(MOCK_UID));
+                assertTrue(user.getUtid().equals(MOCK_UTID));
 
                 resultLock.countDown();
 

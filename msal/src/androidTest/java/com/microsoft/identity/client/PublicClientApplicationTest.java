@@ -40,6 +40,9 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static com.microsoft.identity.client.AndroidTestUtil.MOCK_UID;
+import static com.microsoft.identity.client.AndroidTestUtil.MOCK_UTID;
+
 /**
  * Tests for {@link PublicClientApplication}.
  */
@@ -453,7 +456,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             void mockHttpRequest() throws IOException {
                 final String idToken = TokenCacheTest.getDefaultIdToken();
                 final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithFailureResponse(
-                        HttpURLConnection.HTTP_OK, AndroidTestUtil.getSuccessResponse(idToken, AndroidTestUtil.ACCESS_TOKEN, AndroidTestUtil.REFRESH_TOKEN, ""));
+                        HttpURLConnection.HTTP_OK, AndroidTestUtil.getSuccessResponse(idToken, AndroidTestUtil.ACCESS_TOKEN, AndroidTestUtil.REFRESH_TOKEN, "eyJ1aWQiOiI1MGE0YjhhMS0zMzNiLTQwNDEtOGQzNS0wYTg2MDY2YzE1YTgiLCJ1dGlkIjoiMGE4NGU5NTctODg0Yi00NmQxLTk0OGYtYTUwMWIwZWE2NmYyIn0="));
                 Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
                 HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
             }
@@ -467,8 +470,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     public void onSuccess(AuthenticationResult authenticationResult) {
                         Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
                         final User user = authenticationResult.getUser();
-                        Assert.assertTrue(user.getUid().equals(""));
-                        Assert.assertTrue(user.getUtid().equals(""));
+                        Assert.assertTrue(user.getUid().equals(MOCK_UID));
+                        Assert.assertTrue(user.getUtid().equals(MOCK_UTID));
                         Assert.assertTrue(user.getDisplayableId().equals(TokenCacheTest.DISPLAYABLE));
 
                         releaseLock.countDown();
@@ -1150,8 +1153,19 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     private TokenResponse getTokenResponse(final String idToken, final String clientInfo) throws MsalException {
-        return new TokenResponse(AndroidTestUtil.ACCESS_TOKEN, idToken, AndroidTestUtil.REFRESH_TOKEN, new Date(), new Date(),
-                new Date(), "scope", "Bearer", clientInfo);
+        return new TokenResponse(
+                AndroidTestUtil.ACCESS_TOKEN,
+                idToken,
+                AndroidTestUtil.REFRESH_TOKEN,
+                new Date(),
+                3599L,
+                new Date(),
+                new Date(),
+                262800L,
+                "scope",
+                "Bearer",
+                clientInfo
+        );
     }
 
     static void saveTokenResponse(final TokenCache tokenCache, final String authority, final String clientId,

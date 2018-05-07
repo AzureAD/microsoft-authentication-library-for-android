@@ -94,8 +94,19 @@ public final class TokenResponseTest {
     public void testConstructorForSuccessTokenResponse() {
         final String rawIdToken = "raw idtoken";
         final Date expiresOn = new Date();
-        final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, rawIdToken, REFRESH_TOKEN, expiresOn,
-                expiresOn, expiresOn, SCOPE, TOKEN_TYPE, null);
+        final TokenResponse tokenResponse = new TokenResponse(
+                ACCESS_TOKEN,
+                rawIdToken,
+                REFRESH_TOKEN,
+                expiresOn,
+                3599L,
+                expiresOn,
+                expiresOn,
+                262800L,
+                SCOPE,
+                TOKEN_TYPE,
+                null
+        );
 
         Assert.assertTrue(ACCESS_TOKEN.equals(tokenResponse.getAccessToken()));
         Assert.assertTrue(rawIdToken.equals(tokenResponse.getRawIdToken()));

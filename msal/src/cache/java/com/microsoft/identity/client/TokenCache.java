@@ -28,8 +28,16 @@ import android.content.Context;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
+import com.microsoft.identity.common.internal.cache.AccountCredentialCache;
+import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
+import com.microsoft.identity.common.internal.cache.DefaultSsoValidator;
+import com.microsoft.identity.common.internal.cache.IAccountCredentialAdapter;
+import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
+import com.microsoft.identity.common.internal.cache.ICacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
-import com.microsoft.identity.common.internal.cache.MSALOAuth2TokenCache;
+import com.microsoft.identity.common.internal.cache.ISsoValidator;
+import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
+import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftSts;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
@@ -69,9 +77,29 @@ class TokenCache {
      */
     TokenCache(final Context context) {
         mTokenCacheAccessor = new TokenCacheAccessor(context);
-        List<IShareSingleSignOnState> sharedSSOCaches = new ArrayList<>();
-        sharedSSOCaches.add(new ADALOAuth2TokenCache(context, sharedSSOCaches));
-        mCommonCache = new MSALOAuth2TokenCache(context, sharedSSOCaches);
+        mCommonCache = initCommonCache(context);
+    }
+
+    private OAuth2TokenCache initCommonCache(final Context context) {
+        // Init the ADAL cache for SSO-state sync
+        final IShareSingleSignOnState adalCache = new ADALOAuth2TokenCache(context);
+        List<IShareSingleSignOnState> sharedSsoCaches = new ArrayList<>();
+        sharedSsoCaches.add(adalCache);
+
+        // Init the new-schema cache
+        final ICacheKeyValueDelegate cacheKeyValueDelegate = new CacheKeyValueDelegate();
+        final IAccountCredentialCache accountCredentialCache = new AccountCredentialCache(context, cacheKeyValueDelegate);
+        final IAccountCredentialAdapter accountCredentialAdapter = new MicrosoftStsAccountCredentialAdapter();
+        final ISsoValidator ssoValidator = new DefaultSsoValidator();
+        final OAuth2TokenCache tokenCache = new MsalOAuth2TokenCache(
+                context,
+                accountCredentialCache,
+                accountCredentialAdapter,
+                ssoValidator,
+                sharedSsoCaches // TODO wire this up inside of common
+        );
+
+        return tokenCache;
     }
 
     AccessTokenCacheItem saveTokensToCommonCache(
@@ -86,6 +114,7 @@ class TokenCache {
 
         // Convert the TokenResponse to the Common OM
         final MicrosoftStsTokenResponse tokenResponse = CoreAdapter.asMsStsTokenResponse(msalTokenResponse);
+        tokenResponse.setClientId(clientId);
 
         // Initialize a config for the strategy to consume
         final MicrosoftStsOAuth2Configuration config = new MicrosoftStsOAuth2Configuration();
@@ -101,6 +130,7 @@ class TokenCache {
         authorizationRequest.setAuthority(authority);
 
         mCommonCache.saveTokens(strategy, authorizationRequest, tokenResponse);
+
         return newAccessToken;
     }
 

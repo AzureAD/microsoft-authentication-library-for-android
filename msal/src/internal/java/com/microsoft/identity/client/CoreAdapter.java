@@ -14,25 +14,18 @@ public class CoreAdapter {
         responseOut.setTokenType(responseIn.getTokenType());
         responseOut.setRefreshToken(responseIn.getRefreshToken());
         responseOut.setScope(responseIn.getScope());
-
-        // TODO no state parameter?
-        //responseOut.setState();
-
         responseOut.setIdToken(responseIn.getRawIdToken());
-
-        // TODO no response received time?
-        //responseOut.setResponseReceivedTime();
         responseOut.setExpiresOn(responseIn.getExpiresOn());
-
+        responseOut.setExpiresIn(responseIn.getExpiresIn());
         responseOut.setExtExpiresOn(responseIn.getExtendedExpiresOn());
-
-        // TODO no 'not before' ?
-        //responseOut.setNotBefore();
-
+        responseOut.setExtExpiresIn(responseIn.getExtExpiresIn());
         responseOut.setClientInfo(responseIn.getRawClientInfo());
 
-        // TODO no family id?
-        //responseOut.setFamilyId();
+        // TODOs
+        // state?
+        // response received time?
+        // not before?
+        // family Id?
 
         return responseOut;
     }

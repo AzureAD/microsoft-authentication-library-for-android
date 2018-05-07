@@ -155,9 +155,13 @@ final class MsalUtils {
     static Date calculateExpiresOn(final String expiresIn) {
         final Calendar expires = new GregorianCalendar();
         // Compute token expiration
-        expires.add(Calendar.SECOND, isEmpty(expiresIn) ? DEFAULT_EXPIRATION_TIME_SEC : Integer.parseInt(expiresIn));
+        expires.add(Calendar.SECOND, getExpiryOrDefault(expiresIn));
 
         return expires.getTime();
+    }
+
+    static int getExpiryOrDefault(String expiresIn) {
+        return isEmpty(expiresIn) ? DEFAULT_EXPIRATION_TIME_SEC : Integer.parseInt(expiresIn);
     }
 
     /**
