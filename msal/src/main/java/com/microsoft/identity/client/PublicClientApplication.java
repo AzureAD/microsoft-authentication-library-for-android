@@ -30,6 +30,8 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.msal.BuildConfig;
 
 import java.net.URL;
@@ -286,7 +288,21 @@ public final class PublicClientApplication {
         apiEventBuilder.setAuthority(authorityURL.getProtocol() + "://" + authorityURL.getHost());
         Telemetry.getInstance().startEvent(telemetryRequestId, apiEventBuilder);
 
-        List<User> users = mTokenCache.getUsers(Authority.createAuthority(mAuthorityString, mValidateAuthority).getAuthorityHost(), mClientId, new RequestContext(UUID.randomUUID(), mComponent, telemetryRequestId));
+        final UUID correlationId = UUID.randomUUID();
+        initializeDiagnosticContext(correlationId.toString());
+
+        List<User> users = mTokenCache.getUsers(
+                Authority.createAuthority(
+                        mAuthorityString,
+                        mValidateAuthority
+                ).getAuthorityHost(),
+                mClientId,
+                new RequestContext(
+                        correlationId,
+                        mComponent,
+                        telemetryRequestId
+                )
+        );
 
         apiEventBuilder.setApiCallWasSuccessful(true);
         stopTelemetryEventAndFlush(apiEventBuilder);
@@ -574,7 +590,10 @@ public final class PublicClientApplication {
         apiEventBuilder.setAuthority(authorityURL.getProtocol() + "://" + authorityURL.getHost());
         Telemetry.getInstance().startEvent(telemetryRequestId, apiEventBuilder);
 
-        final RequestContext requestContext = new RequestContext(UUID.randomUUID(), mComponent, telemetryRequestId);
+        final UUID correlationId = UUID.randomUUID();
+        initializeDiagnosticContext(correlationId.toString());
+
+        final RequestContext requestContext = new RequestContext(correlationId, mComponent, telemetryRequestId);
         mTokenCache.deleteRefreshTokenByUser(user, requestContext);
         mTokenCache.deleteAccessTokenByUser(user, requestContext);
 
@@ -680,8 +699,12 @@ public final class PublicClientApplication {
 
         final Authority authorityForRequest = MsalUtils.isEmpty(authority) ? Authority.createAuthority(mAuthorityString, mValidateAuthority)
                 : Authority.createAuthority(authority, mValidateAuthority);
-        // set correlation if not developer didn't set it.
-        final RequestContext requestContext = new RequestContext(UUID.randomUUID(), mComponent, telemetryRequestId);
+
+        // Initialize Logging & RequestContext
+        final UUID correlationId = UUID.randomUUID();
+        initializeDiagnosticContext(correlationId.toString());
+
+        final RequestContext requestContext = new RequestContext(correlationId, mComponent, telemetryRequestId);
         final Set<String> scopesAsSet = MsalUtils.convertArrayToSet(scopes);
         final AuthenticationRequestParameters requestParameters = AuthenticationRequestParameters.create(authorityForRequest, mTokenCache,
                 scopesAsSet, mClientId, mSliceParameters, requestContext);
@@ -702,17 +725,41 @@ public final class PublicClientApplication {
         request.getToken(callback);
     }
 
+    static void initializeDiagnosticContext(String correlationIdStr) {
+        final com.microsoft.identity.common.internal.logging.RequestContext rc =
+                new com.microsoft.identity.common.internal.logging.RequestContext();
+        rc.put(AuthenticationConstants.AAD.CORRELATION_ID, correlationIdStr);
+        DiagnosticContext.setRequestContext(rc);
+    }
+
     private AuthenticationRequestParameters getRequestParameters(final String authority, final String[] scopes,
                                                                  final String loginHint, final String extraQueryParam,
                                                                  final UiBehavior uiBehavior, final User user, final String telemetryRequestId) {
         final Authority authorityForRequest = MsalUtils.isEmpty(authority) ? Authority.createAuthority(mAuthorityString, mValidateAuthority)
                 : Authority.createAuthority(authority, mValidateAuthority);
-        // set correlation if not developer didn't set it.
+
+        // Set up the correlationId for logging + request tracking
         final UUID correlationId = UUID.randomUUID();
+        initializeDiagnosticContext(correlationId.toString());
         final Set<String> scopesAsSet = MsalUtils.convertArrayToSet(scopes);
 
-        return AuthenticationRequestParameters.create(authorityForRequest, mTokenCache, scopesAsSet, mClientId,
-                mRedirectUri, loginHint, extraQueryParam, uiBehavior, user, mSliceParameters, new RequestContext(correlationId, mComponent, telemetryRequestId));
+        return AuthenticationRequestParameters.create(
+                authorityForRequest,
+                mTokenCache,
+                scopesAsSet,
+                mClientId,
+                mRedirectUri,
+                loginHint,
+                extraQueryParam,
+                uiBehavior,
+                user,
+                mSliceParameters,
+                new RequestContext(
+                        correlationId,
+                        mComponent,
+                        telemetryRequestId
+                )
+        );
     }
 
     private ApiEvent.Builder createApiEventBuilder(final String telemetryRequestId, final String apiId) {

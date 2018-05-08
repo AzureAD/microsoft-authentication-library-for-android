@@ -105,7 +105,9 @@ class TokenCache {
     AccessTokenCacheItem saveTokensToCommonCache(
             final URL authority,
             final String clientId,
-            final TokenResponse msalTokenResponse) throws MsalClientException {
+            final TokenResponse msalTokenResponse,
+            final String correlationId) throws MsalClientException {
+        PublicClientApplication.initializeDiagnosticContext(correlationId);
         // TODO where is the displayable id? Why is it missing?
         final AccessTokenCacheItem newAccessToken = new AccessTokenCacheItem(authority.toString(), clientId, msalTokenResponse);
 
