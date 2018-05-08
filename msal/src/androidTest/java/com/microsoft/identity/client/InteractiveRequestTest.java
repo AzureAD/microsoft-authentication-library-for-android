@@ -60,8 +60,6 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.microsoft.identity.client.AndroidTestUtil.MOCK_UID;
-import static com.microsoft.identity.client.AndroidTestUtil.MOCK_UTID;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -384,68 +382,6 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         mockNetworkConnected(mAppContext, false);
 
-        InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
-                Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
-
-        resultLock.await();
-
-        // verify that startActivityResult is called
-        verifyStartActivityForResultCalled(testActivity);
-    }
-
-    /**
-     * Verify when auth code is successfully returned, result is delivered correctly.
-     */
-    @Test
-    public void testGetTokenCodeSuccessfullyReturnedNoClientInfoReturned() throws IOException, InterruptedException {
-        final Activity testActivity = Mockito.mock(Activity.class);
-        Mockito.when(testActivity.getPackageName()).thenReturn(mAppContext.getPackageName());
-        Mockito.when(testActivity.getApplicationContext()).thenReturn(mAppContext);
-
-        // mock http call
-        AndroidTestMockUtil.mockSuccessTenantDiscovery(getExpectedAuthorizeEndpoint(), getExpectedTokenEndpoint());
-        mockSuccessHttpRequestCallWithNoRT();
-
-        final BaseRequest request = createInteractiveRequest(AUTHORITY, testActivity);
-        final CountDownLatch resultLock = new CountDownLatch(1);
-        request.getToken(new AuthenticationCallback() {
-            @Override
-            public void onSuccess(AuthenticationResult authenticationResult) {
-                Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
-                assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 1);
-                assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 0);
-
-                // make sure access token is stored with tenant specific authority
-                assertNull(mTokenCache.findAccessToken(getAuthenticationParams(AUTHORITY, UiBehavior.FORCE_LOGIN, null), authenticationResult.getUser()));
-                final String authority = AUTHORITY.replace("common", authenticationResult.getTenantId());
-                assertNotNull(mTokenCache.findAccessToken(getAuthenticationParams(authority, UiBehavior.FORCE_LOGIN, null), authenticationResult.getUser()));
-
-                final User user = authenticationResult.getUser();
-                assertTrue(user.getUid().equals(MOCK_UID));
-                assertTrue(user.getUtid().equals(MOCK_UTID));
-
-                resultLock.countDown();
-
-            }
-
-            @Override
-            public void onError(MsalException exception) {
-                fail();
-            }
-
-            @Override
-            public void onCancel() {
-                fail();
-            }
-        });
-
-        // having the thread delayed for preTokenRequest to finish. Here we mock the
-        // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
-        resultLock.await(THREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
-
-        final Intent resultIntent = new Intent();
-        resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
-                + "?code=1234&state=" + AndroidTestUtil.encodeProtocolState(AUTHORITY, getScopes()));
         InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
                 Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
 
