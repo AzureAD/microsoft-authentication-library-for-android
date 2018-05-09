@@ -27,6 +27,7 @@ import android.content.Context;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.AccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
@@ -125,7 +126,12 @@ class TokenCache {
         authorizationRequest.setScope(tokenResponse.getScope());
         authorizationRequest.setAuthority(authority);
 
-        mCommonCache.saveTokens(strategy, authorizationRequest, tokenResponse);
+        try {
+            mCommonCache.saveTokens(strategy, authorizationRequest, tokenResponse);
+        } catch (ClientException e) {
+            // Rethrow
+            throw new MsalClientException(e.getErrorCode(), "Failed to save tokens.", e);
+        }
 
         return newAccessToken;
     }
