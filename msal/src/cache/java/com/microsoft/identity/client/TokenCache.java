@@ -40,6 +40,7 @@ import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftSts;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsTokenResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
@@ -88,7 +89,7 @@ class TokenCache {
         // Init the new-schema cache
         final ICacheKeyValueDelegate cacheKeyValueDelegate = new CacheKeyValueDelegate();
         final IAccountCredentialCache accountCredentialCache = new AccountCredentialCache(context, cacheKeyValueDelegate);
-        final IAccountCredentialAdapter accountCredentialAdapter = new MicrosoftStsAccountCredentialAdapter();
+        final IAccountCredentialAdapter<MicrosoftStsOAuth2Strategy, MicrosoftStsAuthorizationRequest, MicrosoftStsTokenResponse> accountCredentialAdapter = new MicrosoftStsAccountCredentialAdapter();
         final OAuth2TokenCache tokenCache = new MsalOAuth2TokenCache(
                 context,
                 accountCredentialCache,
