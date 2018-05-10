@@ -127,7 +127,7 @@ class TokenCache {
 
         try {
             mCommonCache.saveTokens(strategy, authorizationRequest, tokenResponse);
-        } catch (ClientException e) {
+        } catch (final ClientException e) {
             // Rethrow
             throw new MsalClientException(e.getErrorCode(), "Failed to save tokens.", e);
         }
