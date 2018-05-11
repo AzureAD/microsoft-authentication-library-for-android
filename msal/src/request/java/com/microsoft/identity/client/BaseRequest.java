@@ -210,7 +210,8 @@ abstract class BaseRequest {
             tokenCache.saveTokensToCommonCache(
                     authority.getAuthorityUrl(),
                     mAuthRequestParameters.getClientId(),
-                    mTokenResponse
+                    mTokenResponse,
+                    mAuthRequestParameters.getRequestContext().getCorrelationId().toString()
             );
 
             // Because the token retrieval API hasn't been written yet, also sync the tokens to the legacy cache for *actual* retrieval
