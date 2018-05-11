@@ -292,10 +292,7 @@ public final class PublicClientApplication {
         initializeDiagnosticContext(correlationId.toString());
 
         List<User> users = mTokenCache.getUsers(
-                Authority.createAuthority(
-                        mAuthorityString,
-                        mValidateAuthority
-                ).getAuthorityHost(),
+                Authority.getAuthorityHost(mAuthorityString, mValidateAuthority),
                 mClientId,
                 new RequestContext(
                         correlationId,
