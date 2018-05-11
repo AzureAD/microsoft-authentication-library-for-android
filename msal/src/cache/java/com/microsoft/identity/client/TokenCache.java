@@ -27,23 +27,20 @@ import android.content.Context;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.AccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
-import com.microsoft.identity.common.internal.cache.DefaultSsoValidator;
-import com.microsoft.identity.common.internal.cache.IAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.ICacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
-import com.microsoft.identity.common.internal.cache.ISsoValidator;
 import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftSts;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsTokenResponse;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -63,7 +60,7 @@ class TokenCache {
 
     private static final int DEFAULT_EXPIRATION_BUFFER = 300;
     private final TokenCacheAccessor mTokenCacheAccessor;
-    private OAuth2TokenCache mCommonCache;
+    private MsalOAuth2TokenCache mCommonCache;
 
     private Gson mGson = new GsonBuilder()
             .registerTypeAdapter(AccessTokenCacheItem.class, new TokenCacheItemDeserializer<AccessTokenCacheItem>())
@@ -80,7 +77,7 @@ class TokenCache {
         mCommonCache = initCommonCache(context);
     }
 
-    private OAuth2TokenCache initCommonCache(final Context context) {
+    private MsalOAuth2TokenCache initCommonCache(final Context context) {
         // Init the ADAL cache for SSO-state sync
         final IShareSingleSignOnState adalCache = new ADALOAuth2TokenCache(context);
         List<IShareSingleSignOnState> sharedSsoCaches = new ArrayList<>();
@@ -89,13 +86,11 @@ class TokenCache {
         // Init the new-schema cache
         final ICacheKeyValueDelegate cacheKeyValueDelegate = new CacheKeyValueDelegate();
         final IAccountCredentialCache accountCredentialCache = new AccountCredentialCache(context, cacheKeyValueDelegate);
-        final IAccountCredentialAdapter accountCredentialAdapter = new MicrosoftStsAccountCredentialAdapter();
-        final ISsoValidator ssoValidator = new DefaultSsoValidator();
-        final OAuth2TokenCache tokenCache = new MsalOAuth2TokenCache(
+        final MicrosoftStsAccountCredentialAdapter accountCredentialAdapter = new MicrosoftStsAccountCredentialAdapter();
+        final MsalOAuth2TokenCache tokenCache = new MsalOAuth2TokenCache(
                 context,
                 accountCredentialCache,
                 accountCredentialAdapter,
-                ssoValidator,
                 sharedSsoCaches // TODO wire this up inside of common
         );
 
@@ -123,7 +118,7 @@ class TokenCache {
 
         // Create the OAuth2Strategy
         // TODO how do I know if Authority Validation is enabled?
-        final OAuth2Strategy strategy = msSts.createOAuth2Strategy(config);
+        final MicrosoftStsOAuth2Strategy strategy = msSts.createOAuth2Strategy(config);
 
         // Create the AuthorizationRequest
         final MicrosoftStsAuthorizationRequest authorizationRequest = new MicrosoftStsAuthorizationRequest();
@@ -131,7 +126,12 @@ class TokenCache {
         authorizationRequest.setScope(tokenResponse.getScope());
         authorizationRequest.setAuthority(authority);
 
-        mCommonCache.saveTokens(strategy, authorizationRequest, tokenResponse);
+        try {
+            mCommonCache.saveTokens(strategy, authorizationRequest, tokenResponse);
+        } catch (final ClientException e) {
+            // Rethrow
+            throw new MsalClientException(e.getErrorCode(), "Failed to save tokens.", e);
+        }
 
         return newAccessToken;
     }

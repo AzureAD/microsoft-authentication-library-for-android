@@ -118,8 +118,7 @@ public final class AndroidTestUtil {
         return new URL(DEFAULT_AUTHORITY_WITH_TENANT);
     }
 
-    static String
-    getSuccessResponseWithNoRefreshToken(final String idToken) {
+    static String getSuccessResponseWithNoRefreshToken(final String idToken) {
         final String tokenResponse = "{\"id_token\":\""
                 + idToken
                 + "\",\"access_token\":\"" + ACCESS_TOKEN + "\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\"scope1 scope2\",\"client_info\":\"" + MOCK_CLIENT_INFO + "\"}";
