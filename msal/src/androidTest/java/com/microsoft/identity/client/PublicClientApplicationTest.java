@@ -1164,7 +1164,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                 262800L,
                 "scope",
                 "Bearer",
-                clientInfo
+                clientInfo,
+                null
         );
     }
 
