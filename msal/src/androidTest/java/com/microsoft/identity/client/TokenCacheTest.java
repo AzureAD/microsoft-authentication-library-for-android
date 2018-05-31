@@ -204,7 +204,9 @@ public final class TokenCacheTest extends AndroidTestCase {
                 ),
                 262800L,
                 scope,
-                "Bearer", clientInfo
+                "Bearer",
+                clientInfo,
+                null
         );
 
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, response);
@@ -627,7 +629,8 @@ public final class TokenCacheTest extends AndroidTestCase {
                 262800L,
                 scopesInResponse,
                 "Bearer",
-                rawClientInfo
+                rawClientInfo,
+                null
         );
     }
 
@@ -647,7 +650,8 @@ public final class TokenCacheTest extends AndroidTestCase {
                 262800L,
                 scopesInResponse,
                 "Bearer",
-                clientInfo
+                clientInfo,
+                null
         );
     }
 

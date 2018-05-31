@@ -119,7 +119,8 @@ public final class TokenCacheKeyTest {
                         " "
                 ),
                 "Bearer",
-                clientInfo
+                clientInfo,
+                null
         );
         final RefreshTokenCacheItem item = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, response);
 
@@ -144,6 +145,7 @@ public final class TokenCacheKeyTest {
                         " "
                 ),
                 "Bearer",
+                null,
                 null
         );
         final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(AUTHORITY_HOST, CLIENT_ID, response);

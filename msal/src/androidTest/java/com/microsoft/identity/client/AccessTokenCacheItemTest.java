@@ -114,7 +114,8 @@ public final class AccessTokenCacheItemTest {
                 AndroidTestUtil.createRawClientInfo(
                         AndroidTestUtil.UID,
                         AndroidTestUtil.UTID
-                )
+                ),
+                null
         );
     }
 

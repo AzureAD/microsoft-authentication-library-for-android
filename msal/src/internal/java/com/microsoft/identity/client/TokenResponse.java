@@ -45,6 +45,7 @@ final class TokenResponse extends BaseOauth2Response {
     private final String mTokenType;
     private final String mRawClientInfo;
     private final String mClaims;
+    private final String mFamilyId;
     private final Map<String, String> mAdditionalData = new HashMap<>();
 
     /**
@@ -60,7 +61,8 @@ final class TokenResponse extends BaseOauth2Response {
                          final Long extExpiresIn,
                          final String scope,
                          final String tokenType,
-                         final String rawClientInfo) {
+                         final String rawClientInfo,
+                         final String familyId) {
         // success response: error, errorDescription and errorCodes are all null
         super(null, null, BaseOauth2Response.DEFAULT_STATUS_CODE);
         mClaims = null;
@@ -75,6 +77,7 @@ final class TokenResponse extends BaseOauth2Response {
         mScope = scope;
         mTokenType = tokenType;
         mRawClientInfo = rawClientInfo;
+        mFamilyId = familyId;
     }
 
     /**
@@ -98,6 +101,7 @@ final class TokenResponse extends BaseOauth2Response {
         mScope = null;
         mTokenType = null;
         mRawClientInfo = null;
+        mFamilyId = null;
     }
 
     TokenResponse(final BaseOauth2Response baseOauth2Response, final String claims) {
@@ -180,6 +184,13 @@ final class TokenResponse extends BaseOauth2Response {
     }
 
     /**
+     * @return The familyId returned by the service (foci).
+     */
+    public String getFamilyId() {
+        return mFamilyId;
+    }
+
+    /**
      * Gets the expires_in claim value.
      *
      * @return The expires_in to get.
@@ -245,6 +256,9 @@ final class TokenResponse extends BaseOauth2Response {
         final String clientInfo = responseItems.get(TokenResponseClaim.CLIENT_INFO);
         additionalData.remove(TokenResponseClaim.CLIENT_INFO);
 
+        final String familyId = responseItems.get(TokenResponseClaim.FAMILY_ID);
+        additionalData.remove(TokenResponseClaim.FAMILY_ID);
+
         final TokenResponse tokenResponse =
                 new TokenResponse(
                         accessToken,
@@ -257,7 +271,8 @@ final class TokenResponse extends BaseOauth2Response {
                         (long) MsalUtils.getExpiryOrDefault(extExpiresIn), // extExpiresIn
                         scope,
                         tokenType,
-                        clientInfo
+                        clientInfo,
+                        familyId
                 );
         tokenResponse.setAdditionalData(additionalData);
 

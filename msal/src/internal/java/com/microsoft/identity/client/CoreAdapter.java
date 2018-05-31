@@ -20,12 +20,12 @@ public class CoreAdapter {
         responseOut.setExtExpiresOn(responseIn.getExtendedExpiresOn());
         responseOut.setExtExpiresIn(responseIn.getExtExpiresIn());
         responseOut.setClientInfo(responseIn.getRawClientInfo());
+        responseOut.setFamilyId(responseIn.getFamilyId());
 
         // TODOs
         // state?
         // response received time?
         // not before?
-        // family Id?
 
         return responseOut;
     }

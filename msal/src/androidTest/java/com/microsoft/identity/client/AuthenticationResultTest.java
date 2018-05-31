@@ -70,6 +70,7 @@ public final class AuthenticationResultTest {
                 EXT_EXPIRES_IN,
                 "",
                 TOKEN_TYPE,
+                null,
                 null
         );
 
@@ -93,6 +94,7 @@ public final class AuthenticationResultTest {
                 EXT_EXPIRES_IN,
                 null,
                 TOKEN_TYPE,
+                null,
                 null
         );
 
@@ -118,6 +120,7 @@ public final class AuthenticationResultTest {
                 EXT_EXPIRES_IN,
                 scopes,
                 TOKEN_TYPE,
+                null,
                 null
         );
 
@@ -150,6 +153,7 @@ public final class AuthenticationResultTest {
                 EXT_EXPIRES_IN,
                 SCOPE,
                 TOKEN_TYPE,
+                null,
                 null
         );
         final AuthenticationResult authenticationResult = new AuthenticationResult(new AccessTokenCacheItem(null, null, tokenResponse));
@@ -177,6 +181,7 @@ public final class AuthenticationResultTest {
                 EXT_EXPIRES_IN,
                 SCOPE,
                 TOKEN_TYPE,
+                null,
                 null
         );
         new AuthenticationResult(new AccessTokenCacheItem(null, null, tokenResponse));
@@ -200,6 +205,7 @@ public final class AuthenticationResultTest {
                 EXT_EXPIRES_IN,
                 SCOPE,
                 TOKEN_TYPE,
+                null,
                 null
         );
         final AuthenticationResult result = new AuthenticationResult(new AccessTokenCacheItem(null, null, tokenResponse));

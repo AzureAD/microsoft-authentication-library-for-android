@@ -50,6 +50,7 @@ public final class TokenResponseTest {
     static final String ERROR = "error_code";
     static final String ERROR_DESCRIPTION = "some error description";
     static final String ERROR_CODES = "[1234, 3456]";
+    static final String FAMILY_ID = "1";
 
     @Test
     public void testTokenResponseWithSuccessResponse() {
@@ -58,6 +59,7 @@ public final class TokenResponseTest {
         successResponseItem.put(OauthConstants.TokenResponseClaim.REFRESH_TOKEN, REFRESH_TOKEN);
         successResponseItem.put(OauthConstants.TokenResponseClaim.TOKEN_TYPE, TOKEN_TYPE);
         successResponseItem.put(OauthConstants.TokenResponseClaim.SCOPE, SCOPE);
+        successResponseItem.put(OauthConstants.TokenResponseClaim.FAMILY_ID, FAMILY_ID);
         successResponseItem.put(EXTRA_DATA_1, EXTRA_DATA_1);
         successResponseItem.put(EXTRA_DATA_2, EXTRA_DATA_2);
 
@@ -66,6 +68,7 @@ public final class TokenResponseTest {
         Assert.assertTrue(REFRESH_TOKEN.equals(successResponse.getRefreshToken()));
         Assert.assertTrue(TOKEN_TYPE.equals(successResponse.getTokenType()));
         Assert.assertTrue(SCOPE.equals(successResponse.getScope()));
+        Assert.assertTrue(FAMILY_ID.equals(successResponse.getFamilyId()));
 
         final Map<String, String> additionalData = successResponse.getAdditionalData();
         Assert.assertFalse(additionalData == null || additionalData.isEmpty());
@@ -87,7 +90,6 @@ public final class TokenResponseTest {
                 HttpURLConnection.HTTP_BAD_REQUEST), null);
         Assert.assertTrue(ERROR.equals(failureResponse.getError()));
         Assert.assertTrue(ERROR_DESCRIPTION.equals(failureResponse.getErrorDescription()));
-
     }
 
     @Test
@@ -105,6 +107,7 @@ public final class TokenResponseTest {
                 262800L,
                 SCOPE,
                 TOKEN_TYPE,
+                null,
                 null
         );
 
