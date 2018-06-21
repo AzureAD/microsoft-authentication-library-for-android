@@ -27,6 +27,8 @@ import android.content.Context;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
+import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.AccountCredentialCache;
@@ -34,8 +36,10 @@ import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.ICacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
+import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftSts;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
@@ -51,6 +55,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static com.microsoft.identity.common.internal.cache.AccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
 
 /**
  * MSAL internal representation for token cache.
@@ -85,7 +91,9 @@ class TokenCache {
 
         // Init the new-schema cache
         final ICacheKeyValueDelegate cacheKeyValueDelegate = new CacheKeyValueDelegate();
-        final IAccountCredentialCache accountCredentialCache = new AccountCredentialCache(context, cacheKeyValueDelegate);
+        final IStorageHelper storageHelper = new StorageHelper(context);
+        final ISharedPreferencesFileManager sharedPreferencesFileManager = new SharedPreferencesFileManager(context, DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES, storageHelper);
+        final IAccountCredentialCache accountCredentialCache = new AccountCredentialCache(cacheKeyValueDelegate, sharedPreferencesFileManager);
         final MicrosoftStsAccountCredentialAdapter accountCredentialAdapter = new MicrosoftStsAccountCredentialAdapter();
         final MsalOAuth2TokenCache tokenCache = new MsalOAuth2TokenCache(
                 context,
