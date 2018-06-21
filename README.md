@@ -43,7 +43,7 @@ Add to your app's Build.Gradle:
         mavenCentral()
     }
     dependencies {
-        compile('com.microsoft.identity.client:msal:0.1.1') {
+        compile('com.microsoft.identity.client:msal:0.1.3') {
             // if your app includes android support
             // libraries or GSON in its dependencies
             // uncomment below

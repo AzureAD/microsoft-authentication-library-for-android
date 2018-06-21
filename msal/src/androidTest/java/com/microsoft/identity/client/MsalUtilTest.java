@@ -63,6 +63,7 @@ import java.util.Set;
 public final class MsalUtilTest {
     static final int EXPECTED_SINGLE_SCOPE_SIZE = 1;
     static final int EXPECTED_MULTI_SCOPE_SIZE = 3;
+    static final int EXPECTED_SET_SIZE = 3;
 
     @Test
     public void testNullMessage() {
@@ -336,7 +337,7 @@ public final class MsalUtilTest {
         final Set<String> convertedScope2 = MsalUtils.convertArrayToSet(scopesTest2);
 
         Assert.assertNotNull(convertedScope2);
-        Assert.assertTrue(convertedScope2.size() == 3);
+        Assert.assertTrue(convertedScope2.size() == EXPECTED_SET_SIZE);
         Assert.assertTrue(convertedScope2.contains(scope1));
         Assert.assertTrue(convertedScope2.contains(scope2));
         Assert.assertTrue(convertedScope2.contains(scope3));

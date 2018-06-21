@@ -41,7 +41,7 @@ public final class Telemetry {
 
     private static boolean sDisableForTest;
 
-    private static boolean mAllowPii = false;
+    private static boolean sAllowPii = false;
 
     private final Map<String, List<Event.Builder>> mEvents;
 
@@ -97,7 +97,7 @@ public final class Telemetry {
      * @param allowFlag true, if PII/OII should be allowed in Telemetry data. False otherwise.
      */
     public static void setAllowPii(final boolean allowFlag) {
-        mAllowPii = allowFlag;
+        sAllowPii = allowFlag;
     }
 
     /**
@@ -106,9 +106,14 @@ public final class Telemetry {
      * @return the flag state.
      */
     public static boolean getAllowPii() {
-        return mAllowPii;
+        return sAllowPii;
     }
 
+    /**
+     * Register receiver instance and set dispatcher.
+     *
+     * @param receiver MSAL telemetry receiver instance
+     */
     public synchronized void registerReceiver(IMsalEventReceiver receiver) {
         if (null == receiver) {
             throw new IllegalArgumentException("Receiver instance cannot be null");
@@ -122,16 +127,23 @@ public final class Telemetry {
             );
         }
 
-        // set this dispatcher
+        /**
+         * set this dispatcher.
+         */
         mPublisher = new EventDispatcher(receiver);
     }
 
+    /**
+     * Enables Telemetry only in case of failure.
+     *
+     * @param onFailure true if Telemetry is enabled only on failure. false by default
+     */
     public void setTelemetryOnFailureOnly(final boolean onFailure) {
         mTelemetryOnFailureOnly = onFailure;
     }
 
     /**
-     * Starts recording a new Event, based on requestId
+     * Starts recording a new Event, based on requestId.
      *
      * @param requestId    the RequestId used to track this Event.
      * @param eventBuilder the Builder of the Event to start.

@@ -42,18 +42,19 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 @RunWith(AndroidJUnit4.class)
 public class TelemetryTest {
 
-    private static final String sTestApplicationName = "test-application-name";
-    private static final String sTestApplicationVersion = "v1.0";
-    private static final String sTestApplicationClientId = "12345";
-    private static final String sTestApplicationDeviceId = "678910";
+    private static final String TEST_APPLICATION_NAME = "test-application-name";
+    private static final String TEST_APPLICATION_VERSION = "v1.0";
+    private static final String TEST_APPLICATION_CLIENT_ID = "12345";
+    private static final String TEST_APPLICATION_DEVICE_ID = "678910";
+    private static final int ACTUAL_RESULT_SIZE = 4;
 
     private Telemetry mTestInstance;
 
     @Before
     public void setUp() {
         DefaultEvent.initializeDefaults(
-                new Defaults(sTestApplicationName, sTestApplicationVersion,
-                        sTestApplicationClientId, sTestApplicationDeviceId,
+                new Defaults(TEST_APPLICATION_NAME, TEST_APPLICATION_VERSION,
+                        TEST_APPLICATION_CLIENT_ID, TEST_APPLICATION_DEVICE_ID,
                         "v1.0", PlatformIdHelper.PlatformIdParameters.PRODUCT_NAME)
         );
         mTestInstance = Telemetry.getTestInstance();
@@ -108,22 +109,22 @@ public class TelemetryTest {
 
         // make sure it contains the correct event
         Assert.assertEquals(
-                sTestApplicationName,
+                TEST_APPLICATION_NAME,
                 eventData.get(EventProperty.APPLICATION_NAME)
         );
 
         Assert.assertEquals(
-                sTestApplicationVersion,
+                TEST_APPLICATION_VERSION,
                 eventData.get(EventProperty.APPLICATION_VERSION)
         );
 
         Assert.assertEquals(
-                sTestApplicationClientId,
+                TEST_APPLICATION_CLIENT_ID,
                 eventData.get(EventProperty.CLIENT_ID)
         );
 
         Assert.assertEquals(
-                sTestApplicationDeviceId,
+                TEST_APPLICATION_DEVICE_ID,
                 eventData.get(EventProperty.DEVICE_ID)
         );
     }
@@ -270,14 +271,14 @@ public class TelemetryTest {
 
         mTestInstance.flush(telemetryRequestId2);
 
-        // Assert that the mock receiver wasn called
+        // Assert that the mock receiver was called
         final ArgumentCaptor<List> captor2 = ArgumentCaptor.forClass(List.class);
         Mockito.verify(mockReceiver2, Mockito.only()).onEventsReceived(captor2.capture());
 
         List<Map<String, String>> result = captor2.getValue();
 
         // verify results
-        Assert.assertEquals(result.size(), 4);
+        Assert.assertEquals(result.size(), ACTUAL_RESULT_SIZE);
     }
 
     @Test
@@ -314,7 +315,7 @@ public class TelemetryTest {
         List<Map<String, String>> result = captor.getValue();
 
         // verify results, should contain 4 events, one orphaned...
-        Assert.assertEquals(result.size(), 4);
+        Assert.assertEquals(result.size(), ACTUAL_RESULT_SIZE);
 
         boolean orphanedEventVerified = false;
         for (final Map<String, String> event : result) {

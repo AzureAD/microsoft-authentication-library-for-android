@@ -28,7 +28,7 @@ import static com.microsoft.identity.client.EventConstants.EventProperty;
 /**
  * A DefaultEvent stores Event data common to an Application or to a series of Events.
  */
-class DefaultEvent extends Event {
+final class DefaultEvent extends Event {
 
     private static Defaults sAllDefaults;
 
@@ -61,7 +61,7 @@ class DefaultEvent extends Event {
      *
      * @return the application name to get.
      */
-    final String getApplicationName() {
+    String getApplicationName() {
         return getProperty(EventProperty.APPLICATION_NAME);
     }
 
@@ -70,7 +70,7 @@ class DefaultEvent extends Event {
      *
      * @return the application version to get.
      */
-    final String getApplicationVersion() {
+    String getApplicationVersion() {
         return getProperty(EventProperty.APPLICATION_VERSION);
     }
 
@@ -79,7 +79,7 @@ class DefaultEvent extends Event {
      *
      * @return the client id to get.
      */
-    final String getClientId() {
+    String getClientId() {
         return getProperty(EventProperty.CLIENT_ID);
     }
 
@@ -88,7 +88,7 @@ class DefaultEvent extends Event {
      *
      * @return the device id to get.
      */
-    final String getDeviceId() {
+    String getDeviceId() {
         return getProperty(EventProperty.DEVICE_ID);
     }
 
@@ -97,7 +97,7 @@ class DefaultEvent extends Event {
      *
      * @return the sdk version to get.
      */
-    final String getSdkVersion() {
+    String getSdkVersion() {
         return getProperty(EventProperty.SDK_VERSION);
     }
 
@@ -106,7 +106,7 @@ class DefaultEvent extends Event {
      *
      * @return the sdk platform to get.
      */
-    final String getSdkPlatform() {
+    String getSdkPlatform() {
         return getProperty(EventProperty.SDK_PLATFORM);
     }
 
