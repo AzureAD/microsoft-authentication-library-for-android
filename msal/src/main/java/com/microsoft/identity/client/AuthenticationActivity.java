@@ -24,18 +24,8 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.customtabs.CustomTabsClient;
-import android.support.customtabs.CustomTabsIntent;
-import android.support.customtabs.CustomTabsServiceConnection;
-import android.support.customtabs.CustomTabsSession;
-
-import java.lang.ref.WeakReference;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Custom tab requires the device to have a browser with custom tab support, chrome with version >= 45 comes with the
@@ -48,22 +38,18 @@ import java.util.concurrent.TimeUnit;
 public final class AuthenticationActivity extends Activity {
 
     private static final String TAG = AuthenticationActivity.class.getSimpleName(); //NOPMD
-    private static final long CUSTOMTABS_MAX_CONNECTION_TIMEOUT = 1L;
 
     private String mRequestUrl;
     private int mRequestId;
     private boolean mRestarted;
-    private String mChromePackageWithCustomTabSupport;
-    private CustomTabsIntent mCustomTabsIntent;
-    private MsalCustomTabsServiceConnection mCustomTabsServiceConnection;
     private UiEvent.Builder mUiEventBuilder;
     private String mTelemetryRequestId;
+    private MsalChromeCustomTabManager mChromeCustomTabManager;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        mChromePackageWithCustomTabSupport = MsalUtils.getChromePackageWithCustomTabSupport(getApplicationContext());
+        mChromeCustomTabManager = new MsalChromeCustomTabManager(this);
 
         // If activity is killed by the os, savedInstance will be the saved bundle.
         if (savedInstanceState != null) {
@@ -103,14 +89,13 @@ public final class AuthenticationActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        if (mChromePackageWithCustomTabSupport != null) {
-            warmUpCustomTabs();
-        }
+        mChromeCustomTabManager.bindCustomTabsService();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+<<<<<<< HEAD
         if (mCustomTabsServiceConnection.getCustomTabsServiceIsBound()) {
             unbindService(mCustomTabsServiceConnection);
         }
@@ -194,6 +179,9 @@ public final class AuthenticationActivity extends Activity {
         boolean getCustomTabsServiceIsBound() {
             return mCustomTabsServiceIsBound;
         }
+=======
+        mChromeCustomTabManager.unbindCustomTabsService();
+>>>>>>> 47e12a6... Refactored Chrome Tabs initialization logic to port changes to common
     }
 
     /**
@@ -227,16 +215,7 @@ public final class AuthenticationActivity extends Activity {
         mRequestUrl = this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
 
         Logger.infoPII(TAG, null, "Request to launch is: " + mRequestUrl);
-        if (mChromePackageWithCustomTabSupport != null) {
-            Logger.info(TAG, null, "ChromeCustomTab support is available, launching chrome tab.");
-            mCustomTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
-        } else {
-            Logger.info(TAG, null, "Chrome tab support is not available, launching chrome browser.");
-            final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
-            browserIntent.setPackage(MsalUtils.getChromePackage(this.getApplicationContext()));
-            browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
-            this.startActivity(browserIntent);
-        }
+        mChromeCustomTabManager.launchChromeTabOrBrowserForUrl(mRequestUrl);
     }
 
     @Override
