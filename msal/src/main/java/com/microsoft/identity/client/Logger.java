@@ -46,7 +46,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *     Logger.getInstance().setExternalLogger(new Logger.ILoggerCallback() {
  *    {@literal @}Override
  *     public void log(String tag, Logger.LogLevel logLevel, String message,
- *         String additionalMessage) { }
+ *         boolean containsPII) { }
  *     });
  * </code>
  * </pre>
