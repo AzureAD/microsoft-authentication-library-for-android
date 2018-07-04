@@ -27,6 +27,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
@@ -261,8 +262,11 @@ final class MsalUtils {
 
         String installedChromePackage = null;
         try {
-            packageManager.getPackageInfo(CHROME_PACKAGE, PackageManager.GET_ACTIVITIES);
-            installedChromePackage = CHROME_PACKAGE;
+            PackageInfo packageInfo = packageManager.getPackageInfo(CHROME_PACKAGE, PackageManager.GET_ACTIVITIES);
+            ApplicationInfo applicationInfo = packageInfo.applicationInfo;
+            if (applicationInfo != null && applicationInfo.enabled) {
+                installedChromePackage = CHROME_PACKAGE;
+            }
         } catch (final PackageManager.NameNotFoundException e) {
             // swallow this exception. If the package is not existed, the exception will be thrown.
             Logger.error(TAG, null, "Failed to retrieve chrome package info.", e);
