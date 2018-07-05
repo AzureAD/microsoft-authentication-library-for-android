@@ -90,8 +90,9 @@ public final class AuthenticationActivity extends Activity {
         // We'll use custom tab if the chrome installed on the device comes with custom tab support(on 45 and above it
         // does). If the chrome package doesn't contain the support, we'll use chrome to launch the UI.
         if (MsalUtils.getChromePackage(this.getApplicationContext()) == null) {
-            Logger.info(TAG, null, "Chrome is not installed on the device, cannot continue with auth.");
-            sendError(MsalClientException.CHROME_NOT_INSTALLED, "Chrome is not installed on the device, cannot proceed with auth");
+            final String errMsg = "Chrome is not installed on the device or has been disabled, cannot proceed with auth.";
+            Logger.info(TAG, null, errMsg);
+            sendError(MsalClientException.CHROME_NOT_INSTALLED, errMsg);
             return;
         }
 
