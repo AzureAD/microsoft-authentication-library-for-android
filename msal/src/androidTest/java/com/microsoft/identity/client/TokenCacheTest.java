@@ -193,9 +193,22 @@ public final class TokenCacheTest extends AndroidTestCase {
         final String clientInfo = AndroidTestUtil.createRawClientInfo(uid, utid);
         final User user = User.create(new IdToken(idToken), new ClientInfo(clientInfo));
 
-        final TokenResponse response = new TokenResponse(ACCESS_TOKEN, idToken, REFRESH_TOKEN, AndroidTestUtil.getValidExpiresOn(),
-                AndroidTestUtil.getValidExpiresOn(), AndroidTestUtil.getExpirationDate(AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES * 2),
-                scope, "Bearer", clientInfo);
+        final TokenResponse response = new TokenResponse(
+                ACCESS_TOKEN,
+                idToken,
+                REFRESH_TOKEN,
+                AndroidTestUtil.getValidExpiresOn(),
+                3599L,
+                AndroidTestUtil.getValidExpiresOn(),
+                AndroidTestUtil.getExpirationDate(
+                        AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES * 2
+                ),
+                262800L,
+                scope,
+                "Bearer",
+                clientInfo,
+                null
+        );
 
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, response);
 
@@ -603,15 +616,43 @@ public final class TokenCacheTest extends AndroidTestCase {
             throws MsalException {
         final String idToken = getDefaultIdToken();
 
-        return new TokenResponse(accessToken, idToken, refreshToken, expiresOn,
-                expiresOn, AndroidTestUtil.getExpirationDate(AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES * 2), scopesInResponse, "Bearer", rawClientInfo);
+        return new TokenResponse(
+                accessToken,
+                idToken,
+                refreshToken,
+                expiresOn,
+                3599L,
+                expiresOn,
+                AndroidTestUtil.getExpirationDate(
+                        AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES * 2
+                ),
+                262800L,
+                scopesInResponse,
+                "Bearer",
+                rawClientInfo,
+                null
+        );
     }
 
     static TokenResponse getTokenResponseForDifferentUser(final String accessToken, final String refreshToken, final String scopesInResponse,
                                                           final Date expiresOn, final String clientInfo)
             throws MsalException {
-        return new TokenResponse(accessToken, getIdTokenForDifferentUser(), refreshToken, expiresOn, expiresOn,
-                AndroidTestUtil.getExpirationDate(AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES * 2), scopesInResponse, "Bearer", clientInfo);
+        return new TokenResponse(
+                accessToken,
+                getIdTokenForDifferentUser(),
+                refreshToken,
+                expiresOn,
+                3599L,
+                expiresOn,
+                AndroidTestUtil.getExpirationDate(
+                        AndroidTestUtil.TOKEN_EXPIRATION_IN_MINUTES * 2
+                ),
+                262800L,
+                scopesInResponse,
+                "Bearer",
+                clientInfo,
+                null
+        );
     }
 
     static String getIdTokenForDifferentUser() {
@@ -636,7 +677,7 @@ public final class TokenCacheTest extends AndroidTestCase {
     }
 
     static String getDefaultIdToken() {
-        return AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", UNIQUE_ID, DISPLAYABLE, "sub", "tenant",
+        return AndroidTestUtil.createIdToken(AUTHORITY, "https://login.microsoftonline.com/common", "test user", UNIQUE_ID, DISPLAYABLE, "sub", "tenant",
                 "version");
     }
 

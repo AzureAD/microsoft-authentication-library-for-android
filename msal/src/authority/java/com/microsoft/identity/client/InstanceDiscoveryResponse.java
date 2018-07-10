@@ -31,6 +31,7 @@ import java.util.Map;
 final class InstanceDiscoveryResponse extends BaseOauth2Response {
 
     private final String mTenantDiscoveryEndpoint;
+    private Map<String, String> mResponseClaims;
 
     /**
      * Constructor for creating the success response of instance discovery.
@@ -74,7 +75,16 @@ final class InstanceDiscoveryResponse extends BaseOauth2Response {
      */
     static InstanceDiscoveryResponse createSuccessInstanceDiscoveryResponse(final Map<String, String> responseClaims) {
         final String tenantDiscoveryEndpoint = responseClaims.get(OauthConstants.InstanceDiscoveryClaim.TENANT_DISCOVERY_ENDPOINT);
+        InstanceDiscoveryResponse idr = new InstanceDiscoveryResponse(tenantDiscoveryEndpoint);
+        idr.setResponseClaims(responseClaims);
+        return idr;
+    }
 
-        return new InstanceDiscoveryResponse(tenantDiscoveryEndpoint);
+    void setResponseClaims(Map<String, String> responseClaims) {
+        mResponseClaims = responseClaims;
+    }
+
+    Map<String, String> getResponseClaims() {
+        return mResponseClaims;
     }
 }

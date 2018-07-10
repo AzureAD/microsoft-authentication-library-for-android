@@ -27,7 +27,26 @@ import android.content.Context;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
+import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.internal.cache.ADALOAuth2TokenCache;
+import com.microsoft.identity.common.internal.cache.AccountCredentialCache;
+import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
+import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
+import com.microsoft.identity.common.internal.cache.ICacheKeyValueDelegate;
+import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
+import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
+import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftSts;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsTokenResponse;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,6 +56,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.microsoft.identity.common.internal.cache.AccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
+
 /**
  * MSAL internal representation for token cache.
  */
@@ -45,6 +66,7 @@ class TokenCache {
 
     private static final int DEFAULT_EXPIRATION_BUFFER = 300;
     private final TokenCacheAccessor mTokenCacheAccessor;
+    private MsalOAuth2TokenCache mCommonCache;
 
     private Gson mGson = new GsonBuilder()
             .registerTypeAdapter(AccessTokenCacheItem.class, new TokenCacheItemDeserializer<AccessTokenCacheItem>())
@@ -58,6 +80,68 @@ class TokenCache {
      */
     TokenCache(final Context context) {
         mTokenCacheAccessor = new TokenCacheAccessor(context);
+        mCommonCache = initCommonCache(context);
+    }
+
+    private MsalOAuth2TokenCache initCommonCache(final Context context) {
+        // Init the ADAL cache for SSO-state sync
+        final IShareSingleSignOnState adalCache = new ADALOAuth2TokenCache(context);
+        List<IShareSingleSignOnState> sharedSsoCaches = new ArrayList<>();
+        sharedSsoCaches.add(adalCache);
+
+        // Init the new-schema cache
+        final ICacheKeyValueDelegate cacheKeyValueDelegate = new CacheKeyValueDelegate();
+        final IStorageHelper storageHelper = new StorageHelper(context);
+        final ISharedPreferencesFileManager sharedPreferencesFileManager = new SharedPreferencesFileManager(context, DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES, storageHelper);
+        final IAccountCredentialCache accountCredentialCache = new AccountCredentialCache(cacheKeyValueDelegate, sharedPreferencesFileManager);
+        final MicrosoftStsAccountCredentialAdapter accountCredentialAdapter = new MicrosoftStsAccountCredentialAdapter();
+        final MsalOAuth2TokenCache tokenCache = new MsalOAuth2TokenCache(
+                context,
+                accountCredentialCache,
+                accountCredentialAdapter,
+                sharedSsoCaches // TODO wire this up inside of common
+        );
+
+        return tokenCache;
+    }
+
+    AccessTokenCacheItem saveTokensToCommonCache(
+            final URL authority,
+            final String clientId,
+            final TokenResponse msalTokenResponse,
+            final String correlationId) throws MsalClientException {
+        PublicClientApplication.initializeDiagnosticContext(correlationId);
+        // TODO where is the displayable id? Why is it missing?
+        final AccessTokenCacheItem newAccessToken = new AccessTokenCacheItem(authority.toString(), clientId, msalTokenResponse);
+
+        // Create the AAD instance
+        final MicrosoftSts msSts = new MicrosoftSts();
+
+        // Convert the TokenResponse to the Common OM
+        final MicrosoftStsTokenResponse tokenResponse = CoreAdapter.asMsStsTokenResponse(msalTokenResponse);
+        tokenResponse.setClientId(clientId);
+
+        // Initialize a config for the strategy to consume
+        final MicrosoftStsOAuth2Configuration config = new MicrosoftStsOAuth2Configuration();
+
+        // Create the OAuth2Strategy
+        // TODO how do I know if Authority Validation is enabled?
+        final MicrosoftStsOAuth2Strategy strategy = msSts.createOAuth2Strategy(config);
+
+        // Create the AuthorizationRequest
+        final MicrosoftStsAuthorizationRequest authorizationRequest = new MicrosoftStsAuthorizationRequest();
+        authorizationRequest.setClientId(clientId);
+        authorizationRequest.setScope(tokenResponse.getScope());
+        authorizationRequest.setAuthority(authority);
+
+        try {
+            mCommonCache.saveTokens(strategy, authorizationRequest, tokenResponse);
+        } catch (final ClientException e) {
+            // Rethrow
+            throw new MsalClientException(e.getErrorCode(), "Failed to save tokens.", e);
+        }
+
+        return newAccessToken;
     }
 
     /**
@@ -82,7 +166,10 @@ class TokenCache {
             }
         }
 
-        mTokenCacheAccessor.saveAccessToken(newAccessToken.extractTokenCacheKey().toString(), mGson.toJson(newAccessToken), requestContext);
+        final String atCacheKey = newAccessToken.extractTokenCacheKey().toString();
+        final String atCacheValue = mGson.toJson(newAccessToken);
+
+        mTokenCacheAccessor.saveAccessToken(atCacheKey, atCacheValue, requestContext);
         return newAccessToken;
     }
 
@@ -96,7 +183,9 @@ class TokenCache {
             Logger.infoPII(TAG, requestContext, "Refresh token will be saved with authority: " + authorityHost
                     + "; Client Id: " + clientId);
             final RefreshTokenCacheItem refreshTokenCacheItem = new RefreshTokenCacheItem(authorityHost, clientId, response);
-            mTokenCacheAccessor.saveRefreshToken(refreshTokenCacheItem.extractTokenCacheKey().toString(), mGson.toJson(refreshTokenCacheItem), requestContext);
+            final String rtCacheKey = refreshTokenCacheItem.extractTokenCacheKey().toString();
+            final String rtCacheValue = mGson.toJson(refreshTokenCacheItem);
+            mTokenCacheAccessor.saveRefreshToken(rtCacheKey, rtCacheValue, requestContext);
         }
     }
 

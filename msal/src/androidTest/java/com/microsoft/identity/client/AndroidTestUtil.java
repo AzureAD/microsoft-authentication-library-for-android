@@ -65,6 +65,12 @@ public final class AndroidTestUtil {
     static final String UID = "user-uid";
     static final String UTID = "adbc-user-tenantid";
 
+    // Dummy client_info with randomly generated GUIDs
+    private static final String MOCK_CLIENT_INFO = "eyJ1aWQiOiI1MGE0YjhhMS0zMzNiLTQwNDEtOGQzNS0wYTg2MDY2YzE1YTgiLCJ1dGlkIjoiMGE4NGU5NTctODg0Yi00NmQxLTk0OGYtYTUwMWIwZWE2NmYyIn0=";
+    // The GUIDs in the above client_info
+    public static final String MOCK_UID = "50a4b8a1-333b-4041-8d35-0a86066c15a8";
+    public static final String MOCK_UTID = "0a84e957-884b-46d1-948f-a501b0ea66f2";
+
     /**
      * Private to prevent util class from being initiated.
      */
@@ -112,11 +118,10 @@ public final class AndroidTestUtil {
         return new URL(DEFAULT_AUTHORITY_WITH_TENANT);
     }
 
-    static String
-    getSuccessResponseWithNoRefreshToken(final String idToken) {
+    static String getSuccessResponseWithNoRefreshToken(final String idToken) {
         final String tokenResponse = "{\"id_token\":\""
                 + idToken
-                + "\",\"access_token\":\"" + ACCESS_TOKEN + "\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\"scope1 scope2\"}";
+                + "\",\"access_token\":\"" + ACCESS_TOKEN + "\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\"scope1 scope2\",\"client_info\":\"" + MOCK_CLIENT_INFO + "\"}";
         return tokenResponse;
     }
 

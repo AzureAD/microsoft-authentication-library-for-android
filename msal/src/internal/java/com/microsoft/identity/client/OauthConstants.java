@@ -111,6 +111,7 @@ final class OauthConstants {
         static final String EXTENDED_EXPIRES_IN = "ext_expires_in";
         static final String STATE = "state";
         static final String CLIENT_INFO = "client_info";
+        static final String FAMILY_ID = "foci";
     }
 
     static final class ErrorCode {
