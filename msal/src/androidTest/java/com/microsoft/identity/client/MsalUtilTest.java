@@ -26,6 +26,7 @@ package com.microsoft.identity.client;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -62,6 +63,7 @@ import java.util.Set;
 public final class MsalUtilTest {
     static final int EXPECTED_SINGLE_SCOPE_SIZE = 1;
     static final int EXPECTED_MULTI_SCOPE_SIZE = 3;
+    static final int EXPECTED_SET_SIZE = 3;
 
     @Test
     public void testNullMessage() {
@@ -267,10 +269,18 @@ public final class MsalUtilTest {
 
         Assert.assertNull(MsalUtils.getChromePackage(mockedContext));
 
-        // The three chrome package all exists on the device, return the stable chrome package name.
+        //Chrome package exists in the device but is disabled
+        final PackageInfo mockedPackageInfo = Mockito.mock(PackageInfo.class);
+        final ApplicationInfo mockedApplicationInfo = Mockito.mock(ApplicationInfo.class);
         Mockito.when(mockedPackageManager.getPackageInfo(Matchers.refEq(MsalUtils.CHROME_PACKAGE),
-                Matchers.eq(PackageManager.GET_ACTIVITIES))).thenReturn(Mockito.mock(PackageInfo.class));
+                Matchers.eq(PackageManager.GET_ACTIVITIES))).thenReturn(mockedPackageInfo);
 
+        mockedPackageInfo.applicationInfo = mockedApplicationInfo;
+        mockedApplicationInfo.enabled = false;
+        Assert.assertNull(MsalUtils.getChromePackage(mockedContext));
+
+        // The three chrome package all exists on the device, return the stable chrome package name.
+        mockedApplicationInfo.enabled = true;
         Assert.assertTrue(MsalUtils.getChromePackage(mockedContext).equals(MsalUtils.CHROME_PACKAGE));
     }
 
@@ -327,7 +337,7 @@ public final class MsalUtilTest {
         final Set<String> convertedScope2 = MsalUtils.convertArrayToSet(scopesTest2);
 
         Assert.assertNotNull(convertedScope2);
-        Assert.assertTrue(convertedScope2.size() == 3);
+        Assert.assertTrue(convertedScope2.size() == EXPECTED_SET_SIZE);
         Assert.assertTrue(convertedScope2.contains(scope1));
         Assert.assertTrue(convertedScope2.contains(scope2));
         Assert.assertTrue(convertedScope2.contains(scope3));

@@ -29,8 +29,10 @@ package com.microsoft.identity.client.testapp;
 
 public class Constants {
     enum AuthorityType {
-        AAD,
-        B2C
+        AAD_COMMON,
+        B2C,
+        AAD_MSDEVEX,
+        AAD_GUEST
     }
 
     enum DataProfile {
@@ -41,4 +43,6 @@ public class Constants {
     }
 
     final static String AAD_AUTHORITY = "https://login.microsoftonline.com/common";
+    final static String AAD_MSDEVEX = "https://login.microsoftonline.com/msdevex.onmicrosoft.com";
+    final static String AAD_GUEST = "https://login.microsoftonline.com/nomfaad.onmicrosoft.com";
 }

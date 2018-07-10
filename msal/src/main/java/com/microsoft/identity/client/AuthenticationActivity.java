@@ -24,18 +24,8 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.customtabs.CustomTabsClient;
-import android.support.customtabs.CustomTabsIntent;
-import android.support.customtabs.CustomTabsServiceConnection;
-import android.support.customtabs.CustomTabsSession;
-
-import java.lang.ref.WeakReference;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Custom tab requires the device to have a browser with custom tab support, chrome with version >= 45 comes with the
@@ -48,22 +38,18 @@ import java.util.concurrent.TimeUnit;
 public final class AuthenticationActivity extends Activity {
 
     private static final String TAG = AuthenticationActivity.class.getSimpleName(); //NOPMD
-    private static final long CUSTOMTABS_MAX_CONNECTION_TIMEOUT = 1L;
 
     private String mRequestUrl;
     private int mRequestId;
     private boolean mRestarted;
-    private String mChromePackageWithCustomTabSupport;
-    private CustomTabsIntent mCustomTabsIntent;
-    private MsalCustomTabsServiceConnection mCustomTabsServiceConnection;
     private UiEvent.Builder mUiEventBuilder;
     private String mTelemetryRequestId;
+    private MsalChromeCustomTabManager mChromeCustomTabManager;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        mChromePackageWithCustomTabSupport = MsalUtils.getChromePackageWithCustomTabSupport(getApplicationContext());
+        mChromeCustomTabManager = new MsalChromeCustomTabManager(this);
 
         // If activity is killed by the os, savedInstance will be the saved bundle.
         if (savedInstanceState != null) {
@@ -90,8 +76,9 @@ public final class AuthenticationActivity extends Activity {
         // We'll use custom tab if the chrome installed on the device comes with custom tab support(on 45 and above it
         // does). If the chrome package doesn't contain the support, we'll use chrome to launch the UI.
         if (MsalUtils.getChromePackage(this.getApplicationContext()) == null) {
-            Logger.info(TAG, null, "Chrome is not installed on the device, cannot continue with auth.");
-            sendError(MsalClientException.CHROME_NOT_INSTALLED, "Chrome is not installed on the device, cannot proceed with auth");
+            final String errMsg = "Chrome is not installed on the device or has been disabled, cannot proceed with auth.";
+            Logger.info(TAG, null, errMsg);
+            sendError(MsalClientException.CHROME_NOT_INSTALLED, errMsg);
             return;
         }
 
@@ -103,97 +90,13 @@ public final class AuthenticationActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        if (mChromePackageWithCustomTabSupport != null) {
-            warmUpCustomTabs();
-        }
+        mChromeCustomTabManager.bindCustomTabsService();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        if (mCustomTabsServiceConnection.getCustomTabsServiceIsBound()) {
-            unbindService(mCustomTabsServiceConnection);
-        }
-    }
-
-    private void warmUpCustomTabs() {
-        final CountDownLatch latch = new CountDownLatch(1);
-        mCustomTabsServiceConnection = new MsalCustomTabsServiceConnection(latch);
-
-        // Initiate the service-bind action
-        CustomTabsClient.bindCustomTabsService(
-                this,
-                mChromePackageWithCustomTabSupport,
-                mCustomTabsServiceConnection
-        );
-
-        boolean initCustomTabsWithSession = true;
-        try {
-            // await returns true if count is 0, false if action times out
-            // invert this boolean to indicate if we should skip warming up
-            boolean timedOut = !latch.await(CUSTOMTABS_MAX_CONNECTION_TIMEOUT, TimeUnit.SECONDS);
-            if (timedOut) {
-                // if the request timed out, we don't actually know whether or not the service connected.
-                // to be safe, we'll skip warmup and rely on mCustomTabsServiceIsBound
-                // to unbind the Service when onStop() is called.
-                initCustomTabsWithSession = false;
-                Logger.warning(TAG, null, "Connection to CustomTabs timed out. Skipping warmup.");
-            }
-        } catch (InterruptedException e) {
-            Logger.error(TAG, null, "Failed to connect to CustomTabs. Skipping warmup.", e);
-            initCustomTabsWithSession = false;
-        }
-
-        final CustomTabsIntent.Builder builder = initCustomTabsWithSession ?
-                new CustomTabsIntent.Builder(mCustomTabsServiceConnection.getCustomTabsSession()) : new CustomTabsIntent.Builder();
-
-        // Create the Intent used to launch the Url
-        mCustomTabsIntent = builder.setShowTitle(true).build();
-        mCustomTabsIntent.intent.setPackage(mChromePackageWithCustomTabSupport);
-    }
-
-    private static class MsalCustomTabsServiceConnection extends CustomTabsServiceConnection {
-
-        private final WeakReference<CountDownLatch> mLatchWeakReference;
-        private CustomTabsClient mCustomTabsClient;
-        private CustomTabsSession mCustomTabsSession;
-        private boolean mCustomTabsServiceIsBound;
-
-        MsalCustomTabsServiceConnection(final CountDownLatch latch) {
-            mLatchWeakReference = new WeakReference<>(latch);
-        }
-
-        @Override
-        public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
-            final CountDownLatch latch = mLatchWeakReference.get();
-
-            mCustomTabsServiceIsBound = true;
-            mCustomTabsClient = client;
-            mCustomTabsClient.warmup(0L);
-            mCustomTabsSession = mCustomTabsClient.newSession(null);
-
-            if (null != latch) {
-                latch.countDown();
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            mCustomTabsServiceIsBound = false;
-        }
-
-        /**
-         * Gets the {@link CustomTabsSession} associated to this CustomTabs connection.
-         *
-         * @return the session.
-         */
-        CustomTabsSession getCustomTabsSession() {
-            return mCustomTabsSession;
-        }
-
-        boolean getCustomTabsServiceIsBound() {
-            return mCustomTabsServiceIsBound;
-        }
+        mChromeCustomTabManager.unbindCustomTabsService();
     }
 
     /**
@@ -227,16 +130,7 @@ public final class AuthenticationActivity extends Activity {
         mRequestUrl = this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
 
         Logger.infoPII(TAG, null, "Request to launch is: " + mRequestUrl);
-        if (mChromePackageWithCustomTabSupport != null) {
-            Logger.info(TAG, null, "ChromeCustomTab support is available, launching chrome tab.");
-            mCustomTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
-        } else {
-            Logger.info(TAG, null, "Chrome tab support is not available, launching chrome browser.");
-            final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
-            browserIntent.setPackage(MsalUtils.getChromePackage(this.getApplicationContext()));
-            browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
-            this.startActivity(browserIntent);
-        }
+        mChromeCustomTabManager.launchChromeTabOrBrowserForUrl(mRequestUrl);
     }
 
     @Override

@@ -42,7 +42,7 @@ import static com.microsoft.identity.msal.BuildConfig.VERSION_NAME;
  *     Logger.getInstance().setExternalLogger(new Logger.ILoggerCallback() {
  *    {@literal @}Override
  *     public void log(String tag, Logger.LogLevel logLevel, String message,
- *         String additionalMessage) { }
+ *         boolean containsPII) { }
  *     });
  * </code>
  * </pre>

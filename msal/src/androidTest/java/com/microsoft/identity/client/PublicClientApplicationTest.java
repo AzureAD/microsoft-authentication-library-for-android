@@ -979,12 +979,12 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     public void testAcquireTokenWithUserSucceed() throws PackageManager.NameNotFoundException, InterruptedException, IOException {
         new GetTokenBaseTestCase() {
             private User mUser;
-            private String clientInfo = AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID);
+            private String mClientInfo = AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID);
 
             @Override
             void mockHttpRequest() throws IOException {
                 mUser = new User(AndroidTestUtil.PREFERRED_USERNAME, AndroidTestUtil.NAME, AndroidTestUtil.ISSUER, AndroidTestUtil.UID, AndroidTestUtil.UTID);
-                mockSuccessResponse(convertScopesArrayToString(SCOPE), AndroidTestUtil.ACCESS_TOKEN, clientInfo);
+                mockSuccessResponse(convertScopesArrayToString(SCOPE), AndroidTestUtil.ACCESS_TOKEN, mClientInfo);
             }
 
             @Override
@@ -1025,7 +1025,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     throws IOException, InterruptedException {
                 final String scopeForSilent = "scope3";
                 AndroidTestMockUtil.mockSuccessTenantDiscovery(SilentRequestTest.AUTHORIZE_ENDPOINT, SilentRequestTest.TOKEN_ENDPOINT);
-                mockSuccessResponse(scopeForSilent, AndroidTestUtil.ACCESS_TOKEN, clientInfo);
+                mockSuccessResponse(scopeForSilent, AndroidTestUtil.ACCESS_TOKEN, mClientInfo);
 
                 application.acquireTokenSilentAsync(new String[]{scopeForSilent}, mUser, new AuthenticationCallback() {
 

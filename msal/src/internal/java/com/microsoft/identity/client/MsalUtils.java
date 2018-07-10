@@ -27,6 +27,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
@@ -225,6 +226,7 @@ final class MsalUtils {
      */
     static String getChromePackageWithCustomTabSupport(final Context context) {
         if (context.getPackageManager() == null) {
+            Logger.warning(TAG, null, "getPackageManager() returned null.");
             return null;
         }
 
@@ -234,7 +236,7 @@ final class MsalUtils {
 
         // queryIntentServices could return null or an empty list if no matching service existed.
         if (resolveInfoList == null || resolveInfoList.isEmpty()) {
-            // TODO: add logs
+            Logger.warning(TAG, null, "No Service responded to Intent: " + CUSTOM_TABS_SERVICE_ACTION);
             return null;
         }
 
@@ -245,6 +247,7 @@ final class MsalUtils {
             }
         }
 
+        Logger.warning(TAG, null, "No pkg with CustomTab support found.");
         return null;
     }
 
@@ -263,8 +266,11 @@ final class MsalUtils {
 
         String installedChromePackage = null;
         try {
-            packageManager.getPackageInfo(CHROME_PACKAGE, PackageManager.GET_ACTIVITIES);
-            installedChromePackage = CHROME_PACKAGE;
+            PackageInfo packageInfo = packageManager.getPackageInfo(CHROME_PACKAGE, PackageManager.GET_ACTIVITIES);
+            ApplicationInfo applicationInfo = packageInfo.applicationInfo;
+            if (applicationInfo != null && applicationInfo.enabled) {
+                installedChromePackage = CHROME_PACKAGE;
+            }
         } catch (final PackageManager.NameNotFoundException e) {
             // swallow this exception. If the package is not existed, the exception will be thrown.
             Logger.error(TAG, null, "Failed to retrieve chrome package info.", e);
@@ -305,7 +311,7 @@ final class MsalUtils {
                     decodedUrlMap.put(key, value);
                 }
             } catch (final UnsupportedEncodingException e) {
-                Logger.error(TAG, null, "URL form decode failed.", e);
+                Logger.errorPII(TAG, null, "URL form decode failed.", e);
             }
         }
 
@@ -403,7 +409,7 @@ final class MsalUtils {
         try {
             url = new URL(endpoint);
         } catch (MalformedURLException e1) {
-            Logger.error(MsalUtils.class.getSimpleName(), null, "Url is invalid", e1);
+            Logger.errorPII(MsalUtils.class.getSimpleName(), null, "Url is invalid", e1);
         }
 
         return url;
