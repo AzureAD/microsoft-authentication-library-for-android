@@ -48,6 +48,7 @@ import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.M
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -131,7 +132,7 @@ class TokenCache {
         // Create the AuthorizationRequest
         final MicrosoftStsAuthorizationRequest authorizationRequest = new MicrosoftStsAuthorizationRequest();
         authorizationRequest.setClientId(clientId);
-        authorizationRequest.setScope(tokenResponse.getScope());
+        authorizationRequest.setScope(new HashSet<>(Arrays.asList(tokenResponse.getScope().split(" "))));
         authorizationRequest.setAuthority(authority);
 
         try {
