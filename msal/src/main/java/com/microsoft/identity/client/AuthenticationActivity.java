@@ -232,11 +232,16 @@ public final class AuthenticationActivity extends Activity {
             Logger.info(TAG, null, "ChromeCustomTab support is available, launching chrome tab.");
             mCustomTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
         } else {
-            Logger.info(TAG, null, "Chrome tab support is not available, launching chrome browser.");
-            final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
-            browserIntent.setPackage(MsalUtils.getChromePackage(this.getApplicationContext()));
-            browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
-            this.startActivity(browserIntent);
+             try{
+                Logger.info(TAG, null, "Chrome tab support is not available, launching chrome browser.");
+                final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
+                browserIntent.setPackage(MsalUtils.getChromePackage(this.getApplicationContext()));
+                browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
+                this.startActivity(browserIntent);
+            }catch (ActivityNotFoundException foE){
+                final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
+                this.startActivity(browserIntent);
+            }
         }
     }
 
