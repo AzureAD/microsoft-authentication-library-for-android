@@ -42,6 +42,8 @@ final class Constants {
 
     public static final String AUTHORIZATION_FINAL_URL = "com.microsoft.identity.client.finalUrl";
 
+    public static final String WEBVIEW_SELECTION = "com.microsoft.identity.webview.selection";
+
     static final class UIResponse {
         static final int CANCEL = 2001;
 

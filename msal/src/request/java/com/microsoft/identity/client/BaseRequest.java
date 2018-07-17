@@ -143,6 +143,15 @@ abstract class BaseRequest {
     }
 
     /**
+     * Get the authentication request parameters.
+     *
+     * @return The object of AuthenticationRequestParameters
+     */
+    AuthenticationRequestParameters getAuthRequestParameters() {
+        return mAuthRequestParameters;
+    }
+
+    /**
      * Validate the input scopes. The input scope cannot have reserved scopes, if client id is provided as the scope it
      * should be a single scope.
      *

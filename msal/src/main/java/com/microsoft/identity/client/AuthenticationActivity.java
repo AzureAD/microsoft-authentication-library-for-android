@@ -26,6 +26,20 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.webkit.WebView;
+
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationResult;
+import com.microsoft.identity.common.internal.ui.embeddedwebview.AzureActiveDirectoryWebViewClient;
+import com.microsoft.identity.common.internal.ui.embeddedwebview.EmbeddedWebViewAuthorizationStrategy;
+import com.microsoft.identity.common.internal.ui.embeddedwebview.challengehandlers.IChallengeCompletionCallback;
+import com.microsoft.identity.msal.R;
+
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 
 /**
  * Custom tab requires the device to have a browser with custom tab support, chrome with version >= 45 comes with the
@@ -44,12 +58,24 @@ public final class AuthenticationActivity extends Activity {
     private boolean mRestarted;
     private UiEvent.Builder mUiEventBuilder;
     private String mTelemetryRequestId;
+    private EmbeddedWebViewAuthorizationStrategy<
+            AzureActiveDirectoryWebViewClient,
+            MicrosoftStsAuthorizationRequest,
+            MicrosoftStsAuthorizationResult> mEmbeddedWebViewAuthorizationStrategy;
     private MsalChromeCustomTabManager mChromeCustomTabManager;
+    private boolean mUseEmbeddedWebView;
+    private MicrosoftStsAuthorizationRequest mAuthorizationRequest;
+    private ChallengeCompletionCallback mChallengeCompletionCallback;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mChromeCustomTabManager = new MsalChromeCustomTabManager(this);
+        mAuthorizationRequest = getAuthorizationRequestFromIntent(getIntent());
+
+        if(mAuthorizationRequest == null) {
+            sendError(MsalClientException.UNRESOLVABLE_INTENT, "Cannot generate the authorization request from the intent.");
+            return;
+        }
 
         // If activity is killed by the os, savedInstance will be the saved bundle.
         if (savedInstanceState != null) {
@@ -66,6 +92,13 @@ public final class AuthenticationActivity extends Activity {
             return;
         }
 
+        if (data.getIntExtra(Constants.WEBVIEW_SELECTION, 0) == WebViewSelection.SYSTEM_BROWSER.getId()) {
+            mUseEmbeddedWebView = false;
+        } else {
+            mUseEmbeddedWebView = true;
+        }
+
+        launchWebView();
         mRequestUrl = data.getStringExtra(Constants.REQUEST_URL_KEY);
         mRequestId = data.getIntExtra(Constants.REQUEST_ID, 0);
         if (MsalUtils.isEmpty(mRequestUrl)) {
@@ -86,16 +119,40 @@ public final class AuthenticationActivity extends Activity {
         Telemetry.getInstance().startEvent(mTelemetryRequestId, mUiEventBuilder);
     }
 
+    private void launchWebView() {
+        if (mUseEmbeddedWebView) {
+            mChallengeCompletionCallback = new ChallengeCompletionCallback();
+            AzureActiveDirectoryWebViewClient webViewClient = new AzureActiveDirectoryWebViewClient(this, mAuthorizationRequest, mChallengeCompletionCallback);
+
+            setContentView(R.layout.activity_authentication);
+            final WebView webview = (WebView) this.findViewById(R.id.webview);
+            try {
+                mEmbeddedWebViewAuthorizationStrategy = new EmbeddedWebViewAuthorizationStrategy<>(webViewClient, webview);
+            } catch (final ClientException exception) {
+                sendError(exception.getErrorCode(), exception.getMessage());
+            } catch (final UnsupportedEncodingException exception) {
+                sendError(ErrorStrings.UNSUPPORTED_ENCODING, exception.getMessage());
+            }
+
+        } else {
+            mChromeCustomTabManager = new MsalChromeCustomTabManager(this);
+        }
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
-        mChromeCustomTabManager.bindCustomTabsService();
+        if (!mUseEmbeddedWebView) {
+            mChromeCustomTabManager.bindCustomTabsService();
+        }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        mChromeCustomTabManager.unbindCustomTabsService();
+        if (!mUseEmbeddedWebView) {
+            mChromeCustomTabManager.unbindCustomTabsService();
+        }
     }
 
     /**
@@ -106,13 +163,15 @@ public final class AuthenticationActivity extends Activity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        Logger.info(TAG, null, "onNewIntent is called, received redirect from system webview.");
-        final String url = intent.getStringExtra(Constants.CUSTOM_TAB_REDIRECT);
+        if (!mUseEmbeddedWebView) {
+            Logger.info(TAG, null, "onNewIntent is called, received redirect from system webview.");
+            final String url = intent.getStringExtra(Constants.CUSTOM_TAB_REDIRECT);
 
-        final Intent resultIntent = new Intent();
-        resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, url);
-        returnToCaller(Constants.UIResponse.AUTH_CODE_COMPLETE,
-                resultIntent);
+            final Intent resultIntent = new Intent();
+            resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, url);
+            returnToCaller(Constants.UIResponse.AUTH_CODE_COMPLETE,
+                    resultIntent);
+        }
     }
 
     @Override
@@ -129,7 +188,11 @@ public final class AuthenticationActivity extends Activity {
         mRequestUrl = this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
 
         Logger.infoPII(TAG, null, "Request to launch is: " + mRequestUrl);
-        mChromeCustomTabManager.launchChromeTabOrBrowserForUrl(mRequestUrl);
+        if (!mUseEmbeddedWebView) {
+            mChromeCustomTabManager.launchChromeTabOrBrowserForUrl(mRequestUrl);
+        } else {
+            mEmbeddedWebViewAuthorizationStrategy.requestAuthorization(mAuthorizationRequest);
+        }
     }
 
     @Override
@@ -180,5 +243,43 @@ public final class AuthenticationActivity extends Activity {
         errorIntent.putExtra(Constants.UIResponse.ERROR_CODE, errorCode);
         errorIntent.putExtra(Constants.UIResponse.ERROR_DESCRIPTION, errorDescription);
         returnToCaller(Constants.UIResponse.AUTH_CODE_ERROR, errorIntent);
+    }
+
+    private MicrosoftStsAuthorizationRequest getAuthorizationRequestFromIntent(final Intent callingIntent) {
+        MicrosoftStsAuthorizationRequest authRequest = null;
+        Serializable request = callingIntent
+                .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
+
+        if (request instanceof MicrosoftStsAuthorizationRequest) {
+            Logger.verbose(TAG, null, "Finish generating the authorization request.");
+            authRequest = (MicrosoftStsAuthorizationRequest) request;
+
+        }
+        return authRequest;
+    }
+
+    class ChallengeCompletionCallback implements IChallengeCompletionCallback {
+        @Override
+        public void onChallengeResponseReceived(final int returnCode, final Intent responseIntent) {
+            Logger.verbose(TAG, null, "onChallengeResponseReceived:" + returnCode);
+
+            if (mAuthorizationRequest == null) {
+                Logger.warning(TAG, null, "Request object is null");
+            } else {
+                // set request id related to this response to send the delegateId
+                Logger.verbose(TAG, null,
+                        "Set request id related to response. "
+                                + "REQUEST_ID for caller returned to:" + mAuthorizationRequest.getCorrelationId());
+                responseIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mAuthorizationRequest.getCorrelationId());
+            }
+
+            setResult(returnCode, responseIntent);
+            finish();
+        }
+
+        @Override
+        public void setPKeyAuthStatus(final boolean status) {
+            Logger.verbose(TAG, null, "setPKeyAuthStatus:" + status);
+        }
     }
 }
