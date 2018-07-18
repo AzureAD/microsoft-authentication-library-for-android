@@ -37,6 +37,8 @@ import java.lang.ref.WeakReference;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import android.content.ActivityNotFoundException;
+
 /**
  * Custom tab requires the device to have a browser with custom tab support, chrome with version >= 45 comes with the
  * support and is available on all devices with API version >= 16 . The sdk use chrome custom tab, and before launching
@@ -232,11 +234,16 @@ public final class AuthenticationActivity extends Activity {
             Logger.info(TAG, null, "ChromeCustomTab support is available, launching chrome tab.");
             mCustomTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
         } else {
-            Logger.info(TAG, null, "Chrome tab support is not available, launching chrome browser.");
-            final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
-            browserIntent.setPackage(MsalUtils.getChromePackage(this.getApplicationContext()));
-            browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
-            this.startActivity(browserIntent);
+            try {
+                Logger.info(TAG, null, "Chrome tab support is not available, launching chrome browser.");
+                final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
+                browserIntent.setPackage(MsalUtils.getChromePackage(this.getApplicationContext()));
+                browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
+                this.startActivity(browserIntent);
+            } catch (ActivityNotFoundException foE) {
+                final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
+                this.startActivity(browserIntent);
+            }
         }
     }
 
