@@ -15,12 +15,15 @@ android:
     # https://github.com/travis-ci/travis-ci/issues/6059
     - tools
     - platform-tools
-    - build-tools-26.0.2
-    - android-25
+    - build-tools-27.0.3
+    - android-27
     - extra
     - extra-android-m2repository
     - extra-google-m2repository
     - addon-google_apis-google-21
+    ## Emulator config ##
+    # The SDK version used for the emulator
+    - android-21
     #system images
     - sys-img-armeabi-v7a-addon-google_apis-google-21
 
@@ -34,7 +37,7 @@ env:
       # This is to guaratee a clean gradle log
       - TERM=dumb
     matrix:
-      - ANDROID_SDKS=android-25 ANDROID_TARGET=android-25
+      - ANDROID_SDKS=android-27 ANDROID_TARGET=android-27
 
 before_install:
   - chmod +x gradlew
