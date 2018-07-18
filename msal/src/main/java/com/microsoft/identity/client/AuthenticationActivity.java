@@ -92,11 +92,7 @@ public final class AuthenticationActivity extends Activity {
             return;
         }
 
-        if (data.getIntExtra(Constants.WEBVIEW_SELECTION, 0) == WebViewSelection.SYSTEM_BROWSER.getId()) {
-            mUseEmbeddedWebView = false;
-        } else {
-            mUseEmbeddedWebView = true;
-        }
+        mUseEmbeddedWebView = data.getIntExtra(Constants.WEBVIEW_SELECTION, 0) != WebViewSelection.SYSTEM_BROWSER.getId();
 
         launchWebView();
         mRequestUrl = data.getStringExtra(Constants.REQUEST_URL_KEY);
