@@ -72,7 +72,7 @@ public final class AuthenticationActivity extends Activity {
         super.onCreate(savedInstanceState);
         mAuthorizationRequest = getAuthorizationRequestFromIntent(getIntent());
 
-        if(mAuthorizationRequest == null) {
+        if (mAuthorizationRequest == null) {
             sendError(MsalClientException.UNRESOLVABLE_INTENT, "Cannot generate the authorization request from the intent.");
             return;
         }
@@ -249,8 +249,8 @@ public final class AuthenticationActivity extends Activity {
         if (request instanceof MicrosoftStsAuthorizationRequest) {
             Logger.verbose(TAG, null, "Finish generating the authorization request.");
             authRequest = (MicrosoftStsAuthorizationRequest) request;
-
         }
+
         return authRequest;
     }
 
