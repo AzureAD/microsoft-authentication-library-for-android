@@ -117,6 +117,7 @@ public final class AuthenticationActivity extends Activity {
 
     private void launchWebView() {
         if (mUseEmbeddedWebView) {
+            Logger.verbose(TAG, null, "Use webView to perform interactive authorization request. ");
             mChallengeCompletionCallback = new ChallengeCompletionCallback();
             AzureActiveDirectoryWebViewClient webViewClient = new AzureActiveDirectoryWebViewClient(this, mAuthorizationRequest, mChallengeCompletionCallback);
 
@@ -131,22 +132,21 @@ public final class AuthenticationActivity extends Activity {
             }
 
         } else {
+            Logger.verbose(TAG, null, "Use Chrome Browser/Chrome ChromeTab to perform interactive authorization request. ");
             mChromeCustomTabManager = new MsalChromeCustomTabManager(this);
-        }
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (!mUseEmbeddedWebView) {
-            mChromeCustomTabManager.bindCustomTabsService();
+            try {
+                mChromeCustomTabManager.verifyChromeTabOrBrowser();
+                mChromeCustomTabManager.bindCustomTabsService();
+            } catch (final MsalClientException exception) {
+                sendError(exception.getErrorCode(), exception.getMessage());
+            }
         }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        if (!mUseEmbeddedWebView) {
+        if (mChromeCustomTabManager != null) {
             mChromeCustomTabManager.unbindCustomTabsService();
         }
     }

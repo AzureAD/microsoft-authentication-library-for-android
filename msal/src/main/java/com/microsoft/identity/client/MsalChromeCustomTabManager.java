@@ -32,6 +32,8 @@ import android.support.customtabs.CustomTabsIntent;
 import android.support.customtabs.CustomTabsServiceConnection;
 import android.support.customtabs.CustomTabsSession;
 
+import com.microsoft.identity.common.exception.ErrorStrings;
+
 import java.lang.ref.WeakReference;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -57,6 +59,16 @@ public class MsalChromeCustomTabManager {
         mParentActivity = activity;
         //TODO: Can move MsalUtils chrome specific util method to common when refactoring
         mChromePackageWithCustomTabSupport = MsalUtils.getChromePackageWithCustomTabSupport(mParentActivity.getApplicationContext());
+    }
+
+    protected void verifyChromeTabOrBrowser() throws MsalClientException {
+        if (mChromePackageWithCustomTabSupport == null) {
+            Logger.warning(TAG, null, "Custom tab is not supported by Chrome.");
+
+        } else if( MsalUtils.getChromePackage(mParentActivity.getApplicationContext()) == null) {
+            Logger.warning(TAG, null, "Chrome is not installed.");
+            throw new MsalClientException(ErrorStrings.CHROME_NOT_INSTALLED, "Chrome is not installed.");
+        }
     }
 
     /**

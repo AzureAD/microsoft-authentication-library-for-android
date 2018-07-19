@@ -40,7 +40,7 @@ final class Constants {
 
     public static final String CUSTOM_TAB_REDIRECT = "com.microsoft.identity.customtab.redirect";
 
-    public static final String AUTHORIZATION_FINAL_URL = "com.microsoft.identity.client.finalUrl";
+    public static final String AUTHORIZATION_FINAL_URL = "com.microsoft.identity.client.final.url";
 
     public static final String WEBVIEW_SELECTION = "com.microsoft.identity.webview.selection";
 
