@@ -45,7 +45,6 @@ public final class AuthenticationActivityTest {
         Assert.assertNotNull(resultData);
         Assert.assertTrue(resultData.getStringExtra(Constants.UIResponse.ERROR_CODE).equals(
                 MsalClientException.UNRESOLVABLE_INTENT));
-        //Assert.assertTrue(resultData.getStringExtra(Constants.UIResponse.ERROR_DESCRIPTION).contains("Request url"));
     }
 
     private String getRequestUri() {
