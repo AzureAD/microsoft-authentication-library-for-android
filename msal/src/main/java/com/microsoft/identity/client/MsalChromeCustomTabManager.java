@@ -76,7 +76,7 @@ public class MsalChromeCustomTabManager {
      * Waits until the {@link MsalCustomTabsServiceConnection} is connected or the
      * {@link MsalChromeCustomTabManager#CUSTOM_TABS_MAX_CONNECTION_TIMEOUT} is timed out.
      */
-    public void bindCustomTabsService() {
+    public synchronized void bindCustomTabsService() {
         if (mChromePackageWithCustomTabSupport != null) {
 
             final CountDownLatch latch = new CountDownLatch(1);
@@ -122,9 +122,10 @@ public class MsalChromeCustomTabManager {
     /**
      * Method to unbind Chrome {@link android.support.customtabs.CustomTabsService}.
      */
-    public void unbindCustomTabsService() {
+    public synchronized void unbindCustomTabsService() {
         if (null != mCustomTabsServiceConnection && mCustomTabsServiceConnection.getCustomTabsServiceIsBound()) {
             mParentActivity.unbindService(mCustomTabsServiceConnection);
+            mCustomTabsServiceConnection.unbindCustomTabsService();
         }
     }
 
@@ -180,6 +181,16 @@ public class MsalChromeCustomTabManager {
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
+            unbindCustomTabsService();
+        }
+
+        /**
+         * mCustomTabsServiceIsBound state that will not normally be handled by garbage collection.
+         * This should be called when the authorization service is no longer required, including
+         * when any owning activity is paused or destroyed (i.e. in {@link android.app.Activity#onStop()}).
+         */
+        private void unbindCustomTabsService() {
+            mCustomTabsClient = null;
             mCustomTabsServiceIsBound = false;
         }
 
