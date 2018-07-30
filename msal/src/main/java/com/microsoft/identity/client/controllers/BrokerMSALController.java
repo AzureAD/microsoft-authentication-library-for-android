@@ -1,5 +1,7 @@
 package com.microsoft.identity.client.controllers;
 
+import android.content.Intent;
+
 public class BrokerMSALController extends MSALController {
 
     @Override
@@ -8,7 +10,13 @@ public class BrokerMSALController extends MSALController {
     }
 
     @Override
-    public void AcquireTokenSilent() {
+    public void CompleteAcquireToken(int requestCode, int resultCode, Intent data) {
 
     }
+
+    @Override
+    public void AcquireTokenSilent(MSALAcquireTokenSilentRequest request) {
+
+    }
+
 }
