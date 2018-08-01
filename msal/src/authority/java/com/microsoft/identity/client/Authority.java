@@ -210,6 +210,10 @@ abstract class Authority {
         return mAuthorityUrl.toString();
     }
 
+    AuthorityType getAuthorityType() {
+        return mAuthorityType;
+    }
+
     String getAuthorityHost() {
         return mAuthorityUrl.getHost();
     }
