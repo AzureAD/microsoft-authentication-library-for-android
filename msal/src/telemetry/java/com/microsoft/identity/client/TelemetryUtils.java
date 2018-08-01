@@ -8,9 +8,9 @@ import static com.microsoft.identity.client.EventConstants.EventProperty.LOGIN_H
 import static com.microsoft.identity.client.EventConstants.EventProperty.TENANT_ID;
 import static com.microsoft.identity.client.EventConstants.EventProperty.USER_ID;
 
-class TelemetryUtils {
+final class TelemetryUtils {
 
-    final static Set<String> GDPR_FILTERED_FIELDS = new HashSet<>();
+    static final Set<String> GDPR_FILTERED_FIELDS = new HashSet<>();
 
     static {
         initializeGdprFilteredFields();

@@ -51,18 +51,9 @@ final class TokenResponse extends BaseOauth2Response {
     /**
      * Create token response with token when token is returned.
      */
-    public TokenResponse(final String accessToken,
-                         final String rawIdToken,
-                         final String refreshToken,
-                         final Date expiresOn,
-                         final Long expiresIn,
-                         final Date idTokenExpiresOn,
-                         final Date extendedExpiresOn,
-                         final Long extExpiresIn,
-                         final String scope,
-                         final String tokenType,
-                         final String rawClientInfo,
-                         final String familyId) {
+    TokenResponse(final String accessToken, final String rawIdToken, final String refreshToken,
+                         final Date expiresOn, final Date idTokenExpiresOn, final Date extendedExpiresOn,
+                         final String scope, final String tokenType, final String rawClientInfo) {
         // success response: error, errorDescription and errorCodes are all null
         super(null, null, BaseOauth2Response.DEFAULT_STATUS_CODE);
         mClaims = null;
@@ -83,10 +74,7 @@ final class TokenResponse extends BaseOauth2Response {
     /**
      * Creates token response with error returned in the server JSON response.
      */
-    public TokenResponse(final String error,
-                         final String errorDescription,
-                         final int statusCode,
-                         final String claims) {
+    TokenResponse(final String error, final String errorDescription, final int statusCode, final String claims) {
         super(error, errorDescription, statusCode);
         mClaims = claims;
 

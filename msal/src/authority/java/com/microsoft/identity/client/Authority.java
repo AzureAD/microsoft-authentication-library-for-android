@@ -77,7 +77,7 @@ abstract class Authority {
     abstract boolean existsInResolvedAuthorityCache(final String userPrincipalName);
 
     /**
-     * Adds this Authority to the {@link Authority#RESOLVED_AUTHORITY} cache
+     * Adds this Authority to the {@link Authority#RESOLVED_AUTHORITY} cache.
      *
      * @param userPrincipalName the UPN of the current user (if available)
      */

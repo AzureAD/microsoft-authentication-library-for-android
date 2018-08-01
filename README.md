@@ -43,7 +43,7 @@ Add to your app's Build.Gradle:
         mavenCentral()
     }
     dependencies {
-        compile('com.microsoft.identity.client:msal:0.1.1') {
+        compile('com.microsoft.identity.client:msal:0.1.3') {
             // if your app includes android support
             // libraries or GSON in its dependencies
             // uncomment below
@@ -176,6 +176,6 @@ Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MI
 
 ### Step 4: Use the token!
 
-The access token can now be used in an [HTTP Bearer request](https://github.com/Azure-Samples/active-directory-android-native-v2/blob/master/app/src/main/java/com/danieldobalian/msalandroidapp/MainActivity.java#L152).
+The access token can now be used in an [HTTP Bearer request](https://github.com/Azure-Samples/active-directory-android-native-v2/blob/56b8cca297adf616946e9ac2200847b71fd7578a/app/src/main/java/com/azuresamples/msalandroidapp/MainActivity.java#L152).
 
 

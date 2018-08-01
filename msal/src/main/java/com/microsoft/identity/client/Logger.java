@@ -42,7 +42,7 @@ import static com.microsoft.identity.msal.BuildConfig.VERSION_NAME;
  *     Logger.getInstance().setExternalLogger(new Logger.ILoggerCallback() {
  *    {@literal @}Override
  *     public void log(String tag, Logger.LogLevel logLevel, String message,
- *         String additionalMessage) { }
+ *         boolean containsPII) { }
  *     });
  * </code>
  * </pre>
@@ -66,6 +66,8 @@ public final class Logger {
     private static final Logger sINSTANCE = new Logger();
 
     private AtomicReference<ILoggerCallback> mExternalLogger = new AtomicReference<>(null);
+    private boolean mLogcatLogEnabled = false;
+    private boolean mEnablePII = false;
 
     /**
      * @return The single instance of {@link Logger}.

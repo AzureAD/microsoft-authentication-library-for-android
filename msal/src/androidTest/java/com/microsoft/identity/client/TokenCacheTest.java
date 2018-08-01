@@ -52,6 +52,7 @@ public final class TokenCacheTest extends AndroidTestCase {
     static final String UNIQUE_ID = "some-unique-id";
     static final String ACCESS_TOKEN = "some access token";
     static final String REFRESH_TOKEN = "some refresh token";
+    static final int EXPECTED_RT_SIZE = 3;
 
     private TokenCache mTokenCache;
     private User mDefaultUser;
@@ -84,8 +85,8 @@ public final class TokenCacheTest extends AndroidTestCase {
     private AuthenticationRequestParameters addTokenForUser(final boolean useDefault) throws MsalException {
         final String testScope = "scope";
         // Prepare a TokenResponse for either the default of the 'different' User, by param
-        final TokenResponse tokenResponse = useDefault ?
-                getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, testScope, AndroidTestUtil.getValidExpiresOn(),
+        final TokenResponse tokenResponse = useDefault
+                ? getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, testScope, AndroidTestUtil.getValidExpiresOn(),
                         getDefaultClientInfo()) : // otherwise...
                 getTokenResponseForDifferentUser(ACCESS_TOKEN, REFRESH_TOKEN, testScope, AndroidTestUtil.getValidExpiresOn(), getClientInfoForDifferentUser());
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, tokenResponse);
@@ -520,9 +521,8 @@ public final class TokenCacheTest extends AndroidTestCase {
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, anotherAuthority, CLIENT_ID, getTokenResponseForDefaultUser(accessToken3, refreshToken3,
                 MsalUtils.convertSetToString(scope, " "), expirationDate, getDefaultClientInfo()));
 
-        // verify that there should be 3 refresh tokens stored in the cache
-        int expectedRtSize = 3;
-        assertTrue(mTokenCache.getAllRefreshTokens(AndroidTestUtil.getTestRequestContext()).size() == expectedRtSize);
+        // verify that there should be 3 refresh tokens stored in the cache;
+        assertTrue(mTokenCache.getAllRefreshTokens(AndroidTestUtil.getTestRequestContext()).size() == EXPECTED_RT_SIZE);
 
         // verify rt for default authority host and default client
         AuthenticationRequestParameters requestParameters = getRequestParameters(AUTHORITY, scope, CLIENT_ID);
