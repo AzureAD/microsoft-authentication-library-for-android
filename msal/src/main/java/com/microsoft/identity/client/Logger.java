@@ -66,8 +66,6 @@ public final class Logger {
     private static final Logger sINSTANCE = new Logger();
 
     private AtomicReference<ILoggerCallback> mExternalLogger = new AtomicReference<>(null);
-    private boolean mLogcatLogEnabled = false;
-    private boolean mEnablePII = false;
 
     /**
      * @return The single instance of {@link Logger}.
@@ -275,12 +273,12 @@ public final class Logger {
 
         switch (logLevel) {
             case ERROR:
-               if (containsPII) {
-                   com.microsoft.identity.common.internal.logging.Logger.errorPII(tag, correlationID, messageWithComponent, throwable);
-               } else {
-                   com.microsoft.identity.common.internal.logging.Logger.error(tag, correlationID, messageWithComponent, throwable);
-               }
-               break;
+                if (containsPII) {
+                    com.microsoft.identity.common.internal.logging.Logger.errorPII(tag, correlationID, messageWithComponent, throwable);
+                } else {
+                    com.microsoft.identity.common.internal.logging.Logger.error(tag, correlationID, messageWithComponent, throwable);
+                }
+                break;
             case WARNING:
                 if (containsPII) {
                     com.microsoft.identity.common.internal.logging.Logger.warnPII(tag, correlationID, messageWithComponent);
