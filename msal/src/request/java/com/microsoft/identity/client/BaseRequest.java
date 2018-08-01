@@ -143,6 +143,15 @@ abstract class BaseRequest {
     }
 
     /**
+     * Get the authentication request parameters.
+     *
+     * @return The object of AuthenticationRequestParameters
+     */
+    AuthenticationRequestParameters getAuthRequestParameters() {
+        return mAuthRequestParameters;
+    }
+
+    /**
      * Validate the input scopes. The input scope cannot have reserved scopes, if client id is provided as the scope it
      * should be a single scope.
      *
@@ -201,10 +210,30 @@ abstract class BaseRequest {
         final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
         final Authority authority = mAuthRequestParameters.getAuthority();
         authority.updateTenantLessAuthority(new IdToken(mTokenResponse.getRawIdToken()).getTenantId());
-        final AccessTokenCacheItem accessTokenCacheItem = tokenCache.saveAccessToken(authority.getAuthority(),
-                mAuthRequestParameters.getClientId(), mTokenResponse, mRequestContext);
-        tokenCache.saveRefreshToken(authority.getAuthorityHost(), mAuthRequestParameters.getClientId(),
-                mTokenResponse, mRequestContext);
+
+        final AccessTokenCacheItem accessTokenCacheItem;
+        // Switch to toggle using common cache (or not)
+        boolean useCommonCache = true;
+
+        if (useCommonCache) {
+            tokenCache.saveTokensToCommonCache(
+                    authority.getAuthorityUrl(),
+                    mAuthRequestParameters.getClientId(),
+                    mTokenResponse,
+                    mAuthRequestParameters.getRequestContext().getCorrelationId().toString()
+            );
+
+            // Because the token retrieval API hasn't been written yet, also sync the tokens to the legacy cache for *actual* retrieval
+            accessTokenCacheItem = tokenCache.saveAccessToken(authority.getAuthority(),
+                    mAuthRequestParameters.getClientId(), mTokenResponse, mRequestContext);
+            tokenCache.saveRefreshToken(authority.getAuthorityHost(), mAuthRequestParameters.getClientId(),
+                    mTokenResponse, mRequestContext);
+        } else {
+            accessTokenCacheItem = tokenCache.saveAccessToken(authority.getAuthority(),
+                    mAuthRequestParameters.getClientId(), mTokenResponse, mRequestContext);
+            tokenCache.saveRefreshToken(authority.getAuthorityHost(), mAuthRequestParameters.getClientId(),
+                    mTokenResponse, mRequestContext);
+        }
 
         return new AuthenticationResult(accessTokenCacheItem);
     }

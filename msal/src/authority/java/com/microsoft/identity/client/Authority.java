@@ -124,6 +124,17 @@ abstract class Authority {
     }
 
     /**
+     * Convenience method for {@link Authority#getAuthorityHost()}. Constructs an Authority and returns the host portion of the URL.
+     *
+     * @param authorityUrl      The authority url used to create the {@link Authority}.
+     * @param validateAuthority True if performing authority validation, false otherwise.
+     * @return The host portion of the {@link Authority} instance's URL.
+     */
+    static String getAuthorityHost(final String authorityUrl, final boolean validateAuthority) {
+        return createAuthority(authorityUrl, validateAuthority).getAuthorityHost();
+    }
+
+    /**
      * Perform authority validation and tenant discovery. If authority validation is done successfully, the tenant discovery
      * endpoint will be returned otherwise exception will be thrown. Returned tenant discovery endpoint will be used for
      * tenant discovery to get authorize and token endpoint. Developer could turn off authority validation, but for all the
@@ -188,11 +199,19 @@ abstract class Authority {
         mIsTenantless = isTenantLess();
     }
 
+    URL getAuthorityUrl() {
+        return mAuthorityUrl;
+    }
+
     /**
      * @return The String value for authority url.
      */
     String getAuthority() {
         return mAuthorityUrl.toString();
+    }
+
+    AuthorityType getAuthorityType() {
+        return mAuthorityType;
     }
 
     String getAuthorityHost() {

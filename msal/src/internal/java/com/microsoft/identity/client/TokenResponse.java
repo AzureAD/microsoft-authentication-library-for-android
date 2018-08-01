@@ -33,6 +33,8 @@ import java.util.Map;
  * Internal class for the the returned JSON response from token endpoint.
  */
 final class TokenResponse extends BaseOauth2Response {
+    private final Long mExpiresIn;
+    private final Long mExtExpiresIn;
     private final String mAccessToken;
     private final String mRawIdToken;
     private final String mRefreshToken;
@@ -43,14 +45,24 @@ final class TokenResponse extends BaseOauth2Response {
     private final String mTokenType;
     private final String mRawClientInfo;
     private final String mClaims;
+    private final String mFamilyId;
     private final Map<String, String> mAdditionalData = new HashMap<>();
 
     /**
      * Create token response with token when token is returned.
      */
-    TokenResponse(final String accessToken, final String rawIdToken, final String refreshToken,
-                         final Date expiresOn, final Date idTokenExpiresOn, final Date extendedExpiresOn,
-                         final String scope, final String tokenType, final String rawClientInfo) {
+    public TokenResponse(final String accessToken,
+                         final String rawIdToken,
+                         final String refreshToken,
+                         final Date expiresOn,
+                         final Long expiresIn,
+                         final Date idTokenExpiresOn,
+                         final Date extendedExpiresOn,
+                         final Long extExpiresIn,
+                         final String scope,
+                         final String tokenType,
+                         final String rawClientInfo,
+                         final String familyId) {
         // success response: error, errorDescription and errorCodes are all null
         super(null, null, BaseOauth2Response.DEFAULT_STATUS_CODE);
         mClaims = null;
@@ -58,17 +70,23 @@ final class TokenResponse extends BaseOauth2Response {
         mRawIdToken = rawIdToken;
         mRefreshToken = refreshToken;
         mExpiresOn = expiresOn;
+        mExpiresIn = expiresIn;
         mIdTokenExpiresOn = idTokenExpiresOn;
         mExtendedExpiresOn = extendedExpiresOn;
+        mExtExpiresIn = extExpiresIn;
         mScope = scope;
         mTokenType = tokenType;
         mRawClientInfo = rawClientInfo;
+        mFamilyId = familyId;
     }
 
     /**
      * Creates token response with error returned in the server JSON response.
      */
-    TokenResponse(final String error, final String errorDescription, final int statusCode, final String claims) {
+    public TokenResponse(final String error,
+                         final String errorDescription,
+                         final int statusCode,
+                         final String claims) {
         super(error, errorDescription, statusCode);
         mClaims = claims;
 
@@ -76,15 +94,23 @@ final class TokenResponse extends BaseOauth2Response {
         mRefreshToken = null;
         mRawIdToken = null;
         mExpiresOn = null;
+        mExpiresIn = null;
         mIdTokenExpiresOn = null;
         mExtendedExpiresOn = null;
+        mExtExpiresIn = null;
         mScope = null;
         mTokenType = null;
         mRawClientInfo = null;
+        mFamilyId = null;
     }
 
     TokenResponse(final BaseOauth2Response baseOauth2Response, final String claims) {
-        this(baseOauth2Response.getError(), baseOauth2Response.getErrorDescription(), baseOauth2Response.getHttpStatusCode(), claims);
+        this(
+                baseOauth2Response.getError(),
+                baseOauth2Response.getErrorDescription(),
+                baseOauth2Response.getHttpStatusCode(),
+                claims
+        );
     }
 
     /**
@@ -158,6 +184,31 @@ final class TokenResponse extends BaseOauth2Response {
     }
 
     /**
+     * @return The familyId returned by the service (foci).
+     */
+    public String getFamilyId() {
+        return mFamilyId;
+    }
+
+    /**
+     * Gets the expires_in claim value.
+     *
+     * @return The expires_in to get.
+     */
+    public Long getExpiresIn() {
+        return mExpiresIn;
+    }
+
+    /**
+     * Gets the ext_expires_in claim value.
+     *
+     * @return The ext_expires_in to get.
+     */
+    public Long getExtExpiresIn() {
+        return mExtExpiresIn;
+    }
+
+    /**
      * Set additional data returned in the server response.
      *
      * @param additionalData The additional data in the JSON response.
@@ -190,22 +241,39 @@ final class TokenResponse extends BaseOauth2Response {
         final String idToken = responseItems.get(TokenResponseClaim.ID_TOKEN);
         additionalData.remove(TokenResponseClaim.ID_TOKEN);
 
-        final Date expiresOn = MsalUtils.calculateExpiresOn(responseItems.get(TokenResponseClaim.EXPIRES_IN));
+        final String expiresIn = responseItems.get(TokenResponseClaim.EXPIRES_IN);
+        final Date expiresOn = MsalUtils.calculateExpiresOn(expiresIn);
         additionalData.remove(TokenResponseClaim.EXPIRES_IN);
 
         final Date idTokenExpiresOn = MsalUtils.calculateExpiresOn(responseItems.get(
                 TokenResponseClaim.ID_TOKEN_EXPIRES_IN));
         additionalData.remove(TokenResponseClaim.ID_TOKEN_EXPIRES_IN);
 
-        final Date extendedExpiresOn = MsalUtils.calculateExpiresOn(responseItems.get(
-                TokenResponseClaim.EXTENDED_EXPIRES_IN));
+        final String extExpiresIn = responseItems.get(TokenResponseClaim.EXTENDED_EXPIRES_IN);
+        final Date extendedExpiresOn = MsalUtils.calculateExpiresOn(extExpiresIn);
         additionalData.remove(TokenResponseClaim.EXTENDED_EXPIRES_IN);
 
         final String clientInfo = responseItems.get(TokenResponseClaim.CLIENT_INFO);
         additionalData.remove(TokenResponseClaim.CLIENT_INFO);
 
-        final TokenResponse tokenResponse = new TokenResponse(accessToken, idToken, refreshToken, expiresOn,
-                idTokenExpiresOn, extendedExpiresOn, scope, tokenType, clientInfo);
+        final String familyId = responseItems.get(TokenResponseClaim.FAMILY_ID);
+        additionalData.remove(TokenResponseClaim.FAMILY_ID);
+
+        final TokenResponse tokenResponse =
+                new TokenResponse(
+                        accessToken,
+                        idToken,
+                        refreshToken,
+                        expiresOn,
+                        (long) MsalUtils.getExpiryOrDefault(expiresIn), // expiresIn
+                        idTokenExpiresOn,
+                        extendedExpiresOn,
+                        (long) MsalUtils.getExpiryOrDefault(extExpiresIn), // extExpiresIn
+                        scope,
+                        tokenType,
+                        clientInfo,
+                        familyId
+                );
         tokenResponse.setAdditionalData(additionalData);
 
         return tokenResponse;

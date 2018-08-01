@@ -24,18 +24,22 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.customtabs.CustomTabsClient;
-import android.support.customtabs.CustomTabsIntent;
-import android.support.customtabs.CustomTabsServiceConnection;
-import android.support.customtabs.CustomTabsSession;
+import android.webkit.WebView;
 
-import java.lang.ref.WeakReference;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationResult;
+import com.microsoft.identity.common.internal.ui.embeddedwebview.AzureActiveDirectoryWebViewClient;
+import com.microsoft.identity.common.internal.ui.embeddedwebview.EmbeddedWebViewAuthorizationStrategy;
+import com.microsoft.identity.common.internal.ui.embeddedwebview.challengehandlers.IChallengeCompletionCallback;
+import com.microsoft.identity.msal.R;
+
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 
 /**
  * Custom tab requires the device to have a browser with custom tab support, chrome with version >= 45 comes with the
@@ -48,22 +52,30 @@ import java.util.concurrent.TimeUnit;
 public final class AuthenticationActivity extends Activity {
 
     private static final String TAG = AuthenticationActivity.class.getSimpleName(); //NOPMD
-    private static final long CUSTOMTABS_MAX_CONNECTION_TIMEOUT = 1L;
 
     private String mRequestUrl;
     private int mRequestId;
     private boolean mRestarted;
-    private String mChromePackageWithCustomTabSupport;
-    private CustomTabsIntent mCustomTabsIntent;
-    private MsalCustomTabsServiceConnection mCustomTabsServiceConnection;
     private UiEvent.Builder mUiEventBuilder;
     private String mTelemetryRequestId;
+    private EmbeddedWebViewAuthorizationStrategy<
+            AzureActiveDirectoryWebViewClient,
+            MicrosoftStsAuthorizationRequest,
+            MicrosoftStsAuthorizationResult> mEmbeddedWebViewAuthorizationStrategy;
+    private MsalChromeCustomTabManager mChromeCustomTabManager;
+    private boolean mUseEmbeddedWebView;
+    private MicrosoftStsAuthorizationRequest mAuthorizationRequest;
+    private ChallengeCompletionCallback mChallengeCompletionCallback;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mAuthorizationRequest = getAuthorizationRequestFromIntent(getIntent());
 
-        mChromePackageWithCustomTabSupport = MsalUtils.getChromePackageWithCustomTabSupport(getApplicationContext());
+        if (mAuthorizationRequest == null) {
+            sendError(MsalClientException.UNRESOLVABLE_INTENT, "Cannot generate the authorization request from the intent.");
+            return;
+        }
 
         // If activity is killed by the os, savedInstance will be the saved bundle.
         if (savedInstanceState != null) {
@@ -80,6 +92,9 @@ public final class AuthenticationActivity extends Activity {
             return;
         }
 
+        mUseEmbeddedWebView = data.getIntExtra(Constants.WEBVIEW_SELECTION, 0) != WebViewSelection.SYSTEM_BROWSER.getId();
+
+        launchWebView();
         mRequestUrl = data.getStringExtra(Constants.REQUEST_URL_KEY);
         mRequestId = data.getIntExtra(Constants.REQUEST_ID, 0);
         if (MsalUtils.isEmpty(mRequestUrl)) {
@@ -101,99 +116,39 @@ public final class AuthenticationActivity extends Activity {
         Telemetry.getInstance().startEvent(mTelemetryRequestId, mUiEventBuilder);
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (mChromePackageWithCustomTabSupport != null) {
-            warmUpCustomTabs();
+    private void launchWebView() {
+        if (mUseEmbeddedWebView) {
+            Logger.verbose(TAG, null, "Use webView to perform interactive authorization request. ");
+            mChallengeCompletionCallback = new ChallengeCompletionCallback();
+            AzureActiveDirectoryWebViewClient webViewClient = new AzureActiveDirectoryWebViewClient(this, mAuthorizationRequest, mChallengeCompletionCallback);
+
+            setContentView(R.layout.activity_authentication);
+            final WebView webview = (WebView) this.findViewById(R.id.webview);
+            try {
+                mEmbeddedWebViewAuthorizationStrategy = new EmbeddedWebViewAuthorizationStrategy<>(webViewClient, webview);
+            } catch (final ClientException exception) {
+                sendError(exception.getErrorCode(), exception.getMessage());
+            } catch (final UnsupportedEncodingException exception) {
+                sendError(ErrorStrings.UNSUPPORTED_ENCODING, exception.getMessage());
+            }
+
+        } else {
+            Logger.verbose(TAG, null, "Use Chrome Browser/Chrome ChromeTab to perform interactive authorization request. ");
+            mChromeCustomTabManager = new MsalChromeCustomTabManager(this);
+            try {
+                mChromeCustomTabManager.verifyChromeTabOrBrowser();
+                mChromeCustomTabManager.bindCustomTabsService();
+            } catch (final MsalClientException exception) {
+                sendError(exception.getErrorCode(), exception.getMessage());
+            }
         }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        if (null != mCustomTabsServiceConnection && mCustomTabsServiceConnection.getCustomTabsServiceIsBound()) {
-            unbindService(mCustomTabsServiceConnection);
-        }
-    }
-
-    private void warmUpCustomTabs() {
-        final CountDownLatch latch = new CountDownLatch(1);
-        mCustomTabsServiceConnection = new MsalCustomTabsServiceConnection(latch);
-
-        // Initiate the service-bind action
-        CustomTabsClient.bindCustomTabsService(
-                this,
-                mChromePackageWithCustomTabSupport,
-                mCustomTabsServiceConnection
-        );
-
-        boolean initCustomTabsWithSession = true;
-        try {
-            // await returns true if count is 0, false if action times out
-            // invert this boolean to indicate if we should skip warming up
-            boolean timedOut = !latch.await(CUSTOMTABS_MAX_CONNECTION_TIMEOUT, TimeUnit.SECONDS);
-            if (timedOut) {
-                // if the request timed out, we don't actually know whether or not the service connected.
-                // to be safe, we'll skip warmup and rely on mCustomTabsServiceIsBound
-                // to unbind the Service when onStop() is called.
-                initCustomTabsWithSession = false;
-                Logger.warning(TAG, null, "Connection to CustomTabs timed out. Skipping warmup.");
-            }
-        } catch (InterruptedException e) {
-            Logger.error(TAG, null, "Failed to connect to CustomTabs. Skipping warmup.", e);
-            initCustomTabsWithSession = false;
-        }
-
-        final CustomTabsIntent.Builder builder = initCustomTabsWithSession
-                ? new CustomTabsIntent.Builder(mCustomTabsServiceConnection.getCustomTabsSession()) : new CustomTabsIntent.Builder();
-
-        // Create the Intent used to launch the Url
-        mCustomTabsIntent = builder.setShowTitle(true).build();
-        mCustomTabsIntent.intent.setPackage(mChromePackageWithCustomTabSupport);
-    }
-
-    private static class MsalCustomTabsServiceConnection extends CustomTabsServiceConnection {
-
-        private final WeakReference<CountDownLatch> mLatchWeakReference;
-        private CustomTabsClient mCustomTabsClient;
-        private CustomTabsSession mCustomTabsSession;
-        private boolean mCustomTabsServiceIsBound;
-
-        MsalCustomTabsServiceConnection(final CountDownLatch latch) {
-            mLatchWeakReference = new WeakReference<>(latch);
-        }
-
-        @Override
-        public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
-            final CountDownLatch latch = mLatchWeakReference.get();
-
-            mCustomTabsServiceIsBound = true;
-            mCustomTabsClient = client;
-            mCustomTabsClient.warmup(0L);
-            mCustomTabsSession = mCustomTabsClient.newSession(null);
-
-            if (null != latch) {
-                latch.countDown();
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            mCustomTabsServiceIsBound = false;
-        }
-
-        /**
-         * Gets the {@link CustomTabsSession} associated to this CustomTabs connection.
-         *
-         * @return the session.
-         */
-        CustomTabsSession getCustomTabsSession() {
-            return mCustomTabsSession;
-        }
-
-        boolean getCustomTabsServiceIsBound() {
-            return mCustomTabsServiceIsBound;
+        if (mChromeCustomTabManager != null) {
+            mChromeCustomTabManager.unbindCustomTabsService();
         }
     }
 
@@ -205,13 +160,15 @@ public final class AuthenticationActivity extends Activity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        Logger.info(TAG, null, "onNewIntent is called, received redirect from system webview.");
-        final String url = intent.getStringExtra(Constants.CUSTOM_TAB_REDIRECT);
+        if (!mUseEmbeddedWebView) {
+            Logger.info(TAG, null, "onNewIntent is called, received redirect from system webview.");
+            final String url = intent.getStringExtra(Constants.CUSTOM_TAB_REDIRECT);
 
-        final Intent resultIntent = new Intent();
-        resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, url);
-        returnToCaller(Constants.UIResponse.AUTH_CODE_COMPLETE,
-                resultIntent);
+            final Intent resultIntent = new Intent();
+            resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, url);
+            returnToCaller(Constants.UIResponse.AUTH_CODE_COMPLETE,
+                    resultIntent);
+        }
     }
 
     @Override
@@ -228,15 +185,10 @@ public final class AuthenticationActivity extends Activity {
         mRequestUrl = this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
 
         Logger.infoPII(TAG, null, "Request to launch is: " + mRequestUrl);
-        if (mChromePackageWithCustomTabSupport != null) {
-            Logger.info(TAG, null, "ChromeCustomTab support is available, launching chrome tab.");
-            mCustomTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
+        if (!mUseEmbeddedWebView) {
+            mChromeCustomTabManager.launchChromeTabOrBrowserForUrl(mRequestUrl);
         } else {
-            Logger.info(TAG, null, "Chrome tab support is not available, launching chrome browser.");
-            final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
-            browserIntent.setPackage(MsalUtils.getChromePackage(this.getApplicationContext()));
-            browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
-            this.startActivity(browserIntent);
+            mEmbeddedWebViewAuthorizationStrategy.requestAuthorization(mAuthorizationRequest);
         }
     }
 
@@ -288,5 +240,43 @@ public final class AuthenticationActivity extends Activity {
         errorIntent.putExtra(Constants.UIResponse.ERROR_CODE, errorCode);
         errorIntent.putExtra(Constants.UIResponse.ERROR_DESCRIPTION, errorDescription);
         returnToCaller(Constants.UIResponse.AUTH_CODE_ERROR, errorIntent);
+    }
+
+    private MicrosoftStsAuthorizationRequest getAuthorizationRequestFromIntent(final Intent callingIntent) {
+        MicrosoftStsAuthorizationRequest authRequest = null;
+        Serializable request = callingIntent
+                .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
+
+        if (request instanceof MicrosoftStsAuthorizationRequest) {
+            Logger.verbose(TAG, null, "Finish generating the authorization request.");
+            authRequest = (MicrosoftStsAuthorizationRequest) request;
+        }
+
+        return authRequest;
+    }
+
+    class ChallengeCompletionCallback implements IChallengeCompletionCallback {
+        @Override
+        public void onChallengeResponseReceived(final int returnCode, final Intent responseIntent) {
+            Logger.verbose(TAG, null, "onChallengeResponseReceived:" + returnCode);
+
+            if (mAuthorizationRequest == null) {
+                Logger.warning(TAG, null, "Request object is null");
+            } else {
+                // set request id related to this response to send the delegateId
+                Logger.verbose(TAG, null,
+                        "Set request id related to response. "
+                                + "REQUEST_ID for caller returned to:" + mAuthorizationRequest.getCorrelationId());
+                responseIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mAuthorizationRequest.getCorrelationId());
+            }
+
+            setResult(returnCode, responseIntent);
+            finish();
+        }
+
+        @Override
+        public void setPKeyAuthStatus(final boolean status) {
+            Logger.verbose(TAG, null, "setPKeyAuthStatus:" + status);
+        }
     }
 }

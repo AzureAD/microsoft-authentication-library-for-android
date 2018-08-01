@@ -47,12 +47,9 @@ android {
     }
 
     libraryVariants.all { variant ->
-        variant.outputs.each { output ->
-            def outputFile = output.outputFile
-            if (outputFile != null && outputFile.name.endsWith('.aar')) {
-                def fileName = "${archivesBaseName}-${version}.aar"
-                output.outputFile = new File(outputFile.parent, fileName)
-            }
+        variant.outputs.all {
+            def fileName = "${archivesBaseName}-${version}.aar"
+            outputFileName = fileName
         }
     }
 }
@@ -63,7 +60,7 @@ task jacocoTestReport(type: JacocoReport, dependsOn: 'testDebugUnitTest') {
         html.enabled = true
     }
 
-    jacocoClasspath = configurations['androidJacocoAnt']
+    jacocoClasspath = configurations['jacocoAnt']
 
     def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*']
     def debugTree = fileTree(dir: "${buildDir}/intermediates/classes/debug", excludes: fileFilter)
@@ -106,59 +103,21 @@ task sourcesJar(type: Jar) {
 }
 
 dependencies {
-    compile "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
-    compile "com.android.support:customtabs:$rootProject.ext.supportLibraryVersion"
-    compile "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
-
+    implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
+    implementation "com.android.support:customtabs:$rootProject.ext.supportLibraryVersion"
+    implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     // test dependencies
-    testCompile "junit:junit:$rootProject.ext.junitVersion"
-    testCompile "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
-
+    testImplementation "junit:junit:$rootProject.ext.junitVersion"
+    // TODO the below dependency should be mockito-core but the MockMaker isn't working...
+    testImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
     // instrumentation test dependencies
-    androidTestCompile "com.android.support.test:runner:$rootProject.ext.runnerVersion"
+    androidTestImplementation "com.android.support.test:runner:$rootProject.ext.runnerVersion"
     // Set this dependency to use JUnit 4 rules
-    androidTestCompile "com.android.support.test:rules:$rootProject.ext.rulesVersion"
-    androidTestCompile "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
-    androidTestCompile "com.google.dexmaker:dexmaker:$rootProject.ext.dexmakerMockitoVersion"
-    androidTestCompile "com.google.dexmaker:dexmaker-mockito:$rootProject.ext.dexmakerMockitoVersion"
-}
-
-task createPom {
-    pom {
-        project {
-            groupId 'com.microsoft.identity.client'
-            artifactId 'msal'
-            packaging 'aar'
-            version project.version
-            name 'msal'
-
-            description 'The MSAL library for Android gives your app the ability to begin using the Microsoft Cloud by supporting Microsoft Azure Active Directory and Microsoft Accounts in a converged experience using industry standard OAuth2 and OpenID Connect. The library also supports Azure AD B2C.'
-            url 'https://github.com/AzureAD/microsoft-authentication-library-for-android'
-
-            developers {
-                developer {
-                    id 'microsoft'
-                    name 'Microsoft'
-                }
-            }
-
-            licenses {
-                license {
-                    name 'MIT License'
-                }
-            }
-            inceptionYear '2017'
-
-            properties {
-                branch 'master'
-                msalVersion = project.version
-            }
-
-            scm {
-                url "https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/master"
-            }
-        }
-    }.writeTo("${archivesBaseName}-${version}.pom")
+    androidTestImplementation "com.android.support.test:rules:$rootProject.ext.rulesVersion"
+    androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
+    implementation(project(':common')) {
+        transitive = false
+    }
 }
 
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
@@ -253,6 +212,6 @@ repositories {
 
 tasks.whenTaskAdded { task ->
     if (task.name == 'assembleDebug' || task.name == 'assembleRelease') {
-        task.dependsOn 'checkstyle', 'pmd', 'lint', 'jacocoTestReport', 'createPom', 'javadocJar', 'sourcesJar'
+        task.dependsOn 'checkstyle', 'pmd', 'lint', 'javadocJar', 'sourcesJar'
     }
 }

@@ -166,129 +166,6 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     @Test
-    public void testGetAuthorizationUriUiBehaviorIsConsent() throws UnsupportedEncodingException, MsalException {
-        final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
-                getAuthenticationParams(AUTHORITY, UiBehavior.CONSENT, null), null);
-        final String actualAuthorizationUri = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
-        final Uri authorityUrl = Uri.parse(actualAuthorizationUri);
-        Map<String, String> queryStrings = MsalUtils.decodeUrlToMap(authorityUrl.getQuery(), "&");
-
-        assertTrue(MsalUtils.convertSetToString(getExpectedScopes(), " ").equals(
-                queryStrings.get(OauthConstants.Oauth2Parameters.SCOPE)));
-        assertTrue(OauthConstants.PromptValue.CONSENT.equals(queryStrings.get(OauthConstants.Oauth2Parameters.PROMPT)));
-        verifyCommonQueryString(queryStrings);
-    }
-
-    @Test
-    public void testGetAuthorizationUriContainsPKCEChallenge() throws UnsupportedEncodingException, MsalException {
-        final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
-                getAuthenticationParams(AUTHORITY, UiBehavior.CONSENT, null), null);
-        final String authUriStr = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
-        final Uri authorizationUri = Uri.parse(authUriStr);
-        final String codeChallenge = authorizationUri.getQueryParameter(OauthConstants.Oauth2Parameters.CODE_CHALLENGE);
-        final String codeChallengeMethod = authorizationUri.getQueryParameter(OauthConstants.Oauth2Parameters.CODE_CHALLENGE_METHOD);
-        assertNotNull(codeChallenge);
-        assertTrue(codeChallenge.length() >= CODE_CHALLENGE_LENGTH_MIN);
-        assertTrue(codeChallenge.length() <= CODE_CHALLENGE_LENGTH_MAX);
-        assertNotNull(codeChallengeMethod);
-        assertTrue(codeChallengeMethod.equals("S256"));
-    }
-
-    @Test
-    public void testGetAuthorizationUriContainsSessionContinuationParams() throws UnsupportedEncodingException, MsalClientException {
-        final User user = new User(AndroidTestUtil.PREFERRED_USERNAME, "name", AndroidTestUtil.ISSUER, AndroidTestUtil.UID, AndroidTestUtil.UTID);
-        final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class), getAuthenticationParams(AUTHORITY,
-                UiBehavior.CONSENT, user), null);
-        final String authorizeRequestUriString = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
-        final Uri authorizationRequestUri = Uri.parse(authorizeRequestUriString);
-
-        assertTrue(AndroidTestUtil.UID.equals(authorizationRequestUri.getQueryParameter(OauthConstants.Oauth2Parameters.LOGIN_REQ)));
-        assertTrue(AndroidTestUtil.UTID.equals(authorizationRequestUri.getQueryParameter(OauthConstants.Oauth2Parameters.DOMAIN_REQ)));
-        assertTrue(AndroidTestUtil.PREFERRED_USERNAME.equals(authorizationRequestUri.getQueryParameter(OauthConstants.Oauth2Parameters.LOGIN_HINT)));
-    }
-
-    @Test
-    public void testGetAuthorizationUriUiBehaviorForceLogin() throws UnsupportedEncodingException, MsalException {
-        final String[] extraScope = {"extraScope"};
-        final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
-                getAuthenticationParams(AUTHORITY, UiBehavior.FORCE_LOGIN, null), extraScope);
-        final String actualAuthorizationUri = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
-        final Uri authorityUrl = Uri.parse(actualAuthorizationUri);
-        Map<String, String> queryStrings = MsalUtils.decodeUrlToMap(authorityUrl.getQuery(), "&");
-
-        final Set<String> expectedScopes = getExpectedScopes();
-        expectedScopes.add("extraScope");
-        final String[] queryStringScopes = queryStrings.get(OauthConstants.Oauth2Parameters.SCOPE).split(" ");
-        for (final String param : queryStringScopes) {
-            // iterate and remove from set then verify that it is empty
-            assertTrue(expectedScopes.contains(param));
-            expectedScopes.remove(param);
-        }
-        assertTrue(expectedScopes.isEmpty());
-        assertTrue(OauthConstants.PromptValue.LOGIN.equals(queryStrings.get(OauthConstants.Oauth2Parameters.PROMPT)));
-        verifyCommonQueryString(queryStrings);
-    }
-
-    @Test
-    public void testDuplicateExtraQp() throws UnsupportedEncodingException {
-        final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
-                getAuthRequestParameters(AUTHORITY, UiBehavior.CONSENT, "&client_id=1234", null), null);
-        try {
-            interactiveRequest.appendQueryStringToAuthorizeEndpoint();
-            fail();
-        } catch (final MsalClientException ex) {
-            assertTrue(MsalClientException.DUPLICATE_QUERY_PARAMETER.equals(ex.getErrorCode()));
-        }
-    }
-
-    @Test
-    public void testRequestContainsValidExtraQp() throws UnsupportedEncodingException {
-        final String extraQp = "&slice=testslice";
-        final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
-                getAuthRequestParameters(AUTHORITY, UiBehavior.CONSENT, extraQp, null), null);
-        try {
-            final String authorizationRequestUrl = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
-            assertTrue(authorizationRequestUrl.contains(extraQp));
-        } catch (final MsalClientException ex) {
-            fail("unexpected exception message");
-        }
-    }
-
-    @Test
-    public void testRequestContainsSliceParameters() throws MsalClientException, UnsupportedEncodingException {
-        final String sliceParameters = "&slice=testslice&a=b&c=d";
-        final String extraParameters = "&e=f&m=k";
-
-        final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
-                getAuthRequestParameters(AUTHORITY, UiBehavior.CONSENT, extraParameters, sliceParameters), null);
-        try {
-            final String authorizationRequestUrl = interactiveRequest.appendQueryStringToAuthorizeEndpoint();
-            assertTrue(authorizationRequestUrl.contains("slice=testslice"));
-            assertTrue(authorizationRequestUrl.contains("a=b"));
-            assertTrue(authorizationRequestUrl.contains("c=d"));
-
-            assertTrue(authorizationRequestUrl.contains("e=f"));
-            assertTrue(authorizationRequestUrl.contains("m=k"));
-        } catch (final MsalClientException ex) {
-            fail("unexpected exception message");
-        }
-    }
-
-    @Test
-    public void testSliceParametersDuplicated() throws UnsupportedEncodingException {
-        final String sliceParameters = "&slice=testslice&a=b&c=d";
-        final String extraParameters = "slice=testslice&e=f&m=k";
-
-        final InteractiveRequest interactiveRequest = new InteractiveRequest(Mockito.mock(Activity.class),
-                getAuthRequestParameters(AUTHORITY, UiBehavior.CONSENT, extraParameters, sliceParameters), null);
-        try {
-            interactiveRequest.appendQueryStringToAuthorizeEndpoint();
-        } catch (final MsalClientException ex) {
-            assertTrue(MsalClientException.DUPLICATE_QUERY_PARAMETER.equals(ex.getErrorCode()));
-        }
-    }
-
-    @Test
     public void testNetworkNotConnectedForUI() throws IOException, InterruptedException {
         final Activity testActivity = Mockito.mock(Activity.class);
         Mockito.when(testActivity.getPackageName()).thenReturn(mAppContext.getPackageName());
@@ -336,8 +213,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         // verify that startActivityResult is called
         Mockito.verify(testActivity, Mockito.never()).startActivityForResult(Mockito.argThat(new ArgumentMatcher<Intent>() {
             @Override
-            public boolean matches(Object argument) {
-                return ((Intent) argument).getStringExtra(Constants.REQUEST_URL_KEY) != null;
+            public boolean matches(Intent argument) {
+                return argument.getStringExtra(Constants.REQUEST_URL_KEY) != null;
             }
         }), Mockito.eq(InteractiveRequest.BROWSER_FLOW));
     }
@@ -382,68 +259,6 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
         mockNetworkConnected(mAppContext, false);
 
-        InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
-                Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
-
-        resultLock.await();
-
-        // verify that startActivityResult is called
-        verifyStartActivityForResultCalled(testActivity);
-    }
-
-    /**
-     * Verify when auth code is successfully returned, result is delivered correctly.
-     */
-    @Test
-    public void testGetTokenCodeSuccessfullyReturnedNoClientInfoReturned() throws IOException, InterruptedException {
-        final Activity testActivity = Mockito.mock(Activity.class);
-        Mockito.when(testActivity.getPackageName()).thenReturn(mAppContext.getPackageName());
-        Mockito.when(testActivity.getApplicationContext()).thenReturn(mAppContext);
-
-        // mock http call
-        AndroidTestMockUtil.mockSuccessTenantDiscovery(getExpectedAuthorizeEndpoint(), getExpectedTokenEndpoint());
-        mockSuccessHttpRequestCallWithNoRT();
-
-        final BaseRequest request = createInteractiveRequest(AUTHORITY, testActivity);
-        final CountDownLatch resultLock = new CountDownLatch(1);
-        request.getToken(new AuthenticationCallback() {
-            @Override
-            public void onSuccess(AuthenticationResult authenticationResult) {
-                Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
-                assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 1);
-                assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 0);
-
-                // make sure access token is stored with tenant specific authority
-                assertNull(mTokenCache.findAccessToken(getAuthenticationParams(AUTHORITY, UiBehavior.FORCE_LOGIN, null), authenticationResult.getUser()));
-                final String authority = AUTHORITY.replace("common", authenticationResult.getTenantId());
-                assertNotNull(mTokenCache.findAccessToken(getAuthenticationParams(authority, UiBehavior.FORCE_LOGIN, null), authenticationResult.getUser()));
-
-                final User user = authenticationResult.getUser();
-                assertTrue(user.getUid().equals(""));
-                assertTrue(user.getUtid().equals(""));
-
-                resultLock.countDown();
-
-            }
-
-            @Override
-            public void onError(MsalException exception) {
-                fail();
-            }
-
-            @Override
-            public void onCancel() {
-                fail();
-            }
-        });
-
-        // having the thread delayed for preTokenRequest to finish. Here we mock the
-        // startActivityForResult, nothing actually happened when AuthenticationActivity is called.
-        resultLock.await(THREAD_DELAY_TIME, TimeUnit.MILLISECONDS);
-
-        final Intent resultIntent = new Intent();
-        resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, mRedirectUri
-                + "?code=1234&state=" + AndroidTestUtil.encodeProtocolState(AUTHORITY, getScopes()));
         InteractiveRequest.onActivityResult(InteractiveRequest.BROWSER_FLOW,
                 Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
 
@@ -756,72 +571,6 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     @Test
-    public void testStateInResponseAuthorityIsDifferent() throws IOException, InterruptedException {
-        new GetTokenAuthCodeUrlContainsErrorBaseTestCase() {
-            @Override
-            void makeAcquireTokenCall(final CountDownLatch countDownLatch, BaseRequest request) {
-                request.getToken(new AuthenticationCallback() {
-                    @Override
-                    public void onSuccess(AuthenticationResult authenticationResult) {
-                        fail("unexpected success");
-                    }
-
-                    @Override
-                    public void onError(MsalException exception) {
-                        assertTrue(exception instanceof MsalClientException);
-                        assertTrue(MsalClientException.STATE_MISMATCH.equals(exception.getErrorCode()));
-                        assertTrue(Constants.MsalErrorMessage.STATE_NOT_THE_SAME.equals(exception.getMessage()));
-                        countDownLatch.countDown();
-                    }
-
-                    @Override
-                    public void onCancel() {
-                        fail("unexpected failure");
-                    }
-                });
-            }
-
-            @Override
-            String getFinalUrl() throws UnsupportedEncodingException {
-                return "?code=1234&state=" + AndroidTestUtil.encodeProtocolState("https://someauthority.com", getScopes());
-            }
-        }.performTest();
-    }
-
-    @Test
-    public void testStateInResponseNotContainAuthority() throws IOException, InterruptedException {
-        new GetTokenAuthCodeUrlContainsErrorBaseTestCase() {
-            @Override
-            void makeAcquireTokenCall(final CountDownLatch countDownLatch, BaseRequest request) {
-                request.getToken(new AuthenticationCallback() {
-                    @Override
-                    public void onSuccess(AuthenticationResult authenticationResult) {
-                        fail("unexpected success");
-                    }
-
-                    @Override
-                    public void onError(MsalException exception) {
-                        assertTrue(MsalClientException.STATE_MISMATCH.equals(exception.getErrorCode()));
-                        assertTrue(Constants.MsalErrorMessage.STATE_NOT_THE_SAME.equals(exception.getMessage()));
-                        countDownLatch.countDown();
-                    }
-
-                    @Override
-                    public void onCancel() {
-                        fail("unexpected failure");
-                    }
-                });
-            }
-
-            @Override
-            String getFinalUrl() throws UnsupportedEncodingException {
-                return "?code=1234&state=" + Base64.encodeToString(MsalUtils.urlFormEncode(
-                        MsalUtils.convertSetToString(getScopes(), " ")).getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
-            }
-        }.performTest();
-    }
-
-    @Test
     public void testStateNotInTheResponse() throws IOException, InterruptedException {
         new GetTokenAuthCodeUrlContainsErrorBaseTestCase() {
             @Override
@@ -933,8 +682,8 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     private void verifyStartActivityForResultCalled(final Activity testActivity) {
         Mockito.verify(testActivity).startActivityForResult(Mockito.argThat(new ArgumentMatcher<Intent>() {
             @Override
-            public boolean matches(Object argument) {
-                return ((Intent) argument).getStringExtra(Constants.REQUEST_URL_KEY) != null;
+            public boolean matches(Intent argument) {
+                return argument.getStringExtra(Constants.REQUEST_URL_KEY) != null;
             }
         }), Mockito.eq(InteractiveRequest.BROWSER_FLOW));
     }
