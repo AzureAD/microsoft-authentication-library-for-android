@@ -11,7 +11,6 @@ import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResp
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResultFuture;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
-import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult.AuthorizationStatus;
 
 import java.io.UnsupportedEncodingException;
 import java.util.concurrent.Future;
@@ -46,13 +45,14 @@ public class DeviceBrowserAuthorizationStrategy extends AuthorizationStrategy {
     public void completeAuthorization(int requestCode, int resultCode, Intent data) {
 
         //Unexpected State until a known state
-        AuthorizationResult result = new AuthorizationResult(AuthorizationStatus.UNEXPECTED_STATE);
+        //AuthorizationResult result = new AuthorizationResult(AuthorizationStatus.UNEXPECTED_STATE);
 
         if (requestCode != RequestCodes.LOCAL_AUTHORIZATION_REQUEST) {
             //I think in this case we should just log and ignore.... would be easy for developer to send us something that we don't handle
             return;
         }
 
+        /*
         if (data == null) {
             //Again Log.... set unexpected state
             result = new AuthorizationResult(AuthorizationStatus.UNEXPECTED_STATE);
@@ -76,8 +76,9 @@ public class DeviceBrowserAuthorizationStrategy extends AuthorizationStrategy {
                     break;
             }
         }
+        */
 
-        mAuthorizationResultFuture.setAuthorizationResult(result);
+        mAuthorizationResultFuture.setAuthorizationResult(null); //result
 
     }
 

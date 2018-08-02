@@ -238,6 +238,7 @@ public final class PublicClientApplication {
      * @param clientId  The application client id.
      * @param authority The default authority to be used for the authority.
      */
+    /*
     public PublicClientApplication(@NonNull Configuration config) {
         this(config.getContext(), config.getClientId());
 
@@ -247,6 +248,7 @@ public final class PublicClientApplication {
 
         mAuthorityString = authority;
     }
+    */
 
     private void initializeApplication() {
         // Init Events with defaults (application-wide)

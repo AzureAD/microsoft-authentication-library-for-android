@@ -188,7 +188,11 @@ public final class AuthenticationActivity extends Activity {
         if (!mUseEmbeddedWebView) {
             mChromeCustomTabManager.launchChromeTabOrBrowserForUrl(mRequestUrl);
         } else {
-            mEmbeddedWebViewAuthorizationStrategy.requestAuthorization(mAuthorizationRequest);
+            try {
+                mEmbeddedWebViewAuthorizationStrategy.requestAuthorization(mAuthorizationRequest);
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
         }
     }
 

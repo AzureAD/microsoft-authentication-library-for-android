@@ -1,32 +1,25 @@
 package com.microsoft.identity.client.controllers;
 
 import android.content.Intent;
-import android.os.Debug;
-import android.util.Log;
 
 import com.microsoft.identity.client.DeviceBrowserAuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
-import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
-import com.microsoft.identity.common.internal.util.StringUtil;
 
-import java.util.concurrent.CountDownLatch;
+import java.util.HashSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.UIRequest.BROWSER_FLOW;
 
 public class LocalMSALController extends MSALController{
 
     private OAuth2Strategy mOAuthStrategy = null;
     private AuthorizationStrategy mAuthorizationStrategy = null;
-    private Object mAuthorizationResponse = null;
 
     @Override
     public void AcquireToken(MSALAcquireTokenRequest request) throws ExecutionException, InterruptedException {
@@ -41,20 +34,21 @@ public class LocalMSALController extends MSALController{
         authRequest.setContext(request.getAppContext());
         authRequest.setClientId(request.getClientId());
         authRequest.setRedirectUri(request.getRedirectUri());
-        authRequest.setScope(StringUtil.join(' ', request.getScopes()));
+        authRequest.setScope(new HashSet<String>(request.getScopes()));
+
 
         //TODO: Replace with factory to create the correct Authorization Strategy based on device capabilities and configuration
         mAuthorizationStrategy = new DeviceBrowserAuthorizationStrategy();
 
         Future<AuthorizationResult> future = mOAuthStrategy.requestAuthorization(authRequest, mAuthorizationStrategy);
 
+        future.get();
+
         //We could implement Timeout Here if we wish instead of looping forever
         //future.get(10, TimeUnit.MINUTES);  // Need to handle timeout exception in the scenario it doesn't return within a reasonable amount of time
-        AuthorizationResult authorizationResult = future.get();
+        //AuthorizationResult authorizationResult = future.get();
 
-        if(authorizationResult.getStatus() == AuthorizationResult.AuthorizationStatus.COMPLETED){
 
-        }
     }
 
     @Override
