@@ -60,4 +60,4 @@ before_script:
 
 script:
   - cd $PWD
-  - ./gradlew clean assembleRelease connectedAndroidTest -PdisablePreDex
+  - ./gradlew clean msal:assembleLocal msal:connectedLocalAndroidTest -PdisablePreDex

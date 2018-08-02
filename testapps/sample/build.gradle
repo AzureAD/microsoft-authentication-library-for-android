@@ -27,7 +27,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
         applicationId "com.microsoft.identity.client.developersample"
@@ -45,6 +44,21 @@ android {
 
     lintOptions {
         abortOnError false
+    }
+
+    flavorDimensions "main"
+
+    productFlavors {
+        local {
+            applicationIdSuffix ".local"
+            versionNameSuffix "-local"
+            resValue("string", "application_name", "msal-local")
+        }
+        dist {
+            applicationIdSuffix ".dist"
+            versionNameSuffix "-dist"
+            resValue("string", "application_name", "msal-dist")
+        }
     }
 }
 
