@@ -117,8 +117,9 @@ dependencies {
         transitive = false
     }
 
-    // 'dist' flavor dependencies
-    distApi("com.microsoft.identity:common:0.0.2-local") {
+    // 'dist' flavor dependencies, the next line is how it should be once common is pushed to maven
+    //distApi("com.microsoft.identity:common:0.0.2") {
+    distApi(project(":common")) {
         transitive = false
     }
 }
