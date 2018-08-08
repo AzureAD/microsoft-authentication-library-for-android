@@ -69,9 +69,14 @@ class TokenCache {
     private MsalOAuth2TokenCache mCommonCache;
 
     private Gson mGson = new GsonBuilder()
-            .registerTypeAdapter(AccessTokenCacheItem.class, new TokenCacheItemDeserializer<AccessTokenCacheItem>())
-            .registerTypeAdapter(RefreshTokenCacheItem.class, new TokenCacheItemDeserializer<RefreshTokenCacheItem>())
-            .create();
+            .registerTypeAdapter(
+                    AccessTokenCacheItem.class,
+                    new TokenCacheItemDeserializer<AccessTokenCacheItem>()
+            )
+            .registerTypeAdapter(
+                    RefreshTokenCacheItem.class,
+                    new TokenCacheItemDeserializer<RefreshTokenCacheItem>()
+            ).create();
 
     /**
      * Constructor for {@link TokenCache}.
