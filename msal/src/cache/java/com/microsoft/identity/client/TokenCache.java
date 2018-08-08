@@ -65,7 +65,6 @@ import static com.microsoft.identity.common.internal.cache.AccountCredentialCach
 class TokenCache {
     private static final String TAG = TokenCache.class.getSimpleName();
 
-    private static final int DEFAULT_EXPIRATION_BUFFER = 300;
     private final TokenCacheAccessor mTokenCacheAccessor;
     private MsalOAuth2TokenCache mCommonCache;
 
