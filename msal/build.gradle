@@ -112,13 +112,15 @@ dependencies {
     // Set this dependency to use JUnit 4 rules
     androidTestImplementation "com.android.support.test:rules:$rootProject.ext.rulesVersion"
     androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
-   // 'local' flavor dependencies
+    // 'local' flavor dependencies
     localApi(project(":common")) {
         transitive = false
     }
 
     // 'dist' flavor dependencies, the next line is how it should be once common is pushed to maven
-    //distApi("com.microsoft.identity:common:0.0.2") {
+//    distApi("com.microsoft.identity:common:0.0.3-RC1") {
+//        transitive = false
+//    }
     distApi(project(":common")) {
         transitive = false
     }
