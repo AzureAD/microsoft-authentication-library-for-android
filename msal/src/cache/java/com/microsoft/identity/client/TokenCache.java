@@ -371,6 +371,13 @@ class TokenCache {
         return Collections.unmodifiableList(new ArrayList<>(allUsers.values()));
     }
 
+    /**
+     * Gets an immutable List of IAccounts for this app which have RefreshTokens in the cache.
+     *
+     * @param clientId  The current application.
+     * @param authority The current authority.
+     * @return An immutable List of IAccounts.
+     */
     public List<IAccount> getAccounts(final String clientId, final String authority) {
         // Create the result List
         final List<IAccount> accountsForThisApp = new ArrayList<>();
@@ -415,7 +422,7 @@ class TokenCache {
             }
         }
 
-        return accountsForThisApp;
+        return Collections.unmodifiableList(accountsForThisApp);
     }
 
     /**

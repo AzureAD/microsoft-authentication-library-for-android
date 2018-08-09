@@ -275,6 +275,11 @@ public final class PublicClientApplication {
         mSliceParameters = sliceParameters;
     }
 
+    /**
+     * Returns a List of {@link IAccount} objects for which this application has RefreshTokens.
+     *
+     * @return An immutable List of IAccount objects.
+     */
     public List<IAccount> getAccounts() {
         final URL authorityHost = MsalUtils.getUrl(mAuthorityString);
         return mTokenCache.getAccounts(mClientId, authorityHost.getHost());
