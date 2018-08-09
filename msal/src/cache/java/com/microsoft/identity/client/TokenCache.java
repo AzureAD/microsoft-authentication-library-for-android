@@ -380,9 +380,9 @@ class TokenCache {
 
         // Get all of the Accounts for this authority
         final List<Account> accountsForAuthority = accountCredentialCache.getAccountsFilteredBy(
-                null,
+                null, // homeAccountId
                 authority,
-                null
+                null // realm
         );
 
         // Declare a List to hold the MicrosoftStsAccounts
@@ -398,12 +398,12 @@ class TokenCache {
         // Grab the Credentials for this app...
         final List<Credential> appCredentials =
                 accountCredentialCache.getCredentialsFilteredBy(
-                        null,
+                        null, // homeAccountId
                         authority,
                         CredentialType.RefreshToken,
                         clientId,
-                        null,
-                        null
+                        null, // realm
+                        null // target
                 );
 
         // For each Account with an associated RT, add it to the result List...
