@@ -40,6 +40,10 @@ import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManage
 import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.dto.Account;
+import com.microsoft.identity.common.internal.dto.Credential;
+import com.microsoft.identity.common.internal.dto.CredentialType;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftSts;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
@@ -365,6 +369,130 @@ class TokenCache {
         }
 
         return Collections.unmodifiableList(new ArrayList<>(allUsers.values()));
+    }
+
+    public List<IAccount> getAccounts(final String clientId, final String authority) {
+        // Create the result List
+        final List<IAccount> accountsForThisApp = new ArrayList<>();
+
+        // Grab a reference to the cache
+        final IAccountCredentialCache accountCredentialCache = mCommonCache.getAccountCredentialCache();
+
+        // Get all of the Accounts for this authority
+        final List<Account> accountsForAuthority = accountCredentialCache.getAccountsFilteredBy(
+                null,
+                authority,
+                null
+        );
+
+        // Declare a List to hold the MicrosoftStsAccounts
+        final List<Account> microsoftStsAccounts = new ArrayList<>();
+
+        // Iterate over the previous List of Accounts for this Authority, filtering by type
+        for (final Account account : accountsForAuthority) {
+            if (MicrosoftAccount.AUTHORITY_TYPE_V1_V2.equals(account.getAuthorityType())) {
+                microsoftStsAccounts.add(account);
+            }
+        }
+
+        // Grab the Credentials for this app...
+        final List<Credential> appCredentials =
+                accountCredentialCache.getCredentialsFilteredBy(
+                        null,
+                        authority,
+                        CredentialType.RefreshToken,
+                        clientId,
+                        null,
+                        null
+                );
+
+        // For each Account with an associated RT, add it to the result List...
+        for (final Account account : microsoftStsAccounts) {
+            if (accountHasToken(account, appCredentials)) {
+                final com.microsoft.identity.client.Account acctToAdd = transform(account);
+                acctToAdd.setCredentialPresent(true);
+                accountsForThisApp.add(acctToAdd);
+            }
+        }
+
+        return accountsForThisApp;
+    }
+
+    /**
+     * Transforms the supplied {@link Account} into an equivalent
+     * {@link com.microsoft.identity.client.Account}.
+     *
+     * @param accountIn The Account to transform.
+     * @return An equivalent Account, acceptable for interapp exposure.
+     */
+    private com.microsoft.identity.client.Account transform(final Account accountIn) {
+        final com.microsoft.identity.client.Account accountOut
+                = new com.microsoft.identity.client.Account();
+
+        // Populate fields...
+        final IAccountId accountId;
+        final IAccountId homeAccountId;
+
+        if (MicrosoftAccount.AUTHORITY_TYPE_V1_V2.equals(accountIn.getAuthorityType())) {
+            // This account came from AAD
+            accountId = new AzureActiveDirectoryAccountId() {{ // This is the local_account_id
+                setIdentifier(accountIn.getLocalAccountId());
+                setObjectId(accountIn.getLocalAccountId());
+                setTenantId(accountIn.getRealm()); // TODO verify this is the proper field...
+            }};
+
+            homeAccountId = new AzureActiveDirectoryAccountId() {{ // This is the home_account_id
+                // Grab the homeAccountId
+                final String homeAccountIdStr = accountIn.getHomeAccountId();
+
+                // Split it into its constituent pieces <uid>.<utid>
+                final String[] components = homeAccountIdStr.split("\\.");
+
+                // Set the full string value as the identifier
+                setIdentifier(homeAccountIdStr);
+
+                // Set the uid as the objectId
+                setObjectId(components[0]);
+
+                // Set the utid as the tenantId
+                setTenantId(components[1]);
+            }};
+        } else {
+            accountId = new AccountId() {{
+                setIdentifier(accountIn.getLocalAccountId());
+            }};
+            homeAccountId = new AccountId() {{
+                setIdentifier(accountIn.getHomeAccountId());
+            }};
+        }
+
+        accountOut.setAccountId(accountId);
+        accountOut.setHomeAccountId(homeAccountId);
+        accountOut.setUsername(accountIn.getUsername());
+
+        return accountOut;
+    }
+
+    /**
+     * Evaluates the supplied list of app credentials. Returns true if he provided Account
+     * 'owns' any one of these tokens.
+     *
+     * @param account        The Account whose credential ownership should be evaluated.
+     * @param appCredentials The Credentials to evaluate.
+     * @return True, if this Account has Credentials. False otherwise.
+     */
+    private boolean accountHasToken(final Account account,
+                                    final List<Credential> appCredentials) {
+        final String accountHomeId = account.getHomeAccountId();
+        final String accountEnvironment = account.getEnvironment();
+        for (final Credential credential : appCredentials) {
+            if (accountHomeId.equals(credential.getHomeAccountId())
+                    && accountEnvironment.equals(credential.getEnvironment())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

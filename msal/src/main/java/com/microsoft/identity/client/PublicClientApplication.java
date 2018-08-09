@@ -275,6 +275,21 @@ public final class PublicClientApplication {
         mSliceParameters = sliceParameters;
     }
 
+    public List<IAccount> getAccounts() {
+        final URL authorityHost = MsalUtils.getUrl(mAuthorityString);
+        return mTokenCache.getAccounts(mClientId, authorityHost.getHost());
+    }
+
+    public IAccount getAccount(final String identifier) {
+        // TODO
+        throw new UnsupportedOperationException("Method stub!");
+    }
+
+    public boolean remove(final IAccount account) {
+        // TODO
+        throw new UnsupportedOperationException("Method stub!");
+    }
+
     /**
      * Returns the list of {@link User}s we have tokens in the cache.
      *

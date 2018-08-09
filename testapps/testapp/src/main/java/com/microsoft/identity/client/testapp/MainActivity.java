@@ -42,10 +42,11 @@ import android.widget.Toast;
 
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ILoggerCallback;
+import com.microsoft.identity.client.IMsalEventReceiver;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.MsalClientException;
-import com.microsoft.identity.client.IMsalEventReceiver;
 import com.microsoft.identity.client.MsalException;
 import com.microsoft.identity.client.MsalServiceException;
 import com.microsoft.identity.client.MsalUiRequiredException;
@@ -55,7 +56,6 @@ import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.client.User;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * When initializing the {@link PublicClientApplication}, all the apps should only provide us the application context instead of
      * the running activity itself. If running activity itself is provided, that will have the sdk hold a strong reference of the activity
      * which could potentially cause the object not correctly garbage collected and cause activity leak.
-     *
+     * <p>
      * External Logger should be provided by the Calling app. The sdk logs to the logcat by default, and loglevel is enabled at verbose level.
      * To set external logger,
      * {@link Logger#setExternalLogger(ILoggerCallback)}.
@@ -118,10 +118,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * the apps.
      * To set component name:
      * {@link PublicClientApplication#setComponent(String)}
-     *
+     * <p>
      * For the {@link AuthenticationCallback}, MSAL exposes three results 1) Success, which contains the {@link AuthenticationResult} 2) Failure case,
      * which contains {@link MsalException} and 3) Cancel, specifically for user canceling the flow.
-     *
+     * <p>
      * For the failure case, MSAL exposes three sub exceptions:
      * 1) {@link MsalClientException}, which is specifically for the exceptions running inside the client app itself, could be no active network,
      * Json parsing failure, etc.
@@ -181,11 +181,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             fragment.setArguments(args);
         } else if (menuItemId == R.id.nav_log) {
             fragment = new LogFragment();
-            final String logs = ((MsalSampleApp)this.getApplication()).getLogs();
+            final String logs = ((MsalSampleApp) this.getApplication()).getLogs();
             final Bundle bundle = new Bundle();
             bundle.putString(LogFragment.LOG_MSG, logs);
             fragment.setArguments(bundle);
-        }else {
+        } else {
             fragment = null;
         }
 
@@ -204,15 +204,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         attachFragment(fragment);
     }
 
-    List<User> getUsers() {
-        try {
-            return mApplication.getUsers();
-        } catch (final MsalClientException e) {
-            Log.e(TAG, "Fail to retrieve users: " + e.getMessage(), e);
-        }
-
-        showMessage("No user found.");
-        return Collections.emptyList();
+    List<IAccount> getAccounts() {
+        return mApplication.getAccounts();
     }
 
     private void attachFragment(final Fragment fragment) {
@@ -297,7 +290,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     final String getAuthority(Constants.AuthorityType authorityTypeType) {
         switch (authorityTypeType) {
-            case AAD_COMMON :
+            case AAD_COMMON:
                 return Constants.AAD_AUTHORITY;
             case B2C:
                 return "B2c is not configured yet";
@@ -333,7 +326,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    private void callAcquireTokenSilent(final String[] scopes, final User user,  boolean forceRefresh) {
+    private void callAcquireTokenSilent(final String[] scopes, final User user, boolean forceRefresh) {
         mApplication.acquireTokenSilentAsync(scopes, user, null, forceRefresh, getAuthenticationCallback());
     }
 
