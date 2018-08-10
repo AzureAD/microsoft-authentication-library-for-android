@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private PublicClientApplication mApplication;
-    private User mUser;
+    private IAccount mSelectedAccount;
     private Handler mHandler;
 
     private String mAuthority;
@@ -238,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Log.e(TAG, "Fail to retrieve users: " + e.getMessage(), e);
         }
 
-        mUser = null;
+        mSelectedAccount = null;
     }
 
     User getUser(String loginHint) {
@@ -303,8 +303,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         throw new IllegalArgumentException("Not supported authority type");
     }
 
-    void setUser(final User user) {
-        mUser = user;
+    void setUser(final IAccount user) {
+        mSelectedAccount = user;
     }
 
     private void callAcquireToken(final String[] scopes, final UiBehavior uiBehavior, final String loginHint,
@@ -337,7 +337,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onSuccess(AuthenticationResult authenticationResult) {
                 mAuthResult = authenticationResult;
                 onNavigationItemSelected(getNavigationView().getMenu().getItem(1));
-                mUser = null;
+                mSelectedAccount = null;
             }
 
             @Override

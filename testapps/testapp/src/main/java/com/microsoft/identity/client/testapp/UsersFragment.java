@@ -24,6 +24,7 @@
 package com.microsoft.identity.client.testapp;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,7 +38,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.microsoft.identity.client.AzureActiveDirectoryAccountId;
 import com.microsoft.identity.client.IAccount;
-import com.microsoft.identity.client.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +47,13 @@ import java.util.List;
  */
 public class UsersFragment extends Fragment {
 
+    private static final String USERNAME = "username";
+    private static final String IS_CREDENTIAL_PRESENT = "is_credential_present";
+    private static final String IDENTIFIER = "identifier";
+    private static final String OBJECT_ID = "object_id";
+    private static final String TENANT_ID = "tenant_id";
+    private static final String ACCOUNT_ID = "account_id";
+    private static final String HOME_ACCOUNT_ID = "home_account_id";
     private ListView mUserList;
     private Gson mGson;
 
@@ -60,32 +67,7 @@ public class UsersFragment extends Fragment {
         mGson = new GsonBuilder().setPrettyPrinting().create();
         final List<String> serializedUsers = new ArrayList<>(accounts.size());
         for (final IAccount account : accounts) {
-            JsonObject jsonAcct = new JsonObject();
-            jsonAcct.addProperty("username", account.getUsername());
-            jsonAcct.addProperty("is_credential_present", account.isCredentialPresent());
-
-            JsonObject accountId = new JsonObject();
-            accountId.addProperty("identifier", account.getAccountId().getIdentifier());
-
-            if (account.getAccountId() instanceof AzureActiveDirectoryAccountId) {
-                final AzureActiveDirectoryAccountId acctId = (AzureActiveDirectoryAccountId) account.getAccountId();
-                accountId.addProperty("object_id", acctId.getObjectId());
-                accountId.addProperty("tenant_id", acctId.getTenantId());
-            }
-
-
-            JsonObject homeAccountId = new JsonObject();
-            homeAccountId.addProperty("identifier", account.getHomeAccountId().getIdentifier());
-
-            if (account.getHomeAccountId() instanceof AzureActiveDirectoryAccountId) {
-                final AzureActiveDirectoryAccountId acctId = (AzureActiveDirectoryAccountId) account.getHomeAccountId();
-                homeAccountId.addProperty("object_id", acctId.getObjectId());
-                homeAccountId.addProperty("tenant_id", acctId.getTenantId());
-            }
-
-            jsonAcct.add("account_id", accountId);
-            jsonAcct.add("home_account_id", homeAccountId);
-
+            JsonObject jsonAcct = transformToJson(account);
             serializedUsers.add(mGson.toJson(jsonAcct));
         }
 
@@ -95,13 +77,42 @@ public class UsersFragment extends Fragment {
         mUserList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                final String value = (String) parent.getItemAtPosition(position);
-                final User user = mGson.fromJson(value, User.class);
-
-                ((MainActivity) getActivity()).setUser(user);
+                final IAccount selectedAccount = accounts.get(position);
+                ((MainActivity) getActivity()).setUser(selectedAccount);
                 getFragmentManager().popBackStack();
             }
         });
         return view;
+    }
+
+    @NonNull
+    private JsonObject transformToJson(IAccount account) {
+        JsonObject jsonAcct = new JsonObject();
+        jsonAcct.addProperty(USERNAME, account.getUsername());
+        jsonAcct.addProperty(IS_CREDENTIAL_PRESENT, account.isCredentialPresent());
+
+        JsonObject accountId = new JsonObject();
+        accountId.addProperty(IDENTIFIER, account.getAccountId().getIdentifier());
+
+        if (account.getAccountId() instanceof AzureActiveDirectoryAccountId) {
+            final AzureActiveDirectoryAccountId acctId = (AzureActiveDirectoryAccountId) account.getAccountId();
+            accountId.addProperty(OBJECT_ID, acctId.getObjectId());
+            accountId.addProperty(TENANT_ID, acctId.getTenantId());
+        }
+
+
+        JsonObject homeAccountId = new JsonObject();
+        homeAccountId.addProperty(IDENTIFIER, account.getHomeAccountId().getIdentifier());
+
+        if (account.getHomeAccountId() instanceof AzureActiveDirectoryAccountId) {
+            final AzureActiveDirectoryAccountId acctId = (AzureActiveDirectoryAccountId) account.getHomeAccountId();
+            homeAccountId.addProperty(OBJECT_ID, acctId.getObjectId());
+            homeAccountId.addProperty(TENANT_ID, acctId.getTenantId());
+        }
+
+        jsonAcct.add(ACCOUNT_ID, accountId);
+        jsonAcct.add(HOME_ACCOUNT_ID, homeAccountId);
+
+        return jsonAcct;
     }
 }
