@@ -31,6 +31,7 @@ import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.msal.BuildConfig;
 
@@ -285,9 +286,25 @@ public final class PublicClientApplication {
         return mTokenCache.getAccounts(mClientId, authorityHost.getHost());
     }
 
-    public IAccount getAccount(final String identifier) {
-        // TODO
-        throw new UnsupportedOperationException("Method stub!");
+    /**
+     * Returns the IAccount object matching the supplied home_account_id.
+     *
+     * @param homeAccountId The home_account_id of the sought IAccount.
+     * @return The IAccount stored in the cache or null, if no such matching entry exists.
+     */
+    public IAccount getAccount(final String homeAccountId) {
+        if (StringExtensions.isNullOrBlank(homeAccountId)) {
+            throw new IllegalArgumentException("IAccount search criteria cannot be null.");
+        }
+
+        final List<IAccount> allAccounts = getAccounts();
+        for (final IAccount account : allAccounts) {
+            if (homeAccountId.equals(account.getHomeAccountId().getIdentifier())) {
+                return account;
+            }
+        }
+
+        return null;
     }
 
     public boolean remove(final IAccount account) {
