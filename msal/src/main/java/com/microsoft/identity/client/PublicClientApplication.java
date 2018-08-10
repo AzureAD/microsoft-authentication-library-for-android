@@ -32,7 +32,6 @@ import android.support.annotation.NonNull;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-import com.microsoft.identity.common.internal.dto.CredentialType;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.msal.BuildConfig;
 
@@ -283,8 +282,10 @@ public final class PublicClientApplication {
      * @return An immutable List of IAccount objects.
      */
     public List<IAccount> getAccounts() {
-        final URL authorityHost = MsalUtils.getUrl(mAuthorityString);
-        return mAccountCredentialManager.getAccounts(mClientId, authorityHost.getHost());
+        return mAccountCredentialManager.getAccounts(
+                MsalUtils.getUrl(mAuthorityString).getHost(),
+                mClientId
+        );
     }
 
     /**
@@ -298,73 +299,25 @@ public final class PublicClientApplication {
             throw new IllegalArgumentException("IAccount search criteria cannot be null.");
         }
 
-        final List<IAccount> allAccounts = getAccounts();
-        for (final IAccount account : allAccounts) {
-            if (homeAccountId.equals(account.getHomeAccountId().getIdentifier())) {
-                return account;
-            }
-        }
-
-        return null;
+        return mAccountCredentialManager.getAccount(
+                MsalUtils.getUrl(mAuthorityString).getHost(),
+                mClientId,
+                homeAccountId
+        );
     }
 
-    public boolean remove(final IAccount account) {
-        final String methodName = ":remove";
-
-        final IAccount targetAccount;
-        if (null == account
-                || null == account.getHomeAccountId()
-                || null == account.getHomeAccountId().getIdentifier()
-                || null == (targetAccount = getAccount(account.getHomeAccountId().getIdentifier()))) {
-            return false;
-        }
-
-        // Grab the authority host, used to query the cache
-        final URL authority = MsalUtils.getUrl(mAuthorityString);
-        final String authorityHost = authority.getHost();
-
-        // Remove this user's AccessToken, RefreshToken, IdToken, and Account entries
-        int atsRemoved = mAccountCredentialManager.removeCredentialsOfTypeForAccount(
-                authorityHost,
+    /**
+     * Removes the Account and Credentials (tokens) for the supplied IAccount.
+     *
+     * @param account The IAccount whose entry and associated tokens should be removed.
+     * @return True, if the account was removed. False otherwise.
+     */
+    public boolean removeAccount(final IAccount account) {
+        return mAccountCredentialManager.removeCredentialsAndAccountForIAccount(
+                MsalUtils.getUrl(mAuthorityString).getHost(),
                 mClientId,
-                CredentialType.AccessToken,
-                targetAccount
+                account
         );
-
-        int rtsRemoved = mAccountCredentialManager.removeCredentialsOfTypeForAccount(
-                authorityHost,
-                mClientId,
-                CredentialType.RefreshToken,
-                targetAccount
-        );
-
-        int idsRemoved = mAccountCredentialManager.removeCredentialsOfTypeForAccount(
-                authorityHost,
-                mClientId,
-                CredentialType.IdToken,
-                targetAccount
-        );
-
-        int acctsRemoved = mAccountCredentialManager.removeAccount(
-                authorityHost,
-                targetAccount
-        );
-
-        final String[][] logInfo = new String[][]{
-                {"Access tokens", String.valueOf(atsRemoved)},
-                {"Refresh tokens", String.valueOf(rtsRemoved)},
-                {"Id tokens", String.valueOf(idsRemoved)},
-                {"Accounts", String.valueOf(acctsRemoved)}
-        };
-
-        for (final String[] tuple : logInfo) {
-            com.microsoft.identity.common.internal.logging.Logger.info(
-                    TAG + methodName,
-                    tuple[0] + " removed: [" + tuple[1] + "]"
-            );
-        }
-
-        return acctsRemoved >= 1;
     }
 
     /**

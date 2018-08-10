@@ -242,7 +242,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         final List<IAccount> accountsToRemove = mApplication.getAccounts();
 
         for (final IAccount accountToRemove : accountsToRemove) {
-            mApplication.remove(accountToRemove);
+            mApplication.removeAccount(accountToRemove);
         }
 
         mSelectedAccount = null;

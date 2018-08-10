@@ -375,21 +375,21 @@ class AccountCredentialManager {
     /**
      * Gets an immutable List of IAccounts for this app which have RefreshTokens in the cache.
      *
-     * @param clientId  The current application.
-     * @param authority The current authority.
+     * @param clientId    The current application.
+     * @param environment The current environment.
      * @return An immutable List of IAccounts.
      */
-    public List<IAccount> getAccounts(final String clientId, final String authority) {
+    List<IAccount> getAccounts(final String environment, final String clientId) {
         // Create the result List
         final List<IAccount> accountsForThisApp = new ArrayList<>();
 
         // Grab a reference to the cache
         final IAccountCredentialCache accountCredentialCache = mCommonCache.getAccountCredentialCache();
 
-        // Get all of the Accounts for this authority
+        // Get all of the Accounts for this environment
         final List<Account> accountsForAuthority = accountCredentialCache.getAccountsFilteredBy(
                 null, // homeAccountId
-                authority,
+                environment,
                 null // realm
         );
 
@@ -407,7 +407,7 @@ class AccountCredentialManager {
         final List<Credential> appCredentials =
                 accountCredentialCache.getCredentialsFilteredBy(
                         null, // homeAccountId
-                        authority,
+                        environment,
                         CredentialType.RefreshToken,
                         clientId,
                         null, // realm
@@ -503,6 +503,84 @@ class AccountCredentialManager {
         return false;
     }
 
+    IAccount getAccount(
+            final String environment,
+            final String clientId,
+            final String homeAccountId) {
+        final List<IAccount> allAccounts = getAccounts(environment, clientId);
+
+        for (final IAccount account : allAccounts) {
+            if (homeAccountId.equals(account.getHomeAccountId().getIdentifier())) {
+                return account;
+            }
+        }
+
+        return null;
+    }
+
+    boolean removeCredentialsAndAccountForIAccount(
+            final String environment,
+            final String clientId,
+            final IAccount account) {
+        final String methodName = ":remove";
+
+        final IAccount targetAccount;
+        if (null == account
+                || null == account.getHomeAccountId()
+                || null == account.getHomeAccountId().getIdentifier()
+                || null == (targetAccount =
+                getAccount(
+                        environment,
+                        clientId,
+                        account.getHomeAccountId().getIdentifier()
+                ))) {
+            return false;
+        }
+
+        // Remove this user's AccessToken, RefreshToken, IdToken, and Account entries
+        int atsRemoved = removeCredentialsOfTypeForAccount(
+                environment,
+                clientId,
+                CredentialType.AccessToken,
+                targetAccount
+        );
+
+        int rtsRemoved = removeCredentialsOfTypeForAccount(
+                environment,
+                clientId,
+                CredentialType.RefreshToken,
+                targetAccount
+        );
+
+        int idsRemoved = removeCredentialsOfTypeForAccount(
+                environment,
+                clientId,
+                CredentialType.IdToken,
+                targetAccount
+        );
+
+        int acctsRemoved = removeAccount(
+                environment,
+                targetAccount
+        );
+
+        final String[][] logInfo = new String[][]{
+                {"Access tokens", String.valueOf(atsRemoved)},
+                {"Refresh tokens", String.valueOf(rtsRemoved)},
+                {"Id tokens", String.valueOf(idsRemoved)},
+                {"Accounts", String.valueOf(acctsRemoved)}
+        };
+
+        for (final String[] tuple : logInfo) {
+            com.microsoft.identity.common.internal.logging.Logger.info(
+                    TAG + methodName,
+                    tuple[0] + " removed: [" + tuple[1] + "]"
+            );
+        }
+
+        return acctsRemoved >= 1;
+    }
+
     /**
      * Removes Credentials of the supplied type for the supplied Account.
      *
@@ -510,7 +588,7 @@ class AccountCredentialManager {
      * @param targetAccount  The target Account whose Credentials should be removed.
      * @return The number of Credentials removed.
      */
-    public int removeCredentialsOfTypeForAccount(
+    private int removeCredentialsOfTypeForAccount(
             @NonNull final String environment, // 'authority host'
             @NonNull final String clientId,
             @NonNull final CredentialType credentialType,
@@ -547,7 +625,7 @@ class AccountCredentialManager {
      * @param targetAccount The designated account to delete.
      * @return The number of cache entries removed for the supplied criteria.
      */
-    public int removeAccount(
+    private int removeAccount(
             @NonNull final String environment,
             @NonNull final IAccount targetAccount) {
         int accountsRemoved = 0;
