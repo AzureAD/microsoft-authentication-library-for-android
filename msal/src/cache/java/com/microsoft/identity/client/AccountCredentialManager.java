@@ -67,8 +67,8 @@ import static com.microsoft.identity.common.internal.cache.AccountCredentialCach
 /**
  * MSAL internal representation for token cache.
  */
-class TokenCache {
-    private static final String TAG = TokenCache.class.getSimpleName();
+class AccountCredentialManager {
+    private static final String TAG = AccountCredentialManager.class.getSimpleName();
 
     private final TokenCacheAccessor mTokenCacheAccessor;
     private MsalOAuth2TokenCache mCommonCache;
@@ -84,11 +84,11 @@ class TokenCache {
             ).create();
 
     /**
-     * Constructor for {@link TokenCache}.
+     * Constructor for {@link AccountCredentialManager}.
      *
      * @param context The application context.
      */
-    TokenCache(final Context context) {
+    AccountCredentialManager(final Context context) {
         mTokenCacheAccessor = new TokenCacheAccessor(context);
         mCommonCache = initCommonCache(context);
     }

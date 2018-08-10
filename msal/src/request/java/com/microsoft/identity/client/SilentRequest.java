@@ -48,13 +48,13 @@ final class SilentRequest extends BaseRequest {
 
     @Override
     void preTokenRequest() throws MsalClientException, MsalUiRequiredException, MsalServiceException, MsalUserCancelException {
-        final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
+        final AccountCredentialManager accountCredentialManager = mAuthRequestParameters.getTokenCache();
 
-        final AccessTokenCacheItem tokenCacheItemAuthorityNotProvided = mIsAuthorityProvided ? null : tokenCache.findAccessTokenItemAuthorityNotProvided(
+        final AccessTokenCacheItem tokenCacheItemAuthorityNotProvided = mIsAuthorityProvided ? null : accountCredentialManager.findAccessTokenItemAuthorityNotProvided(
                 mAuthRequestParameters, mUser);
         // lookup AT first.
         if (!mForceRefresh) {
-            final AccessTokenCacheItem accessTokenCacheItem = mIsAuthorityProvided ? tokenCache.findAccessToken(mAuthRequestParameters, mUser)
+            final AccessTokenCacheItem accessTokenCacheItem = mIsAuthorityProvided ? accountCredentialManager.findAccessToken(mAuthRequestParameters, mUser)
                     : tokenCacheItemAuthorityNotProvided;
 
             if (accessTokenCacheItem != null) {
@@ -66,7 +66,7 @@ final class SilentRequest extends BaseRequest {
             Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "ForceRefresh is set to true, skipping AT lookup.");
         }
 
-        mRefreshTokenCacheItem = tokenCache.findRefreshToken(mAuthRequestParameters, mUser);
+        mRefreshTokenCacheItem = accountCredentialManager.findRefreshToken(mAuthRequestParameters, mUser);
         if (mRefreshTokenCacheItem == null) {
             Logger.info(TAG, mAuthRequestParameters.getRequestContext(), "No refresh token item is found.");
             throw new MsalUiRequiredException(MsalUiRequiredException.NO_TOKENS_FOUND, "No refresh token was found. ");

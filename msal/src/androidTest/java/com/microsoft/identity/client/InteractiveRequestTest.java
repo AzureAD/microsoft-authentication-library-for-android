@@ -31,11 +31,9 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.AndroidTestCase;
-import android.util.Base64;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -89,7 +87,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
 
     private Context mAppContext;
     private String mRedirectUri;
-    private TokenCache mTokenCache;
+    private AccountCredentialManager mAccountCredentialManager;
 
     @Before
     public void setUp() throws Exception {
@@ -103,7 +101,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         resolveAuthenticationActivity(mAppContext, true);
         mockNetworkConnected(mAppContext, true);
         mRedirectUri = "msauth-client-id://" + mAppContext.getPackageName();
-        mTokenCache = new TokenCache(mAppContext);
+        mAccountCredentialManager = new AccountCredentialManager(mAppContext);
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
     }
 
@@ -294,9 +292,9 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                 assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 1);
 
                 // make sure access token is stored with tenant specific authority
-                assertNull(mTokenCache.findAccessToken(getAuthenticationParams(AUTHORITY, UiBehavior.FORCE_LOGIN, authenticationResult.getUser()), authenticationResult.getUser()));
+                assertNull(mAccountCredentialManager.findAccessToken(getAuthenticationParams(AUTHORITY, UiBehavior.FORCE_LOGIN, authenticationResult.getUser()), authenticationResult.getUser()));
                 final String authority = AUTHORITY.replace("common", authenticationResult.getTenantId());
-                assertNotNull(mTokenCache.findAccessToken(getAuthenticationParams(authority, UiBehavior.FORCE_LOGIN, authenticationResult.getUser()), authenticationResult.getUser()));
+                assertNotNull(mAccountCredentialManager.findAccessToken(getAuthenticationParams(authority, UiBehavior.FORCE_LOGIN, authenticationResult.getUser()), authenticationResult.getUser()));
 
                 assertNotNull(authenticationResult.getExpiresOn());
                 resultLock.countDown();
@@ -607,7 +605,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         authority.mAuthorizationEndpoint = SilentRequestTest.AUTHORIZE_ENDPOINT;
         authority.mTokenEndpoint = SilentRequestTest.TOKEN_ENDPOINT;
 
-        return AuthenticationRequestParameters.create(authority, new TokenCache(mAppContext), getScopes(),
+        return AuthenticationRequestParameters.create(authority, new AccountCredentialManager(mAppContext), getScopes(),
                 CLIENT_ID, mRedirectUri, LOGIN_HINT, "", uiBehavior, user, "", new RequestContext(CORRELATION_ID, "", Telemetry.generateNewRequestId()));
     }
 
@@ -617,7 +615,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                                                                      final String loginHint,
                                                                      final UiBehavior uiBehavior,
                                                                      final User user) {
-        return AuthenticationRequestParameters.create(Authority.createAuthority(authority, true), new TokenCache(mAppContext), scopes,
+        return AuthenticationRequestParameters.create(Authority.createAuthority(authority, true), new AccountCredentialManager(mAppContext), scopes,
                 CLIENT_ID, redirectUri, loginHint, "", uiBehavior, user, null, new RequestContext(CORRELATION_ID, "", Telemetry.generateNewRequestId()));
     }
 
@@ -626,7 +624,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         final Authority authority = Authority.createAuthority(authorityString, true);
         authority.mAuthorizationEndpoint = SilentRequestTest.AUTHORIZE_ENDPOINT;
         authority.mTokenEndpoint = SilentRequestTest.TOKEN_ENDPOINT;
-        return AuthenticationRequestParameters.create(authority, new TokenCache(mAppContext), getScopes(),
+        return AuthenticationRequestParameters.create(authority, new AccountCredentialManager(mAppContext), getScopes(),
                 CLIENT_ID, mRedirectUri, LOGIN_HINT, extraQp, uiBehavior, null, sliceParameter, new RequestContext(CORRELATION_ID, "", Telemetry.generateNewRequestId()));
     }
 

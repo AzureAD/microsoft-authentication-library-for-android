@@ -106,7 +106,7 @@ public final class PublicClientApplication {
     private static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common/";
 
     private final Context mAppContext;
-    private final TokenCache mTokenCache;
+    private final AccountCredentialManager mAccountCredentialManager;
 
     /**
      * The authority the application will use to obtain tokens.
@@ -165,7 +165,7 @@ public final class PublicClientApplication {
         mAppContext = context;
         loadMetaDataFromManifest();
 
-        mTokenCache = new TokenCache(mAppContext);
+        mAccountCredentialManager = new AccountCredentialManager(mAppContext);
 
         initializeApplication();
     }
@@ -192,7 +192,7 @@ public final class PublicClientApplication {
         }
 
         mAppContext = context;
-        mTokenCache = new TokenCache(mAppContext);
+        mAccountCredentialManager = new AccountCredentialManager(mAppContext);
         mClientId = clientId;
         mAuthorityString = DEFAULT_AUTHORITY;
 
@@ -284,7 +284,7 @@ public final class PublicClientApplication {
      */
     public List<IAccount> getAccounts() {
         final URL authorityHost = MsalUtils.getUrl(mAuthorityString);
-        return mTokenCache.getAccounts(mClientId, authorityHost.getHost());
+        return mAccountCredentialManager.getAccounts(mClientId, authorityHost.getHost());
     }
 
     /**
@@ -324,28 +324,28 @@ public final class PublicClientApplication {
         final String authorityHost = authority.getHost();
 
         // Remove this user's AccessToken, RefreshToken, IdToken, and Account entries
-        int atsRemoved = mTokenCache.removeCredentialsOfTypeForAccount(
+        int atsRemoved = mAccountCredentialManager.removeCredentialsOfTypeForAccount(
                 authorityHost,
                 mClientId,
                 CredentialType.AccessToken,
                 targetAccount
         );
 
-        int rtsRemoved = mTokenCache.removeCredentialsOfTypeForAccount(
+        int rtsRemoved = mAccountCredentialManager.removeCredentialsOfTypeForAccount(
                 authorityHost,
                 mClientId,
                 CredentialType.RefreshToken,
                 targetAccount
         );
 
-        int idsRemoved = mTokenCache.removeCredentialsOfTypeForAccount(
+        int idsRemoved = mAccountCredentialManager.removeCredentialsOfTypeForAccount(
                 authorityHost,
                 mClientId,
                 CredentialType.IdToken,
                 targetAccount
         );
 
-        int acctsRemoved = mTokenCache.removeAccount(
+        int acctsRemoved = mAccountCredentialManager.removeAccount(
                 authorityHost,
                 targetAccount
         );
@@ -383,7 +383,7 @@ public final class PublicClientApplication {
         final UUID correlationId = UUID.randomUUID();
         initializeDiagnosticContext(correlationId.toString());
 
-        List<User> users = mTokenCache.getUsers(
+        List<User> users = mAccountCredentialManager.getUsers(
                 Authority.getAuthorityHost(mAuthorityString, mValidateAuthority),
                 mClientId,
                 new RequestContext(
@@ -683,8 +683,8 @@ public final class PublicClientApplication {
         initializeDiagnosticContext(correlationId.toString());
 
         final RequestContext requestContext = new RequestContext(correlationId, mComponent, telemetryRequestId);
-        mTokenCache.deleteRefreshTokenByUser(user, requestContext);
-        mTokenCache.deleteAccessTokenByUser(user, requestContext);
+        mAccountCredentialManager.deleteRefreshTokenByUser(user, requestContext);
+        mAccountCredentialManager.deleteAccessTokenByUser(user, requestContext);
 
         apiEventBuilder.setApiCallWasSuccessful(true);
         stopTelemetryEventAndFlush(apiEventBuilder);
@@ -693,10 +693,10 @@ public final class PublicClientApplication {
     /**
      * Keep this method internal only to make it easy for MS apps to do serialize/deserialize on the family tokens.
      *
-     * @return The {@link TokenCache} that is used to persist token items for the running app.
+     * @return The {@link AccountCredentialManager} that is used to persist token items for the running app.
      */
-    TokenCache getTokenCache() {
-        return mTokenCache;
+    AccountCredentialManager getTokenCache() {
+        return mAccountCredentialManager;
     }
 
     private void loadMetaDataFromManifest() {
@@ -795,7 +795,7 @@ public final class PublicClientApplication {
 
         final RequestContext requestContext = new RequestContext(correlationId, mComponent, telemetryRequestId);
         final Set<String> scopesAsSet = MsalUtils.convertArrayToSet(scopes);
-        final AuthenticationRequestParameters requestParameters = AuthenticationRequestParameters.create(authorityForRequest, mTokenCache,
+        final AuthenticationRequestParameters requestParameters = AuthenticationRequestParameters.create(authorityForRequest, mAccountCredentialManager,
                 scopesAsSet, mClientId, mSliceParameters, requestContext);
 
         // add properties to our telemetry data
@@ -834,7 +834,7 @@ public final class PublicClientApplication {
 
         return AuthenticationRequestParameters.create(
                 authorityForRequest,
-                mTokenCache,
+                mAccountCredentialManager,
                 scopesAsSet,
                 mClientId,
                 mRedirectUri,

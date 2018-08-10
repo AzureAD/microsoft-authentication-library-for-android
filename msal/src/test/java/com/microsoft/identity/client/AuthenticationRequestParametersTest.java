@@ -41,7 +41,7 @@ public final class AuthenticationRequestParametersTest {
         Logger.getInstance().setEnableLogcatLog(false);
     }
 
-    static final TokenCache TOKEN_CACHE = Mockito.mock(TokenCache.class);
+    static final AccountCredentialManager TOKEN_CACHE = Mockito.mock(AccountCredentialManager.class);
     static final Set<String> SCOPE = new HashSet<>();
     static final String CLIENT_ID = "some-client-id";
     static final String REDIRECT_URI = "some://redirect.uri";

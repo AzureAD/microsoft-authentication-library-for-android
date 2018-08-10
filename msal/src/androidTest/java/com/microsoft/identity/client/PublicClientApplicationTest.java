@@ -50,7 +50,7 @@ import static com.microsoft.identity.client.AndroidTestUtil.MOCK_UTID;
 public final class PublicClientApplicationTest extends AndroidTestCase {
     private Context mAppContext;
     private String mRedirectUri;
-    private TokenCache mTokenCache;
+    private AccountCredentialManager mAccountCredentialManager;
     private static final String CLIENT_ID = "client-id";
     private static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
     private static final String ALTERNATE_AUTHORITY = "https://login.microsoftonline.com/alternateAuthority";
@@ -69,7 +69,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
         mAppContext = InstrumentationRegistry.getContext().getApplicationContext();
         mRedirectUri = "msauth-client-id://" + mAppContext.getPackageName();
-        mTokenCache = new TokenCache(mAppContext);
+        mAccountCredentialManager = new AccountCredentialManager(mAppContext);
         Telemetry.disableForTest(true);
     }
 
@@ -191,7 +191,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         String idToken = getIdToken(displayable1, uniqueId1, homeOid1);
         String clientInfo = AndroidTestUtil.createRawClientInfo(uniqueId1, uTid1);
 
-        saveTokenResponse(mTokenCache, TokenCacheTest.AUTHORITY, CLIENT_ID, getTokenResponse(idToken, clientInfo));
+        saveTokenResponse(mAccountCredentialManager, AccountCredentialManagerTest.AUTHORITY, CLIENT_ID, getTokenResponse(idToken, clientInfo));
 
         // prepare token cache for same client id, same displayable, uniqueId but different oid
         final String homeOid2 = "HomeOid2";
@@ -199,7 +199,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         final String utid2 = "uTid2";
         idToken = getIdToken(displayable1, uniqueId1, homeOid2);
         clientInfo = AndroidTestUtil.createRawClientInfo(uid2, utid2);
-        saveTokenResponse(mTokenCache, TokenCacheTest.AUTHORITY, CLIENT_ID, getTokenResponse(idToken, clientInfo));
+        saveTokenResponse(mAccountCredentialManager, AccountCredentialManagerTest.AUTHORITY, CLIENT_ID, getTokenResponse(idToken, clientInfo));
 
         List<User> users = application.getUsers();
         assertTrue(users.size() == 2);
@@ -211,7 +211,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         final String uTid3 = "uTid3";
         idToken = getIdToken(displayable3, uniqueId3, homeOid3);
         clientInfo = AndroidTestUtil.createRawClientInfo(uniqueId3, uTid3);
-        saveTokenResponse(mTokenCache, TokenCacheTest.AUTHORITY, CLIENT_ID, getTokenResponse(idToken, clientInfo));
+        saveTokenResponse(mAccountCredentialManager, AccountCredentialManagerTest.AUTHORITY, CLIENT_ID, getTokenResponse(idToken, clientInfo));
 
         users = application.getUsers();
         assertTrue(users.size() == EXPECTED_USER_SIZE);
@@ -222,7 +222,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
         // prepare token cache for different client id, same displayable3 user
         final String anotherClientId = "anotherClientId";
-        saveTokenResponse(mTokenCache, TokenCacheTest.AUTHORITY, anotherClientId, getTokenResponse(idToken, clientInfo));
+        saveTokenResponse(mAccountCredentialManager, AccountCredentialManagerTest.AUTHORITY, anotherClientId, getTokenResponse(idToken, clientInfo));
         final PublicClientApplication anotherApplication = new PublicClientApplication(getMockedContext(anotherClientId));
         assertTrue(application.getUsers().size() == EXPECTED_USER_SIZE);
         users = anotherApplication.getUsers();
@@ -404,7 +404,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         new GetTokenBaseTestCase() {
             @Override
             void mockHttpRequest() throws IOException {
-                final String idToken = TokenCacheTest.getDefaultIdToken();
+                final String idToken = AccountCredentialManagerTest.getDefaultIdToken();
                 final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithFailureResponse(
                         HttpURLConnection.HTTP_OK, AndroidTestUtil.getSuccessResponse(idToken, AndroidTestUtil.ACCESS_TOKEN, AndroidTestUtil.REFRESH_TOKEN, ""));
                 Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
@@ -422,7 +422,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                         final User user = authenticationResult.getUser();
                         Assert.assertTrue(user.getUid().equals(""));
                         Assert.assertTrue(user.getUtid().equals(""));
-                        Assert.assertTrue(user.getDisplayableId().equals(TokenCacheTest.DISPLAYABLE));
+                        Assert.assertTrue(user.getDisplayableId().equals(AccountCredentialManagerTest.DISPLAYABLE));
 
                         releaseLock.countDown();
                     }
@@ -454,7 +454,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
             @Override
             void mockHttpRequest() throws IOException {
-                final String idToken = TokenCacheTest.getDefaultIdToken();
+                final String idToken = AccountCredentialManagerTest.getDefaultIdToken();
                 final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithFailureResponse(
                         HttpURLConnection.HTTP_OK, AndroidTestUtil.getSuccessResponse(idToken, AndroidTestUtil.ACCESS_TOKEN, AndroidTestUtil.REFRESH_TOKEN, "eyJ1aWQiOiI1MGE0YjhhMS0zMzNiLTQwNDEtOGQzNS0wYTg2MDY2YzE1YTgiLCJ1dGlkIjoiMGE4NGU5NTctODg0Yi00NmQxLTk0OGYtYTUwMWIwZWE2NmYyIn0="));
                 Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
@@ -472,7 +472,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                         final User user = authenticationResult.getUser();
                         Assert.assertTrue(user.getUid().equals(MOCK_UID));
                         Assert.assertTrue(user.getUtid().equals(MOCK_UTID));
-                        Assert.assertTrue(user.getDisplayableId().equals(TokenCacheTest.DISPLAYABLE));
+                        Assert.assertTrue(user.getDisplayableId().equals(AccountCredentialManagerTest.DISPLAYABLE));
 
                         releaseLock.countDown();
                     }
@@ -866,7 +866,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
         // prepare token in the cache
         final String rawClientInfo = AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID);
-        saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, CLIENT_ID, TokenCacheTest.getTokenResponseForDefaultUser(
+        saveTokenResponse(mAccountCredentialManager, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, CLIENT_ID, AccountCredentialManagerTest.getTokenResponseForDefaultUser(
                 AndroidTestUtil.ACCESS_TOKEN, AndroidTestUtil.REFRESH_TOKEN, "scope1 scope2", AndroidTestUtil.getExpiredDate(), rawClientInfo));
 
         final IdToken idToken = new IdToken(AndroidTestUtil.getRawIdToken("another Displayable", "another uniqueId", "another homeobj"));
@@ -903,7 +903,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
         // prepare token in the cache
         final String rawClientInfo = AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID);
-        saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, CLIENT_ID, TokenCacheTest.getTokenResponseForDefaultUser(
+        saveTokenResponse(mAccountCredentialManager, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, CLIENT_ID, AccountCredentialManagerTest.getTokenResponseForDefaultUser(
                 AndroidTestUtil.ACCESS_TOKEN, AndroidTestUtil.REFRESH_TOKEN, "scope1 scope2", AndroidTestUtil.getExpiredDate(), rawClientInfo));
 
         final IdToken idToken = new IdToken(AndroidTestUtil.getRawIdToken("another Displayable", "another uniqueId", "another homeobj"));
@@ -944,11 +944,11 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         //mock tenant discovery response
         // prepare token in the cache
         final String rawClientInfo = AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID);
-        saveTokenResponse(mTokenCache, testAuthority, CLIENT_ID, TokenCacheTest.getTokenResponseForDefaultUser(
+        saveTokenResponse(mAccountCredentialManager, testAuthority, CLIENT_ID, AccountCredentialManagerTest.getTokenResponseForDefaultUser(
                 AndroidTestUtil.ACCESS_TOKEN, AndroidTestUtil.REFRESH_TOKEN, "scope1 scope2", AndroidTestUtil.getExpiredDate(), rawClientInfo));
 
 
-        final User user = User.create(new IdToken(TokenCacheTest.getDefaultIdToken()), new ClientInfo(rawClientInfo));
+        final User user = User.create(new IdToken(AccountCredentialManagerTest.getDefaultIdToken()), new ClientInfo(rawClientInfo));
         AndroidTestMockUtil.mockSuccessTenantDiscovery(SilentRequestTest.AUTHORIZE_ENDPOINT, SilentRequestTest.TOKEN_ENDPOINT);
 
         final String accessToken = "access token from token refresh";
@@ -1169,13 +1169,13 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         );
     }
 
-    static void saveTokenResponse(final TokenCache tokenCache, final String authority, final String clientId,
+    static void saveTokenResponse(final AccountCredentialManager accountCredentialManager, final String authority, final String clientId,
                                   final TokenResponse response) throws MsalException {
-        tokenCache.saveAccessToken(authority, clientId, response, AndroidTestUtil.getTestRequestContext());
+        accountCredentialManager.saveAccessToken(authority, clientId, response, AndroidTestUtil.getTestRequestContext());
 
         try {
             final URL authorityUrl = new URL(authority);
-            tokenCache.saveRefreshToken(authorityUrl.getHost(), clientId, response, AndroidTestUtil.getTestRequestContext());
+            accountCredentialManager.saveRefreshToken(authorityUrl.getHost(), clientId, response, AndroidTestUtil.getTestRequestContext());
         } catch (MalformedURLException e) {
             throw new MsalClientException(MsalClientException.MALFORMED_URL, "unable to create url");
         }
