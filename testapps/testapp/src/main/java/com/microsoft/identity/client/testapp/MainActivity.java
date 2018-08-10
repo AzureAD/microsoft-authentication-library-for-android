@@ -238,6 +238,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Log.e(TAG, "Fail to retrieve users: " + e.getMessage(), e);
         }
 
+        // Remove Accounts...
+        final List<IAccount> accountsToRemove = mApplication.getAccounts();
+
+        for (final IAccount accountToRemove : accountsToRemove) {
+            mApplication.remove(accountToRemove);
+        }
+
         mSelectedAccount = null;
     }
 

@@ -24,6 +24,7 @@
 package com.microsoft.identity.client;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -500,6 +501,75 @@ class TokenCache {
         }
 
         return false;
+    }
+
+    /**
+     * Removes Credentials of the supplied type for the supplied Account.
+     *
+     * @param credentialType The type of Credential to remove.
+     * @param targetAccount  The target Account whose Credentials should be removed.
+     * @return The number of Credentials removed.
+     */
+    public int removeCredentialsOfTypeForAccount(
+            @NonNull final String environment, // 'authority host'
+            @NonNull final String clientId,
+            @NonNull final CredentialType credentialType,
+            @NonNull final IAccount targetAccount) {
+        int credentialsRemoved = 0;
+
+        // Get a reference to the cache
+        final IAccountCredentialCache accountCredentialCache = mCommonCache.getAccountCredentialCache();
+
+        // Query it for Credentials matching the supplied targetAccount
+        final List<Credential> credentialsToRemove =
+                accountCredentialCache.getCredentialsFilteredBy(
+                        targetAccount.getHomeAccountId().getIdentifier(),
+                        environment,
+                        credentialType,
+                        clientId,
+                        null, // wildcard (*) realm
+                        null // wildcard (*) target
+                );
+
+        for (final Credential credentialToRemove : credentialsToRemove) {
+            if (accountCredentialCache.removeCredential(credentialToRemove)) {
+                credentialsRemoved++;
+            }
+        }
+
+        return credentialsRemoved;
+    }
+
+    /**
+     * Removes Accounts matching the supplied criteria.
+     *
+     * @param environment   The authority host target.
+     * @param targetAccount The designated account to delete.
+     * @return The number of cache entries removed for the supplied criteria.
+     */
+    public int removeAccount(
+            @NonNull final String environment,
+            @NonNull final IAccount targetAccount) {
+        int accountsRemoved = 0;
+
+        // Grab a reference to the cache
+        final IAccountCredentialCache accountCredentialCache = mCommonCache.getAccountCredentialCache();
+
+        // Query it for a list of Accounts matching the supplied targetAccount
+        final List<Account> accountsToRemove =
+                accountCredentialCache.getAccountsFilteredBy(
+                        targetAccount.getHomeAccountId().getIdentifier(),
+                        environment,
+                        null // wildcard (*) realm
+                );
+
+        for (final Account accountToRemove : accountsToRemove) {
+            if (accountCredentialCache.removeAccount(accountToRemove)) {
+                accountsRemoved++;
+            }
+        }
+
+        return accountsRemoved;
     }
 
     /**

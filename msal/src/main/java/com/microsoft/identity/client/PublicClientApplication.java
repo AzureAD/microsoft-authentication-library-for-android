@@ -32,6 +32,7 @@ import android.support.annotation.NonNull;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.internal.dto.CredentialType;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.msal.BuildConfig;
 
@@ -308,8 +309,62 @@ public final class PublicClientApplication {
     }
 
     public boolean remove(final IAccount account) {
-        // TODO
-        throw new UnsupportedOperationException("Method stub!");
+        final String methodName = ":remove";
+
+        final IAccount targetAccount;
+        if (null == account
+                || null == account.getHomeAccountId()
+                || null == account.getHomeAccountId().getIdentifier()
+                || null == (targetAccount = getAccount(account.getHomeAccountId().getIdentifier()))) {
+            return false;
+        }
+
+        // Grab the authority host, used to query the cache
+        final URL authority = MsalUtils.getUrl(mAuthorityString);
+        final String authorityHost = authority.getHost();
+
+        // Remove this user's AccessToken, RefreshToken, IdToken, and Account entries
+        int atsRemoved = mTokenCache.removeCredentialsOfTypeForAccount(
+                authorityHost,
+                mClientId,
+                CredentialType.AccessToken,
+                targetAccount
+        );
+
+        int rtsRemoved = mTokenCache.removeCredentialsOfTypeForAccount(
+                authorityHost,
+                mClientId,
+                CredentialType.RefreshToken,
+                targetAccount
+        );
+
+        int idsRemoved = mTokenCache.removeCredentialsOfTypeForAccount(
+                authorityHost,
+                mClientId,
+                CredentialType.IdToken,
+                targetAccount
+        );
+
+        int acctsRemoved = mTokenCache.removeAccount(
+                authorityHost,
+                targetAccount
+        );
+
+        final String[][] logInfo = new String[][]{
+                {"Access tokens", String.valueOf(atsRemoved)},
+                {"Refresh tokens", String.valueOf(rtsRemoved)},
+                {"Id tokens", String.valueOf(idsRemoved)},
+                {"Accounts", String.valueOf(acctsRemoved)}
+        };
+
+        for (final String[] tuple : logInfo) {
+            com.microsoft.identity.common.internal.logging.Logger.info(
+                    TAG + methodName,
+                    tuple[0] + " removed: [" + tuple[1] + "]"
+            );
+        }
+
+        return acctsRemoved >= 1;
     }
 
     /**
