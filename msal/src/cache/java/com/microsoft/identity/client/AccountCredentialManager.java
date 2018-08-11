@@ -329,24 +329,6 @@ class AccountCredentialManager {
     }
 
     /**
-     * Delete refresh token items.
-     *
-     * @param rtItem The item to delete.
-     */
-    void deleteRT(final RefreshTokenCacheItem rtItem, final RequestContext requestContext) {
-        Logger.info(TAG, requestContext, "Removing refresh tokens from the cache.");
-
-        if (rtItem == null) {
-            Logger.warning(TAG, requestContext, "Null refresh token item is passed.");
-            return;
-        }
-
-        Logger.verbosePII(TAG, requestContext, "Removing refresh token for user: " + rtItem.getDisplayableId() + "; user identifier: "
-                + rtItem.getUserIdentifier());
-        mTokenCacheAccessor.deleteRefreshToken(rtItem.extractTokenCacheKey().toString(), requestContext);
-    }
-
-    /**
      * An immutable list of signed-in users for the given client id.
      *
      * @param environment
