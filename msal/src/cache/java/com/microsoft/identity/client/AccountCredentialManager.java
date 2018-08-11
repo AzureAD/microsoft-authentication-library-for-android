@@ -208,18 +208,22 @@ class AccountCredentialManager {
      * multiple access token token items in the cache.
      */
     AccessTokenCacheItem findAccessToken(final AuthenticationRequestParameters requestParam, final User user) {
-        final AccessTokenCacheKey key = AccessTokenCacheKey.createTokenCacheKey(requestParam.getAuthority().getAuthority(),
-                requestParam.getClientId(), requestParam.getScope(), user);
+        final AccessTokenCacheKey key =
+                AccessTokenCacheKey.createTokenCacheKey(
+                        requestParam.getAuthority().getAuthority(),
+                        requestParam.getClientId(),
+                        requestParam.getScope(),
+                        user
+                );
+
         final List<AccessTokenCacheItem> accessTokenCacheItems = getAccessTokens(key, requestParam.getRequestContext());
 
         if (accessTokenCacheItems.isEmpty()) {
             Logger.info(TAG, requestParam.getRequestContext(), "No access is found for scopes: "
                     + MsalUtils.convertSetToString(requestParam.getScope(), " "));
-            if (user != null) {
-                Logger.infoPII(TAG, requestParam.getRequestContext(), "User displayable: " + user.getDisplayableId()
-                        + " ;User unique identifier(Base64UrlEncoded(uid).Base64UrlEncoded(utid)): " + MsalUtils.getUniqueUserIdentifier(
-                        user.getUid(), user.getUtid()));
-            }
+            Logger.infoPII(TAG, requestParam.getRequestContext(), "User displayable: " + user.getDisplayableId()
+                    + " ;User unique identifier(Base64UrlEncoded(uid).Base64UrlEncoded(utid)): " + MsalUtils.getUniqueUserIdentifier(
+                    user.getUid(), user.getUtid()));
             return null;
         }
 
@@ -726,10 +730,6 @@ class AccountCredentialManager {
      */
     List<AccessTokenCacheItem> getAllAccessTokens(final RequestContext requestContext) {
         final Collection<String> accessTokensAsString = mTokenCacheAccessor.getAllAccessTokens(requestContext.getTelemetryRequestId());
-        if (accessTokensAsString == null) {
-            Logger.verbose(TAG, requestContext, "No access tokens existed in the token cache.");
-            return Collections.emptyList();
-        }
 
         final List<AccessTokenCacheItem> accessTokenCacheItems = new ArrayList<>(accessTokensAsString.size());
         for (final String accessTokenString : accessTokensAsString) {
