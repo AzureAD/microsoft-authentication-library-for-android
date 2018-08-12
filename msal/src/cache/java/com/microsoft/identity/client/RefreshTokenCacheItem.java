@@ -24,6 +24,8 @@
 package com.microsoft.identity.client;
 
 import com.google.gson.annotations.SerializedName;
+import com.microsoft.identity.common.internal.dto.Account;
+import com.microsoft.identity.common.internal.dto.RefreshToken;
 
 /**
  * MSAL internal class for representing an refresh token item.
@@ -51,6 +53,17 @@ final class RefreshTokenCacheItem extends BaseTokenCacheItem {
      */
     @SuppressWarnings("unused")
     RefreshTokenCacheItem() {
+    }
+
+    RefreshTokenCacheItem(final RefreshToken refreshToken,
+                          final Account account,
+                          final com.microsoft.identity.common.internal.dto.IdToken idToken) {
+        super(refreshToken.getClientId(), refreshToken.getHomeAccountId(), null);
+        mRefreshToken = refreshToken.getSecret();
+        mEnvironment = refreshToken.getEnvironment();
+        mDisplayableId = account.getUsername();
+        mName = account.getName();
+        mIdentityProvider = idToken.getAuthority();
     }
 
     RefreshTokenCacheItem(final String environment, final String clientId, final TokenResponse response)

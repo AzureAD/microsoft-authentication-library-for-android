@@ -46,6 +46,7 @@ import com.microsoft.identity.common.internal.dto.Account;
 import com.microsoft.identity.common.internal.dto.Credential;
 import com.microsoft.identity.common.internal.dto.CredentialType;
 import com.microsoft.identity.common.internal.dto.IdToken;
+import com.microsoft.identity.common.internal.dto.RefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftSts;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
@@ -219,7 +220,7 @@ class AccountCredentialManager {
                 CredentialType.AccessToken,
                 requestParam.getClientId(),
                 user.getUtid(),
-                null // wildcard (*) since scopes expects a String, not a Set
+                null // wildcard (*) since scopes expects a String, not a Set (ordering is unclear)
         );
 
         final List<Credential> credentialsWithMatchingScopes = new ArrayList<>();
@@ -314,23 +315,76 @@ class AccountCredentialManager {
 
     // All the token AAD returns are multi-scopes. MSAL only support ADFS 2016, which issues multi-scope RT.
     RefreshTokenCacheItem findRefreshToken(final AuthenticationRequestParameters requestParam, final User user) throws MsalClientException {
-        final RefreshTokenCacheKey key = RefreshTokenCacheKey.createTokenCacheKey(requestParam.getAuthority().getAuthorityHost(), requestParam.getClientId(), user);
-        final List<RefreshTokenCacheItem> refreshTokenCacheItems = getRefreshTokens(key, requestParam.getRequestContext());
+        final IAccountCredentialCache accountCredentialCache = mCommonCache.getAccountCredentialCache();
+        final List<Credential> refreshTokens = accountCredentialCache.getCredentialsFilteredBy(
+                user.getUid() + "." + user.getUtid(),
+                requestParam.getAuthority().getAuthorityHost(),
+                CredentialType.RefreshToken,
+                requestParam.getClientId(),
+                user.getUtid(),
+                null // wildcard (*) since scopes expects a String, not a Set (ordering is unclear)
+        );
 
-        if (refreshTokenCacheItems.size() == 0) {
-            Logger.info(TAG, requestParam.getRequestContext(), "No RT was found for the given user.");
-            Logger.infoPII(TAG, requestParam.getRequestContext(), "The given user info is: " + user.getDisplayableId() + "; userIdentifier: "
-                    + MsalUtils.getUniqueUserIdentifier(user.getUid(), user.getUtid()));
+        if (refreshTokens.isEmpty()) {
+            // TODO log a warning
             return null;
         }
 
-        // User info already provided, if there are multiple items found will throw since we don't what
-        // is the one we should use.
-        if (refreshTokenCacheItems.size() > 1) {
+        // TODO what do if list is size() >1 ?
+        if (refreshTokens.size() > 1) {
+            // TODO Log an error
             throw new MsalClientException(MsalClientException.MULTIPLE_MATCHING_TOKENS_DETECTED, "Multiple tokens were detected.");
         }
 
-        return refreshTokenCacheItems.get(0);
+        // TODO Transform this refreshtoken into the legacy format
+        final RefreshToken refreshToken = (RefreshToken) refreshTokens.get(0);
+
+        // Load the necessary account (legacy compat)
+        final List<Account> accounts = accountCredentialCache.getAccountsFilteredBy(
+                refreshToken.getHomeAccountId(),
+                refreshToken.getEnvironment(),
+                user.getUtid()
+        );
+
+        if (accounts.isEmpty()) {
+            // TODO what do?
+            throw new RuntimeException("No Accounts found");
+        }
+
+        if (accounts.size() > 1) {
+            // TODO what do?
+            throw new RuntimeException("More than one Account found");
+        }
+
+        final Account account = accounts.get(0);
+
+        // Load the necessary IdToken (legacy compat)
+        final List<Credential> idTokens = accountCredentialCache.getCredentialsFilteredBy(
+                refreshToken.getHomeAccountId(),
+                refreshToken.getEnvironment(),
+                CredentialType.IdToken,
+                refreshToken.getClientId(),
+                user.getUtid(),
+                null // No target for IdTokens
+        );
+
+        if (idTokens.isEmpty()) {
+            // TODO what do?
+            throw new RuntimeException("No IdTokens found");
+        }
+
+        if (idTokens.size() > 1) {
+            // TODO what do?
+            throw new RuntimeException("Multiple IdTokens found");
+        }
+
+        final IdToken idToken = (IdToken) idTokens.get(0);
+
+        // Create and return the RefreshTokenCacheItem, populated using the data from the new cache
+        final RefreshTokenCacheItem result = new RefreshTokenCacheItem(refreshToken, account, idToken);
+        result.setUser(user);
+
+        return result;
     }
 
     /**
@@ -774,25 +828,6 @@ class AccountCredentialManager {
         }
 
         return Collections.unmodifiableList(allATsForApp);
-    }
-
-    /**
-     * Look up refresh tokens with the given {@link RefreshTokenCacheKey}. Refresh token item has to match environment,
-     * client id and user identifier.
-     */
-    private List<RefreshTokenCacheItem> getRefreshTokens(final RefreshTokenCacheKey refreshTokenCacheKey, final RequestContext requestContext) {
-        final List<RefreshTokenCacheItem> allRTs = getAllRefreshTokens(requestContext);
-
-        final List<RefreshTokenCacheItem> foundRTs = new ArrayList<>();
-        for (final RefreshTokenCacheItem refreshTokenCacheItem : allRTs) {
-            if (refreshTokenCacheKey.matches(refreshTokenCacheItem)) {
-                foundRTs.add(refreshTokenCacheItem);
-            }
-        }
-
-        Logger.verbose(TAG, requestContext, "Retrieve refresh tokens for the given cache key");
-        Logger.verbosePII(TAG, requestContext, "Key used to retrieve refresh tokens is: " + refreshTokenCacheKey.toString());
-        return foundRTs;
     }
 
 }
