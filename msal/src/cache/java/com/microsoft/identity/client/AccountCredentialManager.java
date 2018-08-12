@@ -162,7 +162,11 @@ class AccountCredentialManager {
     /**
      * Create {@link AccessTokenCacheItem} from {@link TokenResponse} and save it into cache.
      */
-    AccessTokenCacheItem saveAccessToken(final String authority, final String clientId, final TokenResponse response, final RequestContext requestContext)
+    AccessTokenCacheItem saveAccessToken(
+            final String authority,
+            final String clientId,
+            final TokenResponse response,
+            final RequestContext requestContext)
             throws MsalClientException {
         // create the access token cache item
         Logger.info(TAG, null, "Starting to Save access token into cache.");
@@ -191,7 +195,11 @@ class AccountCredentialManager {
     /**
      * Create {@link RefreshTokenCacheItem} from {@link TokenResponse} and save it into cache.
      */
-    void saveRefreshToken(final String authorityHost, final String clientId, final TokenResponse response, final RequestContext requestContext) throws MsalClientException {
+    void saveRefreshToken(
+            final String authorityHost,
+            final String clientId,
+            final TokenResponse response,
+            final RequestContext requestContext) throws MsalClientException {
         // if server returns the refresh token back, save it in the cache.
         if (!MsalUtils.isEmpty(response.getRefreshToken())) {
             Logger.info(TAG, requestContext, "Starting to save refresh token into cache.");
