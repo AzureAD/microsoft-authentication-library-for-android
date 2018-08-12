@@ -587,7 +587,8 @@ public final class PublicClientApplication {
      *                 Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
-    public void acquireTokenSilentAsync(@NonNull final String[] scopes, @NonNull final User user,
+    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
+                                        @NonNull final User user,
                                         @NonNull final AuthenticationCallback callback) {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER);
@@ -610,7 +611,9 @@ public final class PublicClientApplication {
      *                     Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
-    public void acquireTokenSilentAsync(@NonNull final String[] scopes, @NonNull final User user, final String authority,
+    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
+                                        @NonNull final User user,
+                                        final String authority,
                                         final boolean forceRefresh,
                                         @NonNull final AuthenticationCallback callback) {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
@@ -730,7 +733,9 @@ public final class PublicClientApplication {
         request.getToken(callback);
     }
 
-    private void acquireTokenSilent(final String[] scopes, final User user, final String authority,
+    private void acquireTokenSilent(final String[] scopes,
+                                    final User user,
+                                    final String authority,
                                     final boolean forceRefresh,
                                     final AuthenticationCallback callback,
                                     final String telemetryRequestId,

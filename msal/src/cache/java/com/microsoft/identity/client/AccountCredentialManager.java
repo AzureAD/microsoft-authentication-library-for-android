@@ -41,9 +41,11 @@ import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManage
 import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.dto.AccessToken;
 import com.microsoft.identity.common.internal.dto.Account;
 import com.microsoft.identity.common.internal.dto.Credential;
 import com.microsoft.identity.common.internal.dto.CredentialType;
+import com.microsoft.identity.common.internal.dto.IdToken;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftSts;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
@@ -54,8 +56,10 @@ import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.M
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -208,41 +212,104 @@ class AccountCredentialManager {
      * multiple access token token items in the cache.
      */
     AccessTokenCacheItem findAccessToken(final AuthenticationRequestParameters requestParam, final User user) {
-        final AccessTokenCacheKey key =
-                AccessTokenCacheKey.createTokenCacheKey(
-                        requestParam.getAuthority().getAuthority(),
-                        requestParam.getClientId(),
-                        requestParam.getScope(),
-                        user
-                );
+        final IAccountCredentialCache accountCredentialCache = mCommonCache.getAccountCredentialCache();
+        final List<Credential> accessTokens = accountCredentialCache.getCredentialsFilteredBy(
+                user.getUid() + "." + user.getUtid(),
+                requestParam.getAuthority().getAuthorityHost(),
+                CredentialType.AccessToken,
+                requestParam.getClientId(),
+                user.getUtid(),
+                null // wildcard (*) since scopes expects a String, not a Set
+        );
 
-        final List<AccessTokenCacheItem> accessTokenCacheItems = getAccessTokens(key, requestParam.getRequestContext());
+        final List<Credential> credentialsWithMatchingScopes = new ArrayList<>();
 
-        if (accessTokenCacheItems.isEmpty()) {
-            Logger.info(TAG, requestParam.getRequestContext(), "No access is found for scopes: "
-                    + MsalUtils.convertSetToString(requestParam.getScope(), " "));
-            Logger.infoPII(TAG, requestParam.getRequestContext(), "User displayable: " + user.getDisplayableId()
-                    + " ;User unique identifier(Base64UrlEncoded(uid).Base64UrlEncoded(utid)): " + MsalUtils.getUniqueUserIdentifier(
-                    user.getUid(), user.getUtid()));
+        // Iterate over the List returned, the AT we're looking for has all the same scope data...
+        for (final Credential credential : accessTokens) {
+            final AccessToken accessToken = (AccessToken) credential;
+            final String[] scopes = accessToken.getTarget().split(" "); // split on whitespace
+
+            Set<String> scopesInCredential = new HashSet<>(Arrays.asList(scopes));
+            Set<String> scopesInRequest = requestParam.getScope();
+
+            // Normalize everything to lowercase
+            scopesInCredential = normalizeLowerCase(scopesInCredential);
+            scopesInRequest = normalizeLowerCase(scopesInRequest);
+
+            if (scopesInCredential.containsAll(scopesInRequest)) {
+                // We have a winner
+                credentialsWithMatchingScopes.add(credential);
+            }
+        }
+
+        if (credentialsWithMatchingScopes.isEmpty()) {
+            // TODO log a warning
             return null;
         }
 
-        // TODO: If user is not provided for silent request, and there is only one item found in the cache. Should we return it?
-        if (accessTokenCacheItems.size() > 1) {
-            Logger.verbose(TAG, requestParam.getRequestContext(), "Multiple access tokens are returned, cannot "
-                    + "determine which one to return.");
+        // TODO what do if >1 result?
+        if (credentialsWithMatchingScopes.size() > 1) {
+            // TODO log a warning
             return null;
         }
 
-        // Since server may return us more scopes, for access token lookup, we need to check if the scope contains all the
-        // sopces in the request.
-        final AccessTokenCacheItem accessTokenCacheItem = accessTokenCacheItems.get(0);
-        if (!accessTokenCacheItem.isExpired()) {
+        final AccessToken accessTokenToReturn = (AccessToken) credentialsWithMatchingScopes.get(0);
+
+        // Check it's not expired
+        if (!isExpired(accessTokenToReturn)) {
+            // Apparently we need an IdToken AND Account in order to return a fully formed AccessTokenCacheItem...
+            // This code will not stay for long -- this API is mega weird...
+            final List<Credential> idTokens = accountCredentialCache.getCredentialsFilteredBy(
+                    accessTokenToReturn.getHomeAccountId(),
+                    accessTokenToReturn.getEnvironment(),
+                    CredentialType.IdToken,
+                    accessTokenToReturn.getClientId(),
+                    accessTokenToReturn.getRealm(),
+                    null // wildcard (*), as IdTokens have no target
+            );
+
+            if (idTokens.isEmpty()) {
+                // This shouldn't happen
+                // TODO log a warning
+            }
+
+            if (idTokens.size() > 1) {
+                // This shouldn't happen either
+                // TODO log a warning
+            }
+
+            final IdToken idToken = (IdToken) idTokens.get(0);
+            final AccessTokenCacheItem accessTokenCacheItem = new AccessTokenCacheItem(idToken, accessTokenToReturn);
+            accessTokenCacheItem.setUser(user);
             return accessTokenCacheItem;
         }
 
-        Logger.info(TAG, requestParam.getRequestContext(), "Access token is found but it's expired.");
         return null;
+    }
+
+    private boolean isExpired(final AccessToken accessToken) {
+        final int DEFAULT_AT_EXPIRATION_BUFFER = 300;
+
+        // Init a Calendar for the current time/date
+        final Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.SECOND, DEFAULT_AT_EXPIRATION_BUFFER);
+        final Date validity = calendar.getTime();
+
+        // Init a Date for the accessToken's expiry
+        long epoch = Long.valueOf(accessToken.getExpiresOn());
+        final Date expiresOn = new Date(epoch * 1000);
+
+        return expiresOn.before(validity);
+    }
+
+    private Set<String> normalizeLowerCase(final Set<String> inSet) {
+        final Set<String> outSet = new HashSet<>();
+
+        for (final String string : inSet) {
+            outSet.add(string.toLowerCase());
+        }
+
+        return outSet;
     }
 
     AccessTokenCacheItem findAccessTokenItemAuthorityNotProvided(final AuthenticationRequestParameters requestParameters, final User user)
@@ -794,21 +861,4 @@ class AccountCredentialManager {
         return foundRTs;
     }
 
-    /**
-     * For access token item, authority, clientid, user identifier has to be matched. Scopes in the item has to contain all
-     * the scopes in the key.
-     */
-    private List<AccessTokenCacheItem> getAccessTokens(final AccessTokenCacheKey tokenCacheKey, final RequestContext requestContext) {
-        final List<AccessTokenCacheItem> accessTokens = getAllAccessTokens(requestContext);
-        final List<AccessTokenCacheItem> foundATs = new ArrayList<>();
-        for (final AccessTokenCacheItem accessTokenCacheItem : accessTokens) {
-            if (tokenCacheKey.matches(accessTokenCacheItem) && accessTokenCacheItem.getScope().containsAll(tokenCacheKey.getScope())) {
-                foundATs.add(accessTokenCacheItem);
-            }
-        }
-
-        Logger.verbose(TAG, requestContext, "Retrieve access tokens for the given cache key.");
-        Logger.verbosePII(TAG, requestContext, "Key used to retrieve access tokens is: " + tokenCacheKey);
-        return foundATs;
-    }
 }

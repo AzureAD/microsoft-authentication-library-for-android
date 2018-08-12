@@ -24,6 +24,7 @@
 package com.microsoft.identity.client;
 
 import com.google.gson.annotations.SerializedName;
+import com.microsoft.identity.common.internal.dto.AccessToken;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -59,6 +60,17 @@ final class AccessTokenCacheItem extends BaseTokenCacheItem {
      */
     @SuppressWarnings("unused")
     AccessTokenCacheItem() {
+    }
+
+    AccessTokenCacheItem(final com.microsoft.identity.common.internal.dto.IdToken idToken,
+                         final AccessToken accessToken) {
+        super(accessToken.getClientId(), accessToken.getHomeAccountId(), null);
+        mAuthority = accessToken.getAuthority();
+        mAccessToken = accessToken.getSecret();
+        mExpiresOn = Long.valueOf(accessToken.getExpiresOn());
+        mScope = accessToken.getTarget();
+        mTokenType = accessToken.getAccessTokenType();
+        mRawIdToken = idToken.getSecret();
     }
 
     /**
