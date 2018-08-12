@@ -32,7 +32,7 @@ import java.util.Set;
 final class AuthenticationRequestParameters {
     private static final String TAG = AuthenticationRequestParameters.class.getSimpleName();
 
-    private final TokenCache mTokenCache;
+    private final AccountCredentialManager mAccountCredentialManager;
     private final Set<String> mScope = new HashSet<>();
     private final String mClientId;
     private final RequestContext mRequestContext;
@@ -49,7 +49,7 @@ final class AuthenticationRequestParameters {
     /**
      * Creates new {@link AuthenticationRequestParameters}.
      */
-    private AuthenticationRequestParameters(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
+    private AuthenticationRequestParameters(final Authority authority, final AccountCredentialManager accountCredentialManager, final Set<String> scope,
                                             final String clientId, final String sliceParameters, final RequestContext requestContext) {
         // Every acquireToken API call should contain correlation id.
         if (requestContext == null || requestContext.getCorrelationId() == null) {
@@ -61,12 +61,12 @@ final class AuthenticationRequestParameters {
             throw new IllegalArgumentException("scope");
         }
 
-        if (tokenCache == null) {
-            throw new IllegalArgumentException("tokenCache");
+        if (accountCredentialManager == null) {
+            throw new IllegalArgumentException("accountCredentialManager");
         }
 
         mAuthority = authority;
-        mTokenCache = tokenCache;
+        mAccountCredentialManager = accountCredentialManager;
         mScope.addAll(scope);
         mClientId = clientId;
         mSliceParameters = sliceParameters;
@@ -80,11 +80,11 @@ final class AuthenticationRequestParameters {
     /**
      * Creates the {@link AuthenticationRequestParameters} with all the given parameters.
      */
-    static AuthenticationRequestParameters create(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
+    static AuthenticationRequestParameters create(final Authority authority, final AccountCredentialManager accountCredentialManager, final Set<String> scope,
                                                   final String clientId, final String redirectUri, final String loginHint,
                                                   final String extraQueryParam, final UiBehavior uiBehavior, final User user,
                                                   final String sliceParameters, final RequestContext requestContext) {
-        final AuthenticationRequestParameters requestParameters = new AuthenticationRequestParameters(authority, tokenCache, scope,
+        final AuthenticationRequestParameters requestParameters = new AuthenticationRequestParameters(authority, accountCredentialManager, scope,
                 clientId, sliceParameters, requestContext);
         requestParameters.setRedirectUri(redirectUri);
         requestParameters.setLoginHint(loginHint);
@@ -98,9 +98,9 @@ final class AuthenticationRequestParameters {
     /**
      * Creates the {@link AuthenticationRequestParameters} with all the given parameters.
      */
-    static AuthenticationRequestParameters create(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
+    static AuthenticationRequestParameters create(final Authority authority, final AccountCredentialManager accountCredentialManager, final Set<String> scope,
                                                   final String clientId, final String sliceParameters, final RequestContext requestContext) {
-        return new AuthenticationRequestParameters(authority, tokenCache, scope, clientId, sliceParameters, requestContext);
+        return new AuthenticationRequestParameters(authority, accountCredentialManager, scope, clientId, sliceParameters, requestContext);
     }
 
     Authority getAuthority() {
@@ -111,8 +111,8 @@ final class AuthenticationRequestParameters {
         mAuthority = Authority.createAuthority(authorityString, isAuthorityValidationOn);
     }
 
-    TokenCache getTokenCache() {
-        return mTokenCache;
+    AccountCredentialManager getTokenCache() {
+        return mAccountCredentialManager;
     }
 
     Set<String> getScope() {

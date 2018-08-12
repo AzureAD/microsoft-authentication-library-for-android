@@ -54,6 +54,12 @@ abstract class BaseTokenCacheItem {
     BaseTokenCacheItem() {
     }
 
+    BaseTokenCacheItem(final String clientId, final String homeAccountId, Void v) {
+        mClientId = clientId;
+        final String[] uid_Utid = homeAccountId.split("\\.");
+        mClientInfo = new ClientInfo(uid_Utid[0], uid_Utid[1]);
+    }
+
     /**
      * Constructor for creating the token cache item.
      */

@@ -58,7 +58,7 @@ public final class SilentRequestTest extends AndroidTestCase {
     static final String TOKEN_ENDPOINT = "https://login.microsoftonline.com/sometenant/token";
 
     private Context mAppContext;
-    private TokenCache mTokenCache;
+    private AccountCredentialManager mAccountCredentialManager;
     private User mDefaultUser;
 
     @Before
@@ -72,11 +72,11 @@ public final class SilentRequestTest extends AndroidTestCase {
 
         mAppContext = new InteractiveRequestTest.MockContext(InstrumentationRegistry.getContext().getApplicationContext());
         InteractiveRequestTest.mockNetworkConnected(mAppContext, true);
-        mTokenCache = new TokenCache(mAppContext);
+        mAccountCredentialManager = new AccountCredentialManager(mAppContext);
         // make sure the tests start with a clean state.
         AndroidTestUtil.removeAllTokens(mAppContext);
 
-        mDefaultUser = TokenCacheTest.getDefaultUser();
+        mDefaultUser = AccountCredentialManagerTest.getDefaultUser();
     }
 
     @After
@@ -91,7 +91,7 @@ public final class SilentRequestTest extends AndroidTestCase {
     @Test(expected = IllegalArgumentException.class)
     public void testClientIdProvidedAsSingleScope() {
         final Set<String> scopes = new HashSet<>();
-        scopes.add(TokenCacheTest.CLIENT_ID);
+        scopes.add(AccountCredentialManagerTest.CLIENT_ID);
 
         new SilentRequest(mAppContext, getRequestParameters(scopes), false, mDefaultUser);
     }
@@ -102,12 +102,12 @@ public final class SilentRequestTest extends AndroidTestCase {
     @Test
     public void testNetworkNotConnected() throws MsalException, IOException, InterruptedException {
         final String singleScope = "scope1";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
-                TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope,
-                        AndroidTestUtil.getExpiredDate(), TokenCacheTest.getDefaultClientInfo()));
+        PublicClientApplicationTest.saveTokenResponse(mAccountCredentialManager, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, AccountCredentialManagerTest.CLIENT_ID,
+                AccountCredentialManagerTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope,
+                        AndroidTestUtil.getExpiredDate(), AccountCredentialManagerTest.getDefaultClientInfo()));
 
         final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(
-                AndroidTestUtil.getSuccessResponse(TokenCacheTest.getDefaultIdToken(), AndroidTestUtil.ACCESS_TOKEN, singleScope, null));
+                AndroidTestUtil.getSuccessResponse(AccountCredentialManagerTest.getDefaultIdToken(), AndroidTestUtil.ACCESS_TOKEN, singleScope, null));
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
@@ -144,9 +144,9 @@ public final class SilentRequestTest extends AndroidTestCase {
     @Test
     public void testValidAccessTokenInTheCache() throws MsalException, InterruptedException, MalformedURLException {
         final String singleScope = "scope1";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
-                TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn(),
-                        TokenCacheTest.getDefaultClientInfo()));
+        PublicClientApplicationTest.saveTokenResponse(mAccountCredentialManager, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, AccountCredentialManagerTest.CLIENT_ID,
+                AccountCredentialManagerTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn(),
+                        AccountCredentialManagerTest.getDefaultClientInfo()));
 
         final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope));
         final BaseRequest request = new SilentRequest(mAppContext, requestParameters, false, mDefaultUser);
@@ -157,7 +157,7 @@ public final class SilentRequestTest extends AndroidTestCase {
                 assertTrue(ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
 
                 verifyUserReturnedInResult(authenticationResult);
-                assertTrue(mTokenCache.findAccessToken(requestParameters, mDefaultUser).getAccessToken().equals(ACCESS_TOKEN));
+                assertTrue(mAccountCredentialManager.findAccessToken(requestParameters, mDefaultUser).getAccessToken().equals(ACCESS_TOKEN));
 
                 assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 1);
                 resultLock.countDown();
@@ -184,9 +184,9 @@ public final class SilentRequestTest extends AndroidTestCase {
     public void testSavedTokenInCacheNotHaveAccessToken() throws MsalException, InterruptedException, MalformedURLException {
         final String singleScope = "scope1";
 
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
-                TokenCacheTest.getTokenResponseForDefaultUser(AndroidTestUtil.ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn(),
-                        TokenCacheTest.getDefaultClientInfo()));
+        PublicClientApplicationTest.saveTokenResponse(mAccountCredentialManager, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, AccountCredentialManagerTest.CLIENT_ID,
+                AccountCredentialManagerTest.getTokenResponseForDefaultUser(AndroidTestUtil.ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn(),
+                        AccountCredentialManagerTest.getDefaultClientInfo()));
 
         final AuthenticationRequestParameters requestParameters = getRequestParameters(Collections.singleton(singleScope));
         final BaseRequest request = new SilentRequest(mAppContext, requestParameters, false, mDefaultUser);
@@ -196,7 +196,7 @@ public final class SilentRequestTest extends AndroidTestCase {
             public void onSuccess(AuthenticationResult authenticationResult) {
                 assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
                 verifyUserReturnedInResult(authenticationResult);
-                assertTrue(mTokenCache.findAccessToken(requestParameters,
+                assertTrue(mAccountCredentialManager.findAccessToken(requestParameters,
                         mDefaultUser).getAccessToken().equals(AndroidTestUtil.ACCESS_TOKEN));
 
                 assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 1);
@@ -224,12 +224,12 @@ public final class SilentRequestTest extends AndroidTestCase {
     public void testAccessTokenNotValidRTIsUsed() throws MsalException,
             InterruptedException, IOException {
         final String singleScope = "scope1";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
-                TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getExpiredDate(),
-                        TokenCacheTest.getDefaultClientInfo()));
+        PublicClientApplicationTest.saveTokenResponse(mAccountCredentialManager, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, AccountCredentialManagerTest.CLIENT_ID,
+                AccountCredentialManagerTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getExpiredDate(),
+                        AccountCredentialManagerTest.getDefaultClientInfo()));
 
         final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(
-                AndroidTestUtil.getSuccessResponse(TokenCacheTest.getDefaultIdToken(), AndroidTestUtil.ACCESS_TOKEN, singleScope, TokenCacheTest.getDefaultClientInfo()));
+                AndroidTestUtil.getSuccessResponse(AccountCredentialManagerTest.getDefaultIdToken(), AndroidTestUtil.ACCESS_TOKEN, singleScope, AccountCredentialManagerTest.getDefaultClientInfo()));
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
@@ -244,11 +244,11 @@ public final class SilentRequestTest extends AndroidTestCase {
                 verifyUserReturnedInResult(authenticationResult);
                 // verify that access token is stored with tenant specific authority.
 
-                assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(mTokenCache.findAccessToken(requestParameters, mDefaultUser).getAccessToken()));
+                assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(mAccountCredentialManager.findAccessToken(requestParameters, mDefaultUser).getAccessToken()));
                 assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 1);
 
                 try {
-                    assertTrue(AndroidTestUtil.REFRESH_TOKEN.equals(mTokenCache.findRefreshToken(requestParameters, mDefaultUser).getRefreshToken()));
+                    assertTrue(AndroidTestUtil.REFRESH_TOKEN.equals(mAccountCredentialManager.findRefreshToken(requestParameters, mDefaultUser).getRefreshToken()));
                 } catch (final MsalException e) {
                     fail();
                 }
@@ -279,9 +279,9 @@ public final class SilentRequestTest extends AndroidTestCase {
     public void testScopeNotProvidedTheSameOrder() throws MsalException, InterruptedException, IOException {
         // store valid token in the cache
         final String scopeInResponse = "user.read email.read scope2";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
-                TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, scopeInResponse,
-                        AndroidTestUtil.getValidExpiresOn(), TokenCacheTest.getDefaultClientInfo()));
+        PublicClientApplicationTest.saveTokenResponse(mAccountCredentialManager, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, AccountCredentialManagerTest.CLIENT_ID,
+                AccountCredentialManagerTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, scopeInResponse,
+                        AndroidTestUtil.getValidExpiresOn(), AccountCredentialManagerTest.getDefaultClientInfo()));
 
         final String[] requestedScope = new String[]{"email.read", "scope2", "user.read"};
         final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(new HashSet<>(Arrays.asList(
@@ -315,14 +315,14 @@ public final class SilentRequestTest extends AndroidTestCase {
     public void testSilentRequestScopeNotSameAsTokenCacheItem() throws MsalException,
             InterruptedException, IOException {
         final String singleScope = "scope1";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
-                TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getExpiredDate(),
-                        TokenCacheTest.getDefaultClientInfo()));
+        PublicClientApplicationTest.saveTokenResponse(mAccountCredentialManager, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, AccountCredentialManagerTest.CLIENT_ID,
+                AccountCredentialManagerTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getExpiredDate(),
+                        AccountCredentialManagerTest.getDefaultClientInfo()));
 
         final String anotherScope = "scope2";
         final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(
-                AndroidTestUtil.getSuccessResponse(TokenCacheTest.getDefaultIdToken(), AndroidTestUtil.ACCESS_TOKEN, anotherScope,
-                        TokenCacheTest.getDefaultClientInfo()));
+                AndroidTestUtil.getSuccessResponse(AccountCredentialManagerTest.getDefaultIdToken(), AndroidTestUtil.ACCESS_TOKEN, anotherScope,
+                        AccountCredentialManagerTest.getDefaultClientInfo()));
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
@@ -338,15 +338,15 @@ public final class SilentRequestTest extends AndroidTestCase {
                 assertTrue(AndroidTestUtil.getAllAccessTokens(mAppContext).size() == 2);
 
                 assertNotNull(AndroidTestUtil.getAccessTokenSharedPreference(mAppContext).getString(AccessTokenCacheKey.createTokenCacheKey(
-                        AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID, Collections.singleton(singleScope), mDefaultUser).toString(), null));
+                        AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, AccountCredentialManagerTest.CLIENT_ID, Collections.singleton(singleScope), mDefaultUser).toString(), null));
                 // find token with the single scope1
                 // The access token for scope1 in the cache is no longer valid
-                assertNull(mTokenCache.findAccessToken(getRequestParameters(Collections.singleton(singleScope)), mDefaultUser));
-                assertTrue(mTokenCache.findAccessToken(requestParametersWithAnotherScope, mDefaultUser).getAccessToken().equals(AndroidTestUtil.ACCESS_TOKEN));
+                assertNull(mAccountCredentialManager.findAccessToken(getRequestParameters(Collections.singleton(singleScope)), mDefaultUser));
+                assertTrue(mAccountCredentialManager.findAccessToken(requestParametersWithAnotherScope, mDefaultUser).getAccessToken().equals(AndroidTestUtil.ACCESS_TOKEN));
 
                 assertTrue(AndroidTestUtil.getAllRefreshTokens(mAppContext).size() == 1);
                 try {
-                    assertTrue(AndroidTestUtil.REFRESH_TOKEN.equals(mTokenCache.findRefreshToken(requestParametersWithAnotherScope,
+                    assertTrue(AndroidTestUtil.REFRESH_TOKEN.equals(mAccountCredentialManager.findRefreshToken(requestParametersWithAnotherScope,
                             mDefaultUser).getRefreshToken()));
                 } catch (final MsalException e) {
                     fail();
@@ -372,25 +372,25 @@ public final class SilentRequestTest extends AndroidTestCase {
     @Test
     public void testSilentRequestNoAuthorityMutipleAccessTokenAuthoritiesInCache() throws MsalException, IOException, InterruptedException {
         final String scope = "scope1 scope2";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
-                TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, scope, AndroidTestUtil.getExpiredDate(),
-                        TokenCacheTest.getDefaultClientInfo()));
+        PublicClientApplicationTest.saveTokenResponse(mAccountCredentialManager, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, AccountCredentialManagerTest.CLIENT_ID,
+                AccountCredentialManagerTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, scope, AndroidTestUtil.getExpiredDate(),
+                        AccountCredentialManagerTest.getDefaultClientInfo()));
 
         // put another token for same user with a different authority
         final String anotherAuthority = "https://login.microsoftonline.com/othertenant";
         final String accessToken = "other access token";
         final String refreshToken = "other refresh token";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, anotherAuthority, TokenCacheTest.CLIENT_ID, TokenCacheTest.getTokenResponseForDefaultUser(
-                accessToken, refreshToken, scope, AndroidTestUtil.getExpiredDate(), TokenCacheTest.getDefaultClientInfo()));
+        PublicClientApplicationTest.saveTokenResponse(mAccountCredentialManager, anotherAuthority, AccountCredentialManagerTest.CLIENT_ID, AccountCredentialManagerTest.getTokenResponseForDefaultUser(
+                accessToken, refreshToken, scope, AndroidTestUtil.getExpiredDate(), AccountCredentialManagerTest.getDefaultClientInfo()));
 
         final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(
-                AndroidTestUtil.getSuccessResponse(TokenCacheTest.getDefaultIdToken(), AndroidTestUtil.ACCESS_TOKEN, scope,
-                        TokenCacheTest.getDefaultClientInfo()));
+                AndroidTestUtil.getSuccessResponse(AccountCredentialManagerTest.getDefaultIdToken(), AndroidTestUtil.ACCESS_TOKEN, scope,
+                        AccountCredentialManagerTest.getDefaultClientInfo()));
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
         final AuthenticationRequestParameters requestParameters = getRequestParameters(MsalUtils.getScopesAsSet(scope));
-        final User user = User.create(new IdToken(TokenCacheTest.getDefaultIdToken()), new ClientInfo(TokenCacheTest.getDefaultClientInfo()));
+        final User user = User.create(new IdToken(AccountCredentialManagerTest.getDefaultIdToken()), new ClientInfo(AccountCredentialManagerTest.getDefaultClientInfo()));
         final SilentRequest request = new SilentRequest(mAppContext, requestParameters, false, user);
         request.setIsAuthorityProvided(false);
 
@@ -424,17 +424,17 @@ public final class SilentRequestTest extends AndroidTestCase {
         final String anotherAuthority = "https://login.microsoftonline.com/othertenant";
         final String accessToken = "other access token";
         final String refreshToken = "other refresh token";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, anotherAuthority, TokenCacheTest.CLIENT_ID, TokenCacheTest.getTokenResponseForDefaultUser(
-                accessToken, refreshToken, scope, AndroidTestUtil.getExpiredDate(), TokenCacheTest.getDefaultClientInfo()));
+        PublicClientApplicationTest.saveTokenResponse(mAccountCredentialManager, anotherAuthority, AccountCredentialManagerTest.CLIENT_ID, AccountCredentialManagerTest.getTokenResponseForDefaultUser(
+                accessToken, refreshToken, scope, AndroidTestUtil.getExpiredDate(), AccountCredentialManagerTest.getDefaultClientInfo()));
 
         final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithSuccessResponse(
-                AndroidTestUtil.getSuccessResponse(TokenCacheTest.getDefaultIdToken(), AndroidTestUtil.ACCESS_TOKEN, scope,
-                        TokenCacheTest.getDefaultClientInfo()));
+                AndroidTestUtil.getSuccessResponse(AccountCredentialManagerTest.getDefaultIdToken(), AndroidTestUtil.ACCESS_TOKEN, scope,
+                        AccountCredentialManagerTest.getDefaultClientInfo()));
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
 
         final AuthenticationRequestParameters requestParameters = getRequestParameters(MsalUtils.getScopesAsSet(scope));
-        final User user = User.create(new IdToken(TokenCacheTest.getDefaultIdToken()), new ClientInfo(TokenCacheTest.getDefaultClientInfo()));
+        final User user = User.create(new IdToken(AccountCredentialManagerTest.getDefaultIdToken()), new ClientInfo(AccountCredentialManagerTest.getDefaultClientInfo()));
         final SilentRequest request = new SilentRequest(mAppContext, requestParameters, false, user);
         request.setIsAuthorityProvided(false);
 
@@ -471,9 +471,9 @@ public final class SilentRequestTest extends AndroidTestCase {
     public void testNoRefreshTokenIsFound() throws MsalException,
             InterruptedException, IOException {
         final String singleScope = "scope1";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
-                TokenCacheTest.getTokenResponseForDifferentUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn(),
-                        TokenCacheTest.getClientInfoForDifferentUser()));
+        PublicClientApplicationTest.saveTokenResponse(mAccountCredentialManager, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, AccountCredentialManagerTest.CLIENT_ID,
+                AccountCredentialManagerTest.getTokenResponseForDifferentUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn(),
+                        AccountCredentialManagerTest.getClientInfoForDifferentUser()));
 
         final BaseRequest request = new SilentRequest(mAppContext, getRequestParameters(Collections.singleton(singleScope)), false, mDefaultUser);
         final CountDownLatch resultLock = new CountDownLatch(1);
@@ -507,8 +507,8 @@ public final class SilentRequestTest extends AndroidTestCase {
             InterruptedException, IOException {
         final String singleScope = "scope1";
         final String clientInfo = AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID);
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
-                TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn(), clientInfo));
+        PublicClientApplicationTest.saveTokenResponse(mAccountCredentialManager, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, AccountCredentialManagerTest.CLIENT_ID,
+                AccountCredentialManagerTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn(), clientInfo));
 
         mockFailureResponse("invalid_grant");
 
@@ -547,9 +547,9 @@ public final class SilentRequestTest extends AndroidTestCase {
     public void testForceRefreshTokenRequestFailedWithInvalidRequest() throws MsalException, InterruptedException,
             IOException {
         final String singleScope = "scope1";
-        PublicClientApplicationTest.saveTokenResponse(mTokenCache, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, TokenCacheTest.CLIENT_ID,
-                TokenCacheTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn(),
-                        TokenCacheTest.getDefaultClientInfo()));
+        PublicClientApplicationTest.saveTokenResponse(mAccountCredentialManager, AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, AccountCredentialManagerTest.CLIENT_ID,
+                AccountCredentialManagerTest.getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, singleScope, AndroidTestUtil.getValidExpiresOn(),
+                        AccountCredentialManagerTest.getDefaultClientInfo()));
 
         mockFailureResponse("invalid_request");
 
@@ -591,7 +591,7 @@ public final class SilentRequestTest extends AndroidTestCase {
 
     private AuthenticationRequestParameters getRequestParameters(final Set<String> scopes) {
         return AuthenticationRequestParameters.create(Authority.createAuthority(AndroidTestUtil.DEFAULT_AUTHORITY_WITH_TENANT, false),
-                mTokenCache, scopes, TokenCacheTest.CLIENT_ID, "some redirect", "", "", UiBehavior.SELECT_ACCOUNT, null, null,
+                mAccountCredentialManager, scopes, AccountCredentialManagerTest.CLIENT_ID, "some redirect", "", "", UiBehavior.SELECT_ACCOUNT, null, null,
                 new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId()));
     }
 

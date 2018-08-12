@@ -31,6 +31,7 @@ import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.msal.BuildConfig;
 
@@ -104,7 +105,7 @@ public final class PublicClientApplication {
     private static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common/";
 
     private final Context mAppContext;
-    private final TokenCache mTokenCache;
+    private final AccountCredentialManager mAccountCredentialManager;
 
     /**
      * The authority the application will use to obtain tokens.
@@ -163,7 +164,7 @@ public final class PublicClientApplication {
         mAppContext = context;
         loadMetaDataFromManifest();
 
-        mTokenCache = new TokenCache(mAppContext);
+        mAccountCredentialManager = new AccountCredentialManager(mAppContext);
 
         initializeApplication();
     }
@@ -190,7 +191,7 @@ public final class PublicClientApplication {
         }
 
         mAppContext = context;
-        mTokenCache = new TokenCache(mAppContext);
+        mAccountCredentialManager = new AccountCredentialManager(mAppContext);
         mClientId = clientId;
         mAuthorityString = DEFAULT_AUTHORITY;
 
@@ -276,6 +277,50 @@ public final class PublicClientApplication {
     }
 
     /**
+     * Returns a List of {@link IAccount} objects for which this application has RefreshTokens.
+     *
+     * @return An immutable List of IAccount objects.
+     */
+    public List<IAccount> getAccounts() {
+        return mAccountCredentialManager.getAccounts(
+                MsalUtils.getUrl(mAuthorityString).getHost(),
+                mClientId
+        );
+    }
+
+    /**
+     * Returns the IAccount object matching the supplied home_account_id.
+     *
+     * @param homeAccountId The home_account_id of the sought IAccount.
+     * @return The IAccount stored in the cache or null, if no such matching entry exists.
+     */
+    public IAccount getAccount(final String homeAccountId) {
+        if (StringExtensions.isNullOrBlank(homeAccountId)) {
+            throw new IllegalArgumentException("IAccount search criteria cannot be null.");
+        }
+
+        return mAccountCredentialManager.getAccount(
+                MsalUtils.getUrl(mAuthorityString).getHost(),
+                mClientId,
+                homeAccountId
+        );
+    }
+
+    /**
+     * Removes the Account and Credentials (tokens) for the supplied IAccount.
+     *
+     * @param account The IAccount whose entry and associated tokens should be removed.
+     * @return True, if the account was removed. False otherwise.
+     */
+    public boolean removeAccount(final IAccount account) {
+        return mAccountCredentialManager.removeCredentialsAndAccountForIAccount(
+                MsalUtils.getUrl(mAuthorityString).getHost(),
+                mClientId,
+                account
+        );
+    }
+
+    /**
      * Returns the list of {@link User}s we have tokens in the cache.
      *
      * @return Immutable List of {@link User}.
@@ -291,7 +336,7 @@ public final class PublicClientApplication {
         final UUID correlationId = UUID.randomUUID();
         initializeDiagnosticContext(correlationId.toString());
 
-        List<User> users = mTokenCache.getUsers(
+        List<User> users = mAccountCredentialManager.getUsers(
                 Authority.getAuthorityHost(mAuthorityString, mValidateAuthority),
                 mClientId,
                 new RequestContext(
@@ -542,7 +587,8 @@ public final class PublicClientApplication {
      *                 Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
-    public void acquireTokenSilentAsync(@NonNull final String[] scopes, @NonNull final User user,
+    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
+                                        @NonNull final User user,
                                         @NonNull final AuthenticationCallback callback) {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER);
@@ -565,7 +611,9 @@ public final class PublicClientApplication {
      *                     Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
-    public void acquireTokenSilentAsync(@NonNull final String[] scopes, @NonNull final User user, final String authority,
+    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
+                                        @NonNull final User user,
+                                        final String authority,
                                         final boolean forceRefresh,
                                         @NonNull final AuthenticationCallback callback) {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
@@ -591,8 +639,8 @@ public final class PublicClientApplication {
         initializeDiagnosticContext(correlationId.toString());
 
         final RequestContext requestContext = new RequestContext(correlationId, mComponent, telemetryRequestId);
-        mTokenCache.deleteRefreshTokenByUser(user, requestContext);
-        mTokenCache.deleteAccessTokenByUser(user, requestContext);
+        mAccountCredentialManager.deleteRefreshTokenByUser(user, requestContext);
+        mAccountCredentialManager.deleteAccessTokenByUser(user, requestContext);
 
         apiEventBuilder.setApiCallWasSuccessful(true);
         stopTelemetryEventAndFlush(apiEventBuilder);
@@ -601,10 +649,10 @@ public final class PublicClientApplication {
     /**
      * Keep this method internal only to make it easy for MS apps to do serialize/deserialize on the family tokens.
      *
-     * @return The {@link TokenCache} that is used to persist token items for the running app.
+     * @return The {@link AccountCredentialManager} that is used to persist token items for the running app.
      */
-    TokenCache getTokenCache() {
-        return mTokenCache;
+    AccountCredentialManager getTokenCache() {
+        return mAccountCredentialManager;
     }
 
     private void loadMetaDataFromManifest() {
@@ -685,7 +733,9 @@ public final class PublicClientApplication {
         request.getToken(callback);
     }
 
-    private void acquireTokenSilent(final String[] scopes, final User user, final String authority,
+    private void acquireTokenSilent(final String[] scopes,
+                                    final User user,
+                                    final String authority,
                                     final boolean forceRefresh,
                                     final AuthenticationCallback callback,
                                     final String telemetryRequestId,
@@ -703,7 +753,7 @@ public final class PublicClientApplication {
 
         final RequestContext requestContext = new RequestContext(correlationId, mComponent, telemetryRequestId);
         final Set<String> scopesAsSet = MsalUtils.convertArrayToSet(scopes);
-        final AuthenticationRequestParameters requestParameters = AuthenticationRequestParameters.create(authorityForRequest, mTokenCache,
+        final AuthenticationRequestParameters requestParameters = AuthenticationRequestParameters.create(authorityForRequest, mAccountCredentialManager,
                 scopesAsSet, mClientId, mSliceParameters, requestContext);
 
         // add properties to our telemetry data
@@ -742,7 +792,7 @@ public final class PublicClientApplication {
 
         return AuthenticationRequestParameters.create(
                 authorityForRequest,
-                mTokenCache,
+                mAccountCredentialManager,
                 scopesAsSet,
                 mClientId,
                 mRedirectUri,

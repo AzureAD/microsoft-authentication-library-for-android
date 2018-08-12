@@ -24,6 +24,7 @@
 package com.microsoft.identity.client.testapp;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,7 +34,10 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.google.gson.Gson;
-import com.microsoft.identity.client.User;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.microsoft.identity.client.AzureActiveDirectoryAccountId;
+import com.microsoft.identity.client.IAccount;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +47,13 @@ import java.util.List;
  */
 public class UsersFragment extends Fragment {
 
+    private static final String USERNAME = "username";
+    private static final String IS_CREDENTIAL_PRESENT = "is_credential_present";
+    private static final String IDENTIFIER = "identifier";
+    private static final String OBJECT_ID = "object_id";
+    private static final String TENANT_ID = "tenant_id";
+    private static final String ACCOUNT_ID = "account_id";
+    private static final String HOME_ACCOUNT_ID = "home_account_id";
     private ListView mUserList;
     private Gson mGson;
 
@@ -52,11 +63,12 @@ public class UsersFragment extends Fragment {
 
         mUserList = (ListView) view.findViewById(R.id.user_list);
 
-        final List<User> users = ((MainActivity) this.getActivity()).getUsers();
-        mGson = new Gson();
-        final List<String> serializedUsers = new ArrayList<>(users.size());
-        for (final User user : users) {
-            serializedUsers.add(mGson.toJson(user, User.class));
+        final List<IAccount> accounts = ((MainActivity) this.getActivity()).getAccounts();
+        mGson = new GsonBuilder().setPrettyPrinting().create();
+        final List<String> serializedUsers = new ArrayList<>(accounts.size());
+        for (final IAccount account : accounts) {
+            JsonObject jsonAcct = transformToJson(account);
+            serializedUsers.add(mGson.toJson(jsonAcct));
         }
 
         final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, serializedUsers);
@@ -65,13 +77,42 @@ public class UsersFragment extends Fragment {
         mUserList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                final String value = (String) parent.getItemAtPosition(position);
-                final User user = mGson.fromJson(value, User.class);
-
-                ((MainActivity) getActivity()).setUser(user);
+                final IAccount selectedAccount = accounts.get(position);
+                ((MainActivity) getActivity()).setUser(selectedAccount);
                 getFragmentManager().popBackStack();
             }
         });
         return view;
+    }
+
+    @NonNull
+    private JsonObject transformToJson(IAccount account) {
+        JsonObject jsonAcct = new JsonObject();
+        jsonAcct.addProperty(USERNAME, account.getUsername());
+        jsonAcct.addProperty(IS_CREDENTIAL_PRESENT, account.isCredentialPresent());
+
+        JsonObject accountId = new JsonObject();
+        accountId.addProperty(IDENTIFIER, account.getAccountId().getIdentifier());
+
+        if (account.getAccountId() instanceof AzureActiveDirectoryAccountId) {
+            final AzureActiveDirectoryAccountId acctId = (AzureActiveDirectoryAccountId) account.getAccountId();
+            accountId.addProperty(OBJECT_ID, acctId.getObjectId());
+            accountId.addProperty(TENANT_ID, acctId.getTenantId());
+        }
+
+
+        JsonObject homeAccountId = new JsonObject();
+        homeAccountId.addProperty(IDENTIFIER, account.getHomeAccountId().getIdentifier());
+
+        if (account.getHomeAccountId() instanceof AzureActiveDirectoryAccountId) {
+            final AzureActiveDirectoryAccountId acctId = (AzureActiveDirectoryAccountId) account.getHomeAccountId();
+            homeAccountId.addProperty(OBJECT_ID, acctId.getObjectId());
+            homeAccountId.addProperty(TENANT_ID, acctId.getTenantId());
+        }
+
+        jsonAcct.add(ACCOUNT_ID, accountId);
+        jsonAcct.add(HOME_ACCOUNT_ID, homeAccountId);
+
+        return jsonAcct;
     }
 }

@@ -209,16 +209,16 @@ public final class AndroidTestUtil {
 
     static List<AccessTokenCacheItem> getAllAccessTokens(final Context appContext) {
         Telemetry.disableForTest(true);
-        final TokenCache tokenCache = new TokenCache(appContext);
-        List<AccessTokenCacheItem> accessTokenCacheItems = tokenCache.getAllAccessTokens(getTestRequestContext());
+        final AccountCredentialManager accountCredentialManager = new AccountCredentialManager(appContext);
+        List<AccessTokenCacheItem> accessTokenCacheItems = accountCredentialManager.getAllAccessTokens(getTestRequestContext());
         Telemetry.disableForTest(false);
         return accessTokenCacheItems;
     }
 
     static List<RefreshTokenCacheItem> getAllRefreshTokens(final Context appContext) {
         Telemetry.disableForTest(true);
-        final TokenCache tokenCache = new TokenCache(appContext);
-        List<RefreshTokenCacheItem> refreshTokenCacheItems = tokenCache.getAllRefreshTokens(getTestRequestContext());
+        final AccountCredentialManager accountCredentialManager = new AccountCredentialManager(appContext);
+        List<RefreshTokenCacheItem> refreshTokenCacheItems = accountCredentialManager.getAllRefreshTokens(getTestRequestContext());
         Telemetry.disableForTest(false);
         return refreshTokenCacheItems;
     }

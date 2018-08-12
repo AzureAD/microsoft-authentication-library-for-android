@@ -37,7 +37,11 @@ public class User {
      * Internal constructor to create {@link User} from the {@link IdToken}.
      * User will be created with both {@link IdToken} and {@link ClientInfo}.
      */
-    User(final String displayableId, final String name, final String identityProvider, final String uid, final String uTid) {
+    User(final String displayableId,
+         final String name,
+         final String identityProvider,
+         final String uid,
+         final String uTid) {
         mDisplayableId = displayableId;
         mName = name;
         mIdentityProvider = identityProvider;

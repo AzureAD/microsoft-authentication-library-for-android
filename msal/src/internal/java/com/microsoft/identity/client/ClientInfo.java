@@ -39,6 +39,11 @@ final class ClientInfo {
     private final String mUniqueIdentifier;
     private final String mUniqueTenantIdentifier;
 
+    ClientInfo(final String uid, final String utid) {
+        mUniqueIdentifier = uid;
+        mUniqueTenantIdentifier = utid;
+    }
+
     ClientInfo(final String rawClientInfo) throws MsalClientException {
         if (MsalUtils.isEmpty(rawClientInfo)) {
             mUniqueIdentifier = "";

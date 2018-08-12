@@ -207,33 +207,22 @@ abstract class BaseRequest {
     AuthenticationResult postTokenRequest() throws MsalUiRequiredException, MsalServiceException, MsalClientException {
         checkUserMismatch();
 
-        final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
+        final AccountCredentialManager accountCredentialManager = mAuthRequestParameters.getTokenCache();
         final Authority authority = mAuthRequestParameters.getAuthority();
         authority.updateTenantLessAuthority(new IdToken(mTokenResponse.getRawIdToken()).getTenantId());
 
         final AccessTokenCacheItem accessTokenCacheItem;
-        // Switch to toggle using common cache (or not)
-        boolean useCommonCache = true;
 
-        if (useCommonCache) {
-            tokenCache.saveTokensToCommonCache(
-                    authority.getAuthorityUrl(),
-                    mAuthRequestParameters.getClientId(),
-                    mTokenResponse,
-                    mAuthRequestParameters.getRequestContext().getCorrelationId().toString()
-            );
+        accountCredentialManager.saveTokensToCommonCache(
+                authority.getAuthorityUrl(),
+                mAuthRequestParameters.getClientId(),
+                mTokenResponse,
+                mAuthRequestParameters.getRequestContext().getCorrelationId().toString()
+        );
 
-            // Because the token retrieval API hasn't been written yet, also sync the tokens to the legacy cache for *actual* retrieval
-            accessTokenCacheItem = tokenCache.saveAccessToken(authority.getAuthority(),
-                    mAuthRequestParameters.getClientId(), mTokenResponse, mRequestContext);
-            tokenCache.saveRefreshToken(authority.getAuthorityHost(), mAuthRequestParameters.getClientId(),
-                    mTokenResponse, mRequestContext);
-        } else {
-            accessTokenCacheItem = tokenCache.saveAccessToken(authority.getAuthority(),
-                    mAuthRequestParameters.getClientId(), mTokenResponse, mRequestContext);
-            tokenCache.saveRefreshToken(authority.getAuthorityHost(), mAuthRequestParameters.getClientId(),
-                    mTokenResponse, mRequestContext);
-        }
+        // Because the token retrieval API hasn't been written yet, also sync the tokens to the legacy cache for *actual* retrieval
+        accessTokenCacheItem = accountCredentialManager.saveAccessToken(authority.getAuthority(), mAuthRequestParameters.getClientId(), mTokenResponse, mRequestContext);
+        accountCredentialManager.saveRefreshToken(authority.getAuthorityHost(), mAuthRequestParameters.getClientId(), mTokenResponse, mRequestContext);
 
         return new AuthenticationResult(accessTokenCacheItem);
     }
