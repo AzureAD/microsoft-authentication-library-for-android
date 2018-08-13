@@ -22,22 +22,53 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+/**
+ * AccountId implementation for Accounts retrieved from AzureActiveDirectory.
+ */
 public class AzureActiveDirectoryAccountId extends AccountId {
+
+    /**
+     * The object_id for the associated Account in AAD.
+     */
     private String mObjectId;
+
+    /**
+     * The tenant identifier for the associated Account.
+     */
     private String mTenantId;
 
+    /**
+     * Sets the objectId.
+     *
+     * @param objectId The objectId to set.
+     */
     void setObjectId(final String objectId) {
         mObjectId = objectId;
     }
 
+    /**
+     * Gets the objectId.
+     *
+     * @return The objectId to get.
+     */
     public String getObjectId() {
         return mObjectId;
     }
 
+    /**
+     * Sets the tenantId.
+     *
+     * @param tenantId The tenantId to set.
+     */
     void setTenantId(final String tenantId) {
         mTenantId = tenantId;
     }
 
+    /**
+     * Gets the tenantId.
+     *
+     * @return The tenantId to get.
+     */
     public String getTenantId() {
         return mTenantId;
     }
