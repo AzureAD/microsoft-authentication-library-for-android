@@ -288,10 +288,10 @@ public final class PublicClientApplication {
     /**
      * Returns the IAccount object matching the supplied home_account_id.
      *
-     * @param homeAccountId The home_account_id of the sought IAccount.
+     * @param homeAccountIdentifier The home_account_id of the sought IAccount.
      * @return The IAccount stored in the cache or null, if no such matching entry exists.
      */
-    public IAccount getAccount(final String homeAccountId) {
+    public IAccount getAccount(final String homeAccountIdentifier) {
         // TODO
         throw new UnsupportedOperationException("Method stub!");
     }
