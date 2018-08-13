@@ -22,7 +22,10 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-public class Account implements IAccount {
+/**
+ * MSAL API surface implementation of an account.
+ */
+class Account implements IAccount {
 
     private IAccountId mAccountId;
     private IAccountId mHomeAccountId;
@@ -32,6 +35,11 @@ public class Account implements IAccount {
         // Empty constructor
     }
 
+    /**
+     * Sets the account id.
+     *
+     * @param accountId The IAccountId to set.
+     */
     void setAccountId(final IAccountId accountId) {
         mAccountId = accountId;
     }
@@ -41,6 +49,11 @@ public class Account implements IAccount {
         return mAccountId;
     }
 
+    /**
+     * Sets the home account id.
+     *
+     * @param homeAccountId The IAccountId to set.
+     */
     void setHomeAccountId(final IAccountId homeAccountId) {
         mHomeAccountId = homeAccountId;
     }
@@ -50,6 +63,11 @@ public class Account implements IAccount {
         return mHomeAccountId;
     }
 
+    /**
+     * Sets the username.
+     *
+     * @param username The username to set.
+     */
     void setUsername(final String username) {
         mUsername = username;
     }

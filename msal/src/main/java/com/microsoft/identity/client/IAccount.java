@@ -22,12 +22,32 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+/**
+ * Interface describing MSAL's externally-exposed Account representation.
+ */
 public interface IAccount {
 
+    /**
+     * Gets the {@link IAccountId} for this Account -- this value is authority-specific.
+     *
+     * @return The AccountId.
+     */
     IAccountId getAccountId();
 
+    /**
+     * Gets the home {@link IAccountId} for this IAccount -- for IAccount types with tenant
+     * association[s], this value will be unique. Meaning, it's value is the same
+     * in the IAccount's home tenant and in any guest tenants to which it may be associated.
+     *
+     * @return
+     */
     IAccountId getHomeAccountId();
 
+    /**
+     * Gets the username of this IAccount.
+     *
+     * @return The username to get.
+     */
     String getUsername();
 
 }

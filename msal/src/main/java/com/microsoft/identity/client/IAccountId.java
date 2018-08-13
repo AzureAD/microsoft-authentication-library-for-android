@@ -22,8 +22,16 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+/**
+ * Interface describing an identifier with a {@link String} representation.
+ */
 public interface IAccountId {
 
+    /**
+     * Gets the identifier.
+     *
+     * @return The identifier to get.
+     */
     String getIdentifier();
 
 }

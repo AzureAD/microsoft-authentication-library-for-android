@@ -22,10 +22,18 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-public abstract class AccountId implements IAccountId {
+/**
+ * AccountIds expose identifiers used by MSAL to uniquely identify Accounts.
+ */
+abstract class AccountId implements IAccountId {
 
     private String mIdentifier;
 
+    /**
+     * Sets the identifier.
+     *
+     * @param identifier The identifier to set.
+     */
     void setIdentifier(final String identifier) {
         mIdentifier = identifier;
     }
