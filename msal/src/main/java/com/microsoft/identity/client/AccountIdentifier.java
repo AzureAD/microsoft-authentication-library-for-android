@@ -25,7 +25,7 @@ package com.microsoft.identity.client;
 /**
  * AccountIds expose identifiers used by MSAL to uniquely identify Accounts.
  */
-abstract class AccountId implements IAccountId {
+abstract class AccountIdentifier implements IAccountIdentifier {
 
     private String mIdentifier;
 

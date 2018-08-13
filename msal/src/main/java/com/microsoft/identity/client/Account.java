@@ -27,8 +27,8 @@ package com.microsoft.identity.client;
  */
 class Account implements IAccount {
 
-    private IAccountId mAccountId;
-    private IAccountId mHomeAccountId;
+    private IAccountIdentifier mAccountIdentifier;
+    private IAccountIdentifier mHomeAccountIdentifier;
     private String mUsername;
 
     Account() {
@@ -38,29 +38,29 @@ class Account implements IAccount {
     /**
      * Sets the account id.
      *
-     * @param accountId The IAccountId to set.
+     * @param accountId The IAccountIdentifier to set.
      */
-    void setAccountId(final IAccountId accountId) {
-        mAccountId = accountId;
+    void setAccountIdentifier(final IAccountIdentifier accountId) {
+        mAccountIdentifier = accountId;
     }
 
     @Override
-    public IAccountId getAccountId() {
-        return mAccountId;
+    public IAccountIdentifier getAccountIdentifier() {
+        return mAccountIdentifier;
     }
 
     /**
      * Sets the home account id.
      *
-     * @param homeAccountId The IAccountId to set.
+     * @param homeAccountId The IAccountIdentifier to set.
      */
-    void setHomeAccountId(final IAccountId homeAccountId) {
-        mHomeAccountId = homeAccountId;
+    void setHomeAccountIdentifier(final IAccountIdentifier homeAccountId) {
+        mHomeAccountIdentifier = homeAccountId;
     }
 
     @Override
-    public IAccountId getHomeAccountId() {
-        return mHomeAccountId;
+    public IAccountIdentifier getHomeAccountIdentifier() {
+        return mHomeAccountIdentifier;
     }
 
     /**

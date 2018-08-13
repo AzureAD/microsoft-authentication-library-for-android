@@ -25,7 +25,7 @@ package com.microsoft.identity.client;
 /**
  * Interface describing an identifier with a {@link String} representation.
  */
-public interface IAccountId {
+public interface IAccountIdentifier {
 
     /**
      * Gets the identifier.

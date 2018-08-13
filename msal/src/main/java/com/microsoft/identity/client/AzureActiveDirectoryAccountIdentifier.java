@@ -23,45 +23,45 @@
 package com.microsoft.identity.client;
 
 /**
- * AccountId implementation for Accounts retrieved from AzureActiveDirectory.
+ * AccountIdentifier implementation for Accounts retrieved from AzureActiveDirectory.
  */
-public class AzureActiveDirectoryAccountId extends AccountId {
+public class AzureActiveDirectoryAccountIdentifier extends AccountIdentifier {
 
     /**
-     * The object_id for the associated Account in AAD.
+     * The object identifier for the associated Account in AAD.
      */
-    private String mObjectId;
+    private String mObjectIdentifier;
 
     /**
      * The tenant identifier for the associated Account.
      */
-    private String mTenantId;
+    private String mTenantIdentifier;
 
     /**
-     * Sets the objectId.
+     * Sets the object identifier.
      *
-     * @param objectId The objectId to set.
+     * @param objectIdentifier The object identifier to set.
      */
-    void setObjectId(final String objectId) {
-        mObjectId = objectId;
+    void setObjectIdentifier(final String objectIdentifier) {
+        mObjectIdentifier = objectIdentifier;
     }
 
     /**
-     * Gets the objectId.
+     * Gets the object identifier.
      *
-     * @return The objectId to get.
+     * @return The object identifier to get.
      */
-    public String getObjectId() {
-        return mObjectId;
+    public String getObjectIdentifier() {
+        return mObjectIdentifier;
     }
 
     /**
-     * Sets the tenantId.
+     * Sets the tenantIdentifier.
      *
-     * @param tenantId The tenantId to set.
+     * @param tenantIdentifier The tenantIdentifier to set.
      */
-    void setTenantId(final String tenantId) {
-        mTenantId = tenantId;
+    void setTenantIdentifier(final String tenantIdentifier) {
+        mTenantIdentifier = tenantIdentifier;
     }
 
     /**
@@ -69,7 +69,7 @@ public class AzureActiveDirectoryAccountId extends AccountId {
      *
      * @return The tenantId to get.
      */
-    public String getTenantId() {
-        return mTenantId;
+    public String getTenantIdentifier() {
+        return mTenantIdentifier;
     }
 }

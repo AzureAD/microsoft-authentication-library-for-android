@@ -28,20 +28,20 @@ package com.microsoft.identity.client;
 public interface IAccount {
 
     /**
-     * Gets the {@link IAccountId} for this Account -- this value is authority-specific.
+     * Gets the {@link IAccountIdentifier} for this Account -- this value is authority-specific.
      *
-     * @return The AccountId.
+     * @return The AccountIdentifier.
      */
-    IAccountId getAccountId();
+    IAccountIdentifier getAccountIdentifier();
 
     /**
-     * Gets the home {@link IAccountId} for this IAccount -- for IAccount types with tenant
+     * Gets the home {@link IAccountIdentifier} for this IAccount -- for IAccount types with tenant
      * association[s], this value will be unique. Meaning, it's value is the same
      * in the IAccount's home tenant and in any guest tenants to which it may be associated.
      *
      * @return
      */
-    IAccountId getHomeAccountId();
+    IAccountIdentifier getHomeAccountIdentifier();
 
     /**
      * Gets the username of this IAccount.
