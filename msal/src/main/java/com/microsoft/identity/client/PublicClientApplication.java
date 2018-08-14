@@ -276,6 +276,38 @@ public final class PublicClientApplication {
     }
 
     /**
+     * Returns a List of {@link IAccount} objects for which this application has RefreshTokens.
+     *
+     * @return An immutable List of IAccount objects.
+     */
+    public List<IAccount> getAccounts() {
+        // TODO
+        throw new UnsupportedOperationException("Method stub!");
+    }
+
+    /**
+     * Returns the IAccount object matching the supplied home_account_id.
+     *
+     * @param homeAccountIdentifier The home_account_id of the sought IAccount.
+     * @return The IAccount stored in the cache or null, if no such matching entry exists.
+     */
+    public IAccount getAccount(final String homeAccountIdentifier) {
+        // TODO
+        throw new UnsupportedOperationException("Method stub!");
+    }
+
+    /**
+     * Removes the Account and Credentials (tokens) for the supplied IAccount.
+     *
+     * @param account The IAccount whose entry and associated tokens should be removed.
+     * @return True, if the account was removed. False otherwise.
+     */
+    public boolean removeAccount(final IAccount account) {
+        // TODO
+        throw new UnsupportedOperationException("Method stub!");
+    }
+
+    /**
      * Returns the list of {@link User}s we have tokens in the cache.
      *
      * @return Immutable List of {@link User}.
