@@ -63,7 +63,7 @@ class AccountAdapter {
                 // Set the utid as the tenantId
                 setTenantIdentifier(components[1]);
             }};
-        } else {
+        } else { // This Account came from IdP other than AAD.
             accountId = new AccountIdentifier() {{
                 setIdentifier(accountIn.getLocalAccountId());
             }};
