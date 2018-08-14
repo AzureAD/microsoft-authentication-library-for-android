@@ -220,11 +220,20 @@ public final class PublicClientApplication {
         mAuthorityString = authority;
     }
 
+    public PublicClientApplication(@NonNull final Context context, @NonNull final PublicClientApplicationConfiguration config){
+        this(context, config.getClientId());
+
+        //TODO: More work to use the rest of configuration
+
+    }
+
+
     private void initializeApplication() {
         // Init Events with defaults (application-wide)
         DefaultEvent.initializeDefaults(
                 Defaults.forApplication(mAppContext, mClientId)
         );
+
         mRedirectUri = createRedirectUri(mClientId);
         validateInputParameters();
 
@@ -638,6 +647,7 @@ public final class PublicClientApplication {
     // TODO: if no more input validation is needed, this could be moved back to the constructor.
     private void validateInputParameters() {
         if (!MsalUtils.hasCustomTabRedirectActivity(mAppContext, mRedirectUri)) {
+            //TODO: Fix this error message to be more clear
             throw new IllegalStateException("App doesn't have the correct configuration for "
                     + BrowserTabActivity.class.getSimpleName() + ".");
         }

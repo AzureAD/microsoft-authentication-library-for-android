@@ -47,6 +47,7 @@ class AadAuthority extends Authority {
 
     static final String DEPRECATED_AAD_AUTHORITY_HOST = "login.windows.net";
     static final String AAD_AUTHORITY_HOST = "login.microsoftonline.com";
+
     static final String[] TRUSTED_HOSTS = new String[]{
             AAD_AUTHORITY_HOST, // Microsoft Azure Worldwide
             "login.chinacloudapi.cn", // Microsoft Azure China

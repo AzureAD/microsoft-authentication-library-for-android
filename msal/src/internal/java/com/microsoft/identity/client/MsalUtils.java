@@ -187,6 +187,13 @@ final class MsalUtils {
         return resultSet;
     }
 
+    /**
+     * hasCustomTabRedirectActivity - Ensures that the developer has properly configured their
+     * AndroidManifest to expose the BrowserTabActivity.
+     * @param context
+     * @param url
+     * @return
+     */
     static boolean hasCustomTabRedirectActivity(final Context context, final String url) {
         final PackageManager packageManager = context.getPackageManager();
         if (packageManager == null) {
