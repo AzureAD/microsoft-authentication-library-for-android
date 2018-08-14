@@ -25,8 +25,17 @@ package com.microsoft.identity.client;
 import com.microsoft.identity.common.internal.dto.Account;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 
+/**
+ * Adapter class for Account transformations.
+ */
 class AccountAdapter {
 
+    /**
+     * Adapts the {@link Account} type to the MSAL-exposed {@link IAccount}.
+     *
+     * @param accountIn The Account to transform.
+     * @return A representation of the supplied Account, as an IAccount.
+     */
     public static IAccount adapt(final Account accountIn) {
         final com.microsoft.identity.client.Account accountOut
                 = new com.microsoft.identity.client.Account();
