@@ -54,12 +54,16 @@ class AccountAdapter {
             homeAccountId = new AzureActiveDirectoryAccountIdentifier() {{ // This is the home_account_id
                 // Grab the homeAccountId
                 final String homeAccountIdStr = accountIn.getHomeAccountId();
+
                 // Split it into its constituent pieces <uid>.<utid>
                 final String[] components = homeAccountIdStr.split("\\.");
+
                 // Set the full string value as the identifier
                 setIdentifier(homeAccountIdStr);
+
                 // Set the uid as the objectId
                 setObjectIdentifier(components[0]);
+
                 // Set the utid as the tenantId
                 setTenantIdentifier(components[1]);
             }};
