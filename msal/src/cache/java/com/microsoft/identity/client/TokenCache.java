@@ -45,10 +45,10 @@ import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.M
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsTokenResponse;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -104,6 +104,10 @@ class TokenCache {
         );
 
         return tokenCache;
+    }
+
+    OAuth2TokenCache<?, ?, ?> getOAuth2TokenCache() {
+        return mCommonCache;
     }
 
     AccessTokenCacheItem saveTokensToCommonCache(

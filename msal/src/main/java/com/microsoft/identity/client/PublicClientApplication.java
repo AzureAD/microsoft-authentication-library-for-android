@@ -30,16 +30,15 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 
-import com.microsoft.identity.client.MSALApiDispatcher;
-import com.microsoft.identity.client.controllers.LocalMSALController;
-import com.microsoft.identity.client.controllers.MSALAcquireTokenRequest;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.internal.dto.Account;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.msal.BuildConfig;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -110,6 +109,7 @@ public final class PublicClientApplication {
 
     private final Context mAppContext;
     private final TokenCache mTokenCache;
+    private final OAuth2TokenCache<?, ?, ?> mOauth2TokenCache;
 
     /**
      * The authority the application will use to obtain tokens.
@@ -169,6 +169,7 @@ public final class PublicClientApplication {
         loadMetaDataFromManifest();
 
         mTokenCache = new TokenCache(mAppContext);
+        mOauth2TokenCache = mTokenCache.getOAuth2TokenCache();
 
         initializeApplication();
     }
@@ -196,6 +197,7 @@ public final class PublicClientApplication {
 
         mAppContext = context;
         mTokenCache = new TokenCache(mAppContext);
+        mOauth2TokenCache = mTokenCache.getOAuth2TokenCache();
         mClientId = clientId;
         mAuthorityString = DEFAULT_AUTHORITY;
 
@@ -225,7 +227,7 @@ public final class PublicClientApplication {
         mAuthorityString = authority;
     }
 
-    /**
+    /*
      * {@link PublicClientApplication#PublicClientApplication(Context, String, String)} allows the client id and authority to be passed instead of
      * providing them through metadata.
      *
@@ -249,7 +251,6 @@ public final class PublicClientApplication {
         mAuthorityString = authority;
     }
     */
-
     private void initializeApplication() {
         // Init Events with defaults (application-wide)
         DefaultEvent.initializeDefaults(
@@ -308,11 +309,23 @@ public final class PublicClientApplication {
     /**
      * Returns a List of {@link IAccount} objects for which this application has RefreshTokens.
      *
-     * @return An immutable List of IAccount objects.
+     * @return An immutable List of IAccount objects - empty if no IAccounts exist.
      */
     public List<IAccount> getAccounts() {
-        // TODO
-        throw new UnsupportedOperationException("Method stub!");
+        final List<IAccount> accountsToReturn = new ArrayList<>();
+
+        // Grab the Accounts from the common cache
+        final List<Account> accountsInCache = mOauth2TokenCache.getAccounts(
+                MsalUtils.getUrl(mAuthorityString).getHost(),
+                mClientId
+        );
+
+        // Adapt them to the MSAL model
+        for (final Account account : accountsInCache) {
+            accountsToReturn.add(AccountAdapter.adapt(account));
+        }
+
+        return Collections.unmodifiableList(accountsToReturn);
     }
 
     /**
@@ -322,8 +335,13 @@ public final class PublicClientApplication {
      * @return The IAccount stored in the cache or null, if no such matching entry exists.
      */
     public IAccount getAccount(final String homeAccountIdentifier) {
-        // TODO
-        throw new UnsupportedOperationException("Method stub!");
+        final Account accountToReturn = mOauth2TokenCache.getAccount(
+                MsalUtils.getUrl(mAuthorityString).getHost(),
+                mClientId,
+                homeAccountIdentifier
+        );
+
+        return null == accountToReturn ? null : AccountAdapter.adapt(accountToReturn);
     }
 
     /**
@@ -333,8 +351,11 @@ public final class PublicClientApplication {
      * @return True, if the account was removed. False otherwise.
      */
     public boolean removeAccount(final IAccount account) {
-        // TODO
-        throw new UnsupportedOperationException("Method stub!");
+        return mOauth2TokenCache.removeAccount(
+                MsalUtils.getUrl(mAuthorityString).getHost(),
+                mClientId,
+                account.getHomeAccountIdentifier().getIdentifier()
+        );
     }
 
     /**
