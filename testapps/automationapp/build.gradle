@@ -27,7 +27,15 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
+
+    signingConfigs {
+        debug {
+            storeFile file('debug/debug.keystore')
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
+    }
 
     defaultConfig {
         applicationId "com.microsoft.identity.androidautomationapp"
@@ -38,9 +46,27 @@ android {
 
     }
     buildTypes {
+        debug {
+            //https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.internal.dsl.SigningConfig.html
+            signingConfig signingConfigs.debug
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    flavorDimensions "main"
+
+    productFlavors {
+        local {
+            applicationIdSuffix ".local"
+            versionNameSuffix "-local"
+            resValue("string", "application_name", "msal-local")
+        }
+        dist {
+            applicationIdSuffix ".dist"
+            versionNameSuffix "-dist"
+            resValue("string", "application_name", "msal-dist")
         }
     }
 }
