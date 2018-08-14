@@ -34,6 +34,7 @@ import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsPromptBehavior;
 import com.microsoft.identity.common.internal.providers.oauth2.PkceChallenge;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
@@ -41,6 +42,7 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -167,9 +169,8 @@ final class InteractiveRequest extends BaseRequest {
                 getAuthRequestParameters().getClientId(),
                 getAuthRequestParameters().getRedirectUri(),
                 null,
-                getAuthRequestParameters().getScope(),
+                StringUtil.join(' ', new ArrayList<String>(getAuthRequestParameters().getScope())),
                 getAuthRequestParameters().getAuthority().getAuthorityUrl(),
-                getAuthRequestParameters().getAuthority().getAuthorizeEndpoint(),
                 getAuthRequestParameters().getLoginHint(),
                 getAuthRequestParameters().getRequestContext().getCorrelationId(),
                 null,
@@ -179,8 +180,7 @@ final class InteractiveRequest extends BaseRequest {
                 null,
                 null,
                 null,
-                getAuthRequestParameters().getSliceParameters(),
-                null);
+                getAuthRequestParameters().getSliceParameters());
 
         if (null != getAuthRequestParameters().getUser()) {
             authorizationRequest.setUid(getAuthRequestParameters().getUser().getUid());
