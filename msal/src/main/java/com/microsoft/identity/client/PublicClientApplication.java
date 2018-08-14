@@ -367,8 +367,8 @@ public final class PublicClientApplication {
      * @param data        {@link Intent} either contains the url with auth code as query string or the errors.
      */
     public void handleInteractiveRequestRedirect(int requestCode, int resultCode, final Intent data) {
-        //InteractiveRequest.onActivityResult(requestCode, resultCode, data);
-        MSALApiDispatcher.CompleteInteractive(requestCode, resultCode, data);
+        InteractiveRequest.onActivityResult(requestCode, resultCode, data);
+        //MSALApiDispatcher.CompleteInteractive(requestCode, resultCode, data);
     }
 
     // Interactive APIs. Will launch the system browser with web UI.
@@ -392,9 +392,10 @@ public final class PublicClientApplication {
      *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, @NonNull final AuthenticationCallback callback) {
-        //final String telemetryRequestId = Telemetry.generateNewRequestId();
-        //ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, API_ID_ACQUIRE);
+        final String telemetryRequestId = Telemetry.generateNewRequestId();
+        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, API_ID_ACQUIRE);
 
+        /*
         MSALAcquireTokenRequest request = new MSALAcquireTokenRequest();
 
         request.setScopes(Arrays.asList(scopes));
@@ -405,8 +406,9 @@ public final class PublicClientApplication {
 
         MSALApiDispatcher.BeginInteractive(new LocalMSALController(), request);
 
-        //acquireTokenInteractive(activity, scopes, "", UiBehavior.SELECT_ACCOUNT, "", null, "", null,
-          //      wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), telemetryRequestId, apiEventBuilder);
+        */
+
+        acquireTokenInteractive(activity, scopes, "", UiBehavior.SELECT_ACCOUNT, "", null, "", null, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), telemetryRequestId, apiEventBuilder);
     }
 
     /**

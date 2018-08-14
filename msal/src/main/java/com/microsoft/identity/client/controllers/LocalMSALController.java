@@ -10,6 +10,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequ
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.util.HashSet;
 import java.util.concurrent.ExecutionException;
@@ -34,7 +35,7 @@ public class LocalMSALController extends MSALController{
         authRequest.setContext(request.getAppContext());
         authRequest.setClientId(request.getClientId());
         authRequest.setRedirectUri(request.getRedirectUri());
-        authRequest.setScope(new HashSet<String>(request.getScopes()));
+        authRequest.setScope(StringUtil.join(' ', request.getScopes()));
 
 
         //TODO: Replace with factory to create the correct Authorization Strategy based on device capabilities and configuration

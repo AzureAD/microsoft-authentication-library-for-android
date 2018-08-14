@@ -132,7 +132,7 @@ class TokenCache {
         // Create the AuthorizationRequest
         final MicrosoftStsAuthorizationRequest authorizationRequest = new MicrosoftStsAuthorizationRequest();
         authorizationRequest.setClientId(clientId);
-        authorizationRequest.setScope(new HashSet<>(Arrays.asList(tokenResponse.getScope().split(" "))));
+        authorizationRequest.setScope(tokenResponse.getScope());
         authorizationRequest.setAuthority(authority);
 
         try {
