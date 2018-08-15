@@ -34,6 +34,7 @@ import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.dto.Account;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.msal.BuildConfig;
 
 import java.net.URL;
@@ -335,11 +336,21 @@ public final class PublicClientApplication {
      * @return The IAccount stored in the cache or null, if no such matching entry exists.
      */
     public IAccount getAccount(final String homeAccountIdentifier) {
-        final Account accountToReturn = mOauth2TokenCache.getAccount(
-                MsalUtils.getUrl(mAuthorityString).getHost(),
-                mClientId,
-                homeAccountIdentifier
-        );
+        final Account accountToReturn;
+
+        if (!StringUtil.isEmpty(homeAccountIdentifier)) {
+            accountToReturn = mOauth2TokenCache.getAccount(
+                    MsalUtils.getUrl(mAuthorityString).getHost(),
+                    mClientId,
+                    homeAccountIdentifier
+            );
+        } else {
+            com.microsoft.identity.common.internal.logging.Logger.warn(
+                    TAG,
+                    "homeAccountIdentifier was null or empty -- invalid criteria"
+            );
+            accountToReturn = null;
+        }
 
         return null == accountToReturn ? null : AccountAdapter.adapt(accountToReturn);
     }
@@ -351,6 +362,17 @@ public final class PublicClientApplication {
      * @return True, if the account was removed. False otherwise.
      */
     public boolean removeAccount(final IAccount account) {
+        if (null == account
+                || null == account.getHomeAccountIdentifier()
+                || StringUtil.isEmpty(account.getHomeAccountIdentifier().getIdentifier())) {
+            com.microsoft.identity.common.internal.logging.Logger.warn(
+                    TAG,
+                    "Requisite IAccount or IAccount fields were null. Insufficient criteria to remove IAccount."
+            );
+
+            return false;
+        }
+
         return mOauth2TokenCache.removeAccount(
                 MsalUtils.getUrl(mAuthorityString).getHost(),
                 mClientId,
