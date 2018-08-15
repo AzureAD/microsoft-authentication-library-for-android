@@ -30,11 +30,14 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 
+import com.microsoft.identity.client.controllers.MSALAcquireTokenOperationParameters;
+import com.microsoft.identity.client.controllers.MSALInteractiveTokenCommand;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.msal.BuildConfig;
 
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -394,8 +397,8 @@ public final class PublicClientApplication {
      * @param data        {@link Intent} either contains the url with auth code as query string or the errors.
      */
     public void handleInteractiveRequestRedirect(int requestCode, int resultCode, final Intent data) {
-        InteractiveRequest.onActivityResult(requestCode, resultCode, data);
-        //MSALApiDispatcher.CompleteInteractive(requestCode, resultCode, data);
+        //InteractiveRequest.onActivityResult(requestCode, resultCode, data);
+        com.microsoft.identity.client.MSALApiDispatcher.CompleteInteractive(requestCode, resultCode, data);
     }
 
     // Interactive APIs. Will launch the system browser with web UI.
@@ -419,23 +422,27 @@ public final class PublicClientApplication {
      *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, @NonNull final AuthenticationCallback callback) {
-        final String telemetryRequestId = Telemetry.generateNewRequestId();
-        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, API_ID_ACQUIRE);
+        //final String telemetryRequestId = Telemetry.generateNewRequestId();
+        //ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, API_ID_ACQUIRE);
 
-        /*
-        MSALAcquireTokenOperationParameters request = new MSALAcquireTokenOperationParameters();
 
-        request.setScopes(Arrays.asList(scopes));
-        request.setClientId(mClientId);
-        request.setRedirectUri(mRedirectUri);
-        request.setAppContext(mAppContext);
-        request.setActivity(activity);
+        MSALAcquireTokenOperationParameters params = new MSALAcquireTokenOperationParameters();
 
-        MSALApiDispatcher.BeginInteractive(new LocalMSALController(), request);
+        params.setScopes(Arrays.asList(scopes));
+        params.setClientId(mClientId);
+        params.setRedirectUri(mRedirectUri);
+        params.setActivity(activity);
 
-        */
+        MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand();
+        command.setContext(mAppContext);
+        command.setCallback(callback);
+        command.setParameters(params);
 
-        acquireTokenInteractive(activity, scopes, "", UiBehavior.SELECT_ACCOUNT, "", null, "", null, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), telemetryRequestId, apiEventBuilder);
+        com.microsoft.identity.client.MSALApiDispatcher.BeginInteractive(command);
+
+
+
+        //acquireTokenInteractive(activity, scopes, "", UiBehavior.SELECT_ACCOUNT, "", null, "", null, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), telemetryRequestId, apiEventBuilder);
     }
 
     /**

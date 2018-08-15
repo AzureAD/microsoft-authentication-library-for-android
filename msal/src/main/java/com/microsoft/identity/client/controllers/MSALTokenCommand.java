@@ -1,24 +1,63 @@
 package com.microsoft.identity.client.controllers;
 
 import android.content.Context;
+import android.content.Intent;
 
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
 
 public class MSALTokenCommand implements MSALTokenOperation {
 
-    protected MSALOperationParameters parameters;
-    protected MSALController controller;
-    protected Context context;
-    protected AuthenticationCallback callback;
+    private MSALOperationParameters parameters;
+    private MSALController controller;
+    private Context context;
+    private AuthenticationCallback callback;
 
 
     @Override
     public AuthenticationResult execute() {
-        if(parameters instanceof MSALAcquireTokenSilentOperationParameters){
-            return controller.AcquireTokenSilent((MSALAcquireTokenSilentOperationParameters)parameters);
+        if(getParameters() instanceof MSALAcquireTokenSilentOperationParameters){
+            return getController().AcquireTokenSilent((MSALAcquireTokenSilentOperationParameters) getParameters());
         }else{
             throw new IllegalArgumentException("Invalid operation parameters");
         }
+    }
+
+    @Override
+    public void notify(int requestCode, int resultCode, Intent data) {
+        throw new UnsupportedOperationException();
+    }
+
+
+    public MSALOperationParameters getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(MSALOperationParameters parameters) {
+        this.parameters = parameters;
+    }
+
+    public MSALController getController() {
+        return controller;
+    }
+
+    public void setController(MSALController controller) {
+        this.controller = controller;
+    }
+
+    public Context getContext() {
+        return context;
+    }
+
+    public void setContext(Context context) {
+        this.context = context;
+    }
+
+    public AuthenticationCallback getCallback() {
+        return callback;
+    }
+
+    public void setCallback(AuthenticationCallback callback) {
+        this.callback = callback;
     }
 }

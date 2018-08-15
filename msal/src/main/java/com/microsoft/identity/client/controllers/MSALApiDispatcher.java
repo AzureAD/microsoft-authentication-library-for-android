@@ -1,6 +1,8 @@
 package com.microsoft.identity.client;
 
+import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
 
 import com.microsoft.identity.client.controllers.MSALAcquireTokenOperationParameters;
 import com.microsoft.identity.client.controllers.MSALAcquireTokenSilentOperationParameters;
@@ -26,22 +28,38 @@ public class MSALApiDispatcher {
                 @Override
                 public void run() {
                     sCommand = command;
-                    AuthenticationResult result = command.execute();
+                    final AuthenticationResult result = command.execute();
+                    Handler handler = new Handler(command.getContext().getMainLooper());
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            command.getCallback().onSuccess(result);
+                        }
+                    });
                 }
             });
         }
     }
 
     public static void CompleteInteractive(int requestCode, int resultCode, final Intent data){
-        sInteractiveController.CompleteAcquireToken(requestCode, resultCode, data);
+        sCommand.notify(requestCode, resultCode, data);
     }
 
-    public static void SubmitSilent(final MSALController controller, final MSALAcquireTokenSilentOperationParameters request){
+    public static void SubmitSilent(final MSALTokenCommand command){
         sSilentExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                controller.AcquireTokenSilent(request);
+                final AuthenticationResult result = command.execute();
+                Handler handler = new Handler(command.getContext().getMainLooper());
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        command.getCallback().onSuccess(result);
+                    }
+                });
             }
         });
     }
+
+
 }
