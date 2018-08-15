@@ -30,16 +30,11 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 
-import com.microsoft.identity.client.MSALApiDispatcher;
-import com.microsoft.identity.client.controllers.LocalMSALController;
-import com.microsoft.identity.client.controllers.MSALAcquireTokenRequest;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.msal.BuildConfig;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -428,7 +423,7 @@ public final class PublicClientApplication {
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, API_ID_ACQUIRE);
 
         /*
-        MSALAcquireTokenRequest request = new MSALAcquireTokenRequest();
+        MSALAcquireTokenOperationParameters request = new MSALAcquireTokenOperationParameters();
 
         request.setScopes(Arrays.asList(scopes));
         request.setClientId(mClientId);

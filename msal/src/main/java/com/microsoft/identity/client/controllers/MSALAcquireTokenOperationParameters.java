@@ -8,7 +8,7 @@ import com.microsoft.identity.client.User;
 
 import java.util.List;
 
-public class MSALAcquireTokenRequest {
+public class MSALAcquireTokenOperationParameters extends MSALOperationParameters {
 
     private Context mAppContext;
     private Activity mActivity;

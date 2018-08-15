@@ -1,4 +1,4 @@
 package com.microsoft.identity.client.controllers;
 
-public class MSALAcquireTokenSilentRequest {
+public class MSALOperationParameters {
 }
