@@ -471,7 +471,7 @@ public final class PublicClientApplication {
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, API_ID_ACQUIRE);
 
         /*
-        MSALAcquireTokenRequest request = new MSALAcquireTokenRequest();
+        MSALAcquireTokenOperationParameters request = new MSALAcquireTokenOperationParameters();
 
         request.setScopes(Arrays.asList(scopes));
         request.setClientId(mClientId);
