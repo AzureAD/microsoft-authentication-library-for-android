@@ -36,7 +36,7 @@ class AccountAdapter {
      * @param accountIn The Account to transform.
      * @return A representation of the supplied Account, as an IAccount.
      */
-    public static IAccount adapt(final Account accountIn) {
+    static IAccount adapt(final Account accountIn) {
         final com.microsoft.identity.client.Account accountOut
                 = new com.microsoft.identity.client.Account();
 
