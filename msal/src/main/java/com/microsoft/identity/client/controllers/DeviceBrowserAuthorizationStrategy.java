@@ -13,10 +13,12 @@ import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.M
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationErrorResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResponse;
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResultFactory;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResultFuture;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStatus;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 
 import java.io.UnsupportedEncodingException;
 import java.util.concurrent.Future;
@@ -25,8 +27,10 @@ public class DeviceBrowserAuthorizationStrategy extends AuthorizationStrategy {
 
     private AuthorizationResultFuture mAuthorizationResultFuture;
     private Activity mActivity;
+    private OAuth2Strategy mOAuth2Strategy;
 
-    public DeviceBrowserAuthorizationStrategy(@NonNull Activity activity){
+    public DeviceBrowserAuthorizationStrategy(@NonNull OAuth2Strategy strategy, @NonNull Activity activity){
+        mOAuth2Strategy = strategy;
         mActivity = activity;
     }
 
@@ -60,38 +64,11 @@ public class DeviceBrowserAuthorizationStrategy extends AuthorizationStrategy {
             return;
         }
 
-        //Unexpected State until a known state
-        AuthorizationResult result = null;
 
-        if (data == null) {
-            //Again Log.... set unexpected state
-            AuthorizationErrorResponse errorResponse = new AuthorizationErrorResponse();
-            errorResponse.setError("INVALID_AUTHORIZATION_RESPONSE");
-            errorResponse.setErrorDescription("No data provided when attempting to complete the authorization request."));
-            result = new AuthorizationResult(null, errorResponse);
-        }else {
+        AuthorizationResultFactory factory = mOAuth2Strategy.getAuthorizationResultFactory();
+        AuthorizationResult result = factory.createAuthorizationResult(resultCode, data);
 
-            switch (resultCode) {
-
-                case Constants.UIResponse.CANCEL:
-                    result = new AuthorizationResult(AuthorizationStatus.USER_CANCEL);
-                    break;
-                case Constants.UIResponse.AUTH_CODE_COMPLETE:
-                    MicrosoftStsOAuth2Strategy strategy = new MicrosoftStsOAuth2Strategy(new MicrosoftStsOAuth2Configuration());
-                    //TODO: Parse response from URL
-                    result = strategy.get
-                    break;
-                case Constants.UIResponse.AUTH_CODE_ERROR:
-                    AuthorizationErrorResponse errorResponse = new AuthorizationErrorResponse();
-                    errorResponse.setError(data.getStringExtra(Constants.UIResponse.ERROR_CODE));
-                    errorResponse.setErrorDescription(data.getStringExtra(Constants.UIResponse.ERROR_DESCRIPTION));
-                    result = new AuthorizationResult(null, errorResponse);
-                    break;
-            }
-        }
-
-
-        mAuthorizationResultFuture.setAuthorizationResult(null); //result
+        mAuthorizationResultFuture.setAuthorizationResult(result); //result
 
     }
 

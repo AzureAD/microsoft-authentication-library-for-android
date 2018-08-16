@@ -30,6 +30,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 
+import com.microsoft.identity.client.controllers.LocalMSALController;
 import com.microsoft.identity.client.controllers.MSALAcquireTokenOperationParameters;
 import com.microsoft.identity.client.controllers.MSALInteractiveTokenCommand;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
@@ -432,11 +433,13 @@ public final class PublicClientApplication {
         params.setClientId(mClientId);
         params.setRedirectUri(mRedirectUri);
         params.setActivity(activity);
+        params.setTokenCache(TokenCache.initCommonCache(mAppContext));
 
         MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand();
         command.setContext(mAppContext);
         command.setCallback(callback);
         command.setParameters(params);
+        command.setController(new LocalMSALController());
 
         com.microsoft.identity.client.MSALApiDispatcher.BeginInteractive(command);
 

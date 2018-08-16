@@ -70,12 +70,17 @@ public final class AuthenticationActivity extends Activity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mAuthorizationRequest = null;
+        /*
         mAuthorizationRequest = getAuthorizationRequestFromIntent(getIntent());
+
 
         if (mAuthorizationRequest == null) {
             sendError(MsalClientException.UNRESOLVABLE_INTENT, "Cannot generate the authorization request from the intent.");
             return;
         }
+        */
 
         // If activity is killed by the os, savedInstance will be the saved bundle.
         if (savedInstanceState != null) {
@@ -93,6 +98,7 @@ public final class AuthenticationActivity extends Activity {
         }
 
         mUseEmbeddedWebView = data.getIntExtra(Constants.WEBVIEW_SELECTION, 0) != WebViewSelection.SYSTEM_BROWSER.getId();
+        mUseEmbeddedWebView = false;
 
         launchWebView();
         mRequestUrl = data.getStringExtra(Constants.REQUEST_URL_KEY);
@@ -120,7 +126,9 @@ public final class AuthenticationActivity extends Activity {
         if (mUseEmbeddedWebView) {
             Logger.verbose(TAG, null, "Use webView to perform interactive authorization request. ");
             mChallengeCompletionCallback = new ChallengeCompletionCallback();
-            AzureActiveDirectoryWebViewClient webViewClient = new AzureActiveDirectoryWebViewClient(this, mAuthorizationRequest, mChallengeCompletionCallback);
+
+            //AzureActiveDirectoryWebViewClient webViewClient = new AzureActiveDirectoryWebViewClient(this, mAuthorizationRequest, mChallengeCompletionCallback);
+            AzureActiveDirectoryWebViewClient webViewClient = new AzureActiveDirectoryWebViewClient(this, null, mChallengeCompletionCallback);
 
             setContentView(R.layout.activity_authentication);
             final WebView webview = (WebView) this.findViewById(R.id.webview);
@@ -246,6 +254,7 @@ public final class AuthenticationActivity extends Activity {
         returnToCaller(Constants.UIResponse.AUTH_CODE_ERROR, errorIntent);
     }
 
+    /*
     private MicrosoftStsAuthorizationRequest getAuthorizationRequestFromIntent(final Intent callingIntent) {
         MicrosoftStsAuthorizationRequest authRequest = null;
         Serializable request = callingIntent
@@ -258,6 +267,7 @@ public final class AuthenticationActivity extends Activity {
 
         return authRequest;
     }
+    */
 
     class ChallengeCompletionCallback implements IChallengeCompletionCallback {
         @Override
