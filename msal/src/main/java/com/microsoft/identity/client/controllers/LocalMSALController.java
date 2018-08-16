@@ -10,6 +10,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationConf
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStatus;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenRequest;
@@ -38,7 +39,7 @@ public class LocalMSALController extends MSALController{
         //2) Gather authorization interactively
         AuthorizationResult result = performAuthorizationRequest(oAuth2Strategy, parameters);
 
-        if(result.getSuccess()){
+        if(result.getAuthorizationStatus().equals(AuthorizationStatus.SUCCESS)){
             //3) Exchange authorization code for token
             TokenResult tokenResult = performTokenRequest(oAuth2Strategy, result.getAuthorizationResponse(), parameters);
             if(tokenResult != null && tokenResult.getSuccess()){
