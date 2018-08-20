@@ -34,7 +34,9 @@ import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsPromptBehavior;
 import com.microsoft.identity.common.internal.providers.oauth2.PkceChallenge;
+import com.microsoft.identity.common.internal.ui.webview.AzureActiveDirectoryWebViewClient;
 import com.microsoft.identity.common.internal.util.StringUtil;
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
@@ -101,7 +103,7 @@ final class InteractiveRequest extends BaseRequest {
         sAuthorizationRequest = createAuthRequest();
 
         Logger.verbose(TAG, mRequestContext, "Create the intent to launch in AuthenticationActivity.");
-        final Intent intentToLaunch = new Intent(mContext, AuthenticationActivity.class);
+        final Intent intentToLaunch = new Intent(mContext, AuthorizationActivity.class);
         try {
             intentToLaunch.putExtra(Constants.REQUEST_URL_KEY, sAuthorizationRequest.getAuthorizationStartUrl());
         } catch (final ClientException exception) {
