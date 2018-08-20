@@ -107,7 +107,7 @@ final class AuthUtil {
                 UiBehavior.CONSENT,
                 "", // Extra query parameters
                 EXTRA_SCOPES,
-                "", // Authority
+                "", // AuthorityMetadata
                 new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {

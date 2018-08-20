@@ -48,12 +48,12 @@ public final class AuthenticationRequestParametersTest {
     static final String LOGIN_HINT = "someLoginHint";
     static final UUID CORRELATION_ID = UUID.randomUUID();
     static final String COMPONENT = "test component";
-    Authority mAuthority;
+    AuthorityMetadata mAuthority;
 
     @Before
     public void setUp() {
         Logger.getInstance().setEnableLogcatLog(false);
-        mAuthority = Authority.createAuthority(Util.VALID_AUTHORITY, false);
+        mAuthority = AuthorityMetadata.createAuthority(Util.VALID_AUTHORITY, false);
     }
 
     @Test(expected = IllegalArgumentException.class)

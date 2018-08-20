@@ -37,7 +37,7 @@ import java.util.Set;
 /**
  * MSAL internal class for representing the ADFS authority.
  */
-final class AdfsAuthority extends Authority {
+final class AdfsAuthorityMetadata extends AuthorityMetadata {
 
     private static final int DELIM_NOT_FOUND = -1;
 
@@ -47,12 +47,12 @@ final class AdfsAuthority extends Authority {
             Collections.synchronizedSet(new HashSet<String>());
 
     /**
-     * Constructor for the {@link Authority}.
+     * Constructor for the {@link AuthorityMetadata}.
      *
      * @param authorityUrl      The string representation for the authority url.
      * @param validateAuthority Validate authority before sending token request
      */
-    protected AdfsAuthority(final URL authorityUrl, final boolean validateAuthority) {
+    protected AdfsAuthorityMetadata(final URL authorityUrl, final boolean validateAuthority) {
         super(authorityUrl, validateAuthority);
         mAuthorityType = AuthorityType.ADFS;
     }
@@ -63,31 +63,31 @@ final class AdfsAuthority extends Authority {
             throw new IllegalArgumentException("userPrincipalName cannot be null or blank");
         }
 
-        final Map<String, Authority> authorityMap = Authority.RESOLVED_AUTHORITY;
+        final Map<String, AuthorityMetadata> authorityMap = AuthorityMetadata.RESOLVED_AUTHORITY;
         final String authorityUrlStr = mAuthorityUrl.toString();
 
         return authorityMap.containsKey(authorityUrlStr)
-                && authorityMap.get(authorityUrlStr) instanceof AdfsAuthority
-                && ((AdfsAuthority) authorityMap.get(authorityUrlStr))
+                && authorityMap.get(authorityUrlStr) instanceof AdfsAuthorityMetadata
+                && ((AdfsAuthorityMetadata) authorityMap.get(authorityUrlStr))
                 .getADFSValidatedAuthorities()
                 .contains(getDomainFromUPN(userPrincipalName));
     }
 
     @Override
     void addToResolvedAuthorityCache(final String userPrincipalName) {
-        AdfsAuthority adfsInstance = this;
+        AdfsAuthorityMetadata adfsInstance = this;
 
         final String authorityUrlStr = mAuthorityUrl.toString();
 
-        if (Authority.RESOLVED_AUTHORITY.containsKey(authorityUrlStr)) {
-            adfsInstance = (AdfsAuthority) RESOLVED_AUTHORITY.get(authorityUrlStr);
+        if (AuthorityMetadata.RESOLVED_AUTHORITY.containsKey(authorityUrlStr)) {
+            adfsInstance = (AdfsAuthorityMetadata) RESOLVED_AUTHORITY.get(authorityUrlStr);
         }
 
         adfsInstance
                 .getADFSValidatedAuthorities()
                 .add(getDomainFromUPN(userPrincipalName));
 
-        Authority.RESOLVED_AUTHORITY.put(authorityUrlStr, adfsInstance);
+        AuthorityMetadata.RESOLVED_AUTHORITY.put(authorityUrlStr, adfsInstance);
     }
 
     @Override
@@ -101,7 +101,7 @@ final class AdfsAuthority extends Authority {
             try {
                 authorityURI = mAuthorityUrl.toURI();
             } catch (final URISyntaxException e) {
-                throw new MsalClientException(MsalClientException.UNSUPPORTED_URL, "Authority url cannot be constructed to be URI. ", e);
+                throw new MsalClientException(MsalClientException.UNSUPPORTED_URL, "AuthorityMetadata url cannot be constructed to be URI. ", e);
             }
 
             // Verify trust

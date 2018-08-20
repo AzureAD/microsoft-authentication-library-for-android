@@ -2,11 +2,11 @@ package com.microsoft.identity.client;
 
 public interface AuthorityValidationCallback {
     /**
-     * Authority validation finishes successfully.
+     * AuthorityMetadata validation finishes successfully.
      *
-     * @param knownAuthority {@link Authority} that contains the success response.
+     * @param knownAuthority {@link AuthorityMetadata} that contains the success response.
      */
-    void onSuccess(Authority knownAuthority);
+    void onSuccess(AuthorityMetadata knownAuthority);
 
     /**
      * Error occurs during the authentication.

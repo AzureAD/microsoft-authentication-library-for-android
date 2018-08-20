@@ -34,11 +34,11 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * MSAL internal representation for the authority.
  */
-abstract class Authority {
-    private static final String TAG = Authority.class.getSimpleName();
+abstract class AuthorityMetadata {
+    private static final String TAG = AuthorityMetadata.class.getSimpleName();
     private static final String HTTPS_PROTOCOL = "https";
 
-    static final ConcurrentMap<String, Authority> RESOLVED_AUTHORITY = new ConcurrentHashMap<>();
+    static final ConcurrentMap<String, AuthorityMetadata> RESOLVED_AUTHORITY = new ConcurrentHashMap<>();
     static final String DEFAULT_OPENID_CONFIGURATION_ENDPOINT = "/v2.0/.well-known/openid-configuration";
     // default_authorize_endpoint is used for instance discovery sent as query parameter for instance discovery.
     static final String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/v2.0/authorize";
@@ -77,21 +77,21 @@ abstract class Authority {
     abstract boolean existsInResolvedAuthorityCache(final String userPrincipalName);
 
     /**
-     * Adds this Authority to the {@link Authority#RESOLVED_AUTHORITY} cache.
+     * Adds this AuthorityMetadata to the {@link AuthorityMetadata#RESOLVED_AUTHORITY} cache.
      *
      * @param userPrincipalName the UPN of the current user (if available)
      */
     abstract void addToResolvedAuthorityCache(final String userPrincipalName);
 
     /**
-     * Create the detailed authority. If the authority url string is for AAD, will create the {@link AadAuthority}, otherwise
+     * Create the detailed authority. If the authority url string is for AAD, will create the {@link AadAuthorityMetadata}, otherwise
      * ADFS or B2C authority will be created.
      *
-     * @param authorityUrl      The authority url used to create the {@link Authority}.
+     * @param authorityUrl      The authority url used to create the {@link AuthorityMetadata}.
      * @param validateAuthority True if performing authority validation, false otherwise.
-     * @return The {@link Authority} instance.
+     * @return The {@link AuthorityMetadata} instance.
      */
-    static Authority createAuthority(final String authorityUrl, final boolean validateAuthority) {
+    static AuthorityMetadata createAuthority(final String authorityUrl, final boolean validateAuthority) {
         final URL authority;
         try {
             authority = new URL(authorityUrl);
@@ -116,19 +116,19 @@ abstract class Authority {
             throw new IllegalArgumentException("ADFS authority is not a supported authority instance");
         } else if (isB2cAuthority) {
             Logger.info(TAG, null, "Passed in authority string is a b2c authority, create a new b2c authority instance.");
-            return new B2cAuthority(authority, validateAuthority);
+            return new B2CAuthorityMetadata(authority, validateAuthority);
         }
 
         Logger.info(TAG, null, "Passed in authority string is an aad authority, create a new aad authority instance.");
-        return new AadAuthority(authority, validateAuthority);
+        return new AadAuthorityMetadata(authority, validateAuthority);
     }
 
     /**
-     * Convenience method for {@link Authority#getAuthorityHost()}. Constructs an Authority and returns the host portion of the URL.
+     * Convenience method for {@link AuthorityMetadata#getAuthorityHost()}. Constructs an AuthorityMetadata and returns the host portion of the URL.
      *
-     * @param authorityUrl      The authority url used to create the {@link Authority}.
+     * @param authorityUrl      The authority url used to create the {@link AuthorityMetadata}.
      * @param validateAuthority True if performing authority validation, false otherwise.
-     * @return The host portion of the {@link Authority} instance's URL.
+     * @return The host portion of the {@link AuthorityMetadata} instance's URL.
      */
     static String getAuthorityHost(final String authorityUrl, final boolean validateAuthority) {
         return createAuthority(authorityUrl, validateAuthority).getAuthorityHost();
@@ -146,15 +146,15 @@ abstract class Authority {
     void resolveEndpoints(final RequestContext requestContext, final String userPrincipalName) throws MsalClientException, MsalServiceException {
         Logger.info(TAG, requestContext, "Perform authority validation and tenant discovery.");
         if (existsInResolvedAuthorityCache(userPrincipalName)) {
-            Logger.info(TAG, requestContext, "Authority has already been resolved. ");
+            Logger.info(TAG, requestContext, "AuthorityMetadata has already been resolved. ");
 
-            final Authority preValidatedAuthority = RESOLVED_AUTHORITY.get(mAuthorityUrl.toString());
+            final AuthorityMetadata preValidatedAuthority = RESOLVED_AUTHORITY.get(mAuthorityUrl.toString());
             if (!mValidateAuthority || preValidatedAuthority.mIsAuthorityValidated) {
                 mAuthorizationEndpoint = preValidatedAuthority.mAuthorizationEndpoint;
                 mTokenEndpoint = preValidatedAuthority.mTokenEndpoint;
                 return;
             } else {
-                Logger.info(TAG, requestContext, "Authority has not been validated, need to perform authority validation first.");
+                Logger.info(TAG, requestContext, "AuthorityMetadata has not been validated, need to perform authority validation first.");
             }
         }
 
@@ -186,12 +186,12 @@ abstract class Authority {
     }
 
     /**
-     * Constructor for the {@link Authority}.
+     * Constructor for the {@link AuthorityMetadata}.
      *
      * @param authorityUrl      The string representation for the authority url.
      * @param validateAuthority True if authority validation is set to be true, false otherwise.
      */
-    protected Authority(final URL authorityUrl, final boolean validateAuthority) {
+    protected AuthorityMetadata(final URL authorityUrl, final boolean validateAuthority) {
         mAuthorityUrl = updateAuthority(authorityUrl);
         mValidateAuthority = validateAuthority;
 
@@ -290,21 +290,21 @@ abstract class Authority {
     }
 
     /**
-     * The Authority type.
+     * The AuthorityMetadata type.
      */
     enum AuthorityType {
         /**
-         * Authority is an instance of AAD authority.
+         * AuthorityMetadata is an instance of AAD authority.
          */
 
         AAD,
         /**
-         * Authority is an instance of ADFS authority.
+         * AuthorityMetadata is an instance of ADFS authority.
          */
         ADFS,
 
         /**
-         * Authority is an instance of B2C authority.
+         * AuthorityMetadata is an instance of B2C authority.
          */
         B2C
     }

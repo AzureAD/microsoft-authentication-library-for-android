@@ -199,8 +199,8 @@ public final class Oauth2ClientTest {
 
     // TODO: add test for correlation id is not the same as what's sent in the header.
 
-    private Authority getAuthority(final String authorityUrl) {
-        final Authority authority = Authority.createAuthority(authorityUrl, false);
+    private AuthorityMetadata getAuthority(final String authorityUrl) {
+        final AuthorityMetadata authority = AuthorityMetadata.createAuthority(authorityUrl, false);
         authority.mTokenEndpoint = "https://login.microsoftonline.com/oauth2/v2.0/token";
         return authority;
     }

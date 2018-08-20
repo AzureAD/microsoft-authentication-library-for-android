@@ -208,7 +208,7 @@ abstract class BaseRequest {
         checkUserMismatch();
 
         final TokenCache tokenCache = mAuthRequestParameters.getTokenCache();
-        final Authority authority = mAuthRequestParameters.getAuthority();
+        final AuthorityMetadata authority = mAuthRequestParameters.getAuthority();
         authority.updateTenantLessAuthority(new IdToken(mTokenResponse.getRawIdToken()).getTenantId());
 
         final AccessTokenCacheItem accessTokenCacheItem;

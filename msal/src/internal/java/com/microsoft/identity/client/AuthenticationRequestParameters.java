@@ -37,7 +37,7 @@ final class AuthenticationRequestParameters {
     private final String mClientId;
     private final RequestContext mRequestContext;
 
-    private Authority mAuthority;
+    private AuthorityMetadata mAuthority;
     private String mRedirectUri;
     private String mLoginHint;
     private String mExtraQueryParam;
@@ -49,7 +49,7 @@ final class AuthenticationRequestParameters {
     /**
      * Creates new {@link AuthenticationRequestParameters}.
      */
-    private AuthenticationRequestParameters(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
+    private AuthenticationRequestParameters(final AuthorityMetadata authority, final TokenCache tokenCache, final Set<String> scope,
                                             final String clientId, final String sliceParameters, final RequestContext requestContext) {
         // Every acquireToken API call should contain correlation id.
         if (requestContext == null || requestContext.getCorrelationId() == null) {
@@ -72,7 +72,7 @@ final class AuthenticationRequestParameters {
         mSliceParameters = sliceParameters;
         mRequestContext = requestContext;
 
-        if (authority.getAuthorityType() == Authority.AuthorityType.B2C) {
+        if (authority.getAuthorityType() == AuthorityMetadata.AuthorityType.B2C) {
             mWebViewSelection = WebViewSelection.SYSTEM_BROWSER;
         }
     }
@@ -80,7 +80,7 @@ final class AuthenticationRequestParameters {
     /**
      * Creates the {@link AuthenticationRequestParameters} with all the given parameters.
      */
-    static AuthenticationRequestParameters create(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
+    static AuthenticationRequestParameters create(final AuthorityMetadata authority, final TokenCache tokenCache, final Set<String> scope,
                                                   final String clientId, final String redirectUri, final String loginHint,
                                                   final String extraQueryParam, final UiBehavior uiBehavior, final User user,
                                                   final String sliceParameters, final RequestContext requestContext) {
@@ -98,17 +98,17 @@ final class AuthenticationRequestParameters {
     /**
      * Creates the {@link AuthenticationRequestParameters} with all the given parameters.
      */
-    static AuthenticationRequestParameters create(final Authority authority, final TokenCache tokenCache, final Set<String> scope,
+    static AuthenticationRequestParameters create(final AuthorityMetadata authority, final TokenCache tokenCache, final Set<String> scope,
                                                   final String clientId, final String sliceParameters, final RequestContext requestContext) {
         return new AuthenticationRequestParameters(authority, tokenCache, scope, clientId, sliceParameters, requestContext);
     }
 
-    Authority getAuthority() {
+    AuthorityMetadata getAuthority() {
         return mAuthority;
     }
 
     void setAuthority(final String authorityString, final boolean isAuthorityValidationOn) {
-        mAuthority = Authority.createAuthority(authorityString, isAuthorityValidationOn);
+        mAuthority = AuthorityMetadata.createAuthority(authorityString, isAuthorityValidationOn);
     }
 
     TokenCache getTokenCache() {

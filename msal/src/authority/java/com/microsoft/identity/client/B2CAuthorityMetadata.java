@@ -29,11 +29,11 @@ import java.net.URL;
 /**
  * MSAL internal class for representing the B2C authority instance.
  */
-final class B2cAuthority extends AadAuthority {
-    private static final String TAG = B2cAuthority.class.getSimpleName();
+final class B2CAuthorityMetadata extends AadAuthorityMetadata {
+    private static final String TAG = B2CAuthorityMetadata.class.getSimpleName();
     private static final int B2C_AUTHORITY_SEGMENTS_SIZE = 3;
 
-    B2cAuthority(final URL authority, boolean validateAuthority) {
+    B2CAuthorityMetadata(final URL authority, boolean validateAuthority) {
         super(authority, validateAuthority);
 
         mAuthorityType = AuthorityType.B2C;
@@ -74,8 +74,8 @@ final class B2cAuthority extends AadAuthority {
     String performInstanceDiscovery(final RequestContext requestContext, final String userPrincipalName) throws MsalClientException {
         if (mValidateAuthority && !TRUSTED_HOST_SET.contains(mAuthorityUrl.getAuthority())) {
             // we don't support b2c authority validation for BUILD.
-            Logger.error(TAG, null, "Authority validation is not supported for b2c authority.", null);
-            throw new MsalClientException(MsalClientException.AUTHORITY_VALIDATION_NOT_SUPPORTED, "Authority validation cannot be done against B2c instance.");
+            Logger.error(TAG, null, "AuthorityMetadata validation is not supported for b2c authority.", null);
+            throw new MsalClientException(MsalClientException.AUTHORITY_VALIDATION_NOT_SUPPORTED, "AuthorityMetadata validation cannot be done against B2c instance.");
         }
 
         return getDefaultOpenIdConfigurationEndpoint();

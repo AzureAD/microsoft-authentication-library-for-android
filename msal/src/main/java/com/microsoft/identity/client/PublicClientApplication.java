@@ -52,7 +52,7 @@ import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_
  * <p>
  * This is the entry point for developer to create public native applications and make API calls to acquire tokens.
  * <p><b>Client ID:</b> The clientID of your application is a unique identifier which can be obtained from the app registration portal.</p>
- * <p><b>Authority:</b> A URL indicating a directory that MSAL can use to obtain tokens. In Azure AD
+ * <p><b>AuthorityMetadata:</b> A URL indicating a directory that MSAL can use to obtain tokens. In Azure AD
  * it is of the form https://<[nstance]/[tenant], where [instance] is the directory host (e.g. https://login.microsoftonline.com)
  * and [tenant] is an identifier within the directory itself (e.g. a domain associated to the
  * tenant, such as contoso.onmicrosoft.com, or the GUID representing the  TenantID property of the directory)
@@ -98,7 +98,8 @@ public final class PublicClientApplication {
     private static final String TAG = PublicClientApplication.class.getSimpleName();
 
     private static final String CLIENT_ID_META_DATA = "com.microsoft.identity.client.ClientId";
-    private static final String AUTHORITY_META_DATA = "com.microsoft.identity.client.Authority";
+    private static final String AUTHORITY_META_DATA = "com.microsoft.identity.client.AuthorityMetadata";
+    private static final String CONFIGURATION = "com.microsoft.identity.client.Configuration";
     private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
     private static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common/";
@@ -145,7 +146,7 @@ public final class PublicClientApplication {
      * Redirect uri <b>MUST</b> be set in the manifest as the meta data({@link IllegalArgumentException} will be thrown
      * if client id is not provided), name for redirect uri in metadata is: "com.microsoft.identity.client.RedirectUri".
      * <p>
-     * Authority can be set in the meta data, if not provided, the sdk will use the default authority https://login.microsoftonline.com/common.
+     * AuthorityMetadata can be set in the meta data, if not provided, the sdk will use the default authority https://login.microsoftonline.com/common.
      * </p>
      *
      * @param context Application's {@link Context}. The sdk requires the application context to be passed in
@@ -301,7 +302,7 @@ public final class PublicClientApplication {
         initializeDiagnosticContext(correlationId.toString());
 
         List<User> users = mTokenCache.getUsers(
-                Authority.getAuthorityHost(mAuthorityString, mValidateAuthority),
+                AuthorityMetadata.getAuthorityHost(mAuthorityString, mValidateAuthority),
                 mClientId,
                 new RequestContext(
                         correlationId,
@@ -704,8 +705,8 @@ public final class PublicClientApplication {
             throw new IllegalArgumentException("callback is null");
         }
 
-        final Authority authorityForRequest = MsalUtils.isEmpty(authority) ? Authority.createAuthority(mAuthorityString, mValidateAuthority)
-                : Authority.createAuthority(authority, mValidateAuthority);
+        final AuthorityMetadata authorityForRequest = MsalUtils.isEmpty(authority) ? AuthorityMetadata.createAuthority(mAuthorityString, mValidateAuthority)
+                : AuthorityMetadata.createAuthority(authority, mValidateAuthority);
 
         // Initialize Logging & RequestContext
         final UUID correlationId = UUID.randomUUID();
@@ -742,8 +743,8 @@ public final class PublicClientApplication {
     private AuthenticationRequestParameters getRequestParameters(final String authority, final String[] scopes,
                                                                  final String loginHint, final String extraQueryParam,
                                                                  final UiBehavior uiBehavior, final User user, final String telemetryRequestId) {
-        final Authority authorityForRequest = MsalUtils.isEmpty(authority) ? Authority.createAuthority(mAuthorityString, mValidateAuthority)
-                : Authority.createAuthority(authority, mValidateAuthority);
+        final AuthorityMetadata authorityForRequest = MsalUtils.isEmpty(authority) ? AuthorityMetadata.createAuthority(mAuthorityString, mValidateAuthority)
+                : AuthorityMetadata.createAuthority(authority, mValidateAuthority);
 
         // Set up the correlationId for logging + request tracking
         final UUID correlationId = UUID.randomUUID();

@@ -70,9 +70,9 @@ final class Oauth2Client {
     }
 
     /**
-     * Send post request to get token with the given authority. Authority will hold the token endpoint.
+     * Send post request to get token with the given authority. AuthorityMetadata will hold the token endpoint.
      */
-    TokenResponse getToken(final Authority authority) throws IOException, MsalClientException, MsalServiceException {
+    TokenResponse getToken(final AuthorityMetadata authority) throws IOException, MsalClientException, MsalServiceException {
 
         return executeHttpRequest(HttpRequest.REQUEST_METHOD_POST, authority.getTokenEndpoint(), new ParseRawJsonResponseDelegate<TokenResponse>() {
             @Override

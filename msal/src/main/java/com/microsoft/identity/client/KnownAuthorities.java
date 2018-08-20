@@ -13,7 +13,7 @@ public class KnownAuthorities extends ArrayList<Authority> {
 
     public boolean isKnown(String authority){
         for (Authority a: this ){
-            if(authority.equalsIgnoreCase(a.getIssuerUri().toString())){
+            if(authority.equalsIgnoreCase(a.getAuthorityUri().toString())){
                 return true;
             }
         }

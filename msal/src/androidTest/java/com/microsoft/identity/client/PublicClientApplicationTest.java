@@ -65,7 +65,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         InstrumentationRegistry.getContext().getCacheDir();
         System.setProperty("dexmaker.dexcache",
                 InstrumentationRegistry.getContext().getCacheDir().getPath());
-        Authority.RESOLVED_AUTHORITY.clear();
+        AuthorityMetadata.RESOLVED_AUTHORITY.clear();
 
         mAppContext = InstrumentationRegistry.getContext().getApplicationContext();
         mRedirectUri = "msauth-client-id://" + mAppContext.getPackageName();
@@ -367,7 +367,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                 final String scopeForSilent = "scope3";
                 application.setValidateAuthority(true);
                 // perform instance discovery first
-                AndroidTestMockUtil.mockSuccessInstanceDiscovery(AuthorityTest.TENANT_DISCOVERY_ENDPOINT);
+                AndroidTestMockUtil.mockSuccessInstanceDiscovery(AuthorityMetadataTest.TENANT_DISCOVERY_ENDPOINT);
                 // will do tenant discovery again
                 AndroidTestMockUtil.mockSuccessTenantDiscovery(SilentRequestTest.AUTHORIZE_ENDPOINT, SilentRequestTest.TOKEN_ENDPOINT);
 
@@ -1193,7 +1193,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         }
 
         if (!MsalUtils.isEmpty(alternateAuthorityInManifest)) {
-            applicationInfo.metaData.putString("com.microsoft.identity.client.Authority", alternateAuthorityInManifest);
+            applicationInfo.metaData.putString("com.microsoft.identity.client.AuthorityMetadata", alternateAuthorityInManifest);
         }
 
         Mockito.when(mockedPackageManager.getApplicationInfo(
@@ -1308,7 +1308,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             InteractiveRequestTest.mockNetworkConnected(context, true);
 
             if (!MsalUtils.isEmpty(getAlternateAuthorityInManifest())) {
-                AndroidTestMockUtil.mockSuccessTenantDiscovery(getAlternateAuthorityInManifest() + Authority.DEFAULT_AUTHORIZE_ENDPOINT,
+                AndroidTestMockUtil.mockSuccessTenantDiscovery(getAlternateAuthorityInManifest() + AuthorityMetadata.DEFAULT_AUTHORIZE_ENDPOINT,
                         ALTERNATE_AUTHORITY + DEFAULT_TOKEN_ENDPOINT);
             } else {
                 AndroidTestMockUtil.mockSuccessTenantDiscovery(SilentRequestTest.AUTHORIZE_ENDPOINT, SilentRequestTest.TOKEN_ENDPOINT);

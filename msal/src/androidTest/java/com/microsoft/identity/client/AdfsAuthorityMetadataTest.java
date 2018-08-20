@@ -40,13 +40,13 @@ import java.net.URL;
 import java.util.UUID;
 
 @RunWith(AndroidJUnit4.class)
-public class AdfsAuthorityTest {
+public class AdfsAuthorityMetadataTest {
 
     private static final RequestContext REQUEST_CONTEXT = new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId());
 
     private final String mTestUPN = "user.name@foo.com";
 
-    private AdfsAuthority mAdfsAuthority;
+    private AdfsAuthorityMetadata mAdfsAuthority;
 
     @Before
     public void setUp() {
@@ -67,7 +67,7 @@ public class AdfsAuthorityTest {
     }
 
     private void initializeAuthority() throws MalformedURLException {
-        mAdfsAuthority = new AdfsAuthority(
+        mAdfsAuthority = new AdfsAuthorityMetadata(
                 new URL("https://fs.ngctest.nttest.microsoft.com/adfs/ls/"),
                 true
         );
@@ -94,7 +94,7 @@ public class AdfsAuthorityTest {
     @Test
     public void testPerformInstanceDiscovery() {
         try {
-            final AdfsAuthority authority = new AdfsAuthority(
+            final AdfsAuthorityMetadata authority = new AdfsAuthorityMetadata(
                     new URL("https://fs.lindft6.com/adfs/ls/"),
                     true
             );
@@ -112,7 +112,7 @@ public class AdfsAuthorityTest {
     @Test
     public void testPerformInstanceDiscoveryThrowsWhenURLnvalid() {
         try {
-            mAdfsAuthority = new AdfsAuthority(
+            mAdfsAuthority = new AdfsAuthorityMetadata(
                     new URL("file:/Users/RFC2396 noncompliant"),
                     true
             );
@@ -132,7 +132,7 @@ public class AdfsAuthorityTest {
     public void testGetDomainFromUPN() {
         Assert.assertEquals(
                 "foo.com",
-                AdfsAuthority.getDomainFromUPN(mTestUPN)
+                AdfsAuthorityMetadata.getDomainFromUPN(mTestUPN)
         );
     }
 
@@ -141,7 +141,7 @@ public class AdfsAuthorityTest {
     @Test
     public void testGetDomainFromUPNReturnsNullWhenInvalid() {
         Assert.assertNull(
-                AdfsAuthority.getDomainFromUPN("user_no_domain")
+                AdfsAuthorityMetadata.getDomainFromUPN("user_no_domain")
         );
     }
 

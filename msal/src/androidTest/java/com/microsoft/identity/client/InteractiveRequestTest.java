@@ -31,11 +31,9 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.AndroidTestCase;
-import android.util.Base64;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -97,7 +95,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
         InstrumentationRegistry.getContext().getCacheDir();
         System.setProperty("dexmaker.dexcache",
                 InstrumentationRegistry.getContext().getCacheDir().getPath());
-        Authority.RESOLVED_AUTHORITY.clear();
+        AuthorityMetadata.RESOLVED_AUTHORITY.clear();
 
         mAppContext = new MockContext(InstrumentationRegistry.getContext().getApplicationContext());
         resolveAuthenticationActivity(mAppContext, true);
@@ -603,7 +601,7 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     private AuthenticationRequestParameters getAuthenticationParams(final String authorityString, final UiBehavior uiBehavior, final User user) {
-        final Authority authority = Authority.createAuthority(authorityString, true);
+        final AuthorityMetadata authority = AuthorityMetadata.createAuthority(authorityString, true);
         authority.mAuthorizationEndpoint = SilentRequestTest.AUTHORIZE_ENDPOINT;
         authority.mTokenEndpoint = SilentRequestTest.TOKEN_ENDPOINT;
 
@@ -617,13 +615,13 @@ public final class InteractiveRequestTest extends AndroidTestCase {
                                                                      final String loginHint,
                                                                      final UiBehavior uiBehavior,
                                                                      final User user) {
-        return AuthenticationRequestParameters.create(Authority.createAuthority(authority, true), new TokenCache(mAppContext), scopes,
+        return AuthenticationRequestParameters.create(AuthorityMetadata.createAuthority(authority, true), new TokenCache(mAppContext), scopes,
                 CLIENT_ID, redirectUri, loginHint, "", uiBehavior, user, null, new RequestContext(CORRELATION_ID, "", Telemetry.generateNewRequestId()));
     }
 
     private AuthenticationRequestParameters getAuthRequestParameters(final String authorityString, final UiBehavior uiBehavior, final String extraQp,
                                                                      final String sliceParameter) {
-        final Authority authority = Authority.createAuthority(authorityString, true);
+        final AuthorityMetadata authority = AuthorityMetadata.createAuthority(authorityString, true);
         authority.mAuthorizationEndpoint = SilentRequestTest.AUTHORIZE_ENDPOINT;
         authority.mTokenEndpoint = SilentRequestTest.TOKEN_ENDPOINT;
         return AuthenticationRequestParameters.create(authority, new TokenCache(mAppContext), getScopes(),
@@ -660,11 +658,11 @@ public final class InteractiveRequestTest extends AndroidTestCase {
     }
 
     private String getExpectedAuthorizeEndpoint() {
-        return AUTHORITY + Authority.DEFAULT_AUTHORIZE_ENDPOINT;
+        return AUTHORITY + AuthorityMetadata.DEFAULT_AUTHORIZE_ENDPOINT;
     }
 
     private String getExpectedTokenEndpoint() {
-        return AUTHORITY + Authority.DEFAULT_AUTHORIZE_ENDPOINT;
+        return AUTHORITY + AuthorityMetadata.DEFAULT_AUTHORIZE_ENDPOINT;
     }
 
     static void mockSuccessHttpRequestCallWithNoRT() throws IOException {
