@@ -67,6 +67,7 @@ final class InteractiveRequest extends BaseRequest {
     static final int BROWSER_FLOW = 1001;
     private static AuthorizationResult sAuthorizationResult;
     private static MicrosoftStsAuthorizationRequest sAuthorizationRequest;
+    private static AuthorizationStrategy sAuthorizationStrategy;
     private static CountDownLatch sResultLock = new CountDownLatch(1);
     private final ActivityWrapper mActivityWrapper;
     private WeakReference<Activity> mActivityRef;
@@ -108,9 +109,9 @@ final class InteractiveRequest extends BaseRequest {
         Logger.verbose(TAG, mRequestContext, "Create the authorization request from request parameters.");
         sAuthorizationRequest = createAuthRequest();
         AuthorizationConfiguration.getInstance().setRedirectUrl(sAuthorizationRequest.getRedirectUri());
-        AuthorizationStrategy authorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(mActivityRef.get(), AuthorizationConfiguration.getInstance());
+        sAuthorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(mActivityRef.get(), AuthorizationConfiguration.getInstance());
         try {
-            authorizationStrategy.requestAuthorization(Uri.parse(sAuthorizationRequest.getAuthorizationStartUrl()));
+            sAuthorizationStrategy.requestAuthorization(Uri.parse(sAuthorizationRequest.getAuthorizationStartUrl()));
         } catch (final ClientException | UnsupportedEncodingException exc) {
             throw new MsalClientException("requestAuthorization cancelled.", exc.getMessage(), exc);
         }
@@ -250,6 +251,7 @@ final class InteractiveRequest extends BaseRequest {
             }
 
             // check it is the same request.
+            sAuthorizationStrategy.completeAuthorization(requestCode, resultCode, data);
             sAuthorizationResult = AuthorizationResult.create(resultCode, data);
         } finally {
             sResultLock.countDown();
