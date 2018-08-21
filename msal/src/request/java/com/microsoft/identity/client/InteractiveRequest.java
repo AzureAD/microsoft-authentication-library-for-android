@@ -69,7 +69,6 @@ final class InteractiveRequest extends BaseRequest {
     private static MicrosoftStsAuthorizationRequest sAuthorizationRequest;
     private static AuthorizationStrategy sAuthorizationStrategy;
     private static CountDownLatch sResultLock = new CountDownLatch(1);
-    private final ActivityWrapper mActivityWrapper;
     private WeakReference<Activity> mActivityRef;
 
     /**
@@ -82,7 +81,6 @@ final class InteractiveRequest extends BaseRequest {
     InteractiveRequest(final Activity activity, final AuthenticationRequestParameters authRequestParameters,
                        final String[] extraScopesToConsent) {
         super(activity.getApplicationContext(), authRequestParameters);
-        mActivityWrapper = new ActivityWrapper(activity);
         mActivityRef = new WeakReference<>(activity);
 
         // validate redirect
@@ -116,33 +114,6 @@ final class InteractiveRequest extends BaseRequest {
             throw new MsalClientException("requestAuthorization cancelled.", exc.getMessage(), exc);
         }
 
-        /*Logger.verbose(TAG, mRequestContext, "Create the intent to launch in AuthenticationActivity.");
-        final Intent intentToLaunch = new Intent(mContext, AuthorizationActivity.class);
-        try {
-            intentToLaunch.putExtra(Constants.REQUEST_URL_KEY, sAuthorizationRequest.getAuthorizationStartUrl());
-        } catch (final ClientException exception) {
-            Logger.errorPII(TAG, mRequestContext, exception.getMessage(), exception);
-            throw new MsalClientException(exception.getErrorCode(), exception.getMessage(), exception);
-        } catch (final UnsupportedEncodingException exception) {
-            Logger.errorPII(TAG, mRequestContext, exception.getMessage(), exception);
-            throw new MsalClientException(ErrorStrings.UNSUPPORTED_ENCODING, exception.getMessage(), exception);
-        }
-
-        intentToLaunch.putExtra(Constants.REQUEST_ID, mRequestId);
-        intentToLaunch.putExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE, sAuthorizationRequest);
-        intentToLaunch.putExtra(Constants.WEBVIEW_SELECTION, getAuthRequestParameters().getWebViewSelection().getId());
-        intentToLaunch.putExtra(
-                Constants.TELEMETRY_REQUEST_ID,
-                mAuthRequestParameters.getRequestContext().getTelemetryRequestId().toString()
-        );
-
-        if (!resolveIntent(intentToLaunch)) {
-            throw new MsalClientException(MsalClientException.UNRESOLVABLE_INTENT, "The intent is not resolvable");
-        }
-
-        throwIfNetworkNotAvailable();
-
-        mActivityWrapper.startActivityForResult(intentToLaunch, BROWSER_FLOW);*/
         // lock the thread until onActivityResult release the lock.
         try {
             if (sResultLock.getCount() == 0) {
@@ -246,7 +217,7 @@ final class InteractiveRequest extends BaseRequest {
     static synchronized void onActivityResult(int requestCode, int resultCode, final Intent data) {
         Logger.info(TAG, null, "Received request code is: " + requestCode + "; result code is: " + resultCode);
         try {
-            if (requestCode != BROWSER_FLOW) {
+            if (requestCode != AuthorizationStrategy.BROWSER_FLOW) {
                 throw new IllegalStateException("Unknown request code");
             }
 
@@ -256,106 +227,6 @@ final class InteractiveRequest extends BaseRequest {
         } finally {
             sResultLock.countDown();
         }
-    }
-
-    private boolean resolveIntent(final Intent intent) {
-        final ResolveInfo resolveInfo = mContext.getPackageManager().resolveActivity(intent, 0);
-        return resolveInfo != null;
-    }
-
-    private Map<String, String> createAuthorizationRequestParameters() throws UnsupportedEncodingException, MsalClientException {
-        final Map<String, String> requestParameters = new HashMap<>();
-
-        final Set<String> scopes = new HashSet<>(mAuthRequestParameters.getScope());
-        scopes.addAll(mExtraScopesToConsent);
-        final Set<String> requestedScopes = getDecoratedScope(scopes);
-        requestParameters.put(OauthConstants.Oauth2Parameters.SCOPE,
-                MsalUtils.convertSetToString(requestedScopes, " "));
-        requestParameters.put(OauthConstants.Oauth2Parameters.CLIENT_ID, mAuthRequestParameters.getClientId());
-        requestParameters.put(OauthConstants.Oauth2Parameters.REDIRECT_URI, mAuthRequestParameters.getRedirectUri());
-        requestParameters.put(OauthConstants.Oauth2Parameters.RESPONSE_TYPE, OauthConstants.Oauth2ResponseType.CODE);
-        requestParameters.put(OauthConstants.OauthHeader.CORRELATION_ID,
-                mAuthRequestParameters.getRequestContext().getCorrelationId().toString());
-        requestParameters.putAll(PlatformIdHelper.getPlatformIdParameters());
-
-        addExtraQueryParameter(OauthConstants.Oauth2Parameters.LOGIN_HINT, mAuthRequestParameters.getLoginHint(), requestParameters);
-        addUiBehaviorToRequestParameters(requestParameters);
-
-        // append state in the query parameters
-        requestParameters.put(OauthConstants.Oauth2Parameters.STATE, encodeProtocolState());
-
-        // Add PKCE Challenge
-        addPKCEChallengeToRequestParameters(requestParameters);
-
-        // Enforce session continuation if user is provided in the API request
-        addSessionContinuationQps(requestParameters);
-
-        // adding extra qp
-        if (!MsalUtils.isEmpty(mAuthRequestParameters.getExtraQueryParam())) {
-            appendExtraQueryParameters(mAuthRequestParameters.getExtraQueryParam(), requestParameters);
-        }
-
-        if (!MsalUtils.isEmpty(mAuthRequestParameters.getSliceParameters())) {
-            appendExtraQueryParameters(mAuthRequestParameters.getSliceParameters(), requestParameters);
-        }
-
-        return requestParameters;
-    }
-
-    private void appendExtraQueryParameters(final String queryParams, final Map<String, String> requestParams) throws MsalClientException {
-        final Map<String, String> extraQps = MsalUtils.decodeUrlToMap(queryParams, "&");
-        final Set<Map.Entry<String, String>> extraQpEntries = extraQps.entrySet();
-        for (final Map.Entry<String, String> extraQpEntry : extraQpEntries) {
-            if (requestParams.containsKey(extraQpEntry.getKey())) {
-                throw new MsalClientException(MsalClientException.DUPLICATE_QUERY_PARAMETER, "Extra query parameter " + extraQpEntry.getKey() + " is already sent by "
-                        + "the SDK. ");
-            }
-
-            requestParams.put(extraQpEntry.getKey(), extraQpEntry.getValue());
-        }
-    }
-
-    private void addSessionContinuationQps(final Map<String, String> requestParams) {
-        final User user = mAuthRequestParameters.getUser();
-        if (user != null) {
-            addExtraQueryParameter(OauthConstants.Oauth2Parameters.LOGIN_REQ, user.getUid(), requestParams);
-            addExtraQueryParameter(OauthConstants.Oauth2Parameters.DOMAIN_REQ, user.getUtid(), requestParams);
-            addExtraQueryParameter(OauthConstants.Oauth2Parameters.LOGIN_HINT, user.getDisplayableId(), requestParams);
-        }
-    }
-
-    private void addPKCEChallengeToRequestParameters(final Map<String, String> requestParameters) throws MsalClientException {
-        try {
-            if (sAuthorizationRequest.getPkceChallenge() == null) {
-                sAuthorizationRequest.setPkceChallenge(PkceChallenge.newPkceChallenge());
-            }
-
-            // Add it to our Authorization request
-            requestParameters.put(OauthConstants.Oauth2Parameters.CODE_CHALLENGE, sAuthorizationRequest.getPkceChallenge().getCodeChallenge());
-            requestParameters.put(OauthConstants.Oauth2Parameters.CODE_CHALLENGE_METHOD, sAuthorizationRequest.getPkceChallenge().getCodeChallengeMethod());
-        } catch (final ClientException exception) {
-            Logger.errorPII(TAG, mRequestContext, exception.getMessage(), exception);
-            throw new MsalClientException(exception.getErrorCode(), exception.getMessage(), exception);
-        }
-    }
-
-    private void addUiBehaviorToRequestParameters(final Map<String, String> requestParameters) {
-        final UiBehavior uiBehavior = mAuthRequestParameters.getUiBehavior();
-        if (uiBehavior == UiBehavior.FORCE_LOGIN) {
-            requestParameters.put(OauthConstants.Oauth2Parameters.PROMPT, OauthConstants.PromptValue.LOGIN);
-        } else if (uiBehavior == UiBehavior.SELECT_ACCOUNT) {
-            requestParameters.put(OauthConstants.Oauth2Parameters.PROMPT, OauthConstants.PromptValue.SELECT_ACCOUNT);
-        } else if (uiBehavior == UiBehavior.CONSENT) {
-            requestParameters.put(OauthConstants.Oauth2Parameters.PROMPT, OauthConstants.PromptValue.CONSENT);
-        }
-    }
-
-    private String encodeProtocolState() throws UnsupportedEncodingException {
-        final String state = String.format("a=%s&r=%s", MsalUtils.urlFormEncode(
-                mAuthRequestParameters.getAuthority().getAuthority()),
-                MsalUtils.urlFormEncode(MsalUtils.convertSetToString(
-                        mAuthRequestParameters.getScope(), " ")));
-        return Base64.encodeToString(state.getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 
     private void processAuthorizationResult(final AuthorizationResult authorizationResult) throws MsalUserCancelException,
@@ -391,32 +262,6 @@ final class InteractiveRequest extends BaseRequest {
 
         if (decodeState == null || decodeState.equals(sAuthorizationRequest.getState())) {
             throw new MsalClientException(MsalClientException.STATE_MISMATCH, Constants.MsalErrorMessage.STATE_NOT_THE_SAME);
-        }
-    }
-
-    private void addExtraQueryParameter(final String key, final String value, final Map<String, String> requestParams) {
-        if (!MsalUtils.isEmpty(key) && !MsalUtils.isEmpty(value)) {
-            requestParams.put(key, value);
-        }
-    }
-
-    /**
-     * Internal static class to create a weak reference of the passed-in activity. The library itself doesn't control the
-     * passed-in activity's lifecycle.
-     */
-    static class ActivityWrapper {
-        private WeakReference<Activity> mReferencedActivity;
-
-        ActivityWrapper(final Activity activity) {
-            mReferencedActivity = new WeakReference<Activity>(activity);
-        }
-
-        void startActivityForResult(final Intent intent, int requestCode) throws MsalClientException {
-            if (mReferencedActivity.get() == null) {
-                throw new MsalClientException(MsalClientException.UNRESOLVABLE_INTENT, "The referenced object is already being garbage collected.");
-            }
-
-            mReferencedActivity.get().startActivityForResult(intent, requestCode);
         }
     }
 }
