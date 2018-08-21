@@ -19,8 +19,10 @@ public class AzureActiveDirectoryAuthority extends Authority {
 
         try {
             cloud = AzureActiveDirectory.getAzureActiveDirectoryCloud(new URL(mAudience.getCloudUrl()));
+            mKnownToMicrosoft = true;
         } catch (MalformedURLException e) {
             cloud = null;
+            mKnownToMicrosoft = false;
         }
 
         mAzureActiveDirectoryCloud = cloud;
@@ -39,7 +41,6 @@ public class AzureActiveDirectoryAuthority extends Authority {
 
     @Override
     public Uri getAuthorityUri() {
-        Uri.Builder builder = new Uri.Builder();
         Uri issuer;
         if(mAzureActiveDirectoryCloud == null) {
             issuer = Uri.parse(mAudience.getCloudUrl());

@@ -99,7 +99,7 @@ public final class PublicClientApplication {
 
     private static final String CLIENT_ID_META_DATA = "com.microsoft.identity.client.ClientId";
     private static final String AUTHORITY_META_DATA = "com.microsoft.identity.client.AuthorityMetadata";
-    private static final String CONFIGURATION = "com.microsoft.identity.client.Configuration";
+    //private static final String CONFIGURATION = "com.microsoft.identity.client.Configuration";
     private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
     private static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common/";

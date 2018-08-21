@@ -11,6 +11,9 @@ public abstract class Authority {
     private static final String ADFS_PATH_SEGMENT = "adfs";
     private static final String B2C_PATH_SEGMENT = "b2c";
 
+    protected boolean mKnownToMicrosoft = false;
+    protected boolean mKnownToDeveloper = false;
+
     public abstract Uri getAuthorityUri();
 
     public static Authority getAuthorityFromAuthorityUrl(String authorityUrl) throws MalformedURLException {
@@ -36,6 +39,14 @@ public abstract class Authority {
 
         return authority;
 
+    }
+
+    protected boolean getKnownToMicrosoft(){
+        return mKnownToMicrosoft;
+    }
+
+    protected boolean getKnownToDeveloper(){
+        return mKnownToMicrosoft;
     }
 
 

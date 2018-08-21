@@ -20,9 +20,7 @@ public class PublicClientApplicationConfiguration {
     private String mRedirectUri;
     private transient Context mContext;
     @SerializedName("authorities")
-    private List<Authority> mAuthorities = new ArrayList<>();
-    @SerializedName("validateUnknownAuthorities")
-    private Boolean mValidateUnknownAuthorities;
+    private List<Authority> mAuthorities;
     @SerializedName("http")
     private HttpConfiguration mHttpConfiguration = new HttpConfiguration();
 
@@ -49,14 +47,6 @@ public class PublicClientApplicationConfiguration {
 
     public void setAuthorities(List<Authority> knownAuthorities) {
         this.mAuthorities = knownAuthorities;
-    }
-
-    public void setValidateUnknownAuthorities(Boolean validateUnknownAuthorities){
-        this.mValidateUnknownAuthorities = validateUnknownAuthorities;
-    }
-
-    public Boolean getValidateUnknownAuthorities(){
-        return this.mValidateUnknownAuthorities;
     }
 
     public void setHttpConfiguration(HttpConfiguration config){
