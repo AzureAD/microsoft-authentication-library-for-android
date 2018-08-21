@@ -59,7 +59,7 @@ public final class BrowserTabActivity extends Activity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        startActivity(AuthorizationActivity.createCustomTabResponseIntent(this, getIntent().getData()));
+        startActivity(AuthorizationActivity.createCustomTabResponseIntent(this, getIntent().getDataString()));
         finish();
     }
 }
