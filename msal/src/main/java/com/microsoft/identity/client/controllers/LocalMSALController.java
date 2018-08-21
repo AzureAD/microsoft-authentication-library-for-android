@@ -31,8 +31,6 @@ public class LocalMSALController extends MSALController{
         //TODO: Map MSAL Acquire Token Request to Authorization Request
         AuthorizationRequest authRequest = new MicrosoftStsAuthorizationRequest();
 
-        authRequest.setActivity(request.getActivity());
-        authRequest.setContext(request.getAppContext());
         authRequest.setClientId(request.getClientId());
         authRequest.setRedirectUri(request.getRedirectUri());
         authRequest.setScope(StringUtil.join(' ', request.getScopes()));
