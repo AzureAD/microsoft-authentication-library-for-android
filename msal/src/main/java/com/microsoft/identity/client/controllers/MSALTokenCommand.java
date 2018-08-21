@@ -8,19 +8,28 @@ import com.microsoft.identity.client.AuthenticationResult;
 
 public class MSALTokenCommand implements MSALTokenOperation {
 
-    private MSALOperationParameters parameters;
-    private MSALController controller;
-    private Context context;
-    private AuthenticationCallback callback;
+    protected MSALOperationParameters mParameters;
+    protected MSALController mController;
+    protected Context mContext;
+    protected AuthenticationCallback mCallback;
 
+
+    public MSALTokenCommand(){}
+
+    public MSALTokenCommand(Context context, MSALOperationParameters parameters, MSALController controller, AuthenticationCallback callback){
+        mContext = context;
+        mParameters = parameters;
+        mController = controller;
+        mCallback = callback;
+
+        if(!(mParameters instanceof MSALAcquireTokenSilentOperationParameters)){
+            throw new IllegalArgumentException("Invalid operation parameters");
+        }
+    }
 
     @Override
     public AuthenticationResult execute() {
-        if(getParameters() instanceof MSALAcquireTokenSilentOperationParameters){
-            return getController().AcquireTokenSilent((MSALAcquireTokenSilentOperationParameters) getParameters());
-        }else{
-            throw new IllegalArgumentException("Invalid operation parameters");
-        }
+       return getController().acquireTokenSilent((MSALAcquireTokenSilentOperationParameters) getParameters());
     }
 
     @Override
@@ -30,34 +39,37 @@ public class MSALTokenCommand implements MSALTokenOperation {
 
 
     public MSALOperationParameters getParameters() {
-        return parameters;
+        return mParameters;
     }
 
     public void setParameters(MSALOperationParameters parameters) {
-        this.parameters = parameters;
+        if(!(parameters instanceof MSALAcquireTokenSilentOperationParameters)){
+            throw new IllegalArgumentException("Invalid operation parameters");
+        }
+        this.mParameters = parameters;
     }
 
     public MSALController getController() {
-        return controller;
+        return mController;
     }
 
     public void setController(MSALController controller) {
-        this.controller = controller;
+        this.mController = controller;
     }
 
     public Context getContext() {
-        return context;
+        return mContext;
     }
 
     public void setContext(Context context) {
-        this.context = context;
+        this.mContext = context;
     }
 
     public AuthenticationCallback getCallback() {
-        return callback;
+        return mCallback;
     }
 
     public void setCallback(AuthenticationCallback callback) {
-        this.callback = callback;
+        this.mCallback = callback;
     }
 }

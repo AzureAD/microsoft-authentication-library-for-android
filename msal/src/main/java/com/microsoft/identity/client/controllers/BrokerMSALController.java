@@ -7,18 +7,17 @@ import com.microsoft.identity.client.AuthenticationResult;
 public class BrokerMSALController extends MSALController {
 
     @Override
-    public AuthenticationResult AcquireToken(MSALAcquireTokenOperationParameters request) {
+    public AuthenticationResult acquireToken(MSALAcquireTokenOperationParameters request) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void CompleteAcquireToken(int requestCode, int resultCode, Intent data) {
+    public void completeAcquireToken(int requestCode, int resultCode, Intent data) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public AuthenticationResult AcquireTokenSilent(MSALAcquireTokenSilentOperationParameters request) {
+    public AuthenticationResult acquireTokenSilent(MSALAcquireTokenSilentOperationParameters request) {
         throw new UnsupportedOperationException();
     }
-
 }
