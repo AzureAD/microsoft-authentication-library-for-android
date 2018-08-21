@@ -8,10 +8,10 @@ import java.util.concurrent.ExecutionException;
 
 public abstract class MSALController {
 
-    public abstract AuthenticationResult AcquireToken(MSALAcquireTokenOperationParameters request) throws ExecutionException, InterruptedException;
+    public abstract AuthenticationResult acquireToken(MSALAcquireTokenOperationParameters request) throws ExecutionException, InterruptedException;
 
-    public abstract void CompleteAcquireToken(int requestCode, int resultCode, final Intent data);
+    public abstract void completeAcquireToken(int requestCode, int resultCode, final Intent data);
 
-    public abstract AuthenticationResult AcquireTokenSilent(MSALAcquireTokenSilentOperationParameters request);
+    public abstract AuthenticationResult acquireTokenSilent(MSALAcquireTokenSilentOperationParameters request);
 
 }

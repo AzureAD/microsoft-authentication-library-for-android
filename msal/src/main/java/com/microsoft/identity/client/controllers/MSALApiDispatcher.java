@@ -21,7 +21,7 @@ public class MSALApiDispatcher {
     private static final Object sLock = new Object();
     private static MSALInteractiveTokenCommand sCommand = null;
 
-    public static void BeginInteractive(final MSALInteractiveTokenCommand command){
+    public static void beginInteractive(final MSALInteractiveTokenCommand command){
 
         synchronized (sLock) {
             sInteractiveExecutor.execute(new Runnable() {
@@ -41,11 +41,11 @@ public class MSALApiDispatcher {
         }
     }
 
-    public static void CompleteInteractive(int requestCode, int resultCode, final Intent data){
+    public static void completeInteractive(int requestCode, int resultCode, final Intent data){
         sCommand.notify(requestCode, resultCode, data);
     }
 
-    public static void SubmitSilent(final MSALTokenCommand command){
+    public static void submitSilent(final MSALTokenCommand command){
         sSilentExecutor.execute(new Runnable() {
             @Override
             public void run() {

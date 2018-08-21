@@ -64,7 +64,6 @@ public class DeviceBrowserAuthorizationStrategy extends AuthorizationStrategy {
             return;
         }
 
-
         AuthorizationResultFactory factory = mOAuth2Strategy.getAuthorizationResultFactory();
         AuthorizationResult result = factory.createAuthorizationResult(resultCode, data);
 

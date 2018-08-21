@@ -29,12 +29,10 @@ import java.util.concurrent.Future;
 
 public class LocalMSALController extends MSALController{
 
-
-
     private AuthorizationStrategy mAuthorizationStrategy = null;
 
     @Override
-    public AuthenticationResult AcquireToken(MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException {
+    public AuthenticationResult acquireToken(MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException {
 
 
         //1) TODO: Use factory to get applicable oAuth and Authorization strategies
@@ -59,7 +57,6 @@ public class LocalMSALController extends MSALController{
 
         //TODO: Replace with factory to create the correct Authorization Strategy based on device capabilities and configuration
         mAuthorizationStrategy = new DeviceBrowserAuthorizationStrategy(strategy, parameters.getActivity());
-
         Future<AuthorizationResult> future = strategy.requestAuthorization(getAuthorizationRequest(parameters), mAuthorizationStrategy);
 
         //We could implement Timeout Here if we wish instead of blocking indefinitely
@@ -85,18 +82,18 @@ public class LocalMSALController extends MSALController{
 
     private TokenResult performTokenRequest(OAuth2Strategy strategy, AuthorizationResponse response, MSALAcquireTokenOperationParameters parameters) {
 
-        TokenRequest tr = new TokenRequest();
+        TokenRequest tokenRequest = new TokenRequest();
 
-        tr.setCode(response.getCode());
-        tr.setClientId(parameters.getClientId());
-        tr.setRedirectUri(parameters.getRedirectUri());
-        tr.setScope(StringUtil.join(' ', parameters.getScopes()));
-        tr.setGrantType(TokenRequest.GrantTypes.AUTHORIZATION_CODE);
+        tokenRequest.setCode(response.getCode());
+        tokenRequest.setClientId(parameters.getClientId());
+        tokenRequest.setRedirectUri(parameters.getRedirectUri());
+        tokenRequest.setScope(StringUtil.join(' ', parameters.getScopes()));
+        tokenRequest.setGrantType(TokenRequest.GrantTypes.AUTHORIZATION_CODE);
 
         TokenResult tokenResult = null;
 
         try {
-            tokenResult = strategy.requestToken(tr);
+            tokenResult = strategy.requestToken(tokenRequest);
         } catch (IOException e) {
             //TODO: Figure out exception handling
         }
@@ -117,12 +114,12 @@ public class LocalMSALController extends MSALController{
 
 
     @Override
-    public void CompleteAcquireToken(int requestCode, int resultCode, final Intent data) {
+    public void completeAcquireToken(int requestCode, int resultCode, final Intent data) {
         mAuthorizationStrategy.completeAuthorization(requestCode, resultCode, data);
     }
 
     @Override
-    public AuthenticationResult AcquireTokenSilent(MSALAcquireTokenSilentOperationParameters request) {
+    public AuthenticationResult acquireTokenSilent(MSALAcquireTokenSilentOperationParameters request) {
         throw new UnsupportedOperationException();
     }
 }
