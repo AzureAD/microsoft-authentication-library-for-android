@@ -26,6 +26,8 @@ package com.microsoft.identity.client;
 import android.content.Intent;
 import android.net.Uri;
 
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
+
 import java.util.Map;
 
 /**
@@ -68,7 +70,7 @@ final class AuthorizationResult {
             Logger.verbose(TAG, null, "User cancel the request in webview.");
             return AuthorizationResult.getAuthorizationResultWithUserCancel();
         } else if (resultCode == Constants.UIResponse.AUTH_CODE_COMPLETE) {
-            final String url = data.getStringExtra(Constants.AUTHORIZATION_FINAL_URL);
+            final String url = data.getStringExtra(AuthorizationStrategy.AUTHORIZATION_FINAL_URL);
             return AuthorizationResult.parseAuthorizationResponse(url);
         } else if (resultCode == Constants.UIResponse.AUTH_CODE_ERROR) {
             // This is purely client side error, possible return could be chrome_not_installed or the request intent is

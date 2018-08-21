@@ -35,6 +35,7 @@ import com.microsoft.identity.client.controllers.LocalMSALController;
 import com.microsoft.identity.client.controllers.MSALAcquireTokenRequest;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationConfiguration;
 import com.microsoft.identity.msal.BuildConfig;
 
 import java.net.URL;

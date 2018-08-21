@@ -26,6 +26,7 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
+import android.net.Uri;
 import android.util.Base64;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
@@ -33,7 +34,10 @@ import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsPromptBehavior;
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationConfiguration;
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.oauth2.PkceChallenge;
+import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
 import com.microsoft.identity.common.internal.ui.webview.AzureActiveDirectoryWebViewClient;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity;
@@ -65,6 +69,7 @@ final class InteractiveRequest extends BaseRequest {
     private static MicrosoftStsAuthorizationRequest sAuthorizationRequest;
     private static CountDownLatch sResultLock = new CountDownLatch(1);
     private final ActivityWrapper mActivityWrapper;
+    private WeakReference<Activity> mActivityRef;
 
     /**
      * Constructor for {@link InteractiveRequest}.
@@ -77,6 +82,7 @@ final class InteractiveRequest extends BaseRequest {
                        final String[] extraScopesToConsent) {
         super(activity.getApplicationContext(), authRequestParameters);
         mActivityWrapper = new ActivityWrapper(activity);
+        mActivityRef = new WeakReference<>(activity);
 
         // validate redirect
         if (MsalUtils.isEmpty(authRequestParameters.getRedirectUri())) {
@@ -101,8 +107,15 @@ final class InteractiveRequest extends BaseRequest {
         super.preTokenRequest();
         Logger.verbose(TAG, mRequestContext, "Create the authorization request from request parameters.");
         sAuthorizationRequest = createAuthRequest();
+        AuthorizationConfiguration.getInstance().setRedirectUrl(sAuthorizationRequest.getRedirectUri());
+        AuthorizationStrategy authorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(mActivityRef.get(), AuthorizationConfiguration.getInstance());
+        try {
+            authorizationStrategy.requestAuthorization(Uri.parse(sAuthorizationRequest.getAuthorizationStartUrl()));
+        } catch (final ClientException | UnsupportedEncodingException exc) {
+            throw new MsalClientException("requestAuthorization cancelled.", exc.getMessage(), exc);
+        }
 
-        Logger.verbose(TAG, mRequestContext, "Create the intent to launch in AuthenticationActivity.");
+        /*Logger.verbose(TAG, mRequestContext, "Create the intent to launch in AuthenticationActivity.");
         final Intent intentToLaunch = new Intent(mContext, AuthorizationActivity.class);
         try {
             intentToLaunch.putExtra(Constants.REQUEST_URL_KEY, sAuthorizationRequest.getAuthorizationStartUrl());
@@ -128,7 +141,7 @@ final class InteractiveRequest extends BaseRequest {
 
         throwIfNetworkNotAvailable();
 
-        mActivityWrapper.startActivityForResult(intentToLaunch, BROWSER_FLOW);
+        mActivityWrapper.startActivityForResult(intentToLaunch, BROWSER_FLOW);*/
         // lock the thread until onActivityResult release the lock.
         try {
             if (sResultLock.getCount() == 0) {

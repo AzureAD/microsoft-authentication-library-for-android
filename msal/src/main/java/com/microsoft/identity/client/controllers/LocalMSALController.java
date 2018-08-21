@@ -2,17 +2,17 @@ package com.microsoft.identity.client.controllers;
 
 import android.content.Intent;
 
-import com.microsoft.identity.client.DeviceBrowserAuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationConfiguration;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
+import com.microsoft.identity.common.internal.ui.browser.BrowserAuthorizationStrategy;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
-import java.util.HashSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -39,7 +39,7 @@ public class LocalMSALController extends MSALController{
 
 
         //TODO: Replace with factory to create the correct Authorization Strategy based on device capabilities and configuration
-        mAuthorizationStrategy = new DeviceBrowserAuthorizationStrategy();
+        mAuthorizationStrategy = new BrowserAuthorizationStrategy(request.getActivity(), AuthorizationConfiguration.getInstance());
 
         Future<AuthorizationResult> future = mOAuthStrategy.requestAuthorization(authRequest, mAuthorizationStrategy);
 
