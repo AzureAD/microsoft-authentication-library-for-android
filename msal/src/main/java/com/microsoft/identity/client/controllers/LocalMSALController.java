@@ -10,6 +10,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequ
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
+import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
 import com.microsoft.identity.common.internal.ui.browser.BrowserAuthorizationStrategy;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
@@ -37,7 +38,7 @@ public class LocalMSALController extends MSALController{
 
 
         //TODO: Replace with factory to create the correct Authorization Strategy based on device capabilities and configuration
-        mAuthorizationStrategy = new BrowserAuthorizationStrategy(request.getActivity(), AuthorizationConfiguration.getInstance());
+        mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(request.getActivity(), AuthorizationConfiguration.getInstance());
 
         Future<AuthorizationResult> future = mOAuthStrategy.requestAuthorization(authRequest, mAuthorizationStrategy);
 
