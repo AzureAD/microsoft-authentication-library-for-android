@@ -62,7 +62,7 @@ import static com.microsoft.identity.common.internal.cache.AccountCredentialCach
 /**
  * MSAL internal representation for token cache.
  */
-class TokenCache {
+public class TokenCache {
     private static final String TAG = TokenCache.class.getSimpleName();
 
     private static final int DEFAULT_EXPIRATION_BUFFER = 300;
@@ -84,7 +84,7 @@ class TokenCache {
         mCommonCache = initCommonCache(context);
     }
 
-    private MsalOAuth2TokenCache initCommonCache(final Context context) {
+    public static MsalOAuth2TokenCache initCommonCache(final Context context) {
         // Init the ADAL cache for SSO-state sync
         final IShareSingleSignOnState adalCache = new ADALOAuth2TokenCache(context);
         List<IShareSingleSignOnState> sharedSsoCaches = new ArrayList<>();

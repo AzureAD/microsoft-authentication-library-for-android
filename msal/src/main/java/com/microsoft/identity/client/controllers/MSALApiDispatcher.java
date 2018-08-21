@@ -2,12 +2,13 @@ package com.microsoft.identity.client;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.os.Handler;
 
+import com.microsoft.identity.client.controllers.MSALAcquireTokenOperationParameters;
+import com.microsoft.identity.client.controllers.MSALAcquireTokenSilentOperationParameters;
 import com.microsoft.identity.client.controllers.MSALController;
-import com.microsoft.identity.client.controllers.MSALAcquireTokenRequest;
-import com.microsoft.identity.client.controllers.MSALAcquireTokenSilentRequest;
+import com.microsoft.identity.client.controllers.MSALInteractiveTokenCommand;
+import com.microsoft.identity.client.controllers.MSALTokenCommand;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -18,37 +19,47 @@ public class MSALApiDispatcher {
     private static final ExecutorService sInteractiveExecutor = Executors.newSingleThreadExecutor();
     private static final ExecutorService sSilentExecutor = Executors.newCachedThreadPool();
     private static final Object sLock = new Object();
-    private static MSALController sInteractiveController = null;
+    private static MSALInteractiveTokenCommand sCommand = null;
 
-    public static void BeginInteractive(final MSALController controller, final MSALAcquireTokenRequest request){
+    public static void beginInteractive(final MSALInteractiveTokenCommand command){
 
         synchronized (sLock) {
             sInteractiveExecutor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    sInteractiveController = controller;
-                    try {
-                        controller.AcquireToken(request);
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    sCommand = command;
+                    final AuthenticationResult result = command.execute();
+                    Handler handler = new Handler(command.getContext().getMainLooper());
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            command.getCallback().onSuccess(result);
+                        }
+                    });
                 }
             });
         }
     }
 
-    public static void CompleteInteractive(int requestCode, int resultCode, final Intent data){
-        sInteractiveController.CompleteAcquireToken(requestCode, resultCode, data);
+    public static void completeInteractive(int requestCode, int resultCode, final Intent data){
+        sCommand.notify(requestCode, resultCode, data);
     }
 
-    public static void SubmitSilent(final MSALController controller, final MSALAcquireTokenSilentRequest request){
+    public static void submitSilent(final MSALTokenCommand command){
         sSilentExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                controller.AcquireTokenSilent(request);
+                final AuthenticationResult result = command.execute();
+                Handler handler = new Handler(command.getContext().getMainLooper());
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        command.getCallback().onSuccess(result);
+                    }
+                });
             }
         });
     }
+
+
 }

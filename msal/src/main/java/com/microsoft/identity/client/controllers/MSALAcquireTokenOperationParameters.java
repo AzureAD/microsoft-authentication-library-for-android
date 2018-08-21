@@ -5,12 +5,14 @@ import android.content.Context;
 
 import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.client.User;
+import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 
 import java.util.List;
 
-public class MSALAcquireTokenRequest {
+public class MSALAcquireTokenOperationParameters extends MSALOperationParameters {
 
     private Context mAppContext;
+    private MsalOAuth2TokenCache mTokenCache;
     private Activity mActivity;
     private List<String> mScopes;
     private User mUser;
@@ -100,5 +102,13 @@ public class MSALAcquireTokenRequest {
 
     public void setRedirectUri(String redirectUri) {
         this.redirectUri = redirectUri;
+    }
+
+    public void setTokenCache(MsalOAuth2TokenCache cache){
+        this.mTokenCache = cache;
+    }
+
+    public MsalOAuth2TokenCache getTokenCache() {
+        return mTokenCache;
     }
 }

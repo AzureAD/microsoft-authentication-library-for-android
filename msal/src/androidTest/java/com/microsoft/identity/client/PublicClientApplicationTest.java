@@ -235,8 +235,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     /**
      * Verify {@link PublicClientApplication#acquireToken(Activity, String[], AuthenticationCallback)}.
-     * AcquireToken interactive call ask token for scope1 and scope2.
-     * AcquireTokenSilent call ask token for scope3. No access token will be found. Refresh token returned in the interactive
+     * acquireToken interactive call ask token for scope1 and scope2.
+     * acquireTokenSilent call ask token for scope3. No access token will be found. Refresh token returned in the interactive
      * request will be used for silent request. Since no intersection between {scope1, scope2} and {scope3}, there will be
      * two access token entries in the cache.
      */
@@ -787,8 +787,8 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     /**
      * Verify {@link PublicClientApplication#acquireToken(Activity, String[], String, UiBehavior, String, String[], String, AuthenticationCallback)}.
-     * AcquireToken asks token for {scope1, scope2}.
-     * AcquireTokenSilent asks for {scope2}. Since forcePrompt is set for the silent request, RT request will be sent. There is
+     * acquireToken asks token for {scope1, scope2}.
+     * acquireTokenSilent asks for {scope2}. Since forcePrompt is set for the silent request, RT request will be sent. There is
      * intersection, old entry will be removed. There will be only one access token left.
      */
     @Test
