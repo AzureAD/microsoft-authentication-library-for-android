@@ -33,9 +33,11 @@ import android.support.annotation.NonNull;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.msal.BuildConfig;
+import com.microsoft.identity.msal.R;
 
 import java.net.URL;
 import java.util.List;
+import java.util.MissingResourceException;
 import java.util.Set;
 import java.util.UUID;
 
@@ -163,6 +165,7 @@ public final class PublicClientApplication {
 
         mAppContext = context;
         loadMetaDataFromManifest();
+        loadConfiguration();
 
         mTokenCache = new TokenCache(mAppContext);
 
@@ -220,14 +223,6 @@ public final class PublicClientApplication {
 
         mAuthorityString = authority;
     }
-
-    public PublicClientApplication(@NonNull final Context context, @NonNull final PublicClientApplicationConfiguration config){
-        this(context, config.getClientId());
-
-        //TODO: More work to use the rest of configuration
-
-    }
-
 
     private void initializeApplication() {
         // Init Events with defaults (application-wide)
@@ -644,6 +639,20 @@ public final class PublicClientApplication {
 //            mRedirectUri = redirectUri;
 //        }
     }
+
+    private void loadConfiguration(){
+
+        int configId = mAppContext.getResources().getIdentifier("msal_config.json", "raw", mAppContext.getPackageName());
+        mAppContext.getAssets()
+
+        if(configId == 0){
+            throw new IllegalArgumentException("Expected to find MSAL configuration located a raw resource with name msal_config.json");
+        }
+
+
+
+    }
+
 
     // TODO: if no more input validation is needed, this could be moved back to the constructor.
     private void validateInputParameters() {

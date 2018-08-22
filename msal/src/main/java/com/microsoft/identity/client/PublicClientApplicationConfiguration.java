@@ -6,63 +6,70 @@ import android.content.Context;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.microsoft.identity.client.authorities.Authority;
+import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 
 public class PublicClientApplicationConfiguration {
 
-
-    @SerializedName("clientid")
+    @SerializedName("client_id")
     private String mClientId;
+
     @SerializedName("redirect_uri")
     private String mRedirectUri;
-    private transient Context mContext;
+
     @SerializedName("authorities")
     private List<Authority> mAuthorities;
+
+    @SerializedName("authorization_agent")
+    private String mAuthorizationAgentString;
+    private AuthorizationAgent mAuthorizationAgent;
+
     @SerializedName("http")
     private HttpConfiguration mHttpConfiguration = new HttpConfiguration();
 
 
+    /**
+     * Gets the currently configured client id for the public client application
+     * @return
+     */
     public String getClientId() {
         return mClientId;
     }
 
-    public void setClientId(String clientId) {
-        this.mClientId = clientId;
-    }
-
-    public Context getContext() {
-        return mContext;
-    }
-
-    public void setContext(Context context) {
-        this.mContext = context;
-    }
-
+    /**
+     * Gets the list of authorities configured by the developer for use with the public client application
+     * @return
+     */
     public List<Authority> getAuthorities() {
         return mAuthorities;
     }
 
-    public void setAuthorities(List<Authority> knownAuthorities) {
-        this.mAuthorities = knownAuthorities;
-    }
-
-    public void setHttpConfiguration(HttpConfiguration config){
-        this.mHttpConfiguration = config;
-    }
-
+    /**
+     * Gets the currently configured HTTP configuration for the public client application
+     * @return
+     */
     public HttpConfiguration getHttpConfiguration(){
         return this.mHttpConfiguration;
     }
 
+    /**
+     * Gets the currently configured redirect uri for the public client application
+     * @return
+     */
     public String getRedirectUri(){
         return this.mRedirectUri;
     }
 
-    public String setRedirectUri(String redirectUri){
-        return this.mRedirectUri;
+    /**
+     * Gets the currently configured authorization agent for the public client application
+     * @return
+     */
+    public AuthorizationAgent getAuthorizationAgent(){
+        this.mAuthorizationAgent = AuthorizationAgent.valueOf(this.mAuthorizationAgentString.toUpperCase());
+        return this.mAuthorizationAgent;
     }
+
 
 }

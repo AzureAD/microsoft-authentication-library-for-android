@@ -155,6 +155,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (mApplication == null) {
             mApplication = new PublicClientApplication(this.getApplicationContext());
         }
+
     }
 
     @Override

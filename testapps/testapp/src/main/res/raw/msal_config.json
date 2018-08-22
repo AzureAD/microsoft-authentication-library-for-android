@@ -1,0 +1,29 @@
+{
+  "client_id" : "",
+  "redirect_uri" : "",
+  "authorities" : [
+    {
+      "type" : "AAD",
+      "audience": {
+        "type" : "AzureADMyOrg",
+        "tenant_id": "[tenantid]",
+        "cloud_url": "" //Optional
+      },
+      "authorityUrl" : "" //Alternative to audience
+    },
+    {
+      "type" : "B2C",
+      "authorityUrl" : ""
+    },
+    {
+      "type" : "ADFS",
+      "authorityUrl" : ""
+    }
+  ],
+  "authorityUrls" : [ "", ""], //Alternative to authorities
+  "authorization_agent": "DEFAULT", // BROWSER, WEBVIEW, DEVICECODEFLOW
+  "http": {
+    "connect_timeout":10000,
+    "read_timeout": 30000
+  }
+}
