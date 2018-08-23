@@ -47,6 +47,7 @@ import static com.microsoft.identity.client.AndroidTestUtil.MOCK_UTID;
  * Tests for {@link PublicClientApplication}.
  */
 @RunWith(AndroidJUnit4.class)
+@Ignore
 public final class PublicClientApplicationTest extends AndroidTestCase {
     private Context mAppContext;
     private String mRedirectUri;

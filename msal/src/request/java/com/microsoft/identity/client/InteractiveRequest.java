@@ -104,6 +104,7 @@ final class InteractiveRequest extends BaseRequest {
     synchronized void preTokenRequest() throws MsalUserCancelException, MsalClientException, MsalServiceException,
             MsalUiRequiredException {
         super.preTokenRequest();
+        throwIfNetworkNotAvailable();
         Logger.verbose(TAG, mRequestContext, "Create the authorization request from request parameters.");
         sAuthorizationRequest = createAuthRequest();
         AuthorizationConfiguration.getInstance().setRedirectUrl(sAuthorizationRequest.getRedirectUri());
