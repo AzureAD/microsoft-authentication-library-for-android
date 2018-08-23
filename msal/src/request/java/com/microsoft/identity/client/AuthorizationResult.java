@@ -26,6 +26,8 @@ package com.microsoft.identity.client;
 import android.content.Intent;
 import android.net.Uri;
 
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
+
 import java.util.Map;
 
 /**
@@ -64,17 +66,17 @@ final class AuthorizationResult {
                     Constants.MsalInternalError.AUTHORIZATION_FAILED, "receives null intent");
         }
 
-        if (resultCode == Constants.UIResponse.CANCEL) {
+        if (resultCode == AuthorizationStrategy.UIResponse.AUTH_CODE_CANCEL) {
             Logger.verbose(TAG, null, "User cancel the request in webview.");
             return AuthorizationResult.getAuthorizationResultWithUserCancel();
-        } else if (resultCode == Constants.UIResponse.AUTH_CODE_COMPLETE) {
-            final String url = data.getStringExtra(Constants.AUTHORIZATION_FINAL_URL);
+        } else if (resultCode == AuthorizationStrategy.UIResponse.AUTH_CODE_COMPLETE) {
+            final String url = data.getStringExtra(AuthorizationStrategy.AUTHORIZATION_FINAL_URL);
             return AuthorizationResult.parseAuthorizationResponse(url);
-        } else if (resultCode == Constants.UIResponse.AUTH_CODE_ERROR) {
+        } else if (resultCode == AuthorizationStrategy.UIResponse.AUTH_CODE_ERROR) {
             // This is purely client side error, possible return could be chrome_not_installed or the request intent is
             // not resolvable
-            final String error = data.getStringExtra(Constants.UIResponse.ERROR_CODE);
-            final String errorDescription = data.getStringExtra(Constants.UIResponse.ERROR_DESCRIPTION);
+            final String error = data.getStringExtra(AuthorizationStrategy.UIResponse.ERROR_CODE);
+            final String errorDescription = data.getStringExtra(AuthorizationStrategy.UIResponse.ERROR_DESCRIPTION);
             return new AuthorizationResult(AuthorizationStatus.FAIL, error, errorDescription);
         }
 

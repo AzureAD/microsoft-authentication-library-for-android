@@ -27,6 +27,9 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity;
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
+
 /**
  * MSAL activity class (needs to be public in order to be discoverable by the os) to get the browser redirect with auth code from authorize
  * endpoint. This activity has to be exposed by "android:exported=true", and intent filter has to be declared in the
@@ -56,13 +59,7 @@ public final class BrowserTabActivity extends Activity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Logger.info(TAG, null, "BrowserTabActivity onCreate: received redirect from system webview.");
-
-        final Intent intent = new Intent(this, AuthenticationActivity.class);
-        intent.putExtra(Constants.CUSTOM_TAB_REDIRECT, getIntent().getDataString());
-        Logger.verbosePII(TAG, null, getIntent().getDataString());
-
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        startActivity(intent);
+        startActivity(AuthorizationActivity.createCustomTabResponseIntent(this, getIntent().getDataString()));
+        finish();
     }
 }

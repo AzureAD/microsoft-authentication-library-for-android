@@ -66,6 +66,7 @@ import static org.mockito.Mockito.mock;
  * Test for {@link InteractiveRequest}.
  */
 @RunWith(AndroidJUnit4.class)
+@Ignore
 public final class InteractiveRequestTest extends AndroidTestCase {
     static final String AUTHORITY = "https://login.microsoftonline.com/common";
     static final String CLIENT_ID = "client-id";
