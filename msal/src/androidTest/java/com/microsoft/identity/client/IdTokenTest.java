@@ -26,7 +26,8 @@ package com.microsoft.identity.client;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.SmallTest;
 
-import org.json.JSONException;
+import com.microsoft.identity.common.exception.ServiceException;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,7 +75,7 @@ public final class IdTokenTest {
             new IdToken("test");
             Assert.fail();
         } catch (final MsalClientException e) {
-            Assert.assertTrue(e.getErrorCode() == MsalClientException.INVALID_JWT);
+            Assert.assertTrue(e.getErrorCode().equals(MsalClientException.INVALID_JWT));
         }
     }
 
@@ -86,14 +87,14 @@ public final class IdTokenTest {
             Assert.fail("Expect exceptions");
         } catch (final MsalException e) {
             Assert.assertNotNull(e.getCause());
-            Assert.assertTrue(e.getCause() instanceof JSONException);
+            Assert.assertTrue(e.getCause() instanceof ServiceException);
         }
 
         try {
             new IdToken("test.test.test");
         } catch (final MsalException e) {
             Assert.assertNotNull(e.getCause());
-            Assert.assertTrue(e.getCause() instanceof JSONException);
+            Assert.assertTrue(e.getCause() instanceof ServiceException);
         }
     }
 
@@ -123,7 +124,7 @@ public final class IdTokenTest {
             Assert.fail("Expect exceptions.");
         } catch (final MsalException e) {
             Assert.assertNotNull(e.getCause());
-            Assert.assertTrue(e.getCause() instanceof JSONException);
+            Assert.assertTrue(e.getCause() instanceof ServiceException);
         }
     }
 
