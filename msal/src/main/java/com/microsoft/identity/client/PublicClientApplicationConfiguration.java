@@ -22,7 +22,7 @@ public class PublicClientApplicationConfiguration {
     @SerializedName("authorities")
     private List<Authority> mAuthorities;
 
-    @SerializedName("authorization_agent")
+    @SerializedName("authorization_user_agent")
     private String mAuthorizationAgentString;
     private AuthorizationAgent mAuthorizationAgent;
 

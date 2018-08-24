@@ -99,8 +99,7 @@ class TokenCache {
         final MsalOAuth2TokenCache tokenCache = new MsalOAuth2TokenCache(
                 context,
                 accountCredentialCache,
-                accountCredentialAdapter,
-                sharedSsoCaches // TODO wire this up inside of common
+                accountCredentialAdapter
         );
 
         return tokenCache;
@@ -132,11 +131,11 @@ class TokenCache {
         // Create the AuthorizationRequest
         final MicrosoftStsAuthorizationRequest authorizationRequest = new MicrosoftStsAuthorizationRequest();
         authorizationRequest.setClientId(clientId);
-        authorizationRequest.setScope(new HashSet<>(Arrays.asList(tokenResponse.getScope().split(" "))));
+        authorizationRequest.setScope(tokenResponse.getScope());
         authorizationRequest.setAuthority(authority);
 
         try {
-            mCommonCache.saveTokens(strategy, authorizationRequest, tokenResponse);
+            mCommonCache.save(strategy, authorizationRequest, tokenResponse);
         } catch (final ClientException e) {
             // Rethrow
             throw new MsalClientException(e.getErrorCode(), "Failed to save tokens.", e);

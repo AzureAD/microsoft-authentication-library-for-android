@@ -32,10 +32,6 @@ import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
-import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationResult;
-import com.microsoft.identity.common.internal.ui.embeddedwebview.AzureActiveDirectoryWebViewClient;
-import com.microsoft.identity.common.internal.ui.embeddedwebview.EmbeddedWebViewAuthorizationStrategy;
-import com.microsoft.identity.common.internal.ui.embeddedwebview.challengehandlers.IChallengeCompletionCallback;
 import com.microsoft.identity.msal.R;
 
 import java.io.Serializable;
@@ -58,14 +54,10 @@ public final class AuthenticationActivity extends Activity {
     private boolean mRestarted;
     private UiEvent.Builder mUiEventBuilder;
     private String mTelemetryRequestId;
-    private EmbeddedWebViewAuthorizationStrategy<
-            AzureActiveDirectoryWebViewClient,
-            MicrosoftStsAuthorizationRequest,
-            MicrosoftStsAuthorizationResult> mEmbeddedWebViewAuthorizationStrategy;
     private MsalChromeCustomTabManager mChromeCustomTabManager;
     private boolean mUseEmbeddedWebView;
     private MicrosoftStsAuthorizationRequest mAuthorizationRequest;
-    private ChallengeCompletionCallback mChallengeCompletionCallback;
+
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -119,18 +111,10 @@ public final class AuthenticationActivity extends Activity {
     private void launchWebView() {
         if (mUseEmbeddedWebView) {
             Logger.verbose(TAG, null, "Use webView to perform interactive authorization request. ");
-            mChallengeCompletionCallback = new ChallengeCompletionCallback();
-            AzureActiveDirectoryWebViewClient webViewClient = new AzureActiveDirectoryWebViewClient(this, mAuthorizationRequest, mChallengeCompletionCallback);
+            //AzureActiveDirectoryWebViewClient webViewClient = new AzureActiveDirectoryWebViewClient(this, mAuthorizationRequest, mChallengeCompletionCallback);
 
             setContentView(R.layout.activity_authentication);
             final WebView webview = (WebView) this.findViewById(R.id.webview);
-            try {
-                mEmbeddedWebViewAuthorizationStrategy = new EmbeddedWebViewAuthorizationStrategy<>(webViewClient, webview);
-            } catch (final ClientException exception) {
-                sendError(exception.getErrorCode(), exception.getMessage());
-            } catch (final UnsupportedEncodingException exception) {
-                sendError(ErrorStrings.UNSUPPORTED_ENCODING, exception.getMessage());
-            }
 
         } else {
             Logger.verbose(TAG, null, "Use Chrome Browser/Chrome ChromeTab to perform interactive authorization request. ");
@@ -188,7 +172,7 @@ public final class AuthenticationActivity extends Activity {
         if (!mUseEmbeddedWebView) {
             mChromeCustomTabManager.launchChromeTabOrBrowserForUrl(mRequestUrl);
         } else {
-            mEmbeddedWebViewAuthorizationStrategy.requestAuthorization(mAuthorizationRequest);
+            //mEmbeddedWebViewAuthorizationStrategy.requestAuthorization(mAuthorizationRequest);
         }
     }
 
@@ -255,28 +239,5 @@ public final class AuthenticationActivity extends Activity {
         return authRequest;
     }
 
-    class ChallengeCompletionCallback implements IChallengeCompletionCallback {
-        @Override
-        public void onChallengeResponseReceived(final int returnCode, final Intent responseIntent) {
-            Logger.verbose(TAG, null, "onChallengeResponseReceived:" + returnCode);
 
-            if (mAuthorizationRequest == null) {
-                Logger.warning(TAG, null, "Request object is null");
-            } else {
-                // set request id related to this response to send the delegateId
-                Logger.verbose(TAG, null,
-                        "Set request id related to response. "
-                                + "REQUEST_ID for caller returned to:" + mAuthorizationRequest.getCorrelationId());
-                responseIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mAuthorizationRequest.getCorrelationId());
-            }
-
-            setResult(returnCode, responseIntent);
-            finish();
-        }
-
-        @Override
-        public void setPKeyAuthStatus(final boolean status) {
-            Logger.verbose(TAG, null, "setPKeyAuthStatus:" + status);
-        }
-    }
 }

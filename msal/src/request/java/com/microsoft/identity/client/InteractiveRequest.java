@@ -162,14 +162,34 @@ final class InteractiveRequest extends BaseRequest {
                 break;
         }
 
+        /*
+
+        (final String responseType,
+                                            @NonNull final String clientId,
+                                            @NonNull final String redirectUri,
+                                            final String state,
+                                            @NonNull final String scope,
+                                            @NonNull final URL authority,
+                                            final String loginHint,
+                                            final UUID correlationId,
+                                            final PkceChallenge pkceChallenge,
+                                            final String extraQueryParam,
+                                            final String libraryVersion,
+                                            @NonNull final MicrosoftStsPromptBehavior promptBehavior,
+                                            final String uid,
+                                            final String utid,
+                                            final String displayableId,
+                                            final String sliceParameters
+                                            )
+         */
+
         final MicrosoftStsAuthorizationRequest authorizationRequest = new MicrosoftStsAuthorizationRequest(
                 OauthConstants.Oauth2Parameters.CODE,
                 getAuthRequestParameters().getClientId(),
                 getAuthRequestParameters().getRedirectUri(),
                 null,
-                getAuthRequestParameters().getScope(),
+                getAuthRequestParameters().getScope().toString(),
                 getAuthRequestParameters().getAuthority().getAuthorityUrl(),
-                getAuthRequestParameters().getAuthority().getAuthorizeEndpoint(),
                 getAuthRequestParameters().getLoginHint(),
                 getAuthRequestParameters().getRequestContext().getCorrelationId(),
                 null,
@@ -179,8 +199,8 @@ final class InteractiveRequest extends BaseRequest {
                 null,
                 null,
                 null,
-                getAuthRequestParameters().getSliceParameters(),
-                null);
+                getAuthRequestParameters().getSliceParameters()
+                );
 
         if (null != getAuthRequestParameters().getUser()) {
             authorizationRequest.setUid(getAuthRequestParameters().getUser().getUid());

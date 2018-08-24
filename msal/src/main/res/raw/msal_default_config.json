@@ -1,0 +1,18 @@
+{
+  "client_id" : "<CLIENT_ID>",
+  "redirect_uri" : "<REDIRECT_URI>",
+  "authorities" : [
+    {
+      "type" : "AAD",
+      "audience": {
+        "type" : "AzureADandPersonalMicrosoftAccount",
+      },
+      "default": true
+    }
+  ],
+  "authorization_user_agent": "DEFAULT", // DEVICE_BROWSER, EMBEDDED_USERAGENT, DEVICECODEFLOW, DEFAULT
+  "http": {
+    "connect_timeout":10000,
+    "read_timeout": 30000
+  }
+}

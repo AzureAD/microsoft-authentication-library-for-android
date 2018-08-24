@@ -2,6 +2,7 @@ package com.microsoft.identity.client.authorities;
 
 import android.net.Uri;
 
+import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
 
@@ -10,6 +11,7 @@ import java.net.URL;
 
 public class AzureActiveDirectoryAuthority extends Authority {
 
+    @SerializedName("audience")
     public AzureActiveDirectoryAudience mAudience;
     private AzureActiveDirectoryCloud mAzureActiveDirectoryCloud;
 
@@ -28,8 +30,8 @@ public class AzureActiveDirectoryAuthority extends Authority {
         mAzureActiveDirectoryCloud = cloud;
     }
 
-    public AzureActiveDirectoryAuthority(AzureActiveDirectoryAudience audience){
-        mAudience = audience;
+    public AzureActiveDirectoryAuthority(AzureActiveDirectoryAudience signInAudience){
+        mAudience = signInAudience;
         getAzureActiveDirectoryCloud();
     }
 

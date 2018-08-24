@@ -16,9 +16,15 @@ public abstract class Authority {
     protected boolean mKnownToMicrosoft = false;
     protected boolean mKnownToDeveloper = false;
 
+    @SerializedName("default")
+    protected boolean mIsDefault = false;
+
     @SerializedName("authority_type")
     protected String mAuthorityTypeString;
     protected AuthorityType mAuthorityType;
+
+    @SerializedName("authority_url")
+    protected String mAuthorityUrl;
 
     public abstract Uri getAuthorityUri();
 

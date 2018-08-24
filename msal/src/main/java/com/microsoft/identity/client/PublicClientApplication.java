@@ -30,14 +30,21 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.microsoft.identity.client.authorities.Authority;
+import com.microsoft.identity.client.authorities.AzureActiveDirectoryAudience;
+import com.microsoft.identity.client.internal.configuration.AuthorityDeserializer;
+import com.microsoft.identity.client.internal.configuration.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.msal.BuildConfig;
 import com.microsoft.identity.msal.R;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
-import java.util.MissingResourceException;
 import java.util.Set;
 import java.util.UUID;
 
@@ -139,6 +146,11 @@ public final class PublicClientApplication {
     private String mSliceParameters = "";
 
     /**
+     * @deprecated
+     * This constructor has been replaced with one that leverages a configuration file.
+     * <p> Use {@link PublicClientApplication#PublicClientApplication(Context, int)}</p> instead.
+     *
+     *
      * {@link PublicClientApplication#PublicClientApplication(Context)} will read the client id (which must be set) from manifest, and if authority
      * is not set, default authority(https://login.microsoftonline.com/common) will be used.
      * <p>
@@ -158,6 +170,7 @@ public final class PublicClientApplication {
      *                strong reference to the activity, thus preventing correct garbage collection and causing bugs.
      *                </p>
      */
+    @Deprecated
     public PublicClientApplication(@NonNull final Context context) {
         if (context == null) {
             throw new IllegalArgumentException("context is null.");
@@ -165,12 +178,47 @@ public final class PublicClientApplication {
 
         mAppContext = context;
         loadMetaDataFromManifest();
-        loadConfiguration();
 
         mTokenCache = new TokenCache(mAppContext);
 
         initializeApplication();
     }
+
+    /**
+     * {@link PublicClientApplication#PublicClientApplication(Context, int)} will read the client id and other configuration settings from the
+     * file included in your applications resources.
+     *
+     * For more information on adding configuration files to your applications resources please
+     * @see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     *
+     * For more information on the schema of the MSAL config json please
+     * @see <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     *
+     * @param context Application's {@link Context}. The sdk requires the application context to be passed in
+     *                {@link PublicClientApplication}. Cannot be null.
+     *                <p>
+     *                Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
+     *                strong reference to the activity, thus preventing correct garbage collection and causing bugs.
+     *                </p>
+     *
+     * @param configFileResourceId The resource ID of the raw file containing the JSON configuration for the PublicClientApplication
+     */
+    public PublicClientApplication(@NonNull final Context context, final int configFileResourceId){
+        if (context == null) {
+            throw new IllegalArgumentException("context is null.");
+        }
+
+        mAppContext = context;
+        mTokenCache = new TokenCache(mAppContext);
+        try {
+            loadConfiguration(configFileResourceId);
+        } catch (Exception e) {
+            //TODO: Determine what the MSAL Exception should be
+            throw new IllegalArgumentException("MSAL configuration file contents are invalid");
+        }
+    }
+
+
 
     /**
      * {@link PublicClientApplication#PublicClientApplication(Context, String)} allows the client id to be passed instead of
@@ -640,16 +688,33 @@ public final class PublicClientApplication {
 //        }
     }
 
-    private void loadConfiguration(){
+    private void loadConfiguration(final int configResourceId) throws IOException {
 
-        int configId = mAppContext.getResources().getIdentifier("msal_config.json", "raw", mAppContext.getPackageName());
-        mAppContext.getAssets()
+        InputStream configStream = mAppContext.getResources().openRawResource(configResourceId);
+        byte[] buffer = new byte[configStream.available()];
+        configStream.read(buffer);
+        configStream.close();
 
-        if(configId == 0){
-            throw new IllegalArgumentException("Expected to find MSAL configuration located a raw resource with name msal_config.json");
-        }
+        String config = new String(buffer, "UTF-8");
 
+        Gson gson = getGsonForLoadingConfiguration();
 
+        PublicClientApplicationConfiguration publicClientApplicationConfiguration = gson.fromJson(config, PublicClientApplicationConfiguration.class);
+
+    }
+
+    private void loadDefaultConfiguration() throws IOException {
+        loadConfiguration(R.raw.msal_default_config);
+    }
+
+    private Gson getGsonForLoadingConfiguration(){
+
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(Authority.class, new AuthorityDeserializer())
+                .registerTypeAdapter(AzureActiveDirectoryAudience.class, new AzureActiveDirectoryAudienceDeserializer())
+                .create();
+
+        return gson;
 
     }
 

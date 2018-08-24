@@ -9,19 +9,19 @@
         "tenant_id": "[tenantid]",
         "cloud_url": "" //Optional
       },
-      "authorityUrl" : "" //Alternative to audience
+      "default": true,
+      "authority_url" : "" //Alternative to audience
     },
     {
       "type" : "B2C",
-      "authorityUrl" : ""
+      "authority_url" : ""
     },
     {
       "type" : "ADFS",
-      "authorityUrl" : ""
+      "authority_url" : ""
     }
   ],
-  "authorityUrls" : [ "", ""], //Alternative to authorities
-  "authorization_agent": "DEFAULT", // BROWSER, WEBVIEW, DEVICECODEFLOW
+  "authorization_user_agent": "DEFAULT", // DEVICE_BROWSER, EMBEDDED_USERAGENT, DEVICECODEFLOW, DEFAULT
   "http": {
     "connect_timeout":10000,
     "read_timeout": 30000
