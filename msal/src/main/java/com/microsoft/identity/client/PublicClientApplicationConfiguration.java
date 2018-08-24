@@ -23,7 +23,6 @@ public class PublicClientApplicationConfiguration {
     private List<Authority> mAuthorities;
 
     @SerializedName("authorization_user_agent")
-    private String mAuthorizationAgentString;
     private AuthorizationAgent mAuthorizationAgent;
 
     @SerializedName("http")
@@ -67,7 +66,6 @@ public class PublicClientApplicationConfiguration {
      * @return
      */
     public AuthorizationAgent getAuthorizationAgent(){
-        this.mAuthorizationAgent = AuthorizationAgent.valueOf(this.mAuthorizationAgentString.toUpperCase());
         return this.mAuthorizationAgent;
     }
 

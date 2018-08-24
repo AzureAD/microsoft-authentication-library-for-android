@@ -10,7 +10,15 @@
         "cloud_url": "" //Optional
       },
       "default": true,
-      "authority_url" : "" //Alternative to audience
+      "slice":{
+        "slice": "",
+        "dc": ""
+      },
+      "flight_parameters": {
+        "key1": "keyvalue1",
+        "key2": "keyvalue2",
+        "key3": "keyvalue3"
+      }
     },
     {
       "type" : "B2C",

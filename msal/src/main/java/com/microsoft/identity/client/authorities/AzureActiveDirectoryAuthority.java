@@ -8,11 +8,19 @@ import com.microsoft.identity.common.internal.providers.microsoft.azureactivedir
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
 
 public class AzureActiveDirectoryAuthority extends Authority {
 
     @SerializedName("audience")
     public AzureActiveDirectoryAudience mAudience;
+
+    @SerializedName("slice")
+    public AzureActiveDirectorySlice mSlice;
+
+    @SerializedName("flight_parameters")
+    public Map<String, String> mFlightParameters;
+
     private AzureActiveDirectoryCloud mAzureActiveDirectoryCloud;
 
     private void getAzureActiveDirectoryCloud(){
@@ -39,6 +47,14 @@ public class AzureActiveDirectoryAuthority extends Authority {
         //Defaulting to AllAccounts which maps to the "common" tenant
         mAudience = new AllAccounts();
         getAzureActiveDirectoryCloud();
+    }
+
+    public AzureActiveDirectorySlice getSlice(){
+        return this.mSlice;
+    }
+
+    public Map<String, String> getFlightParameters(){
+        return this.mFlightParameters;
     }
 
     @Override

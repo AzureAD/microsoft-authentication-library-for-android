@@ -145,6 +145,8 @@ public final class PublicClientApplication {
     private boolean mValidateAuthority = true;
     private String mSliceParameters = "";
 
+    private PublicClientApplicationConfiguration mPublicClientConfiguration;
+
     /**
      * @deprecated
      * This constructor has been replaced with one that leverages a configuration file.
@@ -296,14 +298,31 @@ public final class PublicClientApplication {
     }
 
     /**
+     * @deprecated
+     * The use of this property setter is no longer required.  Authorities will be considered valid
+     * if they are asserted by the developer via configuration or if Microsoft recognizes the cloud within which the authority exists.
+     *
+     * This setter no longer controls MSAL behavior.
+     *
      * By Default, authority validation is turned on. To turn on authority validation, set
      * {@link PublicClientApplication#setValidateAuthority(boolean)} to false.
      *
      * @param validateAuthority True if authority validation is on, false otherwise. By default, authority
      *                          validation is turned on.
      */
+    @Deprecated
     public void setValidateAuthority(final boolean validateAuthority) {
         mValidateAuthority = validateAuthority;
+    }
+
+    /**
+     * Returns the PublicClientConfiguration for this instance of PublicClientApplication
+     * Configuration is based on the defaults established for MSAl and can be overridden by creating the
+     * PublicClientApplication using {@link PublicClientApplication#PublicClientApplication(Context, int)}
+     * @return
+     */
+    public PublicClientApplicationConfiguration getConfiguration() {
+        return mPublicClientConfiguration;
     }
 
     /**
@@ -699,13 +718,15 @@ public final class PublicClientApplication {
 
         Gson gson = getGsonForLoadingConfiguration();
 
-        PublicClientApplicationConfiguration publicClientApplicationConfiguration = gson.fromJson(config, PublicClientApplicationConfiguration.class);
+        mPublicClientConfiguration = gson.fromJson(config, PublicClientApplicationConfiguration.class);
 
     }
 
+    /*
     private void loadDefaultConfiguration() throws IOException {
         loadConfiguration(R.raw.msal_default_config);
     }
+    */
 
     private Gson getGsonForLoadingConfiguration(){
 

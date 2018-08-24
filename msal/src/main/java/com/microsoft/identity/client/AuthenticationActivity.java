@@ -114,7 +114,7 @@ public final class AuthenticationActivity extends Activity {
             //AzureActiveDirectoryWebViewClient webViewClient = new AzureActiveDirectoryWebViewClient(this, mAuthorizationRequest, mChallengeCompletionCallback);
 
             setContentView(R.layout.activity_authentication);
-            final WebView webview = (WebView) this.findViewById(R.id.webview);
+            //final WebView webview = (WebView) this.findViewById(R.id.webview);
 
         } else {
             Logger.verbose(TAG, null, "Use Chrome Browser/Chrome ChromeTab to perform interactive authorization request. ");
