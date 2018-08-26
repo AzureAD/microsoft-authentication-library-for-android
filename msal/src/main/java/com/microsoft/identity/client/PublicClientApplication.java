@@ -179,8 +179,9 @@ public final class PublicClientApplication {
         }
 
         mAppContext = context;
+        setupConfiguration();
+        //Deprecating configuration in Metadata for now will copy and provided state to config object
         loadMetaDataFromManifest();
-
         mTokenCache = new TokenCache(mAppContext);
 
         initializeApplication();
@@ -212,12 +213,8 @@ public final class PublicClientApplication {
 
         mAppContext = context;
         mTokenCache = new TokenCache(mAppContext);
-        try {
-            loadConfiguration(configFileResourceId);
-        } catch (Exception e) {
-            //TODO: Determine what the MSAL Exception should be
-            throw new IllegalArgumentException("MSAL configuration file contents are invalid");
-        }
+        setupConfiguration(configFileResourceId);
+
     }
 
 
@@ -247,6 +244,8 @@ public final class PublicClientApplication {
         mTokenCache = new TokenCache(mAppContext);
         mClientId = clientId;
         mAuthorityString = DEFAULT_AUTHORITY;
+        setupConfiguration();
+        mPublicClientConfiguration.mClientId = clientId;
 
         initializeApplication();
     }
@@ -272,6 +271,9 @@ public final class PublicClientApplication {
         }
 
         mAuthorityString = authority;
+
+        mPublicClientConfiguration.getAuthorities().clear();
+        mPublicClientConfiguration.getAuthorities().add(Authority.getAuthorityFromAuthorityUrl(authority));
     }
 
     private void initializeApplication() {
@@ -689,8 +691,11 @@ public final class PublicClientApplication {
         final String authority = applicationInfo.metaData.getString(AUTHORITY_META_DATA);
         if (!MsalUtils.isEmpty(authority)) {
             mAuthorityString = authority;
+            mPublicClientConfiguration.getAuthorities().clear();
+            mPublicClientConfiguration.getAuthorities().add(Authority.getAuthorityFromAuthorityUrl(mAuthorityString));
         } else {
             mAuthorityString = DEFAULT_AUTHORITY;
+            //mPublicClientConfiguration already has the default authority configured.
         }
 
         // read client id from manifest
@@ -699,6 +704,7 @@ public final class PublicClientApplication {
             throw new IllegalArgumentException("client id missing from manifest");
         }
         mClientId = clientId;
+        mPublicClientConfiguration.mClientId = clientId;
 
         // TODO: Comment out for now. As discussed, redirect should be computed during runtime, developer needs to put
 //        final String redirectUri = applicationInfo.metaData.getString(REDIRECT_META_DATA);
@@ -707,26 +713,48 @@ public final class PublicClientApplication {
 //        }
     }
 
-    private void loadConfiguration(final int configResourceId) throws IOException {
+    private void setupConfiguration(final int configResourceId) {
+        PublicClientApplicationConfiguration developerConfig = loadConfiguration(configResourceId);
+        PublicClientApplicationConfiguration defaultConfig = loadDefaultConfiguration();
+        defaultConfig.mergeConfiguration(developerConfig);
+        mPublicClientConfiguration = defaultConfig;
+    }
+
+    private void setupConfiguration() {
+        mPublicClientConfiguration = loadDefaultConfiguration();
+    }
+
+    private PublicClientApplicationConfiguration loadConfiguration(final int configResourceId)  {
 
         InputStream configStream = mAppContext.getResources().openRawResource(configResourceId);
-        byte[] buffer = new byte[configStream.available()];
-        configStream.read(buffer);
-        configStream.close();
+        byte[] buffer;
 
-        String config = new String(buffer, "UTF-8");
+        try {
+            buffer = new byte[configStream.available()];
+            configStream.read(buffer);
+        }catch(IOException e){
+            if(configResourceId == R.raw.msal_default_config) {
+                throw new IllegalStateException("Unable to open default configuration file.  MSAL module may be incomplete.");
+            }else{
+                throw new IllegalArgumentException("Provided config file resource id could not be accessed");
+            }
+        }
+
+        String config = new String(buffer);
 
         Gson gson = getGsonForLoadingConfiguration();
 
-        mPublicClientConfiguration = gson.fromJson(config, PublicClientApplicationConfiguration.class);
+        PublicClientApplicationConfiguration configObject = gson.fromJson(config, PublicClientApplicationConfiguration.class);
+
+        return configObject;
+
 
     }
 
-    /*
-    private void loadDefaultConfiguration() throws IOException {
-        loadConfiguration(R.raw.msal_default_config);
+    private PublicClientApplicationConfiguration loadDefaultConfiguration() {
+        return loadConfiguration(R.raw.msal_default_config);
     }
-    */
+
 
     private Gson getGsonForLoadingConfiguration(){
 

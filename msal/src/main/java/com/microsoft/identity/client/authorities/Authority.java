@@ -35,9 +35,16 @@ public abstract class Authority {
      * @return
      * @throws MalformedURLException
      */
-    public static Authority getAuthorityFromAuthorityUrl(String authorityUrl) throws MalformedURLException {
+    public static Authority getAuthorityFromAuthorityUrl(String authorityUrl) {
 
-        URL authUrl = new URL(authorityUrl);
+        URL authUrl;
+
+        try {
+            authUrl = new URL(authorityUrl);
+        }catch(MalformedURLException e){
+            throw new IllegalArgumentException("Invalid authority URL");
+        }
+
         Uri authorityUri = Uri.parse(authUrl.toString());
         List<String> pathSegments = authorityUri.getPathSegments();
 
