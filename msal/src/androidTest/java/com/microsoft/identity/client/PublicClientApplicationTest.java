@@ -600,8 +600,11 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
      * Verify {@link PublicClientApplication#acquireToken(Activity, String[], String, UiBehavior, String, String[],
      * String, AuthenticationCallback)}. Also check if authority is set on the manifest, we read the authority
      * from manifest meta-data.
+     *
+     * ignoring this test for now.
      */
     @Test
+    @Ignore
     public void testAuthoritySetInManifestGetTokenFailed()
             throws PackageManager.NameNotFoundException, IOException, InterruptedException {
         new GetTokenBaseTestCase() {
