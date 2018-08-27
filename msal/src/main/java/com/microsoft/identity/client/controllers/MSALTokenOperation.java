@@ -22,7 +22,12 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.controllers;
 
-public class RequestCodes {
-    public static final int LOCAL_AUTHORIZATION_REQUEST = 1001;
-    public static final int BROKER_AUTHORIZATION_REQUEST = 1002;
+import android.content.Intent;
+
+import com.microsoft.identity.client.AuthenticationResult;
+
+public interface MSALTokenOperation {
+    public AuthenticationResult execute();
+
+    public void notify(int requestCode, int resultCode, final Intent data);
 }

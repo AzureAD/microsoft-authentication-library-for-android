@@ -43,7 +43,7 @@ import static com.microsoft.identity.client.testapp.R.id.enablePII;
 
 
 /**
- * AcquireToken Fragment, contains the flow for acquireToken interactively, acquireTokenSilent, getUsers, removeUser.
+ * acquireToken Fragment, contains the flow for acquireToken interactively, acquireTokenSilent, getUsers, removeUser.
  */
 public class AcquireTokenFragment extends Fragment {
     private Spinner mAuthority;
