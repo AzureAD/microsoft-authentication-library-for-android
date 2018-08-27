@@ -6,6 +6,7 @@ import android.test.suitebuilder.annotation.SmallTest;
 import org.json.JSONException;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.AdditionalMatchers;
@@ -32,6 +33,9 @@ public final class Oauth2ClientTest {
     static final String CLIENT_ID = "clientId";
     static final String REFRESH_TOKEN = "test refresh token";
     static final String AUTH_CODE = "testing code";
+
+    @Before
+    public void setup(){ HttpUrlConnectionFactory.clearMockedConnectionQueue(); }
 
     @After
     public void tearDown() {
