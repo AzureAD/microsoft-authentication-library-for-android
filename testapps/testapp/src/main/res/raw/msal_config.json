@@ -3,35 +3,16 @@
   "redirect_uri" : "",
   "authorities" : [
     {
-      "type" : "AAD",
+      "type": "AAD",
       "audience": {
-        "type" : "AzureADMyOrg",
-        "tenant_id": "[tenantid]",
-        "cloud_url": "" //Optional
+        "type": "AzureADMyOrg",
+        "tenant_id": "[tenantid]"
       },
-      "default": true,
-      "slice":{
-        "slice": "",
-        "dc": ""
+      "slice": {
+        "slice": "test",
+        "dc": "WUS"
       },
-      "flight_parameters": {
-        "key1": "keyvalue1",
-        "key2": "keyvalue2",
-        "key3": "keyvalue3"
-      }
-    },
-    {
-      "type" : "B2C",
-      "authority_url" : ""
-    },
-    {
-      "type" : "ADFS",
-      "authority_url" : ""
+      "flight_parameters": [{"key1": "value1"}, {"key2": "value2"}]
     }
-  ],
-  "authorization_user_agent": "DEFAULT", // DEVICE_BROWSER, EMBEDDED_USERAGENT, DEVICECODEFLOW, DEFAULT
-  "http": {
-    "connect_timeout":10000,
-    "read_timeout": 30000
-  }
+  ]
 }

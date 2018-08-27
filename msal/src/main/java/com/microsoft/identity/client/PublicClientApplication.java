@@ -340,11 +340,15 @@ public final class PublicClientApplication {
     }
 
     /**
+     * @deprecated
+     * If you're a Micorosft developer who needs to target a specific slice please refer to the AAD Onboarding documentation for instruction on how to do so.
+     *
      * Custom query parameters which maybe sent to the STS for dogfood testing. This parameter should not be set by developers as it may
      * have adverse effect on the application.
      *
      * @param sliceParameters The custom query parameters(for dogfood testing) sent to token and authorize endpoint.
      */
+    @Deprecated
     public void setSliceParameters(final String sliceParameters) {
         mSliceParameters = sliceParameters;
     }

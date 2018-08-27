@@ -1,3 +1,25 @@
+//  Copyright (c) Microsoft Corporation.
+//  All rights reserved.
+//
+//  This code is licensed under the MIT License.
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files(the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions :
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
 package com.microsoft.identity.client.authorities;
 
 import android.net.Uri;
@@ -23,7 +45,7 @@ public class AzureActiveDirectoryAuthority extends Authority {
 
     private AzureActiveDirectoryCloud mAzureActiveDirectoryCloud;
 
-    private void getAzureActiveDirectoryCloud(){
+    private void getAzureActiveDirectoryCloud() {
 
         AzureActiveDirectoryCloud cloud = null;
 
@@ -38,31 +60,31 @@ public class AzureActiveDirectoryAuthority extends Authority {
         mAzureActiveDirectoryCloud = cloud;
     }
 
-    public AzureActiveDirectoryAuthority(AzureActiveDirectoryAudience signInAudience){
+    public AzureActiveDirectoryAuthority(AzureActiveDirectoryAudience signInAudience) {
         mAudience = signInAudience;
         getAzureActiveDirectoryCloud();
     }
 
-    public AzureActiveDirectoryAuthority(){
+    public AzureActiveDirectoryAuthority() {
         //Defaulting to AllAccounts which maps to the "common" tenant
         mAudience = new AllAccounts();
         getAzureActiveDirectoryCloud();
     }
 
-    public AzureActiveDirectorySlice getSlice(){
+    public AzureActiveDirectorySlice getSlice() {
         return this.mSlice;
     }
 
-    public Map<String, String> getFlightParameters(){
+    public Map<String, String> getFlightParameters() {
         return this.mFlightParameters;
     }
 
     @Override
     public Uri getAuthorityUri() {
         Uri issuer;
-        if(mAzureActiveDirectoryCloud == null) {
+        if (mAzureActiveDirectoryCloud == null) {
             issuer = Uri.parse(mAudience.getCloudUrl());
-        }else{
+        } else {
             issuer = Uri.parse(mAzureActiveDirectoryCloud.getPreferredNetworkHostName());
         }
         return issuer.buildUpon().appendPath(mAudience.getTenantId()).build();
