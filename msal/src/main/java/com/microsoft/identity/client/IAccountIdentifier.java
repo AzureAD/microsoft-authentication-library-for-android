@@ -20,22 +20,18 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.authorities;
+package com.microsoft.identity.client;
 
-import android.net.Uri;
+/**
+ * Interface describing an identifier with a {@link String} representation.
+ */
+public interface IAccountIdentifier {
 
-public class ActiveDirectoryFederationServicesAuthority extends Authority {
+    /**
+     * Gets the identifier.
+     *
+     * @return The identifier to get.
+     */
+    String getIdentifier();
 
-    private String mAuthorityUrl; //NOPMD
-    private Uri mAuthorityUri;
-
-    ActiveDirectoryFederationServicesAuthority(String authorityUrl) {
-        this.mAuthorityUrl = authorityUrl;
-        this.mAuthorityUri = Uri.parse(authorityUrl);
-    }
-
-    @Override
-    public Uri getAuthorityUri() {
-        return mAuthorityUri;
-    }
 }

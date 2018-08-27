@@ -20,22 +20,34 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.authorities;
+package com.microsoft.identity.client;
 
-import android.net.Uri;
+/**
+ * Interface describing MSAL's externally-exposed Account representation.
+ */
+public interface IAccount {
 
-public class ActiveDirectoryFederationServicesAuthority extends Authority {
+    /**
+     * Gets the {@link IAccountIdentifier} for this Account -- this value is authority-specific.
+     *
+     * @return The AccountIdentifier.
+     */
+    IAccountIdentifier getAccountIdentifier();
 
-    private String mAuthorityUrl; //NOPMD
-    private Uri mAuthorityUri;
+    /**
+     * Gets the home {@link IAccountIdentifier} for this IAccount -- for IAccount types with tenant
+     * association[s], this value will be unique. Meaning, it's value is the same
+     * in the IAccount's home tenant and in any guest tenants to which it may be associated.
+     *
+     * @return
+     */
+    IAccountIdentifier getHomeAccountIdentifier();
 
-    ActiveDirectoryFederationServicesAuthority(String authorityUrl) {
-        this.mAuthorityUrl = authorityUrl;
-        this.mAuthorityUri = Uri.parse(authorityUrl);
-    }
+    /**
+     * Gets the username of this IAccount.
+     *
+     * @return The username to get.
+     */
+    String getUsername();
 
-    @Override
-    public Uri getAuthorityUri() {
-        return mAuthorityUri;
-    }
 }

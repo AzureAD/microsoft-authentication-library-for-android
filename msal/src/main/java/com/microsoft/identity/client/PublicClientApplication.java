@@ -37,13 +37,18 @@ import com.microsoft.identity.client.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.client.internal.configuration.AuthorityDeserializer;
 import com.microsoft.identity.client.internal.configuration.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.internal.dto.Account;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.msal.BuildConfig;
 import com.microsoft.identity.msal.R;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -115,6 +120,7 @@ public final class PublicClientApplication {
 
     private final Context mAppContext;
     private final TokenCache mTokenCache;
+    private final OAuth2TokenCache mOauth2TokenCache;
 
     /**
      * The authority the application will use to obtain tokens.
@@ -183,6 +189,7 @@ public final class PublicClientApplication {
         //Deprecating configuration in Metadata for now will copy and provided state to config object
         loadMetaDataFromManifest();
         mTokenCache = new TokenCache(mAppContext);
+        mOauth2TokenCache = mTokenCache.getOAuth2TokenCache();
 
         initializeApplication();
     }
@@ -213,6 +220,7 @@ public final class PublicClientApplication {
 
         mAppContext = context;
         mTokenCache = new TokenCache(mAppContext);
+        mOauth2TokenCache = mTokenCache.getOAuth2TokenCache();
         setupConfiguration(configFileResourceId);
 
     }
@@ -242,6 +250,7 @@ public final class PublicClientApplication {
 
         mAppContext = context;
         mTokenCache = new TokenCache(mAppContext);
+        mOauth2TokenCache = mTokenCache.getOAuth2TokenCache();
         mClientId = clientId;
         mAuthorityString = DEFAULT_AUTHORITY;
         setupConfiguration();
@@ -276,6 +285,30 @@ public final class PublicClientApplication {
         mPublicClientConfiguration.getAuthorities().add(Authority.getAuthorityFromAuthorityUrl(authority));
     }
 
+    /*
+     * {@link PublicClientApplication#PublicClientApplication(Context, String, String)} allows the client id and authority to be passed instead of
+     * providing them through metadata.
+     *
+     * @param context   Application's {@link Context}. The sdk requires the application context to be passed in
+     *                  {@link PublicClientApplication}. Cannot be null.
+     *                  <p>
+     *                  Note: The {@link Context} should be the application context instead of an running activity's context, which could potentially make the sdk hold a
+     *                  strong reference to the activity, thus preventing correct garbage collection and causing bugs.
+     *                  </p>
+     * @param clientId  The application client id.
+     * @param authority The default authority to be used for the authority.
+     */
+    /*
+    public PublicClientApplication(@NonNull Configuration config) {
+        this(config.getContext(), config.getClientId());
+
+        if (MsalUtils.isEmpty(authority)) {
+            throw new IllegalArgumentException("authority is empty or null");
+        }
+
+        mAuthorityString = authority;
+    }
+    */
     private void initializeApplication() {
         // Init Events with defaults (application-wide)
         DefaultEvent.initializeDefaults(
@@ -354,6 +387,79 @@ public final class PublicClientApplication {
     }
 
     /**
+     * Returns a List of {@link IAccount} objects for which this application has RefreshTokens.
+     *
+     * @return An immutable List of IAccount objects - empty if no IAccounts exist.
+     */
+    public List<IAccount> getAccounts() {
+        final List<IAccount> accountsToReturn = new ArrayList<>();
+
+        // Grab the Accounts from the common cache
+        final List<Account> accountsInCache = mOauth2TokenCache.getAccounts(
+                MsalUtils.getUrl(mAuthorityString).getHost(),
+                mClientId
+        );
+
+        // Adapt them to the MSAL model
+        for (final Account account : accountsInCache) {
+            accountsToReturn.add(AccountAdapter.adapt(account));
+        }
+
+        return Collections.unmodifiableList(accountsToReturn);
+    }
+
+    /**
+     * Returns the IAccount object matching the supplied home_account_id.
+     *
+     * @param homeAccountIdentifier The home_account_id of the sought IAccount.
+     * @return The IAccount stored in the cache or null, if no such matching entry exists.
+     */
+    public IAccount getAccount(final String homeAccountIdentifier) {
+        final Account accountToReturn;
+
+        if (!StringUtil.isEmpty(homeAccountIdentifier)) {
+            accountToReturn = mOauth2TokenCache.getAccount(
+                    MsalUtils.getUrl(mAuthorityString).getHost(),
+                    mClientId,
+                    homeAccountIdentifier
+            );
+        } else {
+            com.microsoft.identity.common.internal.logging.Logger.warn(
+                    TAG,
+                    "homeAccountIdentifier was null or empty -- invalid criteria"
+            );
+            accountToReturn = null;
+        }
+
+        return null == accountToReturn ? null : AccountAdapter.adapt(accountToReturn);
+    }
+
+    /**
+     * Removes the Account and Credentials (tokens) for the supplied IAccount.
+     *
+     * @param account The IAccount whose entry and associated tokens should be removed.
+     * @return True, if the account was removed. False otherwise.
+     */
+    public boolean removeAccount(final IAccount account) {
+        if (null == account
+                || null == account.getHomeAccountIdentifier()
+                || StringUtil.isEmpty(account.getHomeAccountIdentifier().getIdentifier())) {
+            com.microsoft.identity.common.internal.logging.Logger.warn(
+                    TAG,
+                    "Requisite IAccount or IAccount fields were null. Insufficient criteria to remove IAccount."
+            );
+
+            return false;
+        }
+
+        return mOauth2TokenCache.removeAccount(
+                MsalUtils.getUrl(mAuthorityString).getHost(),
+                mClientId,
+                account.getHomeAccountIdentifier().getIdentifier()
+        );
+    }
+
+    /**
      * Returns the list of {@link User}s we have tokens in the cache.
      *
      * @return Immutable List of {@link User}.
@@ -416,6 +522,7 @@ public final class PublicClientApplication {
      */
     public void handleInteractiveRequestRedirect(int requestCode, int resultCode, final Intent data) {
         InteractiveRequest.onActivityResult(requestCode, resultCode, data);
+        //MSALApiDispatcher.CompleteInteractive(requestCode, resultCode, data);
     }
 
     // Interactive APIs. Will launch the system browser with web UI.
@@ -442,8 +549,20 @@ public final class PublicClientApplication {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, API_ID_ACQUIRE);
 
-        acquireTokenInteractive(activity, scopes, "", UiBehavior.SELECT_ACCOUNT, "", null, "", null,
-                wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), telemetryRequestId, apiEventBuilder);
+        /*
+        MSALAcquireTokenRequest request = new MSALAcquireTokenRequest();
+
+        request.setScopes(Arrays.asList(scopes));
+        request.setClientId(mClientId);
+        request.setRedirectUri(mRedirectUri);
+        request.setAppContext(mAppContext);
+        request.setActivity(activity);
+
+        MSALApiDispatcher.BeginInteractive(new LocalMSALController(), request);
+
+        */
+
+        acquireTokenInteractive(activity, scopes, "", UiBehavior.SELECT_ACCOUNT, "", null, "", null, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), telemetryRequestId, apiEventBuilder);
     }
 
     /**

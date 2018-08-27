@@ -20,22 +20,26 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.authorities;
+package com.microsoft.identity.client;
 
-import android.net.Uri;
+/**
+ * AccountIds expose identifiers used by MSAL to uniquely identify Accounts.
+ */
+abstract class AccountIdentifier implements IAccountIdentifier {
 
-public class ActiveDirectoryFederationServicesAuthority extends Authority {
+    private String mIdentifier;
 
-    private String mAuthorityUrl; //NOPMD
-    private Uri mAuthorityUri;
-
-    ActiveDirectoryFederationServicesAuthority(String authorityUrl) {
-        this.mAuthorityUrl = authorityUrl;
-        this.mAuthorityUri = Uri.parse(authorityUrl);
+    /**
+     * Sets the identifier.
+     *
+     * @param identifier The identifier to set.
+     */
+    void setIdentifier(final String identifier) {
+        mIdentifier = identifier;
     }
 
     @Override
-    public Uri getAuthorityUri() {
-        return mAuthorityUri;
+    public String getIdentifier() {
+        return mIdentifier;
     }
 }

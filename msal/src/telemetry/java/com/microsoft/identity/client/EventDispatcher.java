@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Dispatcher for telemetry event data.
+ * MSALApiDispatcher for telemetry event data.
  * Turns MSAL internal Events into an externally consumable format before publishing.
  */
 class EventDispatcher {
