@@ -41,7 +41,7 @@
         android:layout_height="wrap_content"
         android:text="@string/into_text"/>
 
-    <!-- AcquireToken button -->
+    <!-- acquireToken button -->
     <Button
         android:id="@+id/acquireToken"
         android:layout_width="wrap_content"
@@ -50,7 +50,7 @@
         android:layout_centerHorizontal="true"
         android:text="@string/acquire_token" />
 
-    <!-- AcquireTokenSilent Button -->
+    <!-- acquireTokenSilent Button -->
     <Button
         android:id="@+id/acquireTokenSilent"
         android:layout_width="wrap_content"

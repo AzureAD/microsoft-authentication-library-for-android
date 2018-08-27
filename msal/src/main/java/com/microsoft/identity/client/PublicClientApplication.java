@@ -30,12 +30,17 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.microsoft.identity.client.authorities.Authority;
 import com.microsoft.identity.client.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.client.internal.configuration.AuthorityDeserializer;
 import com.microsoft.identity.client.internal.configuration.AzureActiveDirectoryAudienceDeserializer;
+import com.microsoft.identity.client.controllers.LocalMSALController;
+import com.microsoft.identity.client.controllers.MSALAcquireTokenOperationParameters;
+import com.microsoft.identity.client.controllers.MSALInteractiveTokenCommand;
+
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.dto.Account;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
@@ -47,8 +52,10 @@ import com.microsoft.identity.msal.R;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -522,7 +529,7 @@ public final class PublicClientApplication {
      */
     public void handleInteractiveRequestRedirect(int requestCode, int resultCode, final Intent data) {
         InteractiveRequest.onActivityResult(requestCode, resultCode, data);
-        //MSALApiDispatcher.CompleteInteractive(requestCode, resultCode, data);
+        //com.microsoft.identity.client.MSALApiDispatcher.CompleteInteractive(requestCode, resultCode, data);
     }
 
     // Interactive APIs. Will launch the system browser with web UI.
@@ -549,18 +556,25 @@ public final class PublicClientApplication {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, API_ID_ACQUIRE);
 
+
         /*
-        MSALAcquireTokenRequest request = new MSALAcquireTokenRequest();
+        MSALAcquireTokenOperationParameters params = new MSALAcquireTokenOperationParameters();
 
-        request.setScopes(Arrays.asList(scopes));
-        request.setClientId(mClientId);
-        request.setRedirectUri(mRedirectUri);
-        request.setAppContext(mAppContext);
-        request.setActivity(activity);
+        params.setScopes(Arrays.asList(scopes));
+        params.setClientId(mClientId);
+        params.setRedirectUri(mRedirectUri);
+        params.setActivity(activity);
+        params.setTokenCache(TokenCache.initCommonCache(mAppContext));
 
-        MSALApiDispatcher.BeginInteractive(new LocalMSALController(), request);
+        MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand();
+        command.setContext(mAppContext);
+        command.setCallback(callback);
+        command.setParameters(params);
+        command.setController(new LocalMSALController());
 
+        com.microsoft.identity.client.MSALApiDispatcher.BeginInteractive(command);
         */
+
 
         acquireTokenInteractive(activity, scopes, "", UiBehavior.SELECT_ACCOUNT, "", null, "", null, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), telemetryRequestId, apiEventBuilder);
     }
