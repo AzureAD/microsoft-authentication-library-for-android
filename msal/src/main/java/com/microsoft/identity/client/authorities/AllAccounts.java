@@ -22,12 +22,14 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.authorities;
 
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
+
 public class AllAccounts extends AzureActiveDirectoryAudience {
 
     public static final String ALL_ACCOUNTS_TENANT_ID = "common";
 
     public AllAccounts() {
-        this.setCloudUrl("");  //TODO: Default
+        this.setCloudUrl(AzureActiveDirectory.DEFAULT_CLOUD_URL);
         this.setTenantId(ALL_ACCOUNTS_TENANT_ID);
     }
 }

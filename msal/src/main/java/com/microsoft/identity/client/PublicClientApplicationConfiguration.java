@@ -23,13 +23,11 @@
 package com.microsoft.identity.client;
 
 
-
 import com.google.gson.annotations.SerializedName;
-
-import java.util.List;
-
 import com.microsoft.identity.client.authorities.Authority;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
+
+import java.util.List;
 
 public class PublicClientApplicationConfiguration {
 
@@ -58,6 +56,7 @@ public class PublicClientApplicationConfiguration {
 
     /**
      * Gets the currently configured client id for the public client application
+     *
      * @return
      */
     public String getClientId() {
@@ -66,6 +65,7 @@ public class PublicClientApplicationConfiguration {
 
     /**
      * Gets the list of authorities configured by the developer for use with the public client application
+     *
      * @return
      */
     public List<Authority> getAuthorities() {
@@ -74,31 +74,33 @@ public class PublicClientApplicationConfiguration {
 
     /**
      * Gets the currently configured HTTP_KEY configuration for the public client application
+     *
      * @return
      */
-    public HttpConfiguration getHttpConfiguration(){
+    public HttpConfiguration getHttpConfiguration() {
         return this.mHttpConfiguration;
     }
 
     /**
      * Gets the currently configured redirect uri for the public client application
+     *
      * @return
      */
-    public String getRedirectUri(){
+    public String getRedirectUri() {
         return this.mRedirectUri;
     }
 
     /**
      * Gets the currently configured authorization agent for the public client application
+     *
      * @return
      */
-    public AuthorizationAgent getAuthorizationAgent(){
+    public AuthorizationAgent getAuthorizationAgent() {
         return this.mAuthorizationAgent;
     }
 
 
-    void mergeConfiguration(PublicClientApplicationConfiguration config){
-
+    void mergeConfiguration(PublicClientApplicationConfiguration config) {
 
         this.mClientId = config.mClientId == null ? this.mClientId : config.mClientId;
         this.mRedirectUri = config.mRedirectUri == null ? this.mRedirectUri : config.mRedirectUri;
@@ -108,13 +110,13 @@ public class PublicClientApplicationConfiguration {
 
     }
 
-    void validateConfiguration(){
+    void validateConfiguration() {
         nullConfigurationCheck(PublicClientApplicationConfiguration.REDIRECT_URI_KEY, mRedirectUri);
         nullConfigurationCheck(PublicClientApplicationConfiguration.CLIENT_ID_KEY, mClientId);
     }
 
-    void nullConfigurationCheck(String configKey, String configValue){
-        if(configValue == null){
+    void nullConfigurationCheck(String configKey, String configValue) {
+        if (configValue == null) {
             throw new IllegalArgumentException(configKey + " cannot be null.  Invalid configuration.");
         }
     }

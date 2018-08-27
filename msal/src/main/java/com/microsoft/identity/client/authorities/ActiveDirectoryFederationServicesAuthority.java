@@ -26,8 +26,16 @@ import android.net.Uri;
 
 public class ActiveDirectoryFederationServicesAuthority extends Authority {
 
+    private String mAuthorityUrl;
+    private Uri mAuthorityUri;
+
+    ActiveDirectoryFederationServicesAuthority(String authorityUrl) {
+        this.mAuthorityUrl = authorityUrl;
+        this.mAuthorityUri = Uri.parse(authorityUrl);
+    }
+
     @Override
     public Uri getAuthorityUri() {
-        throw new UnsupportedOperationException();
+        return mAuthorityUri;
     }
 }

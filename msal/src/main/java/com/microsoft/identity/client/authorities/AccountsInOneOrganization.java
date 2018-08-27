@@ -22,10 +22,12 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.authorities;
 
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
+
 public class AccountsInOneOrganization extends AzureActiveDirectoryAudience {
 
     public AccountsInOneOrganization(String tenantId) {
-        //TODO: Set default cloud url
+        this.setCloudUrl(AzureActiveDirectory.DEFAULT_CLOUD_URL);
         this.setTenantId(tenantId);
     }
 

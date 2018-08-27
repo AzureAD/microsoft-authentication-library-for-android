@@ -25,8 +25,16 @@ package com.microsoft.identity.client.authorities;
 import android.net.Uri;
 
 public class AzureActiveDirectoryB2CAuthority extends Authority {
+    private String mAuthorityUrl;
+    private Uri mAuthorityUri;
+
+    AzureActiveDirectoryB2CAuthority(String authorityUrl) {
+        this.mAuthorityUrl = authorityUrl;
+        this.mAuthorityUri = Uri.parse(authorityUrl);
+    }
+
     @Override
     public Uri getAuthorityUri() {
-        throw new UnsupportedOperationException();
+        return mAuthorityUri;
     }
 }

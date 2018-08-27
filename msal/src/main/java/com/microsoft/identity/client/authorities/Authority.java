@@ -81,9 +81,11 @@ public abstract class Authority {
         switch (authorityType.toLowerCase()) {
             case ADFS_PATH_SEGMENT:
                 //Return new Azure Active Directory Federation Services Authority
+                authority = new ActiveDirectoryFederationServicesAuthority(authorityUrl);
                 break;
             case B2C_PATH_SEGMENT:
                 //Return new B2C Authority
+                authority = new AzureActiveDirectoryB2CAuthority(authorityUrl);
                 break;
             default:
                 AzureActiveDirectoryAudience audience = AzureActiveDirectoryAudience.getAzureActiveDirectoryAudience(authorityUri.getAuthority(), pathSegments.get(0));
