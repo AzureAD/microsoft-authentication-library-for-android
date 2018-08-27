@@ -65,6 +65,7 @@ public final class AuthenticationActivity extends Activity {
 
         mChromePackageWithCustomTabSupport = MsalUtils.getChromePackageWithCustomTabSupport(getApplicationContext());
 
+
         // If activity is killed by the os, savedInstance will be the saved bundle.
         if (savedInstanceState != null) {
             Logger.verbose(TAG, null, "AuthenticationActivity is re-created after killed by the os.");
@@ -105,6 +106,7 @@ public final class AuthenticationActivity extends Activity {
         super.onStart();
         if (mChromePackageWithCustomTabSupport != null) {
             warmUpCustomTabs();
+
         }
     }
 
@@ -288,4 +290,5 @@ public final class AuthenticationActivity extends Activity {
         errorIntent.putExtra(Constants.UIResponse.ERROR_DESCRIPTION, errorDescription);
         returnToCaller(Constants.UIResponse.AUTH_CODE_ERROR, errorIntent);
     }
+
 }
