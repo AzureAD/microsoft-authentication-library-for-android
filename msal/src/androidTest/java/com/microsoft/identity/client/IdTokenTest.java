@@ -132,10 +132,18 @@ public final class IdTokenTest {
     public void testIdTokenHappyPath() {
         // Id token with invalid signature part, we don't do any signature validation today. As long as the id token
         // contains a valid payload, we'll successfully parse it.
-        final String rawIdToken = AndroidTestUtil.createIdToken(
-                AndroidTestUtil.AUDIENCE, AndroidTestUtil.ISSUER, AndroidTestUtil.NAME,
-                AndroidTestUtil.OBJECT_ID, AndroidTestUtil.PREFERRED_USERNAME,
-                AndroidTestUtil.SUBJECT, AndroidTestUtil.TENANT_ID, AndroidTestUtil.VERSION);
+        final String rawIdToken =
+                AndroidTestUtil.createIdToken(
+                        AndroidTestUtil.AUDIENCE,
+                        AndroidTestUtil.ISSUER,
+                        AndroidTestUtil.NAME,
+                        AndroidTestUtil.OBJECT_ID,
+                        AndroidTestUtil.PREFERRED_USERNAME,
+                        AndroidTestUtil.SUBJECT,
+                        AndroidTestUtil.TENANT_ID,
+                        AndroidTestUtil.VERSION,
+                        null
+                );
         try {
             final IdToken idToken = new IdToken(rawIdToken);
             Assert.assertTrue(idToken.getIssuer().equals(AndroidTestUtil.ISSUER));

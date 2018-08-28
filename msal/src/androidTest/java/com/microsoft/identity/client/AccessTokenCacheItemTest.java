@@ -120,7 +120,16 @@ public final class AccessTokenCacheItemTest {
     }
 
     static String getIdToken() {
-        return AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", UNIQUE_ID, DISPLAYABLE, "sub", TENANT_ID,
-                "version");
+        return AndroidTestUtil.createIdToken(
+                AUTHORITY,
+                "issuer",
+                "test user",
+                UNIQUE_ID,
+                DISPLAYABLE,
+                "sub",
+                TENANT_ID,
+                "version",
+                null
+        );
     }
 }
