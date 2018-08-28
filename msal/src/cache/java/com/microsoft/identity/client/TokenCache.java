@@ -62,7 +62,7 @@ import static com.microsoft.identity.common.internal.cache.AccountCredentialCach
 /**
  * MSAL internal representation for token cache.
  */
-class TokenCache {
+public class TokenCache {
     private static final String TAG = TokenCache.class.getSimpleName();
 
     private static final int DEFAULT_EXPIRATION_BUFFER = 300;
@@ -95,6 +95,7 @@ class TokenCache {
             MicrosoftStsTokenResponse,
             MicrosoftAccount,
             MicrosoftRefreshToken> initCommonCache(final Context context) {
+
         // Init the new-schema cache
         final ICacheKeyValueDelegate cacheKeyValueDelegate = new CacheKeyValueDelegate();
         final IStorageHelper storageHelper = new StorageHelper(context);

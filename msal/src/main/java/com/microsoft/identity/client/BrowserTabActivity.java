@@ -54,7 +54,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStra
  * </pre>
  */
 public final class BrowserTabActivity extends Activity {
-    private static final String TAG = BrowserTabActivity.class.getSimpleName();
+    //private static final String TAG = BrowserTabActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
