@@ -89,36 +89,6 @@ public final class AndroidTestUtil {
         // Leave as blank intentionally.
     }
 
-//    static final String TEST_IDTOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik1uQ19WWmNBVGZNNXBPWWlKSE1iYTlnb0VLWSJ9.eyJhdWQiOiI"
-//            + "1YTQzNDY5MS1jY2IyLTRmZDEtYjk3Yi1iNjRiY2ZiYzAzZmMiLCJpc3MiOiJodHRwczovL2xvZ2luLm1pY3Jvc29mdG9ubGluZS5jb20vMDI4N2Y5NjMtMmQ3M"
-//            + "i00MzYzLTllM2EtNTcwNWM1YjBmMDMxL3YyLjAiLCJpYXQiOjE0NzE0OTczMTYsIm5iZiI6MTQ3MTQ5NzMxNiwiZXhwIjoxNDcxNTAxMjE2LCJuYW1lIjoiTW"
-//            + "FtIFVzZXIiLCJvaWQiOiI2NDI5MTVhNC1kMDViLTRhYjctYmZmYi1mYWYyYjcxNzc4ZWYiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJtYW1AbXNkZXZleC5vbm1"
-//            + "pY3Jvc29mdC5jb20iLCJzdWIiOiJ6X01zenhybUd0eTkyeWRjNlVybm5JVW1QdjhETXBMRVh5VzU3RmJhb3pvIiwidGlkIjoiMDI4N2Y5NjMtMmQ3Mi00MzYz"
-//            + "LTllM2EtNTcwNWM1YjBmMDMxIiwidmVyIjoiMi4wIn0.WxDB0BvZXSwWJWyMlMunIyfNAP8hi6rRskuQ1D2oSCH_QyaNI2WCcfhIuuw0tp2fs_NBKwDyK1Yt"
-//            + "U_14gMN7jL-QB85WvTGx_U-Rg4U5GzyLfmZgWCm6Kap5_mOQkzgdKa3Izxnr42QG0gKP1fg-ndwp3IQUtvFTureCnyDanHydGUCX1KEoQe2Rb0uuuL10xLb5"
-//            + "UyIOCfAj5cRrZSEStJGyuZnq9nB2t6baM4HGdT4S7Q0madLgb5RPTfI3jMfX47ndnrqFBRpTFbDr4HN9tgXzs9d8EpcAtypp9osD2nh3KBmA77NsZsAMYe0R"
-//            + "wMHoq4dFkuHYTmywUDqWRha_2w";
-
-        /*
-    {
-  "typ": "JWT",
-  "alg": "RS256",
-  "kid": "MnC_VZcATfM5pOYiJHMba9goEKY"
-}.{
-  "aud": "5a434691-ccb2-4fd1-b97b-b64bcfbc03fc",
-  "iss": "https://login.microsoftonline.com/0287f963-2d72-4363-9e3a-5705c5b0f031/v2.0",
-  "iat": 1471497316,
-  "nbf": 1471497316,
-  "exp": 1471501216,
-  "name": "Mam User",
-  "oid": "642915a4-d05b-4ab7-bffb-faf2b71778ef",
-  "preferred_username": "mam@msdevex.onmicrosoft.com",
-  "sub": "z_MszxrmGty92ydc6UrnnIUmPv8DMpLEXyW57Fbaozo",
-  "tid": "0287f963-2d72-4363-9e3a-5705c5b0f031",
-  "ver": "2.0"
-}
-     */
-
     static final String TEST_IDTOKEN;
 
     static {
