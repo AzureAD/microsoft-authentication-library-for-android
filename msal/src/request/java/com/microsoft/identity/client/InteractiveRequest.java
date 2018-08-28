@@ -152,27 +152,6 @@ final class InteractiveRequest extends BaseRequest {
                 break;
         }
 
-        /*
-
-        (final String responseType,
-                                            @NonNull final String clientId,
-                                            @NonNull final String redirectUri,
-                                            final String state,
-                                            @NonNull final String scope,
-                                            @NonNull final URL authority,
-                                            final String loginHint,
-                                            final UUID correlationId,
-                                            final PkceChallenge pkceChallenge,
-                                            final String extraQueryParam,
-                                            final String libraryVersion,
-                                            @NonNull final MicrosoftStsPromptBehavior promptBehavior,
-                                            final String uid,
-                                            final String utid,
-                                            final String displayableId,
-                                            final String sliceParameters
-                                            )
-         */
-
         final MicrosoftStsAuthorizationRequest authorizationRequest = new MicrosoftStsAuthorizationRequest(
                 OauthConstants.Oauth2Parameters.CODE,
                 getAuthRequestParameters().getClientId(),

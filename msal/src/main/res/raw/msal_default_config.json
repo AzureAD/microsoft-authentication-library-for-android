@@ -8,7 +8,7 @@
       "default": true
     }
   ],
-  "authorization_user_agent": "DEFAULT", // DEVICE_BROWSER, EMBEDDED_USERAGENT, DEVICECODEFLOW, DEFAULT
+  "authorization_user_agent": "DEFAULT",
   "http": {
     "connect_timeout":10000,
     "read_timeout": 30000
