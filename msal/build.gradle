@@ -103,6 +103,8 @@ dependencies {
     implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
     implementation "com.android.support:customtabs:$rootProject.ext.supportLibraryVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
+    implementation 'com.nimbusds:nimbus-jose-jwt:5.7'
+
     // test dependencies
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
     // TODO the below dependency should be mockito-core but the MockMaker isn't working...
