@@ -157,26 +157,6 @@ public final class AndroidTestUtil {
         }
     }
 
-//    static String createIdToken(final String audience,
-//                                final String issuer,
-//                                final String name,
-//                                final String objectId,
-//                                final String preferredName,
-//                                final String subject,
-//                                final String tenantId,
-//                                final String version) {
-//        final String idTokenHeader = "{\"typ\":\"JWT\",\"alg\":\"RS256\"}";
-//        final String claims = "{\"aud\":\"" + audience + "\",\"iss\":\"" + issuer
-//                + "\",\"ver\":\"" + version + "\",\"tid\":\"" + tenantId + "\",\"oid\":\"" + objectId
-//                + "\",\"preferred_username\":\"" + preferredName + "\",\"sub\":\"" + subject
-//                + "\",\"name\":\"" + name + "\"}";
-//
-//        return String.format("%s.%s.", new String(Base64.encode(idTokenHeader.getBytes(
-//                Charset.forName(MsalUtils.ENCODING_UTF8)), Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE)),
-//                new String(Base64.encode(claims.getBytes(Charset.forName(MsalUtils.ENCODING_UTF8)),
-//                        Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE)));
-//    }
-
     static String createRawClientInfo(final String uid, final String utid) {
         final String claims = "{\"uid\":\"" + uid + "\",\"utid\":\"" + utid + "\"}";
 
