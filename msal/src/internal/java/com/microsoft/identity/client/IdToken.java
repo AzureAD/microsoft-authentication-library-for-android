@@ -23,11 +23,9 @@
 
 package com.microsoft.identity.client;
 
-import android.util.Base64;
+import com.microsoft.identity.common.exception.ServiceException;
+import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 
-import org.json.JSONException;
-
-import java.nio.charset.Charset;
 import java.util.Map;
 
 /**
@@ -106,26 +104,14 @@ final class IdToken {
     }
 
     private Map<String, String> parseJWT(final String idToken) throws MsalClientException {
-        final String idTokenBody = extractJWTBody(idToken);
-        final byte[] data = Base64.decode(idTokenBody, Base64.URL_SAFE);
-
         try {
-            final String decodedBody = new String(data, Charset.forName(MsalUtils.ENCODING_UTF8));
-            return MsalUtils.extractJsonObjectIntoMap(decodedBody);
-        } catch (final JSONException e) {
-            throw new MsalClientException(MsalClientException.INVALID_JWT, "Failed to extract Json object " + e.getMessage(), e);
-        }
-    }
-
-    private String extractJWTBody(final String idToken) throws MsalClientException {
-        final int firstDot = idToken.indexOf(".");
-        final int secondDot = idToken.indexOf(".", firstDot + 1);
-        final int invalidDot = idToken.indexOf(".", secondDot + 1);
-
-        if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
-            return idToken.substring(firstDot + 1, secondDot);
-        } else {
-            throw new MsalClientException(MsalClientException.INVALID_JWT, "Failed to parse id token.", null);
+            return IDToken.parseJWT(idToken);
+        } catch (ServiceException e) {
+            throw new MsalClientException(
+                    MsalClientException.INVALID_JWT,
+                    "Failed to parse JWT.",
+                    e
+            );
         }
     }
 

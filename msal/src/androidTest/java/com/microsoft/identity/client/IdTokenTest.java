@@ -26,7 +26,8 @@ package com.microsoft.identity.client;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.SmallTest;
 
-import org.json.JSONException;
+import com.microsoft.identity.common.exception.ServiceException;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,7 +75,7 @@ public final class IdTokenTest {
             new IdToken("test");
             Assert.fail();
         } catch (final MsalClientException e) {
-            Assert.assertTrue(e.getErrorCode() == MsalClientException.INVALID_JWT);
+            Assert.assertTrue(e.getErrorCode().equals(MsalClientException.INVALID_JWT));
         }
     }
 
@@ -86,14 +87,14 @@ public final class IdTokenTest {
             Assert.fail("Expect exceptions");
         } catch (final MsalException e) {
             Assert.assertNotNull(e.getCause());
-            Assert.assertTrue(e.getCause() instanceof JSONException);
+            Assert.assertTrue(e.getCause() instanceof ServiceException);
         }
 
         try {
             new IdToken("test.test.test");
         } catch (final MsalException e) {
             Assert.assertNotNull(e.getCause());
-            Assert.assertTrue(e.getCause() instanceof JSONException);
+            Assert.assertTrue(e.getCause() instanceof ServiceException);
         }
     }
 
@@ -123,7 +124,7 @@ public final class IdTokenTest {
             Assert.fail("Expect exceptions.");
         } catch (final MsalException e) {
             Assert.assertNotNull(e.getCause());
-            Assert.assertTrue(e.getCause() instanceof JSONException);
+            Assert.assertTrue(e.getCause() instanceof ServiceException);
         }
     }
 
@@ -131,10 +132,18 @@ public final class IdTokenTest {
     public void testIdTokenHappyPath() {
         // Id token with invalid signature part, we don't do any signature validation today. As long as the id token
         // contains a valid payload, we'll successfully parse it.
-        final String rawIdToken = AndroidTestUtil.createIdToken(
-                AndroidTestUtil.AUDIENCE, AndroidTestUtil.ISSUER, AndroidTestUtil.NAME,
-                AndroidTestUtil.OBJECT_ID, AndroidTestUtil.PREFERRED_USERNAME,
-                AndroidTestUtil.SUBJECT, AndroidTestUtil.TENANT_ID, AndroidTestUtil.VERSION);
+        final String rawIdToken =
+                AndroidTestUtil.createIdToken(
+                        AndroidTestUtil.AUDIENCE,
+                        AndroidTestUtil.ISSUER,
+                        AndroidTestUtil.NAME,
+                        AndroidTestUtil.OBJECT_ID,
+                        AndroidTestUtil.PREFERRED_USERNAME,
+                        AndroidTestUtil.SUBJECT,
+                        AndroidTestUtil.TENANT_ID,
+                        AndroidTestUtil.VERSION,
+                        null
+                );
         try {
             final IdToken idToken = new IdToken(rawIdToken);
             Assert.assertTrue(idToken.getIssuer().equals(AndroidTestUtil.ISSUER));
