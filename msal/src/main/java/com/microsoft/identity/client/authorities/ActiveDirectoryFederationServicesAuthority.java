@@ -26,7 +26,6 @@ import android.net.Uri;
 
 public class ActiveDirectoryFederationServicesAuthority extends Authority {
 
-    private String mAuthorityUrl; //NOPMD
     private Uri mAuthorityUri;
 
     ActiveDirectoryFederationServicesAuthority(String authorityUrl) {

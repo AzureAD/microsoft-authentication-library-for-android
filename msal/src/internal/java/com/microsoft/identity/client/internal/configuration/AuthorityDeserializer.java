@@ -1,6 +1,7 @@
 package com.microsoft.identity.client.internal.configuration;
 
 import android.net.Uri;
+import android.support.annotation.NonNull;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -32,26 +33,31 @@ public class AuthorityDeserializer implements JsonDeserializer<Authority> {
                     return context.deserialize(authorityObject, AzureActiveDirectoryAuthority.class);
                 case "B2C":
                     final AzureActiveDirectoryB2CAuthority b2CAuthority = context.deserialize(authorityObject, AzureActiveDirectoryB2CAuthority.class);
-
-                    try {
-                        final JsonObject authorityIn = json.getAsJsonObject();
-                        final Field authorityUri = b2CAuthority.getClass().getDeclaredField("mAuthorityUri");
-                        authorityUri.setAccessible(true);
-                        authorityUri.set(b2CAuthority, Uri.parse(authorityIn.get("authority_url").toString()));
-                    } catch (NoSuchFieldException e) {
-                        Logger.error(TAG, "Serialization failed to locate field", e);
-                    } catch (IllegalAccessException e) {
-                        Logger.error(TAG, "Serialization failed to access field", e);
-                    }
-
+                    parseAuthorityUri(json, b2CAuthority);
                     return b2CAuthority;
                 case "ADFS":
-                    return context.deserialize(authorityObject, ActiveDirectoryFederationServicesAuthority.class);
+                    final ActiveDirectoryFederationServicesAuthority adfsAuthority = context.deserialize(authorityObject, ActiveDirectoryFederationServicesAuthority.class);
+                    parseAuthorityUri(json, adfsAuthority);
+                    return adfsAuthority;
                 default:
                     return context.deserialize(authorityObject, UnknownAuthority.class);
             }
         }
 
         return null;
+    }
+
+    private void parseAuthorityUri(@NonNull final JsonElement json,
+                                   @NonNull final Authority b2CAuthority) {
+        try {
+            final JsonObject authorityIn = json.getAsJsonObject();
+            final Field authorityUri = b2CAuthority.getClass().getDeclaredField("mAuthorityUri");
+            authorityUri.setAccessible(true);
+            authorityUri.set(b2CAuthority, Uri.parse(authorityIn.get("authority_url").toString()));
+        } catch (NoSuchFieldException e) {
+            Logger.error(TAG, "Serialization failed to locate field", e);
+        } catch (IllegalAccessException e) {
+            Logger.error(TAG, "Serialization failed to access field", e);
+        }
     }
 }

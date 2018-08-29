@@ -1,0 +1,17 @@
+{
+  "client_id": "[clientid]",
+  "redirect_uri": "[redirectUri]",
+  "authorities": [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADMyOrg",
+        "tenant_id": "[tenantid]"
+      },
+      "flight_parameters": {
+        "key1": "value1",
+        "key2": "value2"
+      }
+    }
+  ]
+}

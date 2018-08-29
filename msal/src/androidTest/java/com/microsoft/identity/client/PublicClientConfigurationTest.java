@@ -4,6 +4,11 @@ import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.microsoft.identity.client.authorities.AccountsInOneOrganization;
+import com.microsoft.identity.client.authorities.ActiveDirectoryFederationServicesAuthority;
+import com.microsoft.identity.client.authorities.AllAccounts;
+import com.microsoft.identity.client.authorities.AnyOrganizationalAccount;
+import com.microsoft.identity.client.authorities.AnyPersonalAccount;
 import com.microsoft.identity.client.authorities.Authority;
 import com.microsoft.identity.client.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.client.authorities.AzureActiveDirectoryB2CAuthority;
@@ -83,7 +88,7 @@ public class PublicClientConfigurationTest {
     }
 
     /**
-     * Verify B2C Authority set via configuration correctly
+     * Verify B2C Authority set via configuration correctly.
      */
     @Test
     public void testB2CAuthorityValidConfiguration() {
@@ -100,6 +105,109 @@ public class PublicClientConfigurationTest {
         // Test that it is a B2C Authority.
         assertTrue(config instanceof AzureActiveDirectoryB2CAuthority);
         assertNotNull(config.getAuthorityUri());
+    }
+
+    /**
+     * Verify ADFS Authority set via configuration correctly.
+     */
+    @Test
+    public void testADFSAuthorityValidConfiguration() {
+        final PublicClientApplicationConfiguration adfsConfig = loadConfig(R.raw.test_pcaconfig_adfs);
+        assertNotNull(adfsConfig);
+        assertNotNull(adfsConfig.mClientId);
+        assertNotNull(adfsConfig.mRedirectUri);
+        assertNotNull(adfsConfig.mAuthorities);
+        assertEquals(1, adfsConfig.mAuthorities.size());
+
+        // Grab the Authority from the config
+        final Authority config = adfsConfig.mAuthorities.get(0);
+
+        // Test that it is a B2C Authority.
+        assertTrue(config instanceof ActiveDirectoryFederationServicesAuthority);
+        assertNotNull(config.getAuthorityUri());
+    }
+
+    /**
+     * Verify audience type of AccountsInOneOrganization can be set.
+     */
+    @Test
+    public void testAudienceAccountsInOneOrganziation() {
+        final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_aud_accountsinoneorg);
+        assertNotNull(config);
+        assertEquals(1, config.mAuthorities.size());
+        final Authority authority = config.mAuthorities.get(0);
+        assertTrue(authority instanceof AzureActiveDirectoryAuthority);
+        final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
+        assertTrue(azureActiveDirectoryAuthority.mAudience instanceof AccountsInOneOrganization);
+    }
+
+    /**
+     * Verify audience type of AnyOrganizationAccount can be set.
+     */
+    @Test
+    public void testAudienceAnyOrganizationAccount() {
+        final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_aud_anyorg);
+        assertNotNull(config);
+        assertEquals(1, config.mAuthorities.size());
+        final Authority authority = config.mAuthorities.get(0);
+        assertTrue(authority instanceof AzureActiveDirectoryAuthority);
+        final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
+        assertTrue(azureActiveDirectoryAuthority.mAudience instanceof AnyOrganizationalAccount);
+    }
+
+    /**
+     * Verify audience type of AllAccounts can be set.
+     */
+    @Test
+    public void testAudienceAllAccounts() {
+        final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_aud_allaccts);
+        assertNotNull(config);
+        assertEquals(1, config.mAuthorities.size());
+        final Authority authority = config.mAuthorities.get(0);
+        assertTrue(authority instanceof AzureActiveDirectoryAuthority);
+        final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
+        assertTrue(azureActiveDirectoryAuthority.mAudience instanceof AllAccounts);
+    }
+
+    /**
+     * Verify audience type of AnyPersonalAccount can be set.
+     */
+    @Test
+    public void testAudienceAnyPersonalAccount() {
+        final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_aud_anypersonal);
+        assertNotNull(config);
+        assertEquals(1, config.mAuthorities.size());
+        final Authority authority = config.mAuthorities.get(0);
+        assertTrue(authority instanceof AzureActiveDirectoryAuthority);
+        final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
+        assertTrue(azureActiveDirectoryAuthority.mAudience instanceof AnyPersonalAccount);
+    }
+
+    /**
+     * Tests that slice parameters can be set.
+     */
+    @Test
+    public void testSliceParametersSet() {
+        final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_with_slice);
+        assertNotNull(config);
+        assertEquals(1, config.mAuthorities.size());
+        final Authority authority = config.mAuthorities.get(0);
+        final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
+        assertNotNull(azureActiveDirectoryAuthority.mSlice.getDC());
+        assertNotNull(azureActiveDirectoryAuthority.mSlice.getSlice());
+    }
+
+    /**
+     * Tests that flight parameters can be set.
+     */
+    @Test
+    public void testFlightParametersSet() {
+        final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_with_flight);
+        assertNotNull(config);
+        assertEquals(1, config.mAuthorities.size());
+        final Authority authority = config.mAuthorities.get(0);
+        final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
+        assertFalse(azureActiveDirectoryAuthority.mFlightParameters.isEmpty());
     }
 
     /**
