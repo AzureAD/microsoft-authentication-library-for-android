@@ -1,0 +1,46 @@
+def getVersionFile() {
+    return file('versioning/version.properties')
+}
+
+def getVersionProps() {
+    def versionPropsFile = getVersionFile()
+    def versionProps = new Properties()
+    versionProps.load(new FileInputStream(versionPropsFile))
+    return versionProps
+}
+
+private Integer getVersionNamePatch() {
+    return (getVersionProps()['versionName'] =~ /\d+/)[2].toInteger()
+}
+
+private Integer getVersionNameMinor() {
+    return (getVersionProps()['versionName'] =~ /\d+/)[1].toInteger()
+}
+
+private Integer getVersionNameMajor() {
+    return (getVersionProps()['versionName'] =~ /\d+/)[0].toInteger()
+}
+
+ext.getAppVersionCode = {
+    getVersionProps()['versionCode'].toInteger()
+}
+
+ext.getAppVersionName = {
+    getVersionProps()['versionName'].toString()
+}
+
+private void saveChanges(String versionName) {
+    def versionProps = getVersionProps()
+    versionProps['versionName'] = versionName
+    versionProps.store(getVersionFile().newWriter(), null)
+}
+
+task versionSnapshot {
+    doLast {
+        def versionNameMajor = getVersionNameMajor()
+        def versionNameMinor = getVersionNameMinor()
+        def versionNamePatch = getVersionNamePatch()
+        def versionName = "${versionNameMajor}.${versionNameMinor}.${versionNamePatch}-SNAPSHOT".toString()
+        saveChanges(versionName)
+    }
+}

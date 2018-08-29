@@ -3,6 +3,7 @@ apply plugin: 'checkstyle'
 apply plugin: 'pmd'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
+apply from: 'versioning/version_tasks.gradle'
 group = 'com.microsoft.identity.client'
 
 android {
@@ -12,8 +13,8 @@ android {
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 0
-        versionName '0.1.3'
+        versionCode getAppVersionCode()
+        versionName getAppVersionName()
         project.archivesBaseName = "msal"
         project.version = android.defaultConfig.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -47,6 +48,10 @@ android {
         local {
             dimension "main"
             versionNameSuffix "-local"
+        }
+
+        snapshot {
+            dimension "main"
         }
 
         // The 'dist' productFlavor sources common from a central repository and is intended
@@ -120,11 +125,9 @@ dependencies {
         transitive = false
     }
 
-    // 'dist' flavor dependencies, the next line is how it should be once common is pushed to maven
-//    distApi("com.microsoft.identity:common:0.0.3-RC1") {
-//        transitive = false
-//    }
-    distApi(project(":common")) {
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '0.0.3-SNAPSHOT', changing: true)
+
+    distApi("com.microsoft.identity:common:0.0.3") {
         transitive = false
     }
 }
@@ -210,8 +213,13 @@ publishing {
 
                 def dependenciesNode = asNode().appendNode('dependencies')
 
+
                 def deps = configurations.implementation.allDependencies.asList()
-                deps.addAll(configurations.distImplementation.allDependencies.asList())
+                if (project.version.toString().endsWith("SNAPSHOT")) {
+                    deps.addAll(configurations.snapshotApi.allDependencies.asList())
+                } else {
+                    deps.addAll(configurations.distApi.allDependencies.asList())
+                }
 
                 //Iterate over the implementation dependencies (we don't want the test ones), adding a <dependency> node for each
                 deps.each {
