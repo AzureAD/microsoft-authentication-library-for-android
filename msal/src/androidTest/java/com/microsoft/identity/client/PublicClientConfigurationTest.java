@@ -50,6 +50,17 @@ public class PublicClientConfigurationTest {
     }
 
     /**
+     * Tests that Http settings can be configured for timeouts.
+     */
+    @Test
+    public void testDefaultConfigurationLoadsWithHttpConfig() {
+        assertNotNull(mDefaultConfig.mHttpConfiguration);
+        final HttpConfiguration httpConfiguration = mDefaultConfig.mHttpConfiguration;
+        assertTrue(httpConfiguration.getConnectTimeout() >= 1);
+        assertTrue(httpConfiguration.getReadTimeout() >= 1);
+    }
+
+    /**
      * Test that the min configuration loads.
      */
     @Test
