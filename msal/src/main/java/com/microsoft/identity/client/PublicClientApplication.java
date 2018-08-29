@@ -29,7 +29,7 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
-
+import android.support.annotation.VisibleForTesting;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -37,10 +37,6 @@ import com.microsoft.identity.client.authorities.Authority;
 import com.microsoft.identity.client.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.client.internal.configuration.AuthorityDeserializer;
 import com.microsoft.identity.client.internal.configuration.AzureActiveDirectoryAudienceDeserializer;
-import com.microsoft.identity.client.controllers.LocalMSALController;
-import com.microsoft.identity.client.controllers.MSALAcquireTokenOperationParameters;
-import com.microsoft.identity.client.controllers.MSALInteractiveTokenCommand;
-
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.dto.Account;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
@@ -52,10 +48,8 @@ import com.microsoft.identity.msal.R;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -161,11 +155,16 @@ public final class PublicClientApplication {
     private PublicClientApplicationConfiguration mPublicClientConfiguration;
 
     /**
-     * @deprecated
-     * This constructor has been replaced with one that leverages a configuration file.
+     * @param context Application's {@link Context}. The sdk requires the application context to be passed in
+     *                {@link PublicClientApplication}. Cannot be null.
+     *                <p>
+     *                Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
+     *                strong reference to the activity, thus preventing correct garbage collection and causing bugs.
+     *                </p>
+     * @deprecated This constructor has been replaced with one that leverages a configuration file.
      * <p> Use {@link PublicClientApplication#PublicClientApplication(Context, int)}</p> instead.
-     *
-     *
+     * <p>
+     * <p>
      * {@link PublicClientApplication#PublicClientApplication(Context)} will read the client id (which must be set) from manifest, and if authority
      * is not set, default authority(https://login.microsoftonline.com/common) will be used.
      * <p>
@@ -177,13 +176,6 @@ public final class PublicClientApplication {
      * <p>
      * AuthorityMetadata can be set in the meta data, if not provided, the sdk will use the default authority https://login.microsoftonline.com/common.
      * </p>
-     *
-     * @param context Application's {@link Context}. The sdk requires the application context to be passed in
-     *                {@link PublicClientApplication}. Cannot be null.
-     *                <p>
-     *                Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
-     *                strong reference to the activity, thus preventing correct garbage collection and causing bugs.
-     *                </p>
      */
     @Deprecated
     public PublicClientApplication(@NonNull final Context context) {
@@ -204,23 +196,22 @@ public final class PublicClientApplication {
     /**
      * {@link PublicClientApplication#PublicClientApplication(Context, int)} will read the client id and other configuration settings from the
      * file included in your applications resources.
-     *
+     * <p>
      * For more information on adding configuration files to your applications resources please
-     * @see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
      *
+     * @param context              Application's {@link Context}. The sdk requires the application context to be passed in
+     *                             {@link PublicClientApplication}. Cannot be null.
+     *                             <p>
+     *                             Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
+     *                             strong reference to the activity, thus preventing correct garbage collection and causing bugs.
+     *                             </p>
+     * @param configFileResourceId The resource ID of the raw file containing the JSON configuration for the PublicClientApplication
+     * @see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     * <p>
      * For more information on the schema of the MSAL config json please
      * @see <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
-     *
-     * @param context Application's {@link Context}. The sdk requires the application context to be passed in
-     *                {@link PublicClientApplication}. Cannot be null.
-     *                <p>
-     *                Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
-     *                strong reference to the activity, thus preventing correct garbage collection and causing bugs.
-     *                </p>
-     *
-     * @param configFileResourceId The resource ID of the raw file containing the JSON configuration for the PublicClientApplication
      */
-    public PublicClientApplication(@NonNull final Context context, final int configFileResourceId){
+    public PublicClientApplication(@NonNull final Context context, final int configFileResourceId) {
         if (context == null) {
             throw new IllegalArgumentException("context is null.");
         }
@@ -229,9 +220,7 @@ public final class PublicClientApplication {
         mTokenCache = new TokenCache(mAppContext);
         mOauth2TokenCache = mTokenCache.getOAuth2TokenCache();
         setupConfiguration(configFileResourceId);
-
     }
-
 
 
     /**
@@ -340,17 +329,15 @@ public final class PublicClientApplication {
     }
 
     /**
-     * @deprecated
-     * The use of this property setter is no longer required.  Authorities will be considered valid
-     * if they are asserted by the developer via configuration or if Microsoft recognizes the cloud within which the authority exists.
-     *
-     * This setter no longer controls MSAL behavior.
-     *
-     * By Default, authority validation is turned on. To turn on authority validation, set
-     * {@link PublicClientApplication#setValidateAuthority(boolean)} to false.
-     *
      * @param validateAuthority True if authority validation is on, false otherwise. By default, authority
      *                          validation is turned on.
+     * @deprecated The use of this property setter is no longer required.  Authorities will be considered valid
+     * if they are asserted by the developer via configuration or if Microsoft recognizes the cloud within which the authority exists.
+     * <p>
+     * This setter no longer controls MSAL behavior.
+     * <p>
+     * By Default, authority validation is turned on. To turn on authority validation, set
+     * {@link PublicClientApplication#setValidateAuthority(boolean)} to false.
      */
     @Deprecated
     public void setValidateAuthority(final boolean validateAuthority) {
@@ -361,6 +348,7 @@ public final class PublicClientApplication {
      * Returns the PublicClientConfiguration for this instance of PublicClientApplication
      * Configuration is based on the defaults established for MSAl and can be overridden by creating the
      * PublicClientApplication using {@link PublicClientApplication#PublicClientApplication(Context, int)}
+     *
      * @return
      */
     public PublicClientApplicationConfiguration getConfiguration() {
@@ -380,13 +368,11 @@ public final class PublicClientApplication {
     }
 
     /**
-     * @deprecated
-     * If you're a Micorosft developer who needs to target a specific slice please refer to the AAD Onboarding documentation for instruction on how to do so.
-     *
+     * @param sliceParameters The custom query parameters(for dogfood testing) sent to token and authorize endpoint.
+     * @deprecated If you're a Micorosft developer who needs to target a specific slice please refer to the AAD Onboarding documentation for instruction on how to do so.
+     * <p>
      * Custom query parameters which maybe sent to the STS for dogfood testing. This parameter should not be set by developers as it may
      * have adverse effect on the application.
-     *
-     * @param sliceParameters The custom query parameters(for dogfood testing) sent to token and authorize endpoint.
      */
     @Deprecated
     public void setSliceParameters(final String sliceParameters) {
@@ -851,28 +837,30 @@ public final class PublicClientApplication {
     }
 
     private void setupConfiguration(final int configResourceId) {
-        PublicClientApplicationConfiguration developerConfig = loadConfiguration(configResourceId);
-        PublicClientApplicationConfiguration defaultConfig = loadDefaultConfiguration();
+        PublicClientApplicationConfiguration developerConfig = loadConfiguration(mAppContext, configResourceId);
+        PublicClientApplicationConfiguration defaultConfig = loadDefaultConfiguration(mAppContext);
         defaultConfig.mergeConfiguration(developerConfig);
         mPublicClientConfiguration = defaultConfig;
     }
 
     private void setupConfiguration() {
-        mPublicClientConfiguration = loadDefaultConfiguration();
+        mPublicClientConfiguration = loadDefaultConfiguration(mAppContext);
     }
 
-    private PublicClientApplicationConfiguration loadConfiguration(final int configResourceId)  {
+    @VisibleForTesting
+    static PublicClientApplicationConfiguration loadConfiguration(@NonNull final Context context,
+                                                                  final int configResourceId) {
 
-        InputStream configStream = mAppContext.getResources().openRawResource(configResourceId);
+        InputStream configStream = context.getResources().openRawResource(configResourceId);
         byte[] buffer;
 
         try {
             buffer = new byte[configStream.available()];
             configStream.read(buffer);
-        }catch(IOException e){
-            if(configResourceId == R.raw.msal_default_config) {
+        } catch (IOException e) {
+            if (configResourceId == R.raw.msal_default_config) {
                 throw new IllegalStateException("Unable to open default configuration file.  MSAL module may be incomplete.");
-            }else{
+            } else {
                 throw new IllegalArgumentException("Provided config file resource id could not be accessed");
             }
         }
@@ -888,13 +876,11 @@ public final class PublicClientApplication {
 
     }
 
-    private PublicClientApplicationConfiguration loadDefaultConfiguration() {
-        return loadConfiguration(R.raw.msal_default_config);
+    private PublicClientApplicationConfiguration loadDefaultConfiguration(@NonNull final Context context) {
+        return loadConfiguration(context, R.raw.msal_default_config);
     }
 
-
-    private Gson getGsonForLoadingConfiguration(){
-
+    private static Gson getGsonForLoadingConfiguration() {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Authority.class, new AuthorityDeserializer())
                 .registerTypeAdapter(AzureActiveDirectoryAudience.class, new AzureActiveDirectoryAudienceDeserializer())

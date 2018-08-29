@@ -31,7 +31,6 @@ import java.util.List;
 
 public class PublicClientApplicationConfiguration {
 
-
     static final String CLIENT_ID_KEY = "client_id";
     static final String REDIRECT_URI_KEY = "redirect_uri";
     static final String AUTHORITIES_KEY = "authorities";
@@ -51,7 +50,7 @@ public class PublicClientApplicationConfiguration {
     AuthorizationAgent mAuthorizationAgent;
 
     @SerializedName(PublicClientApplicationConfiguration.HTTP_KEY)
-    HttpConfiguration mHttpConfiguration = new HttpConfiguration();
+    HttpConfiguration mHttpConfiguration;
 
 
     /**
@@ -101,13 +100,11 @@ public class PublicClientApplicationConfiguration {
 
 
     void mergeConfiguration(PublicClientApplicationConfiguration config) {
-
         this.mClientId = config.mClientId == null ? this.mClientId : config.mClientId;
         this.mRedirectUri = config.mRedirectUri == null ? this.mRedirectUri : config.mRedirectUri;
         this.mAuthorities = config.mAuthorities == null ? this.mAuthorities : config.mAuthorities;
         this.mAuthorizationAgent = config.mAuthorizationAgent == null ? this.mAuthorizationAgent : config.mAuthorizationAgent;
         this.mHttpConfiguration = config.mHttpConfiguration == null ? this.mHttpConfiguration : config.mHttpConfiguration;
-
     }
 
     void validateConfiguration() {
