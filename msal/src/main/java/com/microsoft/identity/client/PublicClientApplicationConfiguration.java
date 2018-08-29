@@ -103,7 +103,6 @@ public class PublicClientApplicationConfiguration {
         return this.mAuthorizationAgent;
     }
 
-
     void mergeConfiguration(PublicClientApplicationConfiguration config) {
         this.mClientId = config.mClientId == null ? this.mClientId : config.mClientId;
         this.mRedirectUri = config.mRedirectUri == null ? this.mRedirectUri : config.mRedirectUri;

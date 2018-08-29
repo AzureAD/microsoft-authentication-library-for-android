@@ -4,9 +4,9 @@ import com.google.gson.annotations.SerializedName;
 
 public class HttpConfiguration {
 
-
     @SerializedName("read_timeout")
     private int mReadTimeout;
+
     @SerializedName("connect_timeout")
     private int mConnectTimeout;
 
