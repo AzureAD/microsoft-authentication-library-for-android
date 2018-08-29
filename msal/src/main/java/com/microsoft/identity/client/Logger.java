@@ -187,6 +187,7 @@ public final class Logger {
 
     /**
      * Send a {@link LogLevel#ERROR} log message without PII.
+     *
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#error(String, String, String, Throwable)} instead.
      */
     @Deprecated
@@ -197,6 +198,7 @@ public final class Logger {
 
     /**
      * Send a {@link LogLevel#ERROR} log message with PII.
+     *
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#errorPII(String, String, String, Throwable)} instead.
      */
     @Deprecated
@@ -207,6 +209,7 @@ public final class Logger {
 
     /**
      * Send a {@link LogLevel#WARNING} log message without PII.
+     *
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#warn(String, String, String)} instead.
      */
     @Deprecated
@@ -216,6 +219,7 @@ public final class Logger {
 
     /**
      * Send a {@link LogLevel#WARNING} log message with PII.
+     *
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#warnPII(String, String, String)} instead.
      */
     @Deprecated
@@ -225,6 +229,7 @@ public final class Logger {
 
     /**
      * Send a {@link LogLevel#INFO} log message without PII.
+     *
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#info(String, String, String)} instead.
      */
     @Deprecated
@@ -234,6 +239,7 @@ public final class Logger {
 
     /**
      * Send a {@link LogLevel#INFO} log message with PII.
+     *
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#infoPII(String, String, String)} instead.
      */
     @Deprecated
@@ -243,6 +249,7 @@ public final class Logger {
 
     /**
      * Send a {@link LogLevel#VERBOSE} log message without PII.
+     *
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#verbose(String, String, String)} instead.
      */
     @Deprecated
@@ -252,6 +259,7 @@ public final class Logger {
 
     /**
      * Send a {@link LogLevel#VERBOSE} log message with PII.
+     *
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#verbosePII(String, String, String)} instead.
      */
     @Deprecated
@@ -266,6 +274,7 @@ public final class Logger {
             return null;
         }
     }
+
     private void commonCoreWrapper(final String tag, final LogLevel logLevel, final RequestContext requestContext,
                                    final String message, final Throwable throwable, final boolean containsPII) {
         final String messageWithComponent = appendComponent(requestContext) + message + " SDK ver:" + VERSION_NAME;
