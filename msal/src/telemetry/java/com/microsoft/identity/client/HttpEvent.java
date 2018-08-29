@@ -67,10 +67,10 @@ final class HttpEvent extends Event {
     static String sanitizeUrlForTelemetry(final URL url) {
         final String authority = url.getAuthority();
         final String[] pathSegments = url.getPath().replaceFirst("/", "").split("/");
-        final boolean isB2cAuthority = pathSegments[0].equals(Authority.B2C_AUTHORITY_PREFIX);
+        final boolean isB2cAuthority = pathSegments[0].equals(AuthorityMetadata.B2C_AUTHORITY_PREFIX);
 
         // only collect telemetry for well-known hosts, omit B2C
-        if (!Arrays.asList(AadAuthority.TRUSTED_HOSTS).contains(authority) || isB2cAuthority) {
+        if (!Arrays.asList(AadAuthorityMetadata.TRUSTED_HOSTS).contains(authority) || isB2cAuthority) {
             return null; // omit these values
         }
 

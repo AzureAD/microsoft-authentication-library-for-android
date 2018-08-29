@@ -55,7 +55,7 @@ final class ApiEvent extends Event {
         setProperty(EventProperty.API_ERROR_CODE, builder.mApiErrorCode);
     }
 
-    private void setAuthorityType(Authority.AuthorityType type) {
+    private void setAuthorityType(AuthorityMetadata.AuthorityType type) {
         if (type == null) {
             return;
         }
@@ -160,7 +160,7 @@ final class ApiEvent extends Event {
     static class Builder extends Event.Builder<Builder> {
 
         private String mAuthority;
-        private Authority.AuthorityType mAuthorityType;
+        private AuthorityMetadata.AuthorityType mAuthorityType;
         private String mUiBehavior;
         private String mApiId;
         private String mValidationStatus;
@@ -187,7 +187,7 @@ final class ApiEvent extends Event {
             return this;
         }
 
-        Builder setAuthorityType(final Authority.AuthorityType authorityType) {
+        Builder setAuthorityType(final AuthorityMetadata.AuthorityType authorityType) {
             mAuthorityType = authorityType;
             return this;
         }

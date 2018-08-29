@@ -77,6 +77,12 @@ public final class AndroidTestMockUtil {
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
     }
 
+    static void mockSuccessInstanceDiscoveryAPIVersion1_1() throws IOException {
+        final HttpURLConnection mockedConnection = getMockedConnectionWithSuccessResponse(
+                AndroidTestUtil.getSuccessInstanceDiscoveryResponseAPIVersion1_1());
+        HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
+    }
+
     static void mockFailedGetRequest(int statusCode, final String errorResponse) throws IOException {
         final HttpURLConnection mockedConnection = getMockedConnectionWithFailureResponse(statusCode, errorResponse);
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);

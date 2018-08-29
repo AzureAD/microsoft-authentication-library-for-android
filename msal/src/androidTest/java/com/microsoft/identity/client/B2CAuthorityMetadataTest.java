@@ -32,21 +32,21 @@ import org.junit.runner.RunWith;
 import java.util.UUID;
 
 /**
- * Tests for {@link B2cAuthority}.
+ * Tests for {@link B2CAuthorityMetadata}.
  */
 @RunWith(AndroidJUnit4.class)
-public final class B2cAuthorityTest {
+public final class B2CAuthorityMetadataTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidPathSegments() {
         final String b2cAuthorityUrl = "https://someauhority/tfp/sometenant/";
-        Authority.createAuthority(b2cAuthorityUrl, false);
+        AuthorityMetadata.createAuthority(b2cAuthorityUrl, false);
     }
 
     @Test
     public void testValidationEnabledButNotSupported() throws MsalServiceException {
         final String b2cAuthority = "https://someauthority/tfp/sometenant/somepolicy";
-        final Authority authority = Authority.createAuthority(b2cAuthority, true);
+        final AuthorityMetadata authority = AuthorityMetadata.createAuthority(b2cAuthority, true);
 
         try {
             authority.resolveEndpoints(new RequestContext(UUID.randomUUID(), "test", Telemetry.generateNewRequestId()), null);

@@ -37,7 +37,7 @@ package com.microsoft.identity.client;
  * <li>invalid_scope: The request scope is invalid, unknown or malformed. </li>
  * <li>service_not_available: Represents 500/503/504 error codes. </li>
  * <li>request_timeout: Represents {@link java.net.SocketTimeoutException}. </li>
- * <li>invalid_instance: Authority validation failed. </li>
+ * <li>invalid_instance: AuthorityMetadata validation failed. </li>
  * <li>unknown_error: Request to server failed, but no error and error_description was returned from the service. </li>
  * </ul>
  * </p>
@@ -84,7 +84,7 @@ public final class MsalServiceException extends MsalException {
     public static final String REQUEST_TIMEOUT = "request_timeout";
 
     /**
-     * Authority validation failed.
+     * AuthorityMetadata validation failed.
      */
     public static final String INVALID_INSTANCE = "invalid_instance";
 

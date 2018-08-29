@@ -44,7 +44,7 @@ public class ApiEventTest {
     private static final String TEST_USER_ID = "admin@aaltests.onmicrosoft.com"; // test token does not contain id
 
     static final String TEST_AUTHORITY = HttpEventTest.TEST_HTTP_PATH.toString();
-    static final Authority.AuthorityType TEST_AUTHORITY_TYPE = Authority.AuthorityType.AAD;
+    static final AuthorityMetadata.AuthorityType TEST_AUTHORITY_TYPE = AuthorityMetadata.AuthorityType.AAD;
     static final String TEST_UI_BEHAVIOR = "FORCE_LOGIN";
     static final String TEST_API_ID = "12345";
     static final String TEST_ID_TOKEN;

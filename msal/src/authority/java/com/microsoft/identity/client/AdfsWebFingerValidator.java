@@ -62,7 +62,7 @@ final class AdfsWebFingerValidator {
      */
     static boolean realmIsTrusted(final RequestContext requestContext, final URI authority, final WebFingerMetadata metadata) {
         if (authority == null) {
-            throw new IllegalArgumentException("Authority cannot be null");
+            throw new IllegalArgumentException("AuthorityMetadata cannot be null");
         }
 
         if (metadata == null) {

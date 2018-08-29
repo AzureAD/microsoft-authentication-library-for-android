@@ -30,16 +30,27 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.microsoft.identity.client.authorities.Authority;
+import com.microsoft.identity.client.authorities.AzureActiveDirectoryAudience;
+import com.microsoft.identity.client.internal.configuration.AuthorityDeserializer;
+import com.microsoft.identity.client.internal.configuration.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.client.controllers.LocalMSALController;
 import com.microsoft.identity.client.controllers.MSALAcquireTokenOperationParameters;
 import com.microsoft.identity.client.controllers.MSALInteractiveTokenCommand;
+
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.dto.Account;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.msal.BuildConfig;
+import com.microsoft.identity.msal.R;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 
 import java.util.ArrayList;
@@ -62,7 +73,7 @@ import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_
  * <p>
  * This is the entry point for developer to create public native applications and make API calls to acquire tokens.
  * <p><b>Client ID:</b> The clientID of your application is a unique identifier which can be obtained from the app registration portal.</p>
- * <p><b>Authority:</b> A URL indicating a directory that MSAL can use to obtain tokens. In Azure AD
+ * <p><b>AuthorityMetadata:</b> A URL indicating a directory that MSAL can use to obtain tokens. In Azure AD
  * it is of the form https://<[nstance]/[tenant], where [instance] is the directory host (e.g. https://login.microsoftonline.com)
  * and [tenant] is an identifier within the directory itself (e.g. a domain associated to the
  * tenant, such as contoso.onmicrosoft.com, or the GUID representing the  TenantID property of the directory)
@@ -108,14 +119,15 @@ public final class PublicClientApplication {
     private static final String TAG = PublicClientApplication.class.getSimpleName();
 
     private static final String CLIENT_ID_META_DATA = "com.microsoft.identity.client.ClientId";
-    private static final String AUTHORITY_META_DATA = "com.microsoft.identity.client.Authority";
+    private static final String AUTHORITY_META_DATA = "com.microsoft.identity.client.AuthorityMetadata";
+    //private static final String CONFIGURATION = "com.microsoft.identity.client.Configuration";
     private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
     private static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common/";
 
     private final Context mAppContext;
     private final TokenCache mTokenCache;
-    private final OAuth2TokenCache<?, ?, ?> mOauth2TokenCache;
+    private final OAuth2TokenCache mOauth2TokenCache;
 
     /**
      * The authority the application will use to obtain tokens.
@@ -146,7 +158,14 @@ public final class PublicClientApplication {
     private boolean mValidateAuthority = true;
     private String mSliceParameters = "";
 
+    private PublicClientApplicationConfiguration mPublicClientConfiguration;
+
     /**
+     * @deprecated
+     * This constructor has been replaced with one that leverages a configuration file.
+     * <p> Use {@link PublicClientApplication#PublicClientApplication(Context, int)}</p> instead.
+     *
+     *
      * {@link PublicClientApplication#PublicClientApplication(Context)} will read the client id (which must be set) from manifest, and if authority
      * is not set, default authority(https://login.microsoftonline.com/common) will be used.
      * <p>
@@ -156,7 +175,7 @@ public final class PublicClientApplication {
      * Redirect uri <b>MUST</b> be set in the manifest as the meta data({@link IllegalArgumentException} will be thrown
      * if client id is not provided), name for redirect uri in metadata is: "com.microsoft.identity.client.RedirectUri".
      * <p>
-     * Authority can be set in the meta data, if not provided, the sdk will use the default authority https://login.microsoftonline.com/common.
+     * AuthorityMetadata can be set in the meta data, if not provided, the sdk will use the default authority https://login.microsoftonline.com/common.
      * </p>
      *
      * @param context Application's {@link Context}. The sdk requires the application context to be passed in
@@ -166,19 +185,54 @@ public final class PublicClientApplication {
      *                strong reference to the activity, thus preventing correct garbage collection and causing bugs.
      *                </p>
      */
+    @Deprecated
     public PublicClientApplication(@NonNull final Context context) {
         if (context == null) {
             throw new IllegalArgumentException("context is null.");
         }
 
         mAppContext = context;
+        setupConfiguration();
+        //Deprecating configuration in Metadata for now will copy and provided state to config object
         loadMetaDataFromManifest();
-
         mTokenCache = new TokenCache(mAppContext);
         mOauth2TokenCache = mTokenCache.getOAuth2TokenCache();
 
         initializeApplication();
     }
+
+    /**
+     * {@link PublicClientApplication#PublicClientApplication(Context, int)} will read the client id and other configuration settings from the
+     * file included in your applications resources.
+     *
+     * For more information on adding configuration files to your applications resources please
+     * @see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     *
+     * For more information on the schema of the MSAL config json please
+     * @see <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     *
+     * @param context Application's {@link Context}. The sdk requires the application context to be passed in
+     *                {@link PublicClientApplication}. Cannot be null.
+     *                <p>
+     *                Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
+     *                strong reference to the activity, thus preventing correct garbage collection and causing bugs.
+     *                </p>
+     *
+     * @param configFileResourceId The resource ID of the raw file containing the JSON configuration for the PublicClientApplication
+     */
+    public PublicClientApplication(@NonNull final Context context, final int configFileResourceId){
+        if (context == null) {
+            throw new IllegalArgumentException("context is null.");
+        }
+
+        mAppContext = context;
+        mTokenCache = new TokenCache(mAppContext);
+        mOauth2TokenCache = mTokenCache.getOAuth2TokenCache();
+        setupConfiguration(configFileResourceId);
+
+    }
+
+
 
     /**
      * {@link PublicClientApplication#PublicClientApplication(Context, String)} allows the client id to be passed instead of
@@ -206,6 +260,8 @@ public final class PublicClientApplication {
         mOauth2TokenCache = mTokenCache.getOAuth2TokenCache();
         mClientId = clientId;
         mAuthorityString = DEFAULT_AUTHORITY;
+        setupConfiguration();
+        mPublicClientConfiguration.mClientId = clientId;
 
         initializeApplication();
     }
@@ -231,6 +287,9 @@ public final class PublicClientApplication {
         }
 
         mAuthorityString = authority;
+
+        mPublicClientConfiguration.getAuthorities().clear();
+        mPublicClientConfiguration.getAuthorities().add(Authority.getAuthorityFromAuthorityUrl(authority));
     }
 
     /*
@@ -262,6 +321,7 @@ public final class PublicClientApplication {
         DefaultEvent.initializeDefaults(
                 Defaults.forApplication(mAppContext, mClientId)
         );
+
         mRedirectUri = createRedirectUri(mClientId);
         validateInputParameters();
 
@@ -280,14 +340,31 @@ public final class PublicClientApplication {
     }
 
     /**
+     * @deprecated
+     * The use of this property setter is no longer required.  Authorities will be considered valid
+     * if they are asserted by the developer via configuration or if Microsoft recognizes the cloud within which the authority exists.
+     *
+     * This setter no longer controls MSAL behavior.
+     *
      * By Default, authority validation is turned on. To turn on authority validation, set
      * {@link PublicClientApplication#setValidateAuthority(boolean)} to false.
      *
      * @param validateAuthority True if authority validation is on, false otherwise. By default, authority
      *                          validation is turned on.
      */
+    @Deprecated
     public void setValidateAuthority(final boolean validateAuthority) {
         mValidateAuthority = validateAuthority;
+    }
+
+    /**
+     * Returns the PublicClientConfiguration for this instance of PublicClientApplication
+     * Configuration is based on the defaults established for MSAl and can be overridden by creating the
+     * PublicClientApplication using {@link PublicClientApplication#PublicClientApplication(Context, int)}
+     * @return
+     */
+    public PublicClientApplicationConfiguration getConfiguration() {
+        return mPublicClientConfiguration;
     }
 
     /**
@@ -303,11 +380,15 @@ public final class PublicClientApplication {
     }
 
     /**
+     * @deprecated
+     * If you're a Micorosft developer who needs to target a specific slice please refer to the AAD Onboarding documentation for instruction on how to do so.
+     *
      * Custom query parameters which maybe sent to the STS for dogfood testing. This parameter should not be set by developers as it may
      * have adverse effect on the application.
      *
      * @param sliceParameters The custom query parameters(for dogfood testing) sent to token and authorize endpoint.
      */
+    @Deprecated
     public void setSliceParameters(final String sliceParameters) {
         mSliceParameters = sliceParameters;
     }
@@ -402,7 +483,7 @@ public final class PublicClientApplication {
         initializeDiagnosticContext(correlationId.toString());
 
         List<User> users = mTokenCache.getUsers(
-                Authority.getAuthorityHost(mAuthorityString, mValidateAuthority),
+                AuthorityMetadata.getAuthorityHost(mAuthorityString, mValidateAuthority),
                 mClientId,
                 new RequestContext(
                         correlationId,
@@ -747,8 +828,11 @@ public final class PublicClientApplication {
         final String authority = applicationInfo.metaData.getString(AUTHORITY_META_DATA);
         if (!MsalUtils.isEmpty(authority)) {
             mAuthorityString = authority;
+            mPublicClientConfiguration.getAuthorities().clear();
+            mPublicClientConfiguration.getAuthorities().add(Authority.getAuthorityFromAuthorityUrl(mAuthorityString));
         } else {
             mAuthorityString = DEFAULT_AUTHORITY;
+            //mPublicClientConfiguration already has the default authority configured.
         }
 
         // read client id from manifest
@@ -757,6 +841,7 @@ public final class PublicClientApplication {
             throw new IllegalArgumentException("client id missing from manifest");
         }
         mClientId = clientId;
+        mPublicClientConfiguration.mClientId = clientId;
 
         // TODO: Comment out for now. As discussed, redirect should be computed during runtime, developer needs to put
 //        final String redirectUri = applicationInfo.metaData.getString(REDIRECT_META_DATA);
@@ -765,9 +850,65 @@ public final class PublicClientApplication {
 //        }
     }
 
+    private void setupConfiguration(final int configResourceId) {
+        PublicClientApplicationConfiguration developerConfig = loadConfiguration(configResourceId);
+        PublicClientApplicationConfiguration defaultConfig = loadDefaultConfiguration();
+        defaultConfig.mergeConfiguration(developerConfig);
+        mPublicClientConfiguration = defaultConfig;
+    }
+
+    private void setupConfiguration() {
+        mPublicClientConfiguration = loadDefaultConfiguration();
+    }
+
+    private PublicClientApplicationConfiguration loadConfiguration(final int configResourceId)  {
+
+        InputStream configStream = mAppContext.getResources().openRawResource(configResourceId);
+        byte[] buffer;
+
+        try {
+            buffer = new byte[configStream.available()];
+            configStream.read(buffer);
+        }catch(IOException e){
+            if(configResourceId == R.raw.msal_default_config) {
+                throw new IllegalStateException("Unable to open default configuration file.  MSAL module may be incomplete.");
+            }else{
+                throw new IllegalArgumentException("Provided config file resource id could not be accessed");
+            }
+        }
+
+        String config = new String(buffer);
+
+        Gson gson = getGsonForLoadingConfiguration();
+
+        PublicClientApplicationConfiguration configObject = gson.fromJson(config, PublicClientApplicationConfiguration.class);
+
+        return configObject;
+
+
+    }
+
+    private PublicClientApplicationConfiguration loadDefaultConfiguration() {
+        return loadConfiguration(R.raw.msal_default_config);
+    }
+
+
+    private Gson getGsonForLoadingConfiguration(){
+
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(Authority.class, new AuthorityDeserializer())
+                .registerTypeAdapter(AzureActiveDirectoryAudience.class, new AzureActiveDirectoryAudienceDeserializer())
+                .create();
+
+        return gson;
+
+    }
+
+
     // TODO: if no more input validation is needed, this could be moved back to the constructor.
     private void validateInputParameters() {
         if (!MsalUtils.hasCustomTabRedirectActivity(mAppContext, mRedirectUri)) {
+            //TODO: Fix this error message to be more clear
             throw new IllegalStateException("App doesn't have the correct configuration for "
                     + BrowserTabActivity.class.getSimpleName() + ".");
         }
@@ -824,8 +965,8 @@ public final class PublicClientApplication {
             throw new IllegalArgumentException("callback is null");
         }
 
-        final Authority authorityForRequest = MsalUtils.isEmpty(authority) ? Authority.createAuthority(mAuthorityString, mValidateAuthority)
-                : Authority.createAuthority(authority, mValidateAuthority);
+        final AuthorityMetadata authorityForRequest = MsalUtils.isEmpty(authority) ? AuthorityMetadata.createAuthority(mAuthorityString, mValidateAuthority)
+                : AuthorityMetadata.createAuthority(authority, mValidateAuthority);
 
         // Initialize Logging & RequestContext
         final UUID correlationId = UUID.randomUUID();
@@ -862,8 +1003,8 @@ public final class PublicClientApplication {
     private AuthenticationRequestParameters getRequestParameters(final String authority, final String[] scopes,
                                                                  final String loginHint, final String extraQueryParam,
                                                                  final UiBehavior uiBehavior, final User user, final String telemetryRequestId) {
-        final Authority authorityForRequest = MsalUtils.isEmpty(authority) ? Authority.createAuthority(mAuthorityString, mValidateAuthority)
-                : Authority.createAuthority(authority, mValidateAuthority);
+        final AuthorityMetadata authorityForRequest = MsalUtils.isEmpty(authority) ? AuthorityMetadata.createAuthority(mAuthorityString, mValidateAuthority)
+                : AuthorityMetadata.createAuthority(authority, mValidateAuthority);
 
         // Set up the correlationId for logging + request tracking
         final UUID correlationId = UUID.randomUUID();

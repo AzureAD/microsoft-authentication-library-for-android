@@ -91,7 +91,7 @@ public class HttpEventTest {
 
     @Test
     public void testHttpEventSkipsB2CAuthority() {
-        final HttpEvent httpEvent = getTestHttpEvent(MsalUtils.getUrl(AuthorityTest.TEST_B2C_AUTHORITY));
+        final HttpEvent httpEvent = getTestHttpEvent(MsalUtils.getUrl(AuthorityMetadataTest.TEST_B2C_AUTHORITY));
         Assert.assertNull(httpEvent.getHttpPath());
     }
 }

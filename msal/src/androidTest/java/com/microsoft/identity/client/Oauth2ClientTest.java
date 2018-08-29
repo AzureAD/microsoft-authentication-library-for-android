@@ -6,6 +6,7 @@ import android.test.suitebuilder.annotation.SmallTest;
 import org.json.JSONException;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.AdditionalMatchers;
@@ -32,6 +33,9 @@ public final class Oauth2ClientTest {
     static final String CLIENT_ID = "clientId";
     static final String REFRESH_TOKEN = "test refresh token";
     static final String AUTH_CODE = "testing code";
+
+    @Before
+    public void setup(){ HttpUrlConnectionFactory.clearMockedConnectionQueue(); }
 
     @After
     public void tearDown() {
@@ -199,8 +203,8 @@ public final class Oauth2ClientTest {
 
     // TODO: add test for correlation id is not the same as what's sent in the header.
 
-    private Authority getAuthority(final String authorityUrl) {
-        final Authority authority = Authority.createAuthority(authorityUrl, false);
+    private AuthorityMetadata getAuthority(final String authorityUrl) {
+        final AuthorityMetadata authority = AuthorityMetadata.createAuthority(authorityUrl, false);
         authority.mTokenEndpoint = "https://login.microsoftonline.com/oauth2/v2.0/token";
         return authority;
     }

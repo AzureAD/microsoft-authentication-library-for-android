@@ -38,8 +38,8 @@ import java.util.Set;
 /**
  * MSAL internal class for representing the AAD authority.
  */
-class AadAuthority extends Authority {
-    private static final String TAG = AadAuthority.class.getSimpleName();
+class AadAuthorityMetadata extends AuthorityMetadata {
+    private static final String TAG = AadAuthorityMetadata.class.getSimpleName();
     private static final String AAD_INSTANCE_DISCOVERY_ENDPOINT = "https://login.microsoftonline.com/common/discovery/instance";
     private static final String API_VERSION = "api-version";
     private static final String API_VERSION_VALUE = "1.0";
@@ -47,6 +47,7 @@ class AadAuthority extends Authority {
 
     static final String DEPRECATED_AAD_AUTHORITY_HOST = "login.windows.net";
     static final String AAD_AUTHORITY_HOST = "login.microsoftonline.com";
+
     static final String[] TRUSTED_HOSTS = new String[]{
             AAD_AUTHORITY_HOST, // Microsoft Azure Worldwide
             "login.chinacloudapi.cn", // Microsoft Azure China
@@ -58,9 +59,9 @@ class AadAuthority extends Authority {
             new HashSet<>(Arrays.asList(TRUSTED_HOSTS)));
 
     /**
-     * Constructor for creating the {@link AadAuthority}.
+     * Constructor for creating the {@link AadAuthorityMetadata}.
      */
-    AadAuthority(final URL authority, boolean validateAuthority) {
+    AadAuthorityMetadata(final URL authority, boolean validateAuthority) {
         super(authority, validateAuthority);
 
         if (authority.getHost().equalsIgnoreCase(DEPRECATED_AAD_AUTHORITY_HOST)) {
@@ -81,7 +82,7 @@ class AadAuthority extends Authority {
         Logger.infoPII(TAG, requestContext, "Passed in authority " + mAuthorityUrl.toString() + " is AAD authority. "
                 + "Start doing Instance discovery.");
         if (!mValidateAuthority || TRUSTED_HOST_SET.contains(mAuthorityUrl.getAuthority())) {
-            Logger.verbose(TAG, requestContext, "Authority validation is turned off or the passed-in authority is "
+            Logger.verbose(TAG, requestContext, "AuthorityMetadata validation is turned off or the passed-in authority is "
                     + "in the trust list, skipping instance discovery.");
             return getDefaultOpenIdConfigurationEndpoint();
         }
@@ -125,7 +126,8 @@ class AadAuthority extends Authority {
                 || response.getResponseClaims().isEmpty()) {
             return;
         }
-        //Ideally, this logic would have gone in AadAuthority#addToResolvedAuthorityCache(String)
+
+        //Ideally, this logic would have gone in AadAuthorityMetadata#addToResolvedAuthorityCache(String)
         // but I'm not going to refactor this too much for now.
         AzureActiveDirectory.initializeCloudMetadata(mAuthorityUrl.getHost(), response.getResponseClaims());
     }

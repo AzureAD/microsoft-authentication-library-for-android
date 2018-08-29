@@ -153,8 +153,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         if (mApplication == null) {
-            mApplication = new PublicClientApplication(this.getApplicationContext());
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
         }
+
     }
 
     @Override

@@ -134,7 +134,7 @@ public class TokenCache {
         final MicrosoftStsOAuth2Configuration config = new MicrosoftStsOAuth2Configuration();
 
         // Create the OAuth2Strategy
-        // TODO how do I know if Authority Validation is enabled?
+        // TODO how do I know if AuthorityMetadata Validation is enabled?
         final MicrosoftStsOAuth2Strategy strategy = msSts.createOAuth2Strategy(config);
 
         // Create the AuthorizationRequest
@@ -266,8 +266,8 @@ public class TokenCache {
 
         // throw if more than one matching items are found.
         if (accessTokenWithScopeMatching.size() > 1) {
-            Logger.error(TAG, requestParameters.getRequestContext(), "Authority is not provided for the silent request. Multiple matching tokens were detected.", null);
-            throw new MsalClientException(MsalClientException.MULTIPLE_MATCHING_TOKENS_DETECTED, "Authority is not provided for the silent request. There are multiple matching tokens detected. ");
+            Logger.error(TAG, requestParameters.getRequestContext(), "AuthorityMetadata is not provided for the silent request. Multiple matching tokens were detected.", null);
+            throw new MsalClientException(MsalClientException.MULTIPLE_MATCHING_TOKENS_DETECTED, "AuthorityMetadata is not provided for the silent request. There are multiple matching tokens detected. ");
         }
 
         AccessTokenCacheItem accessTokenCacheItem = null;
@@ -283,20 +283,20 @@ public class TokenCache {
             }
 
             if (uniqueAuthorities.size() != 1) {
-                Logger.error(TAG, requestParameters.getRequestContext(), "Authority is not provided for the silent request. Mutiple authorities found.", null);
+                Logger.error(TAG, requestParameters.getRequestContext(), "AuthorityMetadata is not provided for the silent request. Mutiple authorities found.", null);
                 final StringBuilder foundAuthorities = new StringBuilder();
                 while (uniqueAuthorities.iterator().hasNext()) {
                     foundAuthorities.append(uniqueAuthorities.iterator().next());
                     foundAuthorities.append("; ");
                 }
                 Logger.errorPII(TAG, requestParameters.getRequestContext(), "The authorities found in the cache are: " + foundAuthorities.toString(), null);
-                throw new MsalClientException(MsalClientException.MULTIPLE_MATCHING_TOKENS_DETECTED, "Authority is not provided for the silent request. There are multiple matching tokens detected. ");
+                throw new MsalClientException(MsalClientException.MULTIPLE_MATCHING_TOKENS_DETECTED, "AuthorityMetadata is not provided for the silent request. There are multiple matching tokens detected. ");
             }
 
             authority = uniqueAuthorities.iterator().next();
         }
 
-        Logger.verbosePII(TAG, requestParameters.getRequestContext(), "Authority is not provided but found one matching access token item, authority is: " + authority);
+        Logger.verbosePII(TAG, requestParameters.getRequestContext(), "AuthorityMetadata is not provided but found one matching access token item, authority is: " + authority);
         requestParameters.setAuthority(authority, requestParameters.getAuthority().mValidateAuthority);
         if (accessTokenCacheItem != null && !accessTokenCacheItem.isExpired()) {
             return accessTokenCacheItem;
