@@ -25,7 +25,7 @@ package com.microsoft.identity.client.authorities;
 import android.net.Uri;
 
 public class AzureActiveDirectoryB2CAuthority extends Authority {
-    private String mAuthorityUrl; //NOPMD
+
     private Uri mAuthorityUri;
 
     AzureActiveDirectoryB2CAuthority(String authorityUrl) {

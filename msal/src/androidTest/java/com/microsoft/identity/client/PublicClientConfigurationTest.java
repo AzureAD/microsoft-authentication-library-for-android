@@ -5,6 +5,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.microsoft.identity.client.authorities.Authority;
+import com.microsoft.identity.client.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.msal.test.R;
 
@@ -16,6 +17,7 @@ import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
 public class PublicClientConfigurationTest {
@@ -83,7 +85,19 @@ public class PublicClientConfigurationTest {
      */
     @Test
     public void testB2CAuthorityValidConfiguration() {
+        final PublicClientApplicationConfiguration b2cConfig = loadConfig(R.raw.test_pcaconfig_b2c);
+        assertNotNull(b2cConfig);
+        assertNotNull(b2cConfig.mClientId);
+        assertNotNull(b2cConfig.mRedirectUri);
+        assertNotNull(b2cConfig.mAuthorities);
+        assertEquals(1, b2cConfig.mAuthorities.size());
 
+        // Grab the Authority from the config
+        final Authority config = b2cConfig.mAuthorities.get(0);
+
+        // Test that it is a B2C Authority.
+        assertTrue(config instanceof AzureActiveDirectoryB2CAuthority);
+        assertNotNull(config.getAuthorityUri());
     }
 
     /**
