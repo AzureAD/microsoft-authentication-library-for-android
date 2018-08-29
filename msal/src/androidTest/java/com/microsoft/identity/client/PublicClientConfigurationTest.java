@@ -5,6 +5,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.microsoft.identity.client.authorities.Authority;
+import com.microsoft.identity.client.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.client.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.msal.test.R;
@@ -16,6 +17,7 @@ import org.junit.runner.RunWith;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 
@@ -103,33 +105,43 @@ public class PublicClientConfigurationTest {
     /**
      * Verify that unknown authority type results in exception
      */
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testUnknownAuthorityException() {
-
+        final PublicClientApplicationConfiguration b2cConfig = loadConfig(R.raw.test_pcaconfig_unknown);
+        b2cConfig.validateConfiguration();
     }
 
     /**
      * Verify that unknown audience type results in exception
      */
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testUnknownAudienceException() {
+        final PublicClientApplicationConfiguration configWithInvalidAudience = loadConfig(R.raw.test_pcaconfig_unknown_audience);
+        assertNotNull(configWithInvalidAudience);
+        assertFalse(configWithInvalidAudience.mAuthorities.isEmpty());
 
+        final Authority authorityWithInvalidAudience = configWithInvalidAudience.mAuthorities.get(0);
+        assertNotNull(authorityWithInvalidAudience);
+        assertTrue(authorityWithInvalidAudience instanceof AzureActiveDirectoryAuthority);
+        configWithInvalidAudience.validateConfiguration();
     }
 
     /**
      * Verify that null client id throws an exception
      */
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testNullClientIdException() {
-
+        final PublicClientApplicationConfiguration configWithoutClientId = loadConfig(R.raw.test_pcaconfig_missing_clientid);
+        configWithoutClientId.validateConfiguration();
     }
 
     /**
      * Verify that null redirect URI throws an exception
      */
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testNullRedirectUrlException() {
-
+        final PublicClientApplicationConfiguration configWithoutRedirect = loadConfig(R.raw.test_pcaconfig_missing_redirect);
+        configWithoutRedirect.validateConfiguration();
     }
 
     private PublicClientApplicationConfiguration loadConfig(final int resourceId) {

@@ -15,13 +15,14 @@ import com.microsoft.identity.client.authorities.UnknownAudience;
 import java.lang.reflect.Type;
 
 public class AzureActiveDirectoryAudienceDeserializer implements JsonDeserializer<AzureActiveDirectoryAudience> {
+
     @Override
     public AzureActiveDirectoryAudience deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         JsonObject audienceObject = json.getAsJsonObject();
         JsonElement type = audienceObject.get("type");
 
-        if(type != null){
-            switch(type.getAsString()){
+        if (type != null) {
+            switch (type.getAsString()) {
                 case "AzureADMyOrg":
                     return context.deserialize(audienceObject, AccountsInOneOrganization.class);
                 case "AzureADMultipleOrgs":

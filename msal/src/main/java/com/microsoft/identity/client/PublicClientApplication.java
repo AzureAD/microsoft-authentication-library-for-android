@@ -887,7 +887,6 @@ public final class PublicClientApplication {
                 .create();
 
         return gson;
-
     }
 
 

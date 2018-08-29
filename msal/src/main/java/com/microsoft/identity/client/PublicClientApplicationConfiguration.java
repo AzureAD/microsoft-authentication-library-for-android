@@ -23,8 +23,13 @@
 package com.microsoft.identity.client;
 
 
+import android.support.annotation.NonNull;
+
 import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.authorities.Authority;
+import com.microsoft.identity.client.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.client.authorities.UnknownAudience;
+import com.microsoft.identity.client.authorities.UnknownAuthority;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 
 import java.util.List;
@@ -110,6 +115,28 @@ public class PublicClientApplicationConfiguration {
     void validateConfiguration() {
         nullConfigurationCheck(PublicClientApplicationConfiguration.REDIRECT_URI_KEY, mRedirectUri);
         nullConfigurationCheck(PublicClientApplicationConfiguration.CLIENT_ID_KEY, mClientId);
+
+        for (final Authority authority : mAuthorities) {
+            if (authority instanceof UnknownAuthority) {
+                throw new IllegalArgumentException(
+                        "Unrecognized authority type -- null, invalid or unknown type specified."
+                );
+            }
+
+            // validate the audience type of this Authority
+            if (authority instanceof AzureActiveDirectoryAuthority) {
+                validateAzureActiveDirectoryAuthority((AzureActiveDirectoryAuthority) authority);
+            }
+        }
+    }
+
+    private void validateAzureActiveDirectoryAuthority(@NonNull final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority) {
+        if (null != azureActiveDirectoryAuthority.mAudience
+                && azureActiveDirectoryAuthority.mAudience instanceof UnknownAudience) {
+            throw new IllegalArgumentException(
+                    "Unrecognized audience type for AzureActiveDirectoryAuthority -- null, invalid, or unknown type specified"
+            );
+        }
     }
 
     void nullConfigurationCheck(String configKey, String configValue) {
