@@ -29,7 +29,6 @@ import android.test.suitebuilder.annotation.SmallTest;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.experimental.categories.Categories;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;

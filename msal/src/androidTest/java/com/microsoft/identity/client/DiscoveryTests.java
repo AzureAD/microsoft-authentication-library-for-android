@@ -20,7 +20,6 @@ public class DiscoveryTests {
         AzureActiveDirectory.performCloudDiscovery();
 
 
-
     }
 
 

@@ -35,7 +35,9 @@ public final class Oauth2ClientTest {
     static final String AUTH_CODE = "testing code";
 
     @Before
-    public void setup(){ HttpUrlConnectionFactory.clearMockedConnectionQueue(); }
+    public void setup() {
+        HttpUrlConnectionFactory.clearMockedConnectionQueue();
+    }
 
     @After
     public void tearDown() {
