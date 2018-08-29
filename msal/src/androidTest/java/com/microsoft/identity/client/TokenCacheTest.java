@@ -87,7 +87,7 @@ public final class TokenCacheTest extends AndroidTestCase {
         // Prepare a TokenResponse for either the default of the 'different' User, by param
         final TokenResponse tokenResponse = useDefault
                 ? getTokenResponseForDefaultUser(ACCESS_TOKEN, REFRESH_TOKEN, testScope, AndroidTestUtil.getValidExpiresOn(),
-                        getDefaultClientInfo()) : // otherwise...
+                getDefaultClientInfo()) : // otherwise...
                 getTokenResponseForDifferentUser(ACCESS_TOKEN, REFRESH_TOKEN, testScope, AndroidTestUtil.getValidExpiresOn(), getClientInfoForDifferentUser());
         PublicClientApplicationTest.saveTokenResponse(mTokenCache, AUTHORITY, CLIENT_ID, tokenResponse);
 
@@ -449,7 +449,10 @@ public final class TokenCacheTest extends AndroidTestCase {
         final AccessTokenCacheItem accessTokenCacheItem = mTokenCache.findAccessToken(requestParameters, mDefaultUser);
         assertNotNull(accessTokenCacheItem);
         verifyUserReturnedFromCacheIsDefaultUser(accessTokenCacheItem);
-        assertTrue(accessTokenCacheItem.getRawIdToken().equals(getDefaultIdToken()));
+        final String atId = accessTokenCacheItem.getRawIdToken();
+        final String[] segments = atId.split("\\.");
+        final String[] defaultIdSegments = getDefaultIdToken().split("\\.");
+        assertEquals(segments[0] + segments[1], defaultIdSegments[0] + defaultIdSegments[1]);
         assertTrue(accessTokenCacheItem.getAccessToken().equals(ACCESS_TOKEN));
 
         final RefreshTokenCacheItem refreshTokenCacheItem = mTokenCache.findRefreshToken(requestParameters, mDefaultUser);
@@ -656,8 +659,16 @@ public final class TokenCacheTest extends AndroidTestCase {
     }
 
     static String getIdTokenForDifferentUser() {
-        return AndroidTestUtil.createIdToken(AUTHORITY, "issuer", "test user", "other user", "other displayable", "sub", "tenant",
-                "version");
+        return AndroidTestUtil.createIdToken(
+                AUTHORITY,
+                "issuer",
+                "test user",
+                "other user",
+                "other displayable",
+                "sub",
+                "tenant",
+                "version",
+                null);
     }
 
     static String getClientInfoForDifferentUser() {
@@ -677,8 +688,17 @@ public final class TokenCacheTest extends AndroidTestCase {
     }
 
     static String getDefaultIdToken() {
-        return AndroidTestUtil.createIdToken(AUTHORITY, "https://login.microsoftonline.com/common", "test user", UNIQUE_ID, DISPLAYABLE, "sub", "tenant",
-                "version");
+        return AndroidTestUtil.createIdToken(
+                AUTHORITY,
+                "https://login.microsoftonline.com/common",
+                "test user",
+                UNIQUE_ID,
+                DISPLAYABLE,
+                "sub",
+                "tenant",
+                "version",
+                null
+        );
     }
 
     static String getDefaultClientInfo() {

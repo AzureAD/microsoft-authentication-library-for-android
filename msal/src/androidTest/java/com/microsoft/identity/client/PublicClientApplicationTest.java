@@ -604,7 +604,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
      * Verify {@link PublicClientApplication#acquireToken(Activity, String[], String, UiBehavior, String, String[],
      * String, AuthenticationCallback)}. Also check if authority is set on the manifest, we read the authority
      * from manifest meta-data.
-     *
+     * <p>
      * NOTE: Ignoring until we've updated the code to do authority validation per the new design.  Currently setting an authority other than the default will fail.
      */
     @Test
@@ -1157,8 +1157,17 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     static String getIdToken(final String displayable, final String uniqueId, final String homeOid) {
-        return AndroidTestUtil.createIdToken(AndroidTestUtil.AUDIENCE, AndroidTestUtil.ISSUER, AndroidTestUtil.NAME, uniqueId, displayable,
-                AndroidTestUtil.SUBJECT, AndroidTestUtil.TENANT_ID, AndroidTestUtil.VERSION);
+        return AndroidTestUtil.createIdToken(
+                AndroidTestUtil.AUDIENCE,
+                AndroidTestUtil.ISSUER,
+                AndroidTestUtil.NAME,
+                uniqueId,
+                displayable,
+                AndroidTestUtil.SUBJECT,
+                AndroidTestUtil.TENANT_ID,
+                AndroidTestUtil.VERSION,
+                null
+        );
     }
 
     private TokenResponse getTokenResponse(final String idToken, final String clientInfo) throws MsalException {
