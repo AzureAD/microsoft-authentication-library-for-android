@@ -22,27 +22,42 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import android.support.test.runner.AndroidJUnit4;
+import com.google.gson.annotations.SerializedName;
 
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
+import static com.microsoft.identity.client.LoggerConfiguration.SerializedNames.LOG_LEVEL;
+import static com.microsoft.identity.client.LoggerConfiguration.SerializedNames.PII_ENABLED;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+public class LoggerConfiguration {
 
-import java.io.IOException;
-
-@RunWith(AndroidJUnit4.class)
-public class DiscoveryTests {
-
-
-    @Test
-    public void testInstanceDiscovery() throws IOException {
-        AndroidTestMockUtil.mockSuccessInstanceDiscoveryAPIVersion1_1();
-
-        AzureActiveDirectory.performCloudDiscovery();
-
-
+    /**
+     * Field names used for serialization by Gson.
+     */
+    public static final class SerializedNames {
+        public static final String PII_ENABLED = "pii_enabled";
+        public static final String LOG_LEVEL = "log_level";
     }
 
+    @SerializedName(PII_ENABLED)
+    private boolean mPiiEnabled;
 
+    @SerializedName(LOG_LEVEL)
+    private Logger.LogLevel mLogLevel;
+
+    /**
+     * Gets the Pii Enabled state.
+     *
+     * @return True if Pii logging is allowed. False otherwise.
+     */
+    public boolean isPiiEnabled() {
+        return mPiiEnabled;
+    }
+
+    /**
+     * Gets the {@link Logger.LogLevel} to use.
+     *
+     * @return The LogLevel.
+     */
+    public Logger.LogLevel getLogLevel() {
+        return mLogLevel;
+    }
 }

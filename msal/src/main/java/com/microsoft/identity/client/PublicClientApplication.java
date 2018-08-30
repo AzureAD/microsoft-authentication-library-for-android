@@ -37,6 +37,7 @@ import com.microsoft.identity.client.authorities.Authority;
 import com.microsoft.identity.client.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.client.internal.configuration.AuthorityDeserializer;
 import com.microsoft.identity.client.internal.configuration.AzureActiveDirectoryAudienceDeserializer;
+import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.dto.Account;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
@@ -884,6 +885,7 @@ public final class PublicClientApplication {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Authority.class, new AuthorityDeserializer())
                 .registerTypeAdapter(AzureActiveDirectoryAudience.class, new AzureActiveDirectoryAudienceDeserializer())
+                .registerTypeAdapter(Logger.LogLevel.class, new LogLevelDeserializer())
                 .create();
 
         return gson;

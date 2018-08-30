@@ -33,69 +33,92 @@ import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 
 import java.util.List;
 
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORITIES;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_USER_AGENT;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CLIENT_ID;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.HTTP;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.LOGGING;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
+
 public class PublicClientApplicationConfiguration {
 
-    static final String CLIENT_ID_KEY = "client_id";
-    static final String REDIRECT_URI_KEY = "redirect_uri";
-    static final String AUTHORITIES_KEY = "authorities";
-    static final String AUTHORIZATION_USER_AGENT_KEY = "authorization_user_agent";
-    static final String HTTP_KEY = "http";
+    public static final class SerializedNames {
+        static final String CLIENT_ID = "client_id";
+        static final String REDIRECT_URI = "redirect_uri";
+        static final String AUTHORITIES = "authorities";
+        static final String AUTHORIZATION_USER_AGENT = "authorization_user_agent";
+        static final String HTTP = "http";
+        static final String LOGGING = "logging";
+    }
 
-    @SerializedName(PublicClientApplicationConfiguration.CLIENT_ID_KEY)
+    @SerializedName(CLIENT_ID)
     String mClientId;
 
-    @SerializedName(PublicClientApplicationConfiguration.REDIRECT_URI_KEY)
+    @SerializedName(REDIRECT_URI)
     String mRedirectUri;
 
-    @SerializedName(PublicClientApplicationConfiguration.AUTHORITIES_KEY)
+    @SerializedName(AUTHORITIES)
     List<Authority> mAuthorities;
 
-    @SerializedName(PublicClientApplicationConfiguration.AUTHORIZATION_USER_AGENT_KEY)
+    @SerializedName(AUTHORIZATION_USER_AGENT)
     AuthorizationAgent mAuthorizationAgent;
 
-    @SerializedName(PublicClientApplicationConfiguration.HTTP_KEY)
+    @SerializedName(HTTP)
     HttpConfiguration mHttpConfiguration;
 
+    @SerializedName(LOGGING)
+    LoggerConfiguration mLoggerConfiguration;
+
     /**
-     * Gets the currently configured client id for the public client application
+     * Gets the currently configured client id for the PublicClientApplication.
      *
-     * @return
+     * @return The configured clientId.
      */
     public String getClientId() {
         return mClientId;
     }
 
     /**
-     * Gets the list of authorities configured by the developer for use with the public client application
+     * Gets the list of authorities configured by the developer for use with the
+     * PublicClientApplication.
      *
-     * @return
+     * @return The List of current Authorities.
      */
     public List<Authority> getAuthorities() {
         return mAuthorities;
     }
 
     /**
-     * Gets the currently configured HTTP_KEY configuration for the public client application
+     * Gets the currently configured {@link HttpConfiguration} for the PublicClientApplication.
      *
-     * @return
+     * @return The HttpConfiguration to use.
      */
     public HttpConfiguration getHttpConfiguration() {
         return this.mHttpConfiguration;
     }
 
     /**
-     * Gets the currently configured redirect uri for the public client application
+     * Gets the currently configured {@link LoggerConfiguration} for the PublicClientApplication.
      *
-     * @return
+     * @return The LoggerConfiguration to use.
+     */
+    public LoggerConfiguration getLoggerConfiguration() {
+        return mLoggerConfiguration;
+    }
+
+    /**
+     * Gets the currently configured redirect uri for the PublicClientApplication.
+     *
+     * @return The redirectUri to use.
      */
     public String getRedirectUri() {
         return this.mRedirectUri;
     }
 
     /**
-     * Gets the currently configured authorization agent for the public client application
+     * Gets the currently configured {@link AuthorizationAgent} for the PublicClientApplication.
      *
-     * @return
+     * @return The AuthorizationAgent to use.
      */
     public AuthorizationAgent getAuthorizationAgent() {
         return this.mAuthorizationAgent;
@@ -110,8 +133,8 @@ public class PublicClientApplicationConfiguration {
     }
 
     void validateConfiguration() {
-        nullConfigurationCheck(PublicClientApplicationConfiguration.REDIRECT_URI_KEY, mRedirectUri);
-        nullConfigurationCheck(PublicClientApplicationConfiguration.CLIENT_ID_KEY, mClientId);
+        nullConfigurationCheck(REDIRECT_URI, mRedirectUri);
+        nullConfigurationCheck(CLIENT_ID, mClientId);
 
         for (final Authority authority : mAuthorities) {
             if (authority instanceof UnknownAuthority) {

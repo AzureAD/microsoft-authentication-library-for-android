@@ -20,29 +20,25 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client;
+package com.microsoft.identity.client.internal.configuration;
 
-import android.support.test.runner.AndroidJUnit4;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.microsoft.identity.client.Logger;
 
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
+import java.lang.reflect.Type;
+import java.util.Locale;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import static com.microsoft.identity.client.Logger.LogLevel;
 
-import java.io.IOException;
+public class LogLevelDeserializer implements JsonDeserializer<Logger.LogLevel> {
 
-@RunWith(AndroidJUnit4.class)
-public class DiscoveryTests {
-
-
-    @Test
-    public void testInstanceDiscovery() throws IOException {
-        AndroidTestMockUtil.mockSuccessInstanceDiscoveryAPIVersion1_1();
-
-        AzureActiveDirectory.performCloudDiscovery();
-
-
+    @Override
+    public Logger.LogLevel deserialize(final JsonElement json,
+                                       final Type typeOfT,
+                                       final JsonDeserializationContext context) throws JsonParseException {
+        return LogLevel.valueOf(json.getAsString().toUpperCase(Locale.US));
     }
-
-
 }
