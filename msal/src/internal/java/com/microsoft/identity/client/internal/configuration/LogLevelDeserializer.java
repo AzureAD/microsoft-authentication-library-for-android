@@ -20,44 +20,25 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client;
+package com.microsoft.identity.client.internal.configuration;
 
-import com.google.gson.annotations.SerializedName;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.microsoft.identity.client.Logger;
 
-import static com.microsoft.identity.client.LoggerConfiguration.SerializedNames.LOG_LEVEL;
-import static com.microsoft.identity.client.LoggerConfiguration.SerializedNames.PII_ENABLED;
+import java.lang.reflect.Type;
+import java.util.Locale;
 
-public class LoggerConfiguration {
+import static com.microsoft.identity.client.Logger.LogLevel;
 
-    /**
-     * Field names used for serialization by Gson.
-     */
-    public static final class SerializedNames {
-        public static final String PII_ENABLED = "pii_enabled";
-        public static final String LOG_LEVEL = "log_level";
-    }
+public class LogLevelDeserializer implements JsonDeserializer<Logger.LogLevel> {
 
-    @SerializedName(PII_ENABLED)
-    private boolean mPiiEnabled;
-
-    @SerializedName(LOG_LEVEL)
-    private Logger.LogLevel mLogLevel;
-
-    /**
-     * Gets the Pii Enabled state.
-     *
-     * @return True if Pii logging is allowed. False otherwise.
-     */
-    public boolean isPiiEnabled() {
-        return mPiiEnabled;
-    }
-
-    /**
-     * Gets the {@link Logger.LogLevel} to use.
-     *
-     * @return The LogLevel.
-     */
-    public Logger.LogLevel getLogLevel() {
-        return mLogLevel;
+    @Override
+    public Logger.LogLevel deserialize(final JsonElement json,
+                                       final Type typeOfT,
+                                       final JsonDeserializationContext context) throws JsonParseException {
+        return LogLevel.valueOf(json.getAsString().toUpperCase(Locale.US));
     }
 }

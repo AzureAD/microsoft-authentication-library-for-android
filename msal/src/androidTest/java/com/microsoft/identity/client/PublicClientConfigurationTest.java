@@ -1,3 +1,25 @@
+//  Copyright (c) Microsoft Corporation.
+//  All rights reserved.
+//
+//  This code is licensed under the MIT License.
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files(the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions :
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
 package com.microsoft.identity.client;
 
 import android.content.Context;
@@ -261,6 +283,72 @@ public class PublicClientConfigurationTest {
     public void testNullRedirectUrlException() {
         final PublicClientApplicationConfiguration configWithoutRedirect = loadConfig(R.raw.test_pcaconfig_missing_redirect);
         configWithoutRedirect.validateConfiguration();
+    }
+
+    /**
+     * Test that the verbose log level can be set via config.
+     */
+    @Test
+    public void testVerboseLogLevel() {
+        final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_log_verbose);
+        assertNotNull(config);
+        assertNotNull(config.mLoggerConfiguration);
+        assertEquals(Logger.LogLevel.VERBOSE, config.mLoggerConfiguration.getLogLevel());
+    }
+
+    /**
+     * Test that the verbose info level can be set via config.
+     */
+    @Test
+    public void testInfoLogLevel() {
+        final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_log_info);
+        assertNotNull(config);
+        assertNotNull(config.mLoggerConfiguration);
+        assertEquals(Logger.LogLevel.INFO, config.mLoggerConfiguration.getLogLevel());
+    }
+
+    /**
+     * Test that the warning log level can be set via config.
+     */
+    @Test
+    public void testWarningLogLevel() {
+        final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_log_warning);
+        assertNotNull(config);
+        assertNotNull(config.mLoggerConfiguration);
+        assertEquals(Logger.LogLevel.WARNING, config.mLoggerConfiguration.getLogLevel());
+    }
+
+    /**
+     * Test that the error log level can be set via config.
+     */
+    @Test
+    public void testErrorLogLevel() {
+        final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_log_error);
+        assertNotNull(config);
+        assertNotNull(config.mLoggerConfiguration);
+        assertEquals(Logger.LogLevel.ERROR, config.mLoggerConfiguration.getLogLevel());
+    }
+
+    /**
+     * Test that PII logging can be enabled via config.
+     */
+    @Test
+    public void testPiiOn() {
+        final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_log_info);
+        assertNotNull(config);
+        assertNotNull(config.mLoggerConfiguration);
+        assertTrue(config.mLoggerConfiguration.isPiiEnabled());
+    }
+
+    /**
+     * Test that PII logging can be disabled via config.
+     */
+    @Test
+    public void testPiiOff() {
+        final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_log_error);
+        assertNotNull(config);
+        assertNotNull(config.mLoggerConfiguration);
+        assertFalse(config.mLoggerConfiguration.isPiiEnabled());
     }
 
     private PublicClientApplicationConfiguration loadConfig(final int resourceId) {
