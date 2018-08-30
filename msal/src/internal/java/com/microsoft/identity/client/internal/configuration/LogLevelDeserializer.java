@@ -20,18 +20,25 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.authorities;
+package com.microsoft.identity.client.internal.configuration;
 
-import android.net.Uri;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.microsoft.identity.client.Logger;
 
-public class AzureActiveDirectoryB2CAuthority extends Authority {
+import java.lang.reflect.Type;
+import java.util.Locale;
 
-    AzureActiveDirectoryB2CAuthority(String authorityUrl) {
-        mAuthorityUrl = authorityUrl;
-    }
+import static com.microsoft.identity.client.Logger.LogLevel;
+
+public class LogLevelDeserializer implements JsonDeserializer<Logger.LogLevel> {
 
     @Override
-    public Uri getAuthorityUri() {
-        return Uri.parse(mAuthorityUrl);
+    public Logger.LogLevel deserialize(final JsonElement json,
+                                       final Type typeOfT,
+                                       final JsonDeserializationContext context) throws JsonParseException {
+        return LogLevel.valueOf(json.getAsString().toUpperCase(Locale.US));
     }
 }

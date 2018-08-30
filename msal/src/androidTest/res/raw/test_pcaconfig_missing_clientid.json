@@ -1,4 +1,5 @@
 {
+  "redirect_uri": "test://a.redirectUri.com",
   "authorities": [
     {
       "type": "AAD",

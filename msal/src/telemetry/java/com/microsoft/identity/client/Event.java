@@ -111,6 +111,7 @@ class Event extends ArrayList<Pair<String, String>> {
 
     /**
      * Tests supplied EventStrings for privacy compliance.
+     *
      * @param fieldName The EventString to evaluate.
      * @return True, if the field can be reported. False otherwise.
      */

@@ -3,7 +3,7 @@
     {
       "type": "AAD",
       "audience": {
-        "type": "AzureADandPersonalMicrosoftAccount"
+        "type": "AzureADMyOrg"
       },
       "default": true
     }
@@ -12,5 +12,10 @@
   "http": {
     "connect_timeout": 10000,
     "read_timeout": 30000
-  }
+  },
+  "logging": {
+    "log_level": "error",
+    "pii_enabled": "false"
+  },
+  "token_expiration_buffer": 5000
 }

@@ -20,10 +20,44 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.authorities;
+package com.microsoft.identity.client;
 
-public enum AuthorityType {
-    AZURE_ACTIVE_DIRECTORY,
-    AZURE_ACTIVE_DIRECTORY_B2C,
-    ACTIVE_DIRECTORY_FEDERATION_SERVICES
+import com.google.gson.annotations.SerializedName;
+
+import static com.microsoft.identity.client.LoggerConfiguration.SerializedNames.LOG_LEVEL;
+import static com.microsoft.identity.client.LoggerConfiguration.SerializedNames.PII_ENABLED;
+
+public class LoggerConfiguration {
+
+    /**
+     * Field names used for serialization by Gson.
+     */
+    public static final class SerializedNames {
+        public static final String PII_ENABLED = "pii_enabled";
+        public static final String LOG_LEVEL = "log_level";
+    }
+
+    @SerializedName(PII_ENABLED)
+    private boolean mPiiEnabled;
+
+    @SerializedName(LOG_LEVEL)
+    private Logger.LogLevel mLogLevel;
+
+    /**
+     * Gets the Pii Enabled state.
+     *
+     * @return True if Pii logging is allowed. False otherwise.
+     */
+    public boolean isPiiEnabled() {
+        return mPiiEnabled;
+    }
+
+    /**
+     * Gets the {@link Logger.LogLevel} to use.
+     *
+     * @return The LogLevel.
+     */
+    public Logger.LogLevel getLogLevel() {
+        return mLogLevel;
+    }
 }

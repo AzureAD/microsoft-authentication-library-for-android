@@ -4,12 +4,12 @@ public enum WebViewSelection {
     /**
      *
      */
-    EMBEDDED_WEBVIEW (1),
+    EMBEDDED_WEBVIEW(1),
 
     /**
      *
      */
-    SYSTEM_BROWSER (2);
+    SYSTEM_BROWSER(2);
 
     private int mId;
 

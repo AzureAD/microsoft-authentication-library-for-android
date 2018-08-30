@@ -65,7 +65,7 @@ public class MsalChromeCustomTabManager {
         if (mChromePackageWithCustomTabSupport == null) {
             Logger.warning(TAG, null, "Custom tab is not supported by Chrome.");
 
-        } else if( MsalUtils.getChromePackage(mParentActivity.getApplicationContext()) == null) {
+        } else if (MsalUtils.getChromePackage(mParentActivity.getApplicationContext()) == null) {
             Logger.warning(TAG, null, "Chrome is not installed.");
             throw new MsalClientException(ErrorStrings.CHROME_NOT_INSTALLED, "Chrome is not installed.");
         }
