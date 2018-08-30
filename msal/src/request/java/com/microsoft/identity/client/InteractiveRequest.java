@@ -25,7 +25,6 @@ package com.microsoft.identity.client;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.net.Uri;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAuthorizationRequest;

@@ -190,6 +190,7 @@ final class MsalUtils {
     /**
      * hasCustomTabRedirectActivity - Ensures that the developer has properly configured their
      * AndroidManifest to expose the BrowserTabActivity.
+     *
      * @param context
      * @param url
      * @return

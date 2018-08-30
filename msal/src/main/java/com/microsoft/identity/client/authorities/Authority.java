@@ -43,7 +43,6 @@ public abstract class Authority {
 
     @SerializedName("authority_type")
     protected String mAuthorityTypeString;
-    protected AuthorityType mAuthorityType;
 
     @SerializedName("authority_url")
     protected String mAuthorityUrl;
@@ -94,7 +93,6 @@ public abstract class Authority {
         }
 
         return authority;
-
     }
 
     /**
@@ -119,10 +117,5 @@ public abstract class Authority {
     protected boolean getKnownToDeveloper() {
         return mKnownToDeveloper;
     }
-
-    protected AuthorityType getAuthorityType() {
-        return AuthorityType.valueOf(this.mAuthorityTypeString);
-    }
-
 
 }

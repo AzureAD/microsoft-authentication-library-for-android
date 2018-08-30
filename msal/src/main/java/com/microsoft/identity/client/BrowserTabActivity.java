@@ -24,11 +24,9 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity;
-import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 
 /**
  * MSAL activity class (needs to be public in order to be discoverable by the os) to get the browser redirect with auth code from authorize

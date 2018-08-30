@@ -42,7 +42,7 @@ final class HttpResponse {
      * @param responseHeaders Response headers from the connection sent to the server.
      */
     HttpResponse(final int statusCode, final String responseBody,
-                        final Map<String, List<String>> responseHeaders) {
+                 final Map<String, List<String>> responseHeaders) {
         mStatusCode = statusCode;
         mResponseBody = responseBody;
         mResponseHeaders = responseHeaders;

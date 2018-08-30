@@ -14,13 +14,16 @@ import com.microsoft.identity.client.authorities.UnknownAuthority;
 import java.lang.reflect.Type;
 
 public class AuthorityDeserializer implements JsonDeserializer<Authority> {
+
+    private static final String TAG = AuthorityDeserializer.class.getSimpleName();
+
     @Override
     public Authority deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         JsonObject authorityObject = json.getAsJsonObject();
         JsonElement type = authorityObject.get("type");
 
-        if(type != null){
-            switch(type.getAsString()){
+        if (type != null) {
+            switch (type.getAsString()) {
                 case "AAD":
                     return context.deserialize(authorityObject, AzureActiveDirectoryAuthority.class);
                 case "B2C":
