@@ -26,15 +26,12 @@ import android.net.Uri;
 
 public class AzureActiveDirectoryB2CAuthority extends Authority {
 
-    private Uri mAuthorityUri;
-
     AzureActiveDirectoryB2CAuthority(String authorityUrl) {
-        this.mAuthorityUrl = authorityUrl;
-        this.mAuthorityUri = Uri.parse(authorityUrl);
+        mAuthorityUrl = authorityUrl;
     }
 
     @Override
     public Uri getAuthorityUri() {
-        return mAuthorityUri;
+        return Uri.parse(mAuthorityUrl);
     }
 }

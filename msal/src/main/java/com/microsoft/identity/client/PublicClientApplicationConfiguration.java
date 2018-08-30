@@ -22,7 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-
 import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
@@ -56,7 +55,6 @@ public class PublicClientApplicationConfiguration {
 
     @SerializedName(PublicClientApplicationConfiguration.HTTP_KEY)
     HttpConfiguration mHttpConfiguration;
-
 
     /**
      * Gets the currently configured client id for the public client application
@@ -143,6 +141,5 @@ public class PublicClientApplicationConfiguration {
             throw new IllegalArgumentException(configKey + " cannot be null.  Invalid configuration.");
         }
     }
-
 
 }
