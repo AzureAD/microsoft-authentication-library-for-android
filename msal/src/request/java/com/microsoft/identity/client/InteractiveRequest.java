@@ -25,34 +25,22 @@ package com.microsoft.identity.client;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.ResolveInfo;
 import android.net.Uri;
-import android.util.Base64;
-
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
-import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsPromptBehavior;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationConfiguration;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.oauth2.PkceChallenge;
 import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
-import com.microsoft.identity.common.internal.ui.webview.AzureActiveDirectoryWebViewClient;
 import com.microsoft.identity.common.internal.util.StringUtil;
-import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
-import java.nio.charset.Charset;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
@@ -110,7 +98,8 @@ final class InteractiveRequest extends BaseRequest {
         AuthorizationConfiguration.getInstance().setRedirectUrl(sAuthorizationRequest.getRedirectUri());
         sAuthorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(mActivityRef.get(), AuthorizationConfiguration.getInstance());
         try {
-            sAuthorizationStrategy.requestAuthorization(Uri.parse(sAuthorizationRequest.getAuthorizationStartUrl()));
+            //TODO preTokenRequest() will be deprecated once OAuth2Strategy integrated with MSAL
+            sAuthorizationStrategy.requestAuthorization(sAuthorizationRequest, null);
         } catch (final ClientException | UnsupportedEncodingException exc) {
             throw new MsalClientException("requestAuthorization cancelled.", exc.getMessage(), exc);
         }
@@ -137,62 +126,48 @@ final class InteractiveRequest extends BaseRequest {
      * @throws MsalClientException
      */
     private MicrosoftStsAuthorizationRequest createAuthRequest() throws MsalClientException {
-        MicrosoftStsPromptBehavior promptBehavior;
+        String promptBehavior;
 
         //Map the UIBehavior from MSAL to Common
         switch (getAuthRequestParameters().getUiBehavior()) {
             case CONSENT:
-                promptBehavior = MicrosoftStsPromptBehavior.CONSENT;
+                promptBehavior = MicrosoftStsAuthorizationRequest.Prompt.CONSENT;
                 break;
             case FORCE_LOGIN:
-                promptBehavior = MicrosoftStsPromptBehavior.FORCE_LOGIN;
+                promptBehavior = MicrosoftStsAuthorizationRequest.Prompt.FORCE_LOGIN;
                 break;
             default:
-                promptBehavior = MicrosoftStsPromptBehavior.SELECT_ACCOUNT;
+                promptBehavior = MicrosoftStsAuthorizationRequest.Prompt.SELECT_ACCOUNT;
                 break;
         }
 
-        final MicrosoftStsAuthorizationRequest authorizationRequest = new MicrosoftStsAuthorizationRequest(
-                OauthConstants.Oauth2Parameters.CODE,
-                getAuthRequestParameters().getClientId(),
-                getAuthRequestParameters().getRedirectUri(),
-                null,
-                StringUtil.join(' ', new ArrayList<String>(getAuthRequestParameters().getScope())),
-                getAuthRequestParameters().getAuthority().getAuthorityUrl(),
-                getAuthRequestParameters().getLoginHint(),
-                getAuthRequestParameters().getRequestContext().getCorrelationId(),
-                null,
-                getAuthRequestParameters().getExtraQueryParam(),
-                PublicClientApplication.getSdkVersion(),
-                promptBehavior,
-                null,
-                null,
-                null,
-                getAuthRequestParameters().getSliceParameters());
-
-        if (null != getAuthRequestParameters().getUser()) {
-            authorizationRequest.setUid(getAuthRequestParameters().getUser().getUid());
-            authorizationRequest.setUtid(getAuthRequestParameters().getUser().getUtid());
-            authorizationRequest.setDisplayableId(getAuthRequestParameters().getUser().getDisplayableId());
-        }
-
-        //Set encoded state for the request
         try {
-            authorizationRequest.setState(authorizationRequest.generateEncodedState());
+            final MicrosoftStsAuthorizationRequest.Builder builder
+                    = new MicrosoftStsAuthorizationRequest.Builder(
+                    getAuthRequestParameters().getClientId(),
+                    getAuthRequestParameters().getRedirectUri(),
+                    getAuthRequestParameters().getAuthority().getAuthorityUrl(),
+                    StringUtil.join(' ', new ArrayList<>(getAuthRequestParameters().getScope())),
+                    promptBehavior,
+                    PkceChallenge.newPkceChallenge(),
+                    MicrosoftAuthorizationRequest.generateEncodedState());
+
+            builder.setLoginHint(getAuthRequestParameters().getLoginHint());
+            builder.setCorrelationId(getAuthRequestParameters().getRequestContext().getCorrelationId());
+            builder.setExtraQueryParam(getAuthRequestParameters().getExtraQueryParam());
+            builder.setLibraryVersion(PublicClientApplication.getSdkVersion());
+            builder.setLibraryName("MSAL.Android");
+            builder.setSliceParameters(getAuthRequestParameters().getSliceParameters());
+            builder.setUid(getAuthRequestParameters().getUser().getUid());
+            builder.setUtid(getAuthRequestParameters().getUser().getUtid());
+            builder.setDisplayableId(getAuthRequestParameters().getUser().getDisplayableId());
+
+            return builder.build();
         } catch (final UnsupportedEncodingException exception) {
-            Logger.errorPII(TAG, mRequestContext, exception.getMessage(), exception);
-            throw new MsalClientException(ErrorStrings.UNSUPPORTED_ENCODING, exception.getMessage(), exception);
-        }
-
-        //Set pcke challenge
-        try {
-            authorizationRequest.setPkceChallenge(PkceChallenge.newPkceChallenge());
+            throw new MsalClientException(ErrorStrings.UNSUPPORTED_ENCODING, ErrorStrings.UNSUPPORTED_ENCODING.toString(), exception);
         } catch (final ClientException exception) {
-            Logger.errorPII(TAG, mRequestContext, exception.getMessage(), exception);
             throw new MsalClientException(exception.getErrorCode(), exception.getMessage(), exception);
         }
-
-        return authorizationRequest;
     }
 
     @Override
