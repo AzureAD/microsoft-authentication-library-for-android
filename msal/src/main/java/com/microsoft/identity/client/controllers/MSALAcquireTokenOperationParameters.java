@@ -39,6 +39,7 @@ public class MSALAcquireTokenOperationParameters extends MSALOperationParameters
     private OAuth2TokenCache mTokenCache;
     private Activity mActivity;
     private List<String> mScopes;
+    private String mLoginHint;
     private User mUser;
     private UiBehavior mUIBehavior;
     private String mExtraQueryStringParameters;
@@ -130,4 +131,8 @@ public class MSALAcquireTokenOperationParameters extends MSALOperationParameters
     public Authority getAuthority() {return mAuthority;}
 
     public void setAuthority(Authority authority) { this.mAuthority = authority;}
+
+    public void setLoginHint(String loginHint) { this.mLoginHint = loginHint;}
+
+    public String getLoginHint(){return this.mLoginHint;}
 }

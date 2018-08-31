@@ -140,33 +140,25 @@ final class InteractiveRequest extends BaseRequest {
                 break;
         }
 
-        try {
-            final MicrosoftStsAuthorizationRequest.Builder builder
-                    = new MicrosoftStsAuthorizationRequest.Builder(
-                    getAuthRequestParameters().getClientId(),
-                    getAuthRequestParameters().getRedirectUri(),
-                    getAuthRequestParameters().getAuthority().getAuthorityUrl(),
-                    StringUtil.join(' ', new ArrayList<>(getAuthRequestParameters().getScope())),
-                    promptBehavior,
-                    PkceChallenge.newPkceChallenge(),
-                    MicrosoftAuthorizationRequest.generateEncodedState());
 
-            builder.setLoginHint(getAuthRequestParameters().getLoginHint());
-            builder.setCorrelationId(getAuthRequestParameters().getRequestContext().getCorrelationId());
-            builder.setExtraQueryParam(getAuthRequestParameters().getExtraQueryParam());
-            builder.setLibraryVersion(PublicClientApplication.getSdkVersion());
-            builder.setLibraryName("MSAL.Android");
-            builder.setSliceParameters(getAuthRequestParameters().getSliceParameters());
-            builder.setUid(getAuthRequestParameters().getUser().getUid());
-            builder.setUtid(getAuthRequestParameters().getUser().getUtid());
-            builder.setDisplayableId(getAuthRequestParameters().getUser().getDisplayableId());
+        final MicrosoftStsAuthorizationRequest.Builder builder
+                = new MicrosoftStsAuthorizationRequest.Builder();
 
-            return builder.build();
-        } catch (final UnsupportedEncodingException exception) {
-            throw new MsalClientException(ErrorStrings.UNSUPPORTED_ENCODING, ErrorStrings.UNSUPPORTED_ENCODING.toString(), exception);
-        } catch (final ClientException exception) {
-            throw new MsalClientException(exception.getErrorCode(), exception.getMessage(), exception);
-        }
+        builder.setClientId(getAuthRequestParameters().getClientId());
+        builder.setRedirectUri(getAuthRequestParameters().getRedirectUri());
+        builder.setScope(StringUtil.join(' ', new ArrayList<>(getAuthRequestParameters().getScope())));
+        builder.setLoginHint(getAuthRequestParameters().getLoginHint());
+        builder.setCorrelationId(getAuthRequestParameters().getRequestContext().getCorrelationId());
+        builder.setExtraQueryParam(getAuthRequestParameters().getExtraQueryParam());
+        builder.setLibraryVersion(PublicClientApplication.getSdkVersion());
+        builder.setLibraryName("MSAL.Android");
+        builder.setSliceParameters(getAuthRequestParameters().getSliceParameters());
+        builder.setUid(getAuthRequestParameters().getUser().getUid());
+        builder.setUtid(getAuthRequestParameters().getUser().getUtid());
+        builder.setDisplayableId(getAuthRequestParameters().getUser().getDisplayableId());
+
+        return builder.build();
+
     }
 
     @Override

@@ -55,6 +55,7 @@ import java.util.concurrent.Future;
 public class LocalMSALController extends MSALController {
 
     private AuthorizationStrategy mAuthorizationStrategy = null;
+    private AuthorizationRequest mAuthorizationRequest = null;
 
     @Override
     public AuthenticationResult acquireToken(MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException, ClientException {
@@ -68,7 +69,7 @@ public class LocalMSALController extends MSALController {
 
         if (result.getAuthorizationStatus().equals(AuthorizationStatus.SUCCESS)) {
             //3) Exchange authorization code for token
-            TokenResult tokenResult = performTokenRequest(oAuth2Strategy, result.getAuthorizationResponse(), parameters);
+            TokenResult tokenResult = performTokenRequest(oAuth2Strategy, mAuthorizationRequest, result.getAuthorizationResponse(), parameters);
             if (tokenResult != null && tokenResult.getSuccess()) {
                 //4) Save tokens in token cache
                 //saveTokens(oAuth2Strategy, getAuthorizationRequest(oAuth2Strategy, parameters), tokenResult.getTokenResponse(), parameters.getTokenCache());
@@ -80,11 +81,10 @@ public class LocalMSALController extends MSALController {
 
     private AuthorizationResult performAuthorizationRequest(OAuth2Strategy strategy, MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException, ClientException {
 
-        //TODO: Replace with factory to create the correct Authorization Strategy based on device capabilities and configuration
         mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(parameters.getActivity(), AuthorizationConfiguration.getInstance());
+        mAuthorizationRequest = getAuthorizationRequest(strategy, parameters);
 
-        Future<AuthorizationResult> future = strategy.requestAuthorization(getAuthorizationRequest(parameters), mAuthorizationStrategy);
-
+        Future<AuthorizationResult> future = strategy.requestAuthorization(mAuthorizationRequest, mAuthorizationStrategy);
 
         //We could implement Timeout Here if we wish instead of blocking indefinitely
         //future.get(10, TimeUnit.MINUTES);  // Need to handle timeout exception in the scenario it doesn't return within a reasonable amount of time
@@ -94,25 +94,22 @@ public class LocalMSALController extends MSALController {
 
     }
 
-    private AuthorizationRequest getAuthorizationRequest(MSALAcquireTokenOperationParameters parameters) {
-        MicrosoftStsAuthorizationRequest.Builder builder = new MicrosoftStsAuthorizationRequest.Builder(
-                parameters.getClientId(),
-                parameters.getRedirectUri(),
-                StringUtil.join(' ', parameters.getScopes()));
+    private AuthorizationRequest getAuthorizationRequest(OAuth2Strategy strategy, MSALAcquireTokenOperationParameters parameters) {
 
-        builder.setResponseType(AuthorizationRequest.ResponseType.CODE);
+        AuthorizationRequest.Builder builder = strategy.createAuthorizationRequestBuilder();
 
-        return builder.build();
+        AuthorizationRequest request = builder
+                .setClientId(parameters.getClientId())
+                .setRedirectUri(parameters.getRedirectUri())
+                .setScope(StringUtil.join(' ', parameters.getScopes()))
+                .build();
+
+        return request;
     }
 
-    private TokenResult performTokenRequest(OAuth2Strategy strategy, AuthorizationResponse response, MSALAcquireTokenOperationParameters parameters) {
+    private TokenResult performTokenRequest(OAuth2Strategy strategy, AuthorizationRequest request, AuthorizationResponse response, MSALAcquireTokenOperationParameters parameters) {
 
-        TokenRequest tokenRequest = new TokenRequest();
-
-        tokenRequest.setCode(response.getCode());
-        tokenRequest.setClientId(parameters.getClientId());
-        tokenRequest.setRedirectUri(parameters.getRedirectUri());
-        tokenRequest.setScope(StringUtil.join(' ', parameters.getScopes()));
+        TokenRequest tokenRequest = strategy.createTokenRequest(request, response);
         tokenRequest.setGrantType(TokenRequest.GrantTypes.AUTHORIZATION_CODE);
 
         TokenResult tokenResult = null;

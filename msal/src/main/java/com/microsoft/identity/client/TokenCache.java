@@ -138,7 +138,9 @@ public class TokenCache {
         final MicrosoftStsOAuth2Strategy strategy = msSts.createOAuth2Strategy(config);
 
         // Create the AuthorizationRequest
-        MicrosoftStsAuthorizationRequest.Builder builder = new MicrosoftStsAuthorizationRequest.Builder(clientId, "", tokenResponse.getScope());
+        MicrosoftStsAuthorizationRequest.Builder builder = new MicrosoftStsAuthorizationRequest.Builder();
+        builder.setClientId(clientId);
+        builder.setScope(tokenResponse.getScope());
         builder.setAuthority(authority);
 
         try {
