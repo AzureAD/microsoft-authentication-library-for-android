@@ -27,24 +27,25 @@ import android.content.Context;
 
 import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.client.User;
+import com.microsoft.identity.client.authorities.Authority;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 
 import java.util.List;
 
 public class MSALAcquireTokenOperationParameters extends MSALOperationParameters {
 
     private Context mAppContext;
-    private MsalOAuth2TokenCache mTokenCache;
+    private OAuth2TokenCache mTokenCache;
     private Activity mActivity;
     private List<String> mScopes;
     private User mUser;
     private UiBehavior mUIBehavior;
     private String mExtraQueryStringParameters;
-    private String mExtraScopesToConsent;
-    private String authority;
+    private List<String> mExtraScopesToConsent;
     private String clientId;
     private String redirectUri;
-
+    private Authority mAuthority;
 
     public Context getAppContext() {
         return mAppContext;
@@ -94,20 +95,12 @@ public class MSALAcquireTokenOperationParameters extends MSALOperationParameters
         this.mExtraQueryStringParameters = mExtraQueryStringParameters;
     }
 
-    public String getExtraScopesToConsent() {
+    public List<String> getExtraScopesToConsent() {
         return mExtraScopesToConsent;
     }
 
-    public void setExtraScopesToConsent(String mExtraScopesToConsent) {
+    public void setExtraScopesToConsent(List<String> mExtraScopesToConsent) {
         this.mExtraScopesToConsent = mExtraScopesToConsent;
-    }
-
-    public String getAuthority() {
-        return authority;
-    }
-
-    public void setAuthority(String authority) {
-        this.authority = authority;
     }
 
     public String getClientId() {
@@ -126,11 +119,15 @@ public class MSALAcquireTokenOperationParameters extends MSALOperationParameters
         this.redirectUri = redirectUri;
     }
 
-    public void setTokenCache(MsalOAuth2TokenCache cache) {
+    public void setTokenCache(OAuth2TokenCache cache) {
         this.mTokenCache = cache;
     }
 
-    public MsalOAuth2TokenCache getTokenCache() {
+    public OAuth2TokenCache getTokenCache() {
         return mTokenCache;
     }
+
+    public Authority getAuthority() {return mAuthority;}
+
+    public void setAuthority(Authority authority) { this.mAuthority = authority;}
 }

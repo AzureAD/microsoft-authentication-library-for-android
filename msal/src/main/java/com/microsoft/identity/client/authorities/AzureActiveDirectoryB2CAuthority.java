@@ -24,6 +24,10 @@ package com.microsoft.identity.client.authorities;
 
 import android.net.Uri;
 
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectoryb2c.AzureActiveDirectoryB2COAuth2Strategy;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
+
 public class AzureActiveDirectoryB2CAuthority extends Authority {
 
     AzureActiveDirectoryB2CAuthority(String authorityUrl) {
@@ -33,5 +37,10 @@ public class AzureActiveDirectoryB2CAuthority extends Authority {
     @Override
     public Uri getAuthorityUri() {
         return Uri.parse(mAuthorityUrl);
+    }
+
+    @Override
+    public OAuth2Strategy createOAuth2Strategy() {
+        return new AzureActiveDirectoryB2COAuth2Strategy(new AzureActiveDirectoryOAuth2Configuration());
     }
 }

@@ -27,6 +27,9 @@ import android.net.Uri;
 import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -88,6 +91,11 @@ public class AzureActiveDirectoryAuthority extends Authority {
             issuer = Uri.parse(mAzureActiveDirectoryCloud.getPreferredNetworkHostName());
         }
         return issuer.buildUpon().appendPath(mAudience.getTenantId()).build();
+    }
+
+    @Override
+    public OAuth2Strategy createOAuth2Strategy() {
+        return new MicrosoftStsOAuth2Strategy(new MicrosoftStsOAuth2Configuration());
     }
 
 

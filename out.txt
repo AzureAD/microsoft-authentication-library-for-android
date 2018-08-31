@@ -1,0 +1,1615 @@
+publishNonDefault is deprecated and has no effect anymore. All variants are now published.
+:tasks
+
+------------------------------------------------------------
+All tasks runnable from root project
+------------------------------------------------------------
+
+Android tasks
+-------------
+common:androidDependencies - Displays the Android dependencies of the project.
+msal:androidDependencies - Displays the Android dependencies of the project.
+testapps:automationapp:androidDependencies - Displays the Android dependencies of the project.
+testapps:sample:androidDependencies - Displays the Android dependencies of the project.
+testapps:testapp:androidDependencies - Displays the Android dependencies of the project.
+common:signingReport - Displays the signing info for each variant.
+msal:signingReport - Displays the signing info for each variant.
+testapps:automationapp:signingReport - Displays the signing info for each variant.
+testapps:sample:signingReport - Displays the signing info for each variant.
+testapps:testapp:signingReport - Displays the signing info for each variant.
+common:sourceSets - Prints out all the source sets defined in this project.
+msal:sourceSets - Prints out all the source sets defined in this project.
+testapps:automationapp:sourceSets - Prints out all the source sets defined in this project.
+testapps:sample:sourceSets - Prints out all the source sets defined in this project.
+testapps:testapp:sourceSets - Prints out all the source sets defined in this project.
+
+Build tasks
+-----------
+common:assemble - Assembles all variants of all applications and secondary packages.
+msal:assemble - Assembles all variants of all applications and secondary packages.
+testapps:automationapp:assemble - Assembles all variants of all applications and secondary packages.
+testapps:sample:assemble - Assembles all variants of all applications and secondary packages.
+testapps:testapp:assemble - Assembles all variants of all applications and secondary packages.
+common:assembleAndroidTest - Assembles all the Test applications.
+msal:assembleAndroidTest - Assembles all the Test applications.
+testapps:automationapp:assembleAndroidTest - Assembles all the Test applications.
+testapps:sample:assembleAndroidTest - Assembles all the Test applications.
+testapps:testapp:assembleAndroidTest - Assembles all the Test applications.
+common:assembleDebug - Assembles all Debug builds.
+msal:assembleDebug - Assembles all Debug builds.
+testapps:automationapp:assembleDebug - Assembles all Debug builds.
+testapps:sample:assembleDebug - Assembles all Debug builds.
+testapps:testapp:assembleDebug - Assembles all Debug builds.
+msal:assembleDist - Assembles all Dist builds.
+testapps:automationapp:assembleDist - Assembles all Dist builds.
+testapps:sample:assembleDist - Assembles all Dist builds.
+testapps:testapp:assembleDist - Assembles all Dist builds.
+msal:assembleLocal - Assembles all Local builds.
+testapps:automationapp:assembleLocal - Assembles all Local builds.
+testapps:sample:assembleLocal - Assembles all Local builds.
+testapps:testapp:assembleLocal - Assembles all Local builds.
+common:assembleRelease - Assembles all Release builds.
+msal:assembleRelease - Assembles all Release builds.
+testapps:automationapp:assembleRelease - Assembles all Release builds.
+testapps:sample:assembleRelease - Assembles all Release builds.
+testapps:testapp:assembleRelease - Assembles all Release builds.
+msal:assembleSnapshot - Assembles all Snapshot builds.
+common:build - Assembles and tests this project.
+msal:build - Assembles and tests this project.
+testapps:automationapp:build - Assembles and tests this project.
+testapps:sample:build - Assembles and tests this project.
+testapps:testapp:build - Assembles and tests this project.
+common:buildDependents - Assembles and tests this project and all projects that depend on it.
+msal:buildDependents - Assembles and tests this project and all projects that depend on it.
+testapps:automationapp:buildDependents - Assembles and tests this project and all projects that depend on it.
+testapps:sample:buildDependents - Assembles and tests this project and all projects that depend on it.
+testapps:testapp:buildDependents - Assembles and tests this project and all projects that depend on it.
+common:buildNeeded - Assembles and tests this project and all projects it depends on.
+msal:buildNeeded - Assembles and tests this project and all projects it depends on.
+testapps:automationapp:buildNeeded - Assembles and tests this project and all projects it depends on.
+testapps:sample:buildNeeded - Assembles and tests this project and all projects it depends on.
+testapps:testapp:buildNeeded - Assembles and tests this project and all projects it depends on.
+common:clean - Deletes the build directory.
+msal:clean - Deletes the build directory.
+testapps:automationapp:clean - Deletes the build directory.
+testapps:sample:clean - Deletes the build directory.
+testapps:testapp:clean - Deletes the build directory.
+common:cleanBuildCache - Deletes the build cache directory.
+msal:cleanBuildCache - Deletes the build cache directory.
+testapps:automationapp:cleanBuildCache - Deletes the build cache directory.
+testapps:sample:cleanBuildCache - Deletes the build cache directory.
+testapps:testapp:cleanBuildCache - Deletes the build cache directory.
+common:compileDebugAndroidTestSources
+common:compileDebugSources
+common:compileDebugUnitTestSources
+msal:compileDistDebugAndroidTestSources
+testapps:automationapp:compileDistDebugAndroidTestSources
+testapps:sample:compileDistDebugAndroidTestSources
+testapps:testapp:compileDistDebugAndroidTestSources
+msal:compileDistDebugSources
+testapps:automationapp:compileDistDebugSources
+testapps:sample:compileDistDebugSources
+testapps:testapp:compileDistDebugSources
+msal:compileDistDebugUnitTestSources
+testapps:automationapp:compileDistDebugUnitTestSources
+testapps:sample:compileDistDebugUnitTestSources
+testapps:testapp:compileDistDebugUnitTestSources
+msal:compileDistReleaseSources
+testapps:automationapp:compileDistReleaseSources
+testapps:sample:compileDistReleaseSources
+testapps:testapp:compileDistReleaseSources
+msal:compileDistReleaseUnitTestSources
+testapps:automationapp:compileDistReleaseUnitTestSources
+testapps:sample:compileDistReleaseUnitTestSources
+testapps:testapp:compileDistReleaseUnitTestSources
+msal:compileLocalDebugAndroidTestSources
+testapps:automationapp:compileLocalDebugAndroidTestSources
+testapps:sample:compileLocalDebugAndroidTestSources
+testapps:testapp:compileLocalDebugAndroidTestSources
+msal:compileLocalDebugSources
+testapps:automationapp:compileLocalDebugSources
+testapps:sample:compileLocalDebugSources
+testapps:testapp:compileLocalDebugSources
+msal:compileLocalDebugUnitTestSources
+testapps:automationapp:compileLocalDebugUnitTestSources
+testapps:sample:compileLocalDebugUnitTestSources
+testapps:testapp:compileLocalDebugUnitTestSources
+msal:compileLocalReleaseSources
+testapps:automationapp:compileLocalReleaseSources
+testapps:sample:compileLocalReleaseSources
+testapps:testapp:compileLocalReleaseSources
+msal:compileLocalReleaseUnitTestSources
+testapps:automationapp:compileLocalReleaseUnitTestSources
+testapps:sample:compileLocalReleaseUnitTestSources
+testapps:testapp:compileLocalReleaseUnitTestSources
+common:compileReleaseSources
+common:compileReleaseUnitTestSources
+msal:compileSnapshotDebugAndroidTestSources
+msal:compileSnapshotDebugSources
+msal:compileSnapshotDebugUnitTestSources
+msal:compileSnapshotReleaseSources
+msal:compileSnapshotReleaseUnitTestSources
+common:extractDebugAnnotations - Extracts Android annotations for the debug variant into the archive file
+msal:extractDistDebugAnnotations - Extracts Android annotations for the distDebug variant into the archive file
+msal:extractDistReleaseAnnotations - Extracts Android annotations for the distRelease variant into the archive file
+msal:extractLocalDebugAnnotations - Extracts Android annotations for the localDebug variant into the archive file
+msal:extractLocalReleaseAnnotations - Extracts Android annotations for the localRelease variant into the archive file
+common:extractReleaseAnnotations - Extracts Android annotations for the release variant into the archive file
+msal:extractSnapshotDebugAnnotations - Extracts Android annotations for the snapshotDebug variant into the archive file
+msal:extractSnapshotReleaseAnnotations - Extracts Android annotations for the snapshotRelease variant into the archive file
+common:mockableAndroidJar - Creates a version of android.jar that's suitable for unit tests.
+msal:mockableAndroidJar - Creates a version of android.jar that's suitable for unit tests.
+testapps:automationapp:mockableAndroidJar - Creates a version of android.jar that's suitable for unit tests.
+testapps:sample:mockableAndroidJar - Creates a version of android.jar that's suitable for unit tests.
+testapps:testapp:mockableAndroidJar - Creates a version of android.jar that's suitable for unit tests.
+
+Build Setup tasks
+-----------------
+init - Initializes a new Gradle build.
+wrapper - Generates Gradle wrapper files.
+
+Help tasks
+----------
+buildEnvironment - Displays all buildscript dependencies declared in root project 'msal_android'.
+common:buildEnvironment - Displays all buildscript dependencies declared in project ':common'.
+msal:buildEnvironment - Displays all buildscript dependencies declared in project ':msal'.
+testapps:buildEnvironment - Displays all buildscript dependencies declared in project ':testapps'.
+testapps:automationapp:buildEnvironment - Displays all buildscript dependencies declared in project ':testapps:automationapp'.
+testapps:sample:buildEnvironment - Displays all buildscript dependencies declared in project ':testapps:sample'.
+testapps:testapp:buildEnvironment - Displays all buildscript dependencies declared in project ':testapps:testapp'.
+components - Displays the components produced by root project 'msal_android'. [incubating]
+common:components - Displays the components produced by project ':common'. [incubating]
+msal:components - Displays the components produced by project ':msal'. [incubating]
+testapps:components - Displays the components produced by project ':testapps'. [incubating]
+testapps:automationapp:components - Displays the components produced by project ':testapps:automationapp'. [incubating]
+testapps:sample:components - Displays the components produced by project ':testapps:sample'. [incubating]
+testapps:testapp:components - Displays the components produced by project ':testapps:testapp'. [incubating]
+dependencies - Displays all dependencies declared in root project 'msal_android'.
+common:dependencies - Displays all dependencies declared in project ':common'.
+msal:dependencies - Displays all dependencies declared in project ':msal'.
+testapps:dependencies - Displays all dependencies declared in project ':testapps'.
+testapps:automationapp:dependencies - Displays all dependencies declared in project ':testapps:automationapp'.
+testapps:sample:dependencies - Displays all dependencies declared in project ':testapps:sample'.
+testapps:testapp:dependencies - Displays all dependencies declared in project ':testapps:testapp'.
+dependencyInsight - Displays the insight into a specific dependency in root project 'msal_android'.
+common:dependencyInsight - Displays the insight into a specific dependency in project ':common'.
+msal:dependencyInsight - Displays the insight into a specific dependency in project ':msal'.
+testapps:dependencyInsight - Displays the insight into a specific dependency in project ':testapps'.
+testapps:automationapp:dependencyInsight - Displays the insight into a specific dependency in project ':testapps:automationapp'.
+testapps:sample:dependencyInsight - Displays the insight into a specific dependency in project ':testapps:sample'.
+testapps:testapp:dependencyInsight - Displays the insight into a specific dependency in project ':testapps:testapp'.
+dependentComponents - Displays the dependent components of components in root project 'msal_android'. [incubating]
+common:dependentComponents - Displays the dependent components of components in project ':common'. [incubating]
+msal:dependentComponents - Displays the dependent components of components in project ':msal'. [incubating]
+testapps:dependentComponents - Displays the dependent components of components in project ':testapps'. [incubating]
+testapps:automationapp:dependentComponents - Displays the dependent components of components in project ':testapps:automationapp'. [incubating]
+testapps:sample:dependentComponents - Displays the dependent components of components in project ':testapps:sample'. [incubating]
+testapps:testapp:dependentComponents - Displays the dependent components of components in project ':testapps:testapp'. [incubating]
+help - Displays a help message.
+common:help - Displays a help message.
+msal:help - Displays a help message.
+testapps:help - Displays a help message.
+testapps:automationapp:help - Displays a help message.
+testapps:sample:help - Displays a help message.
+testapps:testapp:help - Displays a help message.
+model - Displays the configuration model of root project 'msal_android'. [incubating]
+common:model - Displays the configuration model of project ':common'. [incubating]
+msal:model - Displays the configuration model of project ':msal'. [incubating]
+testapps:model - Displays the configuration model of project ':testapps'. [incubating]
+testapps:automationapp:model - Displays the configuration model of project ':testapps:automationapp'. [incubating]
+testapps:sample:model - Displays the configuration model of project ':testapps:sample'. [incubating]
+testapps:testapp:model - Displays the configuration model of project ':testapps:testapp'. [incubating]
+projects - Displays the sub-projects of root project 'msal_android'.
+common:projects - Displays the sub-projects of project ':common'.
+msal:projects - Displays the sub-projects of project ':msal'.
+testapps:projects - Displays the sub-projects of project ':testapps'.
+testapps:automationapp:projects - Displays the sub-projects of project ':testapps:automationapp'.
+testapps:sample:projects - Displays the sub-projects of project ':testapps:sample'.
+testapps:testapp:projects - Displays the sub-projects of project ':testapps:testapp'.
+properties - Displays the properties of root project 'msal_android'.
+common:properties - Displays the properties of project ':common'.
+msal:properties - Displays the properties of project ':msal'.
+testapps:properties - Displays the properties of project ':testapps'.
+testapps:automationapp:properties - Displays the properties of project ':testapps:automationapp'.
+testapps:sample:properties - Displays the properties of project ':testapps:sample'.
+testapps:testapp:properties - Displays the properties of project ':testapps:testapp'.
+tasks - Displays the tasks runnable from root project 'msal_android' (some of the displayed tasks may belong to subprojects).
+common:tasks - Displays the tasks runnable from project ':common'.
+msal:tasks - Displays the tasks runnable from project ':msal'.
+testapps:tasks - Displays the tasks runnable from project ':testapps' (some of the displayed tasks may belong to subprojects).
+testapps:automationapp:tasks - Displays the tasks runnable from project ':testapps:automationapp'.
+testapps:sample:tasks - Displays the tasks runnable from project ':testapps:sample'.
+testapps:testapp:tasks - Displays the tasks runnable from project ':testapps:testapp'.
+
+Install tasks
+-------------
+common:installDebugAndroidTest - Installs the android (on device) tests for the Debug build.
+testapps:automationapp:installDistDebug - Installs the DebugDist build.
+testapps:sample:installDistDebug - Installs the DebugDist build.
+testapps:testapp:installDistDebug - Installs the DebugDist build.
+msal:installDistDebugAndroidTest - Installs the android (on device) tests for the DistDebug build.
+testapps:automationapp:installDistDebugAndroidTest - Installs the android (on device) tests for the DistDebug build.
+testapps:sample:installDistDebugAndroidTest - Installs the android (on device) tests for the DistDebug build.
+testapps:testapp:installDistDebugAndroidTest - Installs the android (on device) tests for the DistDebug build.
+testapps:automationapp:installLocalDebug - Installs the DebugLocal build.
+testapps:sample:installLocalDebug - Installs the DebugLocal build.
+testapps:testapp:installLocalDebug - Installs the DebugLocal build.
+msal:installLocalDebugAndroidTest - Installs the android (on device) tests for the LocalDebug build.
+testapps:automationapp:installLocalDebugAndroidTest - Installs the android (on device) tests for the LocalDebug build.
+testapps:sample:installLocalDebugAndroidTest - Installs the android (on device) tests for the LocalDebug build.
+testapps:testapp:installLocalDebugAndroidTest - Installs the android (on device) tests for the LocalDebug build.
+msal:installSnapshotDebugAndroidTest - Installs the android (on device) tests for the SnapshotDebug build.
+common:uninstallAll - Uninstall all applications.
+msal:uninstallAll - Uninstall all applications.
+testapps:automationapp:uninstallAll - Uninstall all applications.
+testapps:sample:uninstallAll - Uninstall all applications.
+testapps:testapp:uninstallAll - Uninstall all applications.
+common:uninstallDebugAndroidTest - Uninstalls the android (on device) tests for the Debug build.
+testapps:automationapp:uninstallDistDebug - Uninstalls the DebugDist build.
+testapps:sample:uninstallDistDebug - Uninstalls the DebugDist build.
+testapps:testapp:uninstallDistDebug - Uninstalls the DebugDist build.
+msal:uninstallDistDebugAndroidTest - Uninstalls the android (on device) tests for the DistDebug build.
+testapps:automationapp:uninstallDistDebugAndroidTest - Uninstalls the android (on device) tests for the DistDebug build.
+testapps:sample:uninstallDistDebugAndroidTest - Uninstalls the android (on device) tests for the DistDebug build.
+testapps:testapp:uninstallDistDebugAndroidTest - Uninstalls the android (on device) tests for the DistDebug build.
+testapps:automationapp:uninstallDistRelease - Uninstalls the ReleaseDist build.
+testapps:sample:uninstallDistRelease - Uninstalls the ReleaseDist build.
+testapps:testapp:uninstallDistRelease - Uninstalls the ReleaseDist build.
+testapps:automationapp:uninstallLocalDebug - Uninstalls the DebugLocal build.
+testapps:sample:uninstallLocalDebug - Uninstalls the DebugLocal build.
+testapps:testapp:uninstallLocalDebug - Uninstalls the DebugLocal build.
+msal:uninstallLocalDebugAndroidTest - Uninstalls the android (on device) tests for the LocalDebug build.
+testapps:automationapp:uninstallLocalDebugAndroidTest - Uninstalls the android (on device) tests for the LocalDebug build.
+testapps:sample:uninstallLocalDebugAndroidTest - Uninstalls the android (on device) tests for the LocalDebug build.
+testapps:testapp:uninstallLocalDebugAndroidTest - Uninstalls the android (on device) tests for the LocalDebug build.
+testapps:automationapp:uninstallLocalRelease - Uninstalls the ReleaseLocal build.
+testapps:sample:uninstallLocalRelease - Uninstalls the ReleaseLocal build.
+testapps:testapp:uninstallLocalRelease - Uninstalls the ReleaseLocal build.
+msal:uninstallSnapshotDebugAndroidTest - Uninstalls the android (on device) tests for the SnapshotDebug build.
+
+Publishing tasks
+----------------
+common:generatePomFileForCommonPublication - Generates the Maven POM file for publication 'common'.
+msal:generatePomFileForMsalPublication - Generates the Maven POM file for publication 'msal'.
+common:publish - Publishes all publications produced by this project.
+msal:publish - Publishes all publications produced by this project.
+common:publishCommonPublicationToMavenLocal - Publishes Maven publication 'common' to the local Maven repository.
+common:publishCommonPublicationToVsts-maven-adal-androidRepository - Publishes Maven publication 'common' to Maven repository 'vsts-maven-adal-android'.
+msal:publishMsalPublicationToMavenLocal - Publishes Maven publication 'msal' to the local Maven repository.
+common:publishToMavenLocal - Publishes all Maven publications produced by this project to the local Maven cache.
+msal:publishToMavenLocal - Publishes all Maven publications produced by this project to the local Maven cache.
+
+Verification tasks
+------------------
+common:check - Runs all checks.
+msal:check - Runs all checks.
+testapps:automationapp:check - Runs all checks.
+testapps:sample:check - Runs all checks.
+testapps:testapp:check - Runs all checks.
+common:connectedAndroidTest - Installs and runs instrumentation tests for all flavors on connected devices.
+msal:connectedAndroidTest - Installs and runs instrumentation tests for all flavors on connected devices.
+testapps:automationapp:connectedAndroidTest - Installs and runs instrumentation tests for all flavors on connected devices.
+testapps:sample:connectedAndroidTest - Installs and runs instrumentation tests for all flavors on connected devices.
+testapps:testapp:connectedAndroidTest - Installs and runs instrumentation tests for all flavors on connected devices.
+common:connectedCheck - Runs all device checks on currently connected devices.
+msal:connectedCheck - Runs all device checks on currently connected devices.
+testapps:automationapp:connectedCheck - Runs all device checks on currently connected devices.
+testapps:sample:connectedCheck - Runs all device checks on currently connected devices.
+testapps:testapp:connectedCheck - Runs all device checks on currently connected devices.
+common:connectedDebugAndroidTest - Installs and runs the tests for debug on connected devices.
+msal:connectedDistDebugAndroidTest - Installs and runs the tests for distDebug on connected devices.
+testapps:automationapp:connectedDistDebugAndroidTest - Installs and runs the tests for distDebug on connected devices.
+testapps:sample:connectedDistDebugAndroidTest - Installs and runs the tests for distDebug on connected devices.
+testapps:testapp:connectedDistDebugAndroidTest - Installs and runs the tests for distDebug on connected devices.
+msal:connectedLocalDebugAndroidTest - Installs and runs the tests for localDebug on connected devices.
+testapps:automationapp:connectedLocalDebugAndroidTest - Installs and runs the tests for localDebug on connected devices.
+testapps:sample:connectedLocalDebugAndroidTest - Installs and runs the tests for localDebug on connected devices.
+testapps:testapp:connectedLocalDebugAndroidTest - Installs and runs the tests for localDebug on connected devices.
+msal:connectedSnapshotDebugAndroidTest - Installs and runs the tests for snapshotDebug on connected devices.
+common:deviceAndroidTest - Installs and runs instrumentation tests using all Device Providers.
+msal:deviceAndroidTest - Installs and runs instrumentation tests using all Device Providers.
+testapps:automationapp:deviceAndroidTest - Installs and runs instrumentation tests using all Device Providers.
+testapps:sample:deviceAndroidTest - Installs and runs instrumentation tests using all Device Providers.
+testapps:testapp:deviceAndroidTest - Installs and runs instrumentation tests using all Device Providers.
+common:deviceCheck - Runs all device checks using Device Providers and Test Servers.
+msal:deviceCheck - Runs all device checks using Device Providers and Test Servers.
+testapps:automationapp:deviceCheck - Runs all device checks using Device Providers and Test Servers.
+testapps:sample:deviceCheck - Runs all device checks using Device Providers and Test Servers.
+testapps:testapp:deviceCheck - Runs all device checks using Device Providers and Test Servers.
+common:lint - Runs lint on all variants.
+msal:lint - Runs lint on all variants.
+testapps:automationapp:lint - Runs lint on all variants.
+testapps:sample:lint - Runs lint on all variants.
+testapps:testapp:lint - Runs lint on all variants.
+common:lintDebug - Runs lint on the Debug build.
+msal:lintDistDebug - Runs lint on the DistDebug build.
+testapps:automationapp:lintDistDebug - Runs lint on the DistDebug build.
+testapps:sample:lintDistDebug - Runs lint on the DistDebug build.
+testapps:testapp:lintDistDebug - Runs lint on the DistDebug build.
+msal:lintDistRelease - Runs lint on the DistRelease build.
+testapps:automationapp:lintDistRelease - Runs lint on the DistRelease build.
+testapps:sample:lintDistRelease - Runs lint on the DistRelease build.
+testapps:testapp:lintDistRelease - Runs lint on the DistRelease build.
+msal:lintLocalDebug - Runs lint on the LocalDebug build.
+testapps:automationapp:lintLocalDebug - Runs lint on the LocalDebug build.
+testapps:sample:lintLocalDebug - Runs lint on the LocalDebug build.
+testapps:testapp:lintLocalDebug - Runs lint on the LocalDebug build.
+msal:lintLocalRelease - Runs lint on the LocalRelease build.
+testapps:automationapp:lintLocalRelease - Runs lint on the LocalRelease build.
+testapps:sample:lintLocalRelease - Runs lint on the LocalRelease build.
+testapps:testapp:lintLocalRelease - Runs lint on the LocalRelease build.
+common:lintRelease - Runs lint on the Release build.
+msal:lintSnapshotDebug - Runs lint on the SnapshotDebug build.
+msal:lintSnapshotRelease - Runs lint on the SnapshotRelease build.
+testapps:automationapp:lintVitalDistRelease - Runs lint on just the fatal issues in the distRelease build.
+testapps:sample:lintVitalDistRelease - Runs lint on just the fatal issues in the distRelease build.
+testapps:testapp:lintVitalDistRelease - Runs lint on just the fatal issues in the distRelease build.
+testapps:automationapp:lintVitalLocalRelease - Runs lint on just the fatal issues in the localRelease build.
+testapps:sample:lintVitalLocalRelease - Runs lint on just the fatal issues in the localRelease build.
+testapps:testapp:lintVitalLocalRelease - Runs lint on just the fatal issues in the localRelease build.
+common:pmd - Run pmd
+msal:pmd - Run pmd
+common:test - Run unit tests for all variants.
+msal:test - Run unit tests for all variants.
+testapps:automationapp:test - Run unit tests for all variants.
+testapps:sample:test - Run unit tests for all variants.
+testapps:testapp:test - Run unit tests for all variants.
+common:testDebugUnitTest - Run unit tests for the debug build.
+msal:testDistDebugUnitTest - Run unit tests for the distDebug build.
+testapps:automationapp:testDistDebugUnitTest - Run unit tests for the distDebug build.
+testapps:sample:testDistDebugUnitTest - Run unit tests for the distDebug build.
+testapps:testapp:testDistDebugUnitTest - Run unit tests for the distDebug build.
+msal:testDistReleaseUnitTest - Run unit tests for the distRelease build.
+testapps:automationapp:testDistReleaseUnitTest - Run unit tests for the distRelease build.
+testapps:sample:testDistReleaseUnitTest - Run unit tests for the distRelease build.
+testapps:testapp:testDistReleaseUnitTest - Run unit tests for the distRelease build.
+msal:testLocalDebugUnitTest - Run unit tests for the localDebug build.
+testapps:automationapp:testLocalDebugUnitTest - Run unit tests for the localDebug build.
+testapps:sample:testLocalDebugUnitTest - Run unit tests for the localDebug build.
+testapps:testapp:testLocalDebugUnitTest - Run unit tests for the localDebug build.
+msal:testLocalReleaseUnitTest - Run unit tests for the localRelease build.
+testapps:automationapp:testLocalReleaseUnitTest - Run unit tests for the localRelease build.
+testapps:sample:testLocalReleaseUnitTest - Run unit tests for the localRelease build.
+testapps:testapp:testLocalReleaseUnitTest - Run unit tests for the localRelease build.
+common:testReleaseUnitTest - Run unit tests for the release build.
+msal:testSnapshotDebugUnitTest - Run unit tests for the snapshotDebug build.
+msal:testSnapshotReleaseUnitTest - Run unit tests for the snapshotRelease build.
+
+Other tasks
+-----------
+common:assembleDebugAndroidTest
+common:assembleDebugUnitTest
+common:assembleDefault
+msal:assembleDefault
+msal:assembleDistDebug
+testapps:automationapp:assembleDistDebug
+testapps:sample:assembleDistDebug
+testapps:testapp:assembleDistDebug
+msal:assembleDistDebugAndroidTest
+testapps:automationapp:assembleDistDebugAndroidTest
+testapps:sample:assembleDistDebugAndroidTest
+testapps:testapp:assembleDistDebugAndroidTest
+msal:assembleDistDebugUnitTest
+testapps:automationapp:assembleDistDebugUnitTest
+testapps:sample:assembleDistDebugUnitTest
+testapps:testapp:assembleDistDebugUnitTest
+msal:assembleDistRelease
+testapps:automationapp:assembleDistRelease
+testapps:sample:assembleDistRelease
+testapps:testapp:assembleDistRelease
+msal:assembleDistReleaseUnitTest
+testapps:automationapp:assembleDistReleaseUnitTest
+testapps:sample:assembleDistReleaseUnitTest
+testapps:testapp:assembleDistReleaseUnitTest
+msal:assembleLocalDebug
+testapps:automationapp:assembleLocalDebug
+testapps:sample:assembleLocalDebug
+testapps:testapp:assembleLocalDebug
+msal:assembleLocalDebugAndroidTest
+testapps:automationapp:assembleLocalDebugAndroidTest
+testapps:sample:assembleLocalDebugAndroidTest
+testapps:testapp:assembleLocalDebugAndroidTest
+msal:assembleLocalDebugUnitTest
+testapps:automationapp:assembleLocalDebugUnitTest
+testapps:sample:assembleLocalDebugUnitTest
+testapps:testapp:assembleLocalDebugUnitTest
+msal:assembleLocalRelease
+testapps:automationapp:assembleLocalRelease
+testapps:sample:assembleLocalRelease
+testapps:testapp:assembleLocalRelease
+msal:assembleLocalReleaseUnitTest
+testapps:automationapp:assembleLocalReleaseUnitTest
+testapps:sample:assembleLocalReleaseUnitTest
+testapps:testapp:assembleLocalReleaseUnitTest
+common:assembleReleaseUnitTest
+msal:assembleSnapshotDebug
+msal:assembleSnapshotDebugAndroidTest
+msal:assembleSnapshotDebugUnitTest
+msal:assembleSnapshotRelease
+msal:assembleSnapshotReleaseUnitTest
+testapps:automationapp:bundleAppClassesDistDebug
+testapps:sample:bundleAppClassesDistDebug
+testapps:testapp:bundleAppClassesDistDebug
+testapps:automationapp:bundleAppClassesDistDebugAndroidTest
+testapps:sample:bundleAppClassesDistDebugAndroidTest
+testapps:testapp:bundleAppClassesDistDebugAndroidTest
+testapps:automationapp:bundleAppClassesDistDebugUnitTest
+testapps:sample:bundleAppClassesDistDebugUnitTest
+testapps:testapp:bundleAppClassesDistDebugUnitTest
+testapps:automationapp:bundleAppClassesDistRelease
+testapps:sample:bundleAppClassesDistRelease
+testapps:testapp:bundleAppClassesDistRelease
+testapps:automationapp:bundleAppClassesDistReleaseUnitTest
+testapps:sample:bundleAppClassesDistReleaseUnitTest
+testapps:testapp:bundleAppClassesDistReleaseUnitTest
+testapps:automationapp:bundleAppClassesLocalDebug
+testapps:sample:bundleAppClassesLocalDebug
+testapps:testapp:bundleAppClassesLocalDebug
+testapps:automationapp:bundleAppClassesLocalDebugAndroidTest
+testapps:sample:bundleAppClassesLocalDebugAndroidTest
+testapps:testapp:bundleAppClassesLocalDebugAndroidTest
+testapps:automationapp:bundleAppClassesLocalDebugUnitTest
+testapps:sample:bundleAppClassesLocalDebugUnitTest
+testapps:testapp:bundleAppClassesLocalDebugUnitTest
+testapps:automationapp:bundleAppClassesLocalRelease
+testapps:sample:bundleAppClassesLocalRelease
+testapps:testapp:bundleAppClassesLocalRelease
+testapps:automationapp:bundleAppClassesLocalReleaseUnitTest
+testapps:sample:bundleAppClassesLocalReleaseUnitTest
+testapps:testapp:bundleAppClassesLocalReleaseUnitTest
+common:bundleDebug - Assembles a bundle containing the library in debug.
+common:bundleDebugAndroidTestResources
+msal:bundleDistDebug - Assembles a bundle containing the library in distDebug.
+msal:bundleDistDebugAndroidTestResources
+testapps:automationapp:bundleDistDebugAndroidTestResources
+testapps:sample:bundleDistDebugAndroidTestResources
+testapps:testapp:bundleDistDebugAndroidTestResources
+testapps:automationapp:bundleDistDebugResources
+testapps:sample:bundleDistDebugResources
+testapps:testapp:bundleDistDebugResources
+msal:bundleDistRelease - Assembles a bundle containing the library in distRelease.
+testapps:automationapp:bundleDistReleaseResources
+testapps:sample:bundleDistReleaseResources
+testapps:testapp:bundleDistReleaseResources
+msal:bundleLocalDebug - Assembles a bundle containing the library in localDebug.
+msal:bundleLocalDebugAndroidTestResources
+testapps:automationapp:bundleLocalDebugAndroidTestResources
+testapps:sample:bundleLocalDebugAndroidTestResources
+testapps:testapp:bundleLocalDebugAndroidTestResources
+testapps:automationapp:bundleLocalDebugResources
+testapps:sample:bundleLocalDebugResources
+testapps:testapp:bundleLocalDebugResources
+msal:bundleLocalRelease - Assembles a bundle containing the library in localRelease.
+testapps:automationapp:bundleLocalReleaseResources
+testapps:sample:bundleLocalReleaseResources
+testapps:testapp:bundleLocalReleaseResources
+common:bundleRelease - Assembles a bundle containing the library in release.
+msal:bundleSnapshotDebug - Assembles a bundle containing the library in snapshotDebug.
+msal:bundleSnapshotDebugAndroidTestResources
+msal:bundleSnapshotRelease - Assembles a bundle containing the library in snapshotRelease.
+common:checkDebugManifest
+msal:checkDistDebugManifest
+testapps:automationapp:checkDistDebugManifest
+testapps:sample:checkDistDebugManifest
+testapps:testapp:checkDistDebugManifest
+msal:checkDistReleaseManifest
+testapps:automationapp:checkDistReleaseManifest
+testapps:sample:checkDistReleaseManifest
+testapps:testapp:checkDistReleaseManifest
+msal:checkLocalDebugManifest
+testapps:automationapp:checkLocalDebugManifest
+testapps:sample:checkLocalDebugManifest
+testapps:testapp:checkLocalDebugManifest
+msal:checkLocalReleaseManifest
+testapps:automationapp:checkLocalReleaseManifest
+testapps:sample:checkLocalReleaseManifest
+testapps:testapp:checkLocalReleaseManifest
+common:checkReleaseManifest
+msal:checkSnapshotDebugManifest
+msal:checkSnapshotReleaseManifest
+common:checkstyle
+msal:checkstyle
+clean
+common:compileDebugAidl
+common:compileDebugAndroidTestAidl
+common:compileDebugAndroidTestJavaWithJavac
+common:compileDebugAndroidTestNdk
+common:compileDebugAndroidTestRenderscript
+common:compileDebugAndroidTestShaders
+common:compileDebugJavaWithJavac
+common:compileDebugNdk
+common:compileDebugRenderscript
+common:compileDebugShaders
+common:compileDebugUnitTestJavaWithJavac
+msal:compileDistDebugAidl
+testapps:automationapp:compileDistDebugAidl
+testapps:sample:compileDistDebugAidl
+testapps:testapp:compileDistDebugAidl
+msal:compileDistDebugAndroidTestAidl
+testapps:automationapp:compileDistDebugAndroidTestAidl
+testapps:sample:compileDistDebugAndroidTestAidl
+testapps:testapp:compileDistDebugAndroidTestAidl
+msal:compileDistDebugAndroidTestJavaWithJavac
+testapps:automationapp:compileDistDebugAndroidTestJavaWithJavac
+testapps:sample:compileDistDebugAndroidTestJavaWithJavac
+testapps:testapp:compileDistDebugAndroidTestJavaWithJavac
+msal:compileDistDebugAndroidTestNdk
+testapps:automationapp:compileDistDebugAndroidTestNdk
+testapps:sample:compileDistDebugAndroidTestNdk
+testapps:testapp:compileDistDebugAndroidTestNdk
+msal:compileDistDebugAndroidTestRenderscript
+testapps:automationapp:compileDistDebugAndroidTestRenderscript
+testapps:sample:compileDistDebugAndroidTestRenderscript
+testapps:testapp:compileDistDebugAndroidTestRenderscript
+msal:compileDistDebugAndroidTestShaders
+testapps:automationapp:compileDistDebugAndroidTestShaders
+testapps:sample:compileDistDebugAndroidTestShaders
+testapps:testapp:compileDistDebugAndroidTestShaders
+msal:compileDistDebugJavaWithJavac
+testapps:automationapp:compileDistDebugJavaWithJavac
+testapps:sample:compileDistDebugJavaWithJavac
+testapps:testapp:compileDistDebugJavaWithJavac
+msal:compileDistDebugNdk
+testapps:automationapp:compileDistDebugNdk
+testapps:sample:compileDistDebugNdk
+testapps:testapp:compileDistDebugNdk
+msal:compileDistDebugRenderscript
+testapps:automationapp:compileDistDebugRenderscript
+testapps:sample:compileDistDebugRenderscript
+testapps:testapp:compileDistDebugRenderscript
+msal:compileDistDebugShaders
+testapps:automationapp:compileDistDebugShaders
+testapps:sample:compileDistDebugShaders
+testapps:testapp:compileDistDebugShaders
+msal:compileDistDebugUnitTestJavaWithJavac
+testapps:automationapp:compileDistDebugUnitTestJavaWithJavac
+testapps:sample:compileDistDebugUnitTestJavaWithJavac
+testapps:testapp:compileDistDebugUnitTestJavaWithJavac
+msal:compileDistReleaseAidl
+testapps:automationapp:compileDistReleaseAidl
+testapps:sample:compileDistReleaseAidl
+testapps:testapp:compileDistReleaseAidl
+msal:compileDistReleaseJavaWithJavac
+testapps:automationapp:compileDistReleaseJavaWithJavac
+testapps:sample:compileDistReleaseJavaWithJavac
+testapps:testapp:compileDistReleaseJavaWithJavac
+msal:compileDistReleaseNdk
+testapps:automationapp:compileDistReleaseNdk
+testapps:sample:compileDistReleaseNdk
+testapps:testapp:compileDistReleaseNdk
+msal:compileDistReleaseRenderscript
+testapps:automationapp:compileDistReleaseRenderscript
+testapps:sample:compileDistReleaseRenderscript
+testapps:testapp:compileDistReleaseRenderscript
+msal:compileDistReleaseShaders
+testapps:automationapp:compileDistReleaseShaders
+testapps:sample:compileDistReleaseShaders
+testapps:testapp:compileDistReleaseShaders
+msal:compileDistReleaseUnitTestJavaWithJavac
+testapps:automationapp:compileDistReleaseUnitTestJavaWithJavac
+testapps:sample:compileDistReleaseUnitTestJavaWithJavac
+testapps:testapp:compileDistReleaseUnitTestJavaWithJavac
+common:compileLint
+msal:compileLint
+testapps:automationapp:compileLint
+testapps:sample:compileLint
+testapps:testapp:compileLint
+msal:compileLocalDebugAidl
+testapps:automationapp:compileLocalDebugAidl
+testapps:sample:compileLocalDebugAidl
+testapps:testapp:compileLocalDebugAidl
+msal:compileLocalDebugAndroidTestAidl
+testapps:automationapp:compileLocalDebugAndroidTestAidl
+testapps:sample:compileLocalDebugAndroidTestAidl
+testapps:testapp:compileLocalDebugAndroidTestAidl
+msal:compileLocalDebugAndroidTestJavaWithJavac
+testapps:automationapp:compileLocalDebugAndroidTestJavaWithJavac
+testapps:sample:compileLocalDebugAndroidTestJavaWithJavac
+testapps:testapp:compileLocalDebugAndroidTestJavaWithJavac
+msal:compileLocalDebugAndroidTestNdk
+testapps:automationapp:compileLocalDebugAndroidTestNdk
+testapps:sample:compileLocalDebugAndroidTestNdk
+testapps:testapp:compileLocalDebugAndroidTestNdk
+msal:compileLocalDebugAndroidTestRenderscript
+testapps:automationapp:compileLocalDebugAndroidTestRenderscript
+testapps:sample:compileLocalDebugAndroidTestRenderscript
+testapps:testapp:compileLocalDebugAndroidTestRenderscript
+msal:compileLocalDebugAndroidTestShaders
+testapps:automationapp:compileLocalDebugAndroidTestShaders
+testapps:sample:compileLocalDebugAndroidTestShaders
+testapps:testapp:compileLocalDebugAndroidTestShaders
+msal:compileLocalDebugJavaWithJavac
+testapps:automationapp:compileLocalDebugJavaWithJavac
+testapps:sample:compileLocalDebugJavaWithJavac
+testapps:testapp:compileLocalDebugJavaWithJavac
+msal:compileLocalDebugNdk
+testapps:automationapp:compileLocalDebugNdk
+testapps:sample:compileLocalDebugNdk
+testapps:testapp:compileLocalDebugNdk
+msal:compileLocalDebugRenderscript
+testapps:automationapp:compileLocalDebugRenderscript
+testapps:sample:compileLocalDebugRenderscript
+testapps:testapp:compileLocalDebugRenderscript
+msal:compileLocalDebugShaders
+testapps:automationapp:compileLocalDebugShaders
+testapps:sample:compileLocalDebugShaders
+testapps:testapp:compileLocalDebugShaders
+msal:compileLocalDebugUnitTestJavaWithJavac
+testapps:automationapp:compileLocalDebugUnitTestJavaWithJavac
+testapps:sample:compileLocalDebugUnitTestJavaWithJavac
+testapps:testapp:compileLocalDebugUnitTestJavaWithJavac
+msal:compileLocalReleaseAidl
+testapps:automationapp:compileLocalReleaseAidl
+testapps:sample:compileLocalReleaseAidl
+testapps:testapp:compileLocalReleaseAidl
+msal:compileLocalReleaseJavaWithJavac
+testapps:automationapp:compileLocalReleaseJavaWithJavac
+testapps:sample:compileLocalReleaseJavaWithJavac
+testapps:testapp:compileLocalReleaseJavaWithJavac
+msal:compileLocalReleaseNdk
+testapps:automationapp:compileLocalReleaseNdk
+testapps:sample:compileLocalReleaseNdk
+testapps:testapp:compileLocalReleaseNdk
+msal:compileLocalReleaseRenderscript
+testapps:automationapp:compileLocalReleaseRenderscript
+testapps:sample:compileLocalReleaseRenderscript
+testapps:testapp:compileLocalReleaseRenderscript
+msal:compileLocalReleaseShaders
+testapps:automationapp:compileLocalReleaseShaders
+testapps:sample:compileLocalReleaseShaders
+testapps:testapp:compileLocalReleaseShaders
+msal:compileLocalReleaseUnitTestJavaWithJavac
+testapps:automationapp:compileLocalReleaseUnitTestJavaWithJavac
+testapps:sample:compileLocalReleaseUnitTestJavaWithJavac
+testapps:testapp:compileLocalReleaseUnitTestJavaWithJavac
+common:compileReleaseAidl
+common:compileReleaseJavaWithJavac
+common:compileReleaseNdk
+common:compileReleaseRenderscript
+common:compileReleaseShaders
+common:compileReleaseUnitTestJavaWithJavac
+msal:compileSnapshotDebugAidl
+msal:compileSnapshotDebugAndroidTestAidl
+msal:compileSnapshotDebugAndroidTestJavaWithJavac
+msal:compileSnapshotDebugAndroidTestNdk
+msal:compileSnapshotDebugAndroidTestRenderscript
+msal:compileSnapshotDebugAndroidTestShaders
+msal:compileSnapshotDebugJavaWithJavac
+msal:compileSnapshotDebugNdk
+msal:compileSnapshotDebugRenderscript
+msal:compileSnapshotDebugShaders
+msal:compileSnapshotDebugUnitTestJavaWithJavac
+msal:compileSnapshotReleaseAidl
+msal:compileSnapshotReleaseJavaWithJavac
+msal:compileSnapshotReleaseNdk
+msal:compileSnapshotReleaseRenderscript
+msal:compileSnapshotReleaseShaders
+msal:compileSnapshotReleaseUnitTestJavaWithJavac
+common:consumeConfigAttr
+msal:consumeConfigAttr
+testapps:automationapp:consumeConfigAttr
+testapps:sample:consumeConfigAttr
+testapps:testapp:consumeConfigAttr
+testapps:automationapp:createDistDebugCompatibleScreenManifests
+testapps:sample:createDistDebugCompatibleScreenManifests
+testapps:testapp:createDistDebugCompatibleScreenManifests
+testapps:automationapp:createDistReleaseCompatibleScreenManifests
+testapps:sample:createDistReleaseCompatibleScreenManifests
+testapps:testapp:createDistReleaseCompatibleScreenManifests
+common:createFullJarDebug
+msal:createFullJarDistDebug
+msal:createFullJarDistRelease
+msal:createFullJarLocalDebug
+msal:createFullJarLocalRelease
+common:createFullJarRelease
+msal:createFullJarSnapshotDebug
+msal:createFullJarSnapshotRelease
+testapps:automationapp:createLocalDebugCompatibleScreenManifests
+testapps:sample:createLocalDebugCompatibleScreenManifests
+testapps:testapp:createLocalDebugCompatibleScreenManifests
+testapps:automationapp:createLocalReleaseCompatibleScreenManifests
+testapps:sample:createLocalReleaseCompatibleScreenManifests
+testapps:testapp:createLocalReleaseCompatibleScreenManifests
+common:debugJavadoc
+common:debugJavadocJar
+common:extractProguardFiles
+msal:extractProguardFiles
+testapps:automationapp:extractProguardFiles
+testapps:sample:extractProguardFiles
+testapps:testapp:extractProguardFiles
+common:generateDebugAndroidTestAssets
+common:generateDebugAndroidTestBuildConfig
+common:generateDebugAndroidTestResources
+common:generateDebugAndroidTestResValues
+common:generateDebugAndroidTestSources
+common:generateDebugAssets
+common:generateDebugBuildConfig
+common:generateDebugResources
+common:generateDebugResValues
+common:generateDebugRFile
+common:generateDebugSources
+msal:generateDistDebugAndroidTestAssets
+testapps:automationapp:generateDistDebugAndroidTestAssets
+testapps:sample:generateDistDebugAndroidTestAssets
+testapps:testapp:generateDistDebugAndroidTestAssets
+msal:generateDistDebugAndroidTestBuildConfig
+testapps:automationapp:generateDistDebugAndroidTestBuildConfig
+testapps:sample:generateDistDebugAndroidTestBuildConfig
+testapps:testapp:generateDistDebugAndroidTestBuildConfig
+msal:generateDistDebugAndroidTestResources
+testapps:automationapp:generateDistDebugAndroidTestResources
+testapps:sample:generateDistDebugAndroidTestResources
+testapps:testapp:generateDistDebugAndroidTestResources
+msal:generateDistDebugAndroidTestResValues
+testapps:automationapp:generateDistDebugAndroidTestResValues
+testapps:sample:generateDistDebugAndroidTestResValues
+testapps:testapp:generateDistDebugAndroidTestResValues
+msal:generateDistDebugAndroidTestSources
+testapps:automationapp:generateDistDebugAndroidTestSources
+testapps:sample:generateDistDebugAndroidTestSources
+testapps:testapp:generateDistDebugAndroidTestSources
+msal:generateDistDebugAssets
+testapps:automationapp:generateDistDebugAssets
+testapps:sample:generateDistDebugAssets
+testapps:testapp:generateDistDebugAssets
+msal:generateDistDebugBuildConfig
+testapps:automationapp:generateDistDebugBuildConfig
+testapps:sample:generateDistDebugBuildConfig
+testapps:testapp:generateDistDebugBuildConfig
+msal:generateDistDebugResources
+testapps:automationapp:generateDistDebugResources
+testapps:sample:generateDistDebugResources
+testapps:testapp:generateDistDebugResources
+msal:generateDistDebugResValues
+testapps:automationapp:generateDistDebugResValues
+testapps:sample:generateDistDebugResValues
+testapps:testapp:generateDistDebugResValues
+msal:generateDistDebugRFile
+msal:generateDistDebugSources
+testapps:automationapp:generateDistDebugSources
+testapps:sample:generateDistDebugSources
+testapps:testapp:generateDistDebugSources
+msal:generateDistReleaseAssets
+testapps:automationapp:generateDistReleaseAssets
+testapps:sample:generateDistReleaseAssets
+testapps:testapp:generateDistReleaseAssets
+msal:generateDistReleaseBuildConfig
+testapps:automationapp:generateDistReleaseBuildConfig
+testapps:sample:generateDistReleaseBuildConfig
+testapps:testapp:generateDistReleaseBuildConfig
+msal:generateDistReleaseResources
+testapps:automationapp:generateDistReleaseResources
+testapps:sample:generateDistReleaseResources
+testapps:testapp:generateDistReleaseResources
+msal:generateDistReleaseResValues
+testapps:automationapp:generateDistReleaseResValues
+testapps:sample:generateDistReleaseResValues
+testapps:testapp:generateDistReleaseResValues
+msal:generateDistReleaseRFile
+msal:generateDistReleaseSources
+testapps:automationapp:generateDistReleaseSources
+testapps:sample:generateDistReleaseSources
+testapps:testapp:generateDistReleaseSources
+msal:generateLocalDebugAndroidTestAssets
+testapps:automationapp:generateLocalDebugAndroidTestAssets
+testapps:sample:generateLocalDebugAndroidTestAssets
+testapps:testapp:generateLocalDebugAndroidTestAssets
+msal:generateLocalDebugAndroidTestBuildConfig
+testapps:automationapp:generateLocalDebugAndroidTestBuildConfig
+testapps:sample:generateLocalDebugAndroidTestBuildConfig
+testapps:testapp:generateLocalDebugAndroidTestBuildConfig
+msal:generateLocalDebugAndroidTestResources
+testapps:automationapp:generateLocalDebugAndroidTestResources
+testapps:sample:generateLocalDebugAndroidTestResources
+testapps:testapp:generateLocalDebugAndroidTestResources
+msal:generateLocalDebugAndroidTestResValues
+testapps:automationapp:generateLocalDebugAndroidTestResValues
+testapps:sample:generateLocalDebugAndroidTestResValues
+testapps:testapp:generateLocalDebugAndroidTestResValues
+msal:generateLocalDebugAndroidTestSources
+testapps:automationapp:generateLocalDebugAndroidTestSources
+testapps:sample:generateLocalDebugAndroidTestSources
+testapps:testapp:generateLocalDebugAndroidTestSources
+msal:generateLocalDebugAssets
+testapps:automationapp:generateLocalDebugAssets
+testapps:sample:generateLocalDebugAssets
+testapps:testapp:generateLocalDebugAssets
+msal:generateLocalDebugBuildConfig
+testapps:automationapp:generateLocalDebugBuildConfig
+testapps:sample:generateLocalDebugBuildConfig
+testapps:testapp:generateLocalDebugBuildConfig
+msal:generateLocalDebugResources
+testapps:automationapp:generateLocalDebugResources
+testapps:sample:generateLocalDebugResources
+testapps:testapp:generateLocalDebugResources
+msal:generateLocalDebugResValues
+testapps:automationapp:generateLocalDebugResValues
+testapps:sample:generateLocalDebugResValues
+testapps:testapp:generateLocalDebugResValues
+msal:generateLocalDebugRFile
+msal:generateLocalDebugSources
+testapps:automationapp:generateLocalDebugSources
+testapps:sample:generateLocalDebugSources
+testapps:testapp:generateLocalDebugSources
+msal:generateLocalReleaseAssets
+testapps:automationapp:generateLocalReleaseAssets
+testapps:sample:generateLocalReleaseAssets
+testapps:testapp:generateLocalReleaseAssets
+msal:generateLocalReleaseBuildConfig
+testapps:automationapp:generateLocalReleaseBuildConfig
+testapps:sample:generateLocalReleaseBuildConfig
+testapps:testapp:generateLocalReleaseBuildConfig
+msal:generateLocalReleaseResources
+testapps:automationapp:generateLocalReleaseResources
+testapps:sample:generateLocalReleaseResources
+testapps:testapp:generateLocalReleaseResources
+msal:generateLocalReleaseResValues
+testapps:automationapp:generateLocalReleaseResValues
+testapps:sample:generateLocalReleaseResValues
+testapps:testapp:generateLocalReleaseResValues
+msal:generateLocalReleaseRFile
+msal:generateLocalReleaseSources
+testapps:automationapp:generateLocalReleaseSources
+testapps:sample:generateLocalReleaseSources
+testapps:testapp:generateLocalReleaseSources
+common:generateReleaseAssets
+common:generateReleaseBuildConfig
+common:generateReleaseResources
+common:generateReleaseResValues
+common:generateReleaseRFile
+common:generateReleaseSources
+msal:generateSnapshotDebugAndroidTestAssets
+msal:generateSnapshotDebugAndroidTestBuildConfig
+msal:generateSnapshotDebugAndroidTestResources
+msal:generateSnapshotDebugAndroidTestResValues
+msal:generateSnapshotDebugAndroidTestSources
+msal:generateSnapshotDebugAssets
+msal:generateSnapshotDebugBuildConfig
+msal:generateSnapshotDebugResources
+msal:generateSnapshotDebugResValues
+msal:generateSnapshotDebugRFile
+msal:generateSnapshotDebugSources
+msal:generateSnapshotReleaseAssets
+msal:generateSnapshotReleaseBuildConfig
+msal:generateSnapshotReleaseResources
+msal:generateSnapshotReleaseResValues
+msal:generateSnapshotReleaseRFile
+msal:generateSnapshotReleaseSources
+msal:javadoc
+msal:javadocJar
+common:javaPreCompileDebug
+common:javaPreCompileDebugAndroidTest
+common:javaPreCompileDebugUnitTest
+msal:javaPreCompileDistDebug
+testapps:automationapp:javaPreCompileDistDebug
+testapps:sample:javaPreCompileDistDebug
+testapps:testapp:javaPreCompileDistDebug
+msal:javaPreCompileDistDebugAndroidTest
+testapps:automationapp:javaPreCompileDistDebugAndroidTest
+testapps:sample:javaPreCompileDistDebugAndroidTest
+testapps:testapp:javaPreCompileDistDebugAndroidTest
+msal:javaPreCompileDistDebugUnitTest
+testapps:automationapp:javaPreCompileDistDebugUnitTest
+testapps:sample:javaPreCompileDistDebugUnitTest
+testapps:testapp:javaPreCompileDistDebugUnitTest
+msal:javaPreCompileDistRelease
+testapps:automationapp:javaPreCompileDistRelease
+testapps:sample:javaPreCompileDistRelease
+testapps:testapp:javaPreCompileDistRelease
+msal:javaPreCompileDistReleaseUnitTest
+testapps:automationapp:javaPreCompileDistReleaseUnitTest
+testapps:sample:javaPreCompileDistReleaseUnitTest
+testapps:testapp:javaPreCompileDistReleaseUnitTest
+msal:javaPreCompileLocalDebug
+testapps:automationapp:javaPreCompileLocalDebug
+testapps:sample:javaPreCompileLocalDebug
+testapps:testapp:javaPreCompileLocalDebug
+msal:javaPreCompileLocalDebugAndroidTest
+testapps:automationapp:javaPreCompileLocalDebugAndroidTest
+testapps:sample:javaPreCompileLocalDebugAndroidTest
+testapps:testapp:javaPreCompileLocalDebugAndroidTest
+msal:javaPreCompileLocalDebugUnitTest
+testapps:automationapp:javaPreCompileLocalDebugUnitTest
+testapps:sample:javaPreCompileLocalDebugUnitTest
+testapps:testapp:javaPreCompileLocalDebugUnitTest
+msal:javaPreCompileLocalRelease
+testapps:automationapp:javaPreCompileLocalRelease
+testapps:sample:javaPreCompileLocalRelease
+testapps:testapp:javaPreCompileLocalRelease
+msal:javaPreCompileLocalReleaseUnitTest
+testapps:automationapp:javaPreCompileLocalReleaseUnitTest
+testapps:sample:javaPreCompileLocalReleaseUnitTest
+testapps:testapp:javaPreCompileLocalReleaseUnitTest
+common:javaPreCompileRelease
+common:javaPreCompileReleaseUnitTest
+msal:javaPreCompileSnapshotDebug
+msal:javaPreCompileSnapshotDebugAndroidTest
+msal:javaPreCompileSnapshotDebugUnitTest
+msal:javaPreCompileSnapshotRelease
+msal:javaPreCompileSnapshotReleaseUnitTest
+common:mainApkListPersistenceDebugAndroidTest
+testapps:automationapp:mainApkListPersistenceDistDebug
+testapps:sample:mainApkListPersistenceDistDebug
+testapps:testapp:mainApkListPersistenceDistDebug
+msal:mainApkListPersistenceDistDebugAndroidTest
+testapps:automationapp:mainApkListPersistenceDistDebugAndroidTest
+testapps:sample:mainApkListPersistenceDistDebugAndroidTest
+testapps:testapp:mainApkListPersistenceDistDebugAndroidTest
+testapps:automationapp:mainApkListPersistenceDistRelease
+testapps:sample:mainApkListPersistenceDistRelease
+testapps:testapp:mainApkListPersistenceDistRelease
+testapps:automationapp:mainApkListPersistenceLocalDebug
+testapps:sample:mainApkListPersistenceLocalDebug
+testapps:testapp:mainApkListPersistenceLocalDebug
+msal:mainApkListPersistenceLocalDebugAndroidTest
+testapps:automationapp:mainApkListPersistenceLocalDebugAndroidTest
+testapps:sample:mainApkListPersistenceLocalDebugAndroidTest
+testapps:testapp:mainApkListPersistenceLocalDebugAndroidTest
+testapps:automationapp:mainApkListPersistenceLocalRelease
+testapps:sample:mainApkListPersistenceLocalRelease
+testapps:testapp:mainApkListPersistenceLocalRelease
+msal:mainApkListPersistenceSnapshotDebugAndroidTest
+common:mergeDebugAndroidTestAssets
+common:mergeDebugAndroidTestJniLibFolders
+common:mergeDebugAndroidTestResources
+common:mergeDebugAndroidTestShaders
+common:mergeDebugAssets
+common:mergeDebugConsumerProguardFiles
+common:mergeDebugJniLibFolders
+common:mergeDebugResources
+common:mergeDebugShaders
+msal:mergeDistDebugAndroidTestAssets
+testapps:automationapp:mergeDistDebugAndroidTestAssets
+testapps:sample:mergeDistDebugAndroidTestAssets
+testapps:testapp:mergeDistDebugAndroidTestAssets
+msal:mergeDistDebugAndroidTestJniLibFolders
+testapps:automationapp:mergeDistDebugAndroidTestJniLibFolders
+testapps:sample:mergeDistDebugAndroidTestJniLibFolders
+testapps:testapp:mergeDistDebugAndroidTestJniLibFolders
+msal:mergeDistDebugAndroidTestResources
+testapps:automationapp:mergeDistDebugAndroidTestResources
+testapps:sample:mergeDistDebugAndroidTestResources
+testapps:testapp:mergeDistDebugAndroidTestResources
+msal:mergeDistDebugAndroidTestShaders
+testapps:automationapp:mergeDistDebugAndroidTestShaders
+testapps:sample:mergeDistDebugAndroidTestShaders
+testapps:testapp:mergeDistDebugAndroidTestShaders
+msal:mergeDistDebugAssets
+testapps:automationapp:mergeDistDebugAssets
+testapps:sample:mergeDistDebugAssets
+testapps:testapp:mergeDistDebugAssets
+msal:mergeDistDebugConsumerProguardFiles
+msal:mergeDistDebugJniLibFolders
+testapps:automationapp:mergeDistDebugJniLibFolders
+testapps:sample:mergeDistDebugJniLibFolders
+testapps:testapp:mergeDistDebugJniLibFolders
+msal:mergeDistDebugResources
+testapps:automationapp:mergeDistDebugResources
+testapps:sample:mergeDistDebugResources
+testapps:testapp:mergeDistDebugResources
+msal:mergeDistDebugShaders
+testapps:automationapp:mergeDistDebugShaders
+testapps:sample:mergeDistDebugShaders
+testapps:testapp:mergeDistDebugShaders
+msal:mergeDistReleaseAssets
+testapps:automationapp:mergeDistReleaseAssets
+testapps:sample:mergeDistReleaseAssets
+testapps:testapp:mergeDistReleaseAssets
+msal:mergeDistReleaseConsumerProguardFiles
+msal:mergeDistReleaseJniLibFolders
+testapps:automationapp:mergeDistReleaseJniLibFolders
+testapps:sample:mergeDistReleaseJniLibFolders
+testapps:testapp:mergeDistReleaseJniLibFolders
+msal:mergeDistReleaseResources
+testapps:automationapp:mergeDistReleaseResources
+testapps:sample:mergeDistReleaseResources
+testapps:testapp:mergeDistReleaseResources
+msal:mergeDistReleaseShaders
+testapps:automationapp:mergeDistReleaseShaders
+testapps:sample:mergeDistReleaseShaders
+testapps:testapp:mergeDistReleaseShaders
+msal:mergeLocalDebugAndroidTestAssets
+testapps:automationapp:mergeLocalDebugAndroidTestAssets
+testapps:sample:mergeLocalDebugAndroidTestAssets
+testapps:testapp:mergeLocalDebugAndroidTestAssets
+msal:mergeLocalDebugAndroidTestJniLibFolders
+testapps:automationapp:mergeLocalDebugAndroidTestJniLibFolders
+testapps:sample:mergeLocalDebugAndroidTestJniLibFolders
+testapps:testapp:mergeLocalDebugAndroidTestJniLibFolders
+msal:mergeLocalDebugAndroidTestResources
+testapps:automationapp:mergeLocalDebugAndroidTestResources
+testapps:sample:mergeLocalDebugAndroidTestResources
+testapps:testapp:mergeLocalDebugAndroidTestResources
+msal:mergeLocalDebugAndroidTestShaders
+testapps:automationapp:mergeLocalDebugAndroidTestShaders
+testapps:sample:mergeLocalDebugAndroidTestShaders
+testapps:testapp:mergeLocalDebugAndroidTestShaders
+msal:mergeLocalDebugAssets
+testapps:automationapp:mergeLocalDebugAssets
+testapps:sample:mergeLocalDebugAssets
+testapps:testapp:mergeLocalDebugAssets
+msal:mergeLocalDebugConsumerProguardFiles
+msal:mergeLocalDebugJniLibFolders
+testapps:automationapp:mergeLocalDebugJniLibFolders
+testapps:sample:mergeLocalDebugJniLibFolders
+testapps:testapp:mergeLocalDebugJniLibFolders
+msal:mergeLocalDebugResources
+testapps:automationapp:mergeLocalDebugResources
+testapps:sample:mergeLocalDebugResources
+testapps:testapp:mergeLocalDebugResources
+msal:mergeLocalDebugShaders
+testapps:automationapp:mergeLocalDebugShaders
+testapps:sample:mergeLocalDebugShaders
+testapps:testapp:mergeLocalDebugShaders
+msal:mergeLocalReleaseAssets
+testapps:automationapp:mergeLocalReleaseAssets
+testapps:sample:mergeLocalReleaseAssets
+testapps:testapp:mergeLocalReleaseAssets
+msal:mergeLocalReleaseConsumerProguardFiles
+msal:mergeLocalReleaseJniLibFolders
+testapps:automationapp:mergeLocalReleaseJniLibFolders
+testapps:sample:mergeLocalReleaseJniLibFolders
+testapps:testapp:mergeLocalReleaseJniLibFolders
+msal:mergeLocalReleaseResources
+testapps:automationapp:mergeLocalReleaseResources
+testapps:sample:mergeLocalReleaseResources
+testapps:testapp:mergeLocalReleaseResources
+msal:mergeLocalReleaseShaders
+testapps:automationapp:mergeLocalReleaseShaders
+testapps:sample:mergeLocalReleaseShaders
+testapps:testapp:mergeLocalReleaseShaders
+common:mergeReleaseAssets
+common:mergeReleaseConsumerProguardFiles
+common:mergeReleaseJniLibFolders
+common:mergeReleaseResources
+common:mergeReleaseShaders
+msal:mergeSnapshotDebugAndroidTestAssets
+msal:mergeSnapshotDebugAndroidTestJniLibFolders
+msal:mergeSnapshotDebugAndroidTestResources
+msal:mergeSnapshotDebugAndroidTestShaders
+msal:mergeSnapshotDebugAssets
+msal:mergeSnapshotDebugConsumerProguardFiles
+msal:mergeSnapshotDebugJniLibFolders
+msal:mergeSnapshotDebugResources
+msal:mergeSnapshotDebugShaders
+msal:mergeSnapshotReleaseAssets
+msal:mergeSnapshotReleaseConsumerProguardFiles
+msal:mergeSnapshotReleaseJniLibFolders
+msal:mergeSnapshotReleaseResources
+msal:mergeSnapshotReleaseShaders
+common:packageDebugAndroidTest
+common:packageDebugAssets
+common:packageDebugRenderscript
+common:packageDebugResources
+testapps:automationapp:packageDistDebug
+testapps:sample:packageDistDebug
+testapps:testapp:packageDistDebug
+msal:packageDistDebugAndroidTest
+testapps:automationapp:packageDistDebugAndroidTest
+testapps:sample:packageDistDebugAndroidTest
+testapps:testapp:packageDistDebugAndroidTest
+msal:packageDistDebugAssets
+msal:packageDistDebugRenderscript
+msal:packageDistDebugResources
+testapps:automationapp:packageDistRelease
+testapps:sample:packageDistRelease
+testapps:testapp:packageDistRelease
+msal:packageDistReleaseAssets
+msal:packageDistReleaseRenderscript
+msal:packageDistReleaseResources
+testapps:automationapp:packageLocalDebug
+testapps:sample:packageLocalDebug
+testapps:testapp:packageLocalDebug
+msal:packageLocalDebugAndroidTest
+testapps:automationapp:packageLocalDebugAndroidTest
+testapps:sample:packageLocalDebugAndroidTest
+testapps:testapp:packageLocalDebugAndroidTest
+msal:packageLocalDebugAssets
+msal:packageLocalDebugRenderscript
+msal:packageLocalDebugResources
+testapps:automationapp:packageLocalRelease
+testapps:sample:packageLocalRelease
+testapps:testapp:packageLocalRelease
+msal:packageLocalReleaseAssets
+msal:packageLocalReleaseRenderscript
+msal:packageLocalReleaseResources
+common:packageReleaseAssets
+common:packageReleaseRenderscript
+common:packageReleaseResources
+msal:packageSnapshotDebugAndroidTest
+msal:packageSnapshotDebugAssets
+msal:packageSnapshotDebugRenderscript
+msal:packageSnapshotDebugResources
+msal:packageSnapshotReleaseAssets
+msal:packageSnapshotReleaseRenderscript
+msal:packageSnapshotReleaseResources
+common:platformAttrExtractor
+msal:platformAttrExtractor
+testapps:automationapp:platformAttrExtractor
+testapps:sample:platformAttrExtractor
+testapps:testapp:platformAttrExtractor
+common:preBuild
+msal:preBuild
+testapps:automationapp:preBuild
+testapps:sample:preBuild
+testapps:testapp:preBuild
+common:preDebugAndroidTestBuild
+common:preDebugBuild
+common:preDebugUnitTestBuild
+msal:preDistDebugAndroidTestBuild
+testapps:automationapp:preDistDebugAndroidTestBuild
+testapps:sample:preDistDebugAndroidTestBuild
+testapps:testapp:preDistDebugAndroidTestBuild
+msal:preDistDebugBuild
+testapps:automationapp:preDistDebugBuild
+testapps:sample:preDistDebugBuild
+testapps:testapp:preDistDebugBuild
+msal:preDistDebugUnitTestBuild
+testapps:automationapp:preDistDebugUnitTestBuild
+testapps:sample:preDistDebugUnitTestBuild
+testapps:testapp:preDistDebugUnitTestBuild
+msal:preDistReleaseBuild
+testapps:automationapp:preDistReleaseBuild
+testapps:sample:preDistReleaseBuild
+testapps:testapp:preDistReleaseBuild
+msal:preDistReleaseUnitTestBuild
+testapps:automationapp:preDistReleaseUnitTestBuild
+testapps:sample:preDistReleaseUnitTestBuild
+testapps:testapp:preDistReleaseUnitTestBuild
+msal:preLocalDebugAndroidTestBuild
+testapps:automationapp:preLocalDebugAndroidTestBuild
+testapps:sample:preLocalDebugAndroidTestBuild
+testapps:testapp:preLocalDebugAndroidTestBuild
+msal:preLocalDebugBuild
+testapps:automationapp:preLocalDebugBuild
+testapps:sample:preLocalDebugBuild
+testapps:testapp:preLocalDebugBuild
+msal:preLocalDebugUnitTestBuild
+testapps:automationapp:preLocalDebugUnitTestBuild
+testapps:sample:preLocalDebugUnitTestBuild
+testapps:testapp:preLocalDebugUnitTestBuild
+msal:preLocalReleaseBuild
+testapps:automationapp:preLocalReleaseBuild
+testapps:sample:preLocalReleaseBuild
+testapps:testapp:preLocalReleaseBuild
+msal:preLocalReleaseUnitTestBuild
+testapps:automationapp:preLocalReleaseUnitTestBuild
+testapps:sample:preLocalReleaseUnitTestBuild
+testapps:testapp:preLocalReleaseUnitTestBuild
+common:prepareLintJar
+msal:prepareLintJar
+testapps:automationapp:prepareLintJar
+testapps:sample:prepareLintJar
+testapps:testapp:prepareLintJar
+common:preparePUBLISHED_DEXDebugAndroidTestForPublishing
+msal:preparePUBLISHED_DEXDistDebugAndroidTestForPublishing
+testapps:automationapp:preparePUBLISHED_DEXDistDebugAndroidTestForPublishing
+testapps:sample:preparePUBLISHED_DEXDistDebugAndroidTestForPublishing
+testapps:testapp:preparePUBLISHED_DEXDistDebugAndroidTestForPublishing
+testapps:automationapp:preparePUBLISHED_DEXDistDebugForPublishing
+testapps:sample:preparePUBLISHED_DEXDistDebugForPublishing
+testapps:testapp:preparePUBLISHED_DEXDistDebugForPublishing
+testapps:automationapp:preparePUBLISHED_DEXDistReleaseForPublishing
+testapps:sample:preparePUBLISHED_DEXDistReleaseForPublishing
+testapps:testapp:preparePUBLISHED_DEXDistReleaseForPublishing
+msal:preparePUBLISHED_DEXLocalDebugAndroidTestForPublishing
+testapps:automationapp:preparePUBLISHED_DEXLocalDebugAndroidTestForPublishing
+testapps:sample:preparePUBLISHED_DEXLocalDebugAndroidTestForPublishing
+testapps:testapp:preparePUBLISHED_DEXLocalDebugAndroidTestForPublishing
+testapps:automationapp:preparePUBLISHED_DEXLocalDebugForPublishing
+testapps:sample:preparePUBLISHED_DEXLocalDebugForPublishing
+testapps:testapp:preparePUBLISHED_DEXLocalDebugForPublishing
+testapps:automationapp:preparePUBLISHED_DEXLocalReleaseForPublishing
+testapps:sample:preparePUBLISHED_DEXLocalReleaseForPublishing
+testapps:testapp:preparePUBLISHED_DEXLocalReleaseForPublishing
+msal:preparePUBLISHED_DEXSnapshotDebugAndroidTestForPublishing
+common:preparePUBLISHED_JAVA_RESDebugAndroidTestForPublishing
+msal:preparePUBLISHED_JAVA_RESDistDebugAndroidTestForPublishing
+testapps:automationapp:preparePUBLISHED_JAVA_RESDistDebugAndroidTestForPublishing
+testapps:sample:preparePUBLISHED_JAVA_RESDistDebugAndroidTestForPublishing
+testapps:testapp:preparePUBLISHED_JAVA_RESDistDebugAndroidTestForPublishing
+testapps:automationapp:preparePUBLISHED_JAVA_RESDistDebugForPublishing
+testapps:sample:preparePUBLISHED_JAVA_RESDistDebugForPublishing
+testapps:testapp:preparePUBLISHED_JAVA_RESDistDebugForPublishing
+testapps:automationapp:preparePUBLISHED_JAVA_RESDistReleaseForPublishing
+testapps:sample:preparePUBLISHED_JAVA_RESDistReleaseForPublishing
+testapps:testapp:preparePUBLISHED_JAVA_RESDistReleaseForPublishing
+msal:preparePUBLISHED_JAVA_RESLocalDebugAndroidTestForPublishing
+testapps:automationapp:preparePUBLISHED_JAVA_RESLocalDebugAndroidTestForPublishing
+testapps:sample:preparePUBLISHED_JAVA_RESLocalDebugAndroidTestForPublishing
+testapps:testapp:preparePUBLISHED_JAVA_RESLocalDebugAndroidTestForPublishing
+testapps:automationapp:preparePUBLISHED_JAVA_RESLocalDebugForPublishing
+testapps:sample:preparePUBLISHED_JAVA_RESLocalDebugForPublishing
+testapps:testapp:preparePUBLISHED_JAVA_RESLocalDebugForPublishing
+testapps:automationapp:preparePUBLISHED_JAVA_RESLocalReleaseForPublishing
+testapps:sample:preparePUBLISHED_JAVA_RESLocalReleaseForPublishing
+testapps:testapp:preparePUBLISHED_JAVA_RESLocalReleaseForPublishing
+msal:preparePUBLISHED_JAVA_RESSnapshotDebugAndroidTestForPublishing
+common:preparePUBLISHED_NATIVE_LIBSDebugAndroidTestForPublishing
+msal:preparePUBLISHED_NATIVE_LIBSDistDebugAndroidTestForPublishing
+testapps:automationapp:preparePUBLISHED_NATIVE_LIBSDistDebugAndroidTestForPublishing
+testapps:sample:preparePUBLISHED_NATIVE_LIBSDistDebugAndroidTestForPublishing
+testapps:testapp:preparePUBLISHED_NATIVE_LIBSDistDebugAndroidTestForPublishing
+testapps:automationapp:preparePUBLISHED_NATIVE_LIBSDistDebugForPublishing
+testapps:sample:preparePUBLISHED_NATIVE_LIBSDistDebugForPublishing
+testapps:testapp:preparePUBLISHED_NATIVE_LIBSDistDebugForPublishing
+testapps:automationapp:preparePUBLISHED_NATIVE_LIBSDistReleaseForPublishing
+testapps:sample:preparePUBLISHED_NATIVE_LIBSDistReleaseForPublishing
+testapps:testapp:preparePUBLISHED_NATIVE_LIBSDistReleaseForPublishing
+msal:preparePUBLISHED_NATIVE_LIBSLocalDebugAndroidTestForPublishing
+testapps:automationapp:preparePUBLISHED_NATIVE_LIBSLocalDebugAndroidTestForPublishing
+testapps:sample:preparePUBLISHED_NATIVE_LIBSLocalDebugAndroidTestForPublishing
+testapps:testapp:preparePUBLISHED_NATIVE_LIBSLocalDebugAndroidTestForPublishing
+testapps:automationapp:preparePUBLISHED_NATIVE_LIBSLocalDebugForPublishing
+testapps:sample:preparePUBLISHED_NATIVE_LIBSLocalDebugForPublishing
+testapps:testapp:preparePUBLISHED_NATIVE_LIBSLocalDebugForPublishing
+testapps:automationapp:preparePUBLISHED_NATIVE_LIBSLocalReleaseForPublishing
+testapps:sample:preparePUBLISHED_NATIVE_LIBSLocalReleaseForPublishing
+testapps:testapp:preparePUBLISHED_NATIVE_LIBSLocalReleaseForPublishing
+msal:preparePUBLISHED_NATIVE_LIBSSnapshotDebugAndroidTestForPublishing
+common:preReleaseBuild
+common:preReleaseUnitTestBuild
+msal:preSnapshotDebugAndroidTestBuild
+msal:preSnapshotDebugBuild
+msal:preSnapshotDebugUnitTestBuild
+msal:preSnapshotReleaseBuild
+msal:preSnapshotReleaseUnitTestBuild
+common:processDebugAndroidTestJavaRes
+common:processDebugAndroidTestManifest
+common:processDebugAndroidTestResources
+common:processDebugJavaRes
+common:processDebugManifest
+common:processDebugUnitTestJavaRes
+msal:processDistDebugAndroidTestJavaRes
+testapps:automationapp:processDistDebugAndroidTestJavaRes
+testapps:sample:processDistDebugAndroidTestJavaRes
+testapps:testapp:processDistDebugAndroidTestJavaRes
+msal:processDistDebugAndroidTestManifest
+testapps:automationapp:processDistDebugAndroidTestManifest
+testapps:sample:processDistDebugAndroidTestManifest
+testapps:testapp:processDistDebugAndroidTestManifest
+msal:processDistDebugAndroidTestResources
+testapps:automationapp:processDistDebugAndroidTestResources
+testapps:sample:processDistDebugAndroidTestResources
+testapps:testapp:processDistDebugAndroidTestResources
+msal:processDistDebugJavaRes
+testapps:automationapp:processDistDebugJavaRes
+testapps:sample:processDistDebugJavaRes
+testapps:testapp:processDistDebugJavaRes
+msal:processDistDebugManifest
+testapps:automationapp:processDistDebugManifest
+testapps:sample:processDistDebugManifest
+testapps:testapp:processDistDebugManifest
+testapps:automationapp:processDistDebugResources
+testapps:sample:processDistDebugResources
+testapps:testapp:processDistDebugResources
+msal:processDistDebugUnitTestJavaRes
+testapps:automationapp:processDistDebugUnitTestJavaRes
+testapps:sample:processDistDebugUnitTestJavaRes
+testapps:testapp:processDistDebugUnitTestJavaRes
+msal:processDistReleaseJavaRes
+testapps:automationapp:processDistReleaseJavaRes
+testapps:sample:processDistReleaseJavaRes
+testapps:testapp:processDistReleaseJavaRes
+msal:processDistReleaseManifest
+testapps:automationapp:processDistReleaseManifest
+testapps:sample:processDistReleaseManifest
+testapps:testapp:processDistReleaseManifest
+testapps:automationapp:processDistReleaseResources
+testapps:sample:processDistReleaseResources
+testapps:testapp:processDistReleaseResources
+msal:processDistReleaseUnitTestJavaRes
+testapps:automationapp:processDistReleaseUnitTestJavaRes
+testapps:sample:processDistReleaseUnitTestJavaRes
+testapps:testapp:processDistReleaseUnitTestJavaRes
+msal:processLocalDebugAndroidTestJavaRes
+testapps:automationapp:processLocalDebugAndroidTestJavaRes
+testapps:sample:processLocalDebugAndroidTestJavaRes
+testapps:testapp:processLocalDebugAndroidTestJavaRes
+msal:processLocalDebugAndroidTestManifest
+testapps:automationapp:processLocalDebugAndroidTestManifest
+testapps:sample:processLocalDebugAndroidTestManifest
+testapps:testapp:processLocalDebugAndroidTestManifest
+msal:processLocalDebugAndroidTestResources
+testapps:automationapp:processLocalDebugAndroidTestResources
+testapps:sample:processLocalDebugAndroidTestResources
+testapps:testapp:processLocalDebugAndroidTestResources
+msal:processLocalDebugJavaRes
+testapps:automationapp:processLocalDebugJavaRes
+testapps:sample:processLocalDebugJavaRes
+testapps:testapp:processLocalDebugJavaRes
+msal:processLocalDebugManifest
+testapps:automationapp:processLocalDebugManifest
+testapps:sample:processLocalDebugManifest
+testapps:testapp:processLocalDebugManifest
+testapps:automationapp:processLocalDebugResources
+testapps:sample:processLocalDebugResources
+testapps:testapp:processLocalDebugResources
+msal:processLocalDebugUnitTestJavaRes
+testapps:automationapp:processLocalDebugUnitTestJavaRes
+testapps:sample:processLocalDebugUnitTestJavaRes
+testapps:testapp:processLocalDebugUnitTestJavaRes
+msal:processLocalReleaseJavaRes
+testapps:automationapp:processLocalReleaseJavaRes
+testapps:sample:processLocalReleaseJavaRes
+testapps:testapp:processLocalReleaseJavaRes
+msal:processLocalReleaseManifest
+testapps:automationapp:processLocalReleaseManifest
+testapps:sample:processLocalReleaseManifest
+testapps:testapp:processLocalReleaseManifest
+testapps:automationapp:processLocalReleaseResources
+testapps:sample:processLocalReleaseResources
+testapps:testapp:processLocalReleaseResources
+msal:processLocalReleaseUnitTestJavaRes
+testapps:automationapp:processLocalReleaseUnitTestJavaRes
+testapps:sample:processLocalReleaseUnitTestJavaRes
+testapps:testapp:processLocalReleaseUnitTestJavaRes
+common:processReleaseJavaRes
+common:processReleaseManifest
+common:processReleaseUnitTestJavaRes
+msal:processSnapshotDebugAndroidTestJavaRes
+msal:processSnapshotDebugAndroidTestManifest
+msal:processSnapshotDebugAndroidTestResources
+msal:processSnapshotDebugJavaRes
+msal:processSnapshotDebugManifest
+msal:processSnapshotDebugUnitTestJavaRes
+msal:processSnapshotReleaseJavaRes
+msal:processSnapshotReleaseManifest
+msal:processSnapshotReleaseUnitTestJavaRes
+common:releaseJavadoc
+common:releaseJavadocJar
+common:reportBuildArtifactsDebug
+msal:reportBuildArtifactsDistDebug
+testapps:automationapp:reportBuildArtifactsDistDebug
+testapps:sample:reportBuildArtifactsDistDebug
+testapps:testapp:reportBuildArtifactsDistDebug
+msal:reportBuildArtifactsDistRelease
+testapps:automationapp:reportBuildArtifactsDistRelease
+testapps:sample:reportBuildArtifactsDistRelease
+testapps:testapp:reportBuildArtifactsDistRelease
+msal:reportBuildArtifactsLocalDebug
+testapps:automationapp:reportBuildArtifactsLocalDebug
+testapps:sample:reportBuildArtifactsLocalDebug
+testapps:testapp:reportBuildArtifactsLocalDebug
+msal:reportBuildArtifactsLocalRelease
+testapps:automationapp:reportBuildArtifactsLocalRelease
+testapps:sample:reportBuildArtifactsLocalRelease
+testapps:testapp:reportBuildArtifactsLocalRelease
+common:reportBuildArtifactsRelease
+msal:reportBuildArtifactsSnapshotDebug
+msal:reportBuildArtifactsSnapshotRelease
+common:resolveConfigAttr
+msal:resolveConfigAttr
+testapps:automationapp:resolveConfigAttr
+testapps:sample:resolveConfigAttr
+testapps:testapp:resolveConfigAttr
+common:sonarqube - Analyzes project ':common' and its subprojects with SonarQube.
+common:sourcesJar
+msal:sourcesJar
+testapps:automationapp:splitsDiscoveryTaskDistDebug
+testapps:sample:splitsDiscoveryTaskDistDebug
+testapps:testapp:splitsDiscoveryTaskDistDebug
+testapps:automationapp:splitsDiscoveryTaskDistRelease
+testapps:sample:splitsDiscoveryTaskDistRelease
+testapps:testapp:splitsDiscoveryTaskDistRelease
+testapps:automationapp:splitsDiscoveryTaskLocalDebug
+testapps:sample:splitsDiscoveryTaskLocalDebug
+testapps:testapp:splitsDiscoveryTaskLocalDebug
+testapps:automationapp:splitsDiscoveryTaskLocalRelease
+testapps:sample:splitsDiscoveryTaskLocalRelease
+testapps:testapp:splitsDiscoveryTaskLocalRelease
+common:transformClassesAndResourcesWithPrepareIntermediateJarsForDebug
+msal:transformClassesAndResourcesWithPrepareIntermediateJarsForDistDebug
+msal:transformClassesAndResourcesWithPrepareIntermediateJarsForDistRelease
+msal:transformClassesAndResourcesWithPrepareIntermediateJarsForLocalDebug
+msal:transformClassesAndResourcesWithPrepareIntermediateJarsForLocalRelease
+common:transformClassesAndResourcesWithPrepareIntermediateJarsForRelease
+msal:transformClassesAndResourcesWithPrepareIntermediateJarsForSnapshotDebug
+msal:transformClassesAndResourcesWithPrepareIntermediateJarsForSnapshotRelease
+common:transformClassesAndResourcesWithSyncLibJarsForDebug
+msal:transformClassesAndResourcesWithSyncLibJarsForDistDebug
+msal:transformClassesAndResourcesWithSyncLibJarsForDistRelease
+msal:transformClassesAndResourcesWithSyncLibJarsForLocalDebug
+msal:transformClassesAndResourcesWithSyncLibJarsForLocalRelease
+common:transformClassesAndResourcesWithSyncLibJarsForRelease
+msal:transformClassesAndResourcesWithSyncLibJarsForSnapshotDebug
+msal:transformClassesAndResourcesWithSyncLibJarsForSnapshotRelease
+common:transformClassesWithDexBuilderForDebugAndroidTest
+testapps:automationapp:transformClassesWithDexBuilderForDistDebug
+testapps:sample:transformClassesWithDexBuilderForDistDebug
+testapps:testapp:transformClassesWithDexBuilderForDistDebug
+msal:transformClassesWithDexBuilderForDistDebugAndroidTest
+testapps:automationapp:transformClassesWithDexBuilderForDistDebugAndroidTest
+testapps:sample:transformClassesWithDexBuilderForDistDebugAndroidTest
+testapps:testapp:transformClassesWithDexBuilderForDistDebugAndroidTest
+testapps:automationapp:transformClassesWithDexBuilderForDistRelease
+testapps:sample:transformClassesWithDexBuilderForDistRelease
+testapps:testapp:transformClassesWithDexBuilderForDistRelease
+testapps:automationapp:transformClassesWithDexBuilderForLocalDebug
+testapps:sample:transformClassesWithDexBuilderForLocalDebug
+testapps:testapp:transformClassesWithDexBuilderForLocalDebug
+msal:transformClassesWithDexBuilderForLocalDebugAndroidTest
+testapps:automationapp:transformClassesWithDexBuilderForLocalDebugAndroidTest
+testapps:sample:transformClassesWithDexBuilderForLocalDebugAndroidTest
+testapps:testapp:transformClassesWithDexBuilderForLocalDebugAndroidTest
+testapps:automationapp:transformClassesWithDexBuilderForLocalRelease
+testapps:sample:transformClassesWithDexBuilderForLocalRelease
+testapps:testapp:transformClassesWithDexBuilderForLocalRelease
+msal:transformClassesWithDexBuilderForSnapshotDebugAndroidTest
+common:transformDexArchiveWithDexMergerForDebugAndroidTest
+testapps:automationapp:transformDexArchiveWithDexMergerForDistDebug
+testapps:sample:transformDexArchiveWithDexMergerForDistDebug
+testapps:testapp:transformDexArchiveWithDexMergerForDistDebug
+msal:transformDexArchiveWithDexMergerForDistDebugAndroidTest
+testapps:automationapp:transformDexArchiveWithDexMergerForDistDebugAndroidTest
+testapps:sample:transformDexArchiveWithDexMergerForDistDebugAndroidTest
+testapps:testapp:transformDexArchiveWithDexMergerForDistDebugAndroidTest
+testapps:automationapp:transformDexArchiveWithDexMergerForDistRelease
+testapps:sample:transformDexArchiveWithDexMergerForDistRelease
+testapps:testapp:transformDexArchiveWithDexMergerForDistRelease
+testapps:automationapp:transformDexArchiveWithDexMergerForLocalDebug
+testapps:sample:transformDexArchiveWithDexMergerForLocalDebug
+testapps:testapp:transformDexArchiveWithDexMergerForLocalDebug
+msal:transformDexArchiveWithDexMergerForLocalDebugAndroidTest
+testapps:automationapp:transformDexArchiveWithDexMergerForLocalDebugAndroidTest
+testapps:sample:transformDexArchiveWithDexMergerForLocalDebugAndroidTest
+testapps:testapp:transformDexArchiveWithDexMergerForLocalDebugAndroidTest
+testapps:automationapp:transformDexArchiveWithDexMergerForLocalRelease
+testapps:sample:transformDexArchiveWithDexMergerForLocalRelease
+testapps:testapp:transformDexArchiveWithDexMergerForLocalRelease
+msal:transformDexArchiveWithDexMergerForSnapshotDebugAndroidTest
+common:transformDexArchiveWithExternalLibsDexMergerForDebugAndroidTest
+testapps:automationapp:transformDexArchiveWithExternalLibsDexMergerForDistDebug
+testapps:sample:transformDexArchiveWithExternalLibsDexMergerForDistDebug
+testapps:testapp:transformDexArchiveWithExternalLibsDexMergerForDistDebug
+msal:transformDexArchiveWithExternalLibsDexMergerForDistDebugAndroidTest
+testapps:automationapp:transformDexArchiveWithExternalLibsDexMergerForDistDebugAndroidTest
+testapps:sample:transformDexArchiveWithExternalLibsDexMergerForDistDebugAndroidTest
+testapps:testapp:transformDexArchiveWithExternalLibsDexMergerForDistDebugAndroidTest
+testapps:automationapp:transformDexArchiveWithExternalLibsDexMergerForDistRelease
+testapps:sample:transformDexArchiveWithExternalLibsDexMergerForDistRelease
+testapps:testapp:transformDexArchiveWithExternalLibsDexMergerForDistRelease
+testapps:automationapp:transformDexArchiveWithExternalLibsDexMergerForLocalDebug
+testapps:sample:transformDexArchiveWithExternalLibsDexMergerForLocalDebug
+testapps:testapp:transformDexArchiveWithExternalLibsDexMergerForLocalDebug
+msal:transformDexArchiveWithExternalLibsDexMergerForLocalDebugAndroidTest
+testapps:automationapp:transformDexArchiveWithExternalLibsDexMergerForLocalDebugAndroidTest
+testapps:sample:transformDexArchiveWithExternalLibsDexMergerForLocalDebugAndroidTest
+testapps:testapp:transformDexArchiveWithExternalLibsDexMergerForLocalDebugAndroidTest
+testapps:automationapp:transformDexArchiveWithExternalLibsDexMergerForLocalRelease
+testapps:sample:transformDexArchiveWithExternalLibsDexMergerForLocalRelease
+testapps:testapp:transformDexArchiveWithExternalLibsDexMergerForLocalRelease
+msal:transformDexArchiveWithExternalLibsDexMergerForSnapshotDebugAndroidTest
+common:transformNativeLibsWithIntermediateJniLibsForDebug
+msal:transformNativeLibsWithIntermediateJniLibsForDistDebug
+msal:transformNativeLibsWithIntermediateJniLibsForDistRelease
+msal:transformNativeLibsWithIntermediateJniLibsForLocalDebug
+msal:transformNativeLibsWithIntermediateJniLibsForLocalRelease
+common:transformNativeLibsWithIntermediateJniLibsForRelease
+msal:transformNativeLibsWithIntermediateJniLibsForSnapshotDebug
+msal:transformNativeLibsWithIntermediateJniLibsForSnapshotRelease
+common:transformNativeLibsWithMergeJniLibsForDebug
+common:transformNativeLibsWithMergeJniLibsForDebugAndroidTest
+msal:transformNativeLibsWithMergeJniLibsForDistDebug
+testapps:automationapp:transformNativeLibsWithMergeJniLibsForDistDebug
+testapps:sample:transformNativeLibsWithMergeJniLibsForDistDebug
+testapps:testapp:transformNativeLibsWithMergeJniLibsForDistDebug
+msal:transformNativeLibsWithMergeJniLibsForDistDebugAndroidTest
+testapps:automationapp:transformNativeLibsWithMergeJniLibsForDistDebugAndroidTest
+testapps:sample:transformNativeLibsWithMergeJniLibsForDistDebugAndroidTest
+testapps:testapp:transformNativeLibsWithMergeJniLibsForDistDebugAndroidTest
+msal:transformNativeLibsWithMergeJniLibsForDistRelease
+testapps:automationapp:transformNativeLibsWithMergeJniLibsForDistRelease
+testapps:sample:transformNativeLibsWithMergeJniLibsForDistRelease
+testapps:testapp:transformNativeLibsWithMergeJniLibsForDistRelease
+msal:transformNativeLibsWithMergeJniLibsForLocalDebug
+testapps:automationapp:transformNativeLibsWithMergeJniLibsForLocalDebug
+testapps:sample:transformNativeLibsWithMergeJniLibsForLocalDebug
+testapps:testapp:transformNativeLibsWithMergeJniLibsForLocalDebug
+msal:transformNativeLibsWithMergeJniLibsForLocalDebugAndroidTest
+testapps:automationapp:transformNativeLibsWithMergeJniLibsForLocalDebugAndroidTest
+testapps:sample:transformNativeLibsWithMergeJniLibsForLocalDebugAndroidTest
+testapps:testapp:transformNativeLibsWithMergeJniLibsForLocalDebugAndroidTest
+msal:transformNativeLibsWithMergeJniLibsForLocalRelease
+testapps:automationapp:transformNativeLibsWithMergeJniLibsForLocalRelease
+testapps:sample:transformNativeLibsWithMergeJniLibsForLocalRelease
+testapps:testapp:transformNativeLibsWithMergeJniLibsForLocalRelease
+common:transformNativeLibsWithMergeJniLibsForRelease
+msal:transformNativeLibsWithMergeJniLibsForSnapshotDebug
+msal:transformNativeLibsWithMergeJniLibsForSnapshotDebugAndroidTest
+msal:transformNativeLibsWithMergeJniLibsForSnapshotRelease
+common:transformNativeLibsWithSyncJniLibsForDebug
+msal:transformNativeLibsWithSyncJniLibsForDistDebug
+msal:transformNativeLibsWithSyncJniLibsForDistRelease
+msal:transformNativeLibsWithSyncJniLibsForLocalDebug
+msal:transformNativeLibsWithSyncJniLibsForLocalRelease
+common:transformNativeLibsWithSyncJniLibsForRelease
+msal:transformNativeLibsWithSyncJniLibsForSnapshotDebug
+msal:transformNativeLibsWithSyncJniLibsForSnapshotRelease
+common:transformResourcesWithMergeJavaResForDebug
+common:transformResourcesWithMergeJavaResForDebugAndroidTest
+common:transformResourcesWithMergeJavaResForDebugUnitTest
+msal:transformResourcesWithMergeJavaResForDistDebug
+testapps:automationapp:transformResourcesWithMergeJavaResForDistDebug
+testapps:sample:transformResourcesWithMergeJavaResForDistDebug
+testapps:testapp:transformResourcesWithMergeJavaResForDistDebug
+msal:transformResourcesWithMergeJavaResForDistDebugAndroidTest
+testapps:automationapp:transformResourcesWithMergeJavaResForDistDebugAndroidTest
+testapps:sample:transformResourcesWithMergeJavaResForDistDebugAndroidTest
+testapps:testapp:transformResourcesWithMergeJavaResForDistDebugAndroidTest
+msal:transformResourcesWithMergeJavaResForDistDebugUnitTest
+testapps:automationapp:transformResourcesWithMergeJavaResForDistDebugUnitTest
+testapps:sample:transformResourcesWithMergeJavaResForDistDebugUnitTest
+testapps:testapp:transformResourcesWithMergeJavaResForDistDebugUnitTest
+msal:transformResourcesWithMergeJavaResForDistRelease
+testapps:automationapp:transformResourcesWithMergeJavaResForDistRelease
+testapps:sample:transformResourcesWithMergeJavaResForDistRelease
+testapps:testapp:transformResourcesWithMergeJavaResForDistRelease
+msal:transformResourcesWithMergeJavaResForDistReleaseUnitTest
+testapps:automationapp:transformResourcesWithMergeJavaResForDistReleaseUnitTest
+testapps:sample:transformResourcesWithMergeJavaResForDistReleaseUnitTest
+testapps:testapp:transformResourcesWithMergeJavaResForDistReleaseUnitTest
+msal:transformResourcesWithMergeJavaResForLocalDebug
+testapps:automationapp:transformResourcesWithMergeJavaResForLocalDebug
+testapps:sample:transformResourcesWithMergeJavaResForLocalDebug
+testapps:testapp:transformResourcesWithMergeJavaResForLocalDebug
+msal:transformResourcesWithMergeJavaResForLocalDebugAndroidTest
+testapps:automationapp:transformResourcesWithMergeJavaResForLocalDebugAndroidTest
+testapps:sample:transformResourcesWithMergeJavaResForLocalDebugAndroidTest
+testapps:testapp:transformResourcesWithMergeJavaResForLocalDebugAndroidTest
+msal:transformResourcesWithMergeJavaResForLocalDebugUnitTest
+testapps:automationapp:transformResourcesWithMergeJavaResForLocalDebugUnitTest
+testapps:sample:transformResourcesWithMergeJavaResForLocalDebugUnitTest
+testapps:testapp:transformResourcesWithMergeJavaResForLocalDebugUnitTest
+msal:transformResourcesWithMergeJavaResForLocalRelease
+testapps:automationapp:transformResourcesWithMergeJavaResForLocalRelease
+testapps:sample:transformResourcesWithMergeJavaResForLocalRelease
+testapps:testapp:transformResourcesWithMergeJavaResForLocalRelease
+msal:transformResourcesWithMergeJavaResForLocalReleaseUnitTest
+testapps:automationapp:transformResourcesWithMergeJavaResForLocalReleaseUnitTest
+testapps:sample:transformResourcesWithMergeJavaResForLocalReleaseUnitTest
+testapps:testapp:transformResourcesWithMergeJavaResForLocalReleaseUnitTest
+common:transformResourcesWithMergeJavaResForRelease
+common:transformResourcesWithMergeJavaResForReleaseUnitTest
+msal:transformResourcesWithMergeJavaResForSnapshotDebug
+msal:transformResourcesWithMergeJavaResForSnapshotDebugAndroidTest
+msal:transformResourcesWithMergeJavaResForSnapshotDebugUnitTest
+msal:transformResourcesWithMergeJavaResForSnapshotRelease
+msal:transformResourcesWithMergeJavaResForSnapshotReleaseUnitTest
+common:validateSigningDebugAndroidTest
+testapps:automationapp:validateSigningDistDebug
+testapps:sample:validateSigningDistDebug
+testapps:testapp:validateSigningDistDebug
+msal:validateSigningDistDebugAndroidTest
+testapps:automationapp:validateSigningDistDebugAndroidTest
+testapps:sample:validateSigningDistDebugAndroidTest
+testapps:testapp:validateSigningDistDebugAndroidTest
+testapps:automationapp:validateSigningLocalDebug
+testapps:sample:validateSigningLocalDebug
+testapps:testapp:validateSigningLocalDebug
+msal:validateSigningLocalDebugAndroidTest
+testapps:automationapp:validateSigningLocalDebugAndroidTest
+testapps:sample:validateSigningLocalDebugAndroidTest
+testapps:testapp:validateSigningLocalDebugAndroidTest
+msal:validateSigningSnapshotDebugAndroidTest
+msal:verifyDistReleaseResources
+msal:verifyLocalReleaseResources
+common:verifyReleaseResources
+msal:verifySnapshotReleaseResources
+common:versionSnapshot
+msal:versionSnapshot
+testapps:automationapp:writeDistDebugApplicationId
+testapps:sample:writeDistDebugApplicationId
+testapps:testapp:writeDistDebugApplicationId
+testapps:automationapp:writeDistReleaseApplicationId
+testapps:sample:writeDistReleaseApplicationId
+testapps:testapp:writeDistReleaseApplicationId
+testapps:automationapp:writeLocalDebugApplicationId
+testapps:sample:writeLocalDebugApplicationId
+testapps:testapp:writeLocalDebugApplicationId
+testapps:automationapp:writeLocalReleaseApplicationId
+testapps:sample:writeLocalReleaseApplicationId
+testapps:testapp:writeLocalReleaseApplicationId
+
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed

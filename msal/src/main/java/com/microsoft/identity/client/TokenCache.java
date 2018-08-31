@@ -138,14 +138,8 @@ public class TokenCache {
         final MicrosoftStsOAuth2Strategy strategy = msSts.createOAuth2Strategy(config);
 
         // Create the AuthorizationRequest
-        //TODO need to fill out the null paras once MicrosoftStsOAuth2Configuration implementation complete
-        final MicrosoftStsAuthorizationRequest.Builder builder = new MicrosoftStsAuthorizationRequest.Builder<>(clientId,
-                null,
-                authority,
-                tokenResponse.getScope(),
-                null,
-                null,
-                null);
+        MicrosoftStsAuthorizationRequest.Builder builder = new MicrosoftStsAuthorizationRequest.Builder(clientId, "", tokenResponse.getScope());
+        builder.setAuthority(authority);
 
         try {
             mCommonCache.save(strategy, builder.build(), tokenResponse);

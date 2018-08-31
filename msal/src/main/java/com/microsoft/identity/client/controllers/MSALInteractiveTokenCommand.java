@@ -39,7 +39,7 @@ public class MSALInteractiveTokenCommand extends MSALTokenCommand {
         mController = controller;
         mCallback = callback;
 
-        if (!(mParameters instanceof MSALAcquireTokenSilentOperationParameters)) {
+        if (!(mParameters instanceof MSALAcquireTokenOperationParameters)) {
             throw new IllegalArgumentException("Invalid operation parameters");
         }
     }

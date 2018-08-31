@@ -24,9 +24,16 @@ package com.microsoft.identity.client.authorities;
 
 import android.net.Uri;
 
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
+
 public class UnknownAuthority extends Authority {
     @Override
     public Uri getAuthorityUri() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public OAuth2Strategy createOAuth2Strategy() {
         throw new UnsupportedOperationException();
     }
 }

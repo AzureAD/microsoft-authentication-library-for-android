@@ -24,6 +24,10 @@ package com.microsoft.identity.client.authorities;
 
 import android.net.Uri;
 
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
+
+import java.io.UnsupportedEncodingException;
+
 public class ActiveDirectoryFederationServicesAuthority extends Authority {
 
     ActiveDirectoryFederationServicesAuthority(String authorityUrl) {
@@ -33,5 +37,10 @@ public class ActiveDirectoryFederationServicesAuthority extends Authority {
     @Override
     public Uri getAuthorityUri() {
         return Uri.parse(mAuthorityUrl);
+    }
+
+    @Override
+    public OAuth2Strategy createOAuth2Strategy() {
+        throw new UnsupportedOperationException();
     }
 }

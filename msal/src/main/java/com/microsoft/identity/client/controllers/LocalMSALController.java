@@ -60,8 +60,8 @@ public class LocalMSALController extends MSALController {
     public AuthenticationResult acquireToken(MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException, ClientException {
 
 
-        //1) TODO: Use factory to get applicable oAuth and Authorization strategies
-        OAuth2Strategy oAuth2Strategy = new MicrosoftStsOAuth2Strategy(new MicrosoftStsOAuth2Configuration());
+        //1) Get oAuth2Strategy for Authority Type
+        OAuth2Strategy oAuth2Strategy = parameters.getAuthority().createOAuth2Strategy();
 
         //2) Gather authorization interactively
         AuthorizationResult result = performAuthorizationRequest(oAuth2Strategy, parameters);
@@ -85,6 +85,7 @@ public class LocalMSALController extends MSALController {
 
         Future<AuthorizationResult> future = strategy.requestAuthorization(getAuthorizationRequest(parameters), mAuthorizationStrategy);
 
+
         //We could implement Timeout Here if we wish instead of blocking indefinitely
         //future.get(10, TimeUnit.MINUTES);  // Need to handle timeout exception in the scenario it doesn't return within a reasonable amount of time
         AuthorizationResult result = future.get();
@@ -93,23 +94,15 @@ public class LocalMSALController extends MSALController {
 
     }
 
-    private AuthorizationRequest getAuthorizationRequest(MSALAcquireTokenOperationParameters parameters) throws ClientException {
-        try {
-            MicrosoftStsAuthorizationRequest.Builder builder = new MicrosoftStsAuthorizationRequest.Builder<>(
-                    parameters.getClientId(),
-                    parameters.getRedirectUri(),
-                    new URL(parameters.getAuthority()),
-                    StringUtil.join(' ', parameters.getScopes()),
-                    null,
-                    PkceChallenge.newPkceChallenge(),
-                    MicrosoftAuthorizationRequest.generateEncodedState());
+    private AuthorizationRequest getAuthorizationRequest(MSALAcquireTokenOperationParameters parameters) {
+        MicrosoftStsAuthorizationRequest.Builder builder = new MicrosoftStsAuthorizationRequest.Builder(
+                parameters.getClientId(),
+                parameters.getRedirectUri(),
+                StringUtil.join(' ', parameters.getScopes()));
 
-            return builder.build();
-        } catch (final UnsupportedEncodingException exception) {
-            throw new ClientException(ErrorStrings.UNSUPPORTED_ENCODING, exception.getMessage(), exception);
-        } catch (final MalformedURLException exception) {
-            throw new IllegalArgumentException("Malformed updated authority Url", exception);
-        }
+        builder.setResponseType(AuthorizationRequest.ResponseType.CODE);
+
+        return builder.build();
     }
 
     private TokenResult performTokenRequest(OAuth2Strategy strategy, AuthorizationResponse response, MSALAcquireTokenOperationParameters parameters) {
