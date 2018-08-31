@@ -138,13 +138,17 @@ public class TokenCache {
         final MicrosoftStsOAuth2Strategy strategy = msSts.createOAuth2Strategy(config);
 
         // Create the AuthorizationRequest
-        final MicrosoftStsAuthorizationRequest authorizationRequest = new MicrosoftStsAuthorizationRequest();
-        authorizationRequest.setClientId(clientId);
-        authorizationRequest.setScope(tokenResponse.getScope());
-        authorizationRequest.setAuthority(authority);
+        //TODO need to fill out the null paras once MicrosoftStsOAuth2Configuration implementation complete
+        final MicrosoftStsAuthorizationRequest.Builder builder = new MicrosoftStsAuthorizationRequest.Builder<>(clientId,
+                null,
+                authority,
+                tokenResponse.getScope(),
+                null,
+                null,
+                null);
 
         try {
-            mCommonCache.save(strategy, authorizationRequest, tokenResponse);
+            mCommonCache.save(strategy, builder.build(), tokenResponse);
         } catch (final ClientException e) {
             // Rethrow
             throw new MsalClientException(e.getErrorCode(), "Failed to save tokens.", e);

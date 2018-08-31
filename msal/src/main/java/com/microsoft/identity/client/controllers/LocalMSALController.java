@@ -25,6 +25,9 @@ package com.microsoft.identity.client.controllers;
 import android.content.Intent;
 
 import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
@@ -35,12 +38,16 @@ import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResu
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStatus;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
+import com.microsoft.identity.common.internal.providers.oauth2.PkceChallenge;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
 import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -50,7 +57,7 @@ public class LocalMSALController extends MSALController {
     private AuthorizationStrategy mAuthorizationStrategy = null;
 
     @Override
-    public AuthenticationResult acquireToken(MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException {
+    public AuthenticationResult acquireToken(MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException, ClientException {
 
 
         //1) TODO: Use factory to get applicable oAuth and Authorization strategies
@@ -71,7 +78,7 @@ public class LocalMSALController extends MSALController {
         throw new UnsupportedOperationException();
     }
 
-    private AuthorizationResult performAuthorizationRequest(OAuth2Strategy strategy, MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException {
+    private AuthorizationResult performAuthorizationRequest(OAuth2Strategy strategy, MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException, ClientException {
 
         //TODO: Replace with factory to create the correct Authorization Strategy based on device capabilities and configuration
         mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(parameters.getActivity(), AuthorizationConfiguration.getInstance());
@@ -86,17 +93,23 @@ public class LocalMSALController extends MSALController {
 
     }
 
-    private AuthorizationRequest getAuthorizationRequest(MSALAcquireTokenOperationParameters parameters) {
-        AuthorizationRequest authRequest = new MicrosoftStsAuthorizationRequest();
+    private AuthorizationRequest getAuthorizationRequest(MSALAcquireTokenOperationParameters parameters) throws ClientException {
+        try {
+            MicrosoftStsAuthorizationRequest.Builder builder = new MicrosoftStsAuthorizationRequest.Builder<>(
+                    parameters.getClientId(),
+                    parameters.getRedirectUri(),
+                    new URL(parameters.getAuthority()),
+                    StringUtil.join(' ', parameters.getScopes()),
+                    null,
+                    PkceChallenge.newPkceChallenge(),
+                    MicrosoftAuthorizationRequest.generateEncodedState());
 
-        String scopes = StringUtil.join(' ', parameters.getScopes());
-
-        authRequest.setClientId(parameters.getClientId());
-        authRequest.setRedirectUri(parameters.getRedirectUri());
-        authRequest.setScope(scopes);
-        authRequest.setResponseType(AuthorizationRequest.ResponseTypes.CODE);
-
-        return authRequest;
+            return builder.build();
+        } catch (final UnsupportedEncodingException exception) {
+            throw new ClientException(ErrorStrings.UNSUPPORTED_ENCODING, exception.getMessage(), exception);
+        } catch (final MalformedURLException exception) {
+            throw new IllegalArgumentException("Malformed updated authority Url", exception);
+        }
     }
 
     private TokenResult performTokenRequest(OAuth2Strategy strategy, AuthorizationResponse response, MSALAcquireTokenOperationParameters parameters) {
