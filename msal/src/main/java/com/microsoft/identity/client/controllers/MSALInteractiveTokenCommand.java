@@ -27,6 +27,7 @@ import android.content.Intent;
 
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.common.exception.ClientException;
 
 import java.util.concurrent.ExecutionException;
 
@@ -54,6 +55,9 @@ public class MSALInteractiveTokenCommand extends MSALTokenCommand {
                 //TODO: complete implementation
                 e.printStackTrace();
             } catch (InterruptedException e) {
+                //TODO: complete implementation
+                e.printStackTrace();
+            } catch (ClientException e) {
                 //TODO: complete implementation
                 e.printStackTrace();
             }
