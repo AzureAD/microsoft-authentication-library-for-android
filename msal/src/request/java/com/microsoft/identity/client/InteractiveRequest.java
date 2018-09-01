@@ -157,9 +157,11 @@ final class InteractiveRequest extends BaseRequest {
             builder.setLibraryVersion(PublicClientApplication.getSdkVersion());
             builder.setLibraryName("MSAL.Android");
             builder.setSliceParameters(getAuthRequestParameters().getSliceParameters());
+            if (null != getAuthRequestParameters().getUser()) {
             builder.setUid(getAuthRequestParameters().getUser().getUid());
             builder.setUtid(getAuthRequestParameters().getUser().getUtid());
             builder.setDisplayableId(getAuthRequestParameters().getUser().getDisplayableId());
+            }
 
             return builder.build();
         } catch (final UnsupportedEncodingException exception) {

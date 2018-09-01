@@ -43,7 +43,6 @@ final class AuthenticationRequestParameters {
     private String mExtraQueryParam;
     private String mSliceParameters;
     private UiBehavior mUiBehavior;
-    private WebViewSelection mWebViewSelection = WebViewSelection.EMBEDDED_WEBVIEW;
     private User mUser;
 
     /**
@@ -71,10 +70,6 @@ final class AuthenticationRequestParameters {
         mClientId = clientId;
         mSliceParameters = sliceParameters;
         mRequestContext = requestContext;
-
-        if (authority.getAuthorityType() == AuthorityMetadata.AuthorityType.B2C) {
-            mWebViewSelection = WebViewSelection.SYSTEM_BROWSER;
-        }
     }
 
     /**
@@ -169,9 +164,5 @@ final class AuthenticationRequestParameters {
 
     RequestContext getRequestContext() {
         return mRequestContext;
-    }
-
-    WebViewSelection getWebViewSelection() {
-        return mWebViewSelection;
     }
 }
