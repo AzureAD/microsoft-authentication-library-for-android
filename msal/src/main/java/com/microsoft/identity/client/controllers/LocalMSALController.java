@@ -27,6 +27,7 @@ import android.content.Intent;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
@@ -38,8 +39,10 @@ import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResu
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStatus;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.oauth2.PkceChallenge;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenRequest;
+import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
 import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
 import com.microsoft.identity.common.internal.util.StringUtil;
@@ -48,6 +51,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -72,11 +77,12 @@ public class LocalMSALController extends MSALController {
             TokenResult tokenResult = performTokenRequest(oAuth2Strategy, mAuthorizationRequest, result.getAuthorizationResponse(), parameters);
             if (tokenResult != null && tokenResult.getSuccess()) {
                 //4) Save tokens in token cache
-                //saveTokens(oAuth2Strategy, getAuthorizationRequest(oAuth2Strategy, parameters), tokenResult.getTokenResponse(), parameters.getTokenCache());
+                saveTokens(oAuth2Strategy, getAuthorizationRequest(oAuth2Strategy, parameters), tokenResult.getTokenResponse(), parameters.getTokenCache());
             }
         }
 
         throw new UnsupportedOperationException();
+
     }
 
     private AuthorizationResult performAuthorizationRequest(OAuth2Strategy strategy, MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException, ClientException {
@@ -98,10 +104,16 @@ public class LocalMSALController extends MSALController {
 
         AuthorizationRequest.Builder builder = strategy.createAuthorizationRequestBuilder();
 
+        List<String> msalScopes = new ArrayList<>();
+        msalScopes.add("openid");
+        msalScopes.add("profile");
+        msalScopes.add("offline_access");
+        msalScopes.addAll(parameters.getScopes());
+
         AuthorizationRequest request = builder
                 .setClientId(parameters.getClientId())
                 .setRedirectUri(parameters.getRedirectUri())
-                .setScope(StringUtil.join(' ', parameters.getScopes()))
+                .setScope(StringUtil.join(' ', msalScopes))
                 .build();
 
         return request;
@@ -124,15 +136,15 @@ public class LocalMSALController extends MSALController {
 
     }
 
-/*
-    private void saveTokens(OAuth2Strategy strategy, AuthorizationRequest request, TokenResponse tokenResponse, MsalOAuth2TokenCache tokenCache){
+
+    private void saveTokens(OAuth2Strategy strategy, AuthorizationRequest request, TokenResponse tokenResponse, OAuth2TokenCache tokenCache){
         try {
-            tokencCache.saveTokens(mOAuthStrategy, authRequest, tokenResult.getTokenResponse());
+            tokenCache.save(strategy, request, tokenResponse);
         } catch (ClientException e) {
             e.printStackTrace();
         }
     }
-*/
+
 
 
     @Override
