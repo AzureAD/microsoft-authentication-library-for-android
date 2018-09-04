@@ -50,6 +50,8 @@ public abstract class Authority {
 
     public abstract Uri getAuthorityUri();
 
+    public abstract URL getAuthorityURL();
+
     /**
      * Returns an Authority based on an authority url.  This method attempts to parse the URL and based on the contents of it
      * determine the authority type and tenantid associated with it.

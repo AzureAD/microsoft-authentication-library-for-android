@@ -27,6 +27,8 @@ import android.net.Uri;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class ActiveDirectoryFederationServicesAuthority extends Authority {
 
@@ -37,6 +39,15 @@ public class ActiveDirectoryFederationServicesAuthority extends Authority {
     @Override
     public Uri getAuthorityUri() {
         return Uri.parse(mAuthorityUrl);
+    }
+
+    @Override
+    public URL getAuthorityURL() {
+        try{
+            return new URL(this.getAuthorityUri().toString());
+        }catch(MalformedURLException e){
+            throw new IllegalArgumentException("Authority URL is not a URL.", e);
+        }
     }
 
     @Override
