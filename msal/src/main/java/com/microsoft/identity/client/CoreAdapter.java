@@ -15,7 +15,6 @@ public class CoreAdapter {
         responseOut.setRefreshToken(responseIn.getRefreshToken());
         responseOut.setScope(responseIn.getScope());
         responseOut.setIdToken(responseIn.getRawIdToken());
-        responseOut.setExpiresOn(responseIn.getExpiresOn());
         responseOut.setExpiresIn(responseIn.getExpiresIn());
         responseOut.setExtExpiresOn(responseIn.getExtendedExpiresOn());
         responseOut.setExtExpiresIn(responseIn.getExtExpiresIn());
