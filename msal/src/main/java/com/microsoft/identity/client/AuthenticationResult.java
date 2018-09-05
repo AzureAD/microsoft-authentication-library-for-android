@@ -30,6 +30,7 @@ import com.microsoft.identity.common.internal.dto.IdToken;
 
 import java.util.Date;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * MSAL successful authentication result. When auth succeeds, token will be wrapped into the
@@ -103,7 +104,13 @@ public final class AuthenticationResult {
         if (null != mAccessTokenCacheItem) {
             expiresOn = mAccessTokenCacheItem.getExpiresOn();
         } else {
-            expiresOn = new Date(1000L * Long.valueOf(mAccessToken.getExpiresOn()));
+            expiresOn = new Date(
+                    TimeUnit.SECONDS.toMillis(
+                            Long.parseLong(
+                                    mAccessToken.getExpiresOn()
+                            )
+                    )
+            );
         }
 
         return expiresOn;
