@@ -27,6 +27,7 @@ import android.content.Intent;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
@@ -65,11 +66,10 @@ public class LocalMSALController extends MSALController {
     @Override
     public AuthenticationResult acquireToken(MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException, ClientException {
 
-
         //1) Get oAuth2Strategy for Authority Type
         OAuth2Strategy oAuth2Strategy = parameters.getAuthority().createOAuth2Strategy();
 
-        //2) Gather authorization interactively
+        //2) Request authorization interactively
         AuthorizationResult result = performAuthorizationRequest(oAuth2Strategy, parameters);
 
         if (result.getAuthorizationStatus().equals(AuthorizationStatus.SUCCESS)) {
@@ -77,12 +77,12 @@ public class LocalMSALController extends MSALController {
             TokenResult tokenResult = performTokenRequest(oAuth2Strategy, mAuthorizationRequest, result.getAuthorizationResponse(), parameters);
             if (tokenResult != null && tokenResult.getSuccess()) {
                 //4) Save tokens in token cache
-                saveTokens(oAuth2Strategy, getAuthorizationRequest(oAuth2Strategy, parameters), tokenResult.getTokenResponse(), parameters.getTokenCache());
+                ICacheRecord cacheRecord = saveTokens(oAuth2Strategy, getAuthorizationRequest(oAuth2Strategy, parameters), tokenResult.getTokenResponse(), parameters.getTokenCache());
+                return new AuthenticationResult(cacheRecord);
             }
         }
 
         throw new UnsupportedOperationException();
-
     }
 
     private AuthorizationResult performAuthorizationRequest(OAuth2Strategy strategy, MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException, ClientException {
@@ -136,13 +136,14 @@ public class LocalMSALController extends MSALController {
 
     }
 
-
-    private void saveTokens(OAuth2Strategy strategy, AuthorizationRequest request, TokenResponse tokenResponse, OAuth2TokenCache tokenCache){
+    private ICacheRecord saveTokens(OAuth2Strategy strategy, AuthorizationRequest request, TokenResponse tokenResponse, OAuth2TokenCache tokenCache){
         try {
-            tokenCache.save(strategy, request, tokenResponse);
+            return tokenCache.save(strategy, request, tokenResponse);
         } catch (ClientException e) {
+            //TODO: This is not ideal....
             e.printStackTrace();
         }
+        return null;
     }
 
 

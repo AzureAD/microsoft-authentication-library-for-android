@@ -23,6 +23,11 @@
 
 package com.microsoft.identity.client;
 
+import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.internal.dto.AccessToken;
+import com.microsoft.identity.common.internal.dto.Account;
+import com.microsoft.identity.common.internal.dto.IdToken;
+
 import java.util.Date;
 import java.util.Set;
 
@@ -32,17 +37,31 @@ import java.util.Set;
  */
 public final class AuthenticationResult {
 
+    //Fields for Legacy Cache
     private final AccessTokenCacheItem mAccessTokenCacheItem;
     private final User mUser;
     private final String mTenantId;
     private final String mRawIdToken;
     private final String mUniqueId;
 
+    //Fields for new Cache Record
+    private final ICacheRecord mCacheRecord;
+    private final AccessToken mAccessToken;
+    private final IdToken mIdToken;
+    private final Account mAccount;
+
+
     AuthenticationResult(final AccessTokenCacheItem accessTokenCacheItem) throws MsalClientException {
+
+        mCacheRecord = null;
+        mAccessToken = null;
+        mIdToken = null;
+        mAccount = null;
+
         mAccessTokenCacheItem = accessTokenCacheItem;
         mUser = accessTokenCacheItem.getUser();
         mRawIdToken = accessTokenCacheItem.getRawIdToken();
-        final IdToken idToken = accessTokenCacheItem.getIdToken();
+        final com.microsoft.identity.client.IdToken idToken = accessTokenCacheItem.getIdToken();
         if (idToken != null) {
             mTenantId = idToken.getTenantId();
             mUniqueId = idToken.getUniqueId();
@@ -51,6 +70,22 @@ public final class AuthenticationResult {
             mUniqueId = "";
         }
     }
+
+    public AuthenticationResult(final ICacheRecord cacheRecord){
+
+        mAccessTokenCacheItem = null;
+        mUser = null;
+
+        mCacheRecord = cacheRecord;
+        mAccessToken = mCacheRecord.getAccessToken();
+        mIdToken = cacheRecord.getIdToken();
+        mTenantId = cacheRecord.getAccount().getRealm();
+        mUniqueId = cacheRecord.getAccount().getHomeAccountId();
+        mRawIdToken = cacheRecord.getIdToken().getSecret();
+        mAccount = cacheRecord.getAccount();
+    }
+
+
 
     /**
      * @return The access token requested.
