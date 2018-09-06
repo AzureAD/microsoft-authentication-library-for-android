@@ -30,6 +30,7 @@ import com.microsoft.identity.common.internal.dto.IdToken;
 
 import java.util.Date;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * MSAL successful authentication result. When auth succeeds, token will be wrapped into the
@@ -71,7 +72,7 @@ public final class AuthenticationResult {
         }
     }
 
-    public AuthenticationResult(final ICacheRecord cacheRecord){
+    public AuthenticationResult(final ICacheRecord cacheRecord) {
 
         mAccessTokenCacheItem = null;
         mUser = null;
@@ -85,13 +86,11 @@ public final class AuthenticationResult {
         mAccount = cacheRecord.getAccount();
     }
 
-
-
     /**
      * @return The access token requested.
      */
     public String getAccessToken() {
-        return mAccessTokenCacheItem.getAccessToken();
+        return null != mAccessTokenCacheItem ? mAccessTokenCacheItem.getAccessToken() : mAccessToken.getSecret();
     }
 
     /**
@@ -100,7 +99,21 @@ public final class AuthenticationResult {
      * service.
      */
     public Date getExpiresOn() {
-        return mAccessTokenCacheItem.getExpiresOn();
+        final Date expiresOn;
+
+        if (null != mAccessTokenCacheItem) {
+            expiresOn = mAccessTokenCacheItem.getExpiresOn();
+        } else {
+            expiresOn = new Date(
+                    TimeUnit.SECONDS.toMillis(
+                            Long.parseLong(
+                                    mAccessToken.getExpiresOn()
+                            )
+                    )
+            );
+        }
+
+        return expiresOn;
     }
 
     /**
@@ -123,6 +136,15 @@ public final class AuthenticationResult {
      */
     public String getIdToken() {
         return mRawIdToken;
+    }
+
+    /**
+     * Gets the Account.
+     *
+     * @return The Account to get.
+     */
+    public Account getAccount() {
+        return mAccount;
     }
 
     /**
