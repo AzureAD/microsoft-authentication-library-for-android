@@ -29,6 +29,7 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 
 import com.google.gson.Gson;
@@ -753,9 +754,10 @@ public final class PublicClientApplication {
      *                     Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
+    @Deprecated
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final User user,
-                                        final String authority,
+                                        @Nullable final String authority,
                                         final boolean forceRefresh,
                                         @NonNull final AuthenticationCallback callback) {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
@@ -764,12 +766,35 @@ public final class PublicClientApplication {
         acquireTokenSilent(scopes, user, authority, forceRefresh, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), telemetryRequestId, apiEventBuilder);
     }
 
+    /**
+     * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
+     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
+     * or it fails the refresh, exception will be sent back via callback.
+     *
+     * @param scopes       The non-null array of scopes to be requested for the access token.
+     *                     MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param account      {@link IAccount} represents the account to silently request tokens.
+     * @param authority    Optional. Can be passed to override the configured authority.
+     * @param forceRefresh True if the request is forced to refresh, false otherwise.
+     * @param callback     {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                     sent back via {@link AuthenticationCallback#onSuccess(AuthenticationResult)}.
+     *                     Failure case will be sent back via {
+     * @link AuthenticationCallback#onError(MsalException)}.
+     */
+    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
+                                        @NonNull final IAccount account,
+                                        @Nullable final String authority,
+                                        final boolean forceRefresh,
+                                        @NonNull final AuthenticationCallback callback) {
+        // TODO
+    }
 
     /**
      * Deletes all matching tokens (access & refresh tokens) for the {@link User} instance from the application cache.
      *
      * @param user {@link User} whose tokens should be deleted.
      */
+    @Deprecated
     public void remove(final User user) {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(telemetryRequestId);
@@ -865,8 +890,6 @@ public final class PublicClientApplication {
         PublicClientApplicationConfiguration configObject = gson.fromJson(config, PublicClientApplicationConfiguration.class);
 
         return configObject;
-
-
     }
 
     private PublicClientApplicationConfiguration loadDefaultConfiguration(@NonNull final Context context) {
@@ -874,7 +897,7 @@ public final class PublicClientApplication {
     }
 
     private static Gson getGsonForLoadingConfiguration() {
-        Gson gson = new GsonBuilder()
+        final Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Authority.class, new AuthorityDeserializer())
                 .registerTypeAdapter(AzureActiveDirectoryAudience.class, new AzureActiveDirectoryAudienceDeserializer())
                 .registerTypeAdapter(Logger.LogLevel.class, new LogLevelDeserializer())
@@ -912,10 +935,17 @@ public final class PublicClientApplication {
     }
 
 
-    private void acquireTokenInteractive(final Activity activity, final String[] scopes, final String loginHint, final UiBehavior uiBehavior,
-                                         final String extraQueryParams, final String[] extraScopesToConsent,
-                                         final String authority, final User user, final AuthenticationCallback callback,
-                                         final String telemetryRequestId, final ApiEvent.Builder apiEventBuilder) {
+    private void acquireTokenInteractive(final Activity activity,
+                                         final String[] scopes,
+                                         final String loginHint,
+                                         final UiBehavior uiBehavior,
+                                         final String extraQueryParams,
+                                         final String[] extraScopesToConsent,
+                                         final String authority,
+                                         final User user,
+                                         final AuthenticationCallback callback,
+                                         final String telemetryRequestId,
+                                         final ApiEvent.Builder apiEventBuilder) {
         if (callback == null) {
             throw new IllegalArgumentException("callback is null");
         }
