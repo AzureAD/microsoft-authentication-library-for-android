@@ -23,38 +23,18 @@
 package com.microsoft.identity.client.controllers;
 
 import android.app.Activity;
-import android.content.Context;
 
 import com.microsoft.identity.client.UiBehavior;
-import com.microsoft.identity.client.User;
-import com.microsoft.identity.client.authorities.Authority;
-import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 
 import java.util.List;
 
 public class MSALAcquireTokenOperationParameters extends MSALOperationParameters {
 
-    private Context mAppContext;
-    private OAuth2TokenCache mTokenCache;
     private Activity mActivity;
-    private List<String> mScopes;
     private String mLoginHint;
-    private User mUser;
     private UiBehavior mUIBehavior;
     private String mExtraQueryStringParameters;
     private List<String> mExtraScopesToConsent;
-    private String clientId;
-    private String redirectUri;
-    private Authority mAuthority;
-
-    public Context getAppContext() {
-        return mAppContext;
-    }
-
-    public void setAppContext(Context mAppContext) {
-        this.mAppContext = mAppContext;
-    }
 
     public Activity getActivity() {
         return mActivity;
@@ -62,22 +42,6 @@ public class MSALAcquireTokenOperationParameters extends MSALOperationParameters
 
     public void setActivity(Activity mActivity) {
         this.mActivity = mActivity;
-    }
-
-    public List<String> getScopes() {
-        return mScopes;
-    }
-
-    public void setScopes(List<String> mScopes) {
-        this.mScopes = mScopes;
-    }
-
-    public User getUser() {
-        return mUser;
-    }
-
-    public void setUser(User mUser) {
-        this.mUser = mUser;
     }
 
     public UiBehavior getUIBehavior() {
@@ -104,35 +68,11 @@ public class MSALAcquireTokenOperationParameters extends MSALOperationParameters
         this.mExtraScopesToConsent = mExtraScopesToConsent;
     }
 
-    public String getClientId() {
-        return clientId;
+    public void setLoginHint(String loginHint) {
+        this.mLoginHint = loginHint;
     }
 
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
+    public String getLoginHint() {
+        return this.mLoginHint;
     }
-
-    public String getRedirectUri() {
-        return redirectUri;
-    }
-
-    public void setRedirectUri(String redirectUri) {
-        this.redirectUri = redirectUri;
-    }
-
-    public void setTokenCache(OAuth2TokenCache cache) {
-        this.mTokenCache = cache;
-    }
-
-    public OAuth2TokenCache getTokenCache() {
-        return mTokenCache;
-    }
-
-    public Authority getAuthority() {return mAuthority;}
-
-    public void setAuthority(Authority authority) { this.mAuthority = authority;}
-
-    public void setLoginHint(String loginHint) { this.mLoginHint = loginHint;}
-
-    public String getLoginHint(){return this.mLoginHint;}
 }

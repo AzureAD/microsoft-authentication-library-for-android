@@ -22,5 +22,77 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.controllers;
 
+import android.content.Context;
+
+import com.microsoft.identity.client.User;
+import com.microsoft.identity.client.authorities.Authority;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+
+import java.util.List;
+
 public class MSALOperationParameters {
+
+    private Context mAppContext;
+    private OAuth2TokenCache mTokenCache;
+    private List<String> mScopes;
+    private User mUser; // TODO this becomes an Account
+    private String clientId;
+    private String redirectUri;
+    private Authority mAuthority;
+
+    public Context getAppContext() {
+        return mAppContext;
+    }
+
+    public void setAppContext(Context mAppContext) {
+        this.mAppContext = mAppContext;
+    }
+
+    public List<String> getScopes() {
+        return mScopes;
+    }
+
+    public void setScopes(List<String> mScopes) {
+        this.mScopes = mScopes;
+    }
+
+    public User getUser() {
+        return mUser;
+    }
+
+    public void setUser(User mUser) {
+        this.mUser = mUser;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
+    public String getRedirectUri() {
+        return redirectUri;
+    }
+
+    public void setRedirectUri(String redirectUri) {
+        this.redirectUri = redirectUri;
+    }
+
+    public void setTokenCache(OAuth2TokenCache cache) {
+        this.mTokenCache = cache;
+    }
+
+    public OAuth2TokenCache getTokenCache() {
+        return mTokenCache;
+    }
+
+    public Authority getAuthority() {
+        return mAuthority;
+    }
+
+    public void setAuthority(Authority authority) {
+        this.mAuthority = authority;
+    }
 }
