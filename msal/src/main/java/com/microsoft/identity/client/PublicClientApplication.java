@@ -638,14 +638,17 @@ public final class PublicClientApplication {
      *                             3) All the other errors will be sent back via
      *                             {@link AuthenticationCallback#onError(MsalException)}.
      */
-    public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint, final UiBehavior uiBehavior,
-                             final String extraQueryParams, final String[] extraScopesToConsent, final String authority,
+    public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final String[] scopes,
+                             final String loginHint,
+                             final UiBehavior uiBehavior,
+                             final String extraQueryParams,
+                             final String[] extraScopesToConsent,
+                             final String authority,
                              @NonNull final AuthenticationCallback callback) {
-
         MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, loginHint, uiBehavior, extraQueryParams, extraScopesToConsent, authority);
         MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
         com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
-
     }
 
     /**
@@ -672,14 +675,18 @@ public final class PublicClientApplication {
      *                             3) All the other errors will be sent back via
      *                             {@link AuthenticationCallback#onError(MsalException)}.
      */
-    public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final User user, final UiBehavior uiBehavior,
-                             final String extraQueryParams, final String[] extraScopesToConsent, final String authority,
+    public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final String[] scopes,
+                             final User user,
+                             final UiBehavior uiBehavior,
+                             final String extraQueryParams,
+                             final String[] extraScopesToConsent,
+                             final String authority,
                              @NonNull final AuthenticationCallback callback) {
         /*
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, API_ID_ACQUIRE_WITH_USER_BEHAVIOR_PARAMETERS_AND_AUTHORITY);
         */
-
 
         MSALAcquireTokenOperationParameters params = new MSALAcquireTokenOperationParameters();
 
@@ -722,7 +729,8 @@ public final class PublicClientApplication {
      *                 Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
-    public void acquireTokenSilentAsync(@NonNull final String[] scopes, @NonNull final User user,
+    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
+                                        @NonNull final User user,
                                         @NonNull final AuthenticationCallback callback) {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER);
@@ -745,7 +753,9 @@ public final class PublicClientApplication {
      *                     Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
-    public void acquireTokenSilentAsync(@NonNull final String[] scopes, @NonNull final User user, final String authority,
+    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
+                                        @NonNull final User user,
+                                        final String authority,
                                         final boolean forceRefresh,
                                         @NonNull final AuthenticationCallback callback) {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
@@ -925,7 +935,9 @@ public final class PublicClientApplication {
         request.getToken(callback);
     }
 
-    private void acquireTokenSilent(final String[] scopes, final User user, final String authority,
+    private void acquireTokenSilent(final String[] scopes,
+                                    final User user,
+                                    final String authority,
                                     final boolean forceRefresh,
                                     final AuthenticationCallback callback,
                                     final String telemetryRequestId,
