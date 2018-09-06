@@ -64,9 +64,7 @@ import static com.microsoft.identity.client.EventConstants.ApiId.ACQUIRE_TOKEN_S
 import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE;
 import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_HINT;
 import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_AND_PARAMETERS;
-//import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_PARAMETERS_AND_AUTHORITY;
 import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_USER_BEHAVIOR_AND_PARAMETERS;
-//import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_USER_BEHAVIOR_PARAMETERS_AND_AUTHORITY;
 
 /**
  * <p>
@@ -286,30 +284,6 @@ public final class PublicClientApplication {
         mPublicClientConfiguration.getAuthorities().add(Authority.getAuthorityFromAuthorityUrl(authority));
     }
 
-    /*
-     * {@link PublicClientApplication#PublicClientApplication(Context, String, String)} allows the client id and authority to be passed instead of
-     * providing them through metadata.
-     *
-     * @param context   Application's {@link Context}. The sdk requires the application context to be passed in
-     *                  {@link PublicClientApplication}. Cannot be null.
-     *                  <p>
-     *                  Note: The {@link Context} should be the application context instead of an running activity's context, which could potentially make the sdk hold a
-     *                  strong reference to the activity, thus preventing correct garbage collection and causing bugs.
-     *                  </p>
-     * @param clientId  The application client id.
-     * @param authority The default authority to be used for the authority.
-     */
-    /*
-    public PublicClientApplication(@NonNull Configuration config) {
-        this(config.getContext(), config.getClientId());
-
-        if (MsalUtils.isEmpty(authority)) {
-            throw new IllegalArgumentException("authority is empty or null");
-        }
-
-        mAuthorityString = authority;
-    }
-    */
     private void initializeApplication() {
         // Init Events with defaults (application-wide)
         DefaultEvent.initializeDefaults(
@@ -324,7 +298,6 @@ public final class PublicClientApplication {
         checkInternetPermission();
         Logger.info(TAG, null, "Create new public client application.");
     }
-
 
     /**
      * @return The current version for the sdk.
@@ -1002,12 +975,10 @@ public final class PublicClientApplication {
                                                                                   final UiBehavior uiBehavior,
                                                                                   final String extraQueryParams,
                                                                                   final String[] extraScopesToConsent,
-                                                                                  final String authority
-                                                                                  ) {
-
+                                                                                  final String authority) {
         MSALAcquireTokenOperationParameters params = new MSALAcquireTokenOperationParameters();
 
-        String authorityString = StringUtil.isEmpty(authority) ?  mAuthorityString : authority;
+        String authorityString = StringUtil.isEmpty(authority) ? mAuthorityString : authority;
 
         Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authorityString);
         //TODO: Confirm that is a known authority immediately.
@@ -1024,12 +995,15 @@ public final class PublicClientApplication {
         params.setAuthority(authorityObject);
 
         return params;
-
     }
 
-    private AuthenticationRequestParameters getRequestParameters(final String authority, final String[] scopes,
-                                                                 final String loginHint, final String extraQueryParam,
-                                                                 final UiBehavior uiBehavior, final User user, final String telemetryRequestId) {
+    private AuthenticationRequestParameters getRequestParameters(final String authority,
+                                                                 final String[] scopes,
+                                                                 final String loginHint,
+                                                                 final String extraQueryParam,
+                                                                 final UiBehavior uiBehavior,
+                                                                 final User user,
+                                                                 final String telemetryRequestId) {
         final AuthorityMetadata authorityForRequest = MsalUtils.isEmpty(authority) ? AuthorityMetadata.createAuthority(mAuthorityString, mValidateAuthority)
                 : AuthorityMetadata.createAuthority(authority, mValidateAuthority);
 
