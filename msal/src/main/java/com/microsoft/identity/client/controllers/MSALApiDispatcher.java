@@ -25,6 +25,8 @@ package com.microsoft.identity.client;
 import android.content.Intent;
 import android.os.Handler;
 
+import com.microsoft.identity.client.controllers.AcquireTokenResult;
+import com.microsoft.identity.client.controllers.ExceptionAdapter;
 import com.microsoft.identity.client.controllers.MSALInteractiveTokenCommand;
 import com.microsoft.identity.client.controllers.MSALTokenCommand;
 
@@ -45,18 +47,64 @@ public class MSALApiDispatcher {
                 @Override
                 public void run() {
                     sCommand = command;
-                    final AuthenticationResult result = command.execute();
-                    Handler handler = new Handler(command.getContext().getMainLooper());
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            command.getCallback().onSuccess(result);
+                    AcquireTokenResult result = null;
+
+                    try {
+                        result = command.execute();
+                    }
+                    catch(Exception e){
+
+                        if(e instanceof MsalException){
+                            Handler handler = new Handler(command.getContext().getMainLooper());
+                            final MsalException msalException = (MsalException)e;
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    command.getCallback().onError(msalException);
+                                }
+                            });
                         }
-                    });
+
+                        //TODO: Map to MSALException Type
+                    }
+
+                    Handler handler = new Handler(command.getContext().getMainLooper());
+
+                    if(result.getSucceeded()){
+                        final AuthenticationResult authenticationResult = result.getAuthenticationResult();
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                command.getCallback().onSuccess(authenticationResult);
+                            }
+                        });
+                    }else{
+                        final MsalException msalException = ExceptionAdapter.exceptionFromAcquireTokenResult(result);
+                        if(msalException instanceof MsalUserCancelException){
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    command.getCallback().onCancel();
+                                }
+                            });
+                        }else {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    command.getCallback().onError(msalException);
+                                }
+                            });
+                        }
+                    }
+
+
+
+
                 }
             });
         }
     }
+
 
     public static void completeInteractive(int requestCode, int resultCode, final Intent data) {
         sCommand.notify(requestCode, resultCode, data);
@@ -66,14 +114,23 @@ public class MSALApiDispatcher {
         sSilentExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                final AuthenticationResult result = command.execute();
+
+                AcquireTokenResult result = null;
+                try {
+                    result = command.execute();
+                }catch(Exception e){
+                    e.printStackTrace();
+                }
                 Handler handler = new Handler(command.getContext().getMainLooper());
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        command.getCallback().onSuccess(result);
-                    }
-                });
+                if(result.getSucceeded()) {
+                    final AuthenticationResult authenticationResult = result.getAuthenticationResult();
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            command.getCallback().onSuccess(authenticationResult);
+                        }
+                    });
+                }
             }
         });
     }

@@ -22,17 +22,44 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.controllers;
 
-import android.content.Intent;
-
 import com.microsoft.identity.client.AuthenticationResult;
-import com.microsoft.identity.client.MsalClientException;
-import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
+import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
 
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
+public class AcquireTokenResult {
 
-public interface MSALTokenOperation {
-    public AcquireTokenResult execute() throws InterruptedException, ExecutionException, IOException, ClientException, MsalClientException;
+    private AuthenticationResult mAuthenticationResult;
+    private TokenResult mTokenResult;
+    private AuthorizationResult mAuthorizationResult;
+    private Boolean mSucceeded = false;
 
-    public void notify(int requestCode, int resultCode, final Intent data);
+    public void setAuthenticationResult(AuthenticationResult result){
+        this.mAuthenticationResult = result;
+        this.mSucceeded = true;
+    }
+
+    public AuthenticationResult getAuthenticationResult(){
+        return this.mAuthenticationResult;
+    }
+
+    public TokenResult getTokenResult() {
+        return mTokenResult;
+    }
+
+    public void setTokenResult(TokenResult tokenResult) {
+        this.mTokenResult = tokenResult;
+    }
+
+    public AuthorizationResult getAuthorizationResult() {
+        return mAuthorizationResult;
+    }
+
+    public void setAuthorizationResult(AuthorizationResult authorizationResult) {
+        this.mAuthorizationResult = authorizationResult;
+    }
+
+    public Boolean getSucceeded() {
+        return mSucceeded;
+    }
+
 }

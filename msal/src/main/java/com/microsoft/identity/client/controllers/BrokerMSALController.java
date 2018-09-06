@@ -29,7 +29,7 @@ import com.microsoft.identity.client.AuthenticationResult;
 public class BrokerMSALController extends MSALController {
 
     @Override
-    public AuthenticationResult acquireToken(MSALAcquireTokenOperationParameters request) {
+    public AcquireTokenResult acquireToken(MSALAcquireTokenOperationParameters request) {
         throw new UnsupportedOperationException();
     }
 
@@ -39,7 +39,7 @@ public class BrokerMSALController extends MSALController {
     }
 
     @Override
-    public AuthenticationResult acquireTokenSilent(MSALAcquireTokenSilentOperationParameters request) {
+    public AcquireTokenResult acquireTokenSilent(MSALAcquireTokenSilentOperationParameters request) {
         throw new UnsupportedOperationException();
     }
 }

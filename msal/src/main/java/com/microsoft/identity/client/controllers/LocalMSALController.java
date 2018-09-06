@@ -22,17 +22,16 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.controllers;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 
 import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.Logger;
+import com.microsoft.identity.client.MsalClientException;
 import com.microsoft.identity.common.exception.ClientException;
-import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
-import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAuthorizationRequest;
-import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
-import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
-import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationConfiguration;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResponse;
@@ -41,7 +40,6 @@ import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStat
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
-import com.microsoft.identity.common.internal.providers.oauth2.PkceChallenge;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
@@ -49,9 +47,6 @@ import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -64,28 +59,35 @@ public class LocalMSALController extends MSALController {
     private AuthorizationRequest mAuthorizationRequest = null;
 
     @Override
-    public AuthenticationResult acquireToken(MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException, ClientException {
+    public AcquireTokenResult acquireToken(MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException, ClientException, IOException, MsalClientException {
+
+        AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
 
         //1) Get oAuth2Strategy for Authority Type
         OAuth2Strategy oAuth2Strategy = parameters.getAuthority().createOAuth2Strategy();
 
         //2) Request authorization interactively
         AuthorizationResult result = performAuthorizationRequest(oAuth2Strategy, parameters);
+        acquireTokenResult.setAuthorizationResult(result);
 
         if (result.getAuthorizationStatus().equals(AuthorizationStatus.SUCCESS)) {
             //3) Exchange authorization code for token
             TokenResult tokenResult = performTokenRequest(oAuth2Strategy, mAuthorizationRequest, result.getAuthorizationResponse(), parameters);
+            acquireTokenResult.setTokenResult(tokenResult);
             if (tokenResult != null && tokenResult.getSuccess()) {
                 //4) Save tokens in token cache
-                ICacheRecord cacheRecord = saveTokens(oAuth2Strategy, getAuthorizationRequest(oAuth2Strategy, parameters), tokenResult.getTokenResponse(), parameters.getTokenCache());
-                return new AuthenticationResult(cacheRecord);
+                ICacheRecord cacheRecord = saveTokens(oAuth2Strategy, mAuthorizationRequest, tokenResult.getTokenResponse(), parameters.getTokenCache());
+                acquireTokenResult.setAuthenticationResult(new AuthenticationResult(cacheRecord));
             }
         }
 
-        throw new UnsupportedOperationException();
+        return acquireTokenResult;
+
     }
 
-    private AuthorizationResult performAuthorizationRequest(OAuth2Strategy strategy, MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException, ClientException {
+    private AuthorizationResult performAuthorizationRequest(OAuth2Strategy strategy, MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException, ClientException, MsalClientException {
+
+        throwIfNetworkNotAvailable(parameters.getAppContext());
 
         mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(parameters.getActivity(), AuthorizationConfiguration.getInstance());
         mAuthorizationRequest = getAuthorizationRequest(strategy, parameters);
@@ -119,33 +121,31 @@ public class LocalMSALController extends MSALController {
         return request;
     }
 
-    private TokenResult performTokenRequest(OAuth2Strategy strategy, AuthorizationRequest request, AuthorizationResponse response, MSALAcquireTokenOperationParameters parameters) {
+    private TokenResult performTokenRequest(OAuth2Strategy strategy, AuthorizationRequest request, AuthorizationResponse response, MSALAcquireTokenOperationParameters parameters) throws IOException, MsalClientException {
+
+        throwIfNetworkNotAvailable(parameters.getAppContext());
 
         TokenRequest tokenRequest = strategy.createTokenRequest(request, response);
         tokenRequest.setGrantType(TokenRequest.GrantTypes.AUTHORIZATION_CODE);
 
         TokenResult tokenResult = null;
 
-        try {
-            tokenResult = strategy.requestToken(tokenRequest);
-        } catch (IOException e) {
-            //TODO: Figure out exception handling
-        }
+        tokenResult = strategy.requestToken(tokenRequest);
 
         return tokenResult;
-
     }
 
-    private ICacheRecord saveTokens(OAuth2Strategy strategy, AuthorizationRequest request, TokenResponse tokenResponse, OAuth2TokenCache tokenCache){
-        try {
-            return tokenCache.save(strategy, request, tokenResponse);
-        } catch (ClientException e) {
-            //TODO: This is not ideal....
-            e.printStackTrace();
+    void throwIfNetworkNotAvailable(Context context) throws MsalClientException {
+        final ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        final NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        if (networkInfo == null || !networkInfo.isConnected()) {
+            throw new MsalClientException(MsalClientException.DEVICE_NETWORK_NOT_AVAILABLE, "Device network connection is not available.");
         }
-        return null;
     }
 
+    private ICacheRecord saveTokens(OAuth2Strategy strategy, AuthorizationRequest request, TokenResponse tokenResponse, OAuth2TokenCache tokenCache) throws ClientException {
+        return tokenCache.save(strategy, request, tokenResponse);
+    }
 
 
     @Override
@@ -154,7 +154,7 @@ public class LocalMSALController extends MSALController {
     }
 
     @Override
-    public AuthenticationResult acquireTokenSilent(MSALAcquireTokenSilentOperationParameters request) {
+    public AcquireTokenResult acquireTokenSilent(MSALAcquireTokenSilentOperationParameters request) {
         throw new UnsupportedOperationException();
     }
 }

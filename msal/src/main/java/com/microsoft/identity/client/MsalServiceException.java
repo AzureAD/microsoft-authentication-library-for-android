@@ -98,15 +98,15 @@ public final class MsalServiceException extends MsalException {
     /**
      * When {@link java.net.SocketTimeoutException} is thrown, no status code will be caught. Will use 0 instead.
      */
-    static final int DEFAULT_STATUS_CODE = 0;
+    public static final int DEFAULT_STATUS_CODE = 0;
 
-    MsalServiceException(final String errorCode, final String errorMessage, final Throwable throwable) {
+    public MsalServiceException(final String errorCode, final String errorMessage, final Throwable throwable) {
         super(errorCode, errorMessage, throwable);
 
         mHttpStatusCode = DEFAULT_STATUS_CODE;
     }
 
-    MsalServiceException(final String errorCode, final String errorMessage, final int httpStatusCode, final Throwable throwable) {
+    public MsalServiceException(final String errorCode, final String errorMessage, final int httpStatusCode, final Throwable throwable) {
         super(errorCode, errorMessage, throwable);
 
         mHttpStatusCode = httpStatusCode;
