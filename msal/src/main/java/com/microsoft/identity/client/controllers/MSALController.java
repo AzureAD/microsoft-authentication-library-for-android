@@ -25,16 +25,18 @@ package com.microsoft.identity.client.controllers;
 import android.content.Intent;
 
 import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.MsalClientException;
 import com.microsoft.identity.common.exception.ClientException;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 public abstract class MSALController {
 
-    public abstract AuthenticationResult acquireToken(MSALAcquireTokenOperationParameters request) throws ExecutionException, InterruptedException, ClientException;
+    public abstract AcquireTokenResult acquireToken(MSALAcquireTokenOperationParameters request) throws ExecutionException, InterruptedException, ClientException, IOException, MsalClientException;
 
     public abstract void completeAcquireToken(int requestCode, int resultCode, final Intent data);
 
-    public abstract AuthenticationResult acquireTokenSilent(MSALAcquireTokenSilentOperationParameters request);
+    public abstract AcquireTokenResult acquireTokenSilent(MSALAcquireTokenSilentOperationParameters request);
 
 }

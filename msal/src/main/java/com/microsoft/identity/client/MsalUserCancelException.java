@@ -26,9 +26,9 @@ package com.microsoft.identity.client;
 /**
  * MSAL internal exception for user cancelling the flow.
  */
-final class MsalUserCancelException extends Exception {
+final public class MsalUserCancelException extends MsalException {
 
-    MsalUserCancelException() {
+    public MsalUserCancelException() {
         super();
     }
 }

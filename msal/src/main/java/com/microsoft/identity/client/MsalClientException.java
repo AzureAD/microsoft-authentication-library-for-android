@@ -138,15 +138,15 @@ public final class MsalClientException extends MsalException {
      */
     static final String ADFS_AUTHORITY_VALIDATION_FAILED = "adfs_authority_validation_failed";
 
-    MsalClientException(final String errorCode) {
+    public MsalClientException(final String errorCode) {
         super(errorCode);
     }
 
-    MsalClientException(final String errorCode, final String errorMessage) {
+    public MsalClientException(final String errorCode, final String errorMessage) {
         super(errorCode, errorMessage);
     }
 
-    MsalClientException(final String errorCode, final String errorMessage, final Throwable throwable) {
+    public MsalClientException(final String errorCode, final String errorMessage, final Throwable throwable) {
         super(errorCode, errorMessage, throwable);
     }
 }
