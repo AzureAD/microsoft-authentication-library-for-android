@@ -35,6 +35,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.microsoft.identity.client.authorities.Authority;
 import com.microsoft.identity.client.authorities.AzureActiveDirectoryAudience;
+import com.microsoft.identity.client.controllers.LocalMSALController;
+import com.microsoft.identity.client.controllers.MSALAcquireTokenOperationParameters;
+import com.microsoft.identity.client.controllers.MSALInteractiveTokenCommand;
 import com.microsoft.identity.client.internal.configuration.AuthorityDeserializer;
 import com.microsoft.identity.client.internal.configuration.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
@@ -50,6 +53,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -60,9 +64,9 @@ import static com.microsoft.identity.client.EventConstants.ApiId.ACQUIRE_TOKEN_S
 import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE;
 import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_HINT;
 import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_AND_PARAMETERS;
-import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_PARAMETERS_AND_AUTHORITY;
+//import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_PARAMETERS_AND_AUTHORITY;
 import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_USER_BEHAVIOR_AND_PARAMETERS;
-import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_USER_BEHAVIOR_PARAMETERS_AND_AUTHORITY;
+//import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_USER_BEHAVIOR_PARAMETERS_AND_AUTHORITY;
 
 /**
  * <p>
@@ -515,8 +519,8 @@ public final class PublicClientApplication {
      * @param data        {@link Intent} either contains the url with auth code as query string or the errors.
      */
     public void handleInteractiveRequestRedirect(int requestCode, int resultCode, final Intent data) {
-        InteractiveRequest.onActivityResult(requestCode, resultCode, data);
-        //com.microsoft.identity.client.MSALApiDispatcher.CompleteInteractive(requestCode, resultCode, data);
+        //InteractiveRequest.onActivityResult(requestCode, resultCode, data);
+        com.microsoft.identity.client.MSALApiDispatcher.completeInteractive(requestCode, resultCode, data);
     }
 
     // Interactive APIs. Will launch the system browser with web UI.
@@ -542,26 +546,6 @@ public final class PublicClientApplication {
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, @NonNull final AuthenticationCallback callback) {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, API_ID_ACQUIRE);
-
-
-        /*
-        MSALAcquireTokenOperationParameters params = new MSALAcquireTokenOperationParameters();
-
-        params.setScopes(Arrays.asList(scopes));
-        params.setClientId(mClientId);
-        params.setRedirectUri(mRedirectUri);
-        params.setActivity(activity);
-        params.setTokenCache(TokenCache.initCommonCache(mAppContext));
-
-        MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand();
-        command.setContext(mAppContext);
-        command.setCallback(callback);
-        command.setParameters(params);
-        command.setController(new LocalMSALController());
-
-        com.microsoft.identity.client.MSALApiDispatcher.BeginInteractive(command);
-        */
-
 
         acquireTokenInteractive(activity, scopes, "", UiBehavior.SELECT_ACCOUNT, "", null, "", null, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), telemetryRequestId, apiEventBuilder);
     }
@@ -684,11 +668,11 @@ public final class PublicClientApplication {
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint, final UiBehavior uiBehavior,
                              final String extraQueryParams, final String[] extraScopesToConsent, final String authority,
                              @NonNull final AuthenticationCallback callback) {
-        final String telemetryRequestId = Telemetry.generateNewRequestId();
-        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_PARAMETERS_AND_AUTHORITY);
 
-        acquireTokenInteractive(activity, scopes, loginHint, uiBehavior == null ? UiBehavior.SELECT_ACCOUNT : uiBehavior,
-                extraQueryParams, extraScopesToConsent, authority, null, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), telemetryRequestId, apiEventBuilder);
+        MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, loginHint, uiBehavior, extraQueryParams, extraScopesToConsent, authority);
+        MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
+        com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
+
     }
 
     /**
@@ -718,11 +702,36 @@ public final class PublicClientApplication {
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final User user, final UiBehavior uiBehavior,
                              final String extraQueryParams, final String[] extraScopesToConsent, final String authority,
                              @NonNull final AuthenticationCallback callback) {
+        /*
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, API_ID_ACQUIRE_WITH_USER_BEHAVIOR_PARAMETERS_AND_AUTHORITY);
+        */
 
+
+        MSALAcquireTokenOperationParameters params = new MSALAcquireTokenOperationParameters();
+
+        Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority);
+        //TODO: Confirm that is a known authority immediately.
+
+        params.setScopes(Arrays.asList(scopes));
+        params.setClientId(mClientId);
+        params.setRedirectUri(mRedirectUri);
+        params.setActivity(activity);
+        params.setTokenCache(mOauth2TokenCache);
+        params.setExtraQueryStringParameters(extraQueryParams);
+        params.setExtraScopesToConsent(Arrays.asList(extraScopesToConsent));
+        params.setUIBehavior(uiBehavior);
+        params.setAuthority(authorityObject);
+
+        MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
+
+        com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
+
+        /*
         acquireTokenInteractive(activity, scopes, "", uiBehavior == null ? UiBehavior.SELECT_ACCOUNT : uiBehavior, extraQueryParams, extraScopesToConsent,
                 authority, user, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), telemetryRequestId, apiEventBuilder);
+        */
+
     }
 
     // Silent call APIs.
@@ -985,6 +994,37 @@ public final class PublicClientApplication {
                 new com.microsoft.identity.common.internal.logging.RequestContext();
         rc.put(AuthenticationConstants.AAD.CORRELATION_ID, correlationIdStr);
         DiagnosticContext.setRequestContext(rc);
+    }
+
+    private MSALAcquireTokenOperationParameters getInteractiveOperationParameters(@NonNull final Activity activity,
+                                                                                  @NonNull final String[] scopes,
+                                                                                  final String loginHint,
+                                                                                  final UiBehavior uiBehavior,
+                                                                                  final String extraQueryParams,
+                                                                                  final String[] extraScopesToConsent,
+                                                                                  final String authority
+                                                                                  ) {
+
+        MSALAcquireTokenOperationParameters params = new MSALAcquireTokenOperationParameters();
+
+        String authorityString = StringUtil.isEmpty(authority) ?  mAuthorityString : authority;
+
+        Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authorityString);
+        //TODO: Confirm that is a known authority immediately.
+
+        params.setScopes(Arrays.asList(scopes));
+        params.setClientId(mClientId);
+        params.setRedirectUri(mRedirectUri);
+        params.setActivity(activity);
+        params.setLoginHint(loginHint);
+        params.setTokenCache(mOauth2TokenCache);
+        params.setExtraQueryStringParameters(extraQueryParams);
+        params.setExtraScopesToConsent(Arrays.asList(extraScopesToConsent));
+        params.setUIBehavior(uiBehavior);
+        params.setAuthority(authorityObject);
+
+        return params;
+
     }
 
     private AuthenticationRequestParameters getRequestParameters(final String authority, final String[] scopes,

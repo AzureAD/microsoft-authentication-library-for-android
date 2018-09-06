@@ -153,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         if (mApplication == null) {
-            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
+            mApplication = new PublicClientApplication(this.getApplicationContext());
         }
 
     }
@@ -170,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (mAuthResult != null) {
                 bundle.putString(ResultFragment.ACCESS_TOKEN, mAuthResult.getAccessToken());
                 bundle.putString(ResultFragment.ID_TOKEN, mAuthResult.getIdToken());
-                bundle.putString(ResultFragment.DISPLAYABLE, mAuthResult.getUser().getDisplayableId());
+                bundle.putString(ResultFragment.DISPLAYABLE, mAuthResult.getAccount().getUsername());
             }
 
             fragment.setArguments(bundle);

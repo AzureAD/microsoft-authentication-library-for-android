@@ -23,8 +23,14 @@
 
 package com.microsoft.identity.client;
 
+import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.internal.dto.AccessToken;
+import com.microsoft.identity.common.internal.dto.Account;
+import com.microsoft.identity.common.internal.dto.IdToken;
+
 import java.util.Date;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * MSAL successful authentication result. When auth succeeds, token will be wrapped into the
@@ -32,17 +38,31 @@ import java.util.Set;
  */
 public final class AuthenticationResult {
 
+    //Fields for Legacy Cache
     private final AccessTokenCacheItem mAccessTokenCacheItem;
     private final User mUser;
     private final String mTenantId;
     private final String mRawIdToken;
     private final String mUniqueId;
 
+    //Fields for new Cache Record
+    private final ICacheRecord mCacheRecord;
+    private final AccessToken mAccessToken;
+    private final IdToken mIdToken;
+    private final Account mAccount;
+
+
     AuthenticationResult(final AccessTokenCacheItem accessTokenCacheItem) throws MsalClientException {
+
+        mCacheRecord = null;
+        mAccessToken = null;
+        mIdToken = null;
+        mAccount = null;
+
         mAccessTokenCacheItem = accessTokenCacheItem;
         mUser = accessTokenCacheItem.getUser();
         mRawIdToken = accessTokenCacheItem.getRawIdToken();
-        final IdToken idToken = accessTokenCacheItem.getIdToken();
+        final com.microsoft.identity.client.IdToken idToken = accessTokenCacheItem.getIdToken();
         if (idToken != null) {
             mTenantId = idToken.getTenantId();
             mUniqueId = idToken.getUniqueId();
@@ -52,11 +72,25 @@ public final class AuthenticationResult {
         }
     }
 
+    public AuthenticationResult(final ICacheRecord cacheRecord) {
+
+        mAccessTokenCacheItem = null;
+        mUser = null;
+
+        mCacheRecord = cacheRecord;
+        mAccessToken = mCacheRecord.getAccessToken();
+        mIdToken = cacheRecord.getIdToken();
+        mTenantId = cacheRecord.getAccount().getRealm();
+        mUniqueId = cacheRecord.getAccount().getHomeAccountId();
+        mRawIdToken = cacheRecord.getIdToken().getSecret();
+        mAccount = cacheRecord.getAccount();
+    }
+
     /**
      * @return The access token requested.
      */
     public String getAccessToken() {
-        return mAccessTokenCacheItem.getAccessToken();
+        return null != mAccessTokenCacheItem ? mAccessTokenCacheItem.getAccessToken() : mAccessToken.getSecret();
     }
 
     /**
@@ -65,7 +99,21 @@ public final class AuthenticationResult {
      * service.
      */
     public Date getExpiresOn() {
-        return mAccessTokenCacheItem.getExpiresOn();
+        final Date expiresOn;
+
+        if (null != mAccessTokenCacheItem) {
+            expiresOn = mAccessTokenCacheItem.getExpiresOn();
+        } else {
+            expiresOn = new Date(
+                    TimeUnit.SECONDS.toMillis(
+                            Long.parseLong(
+                                    mAccessToken.getExpiresOn()
+                            )
+                    )
+            );
+        }
+
+        return expiresOn;
     }
 
     /**
@@ -88,6 +136,15 @@ public final class AuthenticationResult {
      */
     public String getIdToken() {
         return mRawIdToken;
+    }
+
+    /**
+     * Gets the Account.
+     *
+     * @return The Account to get.
+     */
+    public Account getAccount() {
+        return mAccount;
     }
 
     /**

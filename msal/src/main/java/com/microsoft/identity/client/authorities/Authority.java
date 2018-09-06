@@ -25,6 +25,7 @@ package com.microsoft.identity.client.authorities;
 import android.net.Uri;
 
 import com.google.gson.annotations.SerializedName;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -48,6 +49,8 @@ public abstract class Authority {
     protected String mAuthorityUrl;
 
     public abstract Uri getAuthorityUri();
+
+    public abstract URL getAuthorityURL();
 
     /**
      * Returns an Authority based on an authority url.  This method attempts to parse the URL and based on the contents of it
@@ -94,6 +97,8 @@ public abstract class Authority {
 
         return authority;
     }
+
+    public abstract OAuth2Strategy createOAuth2Strategy();
 
     /**
      * Indicates whether the authority is known to Microsoft or not.  Microsoft can recognize authorities that exist within public clouds.  Microsoft does

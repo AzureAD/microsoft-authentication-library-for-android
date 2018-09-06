@@ -27,6 +27,8 @@ import android.content.Intent;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
@@ -38,8 +40,10 @@ import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResu
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStatus;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.oauth2.PkceChallenge;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenRequest;
+import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
 import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
 import com.microsoft.identity.common.internal.util.StringUtil;
@@ -48,6 +52,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -55,23 +61,24 @@ import java.util.concurrent.Future;
 public class LocalMSALController extends MSALController {
 
     private AuthorizationStrategy mAuthorizationStrategy = null;
+    private AuthorizationRequest mAuthorizationRequest = null;
 
     @Override
     public AuthenticationResult acquireToken(MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException, ClientException {
 
+        //1) Get oAuth2Strategy for Authority Type
+        OAuth2Strategy oAuth2Strategy = parameters.getAuthority().createOAuth2Strategy();
 
-        //1) TODO: Use factory to get applicable oAuth and Authorization strategies
-        OAuth2Strategy oAuth2Strategy = new MicrosoftStsOAuth2Strategy(new MicrosoftStsOAuth2Configuration());
-
-        //2) Gather authorization interactively
+        //2) Request authorization interactively
         AuthorizationResult result = performAuthorizationRequest(oAuth2Strategy, parameters);
 
         if (result.getAuthorizationStatus().equals(AuthorizationStatus.SUCCESS)) {
             //3) Exchange authorization code for token
-            TokenResult tokenResult = performTokenRequest(oAuth2Strategy, result.getAuthorizationResponse(), parameters);
+            TokenResult tokenResult = performTokenRequest(oAuth2Strategy, mAuthorizationRequest, result.getAuthorizationResponse(), parameters);
             if (tokenResult != null && tokenResult.getSuccess()) {
                 //4) Save tokens in token cache
-                //saveTokens(oAuth2Strategy, getAuthorizationRequest(oAuth2Strategy, parameters), tokenResult.getTokenResponse(), parameters.getTokenCache());
+                ICacheRecord cacheRecord = saveTokens(oAuth2Strategy, getAuthorizationRequest(oAuth2Strategy, parameters), tokenResult.getTokenResponse(), parameters.getTokenCache());
+                return new AuthenticationResult(cacheRecord);
             }
         }
 
@@ -80,10 +87,10 @@ public class LocalMSALController extends MSALController {
 
     private AuthorizationResult performAuthorizationRequest(OAuth2Strategy strategy, MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException, ClientException {
 
-        //TODO: Replace with factory to create the correct Authorization Strategy based on device capabilities and configuration
         mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(parameters.getActivity(), AuthorizationConfiguration.getInstance());
+        mAuthorizationRequest = getAuthorizationRequest(strategy, parameters);
 
-        Future<AuthorizationResult> future = strategy.requestAuthorization(getAuthorizationRequest(parameters), mAuthorizationStrategy);
+        Future<AuthorizationResult> future = strategy.requestAuthorization(mAuthorizationRequest, mAuthorizationStrategy);
 
         //We could implement Timeout Here if we wish instead of blocking indefinitely
         //future.get(10, TimeUnit.MINUTES);  // Need to handle timeout exception in the scenario it doesn't return within a reasonable amount of time
@@ -93,33 +100,28 @@ public class LocalMSALController extends MSALController {
 
     }
 
-    private AuthorizationRequest getAuthorizationRequest(MSALAcquireTokenOperationParameters parameters) throws ClientException {
-        try {
-            MicrosoftStsAuthorizationRequest.Builder builder = new MicrosoftStsAuthorizationRequest.Builder<>(
-                    parameters.getClientId(),
-                    parameters.getRedirectUri(),
-                    new URL(parameters.getAuthority()),
-                    StringUtil.join(' ', parameters.getScopes()),
-                    null,
-                    PkceChallenge.newPkceChallenge(),
-                    MicrosoftAuthorizationRequest.generateEncodedState());
+    private AuthorizationRequest getAuthorizationRequest(OAuth2Strategy strategy, MSALAcquireTokenOperationParameters parameters) {
 
-            return builder.build();
-        } catch (final UnsupportedEncodingException exception) {
-            throw new ClientException(ErrorStrings.UNSUPPORTED_ENCODING, exception.getMessage(), exception);
-        } catch (final MalformedURLException exception) {
-            throw new IllegalArgumentException("Malformed updated authority Url", exception);
-        }
+        AuthorizationRequest.Builder builder = strategy.createAuthorizationRequestBuilder();
+
+        List<String> msalScopes = new ArrayList<>();
+        msalScopes.add("openid");
+        msalScopes.add("profile");
+        msalScopes.add("offline_access");
+        msalScopes.addAll(parameters.getScopes());
+
+        AuthorizationRequest request = builder
+                .setClientId(parameters.getClientId())
+                .setRedirectUri(parameters.getRedirectUri())
+                .setScope(StringUtil.join(' ', msalScopes))
+                .build();
+
+        return request;
     }
 
-    private TokenResult performTokenRequest(OAuth2Strategy strategy, AuthorizationResponse response, MSALAcquireTokenOperationParameters parameters) {
+    private TokenResult performTokenRequest(OAuth2Strategy strategy, AuthorizationRequest request, AuthorizationResponse response, MSALAcquireTokenOperationParameters parameters) {
 
-        TokenRequest tokenRequest = new TokenRequest();
-
-        tokenRequest.setCode(response.getCode());
-        tokenRequest.setClientId(parameters.getClientId());
-        tokenRequest.setRedirectUri(parameters.getRedirectUri());
-        tokenRequest.setScope(StringUtil.join(' ', parameters.getScopes()));
+        TokenRequest tokenRequest = strategy.createTokenRequest(request, response);
         tokenRequest.setGrantType(TokenRequest.GrantTypes.AUTHORIZATION_CODE);
 
         TokenResult tokenResult = null;
@@ -134,15 +136,16 @@ public class LocalMSALController extends MSALController {
 
     }
 
-/*
-    private void saveTokens(OAuth2Strategy strategy, AuthorizationRequest request, TokenResponse tokenResponse, MsalOAuth2TokenCache tokenCache){
+    private ICacheRecord saveTokens(OAuth2Strategy strategy, AuthorizationRequest request, TokenResponse tokenResponse, OAuth2TokenCache tokenCache){
         try {
-            tokencCache.saveTokens(mOAuthStrategy, authRequest, tokenResult.getTokenResponse());
+            return tokenCache.save(strategy, request, tokenResponse);
         } catch (ClientException e) {
+            //TODO: This is not ideal....
             e.printStackTrace();
         }
+        return null;
     }
-*/
+
 
 
     @Override
