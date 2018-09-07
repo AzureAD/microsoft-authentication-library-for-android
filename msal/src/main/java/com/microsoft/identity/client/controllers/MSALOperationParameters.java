@@ -24,6 +24,7 @@ package com.microsoft.identity.client.controllers;
 
 import android.content.Context;
 
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.User;
 import com.microsoft.identity.client.authorities.Authority;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
@@ -35,6 +36,7 @@ public class MSALOperationParameters {
     private Context mAppContext;
     private OAuth2TokenCache mTokenCache;
     private List<String> mScopes;
+    private IAccount mAccount;
     private User mUser; // TODO this becomes an Account
     private String clientId;
     private String redirectUri;
@@ -94,5 +96,13 @@ public class MSALOperationParameters {
 
     public void setAuthority(Authority authority) {
         this.mAuthority = authority;
+    }
+
+    public void setAccount(final IAccount account) {
+        mAccount = account;
+    }
+
+    public IAccount getAccount() {
+        return mAccount;
     }
 }

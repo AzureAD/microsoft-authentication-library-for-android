@@ -797,7 +797,8 @@ public final class PublicClientApplication {
 
         final MSALAcquireTokenSilentOperationParameters params = getSilentOperationParameters(
                 scopes,
-                requestAuthority
+                requestAuthority,
+                account
         );
 
         final MSALTokenCommand silentTokenCommand = new MSALTokenCommand(
@@ -811,7 +812,8 @@ public final class PublicClientApplication {
     }
 
     private MSALAcquireTokenSilentOperationParameters getSilentOperationParameters(final String[] scopes,
-                                                                                   final String authorityStr) {
+                                                                                   final String authorityStr,
+                                                                                   final IAccount account) {
         final MSALAcquireTokenSilentOperationParameters parameters = new MSALAcquireTokenSilentOperationParameters();
 
         Authority authority = Authority.getAuthorityFromAuthorityUrl(authorityStr);
@@ -822,6 +824,7 @@ public final class PublicClientApplication {
         parameters.setClientId(mClientId);
         parameters.setTokenCache(mOauth2TokenCache);
         parameters.setAuthority(authority);
+        parameters.setAccount(account);
 
         return parameters;
     }

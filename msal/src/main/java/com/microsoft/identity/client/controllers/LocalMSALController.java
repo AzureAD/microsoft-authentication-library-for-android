@@ -31,6 +31,7 @@ import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.MsalClientException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.internal.dto.Account;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationConfiguration;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResponse;
@@ -166,9 +167,43 @@ public class LocalMSALController extends MSALController {
     public AcquireTokenResult acquireTokenSilent(
             final MSALAcquireTokenSilentOperationParameters parameters)
             throws MsalClientException {
-        throwIfNetworkNotAvailable(parameters.getAppContext());
-
+        final AcquireTokenResult acquireTokenSilentResult = new AcquireTokenResult();
         final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy();
-        throw new UnsupportedOperationException();
+
+        final OAuth2TokenCache tokenCache = parameters.getTokenCache();
+
+        final String environment = parameters.getAuthority().getAuthorityURL().getHost();
+        final String clientId = parameters.getClientId();
+        final String homeAccountId =
+                parameters
+                        .getAccount()
+                        .getHomeAccountIdentifier()
+                        .getIdentifier();
+
+        final Account targetAccount = tokenCache.getAccount(
+                environment,
+                clientId,
+                homeAccountId
+        );
+
+        final ICacheRecord cacheRecord = tokenCache.load(clientId, targetAccount);
+
+        // TODO check tokens aren't stale, scopes are matching, fun stuff like that
+        
+
+        acquireTokenSilentResult.setAuthenticationResult(new AuthenticationResult(cacheRecord));
+
+        final TokenResult tokenResult = performSilentTokenRequest(strategy, parameters);
+        acquireTokenSilentResult.setTokenResult(tokenResult);
+
+        return acquireTokenSilentResult;
+    }
+
+    private TokenResult performSilentTokenRequest(final OAuth2Strategy strategy,
+                                                  final MSALAcquireTokenSilentOperationParameters parameters) {
+        final TokenRequest request = new TokenRequest();
+        request.setGrantType(TokenRequest.GrantTypes.REFRESH_TOKEN);
+
+        return null;
     }
 }
