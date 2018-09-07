@@ -26,9 +26,10 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.microsoft.identity.client.AuthenticationCallback;
-import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.MsalClientException;
 import com.microsoft.identity.common.exception.ClientException;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 public class MSALInteractiveTokenCommand extends MSALTokenCommand {
@@ -45,24 +46,9 @@ public class MSALInteractiveTokenCommand extends MSALTokenCommand {
     }
 
     @Override
-    public AuthenticationResult execute() {
+    public AcquireTokenResult execute() throws InterruptedException, ExecutionException, IOException, ClientException, MsalClientException {
         if (getParameters() instanceof MSALAcquireTokenOperationParameters) {
-            AuthenticationResult result = null;
-
-            try {
-                result = getController().acquireToken((MSALAcquireTokenOperationParameters) getParameters());
-            } catch (ExecutionException e) {
-                //TODO: complete implementation
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                //TODO: complete implementation
-                e.printStackTrace();
-            } catch (ClientException e) {
-                //TODO: complete implementation
-                e.printStackTrace();
-            }
-
-            return result;
+            return getController().acquireToken((MSALAcquireTokenOperationParameters) getParameters());
         } else {
             throw new IllegalArgumentException("Invalid operation parameters");
         }

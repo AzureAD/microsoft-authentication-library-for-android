@@ -1022,6 +1022,7 @@ public final class PublicClientApplication {
         params.setExtraScopesToConsent(Arrays.asList(extraScopesToConsent));
         params.setUIBehavior(uiBehavior);
         params.setAuthority(authorityObject);
+        params.setAppContext(mAppContext);
 
         return params;
 

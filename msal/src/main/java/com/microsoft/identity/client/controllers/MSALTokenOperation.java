@@ -24,10 +24,14 @@ package com.microsoft.identity.client.controllers;
 
 import android.content.Intent;
 
-import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.MsalClientException;
+import com.microsoft.identity.common.exception.ClientException;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 public interface MSALTokenOperation {
-    public AuthenticationResult execute();
+    public AcquireTokenResult execute() throws InterruptedException, ExecutionException, IOException, ClientException, MsalClientException;
 
     public void notify(int requestCode, int resultCode, final Intent data);
 }
