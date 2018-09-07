@@ -49,7 +49,6 @@ public class AzureActiveDirectoryAuthority extends Authority {
     private AzureActiveDirectoryCloud mAzureActiveDirectoryCloud;
 
     private void getAzureActiveDirectoryCloud() {
-
         AzureActiveDirectoryCloud cloud = null;
 
         try {

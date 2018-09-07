@@ -40,7 +40,7 @@ import com.microsoft.identity.client.controllers.LocalMSALController;
 import com.microsoft.identity.client.controllers.MSALAcquireTokenOperationParameters;
 import com.microsoft.identity.client.controllers.MSALAcquireTokenSilentOperationParameters;
 import com.microsoft.identity.client.controllers.MSALInteractiveTokenCommand;
-import com.microsoft.identity.client.controllers.MSALSilentTokenCommand;
+import com.microsoft.identity.client.controllers.MSALTokenCommand;
 import com.microsoft.identity.client.internal.configuration.AuthorityDeserializer;
 import com.microsoft.identity.client.internal.configuration.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
@@ -792,10 +792,7 @@ public final class PublicClientApplication {
         String requestAuthority = authority;
 
         if (StringUtil.isEmpty(requestAuthority)) {
-            // TODO Do I use the List<Authority> from the config?
-            // Do I use the authority of the Account?
-            // Use the local_account_id portion of the tenant
-            requestAuthority = "";
+            requestAuthority = Authority.getAuthorityFromAccount(account);
         }
 
         final MSALAcquireTokenSilentOperationParameters params = getSilentOperationParameters(
@@ -803,7 +800,7 @@ public final class PublicClientApplication {
                 requestAuthority
         );
 
-        final MSALSilentTokenCommand silentTokenCommand = new MSALSilentTokenCommand(
+        final MSALTokenCommand silentTokenCommand = new MSALTokenCommand(
                 mAppContext,
                 params,
                 new LocalMSALController(),
@@ -820,6 +817,7 @@ public final class PublicClientApplication {
         Authority authority = Authority.getAuthorityFromAuthorityUrl(authorityStr);
         // TODO Confirm that it is a known authority?
 
+        parameters.setAppContext(mAppContext);
         parameters.setScopes(Arrays.asList(scopes));
         parameters.setClientId(mClientId);
         parameters.setTokenCache(mOauth2TokenCache);
@@ -1057,7 +1055,7 @@ public final class PublicClientApplication {
                                                                                   final String extraQueryParams,
                                                                                   final String[] extraScopesToConsent,
                                                                                   final String authority) {
-        MSALAcquireTokenOperationParameters params = new MSALAcquireTokenOperationParameters();
+        final MSALAcquireTokenOperationParameters params = new MSALAcquireTokenOperationParameters();
 
         String authorityString = StringUtil.isEmpty(authority) ? mAuthorityString : authority;
 

@@ -25,6 +25,7 @@ package com.microsoft.identity.client.authorities;
 import android.net.Uri;
 
 import com.google.gson.annotations.SerializedName;
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 
 import java.net.MalformedURLException;
@@ -61,7 +62,6 @@ public abstract class Authority {
      * @throws MalformedURLException
      */
     public static Authority getAuthorityFromAuthorityUrl(String authorityUrl) {
-
         URL authUrl;
 
         try {
@@ -90,7 +90,10 @@ public abstract class Authority {
                 authority = new AzureActiveDirectoryB2CAuthority(authorityUrl);
                 break;
             default:
-                AzureActiveDirectoryAudience audience = AzureActiveDirectoryAudience.getAzureActiveDirectoryAudience(authorityUri.getAuthority(), pathSegments.get(0));
+                AzureActiveDirectoryAudience audience = AzureActiveDirectoryAudience.getAzureActiveDirectoryAudience(
+                        authorityUri.getScheme() + "://" + authorityUri.getHost(),
+                        pathSegments.get(0)
+                );
                 authority = new AzureActiveDirectoryAuthority(audience);
                 break;
         }
@@ -123,4 +126,9 @@ public abstract class Authority {
         return mKnownToDeveloper;
     }
 
+    public static String getAuthorityFromAccount(final IAccount account) {
+        return "https://login.microsoftonline.com/"
+                + account.getAccountIdentifier().getIdentifier()
+                + "/";
+    }
 }

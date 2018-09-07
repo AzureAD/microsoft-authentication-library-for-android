@@ -38,8 +38,7 @@ import java.io.IOException;
 
 public class ExceptionAdapter {
 
-    public static MsalException exceptionFromAcquireTokenResult(AcquireTokenResult result) {
-
+    public static MsalException exceptionFromAcquireTokenResult(final AcquireTokenResult result) {
         final AuthorizationResult authorizationResult = result.getAuthorizationResult();
         final AuthorizationErrorResponse authorizationErrorResponse = authorizationResult.getAuthorizationErrorResponse();
         final TokenResult tokenResult = result.getTokenResult();
@@ -74,7 +73,7 @@ public class ExceptionAdapter {
         return null;
     }
 
-    public static MsalException msalExceptionFromException(Exception e) {
+    public static MsalException msalExceptionFromException(final Exception e) {
 
         MsalException msalException = null;
 

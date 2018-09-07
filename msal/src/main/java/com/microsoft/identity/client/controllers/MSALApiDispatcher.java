@@ -41,7 +41,6 @@ public class MSALApiDispatcher {
     private static MSALInteractiveTokenCommand sCommand = null;
 
     public static void beginInteractive(final MSALInteractiveTokenCommand command) {
-
         synchronized (sLock) {
             sInteractiveExecutor.execute(new Runnable() {
                 @Override
@@ -74,7 +73,7 @@ public class MSALApiDispatcher {
                             }
                         });
                     } else {
-                        if (result.getSucceeded()) {
+                        if (null != result && result.getSucceeded()) {
                             //Post Success
                             final AuthenticationResult authenticationResult = result.getAuthenticationResult();
                             handler.post(new Runnable() {
@@ -120,14 +119,16 @@ public class MSALApiDispatcher {
         sSilentExecutor.execute(new Runnable() {
             @Override
             public void run() {
-
                 AcquireTokenResult result = null;
+
                 try {
                     result = command.execute();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
                 Handler handler = new Handler(command.getContext().getMainLooper());
+
                 if (result.getSucceeded()) {
                     final AuthenticationResult authenticationResult = result.getAuthenticationResult();
                     handler.post(new Runnable() {

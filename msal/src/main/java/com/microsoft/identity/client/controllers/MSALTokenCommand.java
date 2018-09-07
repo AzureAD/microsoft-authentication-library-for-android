@@ -24,6 +24,7 @@ package com.microsoft.identity.client.controllers;
 
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.MsalClientException;
@@ -43,7 +44,10 @@ public class MSALTokenCommand implements MSALTokenOperation {
     public MSALTokenCommand() {
     }
 
-    public MSALTokenCommand(Context context, MSALOperationParameters parameters, MSALController controller, AuthenticationCallback callback) {
+    public MSALTokenCommand(@NonNull final Context context,
+                            @NonNull final MSALOperationParameters parameters,
+                            @NonNull final MSALController controller,
+                            @NonNull final AuthenticationCallback callback) {
         mContext = context;
         mParameters = parameters;
         mController = controller;
