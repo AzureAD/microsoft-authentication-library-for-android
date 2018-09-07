@@ -133,6 +133,11 @@ public final class MsalClientException extends MsalException {
     public static final String DUPLICATE_QUERY_PARAMETER = "duplicate_query_parameter";
 
     /**
+     * Extra query parameters set by the client app is already sent by the sdk.
+     */
+    public static final String UNKNOWN_ERROR = "unknown_error";
+
+    /**
      * Temporary non-exposed error code to indicate that ADFS authority validation fails. ADFS as authority is not supported
      * for preview.
      */

@@ -28,7 +28,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
 import com.microsoft.identity.client.AuthenticationResult;
-import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.MsalClientException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
@@ -85,7 +84,7 @@ public class LocalMSALController extends MSALController {
 
     }
 
-    private AuthorizationResult performAuthorizationRequest(OAuth2Strategy strategy, MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException, ClientException, MsalClientException {
+    private AuthorizationResult performAuthorizationRequest(OAuth2Strategy strategy, MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException, MsalClientException {
 
         throwIfNetworkNotAvailable(parameters.getAppContext());
 

@@ -22,26 +22,30 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.controllers;
 
+import com.microsoft.identity.client.MsalClientException;
 import com.microsoft.identity.client.MsalException;
 import com.microsoft.identity.client.MsalServiceException;
 import com.microsoft.identity.client.MsalUiRequiredException;
 import com.microsoft.identity.client.MsalUserCancelException;
+import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationErrorResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenErrorResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
+import java.io.IOException;
+
 public class ExceptionAdapter {
 
-    public static MsalException exceptionFromAcquireTokenResult(AcquireTokenResult result){
+    public static MsalException exceptionFromAcquireTokenResult(AcquireTokenResult result) {
 
         final AuthorizationResult authorizationResult = result.getAuthorizationResult();
         final AuthorizationErrorResponse authorizationErrorResponse = authorizationResult.getAuthorizationErrorResponse();
         final TokenResult tokenResult = result.getTokenResult();
         final TokenErrorResponse tokenErrorResponse;
 
-        if(!authorizationResult.getSuccess()){
+        if (!authorizationResult.getSuccess()) {
             //THERE ARE CURRENTLY NO USAGES of INVALID_REQUEST
             switch (result.getAuthorizationResult().getAuthorizationStatus()) {
                 case FAIL:
@@ -51,16 +55,16 @@ public class ExceptionAdapter {
                     return new MsalUserCancelException();
 
             }
-
         }
 
-        if(!result.getTokenResult().getSuccess()){
+        if (!result.getTokenResult().getSuccess()) {
+
             tokenErrorResponse = tokenResult.getErrorResponse();
-            if(tokenErrorResponse.getError().equalsIgnoreCase(MsalUiRequiredException.INVALID_GRANT)){
+            if (tokenErrorResponse.getError().equalsIgnoreCase(MsalUiRequiredException.INVALID_GRANT)) {
                 return new MsalUiRequiredException(tokenErrorResponse.getError(), tokenErrorResponse.getErrorDescription(), null);
             }
 
-            if(StringUtil.isEmpty(tokenErrorResponse.getError())){
+            if (StringUtil.isEmpty(tokenErrorResponse.getError())) {
                 return new MsalServiceException(MsalServiceException.UNKNOWN_ERROR, "Request failed, but no error returned back from service.", null);
             }
 
@@ -68,6 +72,26 @@ public class ExceptionAdapter {
         }
 
         return null;
+    }
+
+    public static MsalException msalExceptionFromException(Exception e) {
+
+        MsalException msalException = null;
+
+        if (e instanceof IOException) {
+            msalException = new MsalClientException(MsalClientException.IO_ERROR, "An IO error occurred with message: " + e.getMessage(), e);
+        }
+
+        if (e instanceof ClientException) {
+            msalException = new MsalClientException(((ClientException) e).getErrorCode(), e.getMessage(), e);
+        }
+
+        if (msalException == null) {
+            msalException = new MsalClientException(MsalClientException.UNKNOWN_ERROR, e.getMessage(), e);
+        }
+
+        return msalException;
+
     }
 
 }

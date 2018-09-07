@@ -28,7 +28,6 @@ import android.content.Context;
 import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.client.User;
 import com.microsoft.identity.client.authorities.Authority;
-import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 
 import java.util.List;
@@ -128,11 +127,19 @@ public class MSALAcquireTokenOperationParameters extends MSALOperationParameters
         return mTokenCache;
     }
 
-    public Authority getAuthority() {return mAuthority;}
+    public Authority getAuthority() {
+        return mAuthority;
+    }
 
-    public void setAuthority(Authority authority) { this.mAuthority = authority;}
+    public void setAuthority(Authority authority) {
+        this.mAuthority = authority;
+    }
 
-    public void setLoginHint(String loginHint) { this.mLoginHint = loginHint;}
+    public void setLoginHint(String loginHint) {
+        this.mLoginHint = loginHint;
+    }
 
-    public String getLoginHint(){return this.mLoginHint;}
+    public String getLoginHint() {
+        return this.mLoginHint;
+    }
 }
