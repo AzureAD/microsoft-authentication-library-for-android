@@ -33,12 +33,12 @@ public class AcquireTokenResult {
     private AuthorizationResult mAuthorizationResult;
     private Boolean mSucceeded = false;
 
-    public void setAuthenticationResult(AuthenticationResult result){
+    public void setAuthenticationResult(AuthenticationResult result) {
         this.mAuthenticationResult = result;
         this.mSucceeded = true;
     }
 
-    public AuthenticationResult getAuthenticationResult(){
+    public AuthenticationResult getAuthenticationResult() {
         return this.mAuthenticationResult;
     }
 

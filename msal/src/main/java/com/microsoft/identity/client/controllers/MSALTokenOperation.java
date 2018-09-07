@@ -24,7 +24,6 @@ package com.microsoft.identity.client.controllers;
 
 import android.content.Intent;
 
-import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.MsalClientException;
 import com.microsoft.identity.common.exception.ClientException;
 
