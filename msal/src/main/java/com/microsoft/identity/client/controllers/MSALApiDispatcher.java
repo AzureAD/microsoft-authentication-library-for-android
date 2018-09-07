@@ -25,6 +25,8 @@ package com.microsoft.identity.client;
 import android.content.Intent;
 import android.os.Handler;
 
+import com.microsoft.identity.client.controllers.AcquireTokenResult;
+import com.microsoft.identity.client.controllers.ExceptionAdapter;
 import com.microsoft.identity.client.controllers.MSALInteractiveTokenCommand;
 import com.microsoft.identity.client.controllers.MSALTokenCommand;
 
@@ -45,18 +47,70 @@ public class MSALApiDispatcher {
                 @Override
                 public void run() {
                     sCommand = command;
-                    final AuthenticationResult result = command.execute();
-                    Handler handler = new Handler(command.getContext().getMainLooper());
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            command.getCallback().onSuccess(result);
+                    AcquireTokenResult result = null;
+                    MsalException msalException = null;
+
+                    try {
+                        //Try executing request
+                        result = command.execute();
+                    } catch (Exception e) {
+                        //Capture any resulting exception and map to MsalException type
+                        if (e instanceof MsalException) {
+                            msalException = (MsalException) e;
+                        } else {
+                            msalException = ExceptionAdapter.msalExceptionFromException(e);
                         }
-                    });
+                    }
+
+                    Handler handler = new Handler(command.getContext().getMainLooper());
+
+                    if (msalException != null) {
+                        //Post On Error
+                        final MsalException finalException = msalException;
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                command.getCallback().onError(finalException);
+                            }
+                        });
+                    } else {
+                        if (result.getSucceeded()) {
+                            //Post Success
+                            final AuthenticationResult authenticationResult = result.getAuthenticationResult();
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    command.getCallback().onSuccess(authenticationResult);
+                                }
+                            });
+                        } else {
+                            //Get MsalException from Authorization and/or Token Error Response
+                            msalException = ExceptionAdapter.exceptionFromAcquireTokenResult(result);
+                            final MsalException finalException = msalException;
+                            if (finalException instanceof MsalUserCancelException) {
+                                //Post Cancel
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        command.getCallback().onCancel();
+                                    }
+                                });
+                            } else {
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        command.getCallback().onError(finalException);
+                                    }
+                                });
+                            }
+                        }
+
+                    }
                 }
             });
         }
     }
+
 
     public static void completeInteractive(int requestCode, int resultCode, final Intent data) {
         sCommand.notify(requestCode, resultCode, data);
@@ -66,14 +120,23 @@ public class MSALApiDispatcher {
         sSilentExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                final AuthenticationResult result = command.execute();
+
+                AcquireTokenResult result = null;
+                try {
+                    result = command.execute();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 Handler handler = new Handler(command.getContext().getMainLooper());
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        command.getCallback().onSuccess(result);
-                    }
-                });
+                if (result.getSucceeded()) {
+                    final AuthenticationResult authenticationResult = result.getAuthenticationResult();
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            command.getCallback().onSuccess(authenticationResult);
+                        }
+                    });
+                }
             }
         });
     }
