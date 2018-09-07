@@ -136,7 +136,7 @@ public class LocalMSALController extends MSALController {
         return null;
     }
 
-    private ICacheRecord saveTokens(OAuth2Strategy strategy, AuthorizationRequest request, TokenResponse tokenResponse, OAuth2TokenCache tokenCache){
+    private ICacheRecord saveTokens(OAuth2Strategy strategy, AuthorizationRequest request, TokenResponse tokenResponse, OAuth2TokenCache tokenCache) {
         try {
             return tokenCache.save(strategy, request, tokenResponse);
         } catch (ClientException e) {
@@ -145,8 +145,6 @@ public class LocalMSALController extends MSALController {
         }
         return null;
     }
-
-
 
     @Override
     public void completeAcquireToken(int requestCode, int resultCode, final Intent data) {

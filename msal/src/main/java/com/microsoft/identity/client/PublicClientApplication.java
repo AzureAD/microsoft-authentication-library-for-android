@@ -794,6 +794,7 @@ public final class PublicClientApplication {
         if (StringUtil.isEmpty(requestAuthority)) {
             // TODO Do I use the List<Authority> from the config?
             // Do I use the authority of the Account?
+            // Use the local_account_id portion of the tenant
             requestAuthority = "";
         }
 
