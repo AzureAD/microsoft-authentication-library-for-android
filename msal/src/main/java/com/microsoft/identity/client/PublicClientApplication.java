@@ -38,7 +38,9 @@ import com.microsoft.identity.client.authorities.Authority;
 import com.microsoft.identity.client.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.client.controllers.LocalMSALController;
 import com.microsoft.identity.client.controllers.MSALAcquireTokenOperationParameters;
+import com.microsoft.identity.client.controllers.MSALAcquireTokenSilentOperationParameters;
 import com.microsoft.identity.client.controllers.MSALInteractiveTokenCommand;
+import com.microsoft.identity.client.controllers.MSALSilentTokenCommand;
 import com.microsoft.identity.client.internal.configuration.AuthorityDeserializer;
 import com.microsoft.identity.client.internal.configuration.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
@@ -647,8 +649,8 @@ public final class PublicClientApplication {
                              final String[] extraScopesToConsent,
                              final String authority,
                              @NonNull final AuthenticationCallback callback) {
-        MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, loginHint, uiBehavior, extraQueryParams, extraScopesToConsent, authority);
-        MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
+        final MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, loginHint, uiBehavior, extraQueryParams, extraScopesToConsent, authority);
+        final MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
         com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
     }
 
@@ -786,7 +788,43 @@ public final class PublicClientApplication {
                                         @Nullable final String authority,
                                         final boolean forceRefresh,
                                         @NonNull final AuthenticationCallback callback) {
-        // TODO
+        // TODO add support for forceRefresh
+        String requestAuthority = authority;
+
+        if (StringUtil.isEmpty(requestAuthority)) {
+            // TODO Do I use the List<Authority> from the config?
+            // Do I use the authority of the Account?
+            requestAuthority = "";
+        }
+
+        final MSALAcquireTokenSilentOperationParameters params = getSilentOperationParameters(
+                scopes,
+                requestAuthority
+        );
+
+        final MSALSilentTokenCommand silentTokenCommand = new MSALSilentTokenCommand(
+                mAppContext,
+                params,
+                new LocalMSALController(),
+                callback
+        );
+
+        com.microsoft.identity.client.MSALApiDispatcher.submitSilent(silentTokenCommand);
+    }
+
+    private MSALAcquireTokenSilentOperationParameters getSilentOperationParameters(final String[] scopes,
+                                                                                   final String authorityStr) {
+        final MSALAcquireTokenSilentOperationParameters parameters = new MSALAcquireTokenSilentOperationParameters();
+
+        Authority authority = Authority.getAuthorityFromAuthorityUrl(authorityStr);
+        // TODO Confirm that it is a known authority?
+
+        parameters.setScopes(Arrays.asList(scopes));
+        parameters.setClientId(mClientId);
+        parameters.setTokenCache(mOauth2TokenCache);
+        parameters.setAuthority(authority);
+
+        return parameters;
     }
 
     /**
