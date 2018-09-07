@@ -110,11 +110,15 @@ public class LocalMSALController extends MSALController {
         msalScopes.add("profile");
         msalScopes.add("offline_access");
         msalScopes.addAll(parameters.getScopes());
+        msalScopes.addAll(parameters.getExtraScopesToConsent());
 
         AuthorizationRequest request = builder
                 .setClientId(parameters.getClientId())
                 .setRedirectUri(parameters.getRedirectUri())
                 .setScope(StringUtil.join(' ', msalScopes))
+                .setLoginHint(parameters.getLoginHint())
+                .setExtraQueryParam(parameters.getExtraQueryStringParameters())
+                .setPrompt(parameters.getUIBehavior().toString())
                 .build();
 
         return request;
