@@ -22,5 +22,17 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.controllers;
 
+import com.microsoft.identity.common.internal.dto.RefreshToken;
+
 public class MSALAcquireTokenSilentOperationParameters extends MSALOperationParameters {
+
+    private RefreshToken mRefreshToken;
+
+    public RefreshToken getRefreshToken() {
+        return mRefreshToken;
+    }
+
+    public void setRefreshToken(final RefreshToken refreshToken) {
+        mRefreshToken = refreshToken;
+    }
 }

@@ -36,6 +36,6 @@ public abstract class MSALController {
 
     public abstract void completeAcquireToken(int requestCode, int resultCode, final Intent data);
 
-    public abstract AcquireTokenResult acquireTokenSilent(MSALAcquireTokenSilentOperationParameters request) throws MsalClientException;
+    public abstract AcquireTokenResult acquireTokenSilent(MSALAcquireTokenSilentOperationParameters request) throws MsalClientException, IOException, ClientException;
 
 }
