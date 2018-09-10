@@ -34,7 +34,6 @@ import com.microsoft.identity.client.MsalUiRequiredException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.Account;
-import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsTokenRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationConfiguration;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResponse;
@@ -253,21 +252,13 @@ public class LocalMSALController extends MSALController {
         return null == cacheRecord.getAccessToken();
     }
 
-//    private boolean scopesMatch(final List<String> requestParameters,
-//                                final String scopesStr) {
-//        final String[] scopes = scopesStr.split("\\s");
-//        final List<String> atScopes = Arrays.asList(scopes);
-//        return atScopes.containsAll(requestParameters);
-//    }
-
     private TokenResult performSilentTokenRequest(final OAuth2Strategy strategy,
                                                   final MSALAcquireTokenSilentOperationParameters parameters) throws MsalClientException, IOException {
         throwIfNetworkNotAvailable(parameters.getAppContext());
-
-        final TokenRequest request = new MicrosoftStsTokenRequest();
-        request.setRefreshToken(parameters.getRefreshToken().getSecret());
-        request.setGrantType(TokenRequest.GrantTypes.REFRESH_TOKEN);
-
-        return strategy.requestToken(request);
+        return strategy.requestToken(
+                strategy.createRefreshTokenRequest(
+                        parameters.getRefreshToken()
+                )
+        );
     }
 }
