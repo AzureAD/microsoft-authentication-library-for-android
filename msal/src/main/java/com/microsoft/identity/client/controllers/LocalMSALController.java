@@ -26,6 +26,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.text.TextUtils;
 
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.MsalClientException;
@@ -50,7 +51,6 @@ import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -188,10 +188,14 @@ public class LocalMSALController extends MSALController {
         );
 
         final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy();
-        final ICacheRecord cacheRecord = tokenCache.load(clientId, targetAccount);
+        final ICacheRecord cacheRecord = tokenCache.load(
+                clientId,
+                TextUtils.join(" ", parameters.getScopes()),
+                targetAccount
+        );
 
         if (accessTokenIsNull(cacheRecord) || refreshTokenIsNull(cacheRecord)) {
-            if (accessTokenIsNull(cacheRecord) && refreshTokenCanBeUsed(parameters, cacheRecord)) {
+            if (!refreshTokenIsNull(cacheRecord)) {
                 // No AT found, but the RT checks out, so we'll use it
                 parameters.setRefreshToken(cacheRecord.getRefreshToken());
 
@@ -211,12 +215,8 @@ public class LocalMSALController extends MSALController {
                 // Set the AuthenticationResult on the final result object
                 acquireTokenSilentResult.setAuthenticationResult(authenticationResult);
             } else {
-                // TODO Is this the correct Exception?
                 throw new MsalClientException(MsalUiRequiredException.NO_TOKENS_FOUND, "No refresh token was found. ");
             }
-        } else if (!scopesMatch(parameters.getScopes(), cacheRecord.getAccessToken().getTarget())) {
-            // TODO Do we want to indicate that no MATCHING RT was found?
-            throw new MsalClientException(MsalUiRequiredException.NO_TOKENS_FOUND, "No refresh token was found. ");
         } else if (cacheRecord.getAccessToken().isExpired()) {
             tokenCache.removeCredential(cacheRecord.getAccessToken());
 
@@ -249,20 +249,16 @@ public class LocalMSALController extends MSALController {
         return null == cacheRecord.getRefreshToken();
     }
 
-    private boolean refreshTokenCanBeUsed(MSALAcquireTokenSilentOperationParameters parameters, ICacheRecord cacheRecord) {
-        return null != cacheRecord.getRefreshToken() && scopesMatch(parameters.getScopes(), cacheRecord.getRefreshToken().getTarget());
-    }
-
     private boolean accessTokenIsNull(ICacheRecord cacheRecord) {
         return null == cacheRecord.getAccessToken();
     }
 
-    private boolean scopesMatch(final List<String> requestParameters,
-                                final String scopesStr) {
-        final String[] scopes = scopesStr.split("\\s");
-        final List<String> atScopes = Arrays.asList(scopes);
-        return atScopes.containsAll(requestParameters);
-    }
+//    private boolean scopesMatch(final List<String> requestParameters,
+//                                final String scopesStr) {
+//        final String[] scopes = scopesStr.split("\\s");
+//        final List<String> atScopes = Arrays.asList(scopes);
+//        return atScopes.containsAll(requestParameters);
+//    }
 
     private TokenResult performSilentTokenRequest(final OAuth2Strategy strategy,
                                                   final MSALAcquireTokenSilentOperationParameters parameters) throws MsalClientException, IOException {
