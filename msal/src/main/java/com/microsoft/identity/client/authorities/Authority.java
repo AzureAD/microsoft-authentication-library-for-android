@@ -127,7 +127,9 @@ public abstract class Authority {
     }
 
     public static String getAuthorityFromAccount(final IAccount account) {
-        return "https://login.microsoftonline.com/"
+        return "https://"
+                + account.getEnvironment()
+                + "/"
                 + account.getAccountIdentifier().getIdentifier()
                 + "/";
     }

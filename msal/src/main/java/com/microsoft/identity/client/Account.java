@@ -30,6 +30,7 @@ class Account implements IAccount {
     private IAccountIdentifier mAccountIdentifier;
     private IAccountIdentifier mHomeAccountIdentifier;
     private String mUsername;
+    private String mEnvironment;
 
     Account() {
         // Empty constructor
@@ -77,4 +78,17 @@ class Account implements IAccount {
         return mUsername;
     }
 
+    /**
+     * Sets the environment.
+     *
+     * @param environment The environment to set.
+     */
+    void setEnvironment(final String environment) {
+        mEnvironment = environment;
+    }
+
+    @Override
+    public String getEnvironment() {
+        return mEnvironment;
+    }
 }
