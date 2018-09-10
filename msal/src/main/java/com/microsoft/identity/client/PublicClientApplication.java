@@ -766,6 +766,7 @@ public final class PublicClientApplication {
         final MSALAcquireTokenSilentOperationParameters params = getSilentOperationParameters(
                 scopes,
                 requestAuthority,
+                forceRefresh,
                 account
         );
 
@@ -781,6 +782,7 @@ public final class PublicClientApplication {
 
     private MSALAcquireTokenSilentOperationParameters getSilentOperationParameters(final String[] scopes,
                                                                                    final String authorityStr,
+                                                                                   final boolean forceRefresh,
                                                                                    final IAccount account) {
         final MSALAcquireTokenSilentOperationParameters parameters = new MSALAcquireTokenSilentOperationParameters();
 
@@ -793,6 +795,7 @@ public final class PublicClientApplication {
         parameters.setTokenCache(mOauth2TokenCache);
         parameters.setAuthority(authority);
         parameters.setAccount(account);
+        parameters.setForceRefresh(forceRefresh);
 
         return parameters;
     }

@@ -206,7 +206,9 @@ public class LocalMSALController extends MSALController {
                 targetAccount
         );
 
-        if (accessTokenIsNull(cacheRecord) || refreshTokenIsNull(cacheRecord)) {
+        if (accessTokenIsNull(cacheRecord)
+                || refreshTokenIsNull(cacheRecord)
+                || parameters.getForceRefresh()) {
             if (!refreshTokenIsNull(cacheRecord)) {
                 // No AT found, but the RT checks out, so we'll use it
                 parameters.setRefreshToken(cacheRecord.getRefreshToken());
