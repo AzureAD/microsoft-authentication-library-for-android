@@ -65,12 +65,14 @@ public class AzureActiveDirectoryAuthority extends Authority {
 
     public AzureActiveDirectoryAuthority(AzureActiveDirectoryAudience signInAudience) {
         mAudience = signInAudience;
+        mAuthorityTypeString = "AAD";
         getAzureActiveDirectoryCloud();
     }
 
     public AzureActiveDirectoryAuthority() {
         //Defaulting to AllAccounts which maps to the "common" tenant
         mAudience = new AllAccounts();
+        mAuthorityTypeString = "AAD";
         getAzureActiveDirectoryCloud();
     }
 

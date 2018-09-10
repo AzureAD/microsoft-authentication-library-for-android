@@ -52,6 +52,10 @@ public abstract class Authority {
 
     public abstract URL getAuthorityURL();
 
+    public boolean getDefault(){
+        return mIsDefault;
+    }
+
     /**
      * Returns an Authority based on an authority url.  This method attempts to parse the URL and based on the contents of it
      * determine the authority type and tenantid associated with it.
@@ -108,6 +112,24 @@ public abstract class Authority {
      */
     protected boolean getKnownToMicrosoft() {
         return mKnownToMicrosoft;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Authority)) return false;
+
+        Authority authority = (Authority) o;
+
+        if (!mAuthorityTypeString.equals(authority.mAuthorityTypeString)) return false;
+        return getAuthorityURL().equals(authority.getAuthorityURL());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = mAuthorityTypeString.hashCode();
+        result = 31 * result + getAuthorityURL().hashCode();
+        return result;
     }
 
     /**

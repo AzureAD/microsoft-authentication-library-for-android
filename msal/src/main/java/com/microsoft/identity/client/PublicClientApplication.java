@@ -28,6 +28,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 
@@ -44,6 +45,7 @@ import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.dto.Account;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.msal.BuildConfig;
@@ -51,6 +53,7 @@ import com.microsoft.identity.msal.R;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,14 +61,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 import static com.microsoft.identity.client.EventConstants.ApiId.ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER;
 import static com.microsoft.identity.client.EventConstants.ApiId.ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER_AUTHORITY_AND_FORCE_REFRESH;
-import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE;
-import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_HINT;
-import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_AND_PARAMETERS;
 //import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_HINT_BEHAVIOR_PARAMETERS_AND_AUTHORITY;
-import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_USER_BEHAVIOR_AND_PARAMETERS;
+
 //import static com.microsoft.identity.client.EventConstants.ApiId.API_ID_ACQUIRE_WITH_USER_BEHAVIOR_PARAMETERS_AND_AUTHORITY;
 
 /**
@@ -159,6 +160,8 @@ public final class PublicClientApplication {
 
     private PublicClientApplicationConfiguration mPublicClientConfiguration;
 
+    private Boolean mInitialized = false;
+
     /**
      * @param context Application's {@link Context}. The sdk requires the application context to be passed in
      *                {@link PublicClientApplication}. Cannot be null.
@@ -194,8 +197,9 @@ public final class PublicClientApplication {
         loadMetaDataFromManifest();
         mTokenCache = new TokenCache(mAppContext);
         mOauth2TokenCache = mTokenCache.getOAuth2TokenCache();
+        mPublicClientConfiguration.getAuthorities().clear();
+        mPublicClientConfiguration.getAuthorities().add(Authority.getAuthorityFromAuthorityUrl(mAuthorityString));
 
-        initializeApplication();
     }
 
     /**
@@ -225,6 +229,11 @@ public final class PublicClientApplication {
         mTokenCache = new TokenCache(mAppContext);
         mOauth2TokenCache = mTokenCache.getOAuth2TokenCache();
         setupConfiguration(configFileResourceId);
+        if(mPublicClientConfiguration.isDefaultAuthorityConfigured()) {
+            mAuthorityString = mPublicClientConfiguration.getDefaultAuthority().toString();
+        }else{
+            mAuthorityString = DEFAULT_AUTHORITY;
+        }
     }
 
 
@@ -254,10 +263,11 @@ public final class PublicClientApplication {
         mOauth2TokenCache = mTokenCache.getOAuth2TokenCache();
         mClientId = clientId;
         mAuthorityString = DEFAULT_AUTHORITY;
+        mPublicClientConfiguration.getAuthorities().clear();
+        mPublicClientConfiguration.getAuthorities().add(Authority.getAuthorityFromAuthorityUrl(mAuthorityString));
         setupConfiguration();
         mPublicClientConfiguration.mClientId = clientId;
 
-        initializeApplication();
     }
 
     /**
@@ -286,30 +296,6 @@ public final class PublicClientApplication {
         mPublicClientConfiguration.getAuthorities().add(Authority.getAuthorityFromAuthorityUrl(authority));
     }
 
-    /*
-     * {@link PublicClientApplication#PublicClientApplication(Context, String, String)} allows the client id and authority to be passed instead of
-     * providing them through metadata.
-     *
-     * @param context   Application's {@link Context}. The sdk requires the application context to be passed in
-     *                  {@link PublicClientApplication}. Cannot be null.
-     *                  <p>
-     *                  Note: The {@link Context} should be the application context instead of an running activity's context, which could potentially make the sdk hold a
-     *                  strong reference to the activity, thus preventing correct garbage collection and causing bugs.
-     *                  </p>
-     * @param clientId  The application client id.
-     * @param authority The default authority to be used for the authority.
-     */
-    /*
-    public PublicClientApplication(@NonNull Configuration config) {
-        this(config.getContext(), config.getClientId());
-
-        if (MsalUtils.isEmpty(authority)) {
-            throw new IllegalArgumentException("authority is empty or null");
-        }
-
-        mAuthorityString = authority;
-    }
-    */
     private void initializeApplication() {
         // Init Events with defaults (application-wide)
         DefaultEvent.initializeDefaults(
@@ -317,12 +303,98 @@ public final class PublicClientApplication {
         );
 
         mRedirectUri = createRedirectUri(mClientId);
-        validateInputParameters();
+        checkIntentFilterAddedToAppManifest();
 
         // Since network request is sent from the sdk, if calling app doesn't declare the internet permission in the
         // manifest, we cannot make the network call.
         checkInternetPermission();
         Logger.info(TAG, null, "Create new public client application.");
+
+        mInitialized = true;
+    }
+
+    /**
+     * initializes application:
+     *  - Verifies required permissions are present
+     *  - Verifies intent filter is registered for BrowserTabActivity
+     *  - Attempts to loads Active Directory cloud metadata
+     */
+    public void initialize() {
+        if(!mInitialized){
+            initializeApplication();
+        }
+    }
+
+    /**
+     * Authorities are either known by the developer and communicated to the library via configuration or they
+     * are known to Microsoft based on the list of clouds returned from:
+     * @return
+     */
+    public boolean isKnownAuthority(URL authority) {
+        //TODO: Ensure clouds loaded from cloud discovery endpoint
+
+        boolean knownToDeveloper = false;
+        boolean knownToMicrosoft = false;
+
+        if(authority == null){
+            return false;
+        }
+
+        //Check if authority was added to configuration
+        Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority.toString());
+        knownToDeveloper = mPublicClientConfiguration.getAuthorities().contains(authorityObject);
+
+        //Check if authority host is known to Microsoft
+        knownToMicrosoft = AzureActiveDirectory.hasCloudHost(authority);
+
+        return (knownToDeveloper || knownToMicrosoft);
+
+    }
+
+    private KnownAuthorityResult getKnownAuthorityResult(String authority){
+
+        if(authority == null){
+            //TODO - Don't let parameters be null....breaking change, but one that makes sense
+            authority = mAuthorityString;
+        }
+
+        URL authorityUrl = null;
+        MsalClientException msalClientException = null;
+        boolean known = false;
+
+        try{
+            authorityUrl = new URL(authority);
+        }catch(MalformedURLException e){
+            msalClientException = new MsalClientException(MsalClientException.MALFORMED_URL, "Malformed authority URL", e);
+        }
+
+        if(msalClientException == null){
+            if(!isKnownAuthority(authorityUrl)){
+                msalClientException = new MsalClientException(MsalClientException.UNKNOWN_AUTHORITY, "Provided authority is not known.  MSAL will only make requests to known authorities");
+            }else{
+                known = true;
+            }
+        }
+
+        return new KnownAuthorityResult(known, msalClientException);
+
+    }
+
+    class KnownAuthorityResult{
+        private boolean mKnown = false;
+        private MsalClientException mMsalClientException = null;
+        KnownAuthorityResult(boolean known, MsalClientException exception){
+            mKnown = known;
+            mMsalClientException = exception;
+        }
+
+        public boolean getKnown(){
+            return mKnown;
+        }
+
+        public MsalClientException getMsalClientException() {
+            return mMsalClientException;
+        }
     }
 
 
@@ -519,7 +591,6 @@ public final class PublicClientApplication {
      * @param data        {@link Intent} either contains the url with auth code as query string or the errors.
      */
     public void handleInteractiveRequestRedirect(int requestCode, int resultCode, final Intent data) {
-        //InteractiveRequest.onActivityResult(requestCode, resultCode, data);
         com.microsoft.identity.client.MSALApiDispatcher.completeInteractive(requestCode, resultCode, data);
     }
 
@@ -545,6 +616,7 @@ public final class PublicClientApplication {
      */
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, @NonNull final AuthenticationCallback callback) {
 
+        initialize();
         MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, null, null, null, null, null);
         MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
         com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
@@ -572,7 +644,7 @@ public final class PublicClientApplication {
      */
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint,
                              @NonNull final AuthenticationCallback callback) {
-
+        initialize();
         MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, loginHint, null, null, null, null);
         MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
         com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
@@ -602,7 +674,7 @@ public final class PublicClientApplication {
      */
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint, final UiBehavior uiBehavior,
                              final String extraQueryParameters, @NonNull final AuthenticationCallback callback) {
-
+        initialize();
         MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, loginHint, uiBehavior, extraQueryParameters, null, null);
         MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
         com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
@@ -633,6 +705,7 @@ public final class PublicClientApplication {
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final User user, final UiBehavior uiBehavior,
                              final String extraQueryParameter, @NonNull final AuthenticationCallback callback) {
 
+        initialize();
         MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, null, uiBehavior, null, null, null);
         MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
         com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
@@ -666,10 +739,15 @@ public final class PublicClientApplication {
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint, final UiBehavior uiBehavior,
                              final String extraQueryParams, final String[] extraScopesToConsent, final String authority,
                              @NonNull final AuthenticationCallback callback) {
-
-        MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, loginHint, uiBehavior, extraQueryParams, extraScopesToConsent, authority);
-        MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
-        com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
+        initialize();
+        KnownAuthorityResult result = getKnownAuthorityResult(authority);
+        if(result.getKnown()) {
+            MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, loginHint, uiBehavior, extraQueryParams, extraScopesToConsent, authority);
+            MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
+            com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
+        }else{
+            callback.onError(result.getMsalClientException());
+        }
 
     }
 
@@ -700,10 +778,15 @@ public final class PublicClientApplication {
     public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final User user, final UiBehavior uiBehavior,
                              final String extraQueryParams, final String[] extraScopesToConsent, final String authority,
                              @NonNull final AuthenticationCallback callback) {
-
-        MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, null, uiBehavior, extraQueryParams, extraScopesToConsent, authority);
-        MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
-        com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
+        initialize();
+        KnownAuthorityResult knownAuthorityResult = getKnownAuthorityResult(authority);
+        if(knownAuthorityResult.getKnown()) {
+            MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, null, uiBehavior, extraQueryParams, extraScopesToConsent, authority);
+            MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
+            com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
+        }else{
+            callback.onError(knownAuthorityResult.getMsalClientException());
+        }
 
     }
 
@@ -724,6 +807,7 @@ public final class PublicClientApplication {
      */
     public void acquireTokenSilentAsync(@NonNull final String[] scopes, @NonNull final User user,
                                         @NonNull final AuthenticationCallback callback) {
+        initialize();
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER);
 
@@ -748,10 +832,16 @@ public final class PublicClientApplication {
     public void acquireTokenSilentAsync(@NonNull final String[] scopes, @NonNull final User user, final String authority,
                                         final boolean forceRefresh,
                                         @NonNull final AuthenticationCallback callback) {
-        final String telemetryRequestId = Telemetry.generateNewRequestId();
-        ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER_AUTHORITY_AND_FORCE_REFRESH);
+        initialize();
+        KnownAuthorityResult knownAuthorityResult = getKnownAuthorityResult(authority);
+        if(knownAuthorityResult.getKnown()) {
+            final String telemetryRequestId = Telemetry.generateNewRequestId();
+            ApiEvent.Builder apiEventBuilder = createApiEventBuilder(telemetryRequestId, ACQUIRE_TOKEN_SILENT_ASYNC_WITH_USER_AUTHORITY_AND_FORCE_REFRESH);
 
-        acquireTokenSilent(scopes, user, authority, forceRefresh, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), telemetryRequestId, apiEventBuilder);
+            acquireTokenSilent(scopes, user, authority, forceRefresh, wrapCallbackForTelemetryIntercept(apiEventBuilder, callback), telemetryRequestId, apiEventBuilder);
+        }else{
+            callback.onError(knownAuthorityResult.getMsalClientException());
+        }
     }
 
 
@@ -875,11 +965,10 @@ public final class PublicClientApplication {
 
 
     // TODO: if no more input validation is needed, this could be moved back to the constructor.
-    private void validateInputParameters() {
+    private void checkIntentFilterAddedToAppManifest() {
         if (!MsalUtils.hasCustomTabRedirectActivity(mAppContext, mRedirectUri)) {
-            //TODO: Fix this error message to be more clear
-            throw new IllegalStateException("App doesn't have the correct configuration for "
-                    + BrowserTabActivity.class.getSimpleName() + ".");
+            throw new IllegalStateException("Intent filter for: "
+                    + BrowserTabActivity.class.getSimpleName() + " is missing.  Please refer to the MSAL readme.");
         }
     }
 
@@ -894,11 +983,15 @@ public final class PublicClientApplication {
     }
 
     /**
-     * Redirect uri will the in the format of msauth-clientid://appPackageName.
-     * The sdk will comupte the redirect when the PublicClientApplication is initialized.
+     * By default redirect uri will the in the format of msauth-clientid://appPackageName.
+     * Otherwise the library will use the configured redirect URI.
      */
     private String createRedirectUri(final String clientId) {
-        return "msal" + clientId + "://auth";
+        if(StringUtil.isEmpty(mPublicClientConfiguration.getRedirectUri())) {
+            return "msal" + clientId + "://auth";
+        }else{
+            return mPublicClientConfiguration.getRedirectUri();
+        }
     }
 
 
@@ -980,10 +1073,15 @@ public final class PublicClientApplication {
 
         MSALAcquireTokenOperationParameters params = new MSALAcquireTokenOperationParameters();
 
-        String authorityString = StringUtil.isEmpty(authority) ?  mAuthorityString : authority;
-
-        Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authorityString);
-        //TODO: Confirm that is a known authority immediately.
+        if(StringUtil.isEmpty(authority)) {
+            if (mPublicClientConfiguration.isDefaultAuthorityConfigured()) {
+                params.setAuthority(mPublicClientConfiguration.getDefaultAuthority());
+            } else {
+                params.setAuthority(Authority.getAuthorityFromAuthorityUrl(mAuthorityString));
+            }
+        }else{
+            params.setAuthority(Authority.getAuthorityFromAuthorityUrl(authority));
+        }
 
         params.setScopes(Arrays.asList(scopes));
         params.setClientId(mClientId);
@@ -994,7 +1092,6 @@ public final class PublicClientApplication {
         params.setExtraQueryStringParameters(extraQueryParams);
         params.setExtraScopesToConsent(Arrays.asList(extraScopesToConsent));
         params.setUIBehavior(uiBehavior);
-        params.setAuthority(authorityObject);
         params.setAppContext(mAppContext);
 
         return params;

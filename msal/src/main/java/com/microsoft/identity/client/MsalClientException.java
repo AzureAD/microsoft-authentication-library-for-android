@@ -80,6 +80,11 @@ public final class MsalClientException extends MsalException {
     public static final String MALFORMED_URL = "malformed_url";
 
     /**
+     * The authority is unknown.  Occurs when the authority is not part of configuration or the authority host is not recognized by Microsoft.
+     */
+    public static final String UNKNOWN_AUTHORITY = "unknown_authority";
+
+    /**
      * The encoding is not supported by the device.
      */
     public static final String UNSUPPORTED_ENCODING = "unsupported_encoding";

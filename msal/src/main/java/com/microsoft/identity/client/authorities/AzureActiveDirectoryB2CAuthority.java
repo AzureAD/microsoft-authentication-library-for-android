@@ -34,6 +34,7 @@ import java.net.URL;
 public class AzureActiveDirectoryB2CAuthority extends Authority {
 
     AzureActiveDirectoryB2CAuthority(String authorityUrl) {
+        mAuthorityTypeString = "B2C";
         mAuthorityUrl = authorityUrl;
     }
 
