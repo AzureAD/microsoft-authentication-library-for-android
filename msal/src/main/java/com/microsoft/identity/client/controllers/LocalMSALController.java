@@ -112,18 +112,27 @@ public class LocalMSALController extends MSALController {
         msalScopes.add("profile");
         msalScopes.add("offline_access");
         msalScopes.addAll(parameters.getScopes());
-        msalScopes.addAll(parameters.getExtraScopesToConsent());
 
-        AuthorizationRequest request = builder
+        AuthorizationRequest.Builder request = builder
                 .setClientId(parameters.getClientId())
                 .setRedirectUri(parameters.getRedirectUri())
-                .setScope(StringUtil.join(' ', msalScopes))
-                .setLoginHint(parameters.getLoginHint())
-                .setExtraQueryParam(parameters.getExtraQueryStringParameters())
-                .setPrompt(parameters.getUIBehavior().toString())
-                .build();
+                .setScope(StringUtil.join(' ', msalScopes));
 
-        return request;
+        if (parameters instanceof MSALAcquireTokenOperationParameters) {
+            MSALAcquireTokenOperationParameters acquireTokenOperationParameters = (MSALAcquireTokenOperationParameters) parameters;
+            msalScopes.addAll(acquireTokenOperationParameters.getExtraScopesToConsent());
+
+            // Add additional fields to the AuthorizationRequest.Builder to support interactive
+            request.setLoginHint(
+                    acquireTokenOperationParameters.getLoginHint()
+            ).setExtraQueryParam(
+                    acquireTokenOperationParameters.getExtraQueryStringParameters()
+            ).setPrompt(
+                    acquireTokenOperationParameters.getUIBehavior().toString()
+            );
+        }
+
+        return request.build();
     }
 
     private TokenResult performTokenRequest(final OAuth2Strategy strategy,
