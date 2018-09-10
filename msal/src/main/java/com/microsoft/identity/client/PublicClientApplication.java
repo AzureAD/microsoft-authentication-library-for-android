@@ -435,6 +435,7 @@ public final class PublicClientApplication {
      * @return Immutable List of {@link User}.
      * @throws MsalClientException If failed to retrieve users from the cache.
      */
+    @Deprecated
     public List<User> getUsers() throws MsalClientException {
         final String telemetryRequestId = Telemetry.generateNewRequestId();
         final ApiEvent.Builder apiEventBuilder = new ApiEvent.Builder(telemetryRequestId);
@@ -467,6 +468,7 @@ public final class PublicClientApplication {
      * @return The {@link User} matching the provided user identifier.
      * @throws MsalClientException If failed to retrieve users from the cache.
      */
+    @Deprecated
     public User getUser(final String userIdentifier) throws MsalClientException {
         if (MsalUtils.isEmpty(userIdentifier)) {
             throw new IllegalArgumentException("Empty or null userIdentifier");
@@ -700,6 +702,7 @@ public final class PublicClientApplication {
      *                 Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
+    @Deprecated
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final User user,
                                         @NonNull final AuthenticationCallback callback) {
