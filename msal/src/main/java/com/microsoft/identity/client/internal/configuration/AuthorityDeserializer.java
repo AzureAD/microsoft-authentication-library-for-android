@@ -11,6 +11,9 @@ import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAu
 import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.client.internal.authorities.UnknownAuthority;
 import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.client.authorities.LiAuthority;
+
+
 
 import java.lang.reflect.Type;
 
@@ -44,6 +47,8 @@ public class AuthorityDeserializer implements JsonDeserializer<Authority> {
                             "Type: ADFS"
                     );
                     return context.deserialize(authorityObject, ActiveDirectoryFederationServicesAuthority.class);
+                case "LI":
+                    return context.deserialize(authorityObject, LiAuthority.class);
                 default:
                     Logger.verbose(
                             TAG + methodName,

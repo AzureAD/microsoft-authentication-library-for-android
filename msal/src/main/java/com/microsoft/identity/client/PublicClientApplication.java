@@ -223,6 +223,8 @@ public final class PublicClientApplication {
         mOauth2TokenCache = getOAuth2TokenCache();
         setupConfiguration(configFileResourceId);
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
+        mRedirectUri = mPublicClientConfiguration.getRedirectUri();
+        mClientId = mPublicClientConfiguration.getClientId();
     }
 
     /**
@@ -1017,6 +1019,7 @@ public final class PublicClientApplication {
                 "Using authority: [" + params.getAuthority().getAuthorityUri() + "]"
         );
 
+
         params.setScopes(new ArrayList<>(Arrays.asList(scopes)));
         params.setClientId(mClientId);
         params.setRedirectUri(mRedirectUri);
@@ -1027,32 +1030,14 @@ public final class PublicClientApplication {
         params.setExtraScopesToConsent(
                 null != extraScopesToConsent
                         ? Arrays.asList(extraScopesToConsent)
-                        : new ArrayList<String>()
-        );
+                        : new ArrayList<String>());
+        params.setUIBehavior(uiBehavior);
         params.setAppContext(mAppContext);
-        if (null != mPublicClientConfiguration.getAuthorizationAgent()) {
-            params.setAuthorizationAgent(mPublicClientConfiguration.getAuthorizationAgent());
-        } else {
-            params.setAuthorizationAgent(AuthorizationAgent.DEFAULT);
-        }
-
-        if (uiBehavior == null) {
-            params.setUIBehavior(UiBehavior.SELECT_ACCOUNT);
-        } else {
-            params.setUIBehavior(uiBehavior);
-        }
-
-        params.setAppContext(mAppContext);
-        if (null != account) {
-            params.setAccount(
-                    getAccountInternal(
-                            account.getHomeAccountIdentifier().getIdentifier()
-                    )
-            );
-        }
 
         return params;
+
     }
+
 
     private MsalOAuth2TokenCache<
             MicrosoftStsOAuth2Strategy,
