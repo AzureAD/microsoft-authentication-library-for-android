@@ -25,10 +25,14 @@ package com.microsoft.identity.client.authorities;
 import android.net.Uri;
 
 import com.google.gson.annotations.SerializedName;
+import com.microsoft.identity.client.MsalClientException;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Authority {
@@ -78,7 +82,7 @@ public abstract class Authority {
         List<String> pathSegments = authorityUri.getPathSegments();
 
         if (pathSegments.size() == 0) {
-            throw new IllegalArgumentException("Authority urls are expected to include at least one path segment.");
+            return new UnknownAuthority();
         }
 
         String authorityType = pathSegments.get(0);
@@ -144,5 +148,90 @@ public abstract class Authority {
     protected boolean getKnownToDeveloper() {
         return mKnownToDeveloper;
     }
+
+
+    private static List<Authority> knownAuthorities = new ArrayList<>();
+    private static Object sLock = new Object();
+
+    private static void performCloudDiscovery() throws IOException {
+
+       synchronized (sLock) {
+           if (!AzureActiveDirectory.isInitialized()) {
+               AzureActiveDirectory.performCloudDiscovery();
+           }
+       }
+
+    }
+
+    public static void addKnownAuthorities(List<Authority> authorities){
+        synchronized (sLock){
+            knownAuthorities.addAll(authorities);
+        }
+    }
+
+    /**
+     * Authorities are either known by the developer and communicated to the library via configuration or they
+     * are known to Microsoft based on the list of clouds returned from:
+     * @return
+     */
+    public static boolean isKnownAuthority(Authority authority) {
+
+        boolean knownToDeveloper = false;
+        boolean knownToMicrosoft = false;
+
+        if(authority == null){
+            return false;
+        }
+
+        //Check if authority was added to configuration
+        knownToDeveloper = knownAuthorities.contains(authority);
+
+        //Check if authority host is known to Microsoft
+        knownToMicrosoft = AzureActiveDirectory.hasCloudHost(authority.getAuthorityURL());
+
+        return (knownToDeveloper || knownToMicrosoft);
+
+    }
+
+    public static KnownAuthorityResult getKnownAuthorityResult(Authority authority){
+
+        MsalClientException msalClientException = null;
+        boolean known = false;
+
+        try{
+            performCloudDiscovery();
+        }catch(IOException ex){
+            msalClientException = new MsalClientException(MsalClientException.IO_ERROR, "Unable to perform cloud discovery", ex);
+        }
+
+        if(msalClientException == null){
+            if(!isKnownAuthority(authority)){
+                msalClientException = new MsalClientException(MsalClientException.UNKNOWN_AUTHORITY, "Provided authority is not known.  MSAL will only make requests to known authorities");
+            }else{
+                known = true;
+            }
+        }
+
+        return new KnownAuthorityResult(known, msalClientException);
+
+    }
+
+    public static class KnownAuthorityResult{
+        private boolean mKnown = false;
+        private MsalClientException mMsalClientException = null;
+        KnownAuthorityResult(boolean known, MsalClientException exception){
+            mKnown = known;
+            mMsalClientException = exception;
+        }
+
+        public boolean getKnown(){
+            return mKnown;
+        }
+
+        public MsalClientException getMsalClientException() {
+            return mMsalClientException;
+        }
+    }
+
 
 }

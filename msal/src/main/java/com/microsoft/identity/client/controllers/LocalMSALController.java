@@ -29,9 +29,9 @@ import android.net.NetworkInfo;
 
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.MsalClientException;
+import com.microsoft.identity.client.authorities.Authority;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationConfiguration;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResponse;
@@ -63,9 +63,13 @@ public class LocalMSALController extends MSALController {
 
         AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
 
-        //0) Perform cloud discovery if not already done
-        if(!AzureActiveDirectory.isInitialized()){
-            AzureActiveDirectory.performCloudDiscovery();
+        //0) Get known authority result
+        throwIfNetworkNotAvailable(parameters.getAppContext());
+        Authority.KnownAuthorityResult authorityResult = Authority.getKnownAuthorityResult(parameters.getAuthority());
+
+        //0.1 If not known throw resulting exception
+        if(!authorityResult.getKnown()){
+            throw authorityResult.getMsalClientException();
         }
 
         //1) Get oAuth2Strategy for Authority Type
