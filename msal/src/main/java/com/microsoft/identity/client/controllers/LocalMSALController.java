@@ -26,11 +26,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.text.TextUtils;
 
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.MsalClientException;
+import com.microsoft.identity.client.MsalUiRequiredException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.internal.dto.Account;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationConfiguration;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResponse;
@@ -58,34 +61,34 @@ public class LocalMSALController extends MSALController {
     private AuthorizationRequest mAuthorizationRequest = null;
 
     @Override
-    public AcquireTokenResult acquireToken(MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException, ClientException, IOException, MsalClientException {
-
-        AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
+    public AcquireTokenResult acquireToken(final MSALAcquireTokenOperationParameters parameters)
+            throws ExecutionException, InterruptedException, ClientException, IOException, MsalClientException {
+        final AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
 
         //1) Get oAuth2Strategy for Authority Type
-        OAuth2Strategy oAuth2Strategy = parameters.getAuthority().createOAuth2Strategy();
+        final OAuth2Strategy oAuth2Strategy = parameters.getAuthority().createOAuth2Strategy();
 
         //2) Request authorization interactively
-        AuthorizationResult result = performAuthorizationRequest(oAuth2Strategy, parameters);
+        final AuthorizationResult result = performAuthorizationRequest(oAuth2Strategy, parameters);
         acquireTokenResult.setAuthorizationResult(result);
 
         if (result.getAuthorizationStatus().equals(AuthorizationStatus.SUCCESS)) {
             //3) Exchange authorization code for token
-            TokenResult tokenResult = performTokenRequest(oAuth2Strategy, mAuthorizationRequest, result.getAuthorizationResponse(), parameters);
+            final TokenResult tokenResult = performTokenRequest(oAuth2Strategy, mAuthorizationRequest, result.getAuthorizationResponse(), parameters);
             acquireTokenResult.setTokenResult(tokenResult);
             if (tokenResult != null && tokenResult.getSuccess()) {
                 //4) Save tokens in token cache
-                ICacheRecord cacheRecord = saveTokens(oAuth2Strategy, mAuthorizationRequest, tokenResult.getTokenResponse(), parameters.getTokenCache());
+                final ICacheRecord cacheRecord = saveTokens(oAuth2Strategy, mAuthorizationRequest, tokenResult.getTokenResponse(), parameters.getTokenCache());
                 acquireTokenResult.setAuthenticationResult(new AuthenticationResult(cacheRecord));
             }
         }
 
         return acquireTokenResult;
-
     }
 
-    private AuthorizationResult performAuthorizationRequest(OAuth2Strategy strategy, MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException, MsalClientException {
-
+    private AuthorizationResult performAuthorizationRequest(final OAuth2Strategy strategy,
+                                                            final MSALAcquireTokenOperationParameters parameters)
+            throws ExecutionException, InterruptedException, MsalClientException {
         throwIfNetworkNotAvailable(parameters.getAppContext());
 
         mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(parameters.getActivity(), AuthorizationConfiguration.getInstance());
@@ -98,11 +101,10 @@ public class LocalMSALController extends MSALController {
         AuthorizationResult result = future.get();
 
         return result;
-
     }
 
-    private AuthorizationRequest getAuthorizationRequest(OAuth2Strategy strategy, MSALAcquireTokenOperationParameters parameters) {
-
+    private AuthorizationRequest getAuthorizationRequest(final OAuth2Strategy strategy,
+                                                         final MSALOperationParameters parameters) {
         AuthorizationRequest.Builder builder = strategy.createAuthorizationRequestBuilder();
 
         List<String> msalScopes = new ArrayList<>();
@@ -110,22 +112,34 @@ public class LocalMSALController extends MSALController {
         msalScopes.add("profile");
         msalScopes.add("offline_access");
         msalScopes.addAll(parameters.getScopes());
-        msalScopes.addAll(parameters.getExtraScopesToConsent());
 
-        AuthorizationRequest request = builder
+        AuthorizationRequest.Builder request = builder
                 .setClientId(parameters.getClientId())
                 .setRedirectUri(parameters.getRedirectUri())
-                .setScope(StringUtil.join(' ', msalScopes))
-                .setLoginHint(parameters.getLoginHint())
-                .setExtraQueryParam(parameters.getExtraQueryStringParameters())
-                .setPrompt(parameters.getUIBehavior().toString())
-                .build();
+                .setScope(StringUtil.join(' ', msalScopes));
 
-        return request;
+        if (parameters instanceof MSALAcquireTokenOperationParameters) {
+            MSALAcquireTokenOperationParameters acquireTokenOperationParameters = (MSALAcquireTokenOperationParameters) parameters;
+            msalScopes.addAll(acquireTokenOperationParameters.getExtraScopesToConsent());
+
+            // Add additional fields to the AuthorizationRequest.Builder to support interactive
+            request.setLoginHint(
+                    acquireTokenOperationParameters.getLoginHint()
+            ).setExtraQueryParam(
+                    acquireTokenOperationParameters.getExtraQueryStringParameters()
+            ).setPrompt(
+                    acquireTokenOperationParameters.getUIBehavior().toString()
+            );
+        }
+
+        return request.build();
     }
 
-    private TokenResult performTokenRequest(OAuth2Strategy strategy, AuthorizationRequest request, AuthorizationResponse response, MSALAcquireTokenOperationParameters parameters) throws IOException, MsalClientException {
-
+    private TokenResult performTokenRequest(final OAuth2Strategy strategy,
+                                            final AuthorizationRequest request,
+                                            final AuthorizationResponse response,
+                                            final MSALAcquireTokenOperationParameters parameters)
+            throws IOException, MsalClientException {
         throwIfNetworkNotAvailable(parameters.getAppContext());
 
         TokenRequest tokenRequest = strategy.createTokenRequest(request, response);
@@ -138,26 +152,128 @@ public class LocalMSALController extends MSALController {
         return tokenResult;
     }
 
-    void throwIfNetworkNotAvailable(Context context) throws MsalClientException {
+    void throwIfNetworkNotAvailable(final Context context) throws MsalClientException {
         final ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         final NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+
         if (networkInfo == null || !networkInfo.isConnected()) {
-            throw new MsalClientException(MsalClientException.DEVICE_NETWORK_NOT_AVAILABLE, "Device network connection is not available.");
+            throw new MsalClientException(
+                    MsalClientException.DEVICE_NETWORK_NOT_AVAILABLE,
+                    "Device network connection is not available."
+            );
         }
     }
 
-    private ICacheRecord saveTokens(OAuth2Strategy strategy, AuthorizationRequest request, TokenResponse tokenResponse, OAuth2TokenCache tokenCache) throws ClientException {
+    private ICacheRecord saveTokens(final OAuth2Strategy strategy,
+                                    final AuthorizationRequest request,
+                                    final TokenResponse tokenResponse,
+                                    final OAuth2TokenCache tokenCache) throws ClientException {
         return tokenCache.save(strategy, request, tokenResponse);
     }
 
-
     @Override
-    public void completeAcquireToken(int requestCode, int resultCode, final Intent data) {
+    public void completeAcquireToken(final int requestCode,
+                                     final int resultCode,
+                                     final Intent data) {
         mAuthorizationStrategy.completeAuthorization(requestCode, resultCode, data);
     }
 
     @Override
-    public AcquireTokenResult acquireTokenSilent(MSALAcquireTokenSilentOperationParameters request) {
-        throw new UnsupportedOperationException();
+    public AcquireTokenResult acquireTokenSilent(
+            final MSALAcquireTokenSilentOperationParameters parameters)
+            throws MsalClientException, IOException, ClientException {
+        final AcquireTokenResult acquireTokenSilentResult = new AcquireTokenResult();
+        final OAuth2TokenCache tokenCache = parameters.getTokenCache();
+
+        final String environment = parameters.getAuthority().getAuthorityURL().getHost();
+        final String clientId = parameters.getClientId();
+        final String homeAccountId =
+                parameters
+                        .getAccount()
+                        .getHomeAccountIdentifier()
+                        .getIdentifier();
+
+        final Account targetAccount = tokenCache.getAccount(
+                environment,
+                clientId,
+                homeAccountId
+        );
+
+        final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy();
+        final ICacheRecord cacheRecord = tokenCache.load(
+                clientId,
+                TextUtils.join(" ", parameters.getScopes()),
+                targetAccount
+        );
+
+        if (accessTokenIsNull(cacheRecord)
+                || refreshTokenIsNull(cacheRecord)
+                || parameters.getForceRefresh()) {
+            if (!refreshTokenIsNull(cacheRecord)) {
+                // No AT found, but the RT checks out, so we'll use it
+                parameters.setRefreshToken(cacheRecord.getRefreshToken());
+
+                final TokenResult tokenResult = performSilentTokenRequest(strategy, parameters);
+                acquireTokenSilentResult.setTokenResult(tokenResult);
+
+                // TODO Do I need to check the success state of the TokenResult?
+                final ICacheRecord savedRecord = tokenCache.save(
+                        strategy,
+                        getAuthorizationRequest(strategy, parameters),
+                        tokenResult.getTokenResponse()
+                );
+
+                // Create a new AuthenticationResult to hold the saved record
+                final AuthenticationResult authenticationResult = new AuthenticationResult(savedRecord);
+
+                // Set the AuthenticationResult on the final result object
+                acquireTokenSilentResult.setAuthenticationResult(authenticationResult);
+            } else {
+                throw new MsalClientException(MsalUiRequiredException.NO_TOKENS_FOUND, "No refresh token was found. ");
+            }
+        } else if (cacheRecord.getAccessToken().isExpired()) {
+            tokenCache.removeCredential(cacheRecord.getAccessToken());
+
+            parameters.setRefreshToken(cacheRecord.getRefreshToken());
+
+            final TokenResult tokenResult = performSilentTokenRequest(strategy, parameters);
+            acquireTokenSilentResult.setTokenResult(tokenResult);
+
+            // TODO Do I need to check the success state of the TokenResult?
+            final ICacheRecord savedRecord = tokenCache.save(
+                    strategy,
+                    getAuthorizationRequest(strategy, parameters),
+                    tokenResult.getTokenResponse()
+            );
+
+            final AuthenticationResult authenticationResult = new AuthenticationResult(savedRecord);
+
+            acquireTokenSilentResult.setAuthenticationResult(authenticationResult);
+        } else {
+            // the result checks out, return that....
+            acquireTokenSilentResult.setAuthenticationResult(
+                    new AuthenticationResult(cacheRecord)
+            );
+        }
+
+        return acquireTokenSilentResult;
+    }
+
+    private boolean refreshTokenIsNull(ICacheRecord cacheRecord) {
+        return null == cacheRecord.getRefreshToken();
+    }
+
+    private boolean accessTokenIsNull(ICacheRecord cacheRecord) {
+        return null == cacheRecord.getAccessToken();
+    }
+
+    private TokenResult performSilentTokenRequest(final OAuth2Strategy strategy,
+                                                  final MSALAcquireTokenSilentOperationParameters parameters) throws MsalClientException, IOException {
+        throwIfNetworkNotAvailable(parameters.getAppContext());
+        return strategy.requestToken(
+                strategy.createRefreshTokenRequest(
+                        parameters.getRefreshToken()
+                )
+        );
     }
 }

@@ -27,7 +27,6 @@ public abstract class AzureActiveDirectoryAudience {
     private String cloudUrl;
     private String tenantId;
 
-
     private static final String ORGANIZATIONS = "organizations";
     private static final String CONSUMERS = "consumers";
     private static final String ALL = "common";
@@ -48,8 +47,8 @@ public abstract class AzureActiveDirectoryAudience {
         this.tenantId = tenantId;
     }
 
-    public static AzureActiveDirectoryAudience getAzureActiveDirectoryAudience(String cloudUrl, String tenantId) {
-
+    public static AzureActiveDirectoryAudience getAzureActiveDirectoryAudience(final String cloudUrl,
+                                                                               final String tenantId) {
         AzureActiveDirectoryAudience audience = null;
 
         switch (tenantId.toLowerCase()) {

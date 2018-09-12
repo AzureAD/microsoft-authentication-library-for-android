@@ -79,6 +79,7 @@ class AccountAdapter {
         accountOut.setAccountIdentifier(accountId);
         accountOut.setHomeAccountIdentifier(homeAccountId);
         accountOut.setUsername(accountIn.getUsername());
+        accountOut.setEnvironment(accountIn.getEnvironment());
 
         return accountOut;
     }

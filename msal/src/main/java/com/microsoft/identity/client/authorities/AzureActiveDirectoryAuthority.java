@@ -49,7 +49,6 @@ public class AzureActiveDirectoryAuthority extends Authority {
     private AzureActiveDirectoryCloud mAzureActiveDirectoryCloud;
 
     private void getAzureActiveDirectoryCloud() {
-
         AzureActiveDirectoryCloud cloud = null;
 
         try {
@@ -95,20 +94,18 @@ public class AzureActiveDirectoryAuthority extends Authority {
 
     @Override
     public URL getAuthorityURL() {
-        try{
+        try {
             return new URL(this.getAuthorityUri().toString());
-        }catch(MalformedURLException e){
+        } catch (MalformedURLException e) {
             throw new IllegalArgumentException("Authority URL is not a URL.", e);
         }
     }
 
     @Override
     public OAuth2Strategy createOAuth2Strategy() {
-
         MicrosoftStsOAuth2Configuration config = new MicrosoftStsOAuth2Configuration();
         config.setAuthorityUrl(this.getAuthorityURL());
         return new MicrosoftStsOAuth2Strategy(config);
     }
-
 
 }
