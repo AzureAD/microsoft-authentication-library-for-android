@@ -25,8 +25,8 @@ package com.microsoft.identity.client.internal.telemetry;
 
 import android.util.Pair;
 
-import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.Telemetry;
+import com.microsoft.identity.client.internal.MsalUtils;
 
 import java.util.ArrayList;
 

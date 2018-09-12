@@ -24,8 +24,8 @@
 package com.microsoft.identity.client.internal.telemetry;
 
 
-import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.client.internal.MsalUtils;
+import com.microsoft.identity.common.internal.logging.Logger;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;

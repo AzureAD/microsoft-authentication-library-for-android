@@ -27,7 +27,7 @@ public final class Defaults {
      * Constructs a new Defaults.
      */
     public Defaults(final String applicationName, final String applicationVersion, final String clientId,
-             final String deviceId, final String sdkVersion, final String sdkPlatform) {
+                    final String deviceId, final String sdkVersion, final String sdkPlatform) {
         mApplicationName = applicationName;
         mApplicationVersion = applicationVersion;
         mClientId = clientId;

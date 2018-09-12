@@ -30,8 +30,8 @@ import android.text.TextUtils;
 
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.MsalClientException;
-import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.client.MsalUiRequiredException;
+import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.Account;
@@ -71,7 +71,7 @@ public class LocalMSALController extends MSALController {
         Authority.KnownAuthorityResult authorityResult = Authority.getKnownAuthorityResult(parameters.getAuthority());
 
         //0.1 If not known throw resulting exception
-        if(!authorityResult.getKnown()){
+        if (!authorityResult.getKnown()) {
             throw authorityResult.getMsalClientException();
         }
 
