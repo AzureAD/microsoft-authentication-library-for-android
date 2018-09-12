@@ -336,6 +336,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         }.performTest();
     }
 
+
     @Test
     public void testAuthorityValidationTurnedOnAfterInteractiveRequest() throws PackageManager.NameNotFoundException, IOException,
             InterruptedException {
@@ -417,6 +418,50 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     }
                 });
             }
+        }.performTest();
+
+    }
+
+
+    @Test
+    public void testUnknownAuthorityException() throws PackageManager.NameNotFoundException, IOException,
+            InterruptedException {
+        new GetTokenBaseTestCase() {
+            private User mUser;
+
+            @Override
+            void mockHttpRequest() throws IOException {
+                mockSuccessResponse(convertScopesArrayToString(SCOPE), AndroidTestUtil.ACCESS_TOKEN, DEFAULT_CLIENT_INFO);
+            }
+
+            @Override
+            void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
+                                      final Activity activity,
+                                      final CountDownLatch releaseLock) {
+                publicClientApplication.acquireToken(activity, SCOPE, "loginhint", null, null, null, "https://someauthority", new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(AuthenticationResult authenticationResult) {
+                        fail("Unexpected success");
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        Assert.assertTrue(exception instanceof MsalClientException);
+                        Assert.assertEquals(exception.getErrorCode(), MsalClientException.UNKNOWN_AUTHORITY);
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        fail("Unexpected Cancel");
+                    }
+                });
+            }
+
+            @Override
+            String getFinalAuthUrl() throws UnsupportedEncodingException {
+                return null;
+            }
+
         }.performTest();
 
     }
@@ -966,6 +1011,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     @Test
+    @Ignore
     public void testTurnOffAuthorityValidation() throws MsalException, IOException, InterruptedException, PackageManager.NameNotFoundException {
         final String testAuthority = "https://someauthority.test.com/sometenant";
 

@@ -64,12 +64,14 @@ public class AzureActiveDirectoryAuthority extends Authority {
 
     public AzureActiveDirectoryAuthority(AzureActiveDirectoryAudience signInAudience) {
         mAudience = signInAudience;
+        mAuthorityTypeString = "AAD";
         getAzureActiveDirectoryCloud();
     }
 
     public AzureActiveDirectoryAuthority() {
         //Defaulting to AllAccounts which maps to the "common" tenant
         mAudience = new AllAccounts();
+        mAuthorityTypeString = "AAD";
         getAzureActiveDirectoryCloud();
     }
 
@@ -83,11 +85,12 @@ public class AzureActiveDirectoryAuthority extends Authority {
 
     @Override
     public Uri getAuthorityUri() {
+        getAzureActiveDirectoryCloud();
         Uri issuer;
         if (mAzureActiveDirectoryCloud == null) {
             issuer = Uri.parse(mAudience.getCloudUrl());
         } else {
-            issuer = Uri.parse(mAzureActiveDirectoryCloud.getPreferredNetworkHostName());
+            issuer = Uri.parse("https://" + mAzureActiveDirectoryCloud.getPreferredNetworkHostName());
         }
         return issuer.buildUpon().appendPath(mAudience.getTenantId()).build();
     }

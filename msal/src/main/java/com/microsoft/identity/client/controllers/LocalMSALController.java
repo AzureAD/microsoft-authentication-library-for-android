@@ -30,6 +30,7 @@ import android.text.TextUtils;
 
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.MsalClientException;
+import com.microsoft.identity.client.authorities.Authority;
 import com.microsoft.identity.client.MsalUiRequiredException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
@@ -64,6 +65,15 @@ public class LocalMSALController extends MSALController {
     public AcquireTokenResult acquireToken(final MSALAcquireTokenOperationParameters parameters)
             throws ExecutionException, InterruptedException, ClientException, IOException, MsalClientException {
         final AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
+
+        //0) Get known authority result
+        throwIfNetworkNotAvailable(parameters.getAppContext());
+        Authority.KnownAuthorityResult authorityResult = Authority.getKnownAuthorityResult(parameters.getAuthority());
+
+        //0.1 If not known throw resulting exception
+        if(!authorityResult.getKnown()){
+            throw authorityResult.getMsalClientException();
+        }
 
         //1) Get oAuth2Strategy for Authority Type
         final OAuth2Strategy oAuth2Strategy = parameters.getAuthority().createOAuth2Strategy();
