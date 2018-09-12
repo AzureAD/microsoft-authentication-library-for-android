@@ -28,6 +28,8 @@ import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
+import com.microsoft.identity.client.internal.MsalUtils;
+
 import junit.framework.Assert;
 
 import org.junit.After;

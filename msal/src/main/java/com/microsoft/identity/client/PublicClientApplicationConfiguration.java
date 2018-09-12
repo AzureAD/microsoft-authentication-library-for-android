@@ -25,11 +25,12 @@ package com.microsoft.identity.client;
 import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
-import com.microsoft.identity.client.authorities.Authority;
-import com.microsoft.identity.client.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.client.authorities.UnknownAudience;
-import com.microsoft.identity.client.authorities.UnknownAuthority;
-import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
+import com.microsoft.identity.client.configuration.HttpConfiguration;
+import com.microsoft.identity.client.configuration.LoggerConfiguration;
+import com.microsoft.identity.client.internal.authorities.Authority;
+import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.client.internal.authorities.UnknownAudience;
+import com.microsoft.identity.client.internal.authorities.UnknownAuthority;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 
 import java.util.List;

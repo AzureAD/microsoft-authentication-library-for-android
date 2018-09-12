@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import com.microsoft.identity.client.internal.MsalUtils;
+
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.microsoft.identity.msal.BuildConfig.VERSION_NAME;
@@ -190,7 +192,7 @@ public final class Logger {
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#error(String, String, String, Throwable)} instead.
      */
     @Deprecated
-    static void error(final String tag, final RequestContext requestContext, final String errorMessage,
+    public static void error(final String tag, final RequestContext requestContext, final String errorMessage,
                       final Throwable exception) {
         getInstance().commonCoreWrapper(tag, LogLevel.ERROR, requestContext, errorMessage, exception, false);
     }
@@ -201,7 +203,7 @@ public final class Logger {
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#errorPII(String, String, String, Throwable)} instead.
      */
     @Deprecated
-    static void errorPII(final String tag, final RequestContext requestContext, final String errorMessage,
+    public static void errorPII(final String tag, final RequestContext requestContext, final String errorMessage,
                          final Throwable exception) {
         getInstance().commonCoreWrapper(tag, LogLevel.ERROR, requestContext, errorMessage, exception, true);
     }
@@ -212,7 +214,7 @@ public final class Logger {
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#warn(String, String, String)} instead.
      */
     @Deprecated
-    static void warning(final String tag, final RequestContext requestContext, final String message) {
+    public static void warning(final String tag, final RequestContext requestContext, final String message) {
         getInstance().commonCoreWrapper(tag, LogLevel.WARNING, requestContext, message, null, false);
     }
 
@@ -222,7 +224,7 @@ public final class Logger {
      * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#warnPII(String, String, String)} instead.
      */
     @Deprecated
-    static void warningPII(final String tag, final RequestContext requestContext, final String message) {
+    public static void warningPII(final String tag, final RequestContext requestContext, final String message) {
         getInstance().commonCoreWrapper(tag, LogLevel.WARNING, requestContext, message, null, true);
     }
 

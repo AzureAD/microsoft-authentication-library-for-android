@@ -5,11 +5,11 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.microsoft.identity.client.authorities.ActiveDirectoryFederationServicesAuthority;
-import com.microsoft.identity.client.authorities.Authority;
-import com.microsoft.identity.client.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.client.authorities.AzureActiveDirectoryB2CAuthority;
-import com.microsoft.identity.client.authorities.UnknownAuthority;
+import com.microsoft.identity.client.internal.authorities.ActiveDirectoryFederationServicesAuthority;
+import com.microsoft.identity.client.internal.authorities.Authority;
+import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryB2CAuthority;
+import com.microsoft.identity.client.internal.authorities.UnknownAuthority;
 
 import java.lang.reflect.Type;
 

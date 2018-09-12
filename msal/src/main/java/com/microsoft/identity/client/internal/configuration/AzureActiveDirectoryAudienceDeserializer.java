@@ -27,12 +27,12 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.microsoft.identity.client.authorities.AccountsInOneOrganization;
-import com.microsoft.identity.client.authorities.AllAccounts;
-import com.microsoft.identity.client.authorities.AnyOrganizationalAccount;
-import com.microsoft.identity.client.authorities.AnyPersonalAccount;
-import com.microsoft.identity.client.authorities.AzureActiveDirectoryAudience;
-import com.microsoft.identity.client.authorities.UnknownAudience;
+import com.microsoft.identity.client.internal.authorities.AccountsInOneOrganization;
+import com.microsoft.identity.client.internal.authorities.AllAccounts;
+import com.microsoft.identity.client.internal.authorities.AnyOrganizationalAccount;
+import com.microsoft.identity.client.internal.authorities.AnyPersonalAccount;
+import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAudience;
+import com.microsoft.identity.client.internal.authorities.UnknownAudience;
 
 import java.lang.reflect.Type;
 

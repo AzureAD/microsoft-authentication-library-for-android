@@ -29,7 +29,6 @@ import com.microsoft.identity.common.internal.dto.Account;
 import com.microsoft.identity.common.internal.dto.IdToken;
 
 import java.util.Date;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,8 +38,6 @@ import java.util.concurrent.TimeUnit;
 public final class AuthenticationResult {
 
     //Fields for Legacy Cache
-    private final AccessTokenCacheItem mAccessTokenCacheItem;
-    private final User mUser;
     private final String mTenantId;
     private final String mRawIdToken;
     private final String mUniqueId;
@@ -49,33 +46,10 @@ public final class AuthenticationResult {
     private final ICacheRecord mCacheRecord;
     private final AccessToken mAccessToken;
     private final IdToken mIdToken;
-    private final Account mAccount;
+    private final IAccount mAccount;
 
-
-    AuthenticationResult(final AccessTokenCacheItem accessTokenCacheItem) throws MsalClientException {
-
-        mCacheRecord = null;
-        mAccessToken = null;
-        mIdToken = null;
-        mAccount = null;
-
-        mAccessTokenCacheItem = accessTokenCacheItem;
-        mUser = accessTokenCacheItem.getUser();
-        mRawIdToken = accessTokenCacheItem.getRawIdToken();
-        final com.microsoft.identity.client.IdToken idToken = accessTokenCacheItem.getIdToken();
-        if (idToken != null) {
-            mTenantId = idToken.getTenantId();
-            mUniqueId = idToken.getUniqueId();
-        } else {
-            mTenantId = "";
-            mUniqueId = "";
-        }
-    }
 
     public AuthenticationResult(final ICacheRecord cacheRecord) {
-
-        mAccessTokenCacheItem = null;
-        mUser = null;
 
         mCacheRecord = cacheRecord;
         mAccessToken = mCacheRecord.getAccessToken();
@@ -83,14 +57,14 @@ public final class AuthenticationResult {
         mTenantId = cacheRecord.getAccount().getRealm();
         mUniqueId = cacheRecord.getAccount().getHomeAccountId();
         mRawIdToken = cacheRecord.getIdToken().getSecret();
-        mAccount = cacheRecord.getAccount();
+        mAccount = AccountAdapter.adapt(cacheRecord.getAccount());
     }
 
     /**
      * @return The access token requested.
      */
     public String getAccessToken() {
-        return null != mAccessTokenCacheItem ? mAccessTokenCacheItem.getAccessToken() : mAccessToken.getSecret();
+        return mAccessToken.getSecret();
     }
 
     /**
@@ -101,17 +75,13 @@ public final class AuthenticationResult {
     public Date getExpiresOn() {
         final Date expiresOn;
 
-        if (null != mAccessTokenCacheItem) {
-            expiresOn = mAccessTokenCacheItem.getExpiresOn();
-        } else {
-            expiresOn = new Date(
-                    TimeUnit.SECONDS.toMillis(
-                            Long.parseLong(
-                                    mAccessToken.getExpiresOn()
-                            )
-                    )
-            );
-        }
+        expiresOn = new Date(
+                TimeUnit.SECONDS.toMillis(
+                        Long.parseLong(
+                                mAccessToken.getExpiresOn()
+                        )
+                )
+        );
 
         return expiresOn;
     }
@@ -143,23 +113,14 @@ public final class AuthenticationResult {
      *
      * @return The Account to get.
      */
-    public Account getAccount() {
+    public IAccount getAccount() {
         return mAccount;
-    }
-
-    /**
-     * @return The {@link User} that tokens were acquired. Some elements inside {@link User} could be null if not
-     * returned by the service.
-     */
-    public User getUser() {
-        return mUser;
     }
 
     /**
      * @return The scopes returned from the service.
      */
     public String[] getScope() {
-        final Set<String> scopes = mAccessTokenCacheItem.getScope();
-        return scopes.toArray(new String[scopes.size()]);
+        return mAccessToken.getTarget().split("\\s");
     }
 }

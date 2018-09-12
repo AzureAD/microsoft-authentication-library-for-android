@@ -25,6 +25,15 @@ package com.microsoft.identity.client;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import com.microsoft.identity.client.internal.telemetry.ApiEvent;
+import com.microsoft.identity.client.internal.telemetry.CacheEvent;
+import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
+import com.microsoft.identity.client.internal.telemetry.Defaults;
+import com.microsoft.identity.client.internal.telemetry.EventConstants;
+import com.microsoft.identity.client.internal.telemetry.HttpEvent;
+import com.microsoft.identity.client.internal.telemetry.PlatformIdHelper;
+import com.microsoft.identity.client.internal.telemetry.UiEvent;
+
 import junit.framework.Assert;
 
 import org.junit.Before;
@@ -37,7 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.microsoft.identity.client.EventConstants.EventProperty;
+import static com.microsoft.identity.client.internal.telemetry.EventConstants.EventProperty;
 
 @RunWith(AndroidJUnit4.class)
 public class TelemetryTest {

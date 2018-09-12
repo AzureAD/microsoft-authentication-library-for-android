@@ -30,10 +30,10 @@ import android.util.Log;
 
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.MsalException;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.UiBehavior;
-import com.microsoft.identity.client.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +47,7 @@ final class AuthUtil {
     private static final String[] SCOPES = {"User.Read"};
     private static final String[] EXTRA_SCOPES = {"Calendars.Read"};
     private static final String CLIENT_ID = "9851987a-55e5-46e2-8d70-75f8dc060f21";
-    private List<User> mUsers = new ArrayList<>();
+    private List<IAccount> mAccounts = new ArrayList<>();
 
     public AuthUtil(final Context context) {
         if (mApplication == null) {
@@ -58,7 +58,7 @@ final class AuthUtil {
     // Get the number of users signed into the app. In the context of the current app this method can return 1 or 0
     int getUserCount() {
         getUsers();
-        return mUsers.size();
+        return mAccounts.size();
     }
 
     // Do an interactive login request
@@ -79,14 +79,14 @@ final class AuthUtil {
     // with the exception
     void doAcquireTokenSilent(final AuthenticatedTask task) {
         AuthCallback callback = new AuthCallback(task);
-        mApplication.acquireTokenSilentAsync(SCOPES, mUsers.get(0), callback);
+        mApplication.acquireTokenSilentAsync(SCOPES, mAccounts.get(0), callback);
     }
 
     // Remove the user from the list of users being tracked by the application. This does not clear the cookies
     void doSignout() {
         final int userCount = getUserCount();
         for (int i = 0; i < userCount; i++) {
-            mApplication.remove(mUsers.get(i));
+            mApplication.removeAccount(mAccounts.get(i));
         }
     }
 
@@ -101,13 +101,14 @@ final class AuthUtil {
     // The app does nothing with the newly acquired scopes yet.
     void doExtraScopeRequest(final Activity activity) {
         getUsers();
+        mApplication.acquireToken()
         mApplication.acquireToken(activity,
                 SCOPES,
-                mUsers.get(0), // The user object
+                "",
                 UiBehavior.CONSENT,
                 "", // Extra query parameters
                 EXTRA_SCOPES,
-                "", // AuthorityMetadata
+                null,
                 new AuthenticationCallback() {
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
