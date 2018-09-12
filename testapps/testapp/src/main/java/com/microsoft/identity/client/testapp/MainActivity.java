@@ -249,35 +249,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mSelectedAccount = null;
     }
 
-    User getUser(String loginHint) {
-        try {
-            final List<User> users = mApplication.getUsers();
-            for (final User user : users) {
-                if (user.getDisplayableId().equals(loginHint.trim().toLowerCase())) {
-                    return user;
-                }
+    IAccount getAccount(final String loginHint) {
+        for (final IAccount account : mApplication.getAccounts()) {
+            if (account.getUsername().equals(loginHint.trim().toLowerCase())) {
+                return account;
             }
-
-            showMessage("No record of user with this login hint.");
-        } catch (final MsalClientException e) {
-            Log.e(TAG, "Fail to retrieve users: " + e.getMessage(), e);
         }
 
         return null;
     }
 
-
     @Override
     public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
-        final User requestUser = getUser(requestOptions.getLoginHint());
+        final IAccount requestAccount = getAccount(requestOptions.getLoginHint());
 
-        if (requestUser == null) {
-            showMessage("Please select an user.");
+        if (requestAccount == null) {
+            showMessage("Please select a user.");
             return;
         }
 
-        callAcquireTokenSilent(mScopes, requestUser, mForceRefresh);
+        callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
@@ -334,8 +326,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    private void callAcquireTokenSilent(final String[] scopes, final User user, boolean forceRefresh) {
-        mApplication.acquireTokenSilentAsync(scopes, user, null, forceRefresh, getAuthenticationCallback());
+    private void callAcquireTokenSilent(final String[] scopes,
+                                        final IAccount account,
+                                        boolean forceRefresh) {
+        mApplication.acquireTokenSilentAsync(
+                scopes,
+                account,
+                null,
+                forceRefresh,
+                getAuthenticationCallback()
+        );
     }
 
     private AuthenticationCallback getAuthenticationCallback() {
