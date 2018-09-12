@@ -26,7 +26,6 @@ package com.microsoft.identity.client.sample;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
@@ -57,7 +56,6 @@ final class AuthUtil {
 
     // Get the number of users signed into the app. In the context of the current app this method can return 1 or 0
     int getUserCount() {
-        getUsers();
         return mAccounts.size();
     }
 
@@ -100,8 +98,6 @@ final class AuthUtil {
     // This function just demonstrates how to request more scopes.
     // The app does nothing with the newly acquired scopes yet.
     void doExtraScopeRequest(final Activity activity) {
-        getUsers();
-        mApplication.acquireToken()
         mApplication.acquireToken(activity,
                 SCOPES,
                 "",
@@ -125,16 +121,6 @@ final class AuthUtil {
                         // Not filled in for the sample app
                     }
                 });
-    }
-
-    // Get the list of users signed into the app. This app is designed to be a single user app, but if an app wants to
-    // handle more than one user, this is the way to get the list of users who are signed in.
-    private void getUsers() {
-        try {
-            mUsers = mApplication.getUsers();
-        } catch (final MsalException exc) {
-            Log.e(TAG, "Exception when getting users", exc);
-        }
     }
 
     private static final class AuthCallback implements AuthenticationCallback {

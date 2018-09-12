@@ -80,7 +80,6 @@ import java.util.List;
 
 import static com.microsoft.identity.common.internal.cache.AccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
 
-
 /**
  * <p>
  * This is the entry point for developer to create public native applications and make API calls to acquire tokens.
@@ -239,7 +238,6 @@ public final class PublicClientApplication {
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
     }
 
-
     /**
      * {@link PublicClientApplication#PublicClientApplication(Context, String)} allows the client id to be passed instead of
      * providing through the AndroidManifest metadata. If this constructor is called, the default authority https://login.microsoftonline.com/common will be used.
@@ -283,7 +281,9 @@ public final class PublicClientApplication {
      * @param clientId  The application client id.
      * @param authority The default authority to be used for the authority.
      */
-    public PublicClientApplication(@NonNull final Context context, @NonNull final String clientId, @NonNull final String authority) {
+    public PublicClientApplication(@NonNull final Context context,
+                                   @NonNull final String clientId,
+                                   @NonNull final String authority) {
         this(context, clientId);
 
         if (MsalUtils.isEmpty(authority)) {
@@ -434,7 +434,6 @@ public final class PublicClientApplication {
         );
     }
 
-
     /**
      * MSAL requires the calling app to pass an {@link Activity} which <b> MUST </b> call this method to get the auth
      * code passed back correctly.
@@ -446,7 +445,6 @@ public final class PublicClientApplication {
     public void handleInteractiveRequestRedirect(int requestCode, int resultCode, final Intent data) {
         com.microsoft.identity.client.MSALApiDispatcher.completeInteractive(requestCode, resultCode, data);
     }
-
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
@@ -466,9 +464,10 @@ public final class PublicClientApplication {
      *                 3) All the other errors will be sent back via
      *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
-    public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, @NonNull final AuthenticationCallback callback) {
-
-        MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, null, null, null, null, null);
+    public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final String[] scopes,
+                             @NonNull final AuthenticationCallback callback) {
+        MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, null, UiBehavior.SELECT_ACCOUNT, null, null, null);
         MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
         com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
     }
@@ -493,9 +492,11 @@ public final class PublicClientApplication {
      *                  3) All the other errors will be sent back via
      *                  {@link AuthenticationCallback#onError(MsalException)}.
      */
-    public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint,
+    public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final String[] scopes,
+                             final String loginHint,
                              @NonNull final AuthenticationCallback callback) {
-        MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, loginHint, null, null, null, null);
+        MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, loginHint, UiBehavior.SELECT_ACCOUNT, null, null, null);
         MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
         com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
     }
@@ -522,8 +523,12 @@ public final class PublicClientApplication {
      *                             3) All the other errors will be sent back via
      *                             {@link AuthenticationCallback#onError(MsalException)}.
      */
-    public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final String loginHint, final UiBehavior uiBehavior,
-                             final String extraQueryParameters, @NonNull final AuthenticationCallback callback) {
+    public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final String[] scopes,
+                             final String loginHint,
+                             final UiBehavior uiBehavior,
+                             final String extraQueryParameters,
+                             @NonNull final AuthenticationCallback callback) {
         MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, loginHint, uiBehavior, extraQueryParameters, null, null);
         MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
         com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
@@ -539,7 +544,7 @@ public final class PublicClientApplication {
      *                            activity {@link Activity#onActivityResult(int, int, Intent)}.
      * @param scopes              The non-null array of scopes to be requested for the access token.
      *                            MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param account            Optional. If provided, will be used to force the session continuation.  If user tries to sign in with a different user,
+     * @param account             Optional. If provided, will be used to force the session continuation.  If user tries to sign in with a different user,
      *                            error will be returned.
      * @param uiBehavior          The {@link UiBehavior} for prompting behavior. By default, the sdk use {@link UiBehavior#SELECT_ACCOUNT}.
      * @param extraQueryParameter Optional. The extra query parameter sent to authorize endpoint.
@@ -766,17 +771,17 @@ public final class PublicClientApplication {
         defaultConfig.mergeConfiguration(developerConfig);
         mPublicClientConfiguration = defaultConfig;
 
-        if(!StringUtil.isEmpty(mPublicClientConfiguration.getClientId())){
+        if (!StringUtil.isEmpty(mPublicClientConfiguration.getClientId())) {
             mClientId = mPublicClientConfiguration.getClientId();
         }
 
-        if(!StringUtil.isEmpty(mPublicClientConfiguration.getRedirectUri())){
+        if (!StringUtil.isEmpty(mPublicClientConfiguration.getRedirectUri())) {
             mRedirectUri = mPublicClientConfiguration.getRedirectUri();
         }
 
-        if(mPublicClientConfiguration.isDefaultAuthorityConfigured()) {
+        if (mPublicClientConfiguration.isDefaultAuthorityConfigured()) {
             mAuthorityString = mPublicClientConfiguration.getDefaultAuthority().toString();
-        }else{
+        } else {
             mAuthorityString = DEFAULT_AUTHORITY;
         }
 
@@ -851,9 +856,9 @@ public final class PublicClientApplication {
      * Otherwise the library will use the configured redirect URI.
      */
     private String createRedirectUri(final String clientId) {
-        if(!StringUtil.isEmpty(mPublicClientConfiguration.getRedirectUri())) {
+        if (!StringUtil.isEmpty(mPublicClientConfiguration.getRedirectUri())) {
             return mPublicClientConfiguration.getRedirectUri();
-        }else{
+        } else {
             return "msal" + clientId + "://auth";
         }
     }
@@ -872,16 +877,15 @@ public final class PublicClientApplication {
                                                                                   final String extraQueryParams,
                                                                                   final String[] extraScopesToConsent,
                                                                                   final String authority) {
-
         final MSALAcquireTokenOperationParameters params = new MSALAcquireTokenOperationParameters();
 
-        if(StringUtil.isEmpty(authority)) {
+        if (StringUtil.isEmpty(authority)) {
             if (mPublicClientConfiguration.isDefaultAuthorityConfigured()) {
                 params.setAuthority(mPublicClientConfiguration.getDefaultAuthority());
             } else {
                 params.setAuthority(Authority.getAuthorityFromAuthorityUrl(mAuthorityString));
             }
-        }else{
+        } else {
             params.setAuthority(Authority.getAuthorityFromAuthorityUrl(authority));
         }
 
@@ -892,7 +896,11 @@ public final class PublicClientApplication {
         params.setLoginHint(loginHint);
         params.setTokenCache(mOauth2TokenCache);
         params.setExtraQueryStringParameters(extraQueryParams);
-        params.setExtraScopesToConsent(Arrays.asList(extraScopesToConsent));
+        params.setExtraScopesToConsent(
+                null != extraScopesToConsent
+                        ? Arrays.asList(extraScopesToConsent)
+                        : new ArrayList<String>()
+        );
         params.setUIBehavior(uiBehavior);
         params.setAppContext(mAppContext);
 
