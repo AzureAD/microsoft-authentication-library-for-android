@@ -25,10 +25,9 @@ package com.microsoft.identity.client.internal.authorities;
 import android.net.Uri;
 
 import com.google.gson.annotations.SerializedName;
-
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.MsalClientException;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 
 import java.io.IOException;
@@ -58,7 +57,7 @@ public abstract class Authority {
 
     public abstract URL getAuthorityURL();
 
-    public boolean getDefault(){
+    public boolean getDefault() {
         return mIsDefault;
     }
 
@@ -158,16 +157,16 @@ public abstract class Authority {
 
     private static void performCloudDiscovery() throws IOException {
 
-       synchronized (sLock) {
-           if (!AzureActiveDirectory.isInitialized()) {
-               AzureActiveDirectory.performCloudDiscovery();
-           }
-       }
+        synchronized (sLock) {
+            if (!AzureActiveDirectory.isInitialized()) {
+                AzureActiveDirectory.performCloudDiscovery();
+            }
+        }
 
     }
 
-    public static void addKnownAuthorities(List<Authority> authorities){
-        synchronized (sLock){
+    public static void addKnownAuthorities(List<Authority> authorities) {
+        synchronized (sLock) {
             knownAuthorities.addAll(authorities);
         }
     }
@@ -175,6 +174,7 @@ public abstract class Authority {
     /**
      * Authorities are either known by the developer and communicated to the library via configuration or they
      * are known to Microsoft based on the list of clouds returned from:
+     *
      * @return
      */
     public static boolean isKnownAuthority(Authority authority) {
@@ -182,7 +182,7 @@ public abstract class Authority {
         boolean knownToDeveloper = false;
         boolean knownToMicrosoft = false;
 
-        if(authority == null){
+        if (authority == null) {
             return false;
         }
 
@@ -196,21 +196,21 @@ public abstract class Authority {
 
     }
 
-    public static KnownAuthorityResult getKnownAuthorityResult(Authority authority){
+    public static KnownAuthorityResult getKnownAuthorityResult(Authority authority) {
 
         MsalClientException msalClientException = null;
         boolean known = false;
 
-        try{
+        try {
             performCloudDiscovery();
-        }catch(IOException ex){
+        } catch (IOException ex) {
             msalClientException = new MsalClientException(MsalClientException.IO_ERROR, "Unable to perform cloud discovery", ex);
         }
 
-        if(msalClientException == null){
-            if(!isKnownAuthority(authority)){
+        if (msalClientException == null) {
+            if (!isKnownAuthority(authority)) {
                 msalClientException = new MsalClientException(MsalClientException.UNKNOWN_AUTHORITY, "Provided authority is not known.  MSAL will only make requests to known authorities");
-            }else{
+            } else {
                 known = true;
             }
         }
@@ -219,15 +219,16 @@ public abstract class Authority {
 
     }
 
-    public static class KnownAuthorityResult{
+    public static class KnownAuthorityResult {
         private boolean mKnown = false;
         private MsalClientException mMsalClientException = null;
-        KnownAuthorityResult(boolean known, MsalClientException exception){
+
+        KnownAuthorityResult(boolean known, MsalClientException exception) {
             mKnown = known;
             mMsalClientException = exception;
         }
 
-        public boolean getKnown(){
+        public boolean getKnown() {
             return mKnown;
         }
 

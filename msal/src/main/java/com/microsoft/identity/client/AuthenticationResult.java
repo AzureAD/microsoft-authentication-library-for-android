@@ -25,7 +25,6 @@ package com.microsoft.identity.client;
 
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccessToken;
-import com.microsoft.identity.common.internal.dto.Account;
 import com.microsoft.identity.common.internal.dto.IdToken;
 
 import java.util.Date;

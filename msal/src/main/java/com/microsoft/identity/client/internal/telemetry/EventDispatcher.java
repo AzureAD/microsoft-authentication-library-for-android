@@ -26,7 +26,6 @@ package com.microsoft.identity.client.internal.telemetry;
 import android.util.Pair;
 
 import com.microsoft.identity.client.IMsalEventReceiver;
-import com.microsoft.identity.client.internal.telemetry.Event;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

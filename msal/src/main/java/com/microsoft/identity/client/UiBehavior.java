@@ -36,7 +36,7 @@ public enum UiBehavior {
 
     /**
      * acquireToken will send prompt=login to the authorize endpoint.  The user will always be prompted for credentials by the service.
-     *
+     * <p>
      * toString override is to enable the correct protocol value of login to be returned instead of "force_login".
      */
     FORCE_LOGIN,
@@ -47,8 +47,8 @@ public enum UiBehavior {
     CONSENT;
 
     @Override
-    public String toString(){
-        switch(this){
+    public String toString() {
+        switch (this) {
             case SELECT_ACCOUNT:
                 return SELECT_ACCOUNT.name().toLowerCase();
             case FORCE_LOGIN:

@@ -42,9 +42,9 @@ public class ActiveDirectoryFederationServicesAuthority extends Authority {
 
     @Override
     public URL getAuthorityURL() {
-        try{
+        try {
             return new URL(this.getAuthorityUri().toString());
-        }catch(MalformedURLException e){
+        } catch (MalformedURLException e) {
             throw new IllegalArgumentException("Authority URL is not a URL.", e);
         }
     }

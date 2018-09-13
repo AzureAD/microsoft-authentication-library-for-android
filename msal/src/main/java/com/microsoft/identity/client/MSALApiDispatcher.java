@@ -110,7 +110,6 @@ public class MSALApiDispatcher {
         }
     }
 
-
     public static void completeInteractive(int requestCode, int resultCode, final Intent data) {
         sCommand.notify(requestCode, resultCode, data);
     }
@@ -141,6 +140,5 @@ public class MSALApiDispatcher {
             }
         });
     }
-
 
 }

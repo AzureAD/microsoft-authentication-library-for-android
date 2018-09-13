@@ -193,7 +193,7 @@ public final class Logger {
      */
     @Deprecated
     public static void error(final String tag, final RequestContext requestContext, final String errorMessage,
-                      final Throwable exception) {
+                             final Throwable exception) {
         getInstance().commonCoreWrapper(tag, LogLevel.ERROR, requestContext, errorMessage, exception, false);
     }
 
@@ -204,7 +204,7 @@ public final class Logger {
      */
     @Deprecated
     public static void errorPII(final String tag, final RequestContext requestContext, final String errorMessage,
-                         final Throwable exception) {
+                                final Throwable exception) {
         getInstance().commonCoreWrapper(tag, LogLevel.ERROR, requestContext, errorMessage, exception, true);
     }
 
