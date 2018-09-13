@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.client;
 
+import com.microsoft.identity.common.internal.net.HttpUrlConnectionFactory;
+
 import org.mockito.Mockito;
 
 import java.io.IOException;

@@ -53,7 +53,6 @@ import com.microsoft.identity.client.MsalUiRequiredException;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.Telemetry;
 import com.microsoft.identity.client.UiBehavior;
-import com.microsoft.identity.client.User;
 
 import java.io.Serializable;
 import java.util.List;
@@ -230,16 +229,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void onRemoveUserClicked() {
-        try {
-            final List<User> users = mApplication.getUsers();
-            for (final User user : users) {
-                mApplication.remove(user);
-            }
-        } catch (final MsalClientException e) {
-            Log.e(TAG, "Fail to retrieve users: " + e.getMessage(), e);
-        }
 
-        // Remove Accounts...
         final List<IAccount> accountsToRemove = mApplication.getAccounts();
 
         for (final IAccount accountToRemove : accountsToRemove) {

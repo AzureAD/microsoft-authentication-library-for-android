@@ -25,11 +25,12 @@ package com.microsoft.identity.client;
 import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
-import com.microsoft.identity.client.authorities.Authority;
-import com.microsoft.identity.client.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.client.authorities.UnknownAudience;
-import com.microsoft.identity.client.authorities.UnknownAuthority;
-import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
+import com.microsoft.identity.client.configuration.HttpConfiguration;
+import com.microsoft.identity.client.configuration.LoggerConfiguration;
+import com.microsoft.identity.client.internal.authorities.Authority;
+import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.client.internal.authorities.UnknownAudience;
+import com.microsoft.identity.client.internal.authorities.UnknownAuthority;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 
 import java.util.List;
@@ -125,8 +126,8 @@ public class PublicClientApplicationConfiguration {
         return this.mAuthorizationAgent;
     }
 
-    public Authority getDefaultAuthority(){
-        if(mAuthorities != null) {
+    public Authority getDefaultAuthority() {
+        if (mAuthorities != null) {
             if (mAuthorities.size() > 1) {
                 for (Authority authority : mAuthorities) {
                     if (authority.getDefault()) {
@@ -137,13 +138,13 @@ public class PublicClientApplicationConfiguration {
             } else {
                 return mAuthorities.get(0);
             }
-        }else{
+        } else {
             return null;
         }
     }
 
-    private void checkDefaultAuthoritySpecified(){
-        if(mAuthorities != null) {
+    private void checkDefaultAuthoritySpecified() {
+        if (mAuthorities != null) {
             if (mAuthorities.size() > 1) {
                 int defaultCount = 0;
                 for (Authority authority : mAuthorities) {
@@ -161,12 +162,12 @@ public class PublicClientApplicationConfiguration {
         }
     }
 
-    boolean isDefaultAuthorityConfigured(){
+    boolean isDefaultAuthorityConfigured() {
         Authority authority = getDefaultAuthority();
 
-        if(authority != null){
+        if (authority != null) {
             return true;
-        }else{
+        } else {
             return false;
         }
     }

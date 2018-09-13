@@ -26,8 +26,11 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Base64;
 
+import com.microsoft.identity.client.internal.MsalUtils;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -35,6 +38,8 @@ import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+
+import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -47,15 +52,20 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
+import static org.mockito.Mockito.mock;
 
 /**
  * Util class for instrumentation tests.
  */
 public final class AndroidTestUtil {
+    static final String AUTHORIZE_ENDPOINT = "https://login.microsoftonline.com/sometenant/authorize";
+    static final String TOKEN_ENDPOINT = "https://login.microsoftonline.com/sometenant/token";
+    static final String TENANT_DISCOVERY_ENDPOINT = "https://some_tenant_discovery/endpoint";
+    static final String TEST_B2C_AUTHORITY = "https://login.microsoftonline.com/tfp/tenant/policy";
     private static final String ACCESS_TOKEN_SHARED_PREFERENCE = "com.microsoft.identity.client.token";
     private static final String REFRESH_TOKEN_SHARED_PREFERENCE = "com.microsoft.identity.client.refreshToken";
     static final String DEFAULT_AUTHORITY_WITH_TENANT = "https://login.microsoftonline.com/tenant";
@@ -261,22 +271,6 @@ public final class AndroidTestUtil {
         refreshTokenSharedPreferenceEditor.apply();
     }
 
-    static List<AccessTokenCacheItem> getAllAccessTokens(final Context appContext) {
-        Telemetry.disableForTest(true);
-        final TokenCache tokenCache = new TokenCache(appContext);
-        List<AccessTokenCacheItem> accessTokenCacheItems = tokenCache.getAllAccessTokens(getTestRequestContext());
-        Telemetry.disableForTest(false);
-        return accessTokenCacheItems;
-    }
-
-    static List<RefreshTokenCacheItem> getAllRefreshTokens(final Context appContext) {
-        Telemetry.disableForTest(true);
-        final TokenCache tokenCache = new TokenCache(appContext);
-        List<RefreshTokenCacheItem> refreshTokenCacheItems = tokenCache.getAllRefreshTokens(getTestRequestContext());
-        Telemetry.disableForTest(false);
-        return refreshTokenCacheItems;
-    }
-
     static String getRawIdToken(final String displaybleId, final String uniqueId, final String tenantId) {
         return AndroidTestUtil.createIdToken(
                 AUDIENCE,
@@ -317,4 +311,35 @@ public final class AndroidTestUtil {
     static RequestContext getTestRequestContext() {
         return new RequestContext(UUID.randomUUID(), "", Telemetry.generateNewRequestId());
     }
+
+    static void mockNetworkConnected(final Context mockedContext, boolean isConnected) {
+        final ConnectivityManager connectivityManager = (ConnectivityManager) mockedContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        final NetworkInfo mockedNetworkInfo = mock(NetworkInfo.class);
+        Mockito.when(mockedNetworkInfo.isConnected()).thenReturn(isConnected);
+        Mockito.when(connectivityManager.getActiveNetworkInfo()).thenReturn(mockedNetworkInfo);
+    }
+
+    static final int THREAD_DELAY_TIME = 200;
+    static final String AUTHORITY = "https://login.microsoftonline.com/common";
+    static final String UNIQUE_ID = "some-unique-id";
+    static final String DISPLAYABLE = "some-displayable-id";
+
+    static String getDefaultIdToken() {
+        return AndroidTestUtil.createIdToken(
+                AUTHORITY,
+                "https://login.microsoftonline.com/common",
+                "test user",
+                UNIQUE_ID,
+                DISPLAYABLE,
+                "sub",
+                "tenant",
+                "version",
+                null
+        );
+    }
+
+    static String getDefaultClientInfo() {
+        return AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID);
+    }
+
 }
