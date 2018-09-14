@@ -28,6 +28,8 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.microsoft.identity.common.internal.net.HttpUrlConnectionFactory;
+
 import junit.framework.Assert;
 
 import org.junit.Before;
@@ -50,6 +52,7 @@ public final class AuthenticationActivityTest {
     public void setUp() {
         mAppContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         mRedirectUri = "msauth-client-id://" + mAppContext.getPackageName();
+        HttpUrlConnectionFactory.clearMockedConnectionQueue();
     }
 
     @Test
