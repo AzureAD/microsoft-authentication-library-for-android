@@ -153,6 +153,7 @@ public final class PublicClientApplication {
      * Unique String identifier used in logging/telemetry callbacks to identify.
      * component in the application using MSAL
      */
+    @SuppressWarnings("PMD.UnusedPrivateField") // TODO wire-up
     private String mComponent;
 
     /**
@@ -160,16 +161,7 @@ public final class PublicClientApplication {
      */
     private String mRedirectUri;
 
-    /**
-     * When set to true (default), MSAL will compare the application's authority against well-known URL
-     * templates representing well-formed authorities. It is useful when the authority is obtained at
-     * run time to prevent MSAL from displaying authentication prompts from malicious pages.
-     */
-    private boolean mValidateAuthority = true;
-
     private PublicClientApplicationConfiguration mPublicClientConfiguration;
-
-    private Boolean mInitialized = false;
 
     /**
      * @param context Application's {@link Context}. The sdk requires the application context to be passed in
@@ -312,8 +304,6 @@ public final class PublicClientApplication {
         // manifest, we cannot make the network call.
         checkInternetPermission();
         Logger.info(TAG, null, "Create new public client application.");
-
-        mInitialized = true;
     }
 
     /**
@@ -321,22 +311,6 @@ public final class PublicClientApplication {
      */
     public static String getSdkVersion() {
         return BuildConfig.VERSION_NAME;
-    }
-
-    /**
-     * @param validateAuthority True if authority validation is on, false otherwise. By default, authority
-     *                          validation is turned on.
-     * @deprecated The use of this property setter is no longer required.  Authorities will be considered valid
-     * if they are asserted by the developer via configuration or if Microsoft recognizes the cloud within which the authority exists.
-     * <p>
-     * This setter no longer controls MSAL behavior.
-     * <p>
-     * By Default, authority validation is turned on. To turn on authority validation, set
-     * {@link PublicClientApplication#setValidateAuthority(boolean)} to false.
-     */
-    @Deprecated
-    public void setValidateAuthority(final boolean validateAuthority) {
-        mValidateAuthority = validateAuthority;
     }
 
     /**
@@ -908,6 +882,7 @@ public final class PublicClientApplication {
         return params;
     }
 
+    @SuppressWarnings("PMD.UnusedPrivateMethod") // TODO wire-up
     private ApiEvent.Builder createApiEventBuilder(final String telemetryRequestId, final String apiId) {
         // Create the ApiEvent.Builder
         ApiEvent.Builder eventBuilder =
@@ -930,6 +905,7 @@ public final class PublicClientApplication {
      * @param authenticationCallback the original consuming callback
      * @return the wrapped {@link AuthenticationCallback} instance
      */
+    @SuppressWarnings("PMD.UnusedPrivateMethod") // TODO wire-up
     private AuthenticationCallback wrapCallbackForTelemetryIntercept(
             final ApiEvent.Builder eventBinding, final AuthenticationCallback authenticationCallback) {
         if (null == authenticationCallback) {

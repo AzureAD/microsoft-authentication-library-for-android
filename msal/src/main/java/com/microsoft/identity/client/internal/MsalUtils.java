@@ -97,7 +97,7 @@ public final class MsalUtils {
      * for {@link android.text.TextUtils}.
      */
     public static boolean isEmpty(final String message) {
-        return message == null || message.trim().length() == 0;
+        return message == null || message.isEmpty();
     }
 
     /**

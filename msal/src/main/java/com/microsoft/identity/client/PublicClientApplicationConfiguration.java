@@ -144,20 +144,21 @@ public class PublicClientApplicationConfiguration {
     }
 
     private void checkDefaultAuthoritySpecified() {
-        if (mAuthorities != null) {
-            if (mAuthorities.size() > 1) {
-                int defaultCount = 0;
-                for (Authority authority : mAuthorities) {
-                    if (authority.getDefault()) {
-                        defaultCount++;
-                    }
+        if (mAuthorities != null && mAuthorities.size() > 1) {
+            int defaultCount = 0;
+
+            for (Authority authority : mAuthorities) {
+                if (authority.getDefault()) {
+                    defaultCount++;
                 }
-                if (defaultCount == 0) {
-                    throw new IllegalArgumentException("One authority in your configuration must be marked as default.");
-                }
-                if (defaultCount > 1) {
-                    throw new IllegalArgumentException("More than one authority in your configuration is marked as default.  Only one authority may be default.");
-                }
+            }
+
+            if (defaultCount == 0) {
+                throw new IllegalArgumentException("One authority in your configuration must be marked as default.");
+            }
+
+            if (defaultCount > 1) {
+                throw new IllegalArgumentException("More than one authority in your configuration is marked as default.  Only one authority may be default.");
             }
         }
     }

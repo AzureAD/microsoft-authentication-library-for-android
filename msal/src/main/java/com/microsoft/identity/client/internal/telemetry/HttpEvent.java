@@ -70,17 +70,17 @@ public final class HttpEvent extends Event {
         final String[] splitArray = url.getPath().split("/");
 
         final StringBuilder logPath = new StringBuilder();
-        logPath.append(url.getProtocol());
-        logPath.append("://");
-        logPath.append(authority);
-        logPath.append("/");
+        logPath.append(url.getProtocol())
+                .append("://")
+                .append(authority)
+                .append('/');
 
         // we do not want to send tenant information
         // index 0 is blank
         // index 1 is tenant
         for (int i = 2; i < splitArray.length; i++) {
             logPath.append(splitArray[i]);
-            logPath.append("/");
+            logPath.append('/');
         }
 
         return logPath.toString();
