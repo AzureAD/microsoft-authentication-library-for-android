@@ -43,6 +43,7 @@ import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer
 import com.microsoft.identity.client.internal.controllers.LocalMSALController;
 import com.microsoft.identity.client.internal.controllers.MSALAcquireTokenOperationParameters;
 import com.microsoft.identity.client.internal.controllers.MSALAcquireTokenSilentOperationParameters;
+import com.microsoft.identity.client.internal.controllers.MSALApiDispatcher;
 import com.microsoft.identity.client.internal.controllers.MSALInteractiveTokenCommand;
 import com.microsoft.identity.client.internal.controllers.MSALTokenCommand;
 import com.microsoft.identity.client.internal.telemetry.ApiEvent;
@@ -443,7 +444,7 @@ public final class PublicClientApplication {
      * @param data        {@link Intent} either contains the url with auth code as query string or the errors.
      */
     public void handleInteractiveRequestRedirect(int requestCode, int resultCode, final Intent data) {
-        com.microsoft.identity.client.MSALApiDispatcher.completeInteractive(requestCode, resultCode, data);
+        MSALApiDispatcher.completeInteractive(requestCode, resultCode, data);
     }
 
     /**
@@ -469,7 +470,7 @@ public final class PublicClientApplication {
                              @NonNull final AuthenticationCallback callback) {
         MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, null, UiBehavior.SELECT_ACCOUNT, null, null, null);
         MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
-        com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
+        MSALApiDispatcher.beginInteractive(command);
     }
 
     /**
@@ -498,7 +499,7 @@ public final class PublicClientApplication {
                              @NonNull final AuthenticationCallback callback) {
         MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, loginHint, UiBehavior.SELECT_ACCOUNT, null, null, null);
         MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
-        com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
+        MSALApiDispatcher.beginInteractive(command);
     }
 
     /**
@@ -531,7 +532,7 @@ public final class PublicClientApplication {
                              @NonNull final AuthenticationCallback callback) {
         MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, loginHint, uiBehavior, extraQueryParameters, null, null);
         MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
-        com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
+        MSALApiDispatcher.beginInteractive(command);
     }
 
     /**
@@ -561,7 +562,7 @@ public final class PublicClientApplication {
 
         MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, null, uiBehavior, null, null, null);
         MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
-        com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
+        MSALApiDispatcher.beginInteractive(command);
 
     }
 
@@ -600,7 +601,7 @@ public final class PublicClientApplication {
 
         final MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, loginHint, uiBehavior, extraQueryParams, extraScopesToConsent, authority);
         final MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
-        com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
+        MSALApiDispatcher.beginInteractive(command);
     }
 
     /**
@@ -637,7 +638,7 @@ public final class PublicClientApplication {
                              @NonNull final AuthenticationCallback callback) {
         MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, null, uiBehavior, extraQueryParams, extraScopesToConsent, authority);
         MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
-        com.microsoft.identity.client.MSALApiDispatcher.beginInteractive(command);
+        MSALApiDispatcher.beginInteractive(command);
     }
 
     /**
@@ -672,7 +673,7 @@ public final class PublicClientApplication {
                 callback
         );
 
-        com.microsoft.identity.client.MSALApiDispatcher.submitSilent(silentTokenCommand);
+        MSALApiDispatcher.submitSilent(silentTokenCommand);
     }
 
     /**
@@ -715,7 +716,7 @@ public final class PublicClientApplication {
                 callback
         );
 
-        com.microsoft.identity.client.MSALApiDispatcher.submitSilent(silentTokenCommand);
+        MSALApiDispatcher.submitSilent(silentTokenCommand);
     }
 
     private MSALAcquireTokenSilentOperationParameters getSilentOperationParameters(final String[] scopes,
