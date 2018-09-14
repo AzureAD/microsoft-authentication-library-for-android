@@ -33,6 +33,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
 
 public class AzureActiveDirectoryAuthority extends Authority {
@@ -108,6 +109,17 @@ public class AzureActiveDirectoryAuthority extends Authority {
     public OAuth2Strategy createOAuth2Strategy() {
         MicrosoftStsOAuth2Configuration config = new MicrosoftStsOAuth2Configuration();
         config.setAuthorityUrl(this.getAuthorityURL());
+
+        if(mSlice != null){
+            com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectorySlice slice = new com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectorySlice();
+            slice.setSlice(mSlice.getSlice());
+            slice.setDataCenter(mSlice.getDC());
+            config.setSlice(slice);
+        }
+
+        if(mFlightParameters != null){
+            config.setFlightParameters((HashMap<String, String>)mFlightParameters);
+        }
         return new MicrosoftStsOAuth2Strategy(config);
     }
 
