@@ -118,7 +118,10 @@ public class AzureActiveDirectoryAuthority extends Authority {
         }
 
         if(mFlightParameters != null){
-            config.setFlightParameters((HashMap<String, String>)mFlightParameters);
+            //GSON Returns a LinkedTreeMap which implement AbstractMap....
+            for (Map.Entry<String, String> entry : mFlightParameters.entrySet()) {
+                config.getFlightParameters().put(entry.getKey(), entry.getValue());
+            }
         }
         return new MicrosoftStsOAuth2Strategy(config);
     }

@@ -35,4 +35,6 @@ public class AnyOrganizationalAccount extends AzureActiveDirectoryAudience {
     public AnyOrganizationalAccount(String cloudUrl) {
         this.setCloudUrl(cloudUrl);
     }
+
+
 }
