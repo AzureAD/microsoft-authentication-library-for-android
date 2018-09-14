@@ -371,7 +371,7 @@ public final class PublicClientApplication {
 
         // Grab the Accounts from the common cache
         final List<Account> accountsInCache = mOauth2TokenCache.getAccounts(
-                MsalUtils.getUrl(mAuthorityString).getHost(),
+                null, // * wildcard
                 mClientId
         );
 
@@ -394,7 +394,7 @@ public final class PublicClientApplication {
 
         if (!StringUtil.isEmpty(homeAccountIdentifier)) {
             accountToReturn = mOauth2TokenCache.getAccount(
-                    MsalUtils.getUrl(mAuthorityString).getHost(),
+                    null, // * wildcard
                     mClientId,
                     homeAccountIdentifier
             );
@@ -428,7 +428,7 @@ public final class PublicClientApplication {
         }
 
         return mOauth2TokenCache.removeAccount(
-                MsalUtils.getUrl(mAuthorityString).getHost(),
+                account.getEnvironment(),
                 mClientId,
                 account.getHomeAccountIdentifier().getIdentifier()
         );
