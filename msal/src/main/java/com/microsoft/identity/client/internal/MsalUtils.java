@@ -96,8 +96,9 @@ public final class MsalUtils {
      * To improve test-ability with local Junit. Android.jar used for local Junit doesn't have a default implementation
      * for {@link android.text.TextUtils}.
      */
+    @SuppressWarnings("PMD.InefficientEmptyStringCheck")
     public static boolean isEmpty(final String message) {
-        return message == null || message.isEmpty();
+        return message == null || message.trim().length() == 0;
     }
 
     /**
