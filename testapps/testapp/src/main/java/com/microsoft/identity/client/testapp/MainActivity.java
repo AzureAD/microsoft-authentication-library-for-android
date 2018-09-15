@@ -133,17 +133,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mContentMain = (RelativeLayout) findViewById(R.id.content_main);
+        mContentMain = findViewById(R.id.content_main);
 
-        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        final Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        final DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        final DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, 0, 0);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
-        final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        final NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         if (savedInstanceState == null) {
@@ -212,7 +212,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         final FragmentManager fragmentManager = getSupportFragmentManager();
         final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-        final DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        final DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         drawerLayout.closeDrawer(GravityCompat.START);
         fragmentTransaction.replace(mContentMain.getId(), fragment).addToBackStack(null).commit();
     }
@@ -229,7 +229,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void onRemoveUserClicked() {
-
         final List<IAccount> accountsToRemove = mApplication.getAccounts();
 
         for (final IAccount accountToRemove : accountsToRemove) {
@@ -308,7 +307,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         try {
-            mApplication.setValidateAuthority(true);
             mApplication.acquireToken(this, scopes, loginHint, uiBehavior, extraQueryParam, extraScope,
                     null, getAuthenticationCallback());
         } catch (IllegalArgumentException e) {

@@ -49,7 +49,6 @@ import com.microsoft.identity.client.internal.controllers.MSALTokenCommand;
 import com.microsoft.identity.client.internal.telemetry.ApiEvent;
 import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
 import com.microsoft.identity.client.internal.telemetry.Defaults;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.internal.cache.AccountCredentialCache;
@@ -61,7 +60,6 @@ import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentia
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.dto.Account;
-import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
@@ -287,7 +285,6 @@ public final class PublicClientApplication {
         mPublicClientConfiguration.getAuthorities().clear();
         mPublicClientConfiguration.getAuthorities().add(Authority.getAuthorityFromAuthorityUrl(authority));
 
-
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
     }
 
@@ -342,6 +339,7 @@ public final class PublicClientApplication {
      * @return An immutable List of IAccount objects - empty if no IAccounts exist.
      */
     public List<IAccount> getAccounts() {
+        MSALApiDispatcher.initializeDiagnosticContext();
         final List<IAccount> accountsToReturn = new ArrayList<>();
 
         // Grab the Accounts from the common cache
@@ -365,6 +363,7 @@ public final class PublicClientApplication {
      * @return The IAccount stored in the cache or null, if no such matching entry exists.
      */
     public IAccount getAccount(final String homeAccountIdentifier) {
+        MSALApiDispatcher.initializeDiagnosticContext();
         final Account accountToReturn;
 
         if (!StringUtil.isEmpty(homeAccountIdentifier)) {
@@ -391,6 +390,7 @@ public final class PublicClientApplication {
      * @return True, if the account was removed. False otherwise.
      */
     public boolean removeAccount(final IAccount account) {
+        MSALApiDispatcher.initializeDiagnosticContext();
         if (null == account
                 || null == account.getHomeAccountIdentifier()
                 || StringUtil.isEmpty(account.getHomeAccountIdentifier().getIdentifier())) {
@@ -836,13 +836,6 @@ public final class PublicClientApplication {
         } else {
             return "msal" + clientId + "://auth";
         }
-    }
-
-    static void initializeDiagnosticContext(String correlationIdStr) {
-        final com.microsoft.identity.common.internal.logging.RequestContext rc =
-                new com.microsoft.identity.common.internal.logging.RequestContext();
-        rc.put(AuthenticationConstants.AAD.CORRELATION_ID, correlationIdStr);
-        DiagnosticContext.setRequestContext(rc);
     }
 
     private MSALAcquireTokenOperationParameters getInteractiveOperationParameters(@NonNull final Activity activity,

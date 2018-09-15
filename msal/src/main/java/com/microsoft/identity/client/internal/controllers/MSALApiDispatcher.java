@@ -28,11 +28,10 @@ import android.os.Handler;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.MsalException;
 import com.microsoft.identity.client.MsalUserCancelException;
-import com.microsoft.identity.client.internal.controllers.AcquireTokenResult;
-import com.microsoft.identity.client.internal.controllers.ExceptionAdapter;
-import com.microsoft.identity.client.internal.controllers.MSALInteractiveTokenCommand;
-import com.microsoft.identity.client.internal.controllers.MSALTokenCommand;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -48,6 +47,7 @@ public class MSALApiDispatcher {
             sInteractiveExecutor.execute(new Runnable() {
                 @Override
                 public void run() {
+                    initializeDiagnosticContext();
                     sCommand = command;
                     AcquireTokenResult result = null;
                     MsalException msalException = null;
@@ -121,6 +121,7 @@ public class MSALApiDispatcher {
         sSilentExecutor.execute(new Runnable() {
             @Override
             public void run() {
+                initializeDiagnosticContext();
                 AcquireTokenResult result = null;
 
                 try {
@@ -144,4 +145,13 @@ public class MSALApiDispatcher {
         });
     }
 
+    public static String initializeDiagnosticContext() {
+        final String correlationId = UUID.randomUUID().toString();
+        final com.microsoft.identity.common.internal.logging.RequestContext rc =
+                new com.microsoft.identity.common.internal.logging.RequestContext();
+        rc.put(AuthenticationConstants.AAD.CORRELATION_ID, correlationId);
+        DiagnosticContext.setRequestContext(rc);
+
+        return correlationId;
+    }
 }

@@ -195,7 +195,6 @@ public class LocalMSALController extends MSALController {
         final AcquireTokenResult acquireTokenSilentResult = new AcquireTokenResult();
         final OAuth2TokenCache tokenCache = parameters.getTokenCache();
 
-        final String environment = parameters.getAuthority().getAuthorityURL().getHost();
         final String clientId = parameters.getClientId();
         final String homeAccountId =
                 parameters
@@ -204,7 +203,7 @@ public class LocalMSALController extends MSALController {
                         .getIdentifier();
 
         final Account targetAccount = tokenCache.getAccount(
-                environment,
+                null, // wildcard (*) - The request environment may not match due to aliasing
                 clientId,
                 homeAccountId
         );
