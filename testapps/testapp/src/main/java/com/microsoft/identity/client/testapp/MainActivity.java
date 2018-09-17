@@ -56,7 +56,6 @@ import com.microsoft.identity.client.Telemetry;
 import com.microsoft.identity.client.UiBehavior;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -312,25 +311,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         try {
-//            mApplication.acquireToken(
-//                    this,
-//                    scopes,
-//                    loginHint,
-//                    uiBehavior,
-//                    extraQueryParam,
-//                    extraScope,
-//                    null,
-//                    getAuthenticationCallback()
-//            );
-
             mApplication.acquireToken(
                     this,
                     scopes,
-                    mSelectedAccount,
+                    loginHint,
                     uiBehavior,
-                    new ArrayList<Pair<String, String>>() {{
-                        add(new Pair<>("foo", "bar"));
-                    }},
+                    extraQueryParam,
                     extraScope,
                     null,
                     getAuthenticationCallback()
