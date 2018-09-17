@@ -121,6 +121,11 @@ public abstract class Authority {
         return mKnownToMicrosoft;
     }
 
+    //CHECKSTYLE:OFF
+    // This method is generated. Checkstyle and/or PMD has been disabled.
+    // This method *must* be regenerated if the class' structural definition changes through the
+    // addition/subtraction of fields.
+    @SuppressWarnings("PMD")
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -131,13 +136,20 @@ public abstract class Authority {
         if (!mAuthorityTypeString.equals(authority.mAuthorityTypeString)) return false;
         return getAuthorityURL().equals(authority.getAuthorityURL());
     }
+    //CHECKSTYLE:ON
 
+    //CHECKSTYLE:OFF
+    // This method is generated. Checkstyle and/or PMD has been disabled.
+    // This method *must* be regenerated if the class' structural definition changes through the
+    // addition/subtraction of fields.
+    @SuppressWarnings("PMD")
     @Override
     public int hashCode() {
         int result = mAuthorityTypeString.hashCode();
         result = 31 * result + getAuthorityURL().hashCode();
         return result;
     }
+    //CHECKSTYLE:ON
 
     /**
      * These are authorities that the developer based on configuration of the public client application are known and trusted by the developer using the public client
