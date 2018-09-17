@@ -22,9 +22,15 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.authorities;
 
+import android.net.Uri;
+
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 
 public class AccountsInOneOrganization extends AzureActiveDirectoryAudience {
+
+    public AccountsInOneOrganization(){
+        this.setCloudUrl(AzureActiveDirectory.DEFAULT_CLOUD_URL);
+    }
 
     public AccountsInOneOrganization(String tenantId) {
         this.setCloudUrl(AzureActiveDirectory.DEFAULT_CLOUD_URL);
@@ -35,5 +41,6 @@ public class AccountsInOneOrganization extends AzureActiveDirectoryAudience {
         this.setCloudUrl(cloudUrl);
         this.setTenantId(tenantId);
     }
+
 
 }
