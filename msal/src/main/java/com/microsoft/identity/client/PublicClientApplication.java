@@ -46,7 +46,6 @@ import com.microsoft.identity.client.internal.controllers.MSALAcquireTokenSilent
 import com.microsoft.identity.client.internal.controllers.MSALApiDispatcher;
 import com.microsoft.identity.client.internal.controllers.MSALInteractiveTokenCommand;
 import com.microsoft.identity.client.internal.controllers.MSALTokenCommand;
-import com.microsoft.identity.client.internal.telemetry.ApiEvent;
 import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
 import com.microsoft.identity.client.internal.telemetry.Defaults;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
@@ -943,78 +942,28 @@ public final class PublicClientApplication {
         return params;
     }
 
-    @SuppressWarnings("PMD.UnusedPrivateMethod") // TODO wire-up
-    private ApiEvent.Builder createApiEventBuilder(final String telemetryRequestId, final String apiId) {
-        // Create the ApiEvent.Builder
-        ApiEvent.Builder eventBuilder =
-                new ApiEvent.Builder(telemetryRequestId)
-                        .setApiId(apiId)
-                        .setAuthority(mAuthorityString);
-
-        // Start the Event on our Telemetry instance
-        Telemetry.getInstance().startEvent(telemetryRequestId, eventBuilder);
-
-        // Return the Builder
-        return eventBuilder;
-    }
-
-    /**
-     * Wraps {@link AuthenticationCallback} instances to bind Telemetry actions.
-     *
-     * @param eventBinding           the {@link ApiEvent.Builder}
-     *                               monitoring this request.
-     * @param authenticationCallback the original consuming callback
-     * @return the wrapped {@link AuthenticationCallback} instance
-     */
-    @SuppressWarnings("PMD.UnusedPrivateMethod") // TODO wire-up
-    private AuthenticationCallback wrapCallbackForTelemetryIntercept(
-            final ApiEvent.Builder eventBinding, final AuthenticationCallback authenticationCallback) {
-        if (null == authenticationCallback) {
-            throw new IllegalArgumentException("callback is null");
-        }
-        return new AuthenticationCallback() {
-            @Override
-            public void onSuccess(final AuthenticationResult authenticationResult) {
-                eventBinding.setApiCallWasSuccessful(true);
-                stopTelemetryEventAndFlush(eventBinding);
-                authenticationCallback.onSuccess(authenticationResult);
-            }
-
-            @Override
-            public void onError(final MsalException exception) {
-                eventBinding.setApiCallWasSuccessful(false);
-                eventBinding.setApiErrorCode(exception.getErrorCode());
-                stopTelemetryEventAndFlush(eventBinding);
-                authenticationCallback.onError(exception);
-            }
-
-            @Override
-            public void onCancel() {
-                stopTelemetryEventAndFlush(eventBinding);
-                authenticationCallback.onCancel();
-            }
-        };
-    }
-
-    private void stopTelemetryEventAndFlush(final ApiEvent.Builder builder) {
-        final ApiEvent event = builder.build();
-        Telemetry.getInstance().stopEvent(event.getRequestId(), builder);
-        Telemetry.getInstance().flush(event.getRequestId());
-    }
-
     private MsalOAuth2TokenCache<
             MicrosoftStsOAuth2Strategy,
             MicrosoftStsAuthorizationRequest,
             MicrosoftStsTokenResponse,
             MicrosoftAccount,
             MicrosoftRefreshToken> initCommonCache(final Context context) {
-
         // Init the new-schema cache
         final ICacheKeyValueDelegate cacheKeyValueDelegate = new CacheKeyValueDelegate();
         final IStorageHelper storageHelper = new StorageHelper(context);
-        final ISharedPreferencesFileManager sharedPreferencesFileManager = new SharedPreferencesFileManager(context, DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES, storageHelper);
-        final IAccountCredentialCache accountCredentialCache = new AccountCredentialCache(cacheKeyValueDelegate, sharedPreferencesFileManager);
-        final MicrosoftStsAccountCredentialAdapter accountCredentialAdapter = new MicrosoftStsAccountCredentialAdapter();
+        final ISharedPreferencesFileManager sharedPreferencesFileManager =
+                new SharedPreferencesFileManager(
+                        context,
+                        DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
+                        storageHelper
+                );
+        final IAccountCredentialCache accountCredentialCache =
+                new AccountCredentialCache(
+                        cacheKeyValueDelegate,
+                        sharedPreferencesFileManager
+                );
+        final MicrosoftStsAccountCredentialAdapter accountCredentialAdapter =
+                new MicrosoftStsAccountCredentialAdapter();
 
         return new MsalOAuth2TokenCache<>(
                 context,
@@ -1023,7 +972,7 @@ public final class PublicClientApplication {
         );
     }
 
-    OAuth2TokenCache<?, ?, ?> getOAuth2TokenCache() {
+    private OAuth2TokenCache<?, ?, ?> getOAuth2TokenCache() {
         return initCommonCache(mAppContext);
     }
 }
