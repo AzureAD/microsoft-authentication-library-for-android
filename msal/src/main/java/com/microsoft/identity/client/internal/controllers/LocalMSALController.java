@@ -29,12 +29,15 @@ import android.net.NetworkInfo;
 import android.text.TextUtils;
 
 import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.MsalClientException;
 import com.microsoft.identity.client.MsalUiRequiredException;
 import com.microsoft.identity.client.internal.authorities.Authority;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.Account;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationConfiguration;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResponse;
@@ -135,11 +138,37 @@ public class LocalMSALController extends MSALController {
             // Add additional fields to the AuthorizationRequest.Builder to support interactive
             request.setLoginHint(
                     acquireTokenOperationParameters.getLoginHint()
-            ).setExtraQueryParam(
+            ).setExtraQueryParams(
                     acquireTokenOperationParameters.getExtraQueryStringParameters()
             ).setPrompt(
                     acquireTokenOperationParameters.getUIBehavior().toString()
             );
+
+            // Set fields for session continuation, if applicable
+            if (request instanceof MicrosoftStsAuthorizationRequest.Builder
+                    && null != parameters.getAccount()) {
+                MicrosoftStsAuthorizationRequest.Builder msStsRequestBuilder =
+                        (MicrosoftStsAuthorizationRequest.Builder) request;
+
+                final IAccount requestAccount = parameters.getAccount();
+                final String homeAccountId = requestAccount
+                        .getHomeAccountIdentifier()
+                        .getIdentifier();
+
+                // Split this value by its parts... <uid>.<utid>
+                final int EXPECTED_LENGTH = 2;
+                final int INDEX_UID = 0;
+                final int INDEX_UTID = 1;
+
+                final String[] uidUtidPair = homeAccountId.split("\\.");
+
+                if (EXPECTED_LENGTH == uidUtidPair.length
+                        && !StringExtensions.isNullOrBlank(uidUtidPair[INDEX_UID])
+                        && !StringExtensions.isNullOrBlank(uidUtidPair[INDEX_UTID])) {
+                    msStsRequestBuilder.setUid(uidUtidPair[INDEX_UID]);
+                    msStsRequestBuilder.setUtid(uidUtidPair[INDEX_UTID]);
+                }
+            }
         }
 
         return request.build();

@@ -36,6 +36,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.util.Pair;
 import android.view.MenuItem;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -55,6 +56,7 @@ import com.microsoft.identity.client.Telemetry;
 import com.microsoft.identity.client.UiBehavior;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -91,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private String[] mScopes;
     private UiBehavior mUiBehavior;
     private String mLoginHint;
-    private String mExtraQp;
+    private List<Pair<String, String>> mExtraQp;
     private String[] mExtraScopesToConsent;
     private boolean mEnablePiiLogging;
     private boolean mForceRefresh;
@@ -296,8 +298,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mSelectedAccount = user;
     }
 
-    private void callAcquireToken(final String[] scopes, final UiBehavior uiBehavior, final String loginHint,
-                                  final String extraQueryParam, final String[] extraScope) {
+    private void callAcquireToken(final String[] scopes,
+                                  final UiBehavior uiBehavior,
+                                  final String loginHint,
+                                  final List<Pair<String, String>> extraQueryParam,
+                                  final String[] extraScope) {
         // The sample app is having the PII enable setting on the MainActivity. Ideally, app should decide to enable Pii or not,
         // if it's enabled, it should be  the setting when the application is onCreate.
         if (mEnablePiiLogging) {
@@ -307,8 +312,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         try {
-            mApplication.acquireToken(this, scopes, loginHint, uiBehavior, extraQueryParam, extraScope,
-                    null, getAuthenticationCallback());
+//            mApplication.acquireToken(
+//                    this,
+//                    scopes,
+//                    loginHint,
+//                    uiBehavior,
+//                    extraQueryParam,
+//                    extraScope,
+//                    null,
+//                    getAuthenticationCallback()
+//            );
+
+            mApplication.acquireToken(
+                    this,
+                    scopes,
+                    mSelectedAccount,
+                    uiBehavior,
+                    new ArrayList<Pair<String, String>>() {{
+                        add(new Pair<>("foo", "bar"));
+                    }},
+                    extraScope,
+                    null,
+                    getAuthenticationCallback()
+            );
         } catch (IllegalArgumentException e) {
             showMessage("Scope cannot be blank.");
         }

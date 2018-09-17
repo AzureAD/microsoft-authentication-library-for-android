@@ -31,6 +31,7 @@ import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
+import android.util.Pair;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -432,7 +433,8 @@ public final class PublicClientApplication {
                         UiBehavior.SELECT_ACCOUNT,
                         null, // extra query params
                         null, // extra scopes to consent
-                        null // authority
+                        null, // authority
+                        null // account
                 );
 
         final MSALInteractiveTokenCommand command =
@@ -477,7 +479,8 @@ public final class PublicClientApplication {
                         UiBehavior.SELECT_ACCOUNT,
                         null, // extra query params
                         null, // extra scopes to consent
-                        null // authority
+                        null, // authority,
+                        null
                 );
 
         final MSALInteractiveTokenCommand command =
@@ -516,7 +519,7 @@ public final class PublicClientApplication {
                              @NonNull final String[] scopes,
                              final String loginHint,
                              final UiBehavior uiBehavior,
-                             final String extraQueryParameters,
+                             @Nullable final List<Pair<String, String>> extraQueryParameters,
                              @NonNull final AuthenticationCallback callback) {
         final MSALAcquireTokenOperationParameters params =
                 getInteractiveOperationParameters(
@@ -525,6 +528,7 @@ public final class PublicClientApplication {
                         loginHint,
                         uiBehavior,
                         extraQueryParameters,
+                        null,
                         null,
                         null
                 );
@@ -543,39 +547,40 @@ public final class PublicClientApplication {
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
      * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
      *
-     * @param activity            Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
-     *                            All the apps doing interactive request are required to call the
-     *                            {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
-     *                            activity {@link Activity#onActivityResult(int, int, Intent)}.
-     * @param scopes              The non-null array of scopes to be requested for the access token.
-     *                            MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param account             Optional. If provided, will be used to force the session continuation.  If user tries to sign in with a different user,
-     *                            error will be returned.
-     * @param uiBehavior          The {@link UiBehavior} for prompting behavior. By default, the sdk use {@link UiBehavior#SELECT_ACCOUNT}.
-     * @param extraQueryParameter Optional. The extra query parameter sent to authorize endpoint.
-     * @param callback            The Non-null {@link AuthenticationCallback} to receive the result back.
-     *                            1) If user cancels the flow by pressing the device back button, the result will be sent
-     *                            back via {@link AuthenticationCallback#onCancel()}.
-     *                            2) If the sdk successfully receives the token back, result will be sent back via
-     *                            {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
-     *                            3) All the other errors will be sent back via
-     *                            {@link AuthenticationCallback#onError(MsalException)}.
+     * @param activity             Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
+     *                             All the apps doing interactive request are required to call the
+     *                             {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
+     *                             activity {@link Activity#onActivityResult(int, int, Intent)}.
+     * @param scopes               The non-null array of scopes to be requested for the access token.
+     *                             MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param account              Optional. If provided, will be used to force the session continuation.  If user tries to sign in with a different user,
+     *                             error will be returned.
+     * @param uiBehavior           The {@link UiBehavior} for prompting behavior. By default, the sdk use {@link UiBehavior#SELECT_ACCOUNT}.
+     * @param extraQueryParameters Optional. The extra query parameter sent to authorize endpoint.
+     * @param callback             The Non-null {@link AuthenticationCallback} to receive the result back.
+     *                             1) If user cancels the flow by pressing the device back button, the result will be sent
+     *                             back via {@link AuthenticationCallback#onCancel()}.
+     *                             2) If the sdk successfully receives the token back, result will be sent back via
+     *                             {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     *                             3) All the other errors will be sent back via
+     *                             {@link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              final IAccount account, // TODO wire-up
                              final UiBehavior uiBehavior,
-                             final String extraQueryParameter,// TODO wire-up
+                             @Nullable final List<Pair<String, String>> extraQueryParameters,
                              @NonNull final AuthenticationCallback callback) {
         final MSALAcquireTokenOperationParameters params =
                 getInteractiveOperationParameters(
                         activity,
                         scopes,
-                        null,
+                        null, // TODO should this be the login hint from the account?
                         uiBehavior,
-                        extraQueryParameter,
+                        extraQueryParameters,
                         null,
-                        null
+                        null,
+                        account
                 );
 
         final MSALInteractiveTokenCommand command =
@@ -601,7 +606,7 @@ public final class PublicClientApplication {
      * @param loginHint            Optional. If provided, will be used as the query parameter sent for authenticating the user,
      *                             which will have the UPN pre-populated.
      * @param uiBehavior           The {@link UiBehavior} for prompting behavior. By default, the sdk use {@link UiBehavior#SELECT_ACCOUNT}.
-     * @param extraQueryParams     Optional. The extra query parameter sent to authorize endpoint.
+     * @param extraQueryParameters Optional. The extra query parameter sent to authorize endpoint.
      * @param extraScopesToConsent Optional. The extra scopes to request consent.
      * @param authority            Optional. Can be passed to override the configured authority.
      * @param callback             The Non-null {@link AuthenticationCallback} to receive the result back.
@@ -616,7 +621,7 @@ public final class PublicClientApplication {
                              @NonNull final String[] scopes,
                              final String loginHint,
                              final UiBehavior uiBehavior,
-                             final String extraQueryParams,
+                             @Nullable final List<Pair<String, String>> extraQueryParameters,
                              final String[] extraScopesToConsent,
                              final String authority,
                              @NonNull final AuthenticationCallback callback) {
@@ -626,9 +631,10 @@ public final class PublicClientApplication {
                         scopes,
                         loginHint,
                         uiBehavior,
-                        extraQueryParams,
+                        extraQueryParameters,
                         extraScopesToConsent,
-                        authority
+                        authority,
+                        null // account
                 );
 
         final MSALInteractiveTokenCommand command =
@@ -654,7 +660,7 @@ public final class PublicClientApplication {
      * @param account              Optional. If provided, will be used to force the session continuation.  If user tries to sign in with a different user, error
      *                             will be returned.
      * @param uiBehavior           The {@link UiBehavior} for prompting behavior. By default, the sdk use {@link UiBehavior#SELECT_ACCOUNT}.
-     * @param extraQueryParams     Optional. The extra query parameter sent to authorize endpoint.
+     * @param extraQueryParameters Optional. The extra query parameter sent to authorize endpoint.
      * @param extraScopesToConsent Optional. The extra scopes to request consent.
      * @param authority            Optional. Can be passed to override the configured authority.
      * @param callback             The Non-null {@link AuthenticationCallback} to receive the result back.
@@ -669,19 +675,20 @@ public final class PublicClientApplication {
                              @NonNull final String[] scopes,
                              final IAccount account, // TODO wire-up
                              final UiBehavior uiBehavior,
-                             final String extraQueryParams,
-                             final String[] extraScopesToConsent,
-                             final String authority,
+                             @Nullable final List<Pair<String, String>> extraQueryParameters,
+                             @Nullable final String[] extraScopesToConsent,
+                             @Nullable final String authority,
                              @NonNull final AuthenticationCallback callback) {
         final MSALAcquireTokenOperationParameters params =
                 getInteractiveOperationParameters(
                         activity,
                         scopes,
-                        null,
+                        null, // TODO should I use the login hint from the account?
                         uiBehavior,
-                        extraQueryParams,
+                        extraQueryParameters,
                         extraScopesToConsent,
-                        authority
+                        authority,
+                        account
                 );
 
         final MSALInteractiveTokenCommand command =
@@ -911,9 +918,10 @@ public final class PublicClientApplication {
                                                                                   @NonNull final String[] scopes,
                                                                                   @Nullable final String loginHint,
                                                                                   final UiBehavior uiBehavior,
-                                                                                  @Nullable final String extraQueryParams,
+                                                                                  @Nullable List<Pair<String, String>> extraQueryParameters,
                                                                                   @Nullable final String[] extraScopesToConsent,
-                                                                                  @Nullable final String authority) {
+                                                                                  @Nullable final String authority,
+                                                                                  @Nullable final IAccount account) {
         final MSALAcquireTokenOperationParameters params = new MSALAcquireTokenOperationParameters();
 
         if (StringUtil.isEmpty(authority)) {
@@ -932,7 +940,7 @@ public final class PublicClientApplication {
         params.setActivity(activity);
         params.setLoginHint(loginHint);
         params.setTokenCache(mOauth2TokenCache);
-        params.setExtraQueryStringParameters(extraQueryParams);
+        params.setExtraQueryStringParameters(extraQueryParameters);
         params.setExtraScopesToConsent(
                 null != extraScopesToConsent
                         ? Arrays.asList(extraScopesToConsent)
@@ -940,6 +948,7 @@ public final class PublicClientApplication {
         );
         params.setUIBehavior(uiBehavior);
         params.setAppContext(mAppContext);
+        params.setAccount(account);
 
         return params;
     }
