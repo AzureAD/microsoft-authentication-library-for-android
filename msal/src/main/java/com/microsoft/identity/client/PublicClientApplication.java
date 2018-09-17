@@ -292,7 +292,7 @@ public final class PublicClientApplication {
         // Since network request is sent from the sdk, if calling app doesn't declare the internet permission in the
         // manifest, we cannot make the network call.
         checkInternetPermission();
-        Logger.info(TAG, null, "Create new public client application.");
+        com.microsoft.identity.common.internal.logging.Logger.info(TAG, "Create new public client application.");
     }
 
     /**
@@ -397,7 +397,9 @@ public final class PublicClientApplication {
      * @param resultCode  The result code for the request to get auth code.
      * @param data        {@link Intent} either contains the url with auth code as query string or the errors.
      */
-    public void handleInteractiveRequestRedirect(int requestCode, int resultCode, final Intent data) {
+    public void handleInteractiveRequestRedirect(final int requestCode,
+                                                 final int resultCode,
+                                                 final Intent data) {
         MSALApiDispatcher.completeInteractive(requestCode, resultCode, data);
     }
 
@@ -426,11 +428,11 @@ public final class PublicClientApplication {
                 getInteractiveOperationParameters(
                         activity,
                         scopes,
-                        null,
+                        null, // login hint
                         UiBehavior.SELECT_ACCOUNT,
-                        null,
-                        null,
-                        null
+                        null, // extra query params
+                        null, // extra scopes to consent
+                        null // authority
                 );
 
         final MSALInteractiveTokenCommand command =
@@ -473,9 +475,9 @@ public final class PublicClientApplication {
                         scopes,
                         loginHint,
                         UiBehavior.SELECT_ACCOUNT,
-                        null,
-                        null,
-                        null
+                        null, // extra query params
+                        null, // extra scopes to consent
+                        null // authority
                 );
 
         final MSALInteractiveTokenCommand command =
@@ -571,7 +573,7 @@ public final class PublicClientApplication {
                         scopes,
                         null,
                         uiBehavior,
-                        null,
+                        extraQueryParameter,
                         null,
                         null
                 );
@@ -907,11 +909,11 @@ public final class PublicClientApplication {
 
     private MSALAcquireTokenOperationParameters getInteractiveOperationParameters(@NonNull final Activity activity,
                                                                                   @NonNull final String[] scopes,
-                                                                                  final String loginHint,
+                                                                                  @Nullable final String loginHint,
                                                                                   final UiBehavior uiBehavior,
-                                                                                  final String extraQueryParams,
-                                                                                  final String[] extraScopesToConsent,
-                                                                                  final String authority) {
+                                                                                  @Nullable final String extraQueryParams,
+                                                                                  @Nullable final String[] extraScopesToConsent,
+                                                                                  @Nullable final String authority) {
         final MSALAcquireTokenOperationParameters params = new MSALAcquireTokenOperationParameters();
 
         if (StringUtil.isEmpty(authority)) {
