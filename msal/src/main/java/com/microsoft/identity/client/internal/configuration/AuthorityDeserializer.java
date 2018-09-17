@@ -15,8 +15,6 @@ import java.lang.reflect.Type;
 
 public class AuthorityDeserializer implements JsonDeserializer<Authority> {
 
-    private static final String TAG = AuthorityDeserializer.class.getSimpleName();
-
     @Override
     public Authority deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         JsonObject authorityObject = json.getAsJsonObject();
