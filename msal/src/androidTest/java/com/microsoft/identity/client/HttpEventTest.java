@@ -25,6 +25,10 @@ package com.microsoft.identity.client;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import com.microsoft.identity.client.internal.MsalUtils;
+import com.microsoft.identity.client.internal.telemetry.EventConstants;
+import com.microsoft.identity.client.internal.telemetry.HttpEvent;
+
 import junit.framework.Assert;
 
 import org.junit.Test;
@@ -82,16 +86,4 @@ public class HttpEventTest {
         Assert.assertEquals(TEST_HTTP_RESPONSE_CODE, httpEvent.getResponseCode());
     }
 
-    @Test
-    public void testOnlyTrustedHostsAddedToEvent() {
-        final HttpEvent httpEvent =
-                getTestHttpEvent(MsalUtils.getUrl("https://login.contoso.com/"));
-        Assert.assertNull(httpEvent.getHttpPath());
-    }
-
-    @Test
-    public void testHttpEventSkipsB2CAuthority() {
-        final HttpEvent httpEvent = getTestHttpEvent(MsalUtils.getUrl(AuthorityMetadataTest.TEST_B2C_AUTHORITY));
-        Assert.assertNull(httpEvent.getHttpPath());
-    }
 }

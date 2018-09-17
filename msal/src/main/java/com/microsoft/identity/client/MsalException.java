@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.client;
 
+import com.microsoft.identity.client.internal.MsalUtils;
+
 /**
  * {@link MsalException} thrown or sent back via callback, representing the detailed exception
  * thrown by the sdk. It will contain the error code, error description (could be null) or

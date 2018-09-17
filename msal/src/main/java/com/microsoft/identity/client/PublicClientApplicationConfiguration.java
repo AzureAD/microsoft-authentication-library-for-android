@@ -25,10 +25,12 @@ package com.microsoft.identity.client;
 import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
-import com.microsoft.identity.client.authorities.Authority;
-import com.microsoft.identity.client.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.client.authorities.UnknownAudience;
-import com.microsoft.identity.client.authorities.UnknownAuthority;
+import com.microsoft.identity.client.configuration.HttpConfiguration;
+import com.microsoft.identity.client.configuration.LoggerConfiguration;
+import com.microsoft.identity.client.internal.authorities.Authority;
+import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.client.internal.authorities.UnknownAudience;
+import com.microsoft.identity.client.internal.authorities.UnknownAuthority;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 
 import java.util.List;
@@ -124,6 +126,53 @@ public class PublicClientApplicationConfiguration {
         return this.mAuthorizationAgent;
     }
 
+    public Authority getDefaultAuthority() {
+        if (mAuthorities != null) {
+            if (mAuthorities.size() > 1) {
+                for (Authority authority : mAuthorities) {
+                    if (authority.getDefault()) {
+                        return authority;
+                    }
+                }
+                return null; //This shouldn't happen since authority configuration is validated to ensure that one authority is marked as default/only one
+            } else {
+                return mAuthorities.get(0);
+            }
+        } else {
+            return null;
+        }
+    }
+
+    private void checkDefaultAuthoritySpecified() {
+        if (mAuthorities != null && mAuthorities.size() > 1) {
+            int defaultCount = 0;
+
+            for (Authority authority : mAuthorities) {
+                if (authority.getDefault()) {
+                    defaultCount++;
+                }
+            }
+
+            if (defaultCount == 0) {
+                throw new IllegalArgumentException("One authority in your configuration must be marked as default.");
+            }
+
+            if (defaultCount > 1) {
+                throw new IllegalArgumentException("More than one authority in your configuration is marked as default.  Only one authority may be default.");
+            }
+        }
+    }
+
+    boolean isDefaultAuthorityConfigured() {
+        Authority authority = getDefaultAuthority();
+
+        if (authority != null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     void mergeConfiguration(PublicClientApplicationConfiguration config) {
         this.mClientId = config.mClientId == null ? this.mClientId : config.mClientId;
         this.mRedirectUri = config.mRedirectUri == null ? this.mRedirectUri : config.mRedirectUri;
@@ -135,6 +184,7 @@ public class PublicClientApplicationConfiguration {
     void validateConfiguration() {
         nullConfigurationCheck(REDIRECT_URI, mRedirectUri);
         nullConfigurationCheck(CLIENT_ID, mClientId);
+        checkDefaultAuthoritySpecified();
 
         for (final Authority authority : mAuthorities) {
             if (authority instanceof UnknownAuthority) {

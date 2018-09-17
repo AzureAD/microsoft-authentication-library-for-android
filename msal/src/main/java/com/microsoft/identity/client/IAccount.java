@@ -50,4 +50,11 @@ public interface IAccount {
      */
     String getUsername();
 
+    /**
+     * Gets the environment for this Account.
+     *
+     * @return The environment to get.
+     */
+    String getEnvironment();
+
 }

@@ -53,7 +53,6 @@ import com.microsoft.identity.client.MsalUiRequiredException;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.Telemetry;
 import com.microsoft.identity.client.UiBehavior;
-import com.microsoft.identity.client.User;
 
 import java.io.Serializable;
 import java.util.List;
@@ -134,17 +133,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mContentMain = (RelativeLayout) findViewById(R.id.content_main);
+        mContentMain = findViewById(R.id.content_main);
 
-        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        final Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        final DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        final DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, 0, 0);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
-        final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        final NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         if (savedInstanceState == null) {
@@ -170,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (mAuthResult != null) {
                 bundle.putString(ResultFragment.ACCESS_TOKEN, mAuthResult.getAccessToken());
                 bundle.putString(ResultFragment.ID_TOKEN, mAuthResult.getIdToken());
-                bundle.putString(ResultFragment.DISPLAYABLE, mAuthResult.getUser().getDisplayableId());
+                bundle.putString(ResultFragment.DISPLAYABLE, mAuthResult.getAccount().getUsername());
             }
 
             fragment.setArguments(bundle);
@@ -213,7 +212,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         final FragmentManager fragmentManager = getSupportFragmentManager();
         final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-        final DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        final DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         drawerLayout.closeDrawer(GravityCompat.START);
         fragmentTransaction.replace(mContentMain.getId(), fragment).addToBackStack(null).commit();
     }
@@ -230,16 +229,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void onRemoveUserClicked() {
-        try {
-            final List<User> users = mApplication.getUsers();
-            for (final User user : users) {
-                mApplication.remove(user);
-            }
-        } catch (final MsalClientException e) {
-            Log.e(TAG, "Fail to retrieve users: " + e.getMessage(), e);
-        }
-
-        // Remove Accounts...
         final List<IAccount> accountsToRemove = mApplication.getAccounts();
 
         for (final IAccount accountToRemove : accountsToRemove) {
@@ -249,35 +238,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mSelectedAccount = null;
     }
 
-    User getUser(String loginHint) {
-        try {
-            final List<User> users = mApplication.getUsers();
-            for (final User user : users) {
-                if (user.getDisplayableId().equals(loginHint.trim().toLowerCase())) {
-                    return user;
-                }
+    IAccount getAccount(final String loginHint) {
+        for (final IAccount account : mApplication.getAccounts()) {
+            if (account.getUsername().equals(loginHint.trim().toLowerCase())) {
+                return account;
             }
-
-            showMessage("No record of user with this login hint.");
-        } catch (final MsalClientException e) {
-            Log.e(TAG, "Fail to retrieve users: " + e.getMessage(), e);
         }
 
         return null;
     }
 
-
     @Override
     public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
-        final User requestUser = getUser(requestOptions.getLoginHint());
+        final IAccount requestAccount = getAccount(requestOptions.getLoginHint());
 
-        if (requestUser == null) {
-            showMessage("Please select an user.");
+        if (requestAccount == null) {
+            showMessage("Please select a user.");
             return;
         }
 
-        callAcquireTokenSilent(mScopes, requestUser, mForceRefresh);
+        callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
@@ -326,7 +307,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         try {
-            mApplication.setValidateAuthority(true);
             mApplication.acquireToken(this, scopes, loginHint, uiBehavior, extraQueryParam, extraScope,
                     null, getAuthenticationCallback());
         } catch (IllegalArgumentException e) {
@@ -334,8 +314,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    private void callAcquireTokenSilent(final String[] scopes, final User user, boolean forceRefresh) {
-        mApplication.acquireTokenSilentAsync(scopes, user, null, forceRefresh, getAuthenticationCallback());
+    private void callAcquireTokenSilent(final String[] scopes,
+                                        final IAccount account,
+                                        boolean forceRefresh) {
+        mApplication.acquireTokenSilentAsync(
+                scopes,
+                account,
+                null,
+                forceRefresh,
+                getAuthenticationCallback()
+        );
     }
 
     private AuthenticationCallback getAuthenticationCallback() {

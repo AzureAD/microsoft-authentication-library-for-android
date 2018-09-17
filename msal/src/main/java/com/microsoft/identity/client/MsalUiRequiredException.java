@@ -46,15 +46,15 @@ public final class MsalUiRequiredException extends MsalException {
     public static final String NO_TOKENS_FOUND = "no_tokens_found";
 
 
-    MsalUiRequiredException(final String errorCode) {
+    public MsalUiRequiredException(final String errorCode) {
         super(errorCode);
     }
 
-    MsalUiRequiredException(final String errorCode, final String errorMessage) {
+    public MsalUiRequiredException(final String errorCode, final String errorMessage) {
         super(errorCode, errorMessage);
     }
 
-    MsalUiRequiredException(final String errorCode, final String errorMessage, final Throwable throwable) {
+    public MsalUiRequiredException(final String errorCode, final String errorMessage, final Throwable throwable) {
         super(errorCode, errorMessage, throwable);
     }
 }

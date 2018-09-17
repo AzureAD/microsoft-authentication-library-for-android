@@ -32,6 +32,7 @@ import android.support.customtabs.CustomTabsIntent;
 import android.support.customtabs.CustomTabsServiceConnection;
 import android.support.customtabs.CustomTabsSession;
 
+import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.exception.ErrorStrings;
 
 import java.lang.ref.WeakReference;

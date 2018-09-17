@@ -25,6 +25,9 @@ package com.microsoft.identity.client;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import com.microsoft.identity.client.internal.MsalUtils;
+import com.microsoft.identity.client.internal.telemetry.ApiEvent;
+
 import junit.framework.Assert;
 
 import org.junit.Test;
@@ -34,7 +37,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 
-import static com.microsoft.identity.client.EventConstants.EventProperty;
+import static com.microsoft.identity.client.internal.telemetry.EventConstants.EventProperty;
 
 @RunWith(AndroidJUnit4.class)
 public class ApiEventTest {
@@ -44,7 +47,6 @@ public class ApiEventTest {
     private static final String TEST_USER_ID = "admin@aaltests.onmicrosoft.com"; // test token does not contain id
 
     static final String TEST_AUTHORITY = HttpEventTest.TEST_HTTP_PATH.toString();
-    static final AuthorityMetadata.AuthorityType TEST_AUTHORITY_TYPE = AuthorityMetadata.AuthorityType.AAD;
     static final String TEST_UI_BEHAVIOR = "FORCE_LOGIN";
     static final String TEST_API_ID = "12345";
     static final String TEST_ID_TOKEN;
@@ -92,7 +94,6 @@ public class ApiEventTest {
                 .setStopTime(1L)
                 .setElapsedTime(1L)
                 .setAuthority(authority)
-                .setAuthorityType(TEST_AUTHORITY_TYPE)
                 .setUiBehavior(TEST_UI_BEHAVIOR)
                 .setApiId(TEST_API_ID)
                 .setValidationStatus(TEST_VALIDATION_STATUS)
@@ -113,12 +114,6 @@ public class ApiEventTest {
     }
 
     @Test
-    public void testAuthorityB2cOmitted() {
-        final ApiEvent apiEvent = getTestApiEvent(Telemetry.generateNewRequestId(), TEST_AUTHORITY_B2C);
-        Assert.assertEquals(null, apiEvent.getAuthority());
-    }
-
-    @Test
     public void testAuthorityWithIdentifierScrubbed() {
         final ApiEvent apiEvent = getTestApiEvent(Telemetry.generateNewRequestId(), TEST_AUTHORITY_WITH_IDENTIFIER);
         Assert.assertEquals("https://login.microsoftonline.com/", apiEvent.getAuthority());
@@ -133,8 +128,6 @@ public class ApiEventTest {
         Assert.assertEquals(TEST_START_TIME, apiEvent.getStartTime());
         Assert.assertEquals(TEST_STOP_TIME, apiEvent.getStopTime());
         Assert.assertEquals(TEST_ELAPSED_TIME, apiEvent.getElapsedTime());
-        Assert.assertEquals(TEST_AUTHORITY, apiEvent.getAuthority());
-        Assert.assertEquals(EventProperty.Value.AUTHORITY_TYPE_AAD, apiEvent.getAuthorityType());
         Assert.assertEquals(TEST_UI_BEHAVIOR, apiEvent.getUiBehavior());
         Assert.assertEquals(TEST_API_ID, apiEvent.getApiId());
         Assert.assertEquals(TEST_VALIDATION_STATUS, apiEvent.getValidationStatus());
@@ -145,14 +138,4 @@ public class ApiEventTest {
         Telemetry.setAllowPii(false);
     }
 
-    @Test
-    public void testIdTokenParsing() throws UnsupportedEncodingException, NoSuchAlgorithmException {
-        Telemetry.setAllowPii(true);
-        final String telemetryRequestId = Telemetry.generateNewRequestId();
-        final ApiEvent apiEvent = getTestApiEvent(telemetryRequestId, TEST_AUTHORITY);
-        Assert.assertEquals(TEST_IDP, apiEvent.getIdpName());
-        Assert.assertEquals(TEST_TENANT_ID, apiEvent.getTenantId());
-        Assert.assertEquals(MsalUtils.createHash(TEST_USER_ID), apiEvent.getUserId());
-        Telemetry.setAllowPii(false);
-    }
 }

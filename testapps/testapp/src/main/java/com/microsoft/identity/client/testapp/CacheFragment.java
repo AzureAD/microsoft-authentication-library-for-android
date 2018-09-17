@@ -40,9 +40,6 @@ import java.util.List;
 import java.util.UUID;
 
 
-/**
- * Fragment to display TokenCache contents.
- */
 public class CacheFragment extends Fragment {
 
     static final String ARG_LIST_CONTENTS = "list_contents";

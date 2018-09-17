@@ -23,6 +23,12 @@
 
 package com.microsoft.identity.client;
 
+import com.microsoft.identity.client.internal.telemetry.ApiEvent;
+import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
+import com.microsoft.identity.client.internal.telemetry.Event;
+import com.microsoft.identity.client.internal.telemetry.EventDispatcher;
+import com.microsoft.identity.client.internal.telemetry.OrphanedEvent;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;

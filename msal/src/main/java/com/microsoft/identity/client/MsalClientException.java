@@ -80,6 +80,11 @@ public final class MsalClientException extends MsalException {
     public static final String MALFORMED_URL = "malformed_url";
 
     /**
+     * The authority is unknown.  Occurs when the authority is not part of configuration or the authority host is not recognized by Microsoft.
+     */
+    public static final String UNKNOWN_AUTHORITY = "unknown_authority";
+
+    /**
      * The encoding is not supported by the device.
      */
     public static final String UNSUPPORTED_ENCODING = "unsupported_encoding";
@@ -133,20 +138,25 @@ public final class MsalClientException extends MsalException {
     public static final String DUPLICATE_QUERY_PARAMETER = "duplicate_query_parameter";
 
     /**
+     * Extra query parameters set by the client app is already sent by the sdk.
+     */
+    public static final String UNKNOWN_ERROR = "unknown_error";
+
+    /**
      * Temporary non-exposed error code to indicate that ADFS authority validation fails. ADFS as authority is not supported
      * for preview.
      */
     static final String ADFS_AUTHORITY_VALIDATION_FAILED = "adfs_authority_validation_failed";
 
-    MsalClientException(final String errorCode) {
+    public MsalClientException(final String errorCode) {
         super(errorCode);
     }
 
-    MsalClientException(final String errorCode, final String errorMessage) {
+    public MsalClientException(final String errorCode, final String errorMessage) {
         super(errorCode, errorMessage);
     }
 
-    MsalClientException(final String errorCode, final String errorMessage, final Throwable throwable) {
+    public MsalClientException(final String errorCode, final String errorMessage, final Throwable throwable) {
         super(errorCode, errorMessage, throwable);
     }
 }

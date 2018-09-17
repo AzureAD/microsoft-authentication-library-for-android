@@ -26,6 +26,15 @@ package com.microsoft.identity.client;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Pair;
 
+import com.microsoft.identity.client.internal.telemetry.ApiEvent;
+import com.microsoft.identity.client.internal.telemetry.CacheEvent;
+import com.microsoft.identity.client.internal.telemetry.Event;
+import com.microsoft.identity.client.internal.telemetry.EventConstants;
+import com.microsoft.identity.client.internal.telemetry.HttpEvent;
+import com.microsoft.identity.client.internal.telemetry.OrphanedEvent;
+import com.microsoft.identity.client.internal.telemetry.TelemetryUtils;
+import com.microsoft.identity.client.internal.telemetry.UiEvent;
+
 import junit.framework.Assert;
 
 import org.junit.Test;

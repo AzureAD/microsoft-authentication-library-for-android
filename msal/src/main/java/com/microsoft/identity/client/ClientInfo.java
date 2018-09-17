@@ -25,6 +25,8 @@ package com.microsoft.identity.client;
 
 import android.util.Base64;
 
+import com.microsoft.identity.client.internal.MsalUtils;
+
 import org.json.JSONException;
 
 import java.nio.charset.Charset;
@@ -55,8 +57,8 @@ final class ClientInfo {
             throw new MsalClientException(MsalClientException.JSON_PARSE_FAILURE, "Failed to parse the returned raw client info.");
         }
 
-        mUniqueIdentifier = clientInfoItems.get(OauthConstants.ClientInfoClaim.UNIQUE_IDENTIFIER);
-        mUniqueTenantIdentifier = clientInfoItems.get(OauthConstants.ClientInfoClaim.UNIQUE_TENANT_IDENTIFIER);
+        mUniqueIdentifier = clientInfoItems.get(ClientInfoClaim.UNIQUE_IDENTIFIER);
+        mUniqueTenantIdentifier = clientInfoItems.get(ClientInfoClaim.UNIQUE_TENANT_IDENTIFIER);
     }
 
     String getUniqueIdentifier() {
@@ -65,5 +67,10 @@ final class ClientInfo {
 
     String getUniqueTenantIdentifier() {
         return MsalUtils.isEmpty(mUniqueTenantIdentifier) ? "" : mUniqueTenantIdentifier;
+    }
+
+    static final class ClientInfoClaim {
+        static final String UNIQUE_IDENTIFIER = "uid";
+        static final String UNIQUE_TENANT_IDENTIFIER = "utid";
     }
 }
