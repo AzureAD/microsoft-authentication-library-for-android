@@ -148,13 +148,6 @@ public final class PublicClientApplication {
     private String mClientId;
 
     /**
-     * Unique String identifier used in logging/telemetry callbacks to identify.
-     * component in the application using MSAL
-     */
-    @SuppressWarnings("PMD.UnusedPrivateField") // TODO wire-up
-    private String mComponent;
-
-    /**
      * The redirect URI for the application.
      */
     private String mRedirectUri;
@@ -322,18 +315,6 @@ public final class PublicClientApplication {
     }
 
     /**
-     * Specify the string identifier to identify the component that consumes MSAL.
-     * This is intended for libraries that consume MSAL which are embedded in apps that might also be using MSAL
-     * as well. This allows logging, telemetry apps, or library developers to differentiate MSAL usage
-     * from the app to MSAL usage by component libraries.
-     *
-     * @param component The component identifier string passed into MSAL when creating the application object
-     */
-    public void setComponent(final String component) {
-        mComponent = component;
-    }
-
-    /**
      * Returns a List of {@link IAccount} objects for which this application has RefreshTokens.
      *
      * @return An immutable List of IAccount objects - empty if no IAccounts exist.
@@ -442,8 +423,24 @@ public final class PublicClientApplication {
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
-        MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, null, UiBehavior.SELECT_ACCOUNT, null, null, null);
-        MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
+        final MSALAcquireTokenOperationParameters params =
+                getInteractiveOperationParameters(
+                        activity,
+                        scopes,
+                        null,
+                        UiBehavior.SELECT_ACCOUNT,
+                        null,
+                        null,
+                        null
+                );
+
+        final MSALInteractiveTokenCommand command =
+                new MSALInteractiveTokenCommand(
+                        mAppContext,
+                        params,
+                        new LocalMSALController(),
+                        callback
+                );
         MSALApiDispatcher.beginInteractive(command);
     }
 
@@ -471,8 +468,24 @@ public final class PublicClientApplication {
                              @NonNull final String[] scopes,
                              final String loginHint,
                              @NonNull final AuthenticationCallback callback) {
-        MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, loginHint, UiBehavior.SELECT_ACCOUNT, null, null, null);
-        MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
+        final MSALAcquireTokenOperationParameters params =
+                getInteractiveOperationParameters(
+                        activity,
+                        scopes,
+                        loginHint,
+                        UiBehavior.SELECT_ACCOUNT,
+                        null,
+                        null,
+                        null
+                );
+
+        final MSALInteractiveTokenCommand command =
+                new MSALInteractiveTokenCommand(
+                        mAppContext,
+                        params,
+                        new LocalMSALController(),
+                        callback
+                );
         MSALApiDispatcher.beginInteractive(command);
     }
 
@@ -504,8 +517,24 @@ public final class PublicClientApplication {
                              final UiBehavior uiBehavior,
                              final String extraQueryParameters,
                              @NonNull final AuthenticationCallback callback) {
-        MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, loginHint, uiBehavior, extraQueryParameters, null, null);
-        MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
+        final MSALAcquireTokenOperationParameters params =
+                getInteractiveOperationParameters(
+                        activity,
+                        scopes,
+                        loginHint,
+                        uiBehavior,
+                        extraQueryParameters,
+                        null,
+                        null
+                );
+
+        final MSALInteractiveTokenCommand command =
+                new MSALInteractiveTokenCommand(
+                        mAppContext,
+                        params,
+                        new LocalMSALController(),
+                        callback
+                );
         MSALApiDispatcher.beginInteractive(command);
     }
 
@@ -531,13 +560,31 @@ public final class PublicClientApplication {
      *                            3) All the other errors will be sent back via
      *                            {@link AuthenticationCallback#onError(MsalException)}.
      */
-    public void acquireToken(@NonNull final Activity activity, @NonNull final String[] scopes, final IAccount account, final UiBehavior uiBehavior,
-                             final String extraQueryParameter, @NonNull final AuthenticationCallback callback) {
+    public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final String[] scopes,
+                             final IAccount account, // TODO wire-up
+                             final UiBehavior uiBehavior,
+                             final String extraQueryParameter,// TODO wire-up
+                             @NonNull final AuthenticationCallback callback) {
+        final MSALAcquireTokenOperationParameters params =
+                getInteractiveOperationParameters(
+                        activity,
+                        scopes,
+                        null,
+                        uiBehavior,
+                        null,
+                        null,
+                        null
+                );
 
-        MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, null, uiBehavior, null, null, null);
-        MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
+        final MSALInteractiveTokenCommand command =
+                new MSALInteractiveTokenCommand(
+                        mAppContext,
+                        params,
+                        new LocalMSALController(),
+                        callback
+                );
         MSALApiDispatcher.beginInteractive(command);
-
     }
 
     /**
@@ -572,9 +619,24 @@ public final class PublicClientApplication {
                              final String[] extraScopesToConsent,
                              final String authority,
                              @NonNull final AuthenticationCallback callback) {
+        final MSALAcquireTokenOperationParameters params =
+                getInteractiveOperationParameters(
+                        activity,
+                        scopes,
+                        loginHint,
+                        uiBehavior,
+                        extraQueryParams,
+                        extraScopesToConsent,
+                        authority
+                );
 
-        final MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, loginHint, uiBehavior, extraQueryParams, extraScopesToConsent, authority);
-        final MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
+        final MSALInteractiveTokenCommand command =
+                new MSALInteractiveTokenCommand(
+                        mAppContext,
+                        params,
+                        new LocalMSALController(),
+                        callback
+                );
         MSALApiDispatcher.beginInteractive(command);
     }
 
@@ -604,14 +666,30 @@ public final class PublicClientApplication {
      */
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
-                             final IAccount account,
+                             final IAccount account, // TODO wire-up
                              final UiBehavior uiBehavior,
                              final String extraQueryParams,
                              final String[] extraScopesToConsent,
                              final String authority,
                              @NonNull final AuthenticationCallback callback) {
-        MSALAcquireTokenOperationParameters params = getInteractiveOperationParameters(activity, scopes, null, uiBehavior, extraQueryParams, extraScopesToConsent, authority);
-        MSALInteractiveTokenCommand command = new MSALInteractiveTokenCommand(mAppContext, params, new LocalMSALController(), callback);
+        final MSALAcquireTokenOperationParameters params =
+                getInteractiveOperationParameters(
+                        activity,
+                        scopes,
+                        null,
+                        uiBehavior,
+                        extraQueryParams,
+                        extraScopesToConsent,
+                        authority
+                );
+
+        final MSALInteractiveTokenCommand command =
+                new MSALInteractiveTokenCommand(
+                        mAppContext,
+                        params,
+                        new LocalMSALController(),
+                        callback
+                );
         MSALApiDispatcher.beginInteractive(command);
     }
 
@@ -698,15 +776,11 @@ public final class PublicClientApplication {
                                                                                    final boolean forceRefresh,
                                                                                    final IAccount account) {
         final MSALAcquireTokenSilentOperationParameters parameters = new MSALAcquireTokenSilentOperationParameters();
-
-        Authority authority = Authority.getAuthorityFromAuthorityUrl(authorityStr);
-        // TODO Confirm that it is a known authority?
-
         parameters.setAppContext(mAppContext);
         parameters.setScopes(Arrays.asList(scopes));
         parameters.setClientId(mClientId);
         parameters.setTokenCache(mOauth2TokenCache);
-        parameters.setAuthority(authority);
+        parameters.setAuthority(Authority.getAuthorityFromAuthorityUrl(authorityStr));
         parameters.setAccount(account);
         parameters.setForceRefresh(forceRefresh);
 
@@ -721,6 +795,7 @@ public final class PublicClientApplication {
 
         // read authority from manifest.
         final String authority = applicationInfo.metaData.getString(AUTHORITY_META_DATA);
+
         if (!MsalUtils.isEmpty(authority)) {
             mAuthorityString = authority;
             mPublicClientConfiguration.getAuthorities().clear();
@@ -732,17 +807,18 @@ public final class PublicClientApplication {
 
         // read client id from manifest
         final String clientId = applicationInfo.metaData.getString(CLIENT_ID_META_DATA);
+
         if (MsalUtils.isEmpty(clientId)) {
             throw new IllegalArgumentException("client id missing from manifest");
         }
+
         mClientId = clientId;
         mPublicClientConfiguration.mClientId = clientId;
-
     }
 
     private void setupConfiguration(final int configResourceId) {
-        PublicClientApplicationConfiguration developerConfig = loadConfiguration(mAppContext, configResourceId);
-        PublicClientApplicationConfiguration defaultConfig = loadDefaultConfiguration(mAppContext);
+        final PublicClientApplicationConfiguration developerConfig = loadConfiguration(mAppContext, configResourceId);
+        final PublicClientApplicationConfiguration defaultConfig = loadDefaultConfiguration(mAppContext);
         defaultConfig.mergeConfiguration(developerConfig);
         mPublicClientConfiguration = defaultConfig;
 
@@ -759,7 +835,6 @@ public final class PublicClientApplication {
         } else {
             mAuthorityString = DEFAULT_AUTHORITY;
         }
-
     }
 
     private void setupConfiguration() {
@@ -769,7 +844,6 @@ public final class PublicClientApplication {
     @VisibleForTesting
     static PublicClientApplicationConfiguration loadConfiguration(@NonNull final Context context,
                                                                   final int configResourceId) {
-
         InputStream configStream = context.getResources().openRawResource(configResourceId);
         byte[] buffer;
 
@@ -784,13 +858,10 @@ public final class PublicClientApplication {
             }
         }
 
-        String config = new String(buffer);
+        final String config = new String(buffer);
+        final Gson gson = getGsonForLoadingConfiguration();
 
-        Gson gson = getGsonForLoadingConfiguration();
-
-        PublicClientApplicationConfiguration configObject = gson.fromJson(config, PublicClientApplicationConfiguration.class);
-
-        return configObject;
+        return gson.fromJson(config, PublicClientApplicationConfiguration.class);
     }
 
     private PublicClientApplicationConfiguration loadDefaultConfiguration(@NonNull final Context context) {
@@ -798,15 +869,12 @@ public final class PublicClientApplication {
     }
 
     private static Gson getGsonForLoadingConfiguration() {
-        final Gson gson = new GsonBuilder()
+        return new GsonBuilder()
                 .registerTypeAdapter(Authority.class, new AuthorityDeserializer())
                 .registerTypeAdapter(AzureActiveDirectoryAudience.class, new AzureActiveDirectoryAudienceDeserializer())
                 .registerTypeAdapter(Logger.LogLevel.class, new LogLevelDeserializer())
                 .create();
-
-        return gson;
     }
-
 
     // TODO: if no more input validation is needed, this could be moved back to the constructor.
     private void checkIntentFilterAddedToAppManifest() {
