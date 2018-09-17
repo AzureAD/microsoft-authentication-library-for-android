@@ -47,7 +47,7 @@ public abstract class Authority {
     @SerializedName("default")
     protected boolean mIsDefault = false;
 
-    @SerializedName("authority_type")
+    @SerializedName("type")
     protected String mAuthorityTypeString;
 
     @SerializedName("authority_url")
