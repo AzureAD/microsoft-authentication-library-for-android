@@ -22,9 +22,14 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.authorities;
 
+import android.net.Uri;
+
+import com.google.gson.annotations.SerializedName;
+
 public abstract class AzureActiveDirectoryAudience {
 
     private String cloudUrl;
+    @SerializedName("tenant_id")
     private String tenantId;
 
     private static final String ORGANIZATIONS = "organizations";
@@ -32,7 +37,7 @@ public abstract class AzureActiveDirectoryAudience {
     private static final String ALL = "common";
 
     public String getCloudUrl() {
-        return cloudUrl;
+        return this.cloudUrl;
     }
 
     public void setCloudUrl(String cloudUrl) {
@@ -67,4 +72,5 @@ public abstract class AzureActiveDirectoryAudience {
 
         return audience;
     }
+
 }

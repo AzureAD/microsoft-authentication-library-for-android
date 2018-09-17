@@ -1,18 +1,18 @@
 {
-  "client_id" : "",
-  "redirect_uri" : "",
+  "client_id" : "9851987a-55e5-46e2-8d70-75f8dc060f21",
+  "redirect_uri" : "msal9851987a-55e5-46e2-8d70-75f8dc060f21://auth",
   "authorities" : [
     {
       "type": "AAD",
       "audience": {
         "type": "AzureADMyOrg",
-        "tenant_id": "[tenantid]"
+        "tenant_id": "microsoft.com"
       },
       "slice": {
-        "slice": "test",
-        "dc": "WUS"
+        "slice": "testslice",
+        "dc": "PROD-WST-TEST1"
       },
-      "flight_parameters": [{"key1": "value1"}, {"key2": "value2"}]
+      "flight_parameters": {"key1": "value1", "key2": "value2"}
     }
   ]
 }
