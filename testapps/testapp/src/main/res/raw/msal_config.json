@@ -5,14 +5,8 @@
     {
       "type": "AAD",
       "audience": {
-        "type": "AzureADMyOrg",
-        "tenant_id": "microsoft.com"
-      },
-      "slice": {
-        "slice": "testslice",
-        "dc": "PROD-WST-TEST1"
-      },
-      "flight_parameters": {"key1": "value1", "key2": "value2"}
+        "type": "AzureADandPersonalMicrosoftAccount"
+      }
     }
   ]
 }

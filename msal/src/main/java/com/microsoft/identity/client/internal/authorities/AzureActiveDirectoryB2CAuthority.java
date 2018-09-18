@@ -26,6 +26,8 @@ import android.net.Uri;
 
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectoryb2c.AzureActiveDirectoryB2COAuth2Strategy;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 
 import java.net.MalformedURLException;
@@ -54,6 +56,8 @@ public class AzureActiveDirectoryB2CAuthority extends Authority {
 
     @Override
     public OAuth2Strategy createOAuth2Strategy() {
-        return new AzureActiveDirectoryB2COAuth2Strategy(new AzureActiveDirectoryOAuth2Configuration());
+        MicrosoftStsOAuth2Configuration config = new MicrosoftStsOAuth2Configuration();
+        config.setAuthorityUrl(this.getAuthorityURL());
+        return new MicrosoftStsOAuth2Strategy(config);
     }
 }

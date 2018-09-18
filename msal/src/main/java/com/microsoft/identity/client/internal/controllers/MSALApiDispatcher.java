@@ -123,23 +123,63 @@ public class MSALApiDispatcher {
             public void run() {
                 initializeDiagnosticContext();
                 AcquireTokenResult result = null;
+                MsalException msalException = null;
 
                 try {
+                    //Try executing request
                     result = command.execute();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    //Capture any resulting exception and map to MsalException type
+                    if (e instanceof MsalException) {
+                        msalException = (MsalException) e;
+                    } else {
+                        msalException = ExceptionAdapter.msalExceptionFromException(e);
+                    }
                 }
 
                 Handler handler = new Handler(command.getContext().getMainLooper());
 
-                if (result.getSucceeded()) {
-                    final AuthenticationResult authenticationResult = result.getAuthenticationResult();
+                if (msalException != null) {
+                    //Post On Error
+                    final MsalException finalException = msalException;
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            command.getCallback().onSuccess(authenticationResult);
+                            command.getCallback().onError(finalException);
                         }
                     });
+                } else {
+                    if (null != result && result.getSucceeded()) {
+                        //Post Success
+                        final AuthenticationResult authenticationResult = result.getAuthenticationResult();
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                command.getCallback().onSuccess(authenticationResult);
+                            }
+                        });
+                    } else {
+                        //Get MsalException from Authorization and/or Token Error Response
+                        msalException = ExceptionAdapter.exceptionFromAcquireTokenResult(result);
+                        final MsalException finalException = msalException;
+                        if (finalException instanceof MsalUserCancelException) {
+                            //Post Cancel
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    command.getCallback().onCancel();
+                                }
+                            });
+                        } else {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    command.getCallback().onError(finalException);
+                                }
+                            });
+                        }
+                    }
+
                 }
             }
         });
