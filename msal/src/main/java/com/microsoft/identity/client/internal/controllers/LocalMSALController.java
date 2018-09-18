@@ -29,6 +29,7 @@ import android.net.NetworkInfo;
 import android.text.TextUtils;
 
 import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.MsalArgumentException;
 import com.microsoft.identity.client.MsalClientException;
 import com.microsoft.identity.client.MsalUiRequiredException;
 import com.microsoft.identity.client.internal.authorities.Authority;
@@ -63,8 +64,11 @@ public class LocalMSALController extends MSALController {
 
     @Override
     public AcquireTokenResult acquireToken(final MSALAcquireTokenOperationParameters parameters)
-            throws ExecutionException, InterruptedException, ClientException, IOException, MsalClientException {
+            throws ExecutionException, InterruptedException, ClientException, IOException, MsalClientException, MsalArgumentException {
         final AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
+
+        //00) Validate MSAL Parameters
+        parameters.validate();
 
         //0) Get known authority result
         throwIfNetworkNotAvailable(parameters.getAppContext());
@@ -191,8 +195,12 @@ public class LocalMSALController extends MSALController {
     @Override
     public AcquireTokenResult acquireTokenSilent(
             final MSALAcquireTokenSilentOperationParameters parameters)
-            throws MsalClientException, IOException, ClientException {
+            throws MsalClientException, IOException, ClientException, MsalArgumentException {
         final AcquireTokenResult acquireTokenSilentResult = new AcquireTokenResult();
+
+        //Validate MSAL Parameters
+        parameters.validate();
+
         final OAuth2TokenCache tokenCache = parameters.getTokenCache();
 
         final String environment = parameters.getAuthority().getAuthorityURL().getHost();

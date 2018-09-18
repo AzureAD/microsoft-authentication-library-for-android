@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
+import com.microsoft.identity.client.MsalArgumentException;
 import com.microsoft.identity.common.internal.dto.RefreshToken;
 
 public class MSALAcquireTokenSilentOperationParameters extends MSALOperationParameters {
@@ -43,5 +44,15 @@ public class MSALAcquireTokenSilentOperationParameters extends MSALOperationPara
 
     public boolean getForceRefresh() {
         return mForceRefresh;
+    }
+
+    @Override
+    public void validate() throws MsalArgumentException{
+        super.validate();
+
+        if(mAccount == null){
+            throw new MsalArgumentException(MsalArgumentException.ACQUIRE_TOKEN_SILENT_OPERATION_NAME, MsalArgumentException.IACCOUNT_ARGUMENT_NAME, "account is null");
+        }
+
     }
 }

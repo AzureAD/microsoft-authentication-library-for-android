@@ -25,17 +25,21 @@ package com.microsoft.identity.client.internal.controllers;
 import android.content.Context;
 
 import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.MsalArgumentException;
+import com.microsoft.identity.client.MsalClientException;
 import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MSALOperationParameters {
 
     private Context mAppContext;
     private OAuth2TokenCache mTokenCache;
-    private List<String> mScopes;
-    private IAccount mAccount;
+    private ArrayList<String> mScopes;
+    protected IAccount mAccount;
     private String clientId;
     private String redirectUri;
     private Authority mAuthority;
@@ -48,11 +52,11 @@ public class MSALOperationParameters {
         this.mAppContext = mAppContext;
     }
 
-    public List<String> getScopes() {
+    public ArrayList<String> getScopes() {
         return mScopes;
     }
 
-    public void setScopes(List<String> mScopes) {
+    public void setScopes(ArrayList<String> mScopes) {
         this.mScopes = mScopes;
     }
 
@@ -94,5 +98,30 @@ public class MSALOperationParameters {
 
     public IAccount getAccount() {
         return mAccount;
+    }
+
+    /**
+     * Since this is about validating MSAL Parameters and not an authorization request or token request.  I've placed this here.
+     */
+    public void validate() throws MsalArgumentException {
+
+        Boolean validScopeArgument = false;
+
+        if(mScopes != null){
+            mScopes.removeAll(Arrays.asList("", null));
+            if(mScopes.size() > 0){
+                validScopeArgument = true;
+            }
+        }
+
+        if(!validScopeArgument) {
+            if (this instanceof MSALAcquireTokenSilentOperationParameters) {
+                throw new MsalArgumentException(MsalArgumentException.ACQUIRE_TOKEN_SILENT_OPERATION_NAME, MsalArgumentException.SCOPE_ARGUMENT_NAME, "scope is empty or null");
+            }
+            if (this instanceof MSALAcquireTokenOperationParameters) {
+                throw new MsalArgumentException(MsalArgumentException.ACQUIRE_TOKEN_OPERATION_NAME, MsalArgumentException.SCOPE_ARGUMENT_NAME, "scope is empty or null");
+            }
+        }
+
     }
 }
