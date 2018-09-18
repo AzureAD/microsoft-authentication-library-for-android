@@ -469,7 +469,7 @@ public final class PublicClientApplication {
      */
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
-                             final String loginHint,
+                             @Nullable final String loginHint,
                              @NonNull final AuthenticationCallback callback) {
         final MSALAcquireTokenOperationParameters params =
                 getInteractiveOperationParameters(
@@ -517,8 +517,8 @@ public final class PublicClientApplication {
      */
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
-                             final String loginHint,
-                             final UiBehavior uiBehavior,
+                             @Nullable final String loginHint,
+                             @NonNull final UiBehavior uiBehavior,
                              @Nullable final List<Pair<String, String>> extraQueryParameters,
                              @NonNull final AuthenticationCallback callback) {
         final MSALAcquireTokenOperationParameters params =
@@ -567,19 +567,27 @@ public final class PublicClientApplication {
      */
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
-                             final IAccount account, // TODO wire-up
-                             final UiBehavior uiBehavior,
+                             @Nullable final IAccount account,
+                             @NonNull final UiBehavior uiBehavior,
                              @Nullable final List<Pair<String, String>> extraQueryParameters,
                              @NonNull final AuthenticationCallback callback) {
+        String loginHint = null;
+        String authority = null;
+
+        if (null != account) {
+            loginHint = account.getUsername();
+            authority = account.getEnvironment();
+        }
+
         final MSALAcquireTokenOperationParameters params =
                 getInteractiveOperationParameters(
                         activity,
                         scopes,
-                        null, // TODO should this be the login hint from the account?
+                        loginHint,
                         uiBehavior,
                         extraQueryParameters,
                         null,
-                        null,
+                        authority,
                         account
                 );
 
@@ -673,17 +681,23 @@ public final class PublicClientApplication {
      */
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
-                             final IAccount account, // TODO wire-up
-                             final UiBehavior uiBehavior,
+                             @Nullable final IAccount account,
+                             @NonNull final UiBehavior uiBehavior,
                              @Nullable final List<Pair<String, String>> extraQueryParameters,
                              @Nullable final String[] extraScopesToConsent,
                              @Nullable final String authority,
                              @NonNull final AuthenticationCallback callback) {
+        String loginHint = null;
+
+        if (null != account) {
+            loginHint = account.getUsername();
+        }
+
         final MSALAcquireTokenOperationParameters params =
                 getInteractiveOperationParameters(
                         activity,
                         scopes,
-                        null, // TODO should I use the login hint from the account?
+                        loginHint,
                         uiBehavior,
                         extraQueryParameters,
                         extraScopesToConsent,
