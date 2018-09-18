@@ -674,6 +674,9 @@ public final class PublicClientApplication {
 
         if (StringUtil.isEmpty(requestAuthority)) {
             requestAuthority = Authority.getAuthorityFromAccount(account);
+            if(requestAuthority == null){
+                requestAuthority = mAuthorityString;
+            }
         }
 
         final MSALAcquireTokenSilentOperationParameters params = getSilentOperationParameters(
@@ -703,7 +706,7 @@ public final class PublicClientApplication {
         // TODO Confirm that it is a known authority?
 
         parameters.setAppContext(mAppContext);
-        parameters.setScopes(Arrays.asList(scopes));
+        parameters.setScopes(new ArrayList<>(Arrays.asList(scopes)));
         parameters.setClientId(mClientId);
         parameters.setTokenCache(mOauth2TokenCache);
         parameters.setAuthority(authority);
@@ -755,7 +758,7 @@ public final class PublicClientApplication {
         }
 
         if (mPublicClientConfiguration.isDefaultAuthorityConfigured()) {
-            mAuthorityString = mPublicClientConfiguration.getDefaultAuthority().toString();
+            mAuthorityString = mPublicClientConfiguration.getDefaultAuthority().getAuthorityURL().toString();
         } else {
             mAuthorityString = DEFAULT_AUTHORITY;
         }
@@ -857,7 +860,7 @@ public final class PublicClientApplication {
             params.setAuthority(Authority.getAuthorityFromAuthorityUrl(authority));
         }
 
-        params.setScopes(Arrays.asList(scopes));
+        params.setScopes(new ArrayList<>(Arrays.asList(scopes)));
         params.setClientId(mClientId);
         params.setRedirectUri(mRedirectUri);
         params.setActivity(activity);

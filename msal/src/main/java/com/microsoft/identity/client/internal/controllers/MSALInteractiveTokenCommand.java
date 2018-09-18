@@ -26,6 +26,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.microsoft.identity.client.AuthenticationCallback;
+import com.microsoft.identity.client.MsalArgumentException;
 import com.microsoft.identity.client.MsalClientException;
 import com.microsoft.identity.common.exception.ClientException;
 
@@ -46,7 +47,7 @@ public class MSALInteractiveTokenCommand extends MSALTokenCommand {
     }
 
     @Override
-    public AcquireTokenResult execute() throws InterruptedException, ExecutionException, IOException, ClientException, MsalClientException {
+    public AcquireTokenResult execute() throws InterruptedException, ExecutionException, IOException, ClientException, MsalClientException, MsalArgumentException {
         if (getParameters() instanceof MSALAcquireTokenOperationParameters) {
             return getController().acquireToken((MSALAcquireTokenOperationParameters) getParameters());
         } else {
