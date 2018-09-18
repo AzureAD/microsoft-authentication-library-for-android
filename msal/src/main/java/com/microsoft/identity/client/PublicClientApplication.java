@@ -345,6 +345,11 @@ public final class PublicClientApplication {
      */
     public IAccount getAccount(final String homeAccountIdentifier) {
         MSALApiDispatcher.initializeDiagnosticContext();
+        final Account accountToReturn = getAccountInternal(homeAccountIdentifier);
+        return null == accountToReturn ? null : AccountAdapter.adapt(accountToReturn);
+    }
+
+    private com.microsoft.identity.common.internal.dto.Account getAccountInternal(final String homeAccountIdentifier) {
         final Account accountToReturn;
 
         if (!StringUtil.isEmpty(homeAccountIdentifier)) {
@@ -361,7 +366,7 @@ public final class PublicClientApplication {
             accountToReturn = null;
         }
 
-        return null == accountToReturn ? null : AccountAdapter.adapt(accountToReturn);
+        return accountToReturn;
     }
 
     /**
@@ -803,7 +808,13 @@ public final class PublicClientApplication {
         parameters.setClientId(mClientId);
         parameters.setTokenCache(mOauth2TokenCache);
         parameters.setAuthority(Authority.getAuthorityFromAuthorityUrl(authorityStr));
-        parameters.setAccount(account);
+        if (null != account) {
+            parameters.setAccount(
+                    getAccountInternal(
+                            account.getHomeAccountIdentifier().getIdentifier()
+                    )
+            );
+        }
         parameters.setForceRefresh(forceRefresh);
 
         return parameters;
@@ -962,7 +973,13 @@ public final class PublicClientApplication {
         );
         params.setUIBehavior(uiBehavior);
         params.setAppContext(mAppContext);
-        params.setAccount(account);
+        if (null != account) {
+            params.setAccount(
+                    getAccountInternal(
+                            account.getHomeAccountIdentifier().getIdentifier()
+                    )
+            );
+        }
 
         return params;
     }
