@@ -65,6 +65,11 @@ public final class MsalClientException extends MsalException {
     public static final String DEVICE_NETWORK_NOT_AVAILABLE = "device_network_not_available";
 
     /**
+     * A scope is required when making a token request
+     */
+    public static final String SCOPE_EMPTY_OR_NULL = "scope_empty_or_null";
+
+    /**
      * The sdk failed to parse the Json format.
      */
     public static final String JSON_PARSE_FAILURE = "json_parse_failure";

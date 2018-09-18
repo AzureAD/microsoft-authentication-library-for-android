@@ -47,6 +47,7 @@ import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ILoggerCallback;
 import com.microsoft.identity.client.IMsalEventReceiver;
 import com.microsoft.identity.client.Logger;
+import com.microsoft.identity.client.MsalArgumentException;
 import com.microsoft.identity.client.MsalClientException;
 import com.microsoft.identity.client.MsalException;
 import com.microsoft.identity.client.MsalServiceException;
@@ -254,11 +255,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         prepareRequestParameters(requestOptions);
         final IAccount requestAccount = getAccount(requestOptions.getLoginHint());
 
-        if (requestAccount == null) {
-            showMessage("Please select a user.");
-            return;
-        }
-
         callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
     }
 
@@ -322,7 +318,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     getAuthenticationCallback()
             );
         } catch (IllegalArgumentException e) {
-            showMessage("Scope cannot be blank.");
+            showMessage(e.getMessage());
         }
     }
 
@@ -358,6 +354,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 } else if (exception instanceof MsalServiceException) {
                     // This means something is wrong when the sdk is communication to the service, mostly likely it's the client
                     // configuration.
+                    showMessage(exception.getMessage());
+                } else if (exception instanceof MsalArgumentException) {
                     showMessage(exception.getMessage());
                 } else if (exception instanceof MsalUiRequiredException) {
                     // This explicitly indicates that developer needs to prompt the user, it could be refresh token is expired, revoked
