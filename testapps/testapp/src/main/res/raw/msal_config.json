@@ -5,7 +5,7 @@
     {
       "type": "AAD",
       "audience": {
-       "type": "AzureADandPersonalMicrosoftAccount"
+        "type": "AzureADandPersonalMicrosoftAccount"
       }
     }
   ]
