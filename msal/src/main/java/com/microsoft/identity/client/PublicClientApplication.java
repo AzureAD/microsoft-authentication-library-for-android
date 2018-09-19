@@ -975,7 +975,13 @@ public final class PublicClientApplication {
                         ? Arrays.asList(extraScopesToConsent)
                         : new ArrayList<String>()
         );
-        params.setUIBehavior(uiBehavior);
+
+        if(uiBehavior == null){
+            params.setUIBehavior(uiBehavior.SELECT_ACCOUNT);
+        }else {
+            params.setUIBehavior(uiBehavior);
+        }
+
         params.setAppContext(mAppContext);
         if (null != account) {
             params.setAccount(
