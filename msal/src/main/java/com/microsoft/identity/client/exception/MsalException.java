@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package com.microsoft.identity.client;
+package com.microsoft.identity.client.exception;
 
 import com.microsoft.identity.client.internal.MsalUtils;
 

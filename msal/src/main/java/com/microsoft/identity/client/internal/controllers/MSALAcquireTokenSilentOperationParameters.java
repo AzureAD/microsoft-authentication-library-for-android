@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
-import com.microsoft.identity.client.MsalArgumentException;
+import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.common.internal.dto.RefreshToken;
 
 public class MSALAcquireTokenSilentOperationParameters extends MSALOperationParameters {

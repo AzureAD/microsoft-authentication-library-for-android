@@ -25,6 +25,7 @@ package com.microsoft.identity.client;
 
 import android.util.Base64;
 
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.internal.MsalUtils;
 
 import org.json.JSONException;
