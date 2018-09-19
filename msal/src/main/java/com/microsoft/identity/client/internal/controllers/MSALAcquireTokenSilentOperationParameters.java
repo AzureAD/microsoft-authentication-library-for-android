@@ -23,18 +23,18 @@
 package com.microsoft.identity.client.internal.controllers;
 
 import com.microsoft.identity.client.exception.MsalArgumentException;
-import com.microsoft.identity.common.internal.dto.RefreshToken;
+import com.microsoft.identity.common.internal.dto.RefreshTokenRecord;
 
 public class MSALAcquireTokenSilentOperationParameters extends MSALOperationParameters {
 
-    private RefreshToken mRefreshToken;
+    private RefreshTokenRecord mRefreshToken;
     private boolean mForceRefresh;
 
-    public RefreshToken getRefreshToken() {
+    public RefreshTokenRecord getRefreshToken() {
         return mRefreshToken;
     }
 
-    public void setRefreshToken(final RefreshToken refreshToken) {
+    public void setRefreshToken(final RefreshTokenRecord refreshToken) {
         mRefreshToken = refreshToken;
     }
 

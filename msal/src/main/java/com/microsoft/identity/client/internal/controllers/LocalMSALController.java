@@ -35,7 +35,7 @@ import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.dto.Account;
+import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationConfiguration;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResponse;
@@ -206,7 +206,7 @@ public class LocalMSALController extends MSALController {
         final String clientId = parameters.getClientId();
         final String homeAccountId = parameters.getAccount().getHomeAccountId();
 
-        final Account targetAccount = tokenCache.getAccount(
+        final AccountRecord targetAccount = tokenCache.getAccount(
                 null, // wildcard (*) - The request environment may not match due to aliasing
                 clientId,
                 homeAccountId

@@ -22,7 +22,7 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.common.internal.dto.Account;
+import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 
 /**
@@ -31,12 +31,12 @@ import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccou
 class AccountAdapter {
 
     /**
-     * Adapts the {@link Account} type to the MSAL-exposed {@link IAccount}.
+     * Adapts the {@link AccountRecord} type to the MSAL-exposed {@link IAccount}.
      *
      * @param accountIn The Account to transform.
      * @return A representation of the supplied Account, as an IAccount.
      */
-    static IAccount adapt(final Account accountIn) {
+    static IAccount adapt(final AccountRecord accountIn) {
         final com.microsoft.identity.client.Account accountOut
                 = new com.microsoft.identity.client.Account();
 
