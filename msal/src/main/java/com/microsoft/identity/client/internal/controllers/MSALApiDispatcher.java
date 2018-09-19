@@ -26,8 +26,8 @@ import android.content.Intent;
 import android.os.Handler;
 
 import com.microsoft.identity.client.AuthenticationResult;
-import com.microsoft.identity.client.MsalException;
-import com.microsoft.identity.client.MsalUserCancelException;
+import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.exception.MsalUserCancelException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 

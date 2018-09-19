@@ -26,7 +26,7 @@ import android.net.Uri;
 
 import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.IAccount;
-import com.microsoft.identity.client.MsalClientException;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 

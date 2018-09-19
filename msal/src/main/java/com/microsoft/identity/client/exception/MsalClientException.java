@@ -21,7 +21,9 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-package com.microsoft.identity.client;
+package com.microsoft.identity.client.exception;
+
+import com.microsoft.identity.client.AuthenticationActivity;
 
 /**
  * This exception class represents general errors that are local to the library. Below is the table of proposed codes and a short description of each.
