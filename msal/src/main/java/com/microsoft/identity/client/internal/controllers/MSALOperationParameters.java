@@ -24,15 +24,13 @@ package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Context;
 
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.MsalArgumentException;
-import com.microsoft.identity.client.MsalClientException;
 import com.microsoft.identity.client.internal.authorities.Authority;
+import com.microsoft.identity.common.internal.dto.IAccount;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class MSALOperationParameters {
 
@@ -107,14 +105,14 @@ public class MSALOperationParameters {
 
         Boolean validScopeArgument = false;
 
-        if(mScopes != null){
+        if (mScopes != null) {
             mScopes.removeAll(Arrays.asList("", null));
-            if(mScopes.size() > 0){
+            if (mScopes.size() > 0) {
                 validScopeArgument = true;
             }
         }
 
-        if(!validScopeArgument) {
+        if (!validScopeArgument) {
             if (this instanceof MSALAcquireTokenSilentOperationParameters) {
                 throw new MsalArgumentException(MsalArgumentException.ACQUIRE_TOKEN_SILENT_OPERATION_NAME, MsalArgumentException.SCOPE_ARGUMENT_NAME, "scope is empty or null");
             }

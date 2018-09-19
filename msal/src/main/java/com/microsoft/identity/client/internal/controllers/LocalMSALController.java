@@ -119,7 +119,7 @@ public class LocalMSALController extends MSALController {
 
     private AuthorizationRequest getAuthorizationRequest(final OAuth2Strategy strategy,
                                                          final MSALOperationParameters parameters) {
-        AuthorizationRequest.Builder builder = strategy.createAuthorizationRequestBuilder();
+        AuthorizationRequest.Builder builder = strategy.createAuthorizationRequestBuilder(parameters.getAccount());
 
         List<String> msalScopes = new ArrayList<>();
         msalScopes.add("openid");
@@ -139,7 +139,7 @@ public class LocalMSALController extends MSALController {
             // Add additional fields to the AuthorizationRequest.Builder to support interactive
             request.setLoginHint(
                     acquireTokenOperationParameters.getLoginHint()
-            ).setExtraQueryParam(
+            ).setExtraQueryParams(
                     acquireTokenOperationParameters.getExtraQueryStringParameters()
             ).setPrompt(
                     acquireTokenOperationParameters.getUIBehavior().toString()
@@ -204,11 +204,7 @@ public class LocalMSALController extends MSALController {
         final OAuth2TokenCache tokenCache = parameters.getTokenCache();
 
         final String clientId = parameters.getClientId();
-        final String homeAccountId =
-                parameters
-                        .getAccount()
-                        .getHomeAccountIdentifier()
-                        .getIdentifier();
+        final String homeAccountId = parameters.getAccount().getHomeAccountId();
 
         final Account targetAccount = tokenCache.getAccount(
                 null, // wildcard (*) - The request environment may not match due to aliasing
