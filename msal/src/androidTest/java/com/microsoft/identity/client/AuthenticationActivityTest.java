@@ -28,6 +28,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.internal.net.HttpUrlConnectionFactory;
 
 import junit.framework.Assert;

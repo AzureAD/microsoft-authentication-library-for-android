@@ -33,8 +33,8 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.microsoft.identity.client.IMsalEventReceiver;
-import com.microsoft.identity.client.MsalException;
-import com.microsoft.identity.client.MsalUiRequiredException;
+import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.client.Telemetry;
 
 import java.io.BufferedReader;

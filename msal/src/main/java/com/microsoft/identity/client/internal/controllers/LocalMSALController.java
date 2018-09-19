@@ -29,9 +29,9 @@ import android.net.NetworkInfo;
 import android.text.TextUtils;
 
 import com.microsoft.identity.client.AuthenticationResult;
-import com.microsoft.identity.client.MsalArgumentException;
-import com.microsoft.identity.client.MsalClientException;
-import com.microsoft.identity.client.MsalUiRequiredException;
+import com.microsoft.identity.client.exception.MsalArgumentException;
+import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;

@@ -23,6 +23,10 @@
 
 package com.microsoft.identity.client;
 
+import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.exception.MsalServiceException;
+
 import org.junit.Assert;
 import org.junit.Test;
 

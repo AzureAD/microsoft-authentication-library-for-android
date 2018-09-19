@@ -26,8 +26,8 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.microsoft.identity.client.AuthenticationCallback;
-import com.microsoft.identity.client.MsalArgumentException;
-import com.microsoft.identity.client.MsalClientException;
+import com.microsoft.identity.client.exception.MsalArgumentException;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.exception.ClientException;
 
 import java.io.IOException;

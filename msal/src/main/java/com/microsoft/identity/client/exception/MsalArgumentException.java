@@ -1,4 +1,4 @@
-package com.microsoft.identity.client;
+package com.microsoft.identity.client.exception;
 
 public class MsalArgumentException extends MsalException {
 

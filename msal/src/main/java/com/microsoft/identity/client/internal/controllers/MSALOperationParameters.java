@@ -24,7 +24,7 @@ package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Context;
 
-import com.microsoft.identity.client.MsalArgumentException;
+import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.dto.IAccount;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;

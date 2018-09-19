@@ -35,6 +35,7 @@ import android.util.Pair;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAudience;

@@ -31,7 +31,7 @@ import android.util.Pair;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.IAccount;
-import com.microsoft.identity.client.MsalException;
+import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.UiBehavior;
 
