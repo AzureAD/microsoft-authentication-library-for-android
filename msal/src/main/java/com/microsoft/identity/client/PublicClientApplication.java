@@ -60,7 +60,7 @@ import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManage
 import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
-import com.microsoft.identity.common.internal.dto.Account;
+import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
@@ -326,13 +326,13 @@ public final class PublicClientApplication {
         final List<IAccount> accountsToReturn = new ArrayList<>();
 
         // Grab the Accounts from the common cache
-        final List<Account> accountsInCache = mOauth2TokenCache.getAccounts(
+        final List<AccountRecord> accountsInCache = mOauth2TokenCache.getAccounts(
                 null, // * wildcard
                 mClientId
         );
 
         // Adapt them to the MSAL model
-        for (final Account account : accountsInCache) {
+        for (final AccountRecord account : accountsInCache) {
             accountsToReturn.add(AccountAdapter.adapt(account));
         }
 
@@ -347,12 +347,12 @@ public final class PublicClientApplication {
      */
     public IAccount getAccount(final String homeAccountIdentifier) {
         MSALApiDispatcher.initializeDiagnosticContext();
-        final Account accountToReturn = getAccountInternal(homeAccountIdentifier);
+        final AccountRecord accountToReturn = getAccountInternal(homeAccountIdentifier);
         return null == accountToReturn ? null : AccountAdapter.adapt(accountToReturn);
     }
 
-    private com.microsoft.identity.common.internal.dto.Account getAccountInternal(final String homeAccountIdentifier) {
-        final Account accountToReturn;
+    private AccountRecord getAccountInternal(final String homeAccountIdentifier) {
+        final AccountRecord accountToReturn;
 
         if (!StringUtil.isEmpty(homeAccountIdentifier)) {
             accountToReturn = mOauth2TokenCache.getAccount(
@@ -781,7 +781,7 @@ public final class PublicClientApplication {
 
         if (StringUtil.isEmpty(requestAuthority)) {
             requestAuthority = Authority.getAuthorityFromAccount(account);
-            if(requestAuthority == null){
+            if (requestAuthority == null) {
                 requestAuthority = mAuthorityString;
             }
         }
@@ -983,9 +983,9 @@ public final class PublicClientApplication {
             params.setAuthorizationAgent(AuthorizationAgent.DEFAULT);
         }
 
-        if(uiBehavior == null){
+        if (uiBehavior == null) {
             params.setUIBehavior(uiBehavior.SELECT_ACCOUNT);
-        }else {
+        } else {
             params.setUIBehavior(uiBehavior);
         }
 

@@ -33,7 +33,6 @@ import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
 
 public class AzureActiveDirectoryAuthority extends Authority {
@@ -110,14 +109,14 @@ public class AzureActiveDirectoryAuthority extends Authority {
         MicrosoftStsOAuth2Configuration config = new MicrosoftStsOAuth2Configuration();
         config.setAuthorityUrl(this.getAuthorityURL());
 
-        if(mSlice != null){
+        if (mSlice != null) {
             com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectorySlice slice = new com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectorySlice();
             slice.setSlice(mSlice.getSlice());
             slice.setDataCenter(mSlice.getDC());
             config.setSlice(slice);
         }
 
-        if(mFlightParameters != null){
+        if (mFlightParameters != null) {
             //GSON Returns a LinkedTreeMap which implement AbstractMap....
             for (Map.Entry<String, String> entry : mFlightParameters.entrySet()) {
                 config.getFlightParameters().put(entry.getKey(), entry.getValue());
