@@ -66,6 +66,7 @@ import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.M
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsTokenResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.msal.BuildConfig;
 import com.microsoft.identity.msal.R;
@@ -871,6 +872,11 @@ public final class PublicClientApplication {
         );
         params.setUIBehavior(uiBehavior);
         params.setAppContext(mAppContext);
+        if (null != mPublicClientConfiguration.getAuthorizationAgent()) {
+            params.setAuthorizationAgent(mPublicClientConfiguration.getAuthorizationAgent());
+        } else {
+            params.setAuthorizationAgent(AuthorizationAgent.DEFAULT);
+        }
 
         return params;
     }
