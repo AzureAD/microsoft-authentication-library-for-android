@@ -26,7 +26,7 @@ import android.net.Uri;
 
 import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.IAccount;
-import com.microsoft.identity.client.MsalClientException;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 
@@ -47,7 +47,7 @@ public abstract class Authority {
     @SerializedName("default")
     protected boolean mIsDefault = false;
 
-    @SerializedName("authority_type")
+    @SerializedName("type")
     protected String mAuthorityTypeString;
 
     @SerializedName("authority_url")
@@ -251,10 +251,15 @@ public abstract class Authority {
 
 
     public static String getAuthorityFromAccount(final IAccount account) {
-        return "https://"
-                + account.getEnvironment()
-                + "/"
-                + account.getAccountIdentifier().getIdentifier()
-                + "/";
+
+        if(account != null){
+            return "https://"
+                    + account.getEnvironment()
+                    + "/"
+                    + account.getAccountIdentifier().getIdentifier()
+                    + "/";
+        }
+
+        return null;
     }
 }

@@ -36,7 +36,11 @@ import android.os.Bundle;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.AndroidTestCase;
+import android.util.Pair;
 
+import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.controllers.MSALApiDispatcher;
 import com.microsoft.identity.client.internal.controllers.RequestCodes;
@@ -337,7 +341,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     /**
-     * Verify {@link PublicClientApplication#acquireToken(Activity, String[], String, UiBehavior, String, String[],
+     * Verify {@link PublicClientApplication#acquireToken(Activity, String[], String, UiBehavior, List, String[],
      * String, AuthenticationCallback)}. Also check if authority is set on the manifest, we read the authority
      * from manifest meta-data.
      * <p>
@@ -413,7 +417,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     /**
-     * Verify {@link PublicClientApplication#acquireToken(Activity, String[], String, UiBehavior, String, String[], String, AuthenticationCallback)}.
+     * Verify {@link PublicClientApplication#acquireToken(Activity, String[], String, UiBehavior, List, String[], String, AuthenticationCallback)}.
      */
     // TODO: suppress the test. The purpose is that the API call will eventually send back the cancel to caller.
     @Ignore
@@ -432,7 +436,10 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
                                       final Activity activity,
                                       final CountDownLatch releaseLock) {
-                publicClientApplication.acquireToken(activity, SCOPE, "somehint", UiBehavior.FORCE_LOGIN, "extra=param",
+                publicClientApplication.acquireToken(activity, SCOPE, "somehint", UiBehavior.FORCE_LOGIN,
+                        new ArrayList<Pair<String, String>>() {{
+                            add(new Pair<>("extra", "param"));
+                        }},
                         null, null, new AuthenticationCallback() {
                             @Override
                             public void onSuccess(AuthenticationResult authenticationResult) {
@@ -492,7 +499,10 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
                                       final Activity activity,
                                       final CountDownLatch releaseLock) {
-                publicClientApplication.acquireToken(activity, SCOPE, "somehint", UiBehavior.FORCE_LOGIN, "extra=param",
+                publicClientApplication.acquireToken(activity, SCOPE, "somehint", UiBehavior.FORCE_LOGIN,
+                        new ArrayList<Pair<String, String>>() {{
+                            add(new Pair<>("extra", "param"));
+                        }},
                         null, null, new AuthenticationCallback() {
                             @Override
                             public void onSuccess(AuthenticationResult authenticationResult) {

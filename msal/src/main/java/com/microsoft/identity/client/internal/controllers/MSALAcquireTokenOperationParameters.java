@@ -23,6 +23,7 @@
 package com.microsoft.identity.client.internal.controllers;
 
 import android.app.Activity;
+import android.util.Pair;
 
 import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
@@ -34,7 +35,7 @@ public class MSALAcquireTokenOperationParameters extends MSALOperationParameters
     private Activity mActivity;
     private String mLoginHint;
     private UiBehavior mUIBehavior;
-    private String mExtraQueryStringParameters;
+    private List<Pair<String, String>> mExtraQueryStringParameters;
     private List<String> mExtraScopesToConsent;
 
     public AuthorizationAgent getAuthorizationAgent() {
@@ -63,11 +64,11 @@ public class MSALAcquireTokenOperationParameters extends MSALOperationParameters
         this.mUIBehavior = mUIBehavior;
     }
 
-    public String getExtraQueryStringParameters() {
+    public List<Pair<String, String>> getExtraQueryStringParameters() {
         return mExtraQueryStringParameters;
     }
 
-    public void setExtraQueryStringParameters(String mExtraQueryStringParameters) {
+    public void setExtraQueryStringParameters(List<Pair<String, String>> mExtraQueryStringParameters) {
         this.mExtraQueryStringParameters = mExtraQueryStringParameters;
     }
 

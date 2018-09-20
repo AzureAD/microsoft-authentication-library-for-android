@@ -29,8 +29,9 @@ import android.net.NetworkInfo;
 import android.text.TextUtils;
 
 import com.microsoft.identity.client.AuthenticationResult;
-import com.microsoft.identity.client.MsalClientException;
-import com.microsoft.identity.client.MsalUiRequiredException;
+import com.microsoft.identity.client.exception.MsalArgumentException;
+import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
@@ -62,8 +63,11 @@ public class LocalMSALController extends MSALController {
 
     @Override
     public AcquireTokenResult acquireToken(final MSALAcquireTokenOperationParameters parameters)
-            throws ExecutionException, InterruptedException, ClientException, IOException, MsalClientException {
+            throws ExecutionException, InterruptedException, ClientException, IOException, MsalClientException, MsalArgumentException {
         final AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
+
+        //00) Validate MSAL Parameters
+        parameters.validate();
 
         //0) Get known authority result
         throwIfNetworkNotAvailable(parameters.getAppContext());
@@ -114,7 +118,7 @@ public class LocalMSALController extends MSALController {
 
     private AuthorizationRequest getAuthorizationRequest(final OAuth2Strategy strategy,
                                                          final MSALOperationParameters parameters) {
-        AuthorizationRequest.Builder builder = strategy.createAuthorizationRequestBuilder();
+        AuthorizationRequest.Builder builder = strategy.createAuthorizationRequestBuilder(parameters.getAccount());
 
         List<String> msalScopes = new ArrayList<>();
         msalScopes.add("openid");
@@ -134,7 +138,7 @@ public class LocalMSALController extends MSALController {
             // Add additional fields to the AuthorizationRequest.Builder to support interactive
             request.setLoginHint(
                     acquireTokenOperationParameters.getLoginHint()
-            ).setExtraQueryParam(
+            ).setExtraQueryParams(
                     acquireTokenOperationParameters.getExtraQueryStringParameters()
             ).setPrompt(
                     acquireTokenOperationParameters.getUIBehavior().toString()
@@ -190,16 +194,16 @@ public class LocalMSALController extends MSALController {
     @Override
     public AcquireTokenResult acquireTokenSilent(
             final MSALAcquireTokenSilentOperationParameters parameters)
-            throws MsalClientException, IOException, ClientException {
+            throws MsalClientException, IOException, ClientException, MsalArgumentException {
         final AcquireTokenResult acquireTokenSilentResult = new AcquireTokenResult();
+
+        //Validate MSAL Parameters
+        parameters.validate();
+
         final OAuth2TokenCache tokenCache = parameters.getTokenCache();
 
         final String clientId = parameters.getClientId();
-        final String homeAccountId =
-                parameters
-                        .getAccount()
-                        .getHomeAccountIdentifier()
-                        .getIdentifier();
+        final String homeAccountId = parameters.getAccount().getHomeAccountId();
 
         final Account targetAccount = tokenCache.getAccount(
                 null, // wildcard (*) - The request environment may not match due to aliasing

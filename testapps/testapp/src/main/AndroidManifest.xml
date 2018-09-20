@@ -62,7 +62,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="msal9851987a-55e5-46e2-8d70-75f8dc060f21"
-                      android:host="auth" />
+                    android:host="auth" />
             </intent-filter>
         </activity>
 

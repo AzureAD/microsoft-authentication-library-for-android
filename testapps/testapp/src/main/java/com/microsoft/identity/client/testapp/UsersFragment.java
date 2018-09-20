@@ -61,7 +61,7 @@ public class UsersFragment extends Fragment {
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_user, container, false);
 
-        mUserList = (ListView) view.findViewById(R.id.user_list);
+        mUserList = view.findViewById(R.id.user_list);
 
         final List<IAccount> accounts = ((MainActivity) this.getActivity()).getAccounts();
         mGson = new GsonBuilder().setPrettyPrinting().create();

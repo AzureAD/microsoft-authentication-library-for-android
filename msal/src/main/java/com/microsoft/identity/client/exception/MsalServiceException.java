@@ -21,7 +21,7 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-package com.microsoft.identity.client;
+package com.microsoft.identity.client.exception;
 
 /**
  * This exception class represents errors when communicating to the service, can be from the authorize or token endpoints.

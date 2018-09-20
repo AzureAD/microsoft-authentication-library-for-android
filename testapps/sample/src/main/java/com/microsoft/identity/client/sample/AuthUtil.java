@@ -26,11 +26,12 @@ package com.microsoft.identity.client.sample;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Pair;
 
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.IAccount;
-import com.microsoft.identity.client.MsalException;
+import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.UiBehavior;
 
@@ -102,7 +103,7 @@ final class AuthUtil {
                 SCOPES,
                 "",
                 UiBehavior.CONSENT,
-                "", // Extra query parameters
+                new ArrayList<Pair<String, String>>(), // Extra query parameters
                 EXTRA_SCOPES,
                 null,
                 new AuthenticationCallback() {

@@ -21,7 +21,9 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-package com.microsoft.identity.client;
+package com.microsoft.identity.client.exception;
+
+import com.microsoft.identity.client.AuthenticationActivity;
 
 /**
  * This exception class represents general errors that are local to the library. Below is the table of proposed codes and a short description of each.
@@ -63,6 +65,11 @@ public final class MsalClientException extends MsalException {
      * No active network is available on the device.
      */
     public static final String DEVICE_NETWORK_NOT_AVAILABLE = "device_network_not_available";
+
+    /**
+     * A scope is required when making a token request
+     */
+    public static final String SCOPE_EMPTY_OR_NULL = "scope_empty_or_null";
 
     /**
      * The sdk failed to parse the Json format.
