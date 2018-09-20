@@ -67,6 +67,7 @@ import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.M
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsTokenResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.msal.BuildConfig;
 import com.microsoft.identity.msal.R;
@@ -780,7 +781,7 @@ public final class PublicClientApplication {
 
         if (StringUtil.isEmpty(requestAuthority)) {
             requestAuthority = Authority.getAuthorityFromAccount(account);
-            if(requestAuthority == null){
+            if (requestAuthority == null) {
                 requestAuthority = mAuthorityString;
             }
         }
@@ -975,10 +976,16 @@ public final class PublicClientApplication {
                         ? Arrays.asList(extraScopesToConsent)
                         : new ArrayList<String>()
         );
+        params.setAppContext(mAppContext);
+        if (null != mPublicClientConfiguration.getAuthorizationAgent()) {
+            params.setAuthorizationAgent(mPublicClientConfiguration.getAuthorizationAgent());
+        } else {
+            params.setAuthorizationAgent(AuthorizationAgent.DEFAULT);
+        }
 
-        if(uiBehavior == null){
+        if (uiBehavior == null) {
             params.setUIBehavior(uiBehavior.SELECT_ACCOUNT);
-        }else {
+        } else {
             params.setUIBehavior(uiBehavior);
         }
 

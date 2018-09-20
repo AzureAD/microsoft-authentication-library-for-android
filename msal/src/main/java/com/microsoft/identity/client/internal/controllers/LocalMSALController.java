@@ -36,7 +36,6 @@ import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationConfiguration;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
@@ -105,7 +104,7 @@ public class LocalMSALController extends MSALController {
             throws ExecutionException, InterruptedException, MsalClientException {
         throwIfNetworkNotAvailable(parameters.getAppContext());
 
-        mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(parameters.getActivity(), AuthorizationConfiguration.getInstance());
+        mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(parameters.getActivity(), parameters.getAuthorizationAgent());
         mAuthorizationRequest = getAuthorizationRequest(strategy, parameters);
 
         Future<AuthorizationResult> future = strategy.requestAuthorization(mAuthorizationRequest, mAuthorizationStrategy);

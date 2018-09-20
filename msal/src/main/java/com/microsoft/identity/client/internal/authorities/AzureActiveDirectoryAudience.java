@@ -22,8 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.authorities;
 
-import android.net.Uri;
-
 import com.google.gson.annotations.SerializedName;
 
 public abstract class AzureActiveDirectoryAudience {

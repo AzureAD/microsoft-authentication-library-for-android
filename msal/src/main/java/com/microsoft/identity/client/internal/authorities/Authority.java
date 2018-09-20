@@ -252,7 +252,7 @@ public abstract class Authority {
 
     public static String getAuthorityFromAccount(final IAccount account) {
 
-        if(account != null){
+        if (account != null) {
             return "https://"
                     + account.getEnvironment()
                     + "/"
