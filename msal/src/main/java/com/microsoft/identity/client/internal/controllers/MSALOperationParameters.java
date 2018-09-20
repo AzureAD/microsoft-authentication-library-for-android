@@ -26,7 +26,7 @@ import android.content.Context;
 
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.internal.authorities.Authority;
-import com.microsoft.identity.common.internal.dto.IAccount;
+import com.microsoft.identity.common.internal.dto.IAccountRecord;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ public class MSALOperationParameters {
     private Context mAppContext;
     private OAuth2TokenCache mTokenCache;
     private ArrayList<String> mScopes;
-    protected IAccount mAccount;
+    protected IAccountRecord mAccount;
     private String clientId;
     private String redirectUri;
     private Authority mAuthority;
@@ -90,11 +90,11 @@ public class MSALOperationParameters {
         this.mAuthority = authority;
     }
 
-    public void setAccount(final IAccount account) {
+    public void setAccount(final IAccountRecord account) {
         mAccount = account;
     }
 
-    public IAccount getAccount() {
+    public IAccountRecord getAccount() {
         return mAccount;
     }
 

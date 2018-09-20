@@ -24,7 +24,7 @@
 package com.microsoft.identity.client;
 
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.dto.AccessToken;
+import com.microsoft.identity.common.internal.dto.AccessTokenRecord;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -40,7 +40,7 @@ public final class AuthenticationResult {
     private final String mRawIdToken;
     private final String mUniqueId;
 
-    private final AccessToken mAccessToken;
+    private final AccessTokenRecord mAccessToken;
     private final IAccount mAccount;
 
     public AuthenticationResult(final ICacheRecord cacheRecord) {
