@@ -781,7 +781,7 @@ public final class PublicClientApplication {
 
         if (StringUtil.isEmpty(requestAuthority)) {
             requestAuthority = Authority.getAuthorityFromAccount(account);
-            if(requestAuthority == null){
+            if (requestAuthority == null) {
                 requestAuthority = mAuthorityString;
             }
         }
@@ -983,9 +983,9 @@ public final class PublicClientApplication {
             params.setAuthorizationAgent(AuthorizationAgent.DEFAULT);
         }
 
-        if(uiBehavior == null){
+        if (uiBehavior == null) {
             params.setUIBehavior(uiBehavior.SELECT_ACCOUNT);
-        }else {
+        } else {
             params.setUIBehavior(uiBehavior);
         }
 

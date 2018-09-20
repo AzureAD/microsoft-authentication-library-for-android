@@ -13,24 +13,24 @@ public class MsalArgumentException extends MsalException {
     private String mOperationName;
     private String mArgumentName;
 
-    public MsalArgumentException(final String operationName, final String argumentName, final String message){
+    public MsalArgumentException(final String operationName, final String argumentName, final String message) {
         super(ILLEGAL_ARGUMENT_ERROR_CODE, message);
         mOperationName = operationName;
         mArgumentName = argumentName;
 
     }
 
-    public MsalArgumentException(final String operationName, final String argumentName, final String message, final Throwable throwable){
+    public MsalArgumentException(final String operationName, final String argumentName, final String message, final Throwable throwable) {
         super(ILLEGAL_ARGUMENT_ERROR_CODE, message, throwable);
         mOperationName = operationName;
         mArgumentName = argumentName;
     }
 
-    public String getOperationName(){
+    public String getOperationName() {
         return mOperationName;
     }
 
-    public String getArgumentName(){
+    public String getArgumentName() {
         return mArgumentName;
     }
 

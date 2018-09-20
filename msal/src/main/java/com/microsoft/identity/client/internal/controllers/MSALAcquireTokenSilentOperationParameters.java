@@ -47,10 +47,10 @@ public class MSALAcquireTokenSilentOperationParameters extends MSALOperationPara
     }
 
     @Override
-    public void validate() throws MsalArgumentException{
+    public void validate() throws MsalArgumentException {
         super.validate();
 
-        if(mAccount == null){
+        if (mAccount == null) {
             throw new MsalArgumentException(MsalArgumentException.ACQUIRE_TOKEN_SILENT_OPERATION_NAME, MsalArgumentException.IACCOUNT_ARGUMENT_NAME, "account is null");
         }
 
