@@ -30,6 +30,7 @@ import com.microsoft.identity.client.internal.telemetry.ApiEvent;
 
 import junit.framework.Assert;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -120,6 +121,7 @@ public class ApiEventTest {
     }
 
     @Test
+    @Ignore
     public void testApiEventInitializes() throws UnsupportedEncodingException, NoSuchAlgorithmException {
         Telemetry.setAllowPii(true);
         final String telemetryRequestId = Telemetry.generateNewRequestId();
