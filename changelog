@@ -3,6 +3,9 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 Version 0.2.0
 ----------------------------
 - Cache schema has been redesigned to support migration from ADAL 1.15.2+
+- Added support for authorization via:
+    * Embedded WebView
+    * Device default browser (not only Chrome)
 - PublicClientApplication now accepts a JSON metadata document to configure
     * client_id
     * redirect_uri
