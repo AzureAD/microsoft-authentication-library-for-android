@@ -1,5 +1,36 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 0.2.0
+----------------------------
+- Cache schema has been redesigned to support migration from ADAL 1.15.2+
+- Added support for authorization via:
+    * Embedded WebView
+    * Device default browser (not only Chrome)
+- PublicClientApplication now accepts a JSON metadata document to configure
+    * client_id
+    * redirect_uri
+    * authorities
+    * authorization_user_agent
+    * http settings
+        - configurable timeouts for read/connection
+    * logging
+        - PII/OII switch
+        - log level
+- API changes
+    * User has been replaced by IAccount
+        - getUsers() -> getAccounts()
+        - getUser(String) -> getAccounts(String)
+        - removeUser(User) -> removeAccount(IAccount)
+        - acquireToken/acquireTokenSilent overloads now accept IAccount parameter
+    * Telemetry has been temporarily removed, and will return in a future release
+    * PublicClientApplication#setComponent has been removed
+    * PublicClientApplication#setValidateAuthority has been removed
+        - Authorities known to developers can be supplied via PublicClientApplication
+        - Authorities known to Microsoft are loaded via metadata service when acquiring tokens
+    * Extra query param overloads now accept List<Pair<String, String>> instead of String
+    * Illegal arguments to acquireToken or acquireTokenSilent now throw MsalArgumentException
+    * PublicClientApplication#setSliceParameters has been moved to PublicClientApplicationConfiguration
+
 Version 0.1.3
 ----------------------------
 1. GDPR compliance to Telemetry and Logger. Link: https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/Logging
