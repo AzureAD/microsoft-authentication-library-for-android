@@ -45,20 +45,17 @@ import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ILoggerCallback;
-import com.microsoft.identity.client.IMsalEventReceiver;
 import com.microsoft.identity.client.Logger;
+import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
-import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.Telemetry;
-import com.microsoft.identity.client.UiBehavior;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 
 /**
  * The app's main activity.
@@ -67,23 +64,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         AcquireTokenFragment.OnFragmentInteractionListener, CacheFragment.OnFragmentInteractionListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-
-    static {
-        Telemetry.getInstance().registerReceiver(new IMsalEventReceiver() {
-            @Override
-            public void onEventsReceived(List<Map<String, String>> events) {
-                Log.d(TAG, "Received events");
-                Log.d(TAG, "Event count: [" + events.size() + "]");
-                for (final Map<String, String> event : events) {
-                    Log.d(TAG, "Begin event --------");
-                    for (final String key : event.keySet()) {
-                        Log.d(TAG, "\t" + key + " :: " + event.get(key));
-                    }
-                    Log.d(TAG, "End event ----------");
-                }
-            }
-        });
-    }
 
     private PublicClientApplication mApplication;
     private IAccount mSelectedAccount;
@@ -117,8 +97,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * Application can also set the component name. There are cases that other sdks will also take dependency on MSAL i.e. microsoft graph sdk
      * or Intune mam sdk, providing the component name will help separate the logs from application and the logs from the sdk running inside of
      * the apps.
-     * To set component name:
-     * {@link PublicClientApplication#setComponent(String)}
      * <p>
      * For the {@link AuthenticationCallback}, MSAL exposes three results 1) Success, which contains the {@link AuthenticationResult} 2) Failure case,
      * which contains {@link MsalException} and 3) Cancel, specifically for user canceling the flow.
