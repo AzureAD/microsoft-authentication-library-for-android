@@ -25,9 +25,10 @@ Version 0.2.0
     * Telemetry has been temporarily removed, and will return in a future release
     * PublicClientApplication#setComponent has been removed
     * PublicClientApplication#setValidateAuthority has been removed
-        - Authorities are now supplied by PublicClientApplicationConfiguration, validated when acquiring tokens
-        - Extra query param overloads now accept List<Pair<String, String>> instead of String
-        - Illegal arguments to acquireToken or acquireTokenSilent now throw MsalArgumentException
+        - Authorities known to developers can be supplied via PublicClientApplication
+        - Authorities known to Microsoft are loaded via metadata service when acquiring tokens
+    * Extra query param overloads now accept List<Pair<String, String>> instead of String
+    * Illegal arguments to acquireToken or acquireTokenSilent now throw MsalArgumentException
     * PublicClientApplication#setSliceParameters has been moved to PublicClientApplicationConfiguration
 
 Version 0.1.3
