@@ -13,9 +13,6 @@ Version 0.2.0
     * authorization_user_agent
     * http settings
         - configurable timeouts for read/connection
-    * logging
-        - PII/OII switch
-        - log level
 - API changes
     * User has been replaced by IAccount
         - getUsers() -> getAccounts()
