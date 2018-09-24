@@ -28,12 +28,13 @@ public class AnyOrganizationalAccount extends AzureActiveDirectoryAudience {
 
     public AnyOrganizationalAccount() {
         this.setCloudUrl(AzureActiveDirectory.DEFAULT_CLOUD_URL);
-        this.setTenantId("organizations");
+        this.setTenantId(AzureActiveDirectoryAudience.ORGANIZATIONS);
 
     }
 
     public AnyOrganizationalAccount(String cloudUrl) {
         this.setCloudUrl(cloudUrl);
+        this.setTenantId(AzureActiveDirectoryAudience.ORGANIZATIONS);
     }
 
 

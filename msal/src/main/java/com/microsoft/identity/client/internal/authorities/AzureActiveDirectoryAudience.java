@@ -30,9 +30,9 @@ public abstract class AzureActiveDirectoryAudience {
     @SerializedName("tenant_id")
     private String tenantId;
 
-    private static final String ORGANIZATIONS = "organizations";
-    private static final String CONSUMERS = "consumers";
-    private static final String ALL = "common";
+    public static final String ORGANIZATIONS = "organizations";
+    public static final String CONSUMERS = "consumers";
+    public static final String ALL = "common";
 
     public String getCloudUrl() {
         return this.cloudUrl;
