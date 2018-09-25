@@ -39,7 +39,7 @@ import java.util.UUID;
 /**
  * Collects and publishes telemetry key/value pairs to subscribers.
  */
-public final class Telemetry {
+final class Telemetry {
 
     private static final String TAG = Telemetry.class.getSimpleName();
 

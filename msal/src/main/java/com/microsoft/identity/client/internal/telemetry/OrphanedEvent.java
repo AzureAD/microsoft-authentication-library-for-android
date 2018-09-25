@@ -23,11 +23,10 @@
 
 package com.microsoft.identity.client.internal.telemetry;
 
-import com.microsoft.identity.client.Telemetry;
 
 /**
  * OrphanedEvents are Events which were started but never finished before
- * {@link Telemetry#flush(String)} was called.
+ * Telemetry#flush(String) was called.
  */
 public final class OrphanedEvent extends Event {
 
