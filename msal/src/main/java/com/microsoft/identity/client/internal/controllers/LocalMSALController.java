@@ -51,6 +51,7 @@ import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -128,8 +129,7 @@ public class LocalMSALController extends MSALController {
 
         AuthorizationRequest.Builder request = builder
                 .setClientId(parameters.getClientId())
-                .setRedirectUri(parameters.getRedirectUri())
-                .setScope(StringUtil.join(' ', msalScopes));
+                .setRedirectUri(parameters.getRedirectUri());
 
         if (parameters instanceof MSALAcquireTokenOperationParameters) {
             MSALAcquireTokenOperationParameters acquireTokenOperationParameters = (MSALAcquireTokenOperationParameters) parameters;
@@ -144,6 +144,10 @@ public class LocalMSALController extends MSALController {
                     acquireTokenOperationParameters.getUIBehavior().toString()
             );
         }
+
+        //Remove empty strings and null values
+        msalScopes.removeAll(Arrays.asList("", null));
+        request.setScope(StringUtil.join(' ', msalScopes));
 
         return request.build();
     }
