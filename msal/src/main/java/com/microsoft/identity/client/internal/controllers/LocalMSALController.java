@@ -35,10 +35,8 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.common.exception.ClientException;
-import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
@@ -49,9 +47,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
-import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
-import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.io.IOException;
@@ -110,10 +106,9 @@ public class LocalMSALController extends MSALController {
             throws ExecutionException, InterruptedException, MsalClientException {
         throwIfNetworkNotAvailable(parameters.getAppContext());
 
-        //Valid if available browser installed. Will fallback to embedded webView if no browser available.s
         mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(
                 parameters.getActivity(),
-                validAuthorizationAgent(parameters.getAuthorizationAgent(), parameters.getAppContext()));
+                parameters.getAuthorizationAgent());
         mAuthorizationRequest = getAuthorizationRequest(strategy, parameters);
 
         Future<AuthorizationResult> future = strategy.requestAuthorization(mAuthorizationRequest, mAuthorizationStrategy);
@@ -123,17 +118,6 @@ public class LocalMSALController extends MSALController {
         AuthorizationResult result = future.get();
 
         return result;
-    }
-
-    private AuthorizationAgent validAuthorizationAgent(final AuthorizationAgent agent, final Context context) {
-        if (agent != AuthorizationAgent.WEBVIEW
-                && BrowserSelector.getAllBrowsers(context).isEmpty()) {
-            Logger.verbose(TAG, "Unable to use browser to do the authorization because "
-                    + ErrorStrings.NO_AVAILABLE_BROWSER_FOUND + " Use embedded webView instead.");
-            return AuthorizationAgent.WEBVIEW;
-        } else {
-            return agent;
-        }
     }
 
     private AuthorizationRequest getAuthorizationRequest(final OAuth2Strategy strategy,
