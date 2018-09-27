@@ -288,7 +288,8 @@ public class LocalMSALController extends MSALController {
         throwIfNetworkNotAvailable(parameters.getAppContext());
         return strategy.requestToken(
                 strategy.createRefreshTokenRequest(
-                        parameters.getRefreshToken()
+                        parameters.getRefreshToken(),
+                        parameters.getScopes()
                 )
         );
     }
