@@ -21,11 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package com.microsoft.identity.client;
-
-import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.exception.MsalServiceException;
+package com.microsoft.identity.client.exception;
 
 import org.junit.Assert;
 import org.junit.Test;
