@@ -57,6 +57,7 @@ import java.util.concurrent.Future;
 
 
 public class LocalMSALController extends MSALController {
+
     private AuthorizationStrategy mAuthorizationStrategy = null;
     private AuthorizationRequest mAuthorizationRequest = null;
 
