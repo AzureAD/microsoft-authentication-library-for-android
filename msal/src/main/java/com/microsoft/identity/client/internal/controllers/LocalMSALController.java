@@ -22,7 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -58,8 +57,6 @@ import java.util.concurrent.Future;
 
 
 public class LocalMSALController extends MSALController {
-    public static String TAG = LocalMSALController.class.getSimpleName();
-
     private AuthorizationStrategy mAuthorizationStrategy = null;
     private AuthorizationRequest mAuthorizationRequest = null;
 
@@ -106,9 +103,7 @@ public class LocalMSALController extends MSALController {
             throws ExecutionException, InterruptedException, MsalClientException {
         throwIfNetworkNotAvailable(parameters.getAppContext());
 
-        mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(
-                parameters.getActivity(),
-                parameters.getAuthorizationAgent());
+        mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(parameters.getActivity(), parameters.getAuthorizationAgent());
         mAuthorizationRequest = getAuthorizationRequest(strategy, parameters);
 
         Future<AuthorizationResult> future = strategy.requestAuthorization(mAuthorizationRequest, mAuthorizationStrategy);
