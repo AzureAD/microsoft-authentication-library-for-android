@@ -250,14 +250,16 @@ public abstract class Authority {
         }
     }
 
-
     public static String getAuthorityFromAccount(final IAccount account) {
-
-        if (account != null) {
+        final AzureActiveDirectoryAccountIdentifier aadIdentifier;
+        if (null != account
+                && null != account.getAccountIdentifier()
+                && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier
+                && null != (aadIdentifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier()).getTenantIdentifier()) {
             return "https://"
                     + account.getEnvironment()
                     + "/"
-                    + ((AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier()).getTenantIdentifier() // TODO This is IDP specific
+                    + aadIdentifier.getTenantIdentifier()
                     + "/";
         }
 
