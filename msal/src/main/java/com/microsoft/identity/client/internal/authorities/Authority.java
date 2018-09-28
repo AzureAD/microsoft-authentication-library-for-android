@@ -25,6 +25,7 @@ package com.microsoft.identity.client.internal.authorities;
 import android.net.Uri;
 
 import com.google.gson.annotations.SerializedName;
+import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
@@ -256,7 +257,7 @@ public abstract class Authority {
             return "https://"
                     + account.getEnvironment()
                     + "/"
-                    + account.getAccountIdentifier().getIdentifier()
+                    + ((AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier()).getTenantIdentifier() // TODO This is IDP specific
                     + "/";
         }
 
