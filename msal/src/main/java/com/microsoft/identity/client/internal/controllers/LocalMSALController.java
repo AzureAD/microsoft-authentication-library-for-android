@@ -232,18 +232,22 @@ public class LocalMSALController extends MSALController {
                 final TokenResult tokenResult = performSilentTokenRequest(strategy, parameters);
                 acquireTokenSilentResult.setTokenResult(tokenResult);
 
-                // TODO Do I need to check the success state of the TokenResult?
-                final ICacheRecord savedRecord = tokenCache.save(
-                        strategy,
-                        getAuthorizationRequest(strategy, parameters),
-                        tokenResult.getTokenResponse()
-                );
+                if (tokenResult.getSuccess()) {
+                    // TODO Do I need to check the success state of the TokenResult?
+                    final ICacheRecord savedRecord = tokenCache.save(
+                            strategy,
+                            getAuthorizationRequest(strategy, parameters),
+                            tokenResult.getTokenResponse()
+                    );
 
-                // Create a new AuthenticationResult to hold the saved record
-                final AuthenticationResult authenticationResult = new AuthenticationResult(savedRecord);
+                    // Create a new AuthenticationResult to hold the saved record
+                    final AuthenticationResult authenticationResult = new AuthenticationResult(savedRecord);
 
-                // Set the AuthenticationResult on the final result object
-                acquireTokenSilentResult.setAuthenticationResult(authenticationResult);
+                    // Set the AuthenticationResult on the final result object
+                    acquireTokenSilentResult.setAuthenticationResult(authenticationResult);
+                } else {
+                    // what do?
+                }
             } else {
                 throw new MsalClientException(MsalUiRequiredException.NO_TOKENS_FOUND, "No refresh token was found. ");
             }
