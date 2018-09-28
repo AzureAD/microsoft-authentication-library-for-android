@@ -26,6 +26,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.microsoft.identity.client.AuthenticationResult;
@@ -227,44 +228,28 @@ public class LocalMSALController extends MSALController {
                 || parameters.getForceRefresh()) {
             if (!refreshTokenIsNull(cacheRecord)) {
                 // No AT found, but the RT checks out, so we'll use it
-                parameters.setRefreshToken(cacheRecord.getRefreshToken());
-
-                final TokenResult tokenResult = performSilentTokenRequest(strategy, parameters);
-                acquireTokenSilentResult.setTokenResult(tokenResult);
-
-                // TODO Do I need to check the success state of the TokenResult?
-                final ICacheRecord savedRecord = tokenCache.save(
+                renewAccessToken(
+                        parameters,
+                        acquireTokenSilentResult,
+                        tokenCache,
                         strategy,
-                        getAuthorizationRequest(strategy, parameters),
-                        tokenResult.getTokenResponse()
+                        cacheRecord
                 );
-
-                // Create a new AuthenticationResult to hold the saved record
-                final AuthenticationResult authenticationResult = new AuthenticationResult(savedRecord);
-
-                // Set the AuthenticationResult on the final result object
-                acquireTokenSilentResult.setAuthenticationResult(authenticationResult);
             } else {
                 throw new MsalClientException(MsalUiRequiredException.NO_TOKENS_FOUND, "No refresh token was found. ");
             }
         } else if (cacheRecord.getAccessToken().isExpired()) {
+            // Remove the expired token
             tokenCache.removeCredential(cacheRecord.getAccessToken());
 
-            parameters.setRefreshToken(cacheRecord.getRefreshToken());
-
-            final TokenResult tokenResult = performSilentTokenRequest(strategy, parameters);
-            acquireTokenSilentResult.setTokenResult(tokenResult);
-
-            // TODO Do I need to check the success state of the TokenResult?
-            final ICacheRecord savedRecord = tokenCache.save(
+            // Request a new AT
+            renewAccessToken(
+                    parameters,
+                    acquireTokenSilentResult,
+                    tokenCache,
                     strategy,
-                    getAuthorizationRequest(strategy, parameters),
-                    tokenResult.getTokenResponse()
+                    cacheRecord
             );
-
-            final AuthenticationResult authenticationResult = new AuthenticationResult(savedRecord);
-
-            acquireTokenSilentResult.setAuthenticationResult(authenticationResult);
         } else {
             // the result checks out, return that....
             acquireTokenSilentResult.setAuthenticationResult(
@@ -273,6 +258,32 @@ public class LocalMSALController extends MSALController {
         }
 
         return acquireTokenSilentResult;
+    }
+
+    private void renewAccessToken(@NonNull final MSALAcquireTokenSilentOperationParameters parameters,
+                                  @NonNull final AcquireTokenResult acquireTokenSilentResult,
+                                  @NonNull final OAuth2TokenCache tokenCache,
+                                  @NonNull final OAuth2Strategy strategy,
+                                  @NonNull final ICacheRecord cacheRecord)
+            throws MsalClientException, IOException, ClientException {
+        parameters.setRefreshToken(cacheRecord.getRefreshToken());
+
+        final TokenResult tokenResult = performSilentTokenRequest(strategy, parameters);
+        acquireTokenSilentResult.setTokenResult(tokenResult);
+
+        if (tokenResult.getSuccess()) {
+            final ICacheRecord savedRecord = tokenCache.save(
+                    strategy,
+                    getAuthorizationRequest(strategy, parameters),
+                    tokenResult.getTokenResponse()
+            );
+
+            // Create a new AuthenticationResult to hold the saved record
+            final AuthenticationResult authenticationResult = new AuthenticationResult(savedRecord);
+
+            // Set the AuthenticationResult on the final result object
+            acquireTokenSilentResult.setAuthenticationResult(authenticationResult);
+        }
     }
 
     private boolean refreshTokenIsNull(ICacheRecord cacheRecord) {
@@ -288,7 +299,8 @@ public class LocalMSALController extends MSALController {
         throwIfNetworkNotAvailable(parameters.getAppContext());
         return strategy.requestToken(
                 strategy.createRefreshTokenRequest(
-                        parameters.getRefreshToken()
+                        parameters.getRefreshToken(),
+                        parameters.getScopes()
                 )
         );
     }
