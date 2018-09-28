@@ -740,6 +740,10 @@ public final class PublicClientApplication {
                                         @NonNull final AuthenticationCallback callback) {
         String requestAuthority = Authority.getAuthorityFromAccount(account);
 
+        if (null == requestAuthority) {
+            requestAuthority = mAuthorityString;
+        }
+
         final MSALAcquireTokenSilentOperationParameters params = getSilentOperationParameters(
                 scopes,
                 requestAuthority,
@@ -984,7 +988,7 @@ public final class PublicClientApplication {
         }
 
         if (uiBehavior == null) {
-            params.setUIBehavior(uiBehavior.SELECT_ACCOUNT);
+            params.setUIBehavior(UiBehavior.SELECT_ACCOUNT);
         } else {
             params.setUIBehavior(uiBehavior);
         }
