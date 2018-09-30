@@ -37,6 +37,8 @@ import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.dto.RefreshTokenRecord;
+import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
@@ -57,8 +59,12 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import static com.microsoft.identity.client.exception.MsalUiRequiredException.INVALID_GRANT;
+
 
 public class LocalMSALController extends MSALController {
+
+    private static final String TAG = LocalMSALController.class.getSimpleName();
 
     private AuthorizationStrategy mAuthorizationStrategy = null;
     private AuthorizationRequest mAuthorizationRequest = null;
@@ -283,6 +289,52 @@ public class LocalMSALController extends MSALController {
 
             // Set the AuthenticationResult on the final result object
             acquireTokenSilentResult.setAuthenticationResult(authenticationResult);
+        } else {
+            // Log all the particulars...
+            if (null != tokenResult.getErrorResponse()) {
+                if (null != tokenResult.getErrorResponse().getError()) {
+                    Logger.warn(
+                            TAG,
+                            tokenResult.getErrorResponse().getError()
+                    );
+                }
+
+                if (null != tokenResult.getErrorResponse().getErrorDescription()) {
+                    Logger.warnPII(
+                            TAG,
+                            tokenResult.getErrorResponse().getErrorDescription()
+                    );
+                }
+
+                if (INVALID_GRANT.equalsIgnoreCase(tokenResult.getErrorResponse().getError())) {
+                    // if the scopes match the request, delete the RT...
+                    final RefreshTokenRecord rt = cacheRecord.getRefreshToken();
+                    final String[] rtScopesArr = rt.getTarget().split("\\s");
+                    final List<String> rtScopes = new ArrayList<>(Arrays.asList(rtScopesArr));
+                    if (rtScopes.containsAll(parameters.getScopes())) {
+                        // If we received an invalid_grant and the scopes match the RT
+                        // we have cached, then assume it can no longer be used and remove it.
+
+                        Logger.info(
+                                TAG,
+                                "Removing RefreshTokenRecord..."
+                        );
+                        final boolean removed = tokenCache.removeCredential(rt);
+                        Logger.info(
+                                TAG,
+                                "RefreshTokenRecordRemoved? [" + removed + "]"
+                        );
+                    } else {
+                        // We've received an invalid_grant AND the RT we have in the cache
+                        // doesn't match the scopes in the request. This may indicate that
+                        // the requested scopes requires admin consent. The cached RT may
+                        // continue to work for the scopes it contains, but it won't work for
+                        // THIS request :(
+
+                        // TODO Should the RT be deleted anyway?
+                    }
+                }
+            }
         }
     }
 
