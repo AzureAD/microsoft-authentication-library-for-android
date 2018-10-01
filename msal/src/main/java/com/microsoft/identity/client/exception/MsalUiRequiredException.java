@@ -45,6 +45,10 @@ public final class MsalUiRequiredException extends MsalException {
      */
     public static final String NO_TOKENS_FOUND = "no_tokens_found";
 
+    /**
+     * The supplied Account cannot be found in the cache.
+     */
+    public static final String NO_ACCOUNT_FOUND = "no_account_found";
 
     public MsalUiRequiredException(final String errorCode) {
         super(errorCode);
