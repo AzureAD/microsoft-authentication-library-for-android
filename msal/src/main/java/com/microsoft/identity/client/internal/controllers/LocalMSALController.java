@@ -222,6 +222,22 @@ public class LocalMSALController extends MSALController {
                 homeAccountId
         );
 
+        if (null == targetAccount) {
+            Logger.errorPII(
+                    TAG,
+                    "No accounts found for clientId, homeAccountId: ["
+                            + clientId
+                            + ", "
+                            + homeAccountId
+                            + "]",
+                    null
+            );
+            throw new MsalClientException(
+                    MsalUiRequiredException.NO_ACCOUNT_FOUND,
+                    "No cached accounts found for the supplied homeAccountId"
+            );
+        }
+
         final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy();
         final ICacheRecord cacheRecord = tokenCache.load(
                 clientId,
