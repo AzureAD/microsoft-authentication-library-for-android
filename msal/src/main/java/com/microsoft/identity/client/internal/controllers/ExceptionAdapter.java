@@ -61,7 +61,7 @@ public class ExceptionAdapter {
         } else {
             Logger.warn(
                     TAG + methodName,
-                    "AuthorizationResult was null (ATS?)"
+                    "AuthorizationResult was null -- expected for ATS cases."
             );
         }
 
