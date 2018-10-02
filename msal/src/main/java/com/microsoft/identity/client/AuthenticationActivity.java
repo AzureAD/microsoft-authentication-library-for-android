@@ -160,6 +160,8 @@ public final class AuthenticationActivity extends Activity {
 
     private static class MsalCustomTabsServiceConnection extends CustomTabsServiceConnection {
 
+        private static final String TAG = MsalCustomTabsServiceConnection.class.getSimpleName();
+
         private final WeakReference<CountDownLatch> mLatchWeakReference;
         private CustomTabsClient mCustomTabsClient;
         private CustomTabsSession mCustomTabsSession;
@@ -171,6 +173,12 @@ public final class AuthenticationActivity extends Activity {
 
         @Override
         public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
+            final String methodName = ":onCustomTabsServiceConnected";
+            com.microsoft.identity.common.internal.logging.Logger.info(
+                    TAG + methodName,
+                    "Connected."
+            );
+
             final CountDownLatch latch = mLatchWeakReference.get();
 
             mCustomTabsServiceIsBound = true;
@@ -180,12 +188,21 @@ public final class AuthenticationActivity extends Activity {
 
             if (null != latch) {
                 latch.countDown();
+                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                        TAG + methodName,
+                        "Decrementing latch"
+                );
             }
         }
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
+            final String methodName = ":onServiceDisconnected";
             mCustomTabsServiceIsBound = false;
+            com.microsoft.identity.common.internal.logging.Logger.info(
+                    TAG + methodName,
+                    "Disconnected."
+            );
         }
 
         /**
