@@ -232,7 +232,12 @@ public abstract class Authority {
 
         Logger.verbose(
                 TAG + methodName,
-                "Authority is known? [" + isKnown + "]"
+                "Authority is known to developer? [" + knownToDeveloper + "]"
+        );
+
+        Logger.verbose(
+                TAG + methodName,
+                "Authority is known to Microsoft? [" + knownToMicrosoft + "]"
         );
 
         return isKnown;
