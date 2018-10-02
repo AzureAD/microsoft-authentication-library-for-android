@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 public interface MSALTokenOperation {
-    public AcquireTokenResult execute() throws InterruptedException, ExecutionException, IOException, ClientException, MsalClientException, MsalArgumentException, MsalUiRequiredException;
+    AcquireTokenResult execute() throws InterruptedException, ExecutionException, IOException, ClientException, MsalClientException, MsalArgumentException, MsalUiRequiredException;
 
-    public void notify(int requestCode, int resultCode, final Intent data);
+    void notify(int requestCode, int resultCode, final Intent data);
 }

@@ -28,6 +28,7 @@ public class AzureActiveDirectorySlice {
 
     @SerializedName("slice")
     private String mSlice;
+
     @SerializedName("dc")
     private String mDataCenter;
 
