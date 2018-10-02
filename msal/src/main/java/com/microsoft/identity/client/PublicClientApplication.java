@@ -811,6 +811,7 @@ public final class PublicClientApplication {
                                                                                    final String authorityStr,
                                                                                    final boolean forceRefresh,
                                                                                    final IAccount account) {
+        final String methodName = ":getSilentOperationParameters";
         final MSALAcquireTokenSilentOperationParameters parameters = new MSALAcquireTokenSilentOperationParameters();
         parameters.setAppContext(mAppContext);
         parameters.setScopes(new ArrayList<>(Arrays.asList(scopes)));
@@ -826,10 +827,52 @@ public final class PublicClientApplication {
         }
         parameters.setForceRefresh(forceRefresh);
 
+        logSilentRequestParams(methodName, parameters);
+
         return parameters;
     }
 
+    private void logSilentRequestParams(final String methodName,
+                                        final MSALAcquireTokenSilentOperationParameters parameters) {
+        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                TAG + methodName,
+                "ClientId: [" + parameters.getClientId() + "]"
+        );
+        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                TAG + methodName,
+                "----\nRequested scopes:"
+        );
+
+        for (final String scope : parameters.getScopes()) {
+            com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                    TAG + methodName,
+                    "\t" + scope
+            );
+        }
+        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                TAG + methodName,
+                "----"
+        );
+
+        if (null != parameters.getAccount()) {
+            com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                    TAG + methodName,
+                    "Using account: " + parameters.getAccount().getHomeAccountId()
+            );
+        }
+
+        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                TAG + methodName,
+                "Force refresh? [" + parameters.getForceRefresh() + "]"
+        );
+    }
+
     private void loadMetaDataFromManifest() {
+        final String methodName = ":loadMetaDataFromManifest";
+        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                TAG + methodName,
+                "Loading metadata from manifest..."
+        );
         final ApplicationInfo applicationInfo = MsalUtils.getApplicationInfo(mAppContext);
         if (applicationInfo == null || applicationInfo.metaData == null) {
             throw new IllegalArgumentException("No meta-data exists");
@@ -907,6 +950,11 @@ public final class PublicClientApplication {
     }
 
     private PublicClientApplicationConfiguration loadDefaultConfiguration(@NonNull final Context context) {
+        final String methodName = ":loadDefaultConfiguration";
+        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                TAG + methodName,
+                "Loading default configuration"
+        );
         return loadConfiguration(context, R.raw.msal_default_config);
     }
 
@@ -941,7 +989,12 @@ public final class PublicClientApplication {
      * Otherwise the library will use the configured redirect URI.
      */
     private String createRedirectUri(final String clientId) {
+        final String methodName = ":createRedirectUri";
         if (!StringUtil.isEmpty(mPublicClientConfiguration.getRedirectUri())) {
+            com.microsoft.identity.common.internal.logging.Logger.verbose(
+                    TAG + methodName,
+                    "Returning redirectUri from configuration"
+            );
             return mPublicClientConfiguration.getRedirectUri();
         } else {
             return "msal" + clientId + "://auth";
@@ -956,10 +1009,15 @@ public final class PublicClientApplication {
                                                                                   @Nullable final String[] extraScopesToConsent,
                                                                                   @Nullable final String authority,
                                                                                   @Nullable final IAccount account) {
+        final String methodName = ":getInteractiveOperationParameters";
         final MSALAcquireTokenOperationParameters params = new MSALAcquireTokenOperationParameters();
 
         if (StringUtil.isEmpty(authority)) {
             if (mPublicClientConfiguration.isDefaultAuthorityConfigured()) {
+                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                        TAG + methodName,
+                        "Using default configured authority"
+                );
                 params.setAuthority(mPublicClientConfiguration.getDefaultAuthority());
             } else {
                 params.setAuthority(Authority.getAuthorityFromAuthorityUrl(mAuthorityString));
@@ -967,6 +1025,11 @@ public final class PublicClientApplication {
         } else {
             params.setAuthority(Authority.getAuthorityFromAuthorityUrl(authority));
         }
+
+        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                TAG + methodName,
+                "Using authority: [" + params.getAuthority().getAuthorityUri() + "]"
+        );
 
         params.setScopes(new ArrayList<>(Arrays.asList(scopes)));
         params.setClientId(mClientId);
@@ -1002,7 +1065,84 @@ public final class PublicClientApplication {
             );
         }
 
+        logInteractiveRequestParameters(methodName, params);
+
         return params;
+    }
+
+    private void logInteractiveRequestParameters(final String methodName,
+                                                 final MSALAcquireTokenOperationParameters params) {
+        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                TAG + methodName,
+                "Requested "
+                        + params.getScopes().size()
+                        + " scopes"
+        );
+
+        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                TAG + methodName,
+                "----\nRequested scopes:"
+        );
+        for (final String scope : params.getScopes()) {
+            com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                    TAG + methodName,
+                    "\t" + scope
+            );
+        }
+        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                TAG + methodName,
+                "----"
+        );
+        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                TAG + methodName,
+                "ClientId: [" + params.getClientId() + "]"
+        );
+        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                TAG + methodName,
+                "RedirectUri: [" + params.getRedirectUri() + "]"
+        );
+        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                TAG + methodName,
+                "Login hint: [" + params.getLoginHint() + "]"
+        );
+
+        if (null != params.getExtraQueryStringParameters()) {
+            com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                    TAG + methodName,
+                    "Extra query params:"
+            );
+            for (final Pair<String, String> qp : params.getExtraQueryStringParameters()) {
+                com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                        TAG + methodName,
+                        "\t\"" + qp.first + "\":\"" + qp.second + "\""
+                );
+            }
+        }
+
+        if (null != params.getExtraScopesToConsent()) {
+            com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                    TAG + methodName,
+                    "Extra scopes to consent:"
+            );
+            for (final String extraScope : params.getExtraScopesToConsent()) {
+                com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                        TAG + methodName,
+                        "\t" + extraScope
+                );
+            }
+        }
+
+        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                TAG + methodName,
+                "Using authorization agent: " + params.getAuthorizationAgent().toString()
+        );
+
+        if (null != params.getAccount()) {
+            com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                    TAG + methodName,
+                    "Using account: " + params.getAccount().getHomeAccountId()
+            );
+        }
     }
 
     private MsalOAuth2TokenCache<
@@ -1011,6 +1151,11 @@ public final class PublicClientApplication {
             MicrosoftStsTokenResponse,
             MicrosoftAccount,
             MicrosoftRefreshToken> initCommonCache(final Context context) {
+        final String methodName = ":initCommonCache";
+        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                TAG + methodName,
+                "Initializing common cache"
+        );
         // Init the new-schema cache
         final ICacheKeyValueDelegate cacheKeyValueDelegate = new CacheKeyValueDelegate();
         final IStorageHelper storageHelper = new StorageHelper(context);
