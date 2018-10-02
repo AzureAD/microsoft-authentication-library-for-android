@@ -248,7 +248,7 @@ public class MSALApiDispatcher {
         final String methodName = ":submitSilent";
         Logger.verbose(
                 TAG + methodName,
-                "Begging silent request"
+                "Beginning silent request"
         );
         sSilentExecutor.execute(new Runnable() {
             @Override
