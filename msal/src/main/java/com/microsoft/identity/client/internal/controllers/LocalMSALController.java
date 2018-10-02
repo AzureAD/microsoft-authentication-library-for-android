@@ -34,7 +34,6 @@ import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.client.internal.authorities.Authority;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
@@ -145,7 +144,7 @@ public class LocalMSALController extends MSALController {
         UUID correlationId = null;
 
         try {
-            correlationId = UUID.fromString(DiagnosticContext.getRequestContext().get(AuthenticationConstants.AAD.CORRELATION_ID));
+            correlationId = UUID.fromString(DiagnosticContext.getRequestContext().get(DiagnosticContext.CORRELATION_ID));
         } catch (IllegalArgumentException ex) {
             Logger.error("LocalMsalController", "correlation id from diagnostic context is not a UUID", ex);
         }

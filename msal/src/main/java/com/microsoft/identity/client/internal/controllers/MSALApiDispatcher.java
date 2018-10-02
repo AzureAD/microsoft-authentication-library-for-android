@@ -29,7 +29,6 @@ import android.util.Pair;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalUserCancelException;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.common.internal.logging.Logger;
 
@@ -332,7 +331,7 @@ public class MSALApiDispatcher {
         final String correlationId = UUID.randomUUID().toString();
         final com.microsoft.identity.common.internal.logging.RequestContext rc =
                 new com.microsoft.identity.common.internal.logging.RequestContext();
-        rc.put(AuthenticationConstants.AAD.CORRELATION_ID, correlationId);
+        rc.put(DiagnosticContext.CORRELATION_ID, correlationId);
         DiagnosticContext.setRequestContext(rc);
         Logger.verbose(
                 TAG + methodName,
