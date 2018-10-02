@@ -248,7 +248,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 new ArrayList<String>() {{
                     for (IAccount account : mApplication.getAccounts())
                         add(account.getUsername());
-                    add("test");
                 }}
         );
         userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
