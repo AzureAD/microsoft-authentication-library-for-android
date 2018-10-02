@@ -34,9 +34,11 @@ import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.client.internal.authorities.Authority;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResponse;
@@ -55,6 +57,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -132,9 +135,11 @@ public class LocalMSALController extends MSALController {
         msalScopes.add("offline_access");
         msalScopes.addAll(parameters.getScopes());
 
+        //TODO: Not sure why diagnostic context is using AuthenticationConstants....
         AuthorizationRequest.Builder request = builder
                 .setClientId(parameters.getClientId())
-                .setRedirectUri(parameters.getRedirectUri());
+                .setRedirectUri(parameters.getRedirectUri())
+                .setCorrelationId(UUID.fromString(DiagnosticContext.getRequestContext().get(AuthenticationConstants.AAD.CORRELATION_ID)));
 
         if (parameters instanceof MSALAcquireTokenOperationParameters) {
             MSALAcquireTokenOperationParameters acquireTokenOperationParameters = (MSALAcquireTokenOperationParameters) parameters;
