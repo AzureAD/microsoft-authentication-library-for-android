@@ -28,6 +28,7 @@ import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 
@@ -38,6 +39,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Authority {
+
+    private static final String TAG = Authority.class.getSimpleName();
 
     private static final String ADFS_PATH_SEGMENT = "adfs";
     private static final String B2C_PATH_SEGMENT = "b2c";
@@ -71,6 +74,7 @@ public abstract class Authority {
      * @throws MalformedURLException
      */
     public static Authority getAuthorityFromAuthorityUrl(String authorityUrl) {
+        final String methodName = ":getAuthorityFromAuthorityUrl";
         URL authUrl;
 
         try {
@@ -92,13 +96,25 @@ public abstract class Authority {
         switch (authorityType.toLowerCase()) {
             case ADFS_PATH_SEGMENT:
                 //Return new Azure Active Directory Federation Services Authority
+                Logger.verbose(
+                        TAG + methodName,
+                        "Authority type is ADFS"
+                );
                 authority = new ActiveDirectoryFederationServicesAuthority(authorityUrl);
                 break;
             case B2C_PATH_SEGMENT:
                 //Return new B2C Authority
+                Logger.verbose(
+                        TAG + methodName,
+                        "Authority type is B2C"
+                );
                 authority = new AzureActiveDirectoryB2CAuthority(authorityUrl);
                 break;
             default:
+                Logger.verbose(
+                        TAG + methodName,
+                        "Authority type default: AAD"
+                );
                 AzureActiveDirectoryAudience audience = AzureActiveDirectoryAudience.getAzureActiveDirectoryAudience(
                         authorityUri.getScheme() + "://" + authorityUri.getHost(),
                         pathSegments.get(0)
@@ -169,13 +185,16 @@ public abstract class Authority {
     private static Object sLock = new Object();
 
     private static void performCloudDiscovery() throws IOException {
-
+        final String methodName = ":performCloudDiscovery";
+        Logger.verbose(
+                TAG + methodName,
+                "Performing cloud discovery..."
+        );
         synchronized (sLock) {
             if (!AzureActiveDirectory.isInitialized()) {
                 AzureActiveDirectory.performCloudDiscovery();
             }
         }
-
     }
 
     public static void addKnownAuthorities(List<Authority> authorities) {
@@ -191,11 +210,15 @@ public abstract class Authority {
      * @return
      */
     public static boolean isKnownAuthority(Authority authority) {
-
+        final String methodName = ":isKnownAuthority";
         boolean knownToDeveloper = false;
         boolean knownToMicrosoft = false;
 
         if (authority == null) {
+            Logger.warn(
+                    TAG + methodName,
+                    "Authority is null"
+            );
             return false;
         }
 
@@ -205,16 +228,35 @@ public abstract class Authority {
         //Check if authority host is known to Microsoft
         knownToMicrosoft = AzureActiveDirectory.hasCloudHost(authority.getAuthorityURL());
 
-        return (knownToDeveloper || knownToMicrosoft);
+        final boolean isKnown = (knownToDeveloper || knownToMicrosoft);
 
+        Logger.verbose(
+                TAG + methodName,
+                "Authority is known to developer? [" + knownToDeveloper + "]"
+        );
+
+        Logger.verbose(
+                TAG + methodName,
+                "Authority is known to Microsoft? [" + knownToMicrosoft + "]"
+        );
+
+        return isKnown;
     }
 
     public static KnownAuthorityResult getKnownAuthorityResult(Authority authority) {
-
+        final String methodName = ":getKnownAuthorityResult";
+        Logger.verbose(
+                TAG + methodName,
+                "Getting known authority result..."
+        );
         MsalClientException msalClientException = null;
         boolean known = false;
 
         try {
+            Logger.verbose(
+                    TAG + methodName,
+                    "Performing cloud discovery"
+            );
             performCloudDiscovery();
         } catch (IOException ex) {
             msalClientException = new MsalClientException(MsalClientException.IO_ERROR, "Unable to perform cloud discovery", ex);
@@ -229,7 +271,6 @@ public abstract class Authority {
         }
 
         return new KnownAuthorityResult(known, msalClientException);
-
     }
 
     public static class KnownAuthorityResult {
@@ -251,6 +292,12 @@ public abstract class Authority {
     }
 
     public static String getAuthorityFromAccount(final IAccount account) {
+        final String methodName = ":getAuthorityFromAccount";
+        Logger.verbose(
+                TAG + methodName,
+                "Getting authority from account..."
+        );
+
         final AzureActiveDirectoryAccountIdentifier aadIdentifier;
         if (null != account
                 && null != account.getAccountIdentifier()
@@ -261,6 +308,11 @@ public abstract class Authority {
                     + "/"
                     + aadIdentifier.getTenantIdentifier()
                     + "/";
+        } else {
+            Logger.warn(
+                    TAG + methodName,
+                    "Account was null..."
+            );
         }
 
         return null;

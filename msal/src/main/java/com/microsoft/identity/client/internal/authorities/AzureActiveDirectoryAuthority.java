@@ -25,6 +25,7 @@ package com.microsoft.identity.client.internal.authorities;
 import android.net.Uri;
 
 import com.google.gson.annotations.SerializedName;
+import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
@@ -36,6 +37,8 @@ import java.net.URL;
 import java.util.Map;
 
 public class AzureActiveDirectoryAuthority extends Authority {
+
+    private static transient final String TAG = AzureActiveDirectoryAuthority.class.getSimpleName();
 
     @SerializedName("audience")
     public AzureActiveDirectoryAudience mAudience;
@@ -49,12 +52,18 @@ public class AzureActiveDirectoryAuthority extends Authority {
     private AzureActiveDirectoryCloud mAzureActiveDirectoryCloud;
 
     private void getAzureActiveDirectoryCloud() {
+        final String methodName = ":getAzureActiveDirectoryCloud";
         AzureActiveDirectoryCloud cloud = null;
 
         try {
             cloud = AzureActiveDirectory.getAzureActiveDirectoryCloud(new URL(mAudience.getCloudUrl()));
             mKnownToMicrosoft = true;
         } catch (MalformedURLException e) {
+            Logger.errorPII(
+                    TAG + methodName,
+                    "AAD cloud URL was malformed.",
+                    e
+            );
             cloud = null;
             mKnownToMicrosoft = false;
         }
@@ -87,11 +96,13 @@ public class AzureActiveDirectoryAuthority extends Authority {
     public Uri getAuthorityUri() {
         getAzureActiveDirectoryCloud();
         Uri issuer;
+
         if (mAzureActiveDirectoryCloud == null) {
             issuer = Uri.parse(mAudience.getCloudUrl());
         } else {
             issuer = Uri.parse("https://" + mAzureActiveDirectoryCloud.getPreferredNetworkHostName());
         }
+
         return issuer.buildUpon().appendPath(mAudience.getTenantId()).build();
     }
 
@@ -106,10 +117,19 @@ public class AzureActiveDirectoryAuthority extends Authority {
 
     @Override
     public OAuth2Strategy createOAuth2Strategy() {
+        final String methodName = ":createOAuth2Strategy";
+        Logger.verbose(
+                TAG + methodName,
+                "Creating OAuth2Strategy"
+        );
         MicrosoftStsOAuth2Configuration config = new MicrosoftStsOAuth2Configuration();
         config.setAuthorityUrl(this.getAuthorityURL());
 
         if (mSlice != null) {
+            Logger.info(
+                    TAG + methodName,
+                    "Setting slice parameters..."
+            );
             com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectorySlice slice = new com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectorySlice();
             slice.setSlice(mSlice.getSlice());
             slice.setDataCenter(mSlice.getDC());
@@ -117,11 +137,16 @@ public class AzureActiveDirectoryAuthority extends Authority {
         }
 
         if (mFlightParameters != null) {
+            Logger.info(
+                    TAG + methodName,
+                    "Setting flight parameters..."
+            );
             //GSON Returns a LinkedTreeMap which implement AbstractMap....
             for (Map.Entry<String, String> entry : mFlightParameters.entrySet()) {
                 config.getFlightParameters().put(entry.getKey(), entry.getValue());
             }
         }
+
         return new MicrosoftStsOAuth2Strategy(config);
     }
 

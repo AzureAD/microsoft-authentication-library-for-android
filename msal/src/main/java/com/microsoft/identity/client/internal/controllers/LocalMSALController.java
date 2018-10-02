@@ -34,7 +34,6 @@ import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.client.internal.authorities.Authority;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
@@ -73,6 +72,11 @@ public class LocalMSALController extends MSALController {
     @Override
     public AcquireTokenResult acquireToken(final MSALAcquireTokenOperationParameters parameters)
             throws ExecutionException, InterruptedException, ClientException, IOException, MsalClientException, MsalArgumentException {
+        final String methodName = ":acquireToken";
+        Logger.verbose(
+                TAG + methodName,
+                "Acquiring token..."
+        );
         final AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
 
         //00) Validate MSAL Parameters
@@ -140,8 +144,8 @@ public class LocalMSALController extends MSALController {
         UUID correlationId = null;
 
         try {
-            correlationId = UUID.fromString(DiagnosticContext.getRequestContext().get(AuthenticationConstants.AAD.CORRELATION_ID));
-        }catch(IllegalArgumentException ex){
+            correlationId = UUID.fromString(DiagnosticContext.getRequestContext().get(DiagnosticContext.CORRELATION_ID));
+        } catch (IllegalArgumentException ex) {
             Logger.error("LocalMsalController", "correlation id from diagnostic context is not a UUID", ex);
         }
 
@@ -189,6 +193,7 @@ public class LocalMSALController extends MSALController {
     }
 
     void throwIfNetworkNotAvailable(final Context context) throws MsalClientException {
+        final String methodName = ":throwIfNetworkNotAvailable";
         final ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         final NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 
@@ -198,12 +203,22 @@ public class LocalMSALController extends MSALController {
                     "Device network connection is not available."
             );
         }
+
+        Logger.info(
+                TAG + methodName,
+                "Network status: connected"
+        );
     }
 
     private ICacheRecord saveTokens(final OAuth2Strategy strategy,
                                     final AuthorizationRequest request,
                                     final TokenResponse tokenResponse,
                                     final OAuth2TokenCache tokenCache) throws ClientException {
+        final String methodName = ":saveTokens";
+        Logger.verbose(
+                TAG + methodName,
+                "Saving tokens..."
+        );
         return tokenCache.save(strategy, request, tokenResponse);
     }
 
@@ -211,6 +226,11 @@ public class LocalMSALController extends MSALController {
     public void completeAcquireToken(final int requestCode,
                                      final int resultCode,
                                      final Intent data) {
+        final String methodName = ":completeAcquireToken";
+        Logger.verbose(
+                TAG + methodName,
+                "Completing acquire token..."
+        );
         mAuthorizationStrategy.completeAuthorization(requestCode, resultCode, data);
     }
 
@@ -218,6 +238,23 @@ public class LocalMSALController extends MSALController {
     public AcquireTokenResult acquireTokenSilent(
             final MSALAcquireTokenSilentOperationParameters parameters)
             throws MsalClientException, IOException, ClientException, MsalArgumentException, MsalUiRequiredException {
+        final String methodName = ":acquireTokenSilent";
+        Logger.verbose(
+                TAG + methodName,
+                "Acquiring token silently..."
+        );
+
+        final List<String> msalScopes = new ArrayList<>();
+        msalScopes.add("openid");
+        msalScopes.add("profile");
+        msalScopes.add("offline_access");
+
+        if (!parameters.getScopes().containsAll(msalScopes)) {
+            parameters.getScopes().addAll(msalScopes);
+            // Sanitize-out any null or empty scopes
+            parameters.getScopes().removeAll(Arrays.asList("", null));
+        }
+
         final AcquireTokenResult acquireTokenSilentResult = new AcquireTokenResult();
 
         //Validate MSAL Parameters
@@ -262,6 +299,10 @@ public class LocalMSALController extends MSALController {
                 || parameters.getForceRefresh()) {
             if (!refreshTokenIsNull(cacheRecord)) {
                 // No AT found, but the RT checks out, so we'll use it
+                Logger.verbose(
+                        TAG + methodName,
+                        "No access token found, but RT is available."
+                );
                 renewAccessToken(
                         parameters,
                         acquireTokenSilentResult,
@@ -273,9 +314,17 @@ public class LocalMSALController extends MSALController {
                 throw new MsalClientException(MsalUiRequiredException.NO_TOKENS_FOUND, "No refresh token was found. ");
             }
         } else if (cacheRecord.getAccessToken().isExpired()) {
+            Logger.warn(
+                    TAG + methodName,
+                    "Access token is expired. Removing from cache..."
+            );
             // Remove the expired token
             tokenCache.removeCredential(cacheRecord.getAccessToken());
 
+            Logger.verbose(
+                    TAG + methodName,
+                    "Renewing access token..."
+            );
             // Request a new AT
             renewAccessToken(
                     parameters,
@@ -285,6 +334,10 @@ public class LocalMSALController extends MSALController {
                     cacheRecord
             );
         } else {
+            Logger.verbose(
+                    TAG + methodName,
+                    "Returning silent result"
+            );
             // the result checks out, return that....
             acquireTokenSilentResult.setAuthenticationResult(
                     new AuthenticationResult(cacheRecord)
@@ -300,12 +353,21 @@ public class LocalMSALController extends MSALController {
                                   @NonNull final OAuth2Strategy strategy,
                                   @NonNull final ICacheRecord cacheRecord)
             throws MsalClientException, IOException, ClientException, MsalUiRequiredException {
+        final String methodName = ":renewAccessToken";
+        Logger.verbose(
+                TAG + methodName,
+                "Renewing access token..."
+        );
         parameters.setRefreshToken(cacheRecord.getRefreshToken());
 
         final TokenResult tokenResult = performSilentTokenRequest(strategy, parameters);
         acquireTokenSilentResult.setTokenResult(tokenResult);
 
         if (tokenResult.getSuccess()) {
+            Logger.verbose(
+                    TAG + methodName,
+                    "Token request was successful"
+            );
             final ICacheRecord savedRecord = tokenCache.save(
                     strategy,
                     getAuthorizationRequest(strategy, parameters),
@@ -356,6 +418,11 @@ public class LocalMSALController extends MSALController {
 
     private TokenResult performSilentTokenRequest(final OAuth2Strategy strategy,
                                                   final MSALAcquireTokenSilentOperationParameters parameters) throws MsalClientException, IOException {
+        final String methodName = ":performSilentTokenRequest";
+        Logger.verbose(
+                TAG + methodName,
+                "Requesting tokens..."
+        );
         throwIfNetworkNotAvailable(parameters.getAppContext());
         return strategy.requestToken(
                 strategy.createRefreshTokenRequest(

@@ -70,7 +70,6 @@ public class MSALTokenCommand implements MSALTokenOperation {
         throw new UnsupportedOperationException();
     }
 
-
     public MSALOperationParameters getParameters() {
         return mParameters;
     }
