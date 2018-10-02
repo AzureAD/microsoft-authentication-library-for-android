@@ -136,10 +136,19 @@ public class LocalMSALController extends MSALController {
         msalScopes.addAll(parameters.getScopes());
 
         //TODO: Not sure why diagnostic context is using AuthenticationConstants....
+
+        UUID correlationId = null;
+
+        try {
+            correlationId = UUID.fromString(DiagnosticContext.getRequestContext().get(AuthenticationConstants.AAD.CORRELATION_ID));
+        }catch(IllegalArgumentException ex){
+            Logger.error("LocalMsalController", "correlation id from diagnostic context is not a UUID", ex);
+        }
+
         AuthorizationRequest.Builder request = builder
                 .setClientId(parameters.getClientId())
                 .setRedirectUri(parameters.getRedirectUri())
-                .setCorrelationId(UUID.fromString(DiagnosticContext.getRequestContext().get(AuthenticationConstants.AAD.CORRELATION_ID)));
+                .setCorrelationId(correlationId);
 
         if (parameters instanceof MSALAcquireTokenOperationParameters) {
             MSALAcquireTokenOperationParameters acquireTokenOperationParameters = (MSALAcquireTokenOperationParameters) parameters;
