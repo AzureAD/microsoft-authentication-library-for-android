@@ -146,7 +146,7 @@ public class LocalMSALController extends MSALController {
 
         try {
             correlationId = UUID.fromString(DiagnosticContext.getRequestContext().get(AuthenticationConstants.AAD.CORRELATION_ID));
-        }catch(IllegalArgumentException ex){
+        } catch (IllegalArgumentException ex) {
             Logger.error("LocalMsalController", "correlation id from diagnostic context is not a UUID", ex);
         }
 
@@ -244,6 +244,18 @@ public class LocalMSALController extends MSALController {
                 TAG + methodName,
                 "Acquiring token silently..."
         );
+
+        final List<String> msalScopes = new ArrayList<>();
+        msalScopes.add("openid");
+        msalScopes.add("profile");
+        msalScopes.add("offline_access");
+
+        if (!parameters.getScopes().containsAll(msalScopes)) {
+            parameters.getScopes().addAll(msalScopes);
+            // Sanitize-out any null or empty scopes
+            parameters.getScopes().removeAll(Arrays.asList("", null));
+        }
+
         final AcquireTokenResult acquireTokenSilentResult = new AcquireTokenResult();
 
         //Validate MSAL Parameters
