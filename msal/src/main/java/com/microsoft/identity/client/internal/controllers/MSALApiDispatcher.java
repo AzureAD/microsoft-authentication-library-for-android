@@ -24,12 +24,14 @@ package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Intent;
 import android.os.Handler;
+import android.util.Pair;
 
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalUserCancelException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
+import com.microsoft.identity.common.internal.logging.Logger;
 
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -37,17 +39,29 @@ import java.util.concurrent.Executors;
 
 public class MSALApiDispatcher {
 
+    private static final String TAG = MSALApiDispatcher.class.getSimpleName();
+
     private static final ExecutorService sInteractiveExecutor = Executors.newSingleThreadExecutor();
     private static final ExecutorService sSilentExecutor = Executors.newCachedThreadPool();
     private static final Object sLock = new Object();
     private static MSALInteractiveTokenCommand sCommand = null;
 
     public static void beginInteractive(final MSALInteractiveTokenCommand command) {
+        final String methodName = ":beginInteractive";
+        Logger.verbose(
+                TAG + methodName,
+                "Beginning interactive request"
+        );
         synchronized (sLock) {
             sInteractiveExecutor.execute(new Runnable() {
                 @Override
                 public void run() {
                     initializeDiagnosticContext();
+
+                    if (command.mParameters instanceof MSALAcquireTokenOperationParameters) {
+                        logInteractiveRequestParameters(methodName, (MSALAcquireTokenOperationParameters) command.mParameters);
+                    }
+
                     sCommand = command;
                     AcquireTokenResult result = null;
                     MsalException msalException = null;
@@ -57,6 +71,11 @@ public class MSALApiDispatcher {
                         result = command.execute();
                     } catch (Exception e) {
                         //Capture any resulting exception and map to MsalException type
+                        Logger.errorPII(
+                                TAG + methodName,
+                                "Interactive request failed with Exception",
+                                e
+                        );
                         if (e instanceof MsalException) {
                             msalException = (MsalException) e;
                         } else {
@@ -106,11 +125,120 @@ public class MSALApiDispatcher {
                                 });
                             }
                         }
-
                     }
                 }
             });
         }
+    }
+
+    private static void logInteractiveRequestParameters(final String methodName,
+                                                        final MSALAcquireTokenOperationParameters params) {
+        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                TAG + methodName,
+                "Requested "
+                        + params.getScopes().size()
+                        + " scopes"
+        );
+
+        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                TAG + methodName,
+                "----\nRequested scopes:"
+        );
+        for (final String scope : params.getScopes()) {
+            com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                    TAG + methodName,
+                    "\t" + scope
+            );
+        }
+        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                TAG + methodName,
+                "----"
+        );
+        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                TAG + methodName,
+                "ClientId: [" + params.getClientId() + "]"
+        );
+        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                TAG + methodName,
+                "RedirectUri: [" + params.getRedirectUri() + "]"
+        );
+        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                TAG + methodName,
+                "Login hint: [" + params.getLoginHint() + "]"
+        );
+
+        if (null != params.getExtraQueryStringParameters()) {
+            com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                    TAG + methodName,
+                    "Extra query params:"
+            );
+            for (final Pair<String, String> qp : params.getExtraQueryStringParameters()) {
+                com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                        TAG + methodName,
+                        "\t\"" + qp.first + "\":\"" + qp.second + "\""
+                );
+            }
+        }
+
+        if (null != params.getExtraScopesToConsent()) {
+            com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                    TAG + methodName,
+                    "Extra scopes to consent:"
+            );
+            for (final String extraScope : params.getExtraScopesToConsent()) {
+                com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                        TAG + methodName,
+                        "\t" + extraScope
+                );
+            }
+        }
+
+        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                TAG + methodName,
+                "Using authorization agent: " + params.getAuthorizationAgent().toString()
+        );
+
+        if (null != params.getAccount()) {
+            com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                    TAG + methodName,
+                    "Using account: " + params.getAccount().getHomeAccountId()
+            );
+        }
+    }
+
+    private static void logSilentRequestParams(final String methodName,
+                                               final MSALAcquireTokenSilentOperationParameters parameters) {
+        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                TAG + methodName,
+                "ClientId: [" + parameters.getClientId() + "]"
+        );
+        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                TAG + methodName,
+                "----\nRequested scopes:"
+        );
+
+        for (final String scope : parameters.getScopes()) {
+            com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                    TAG + methodName,
+                    "\t" + scope
+            );
+        }
+        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                TAG + methodName,
+                "----"
+        );
+
+        if (null != parameters.getAccount()) {
+            com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                    TAG + methodName,
+                    "Using account: " + parameters.getAccount().getHomeAccountId()
+            );
+        }
+
+        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                TAG + methodName,
+                "Force refresh? [" + parameters.getForceRefresh() + "]"
+        );
     }
 
     public static void completeInteractive(int requestCode, int resultCode, final Intent data) {
@@ -118,10 +246,20 @@ public class MSALApiDispatcher {
     }
 
     public static void submitSilent(final MSALTokenCommand command) {
+        final String methodName = ":submitSilent";
+        Logger.verbose(
+                TAG + methodName,
+                "Begging silent request"
+        );
         sSilentExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 initializeDiagnosticContext();
+
+                if (command.mParameters instanceof MSALAcquireTokenSilentOperationParameters) {
+                    logSilentRequestParams(methodName, (MSALAcquireTokenSilentOperationParameters) command.mParameters);
+                }
+
                 AcquireTokenResult result = null;
                 MsalException msalException = null;
 
@@ -130,6 +268,11 @@ public class MSALApiDispatcher {
                     result = command.execute();
                 } catch (Exception e) {
                     //Capture any resulting exception and map to MsalException type
+                    Logger.errorPII(
+                            TAG + methodName,
+                            "Silent request failed with Exception",
+                            e
+                    );
                     if (e instanceof MsalException) {
                         msalException = (MsalException) e;
                     } else {
@@ -179,18 +322,22 @@ public class MSALApiDispatcher {
                             });
                         }
                     }
-
                 }
             }
         });
     }
 
     public static String initializeDiagnosticContext() {
+        final String methodName = ":initializeDiagnosticContext";
         final String correlationId = UUID.randomUUID().toString();
         final com.microsoft.identity.common.internal.logging.RequestContext rc =
                 new com.microsoft.identity.common.internal.logging.RequestContext();
         rc.put(AuthenticationConstants.AAD.CORRELATION_ID, correlationId);
         DiagnosticContext.setRequestContext(rc);
+        Logger.verbose(
+                TAG + methodName,
+                "Initialized new DiagnosticContext"
+        );
 
         return correlationId;
     }
