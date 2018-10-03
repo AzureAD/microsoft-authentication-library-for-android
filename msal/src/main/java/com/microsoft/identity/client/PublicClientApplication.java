@@ -811,7 +811,6 @@ public final class PublicClientApplication {
                                                                                    final String authorityStr,
                                                                                    final boolean forceRefresh,
                                                                                    final IAccount account) {
-        final String methodName = ":getSilentOperationParameters";
         final MSALAcquireTokenSilentOperationParameters parameters = new MSALAcquireTokenSilentOperationParameters();
         parameters.setAppContext(mAppContext);
         parameters.setScopes(new ArrayList<>(Arrays.asList(scopes)));
