@@ -54,7 +54,6 @@ public class AcquireTokenFragment extends Fragment {
     private Spinner mAuthority;
     private EditText mLoginhint;
     private Spinner mUiBehavior;
-    private Spinner mDataProfile;
     private Spinner mUserAgent;
     private EditText mScope;
     private EditText mExtraScope;
@@ -80,7 +79,6 @@ public class AcquireTokenFragment extends Fragment {
         mAuthority = view.findViewById(R.id.authorityType);
         mLoginhint = view.findViewById(R.id.loginHint);
         mUiBehavior = view.findViewById(R.id.uiBehavior);
-        mDataProfile = view.findViewById(R.id.data_profile);
         mUserAgent = view.findViewById(R.id.auth_user_agent);
         mScope = view.findViewById(R.id.scope);
         mExtraScope = view.findViewById(R.id.extraScope);
@@ -95,7 +93,6 @@ public class AcquireTokenFragment extends Fragment {
 
         bindSpinnerChoice(mAuthority, Constants.AuthorityType.class);
         bindSpinnerChoice(mUiBehavior, UiBehavior.class);
-        bindSpinnerChoice(mDataProfile, Constants.DataProfile.class);
         bindSpinnerChoice(mUserAgent, Constants.UserAgent.class);
 
         mAcquireToken.setOnClickListener(new View.OnClickListener() {
@@ -208,20 +205,18 @@ public class AcquireTokenFragment extends Fragment {
         final Constants.AuthorityType authorityType = Constants.AuthorityType.valueOf(mAuthority.getSelectedItem().toString()) ;
         final String loginHint = mLoginhint.getText().toString();
         final UiBehavior uiBehavior = UiBehavior.valueOf(mUiBehavior.getSelectedItem().toString());
-        final Constants.DataProfile dataProfile = Constants.DataProfile.valueOf(mDataProfile.getSelectedItem().toString());
         final Constants.UserAgent userAgent = Constants.UserAgent.valueOf(mUserAgent.getSelectedItem().toString());
         final String scopes = mScope.getText().toString();
         final String extraScopesToConsent = mExtraScope.getText().toString();
         final boolean enablePII = mEnablePII.isChecked();
         final boolean forceRefresh = mForceRefresh.isChecked();
-        return RequestOptions.create(authorityType, loginHint, uiBehavior, dataProfile, userAgent, scopes, extraScopesToConsent, enablePII, forceRefresh);
+        return RequestOptions.create(authorityType, loginHint, uiBehavior, userAgent, scopes, extraScopesToConsent, enablePII, forceRefresh);
     }
 
     static class RequestOptions {
         final Constants.AuthorityType mAuthorityType;
         final String mLoginHint;
         final UiBehavior mUiBehavior;
-        final Constants.DataProfile mDataProfile;
         final Constants.UserAgent mUserAgent;
         final String mScope;
         final String mExtraScope;
@@ -229,12 +224,11 @@ public class AcquireTokenFragment extends Fragment {
         final boolean mForceRefresh;
 
         RequestOptions(final Constants.AuthorityType authorityType, final String loginHint, final UiBehavior uiBehavior,
-                       final Constants.DataProfile dataProfile, final Constants.UserAgent userAgent, final String scope,
+                       final Constants.UserAgent userAgent, final String scope,
                        final String extraScope, final boolean enablePII, final boolean forceRefresh) {
             mAuthorityType = authorityType;
             mLoginHint = loginHint;
             mUiBehavior = uiBehavior;
-            mDataProfile = dataProfile;
             mUserAgent = userAgent;
             mScope = scope;
             mExtraScope = extraScope;
@@ -242,9 +236,9 @@ public class AcquireTokenFragment extends Fragment {
             mForceRefresh = forceRefresh;
         }
 
-        static RequestOptions create(final Constants.AuthorityType authority, final String loginHint, final UiBehavior uiBehavior, final Constants.DataProfile dataProfile,
+        static RequestOptions create(final Constants.AuthorityType authority, final String loginHint, final UiBehavior uiBehavior,
                                      final Constants.UserAgent userAgent, final String scope, final String extraScope, final boolean enablePII, final boolean forceRefresh) {
-            return new RequestOptions(authority, loginHint, uiBehavior, dataProfile, userAgent, scope, extraScope, enablePII, forceRefresh);
+            return new RequestOptions(authority, loginHint, uiBehavior, userAgent, scope, extraScope, enablePII, forceRefresh);
         }
 
         Constants.AuthorityType getAuthorityType() {
@@ -257,10 +251,6 @@ public class AcquireTokenFragment extends Fragment {
 
         UiBehavior getUiBehavior() {
             return mUiBehavior;
-        }
-
-        Constants.DataProfile getDataProfile() {
-            return mDataProfile;
         }
 
         String getScopes() {

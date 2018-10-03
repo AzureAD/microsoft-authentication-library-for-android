@@ -35,13 +35,6 @@ public class Constants {
         AAD_GUEST
     }
 
-    enum DataProfile {
-        MSDEVEX,
-        OFFICE,
-        ONEDRIVE;
-        // Todo: what's the other data profile?
-    }
-
     enum UserAgent {
         DEFAULT,
         BROWSER,
