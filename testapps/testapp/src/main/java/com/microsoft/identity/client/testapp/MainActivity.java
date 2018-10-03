@@ -35,10 +35,13 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.microsoft.identity.client.AuthenticationCallback;
@@ -55,6 +58,7 @@ import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -208,14 +212,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         callAcquireToken(mScopes, mUiBehavior, mLoginHint, mExtraQp, mExtraScopesToConsent);
     }
 
-    public void onRemoveUserClicked() {
+    public void onRemoveUserClicked(String username) {
         final List<IAccount> accountsToRemove = mApplication.getAccounts();
 
         for (final IAccount accountToRemove : accountsToRemove) {
-            mApplication.removeAccount(accountToRemove);
+            if (TextUtils.isEmpty(username) || accountToRemove.getUsername().equals(username.trim().toLowerCase())) {
+                    mApplication.removeAccount(accountToRemove);
+            }
         }
-
-        mSelectedAccount = null;
     }
 
     IAccount getAccount(final String loginHint) {
@@ -231,9 +235,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
+
         final IAccount requestAccount = getAccount(requestOptions.getLoginHint());
 
         callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
+    }
+
+    @Override
+    public void bindSelectAccountSpinner(Spinner selectUser) {
+        final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
+                getApplicationContext(), android.R.layout.simple_spinner_item,
+                new ArrayList<String>() {{
+                    for (IAccount account : mApplication.getAccounts())
+                        add(account.getUsername());
+                }}
+        );
+        userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        selectUser.setAdapter(userAdapter);
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
@@ -242,6 +260,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mUiBehavior = requestOptions.getUiBehavior();
         mEnablePiiLogging = requestOptions.enablePiiLogging();
         mForceRefresh = requestOptions.forceRefresh();
+        Constants.UserAgent userAgent = requestOptions.getUserAgent();
+
 
         final String scopes = requestOptions.getScopes();
         if (scopes == null) {
@@ -250,6 +270,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         mScopes = scopes.toLowerCase().split(" ");
         mExtraScopesToConsent = requestOptions.getExtraScopesToConsent() == null ? null : requestOptions.getExtraScopesToConsent().toLowerCase().split(" ");
+
+        if(userAgent.name().equalsIgnoreCase("BROWSER")){
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config_browser);
+        }else if(userAgent.name().equalsIgnoreCase("WEBVIEW")){
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config_webview);
+        }else {
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
+        }
     }
 
     final String getAuthority(Constants.AuthorityType authorityTypeType) {
