@@ -141,6 +141,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:textSize="12sp"
+                android:text="@string/scope_default_text"
                 android:layout_weight="7"
                 android:hint="@string/scope_text_hint"/>
         </LinearLayout>
