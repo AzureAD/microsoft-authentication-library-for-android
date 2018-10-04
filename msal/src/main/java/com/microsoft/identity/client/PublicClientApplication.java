@@ -785,7 +785,6 @@ public final class PublicClientApplication {
 
         if (StringUtil.isEmpty(requestAuthority)) {
             requestAuthority = Authority.getAuthorityFromAccount(account);
-
             if (requestAuthority == null) {
                 requestAuthority = mAuthorityString;
             }
