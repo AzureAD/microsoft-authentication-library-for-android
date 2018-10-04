@@ -226,8 +226,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         for (final IAccount account : mApplication.getAccounts()) {
             if (account.getUsername().equals(loginHint.trim().toLowerCase())) {
                 return account;
-            } else if (account.getAccountIdentifier().getIdentifier().equals(loginHint.trim().toLowerCase())) {
-                return account;
             }
         }
 
