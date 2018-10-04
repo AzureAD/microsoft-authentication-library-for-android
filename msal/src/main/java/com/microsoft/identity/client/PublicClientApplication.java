@@ -784,10 +784,18 @@ public final class PublicClientApplication {
         String requestAuthority = authority;
 
         if (StringUtil.isEmpty(requestAuthority)) {
-            if (!StringUtil.isEmpty(mAuthorityString)) {
+            if (!StringUtil.isEmpty(mAuthorityString)
+                && null != account.getAccountIdentifier()
+                && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier
+                && null != ((AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier()).getTenantIdentifier()
+                && StringUtil.isEmpty(((AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier()).getTenantIdentifier())) {
                 requestAuthority = mAuthorityString;
             } else {
                 requestAuthority = Authority.getAuthorityFromAccount(account);
+            }
+
+            if (requestAuthority == null) {
+                requestAuthority = mAuthorityString;
             }
         }
 
