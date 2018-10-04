@@ -31,6 +31,7 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -124,6 +125,10 @@ public abstract class Authority {
         }
 
         return authority;
+    }
+
+    public String getAuthorityTypeString() {
+        return mAuthorityTypeString;
     }
 
     public abstract OAuth2Strategy createOAuth2Strategy();
@@ -302,7 +307,8 @@ public abstract class Authority {
         if (null != account
                 && null != account.getAccountIdentifier()
                 && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier
-                && null != (aadIdentifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier()).getTenantIdentifier()) {
+                && null != (aadIdentifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier()).getTenantIdentifier()
+                && !StringUtil.isEmpty(aadIdentifier.getTenantIdentifier())) {
             return "https://"
                     + account.getEnvironment()
                     + "/"

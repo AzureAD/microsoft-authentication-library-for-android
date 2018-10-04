@@ -135,6 +135,7 @@ public final class PublicClientApplication {
     private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
     private static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common/";
+    private static final String B2C_AUTHORITY_TYPE = "b2c";
 
     private final Context mAppContext;
     private final OAuth2TokenCache mOauth2TokenCache;
@@ -784,11 +785,10 @@ public final class PublicClientApplication {
         String requestAuthority = authority;
 
         if (StringUtil.isEmpty(requestAuthority)) {
-            if (!StringUtil.isEmpty(mAuthorityString)
-                && null != account.getAccountIdentifier()
-                && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier
-                && null != ((AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier()).getTenantIdentifier()
-                && StringUtil.isEmpty(((AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier()).getTenantIdentifier())) {
+            if (mPublicClientConfiguration.getAuthorities().size()>0
+                    && mPublicClientConfiguration.getAuthorities().get(0) != null
+                    && mPublicClientConfiguration.getAuthorities().get(0).getAuthorityTypeString().toLowerCase().equals(B2C_AUTHORITY_TYPE)){
+                //If the request type is B2C, the client side should pass in the authority url for silent request.
                 requestAuthority = mAuthorityString;
             } else {
                 requestAuthority = Authority.getAuthorityFromAccount(account);

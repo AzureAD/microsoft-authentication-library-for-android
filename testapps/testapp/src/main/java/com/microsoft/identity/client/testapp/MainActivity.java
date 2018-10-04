@@ -115,8 +115,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Logger.getInstance().setEnableLogcatLog(true);
-        Logger.getInstance().setEnablePII(true);
         setContentView(R.layout.activity_main);
 
         mContentMain = findViewById(R.id.content_main);
@@ -138,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         if (mApplication == null) {
-            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.b2c_config);
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
         }
 
     }
