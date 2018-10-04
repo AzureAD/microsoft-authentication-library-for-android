@@ -1,10 +1,19 @@
 {
-  "client_id" : "e3b9ad76-9763-4827-b088-80c7a7888f79",
-  "redirect_uri" : "msale3b9ad76-9763-4827-b088-80c7a7888f79://auth",
+  "client_id" : "0a7f52dd-260e-432f-94de-b47828c3f372",
+  "authorization_user_agent" : "DEFAULT",
+  "redirect_uri" : "msal0a7f52dd-260e-432f-94de-b47828c3f372://auth",
   "authorities" : [
     {
       "type": "B2C",
-      "authority_url": "https://login.microsoftonline.com/tfp/msidlabb2c.onmicrosoft.com/B2C_1_SISOPolicy/"
+      "authority_url": "https://login.microsoftonline.com/tfp/iosmsalb2c.onmicrosoft.com/B2C_1_Signin",
+      "slice": {
+        "slice": "001-001",
+        "dc": "BL2"
+      }
     }
-  ]
+  ],
+  "logging": {
+    "log_level": "verbose",
+    "pii_enabled": "true"
+  }
 }

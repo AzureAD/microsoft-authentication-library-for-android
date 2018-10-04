@@ -61,14 +61,14 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="msal9851987a-55e5-46e2-8d70-75f8dc060f21"
+                <data android:scheme="msal0a7f52dd-260e-432f-94de-b47828c3f372"
                     android:host="auth" />
             </intent-filter>
         </activity>
 
         <meta-data
             android:name="com.microsoft.identity.client.ClientId"
-            android:value="9851987a-55e5-46e2-8d70-75f8dc060f21"/>
+            android:value="0a7f52dd-260e-432f-94de-b47828c3f372"/>
     </application>
 
 </manifest>
