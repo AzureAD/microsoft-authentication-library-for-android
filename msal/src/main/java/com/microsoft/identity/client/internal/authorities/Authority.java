@@ -127,10 +127,6 @@ public abstract class Authority {
         return authority;
     }
 
-    public String getAuthorityTypeString() {
-        return mAuthorityTypeString;
-    }
-
     public abstract OAuth2Strategy createOAuth2Strategy();
 
     /**
