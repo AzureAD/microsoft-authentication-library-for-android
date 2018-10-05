@@ -24,20 +24,14 @@ package com.microsoft.identity.client.internal.authorities;
 
 import android.net.Uri;
 
-import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
-import com.microsoft.identity.client.IAccount;
-import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
-import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.List;
 
 public class AzureActiveDirectoryB2CAuthority extends Authority {
-    private static String TAG = AzureActiveDirectoryB2CAuthority.class.getSimpleName();
 
     AzureActiveDirectoryB2CAuthority(String authorityUrl) {
         mAuthorityTypeString = "B2C";
