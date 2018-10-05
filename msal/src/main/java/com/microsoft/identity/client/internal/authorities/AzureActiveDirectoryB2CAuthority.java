@@ -24,14 +24,19 @@ package com.microsoft.identity.client.internal.authorities;
 
 import android.net.Uri;
 
+import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
+import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
 public class AzureActiveDirectoryB2CAuthority extends Authority {
+    private static String TAG = AzureActiveDirectoryB2CAuthority.class.getSimpleName();
 
     AzureActiveDirectoryB2CAuthority(String authorityUrl) {
         mAuthorityTypeString = "B2C";
@@ -57,5 +62,33 @@ public class AzureActiveDirectoryB2CAuthority extends Authority {
         MicrosoftStsOAuth2Configuration config = new MicrosoftStsOAuth2Configuration();
         config.setAuthorityUrl(this.getAuthorityURL());
         return new MicrosoftStsOAuth2Strategy(config);
+    }
+
+    public static String getAuthorityFromAccount(final IAccount account) {
+        final String methodName = ":getAuthorityFromAccount";
+        Logger.verbose(
+                TAG + methodName,
+                "Getting authority from account..."
+        );
+
+        final AzureActiveDirectoryAccountIdentifier aadIdentifier;
+        if (null != account
+                && null != account.getAccountIdentifier()
+                && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier
+                && null != (aadIdentifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier()).getTenantIdentifier()
+                && !StringUtil.isEmpty(aadIdentifier.getTenantIdentifier())) {
+            return "https://"
+                    + account.getEnvironment()
+                    + "/tfp/"
+                    + aadIdentifier.getTenantIdentifier()
+                    + "/";
+        } else {
+            Logger.warn(
+                    TAG + methodName,
+                    "Account was null..."
+            );
+        }
+
+        return null;
     }
 }

@@ -39,6 +39,7 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAudience;
+import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.client.internal.configuration.AuthorityDeserializer;
 import com.microsoft.identity.client.internal.configuration.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
@@ -784,7 +785,12 @@ public final class PublicClientApplication {
         String requestAuthority = authority;
 
         if (StringUtil.isEmpty(requestAuthority)) {
-            requestAuthority = Authority.getAuthorityFromAccount(account);
+            if (Authority.getAuthorityFromAuthorityUrl(mAuthorityString) instanceof AzureActiveDirectoryB2CAuthority) {
+                requestAuthority = AzureActiveDirectoryB2CAuthority.getAuthorityFromAccount(account);
+            } else {
+                requestAuthority = Authority.getAuthorityFromAccount(account);
+            }
+
             if (requestAuthority == null) {
                 requestAuthority = mAuthorityString;
             }
