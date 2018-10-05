@@ -785,7 +785,8 @@ public final class PublicClientApplication {
         String requestAuthority = authority;
 
         if (StringUtil.isEmpty(requestAuthority)) {
-            if (Authority.getAuthorityFromAuthorityUrl(mAuthorityString) instanceof AzureActiveDirectoryB2CAuthority) {
+            if (!StringUtil.isEmpty(mAuthorityString)
+                    && Authority.getAuthorityFromAuthorityUrl(mAuthorityString) instanceof AzureActiveDirectoryB2CAuthority) {
                 requestAuthority = AzureActiveDirectoryB2CAuthority.getAuthorityFromAccount(account);
             } else {
                 requestAuthority = Authority.getAuthorityFromAccount(account);
