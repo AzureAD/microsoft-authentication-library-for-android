@@ -785,12 +785,7 @@ public final class PublicClientApplication {
         String requestAuthority = authority;
 
         if (StringUtil.isEmpty(requestAuthority)) {
-            if (!StringUtil.isEmpty(mAuthorityString)
-                    && Authority.getAuthorityFromAuthorityUrl(mAuthorityString) instanceof AzureActiveDirectoryB2CAuthority) {
-                requestAuthority = mAuthorityString;
-            } else {
-                requestAuthority = Authority.getAuthorityFromAccount(account);
-            }
+            requestAuthority = this.getSilentRequestAuthority(account);
 
             if (requestAuthority == null) {
                 requestAuthority = mAuthorityString;
@@ -812,6 +807,28 @@ public final class PublicClientApplication {
         );
 
         MSALApiDispatcher.submitSilent(silentTokenCommand);
+    }
+
+    private String getSilentRequestAuthority(final IAccount account) {
+        String requestAuthority = null;
+
+        // For a B2C request, the silent request will use the passed-in authority string from client app.
+        try {
+            if (!StringUtil.isEmpty(mAuthorityString)
+                    && Authority.getAuthorityFromAuthorityUrl(mAuthorityString) instanceof AzureActiveDirectoryB2CAuthority) {
+                requestAuthority = mAuthorityString;
+            }
+        } catch (final IllegalArgumentException exc) {
+            com.microsoft.identity.common.internal.logging.Logger.warn(TAG, exc.getMessage());
+        }
+
+        // If the request is not a B2C request or the passed-in authority is not a valid URL.
+        // MSAL will construct the request authority based on the account info.
+        if (requestAuthority == null) {
+            requestAuthority = Authority.getAuthorityFromAccount(account);
+        }
+
+        return requestAuthority;
     }
 
     private MSALAcquireTokenSilentOperationParameters getSilentOperationParameters(final String[] scopes,
