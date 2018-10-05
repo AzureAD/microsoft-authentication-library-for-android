@@ -64,37 +64,4 @@ public class AzureActiveDirectoryB2CAuthority extends Authority {
         config.setAuthorityUrl(this.getAuthorityURL());
         return new MicrosoftStsOAuth2Strategy(config);
     }
-
-    public static String getAuthorityFromAccount(final IAccount account, final String authorityUrl) {
-        final String methodName = ":getAuthorityFromAccount";
-        Logger.verbose(
-                TAG + methodName,
-                "Getting authority from account..."
-        );
-        if (!StringUtil.isEmpty(authorityUrl)) {
-            Uri authorityUri = Uri.parse(authorityUrl);
-            List<String> pathSegments = authorityUri.getPathSegments();
-            final AzureActiveDirectoryAccountIdentifier aadIdentifier;
-            if (null != account
-                    && null != account.getAccountIdentifier()
-                    && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier
-                    && null != (aadIdentifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier()).getTenantIdentifier()
-                    && !StringUtil.isEmpty(aadIdentifier.getTenantIdentifier())
-                    && pathSegments.size() >= 2
-                    && !StringUtil.isEmpty(pathSegments.get(1))) {
-                return "https://"
-                        + account.getEnvironment()
-                        + "/tfp/"
-                        + pathSegments.get(1)
-                        + "/";
-            }
-        } else {
-            Logger.warn(
-                    TAG + methodName,
-                    "Account was null..."
-            );
-        }
-
-        return null;
-    }
 }
