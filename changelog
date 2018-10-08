@@ -3,6 +3,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 Version 0.2.0
 ----------------------------
 - Cache schema has been redesigned to support migration from ADAL 1.15.2+
+- SSO and user state will be lost in migration from prior MSAL versions.
 - Added support for authorization via:
     * Embedded WebView
     * Device default browser (not only Chrome)
@@ -19,6 +20,8 @@ Version 0.2.0
         - getUser(String) -> getAccounts(String)
         - removeUser(User) -> removeAccount(IAccount)
         - acquireToken/acquireTokenSilent overloads now accept IAccount parameter
+        - User.getName() -> IAccount.getUserName()
+        - New API's: IAccount.getAccountIdentifier(), IAccount.getHomeAccountIdentifier()
     * Telemetry has been temporarily removed, and will return in a future release
     * PublicClientApplication#setComponent has been removed
     * PublicClientApplication#setValidateAuthority has been removed
