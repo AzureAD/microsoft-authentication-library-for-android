@@ -35,29 +35,31 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
+import android.util.Pair;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ILoggerCallback;
 import com.microsoft.identity.client.Logger;
-import com.microsoft.identity.client.MsalClientException;
-import com.microsoft.identity.client.IMsalEventReceiver;
-import com.microsoft.identity.client.MsalException;
-import com.microsoft.identity.client.MsalServiceException;
-import com.microsoft.identity.client.MsalUiRequiredException;
 import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.Telemetry;
 import com.microsoft.identity.client.UiBehavior;
-import com.microsoft.identity.client.User;
+import com.microsoft.identity.client.exception.MsalArgumentException;
+import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.exception.MsalServiceException;
+import com.microsoft.identity.client.exception.MsalUiRequiredException;
 
 import java.io.Serializable;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * The app's main activity.
@@ -67,32 +69,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    static {
-        Telemetry.getInstance().registerReceiver(new IMsalEventReceiver() {
-            @Override
-            public void onEventsReceived(List<Map<String, String>> events) {
-                Log.d(TAG, "Received events");
-                Log.d(TAG, "Event count: [" + events.size() + "]");
-                for (final Map<String, String> event : events) {
-                    Log.d(TAG, "Begin event --------");
-                    for (final String key : event.keySet()) {
-                        Log.d(TAG, "\t" + key + " :: " + event.get(key));
-                    }
-                    Log.d(TAG, "End event ----------");
-                }
-            }
-        });
-    }
-
     private PublicClientApplication mApplication;
-    private User mUser;
+    private IAccount mSelectedAccount;
     private Handler mHandler;
 
     private String mAuthority;
     private String[] mScopes;
     private UiBehavior mUiBehavior;
     private String mLoginHint;
-    private String mExtraQp;
+    private List<Pair<String, String>> mExtraQp;
     private String[] mExtraScopesToConsent;
     private boolean mEnablePiiLogging;
     private boolean mForceRefresh;
@@ -104,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * When initializing the {@link PublicClientApplication}, all the apps should only provide us the application context instead of
      * the running activity itself. If running activity itself is provided, that will have the sdk hold a strong reference of the activity
      * which could potentially cause the object not correctly garbage collected and cause activity leak.
-     *
+     * <p>
      * External Logger should be provided by the Calling app. The sdk logs to the logcat by default, and loglevel is enabled at verbose level.
      * To set external logger,
      * {@link Logger#setExternalLogger(ILoggerCallback)}.
@@ -116,12 +101,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * Application can also set the component name. There are cases that other sdks will also take dependency on MSAL i.e. microsoft graph sdk
      * or Intune mam sdk, providing the component name will help separate the logs from application and the logs from the sdk running inside of
      * the apps.
-     * To set component name:
-     * {@link PublicClientApplication#setComponent(String)}
-     *
+     * <p>
      * For the {@link AuthenticationCallback}, MSAL exposes three results 1) Success, which contains the {@link AuthenticationResult} 2) Failure case,
      * which contains {@link MsalException} and 3) Cancel, specifically for user canceling the flow.
-     *
+     * <p>
      * For the failure case, MSAL exposes three sub exceptions:
      * 1) {@link MsalClientException}, which is specifically for the exceptions running inside the client app itself, could be no active network,
      * Json parsing failure, etc.
@@ -134,17 +117,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mContentMain = (RelativeLayout) findViewById(R.id.content_main);
+        mContentMain = findViewById(R.id.content_main);
 
-        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        final Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        final DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        final DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, 0, 0);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
-        final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        final NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         if (savedInstanceState == null) {
@@ -153,8 +136,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         if (mApplication == null) {
-            mApplication = new PublicClientApplication(this.getApplicationContext());
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
         }
+
     }
 
     @Override
@@ -169,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (mAuthResult != null) {
                 bundle.putString(ResultFragment.ACCESS_TOKEN, mAuthResult.getAccessToken());
                 bundle.putString(ResultFragment.ID_TOKEN, mAuthResult.getIdToken());
-                bundle.putString(ResultFragment.DISPLAYABLE, mAuthResult.getUser().getDisplayableId());
+                bundle.putString(ResultFragment.DISPLAYABLE, mAuthResult.getAccount().getUsername());
             }
 
             fragment.setArguments(bundle);
@@ -181,11 +165,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             fragment.setArguments(args);
         } else if (menuItemId == R.id.nav_log) {
             fragment = new LogFragment();
-            final String logs = ((MsalSampleApp)this.getApplication()).getLogs();
+            final String logs = ((MsalSampleApp) this.getApplication()).getLogs();
             final Bundle bundle = new Bundle();
             bundle.putString(LogFragment.LOG_MSG, logs);
             fragment.setArguments(bundle);
-        }else {
+        } else {
             fragment = null;
         }
 
@@ -204,22 +188,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         attachFragment(fragment);
     }
 
-    List<User> getUsers() {
-        try {
-            return mApplication.getUsers();
-        } catch (final MsalClientException e) {
-            Log.e(TAG, "Fail to retrieve users: " + e.getMessage(), e);
-        }
-
-        showMessage("No user found.");
-        return Collections.emptyList();
+    List<IAccount> getAccounts() {
+        return mApplication.getAccounts();
     }
 
     private void attachFragment(final Fragment fragment) {
         final FragmentManager fragmentManager = getSupportFragmentManager();
         final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-        final DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        final DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         drawerLayout.closeDrawer(GravityCompat.START);
         fragmentTransaction.replace(mContentMain.getId(), fragment).addToBackStack(null).commit();
     }
@@ -235,48 +212,46 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         callAcquireToken(mScopes, mUiBehavior, mLoginHint, mExtraQp, mExtraScopesToConsent);
     }
 
-    public void onRemoveUserClicked() {
-        try {
-            final List<User> users = mApplication.getUsers();
-            for (final User user : users) {
-                mApplication.remove(user);
-            }
-        } catch (final MsalClientException e) {
-            Log.e(TAG, "Fail to retrieve users: " + e.getMessage(), e);
-        }
+    public void onRemoveUserClicked(String username) {
+        final List<IAccount> accountsToRemove = mApplication.getAccounts();
 
-        mUser = null;
+        for (final IAccount accountToRemove : accountsToRemove) {
+            if (TextUtils.isEmpty(username) || accountToRemove.getUsername().equals(username.trim().toLowerCase())) {
+                    mApplication.removeAccount(accountToRemove);
+            }
+        }
     }
 
-    User getUser(String loginHint) {
-        try {
-            final List<User> users = mApplication.getUsers();
-            for (final User user : users) {
-                if (user.getDisplayableId().equals(loginHint.trim().toLowerCase())) {
-                    return user;
-                }
+    IAccount getAccount(final String loginHint) {
+        for (final IAccount account : mApplication.getAccounts()) {
+            if (account.getUsername().equals(loginHint.trim().toLowerCase())) {
+                return account;
             }
-
-            showMessage("No record of user with this login hint.");
-        } catch (final MsalClientException e) {
-            Log.e(TAG, "Fail to retrieve users: " + e.getMessage(), e);
         }
 
         return null;
     }
 
-
     @Override
     public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
-        final User requestUser = getUser(requestOptions.getLoginHint());
 
-        if (requestUser == null) {
-            showMessage("Please select an user.");
-            return;
-        }
+        final IAccount requestAccount = getAccount(requestOptions.getLoginHint());
 
-        callAcquireTokenSilent(mScopes, requestUser, mForceRefresh);
+        callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
+    }
+
+    @Override
+    public void bindSelectAccountSpinner(Spinner selectUser) {
+        final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
+                getApplicationContext(), android.R.layout.simple_spinner_item,
+                new ArrayList<String>() {{
+                    for (IAccount account : mApplication.getAccounts())
+                        add(account.getUsername());
+                }}
+        );
+        userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        selectUser.setAdapter(userAdapter);
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
@@ -285,6 +260,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mUiBehavior = requestOptions.getUiBehavior();
         mEnablePiiLogging = requestOptions.enablePiiLogging();
         mForceRefresh = requestOptions.forceRefresh();
+        Constants.UserAgent userAgent = requestOptions.getUserAgent();
+
 
         final String scopes = requestOptions.getScopes();
         if (scopes == null) {
@@ -293,11 +270,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         mScopes = scopes.toLowerCase().split(" ");
         mExtraScopesToConsent = requestOptions.getExtraScopesToConsent() == null ? null : requestOptions.getExtraScopesToConsent().toLowerCase().split(" ");
+
+        if(userAgent.name().equalsIgnoreCase("BROWSER")){
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config_browser);
+        }else if(userAgent.name().equalsIgnoreCase("WEBVIEW")){
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config_webview);
+        }else {
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
+        }
     }
 
     final String getAuthority(Constants.AuthorityType authorityTypeType) {
         switch (authorityTypeType) {
-            case AAD_COMMON :
+            case AAD_COMMON:
                 return Constants.AAD_AUTHORITY;
             case B2C:
                 return "B2c is not configured yet";
@@ -310,12 +295,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         throw new IllegalArgumentException("Not supported authority type");
     }
 
-    void setUser(final User user) {
-        mUser = user;
+    void setUser(final IAccount user) {
+        mSelectedAccount = user;
     }
 
-    private void callAcquireToken(final String[] scopes, final UiBehavior uiBehavior, final String loginHint,
-                                  final String extraQueryParam, final String[] extraScope) {
+    private void callAcquireToken(final String[] scopes,
+                                  final UiBehavior uiBehavior,
+                                  final String loginHint,
+                                  final List<Pair<String, String>> extraQueryParam,
+                                  final String[] extraScope) {
         // The sample app is having the PII enable setting on the MainActivity. Ideally, app should decide to enable Pii or not,
         // if it's enabled, it should be  the setting when the application is onCreate.
         if (mEnablePiiLogging) {
@@ -325,15 +313,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         try {
-            mApplication.acquireToken(this, scopes, loginHint, uiBehavior, extraQueryParam, extraScope,
-                    null, getAuthenticationCallback());
+            mApplication.acquireToken(
+                    this,
+                    scopes,
+                    loginHint,
+                    uiBehavior,
+                    extraQueryParam,
+                    extraScope,
+                    null,
+                    getAuthenticationCallback()
+            );
         } catch (IllegalArgumentException e) {
-            showMessage("Scope cannot be blank.");
+            showMessage(e.getMessage());
         }
     }
 
-    private void callAcquireTokenSilent(final String[] scopes, final User user,  boolean forceRefresh) {
-        mApplication.acquireTokenSilentAsync(scopes, user, null, forceRefresh, getAuthenticationCallback());
+    private void callAcquireTokenSilent(final String[] scopes,
+                                        final IAccount account,
+                                        boolean forceRefresh) {
+        mApplication.acquireTokenSilentAsync(
+                scopes,
+                account,
+                null,
+                forceRefresh,
+                getAuthenticationCallback()
+        );
     }
 
     private AuthenticationCallback getAuthenticationCallback() {
@@ -343,7 +347,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onSuccess(AuthenticationResult authenticationResult) {
                 mAuthResult = authenticationResult;
                 onNavigationItemSelected(getNavigationView().getMenu().getItem(1));
-                mUser = null;
+                mSelectedAccount = null;
             }
 
             @Override
@@ -356,6 +360,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 } else if (exception instanceof MsalServiceException) {
                     // This means something is wrong when the sdk is communication to the service, mostly likely it's the client
                     // configuration.
+                    showMessage(exception.getMessage());
+                } else if (exception instanceof MsalArgumentException) {
                     showMessage(exception.getMessage());
                 } else if (exception instanceof MsalUiRequiredException) {
                     // This explicitly indicates that developer needs to prompt the user, it could be refresh token is expired, revoked

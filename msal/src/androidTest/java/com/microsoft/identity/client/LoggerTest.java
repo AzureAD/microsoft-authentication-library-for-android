@@ -28,6 +28,8 @@ import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
+import com.microsoft.identity.client.internal.MsalUtils;
+
 import junit.framework.Assert;
 
 import org.junit.After;
@@ -36,6 +38,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.UUID;
+
+import static com.microsoft.identity.msal.BuildConfig.VERSION_NAME;
 
 /**
  * Tests for {@link Logger}.
@@ -98,7 +102,7 @@ public final class LoggerTest {
 
         // log an empty message
         Logger.verbose(TAG, REQUEST_CONTEXT_WITH_COMPONENT, "");
-        verifyLogMessageFormat(LOG_RESPONSE, "N/A", REQUEST_CONTEXT_WITH_COMPONENT, null);
+        verifyLogMessageFormat(LOG_RESPONSE, "", REQUEST_CONTEXT_WITH_COMPONENT, null);
         LOG_RESPONSE.reset();
 
         // verify info logs are generated
@@ -279,11 +283,15 @@ public final class LoggerTest {
 
     private void verifyLogMessageFormat(final LogResponse response, final String message, final RequestContext requestContext,
                                         final Throwable throwable) {
-        Assert.assertTrue(response.getMessage().contains("MSAL " + PublicClientApplication.getSdkVersion() + " Android " + Build.VERSION.SDK_INT + " ["));
+        Assert.assertTrue(response.getMessage().contains(" SDK ver:" + VERSION_NAME + " Android " + Build.VERSION.SDK_INT));
         if (requestContext != null && (requestContext.getCorrelationId() != null || !MsalUtils.isEmpty(requestContext.getComponent()))) {
             if (requestContext.getCorrelationId() != null && !MsalUtils.isEmpty(requestContext.getComponent())) {
-                Assert.assertTrue(response.getMessage().contains(" - " + requestContext.getCorrelationId().toString() + "] (" + requestContext.getComponent()
-                        + ") " + message + getStackTrace(throwable)));
+                final String expectedStr = " - " + requestContext.getCorrelationId().toString()
+                        + "] (" + requestContext.getComponent() + ") " + message
+                        + " SDK ver:" + VERSION_NAME
+                        + " Android " + Build.VERSION.SDK_INT
+                        + (throwable == null ? "" : '\n' + Log.getStackTraceString(throwable));
+                Assert.assertTrue(response.getMessage().contains(expectedStr));
             } else if (requestContext.getCorrelationId() != null) {
                 Assert.assertTrue(response.getMessage().contains(" - " + requestContext.getCorrelationId().toString() + "] " + message + getStackTrace(throwable)));
             } else {

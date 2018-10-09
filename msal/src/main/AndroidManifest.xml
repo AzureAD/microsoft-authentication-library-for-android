@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.microsoft.identity.msal"
-    android:versionCode="1"
-    android:versionName="1.0.0">
-
-    <uses-sdk
-        android:minSdkVersion="21"
-        android:targetSdkVersion="25" />
+    package="com.microsoft.identity.msal">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -16,6 +10,12 @@
         <activity
             android:name="com.microsoft.identity.client.AuthenticationActivity"
             android:configChanges="orientation|keyboardHidden|screenSize" />
+
+        <activity
+            android:name="com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:launchMode="singleTask"/>
+
 
         <!-- MSAL will use system webview (custom tab) to render the sign-in page, BrowserTabActivity is to get response back from System Webview. Multiple apps on the device could integrate MSAL, OS will check which BrowserTabActivity can handle the intent based on the intent filter declared, so this activity has to be exported.-->
         <activity

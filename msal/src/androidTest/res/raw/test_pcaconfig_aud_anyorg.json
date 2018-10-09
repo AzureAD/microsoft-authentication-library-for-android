@@ -1,0 +1,21 @@
+{
+  "authorities": [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADMultipleOrgs"
+      },
+      "default": true
+    }
+  ],
+  "authorization_user_agent": "DEFAULT",
+  "http": {
+    "connect_timeout": 10000,
+    "read_timeout": 30000
+  },
+  "logging": {
+    "log_level": "verbose",
+    "pii_enabled": "false"
+  },
+  "token_expiration_buffer": 5000
+}

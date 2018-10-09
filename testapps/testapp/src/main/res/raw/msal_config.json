@@ -1,0 +1,13 @@
+{
+  "client_id" : "9851987a-55e5-46e2-8d70-75f8dc060f21",
+  "authorization_user_agent" : "DEFAULT",
+  "redirect_uri" : "msal9851987a-55e5-46e2-8d70-75f8dc060f21://auth",
+  "authorities" : [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADandPersonalMicrosoftAccount"
+      }
+    }
+  ]
+}

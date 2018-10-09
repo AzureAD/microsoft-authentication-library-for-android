@@ -27,7 +27,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
         applicationId "com.microsoft.identity.client.sample"
@@ -42,12 +41,31 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    lintOptions {
+        abortOnError false
+    }
+    flavorDimensions "main"
+
+    productFlavors {
+        local {
+            applicationIdSuffix ".local"
+            versionNameSuffix "-local"
+            resValue("string", "application_name", "msal-local")
+        }
+        dist {
+            applicationIdSuffix ".dist"
+            versionNameSuffix "-dist"
+            resValue("string", "application_name", "msal-dist")
+        }
+    }
 }
 
 dependencies {
     // Compile Dependency
-    compile project(':msal')
-    compile "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
-    compile "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
-    compile "com.android.support:design:$rootProject.ext.supportLibraryVersion"
+    implementation project(':msal')
+    implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
+    implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
+    implementation "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
+    implementation "com.android.support:design:$rootProject.ext.supportLibraryVersion"
 }

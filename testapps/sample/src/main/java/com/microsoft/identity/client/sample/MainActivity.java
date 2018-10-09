@@ -25,17 +25,15 @@ package com.microsoft.identity.client.sample;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 
-import com.microsoft.identity.client.IMsalEventReceiver;
-import com.microsoft.identity.client.MsalException;
-import com.microsoft.identity.client.MsalUiRequiredException;
-import com.microsoft.identity.client.Telemetry;
+import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.exception.MsalUiRequiredException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -43,8 +41,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.List;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity
         implements GraphDataFragment.OnFragmentInteractionListener, SigninFragment.OnFragmentInteractionListener,
@@ -53,23 +49,6 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG = MainActivity.class.getSimpleName();
     private final static String MSGRAPH_URL = "https://graph.microsoft.com/v1.0/me";
     private AuthUtil mAuthUtil;
-
-    static {
-        Telemetry.getInstance().registerReceiver(new IMsalEventReceiver() {
-            @Override
-            public void onEventsReceived(List<Map<String, String>> events) {
-                Log.d(TAG, "Received events");
-                Log.d(TAG, "Event count: [" + events.size() + "]");
-                for (final Map<String, String> event : events) {
-                    Log.d(TAG, "Begin event --------");
-                    for (final String key : event.keySet()) {
-                        Log.d(TAG, "\t" + key + " :: " + event.get(key));
-                    }
-                    Log.d(TAG, "End event ----------");
-                }
-            }
-        });
-    }
 
     // Called from SigninFragment when the signin button is clicked
     @Override

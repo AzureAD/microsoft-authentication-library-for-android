@@ -29,18 +29,34 @@ package com.microsoft.identity.client;
 public enum UiBehavior {
 
     /**
-     * AcquireToken will send prompt=select_account to the authorize endpoint. Shows a list of users from which can be
+     * acquireToken will send prompt=select_account to the authorize endpoint. Shows a list of users from which can be
      * selected for authentication.
      */
     SELECT_ACCOUNT,
 
     /**
-     * AcquireToken will send prompt=login to the authorize endpoint.  The user will always be prompted for credentials by the service.
+     * acquireToken will send prompt=login to the authorize endpoint.  The user will always be prompted for credentials by the service.
+     * <p>
+     * toString override is to enable the correct protocol value of login to be returned instead of "force_login".
      */
     FORCE_LOGIN,
 
     /**
-     * AcquireToken will send prompt=consent to the authorize endpoint.  The user will be prompted to consent even if consent was granted before.
+     * acquireToken will send prompt=consent to the authorize endpoint.  The user will be prompted to consent even if consent was granted before.
      */
-    CONSENT
+    CONSENT;
+
+    @Override
+    public String toString() {
+        switch (this) {
+            case SELECT_ACCOUNT:
+                return SELECT_ACCOUNT.name().toLowerCase();
+            case FORCE_LOGIN:
+                return "login";
+            case CONSENT:
+                return CONSENT.name().toLowerCase();
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
 }

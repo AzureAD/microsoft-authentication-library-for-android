@@ -14,23 +14,31 @@ android:
     # Travis has a bug that we need to workaround to use sdk 25
     # https://github.com/travis-ci/travis-ci/issues/6059
     - tools
-    - tools
     - platform-tools
-    - build-tools-25.0.3
+    - build-tools-27.0.3
     - android-25
+    - android-27
     - extra
     - extra-android-m2repository
     - extra-google-m2repository
     - addon-google_apis-google-21
+    ## Emulator config ##
+    # The SDK version used for the emulator
+    - android-21
     #system images
     - sys-img-armeabi-v7a-addon-google_apis-google-21
+
+licenses:
+    - 'android-sdk-preview-license-.+'
+    - 'android-sdk-license-.+'
+    - 'google-gdk-license-.+'
 
 env:
     global:
       # This is to guaratee a clean gradle log
       - TERM=dumb
     matrix:
-      - ANDROID_SDKS=android-25 ANDROID_TARGET=android-25
+      - ANDROID_SDKS=android-27 ANDROID_TARGET=android-27
 
 before_install:
   - chmod +x gradlew
@@ -52,4 +60,4 @@ before_script:
 
 script:
   - cd $PWD
-  - ./gradlew clean assembleRelease connectedAndroidTest -PdisablePreDex
+  - ./gradlew clean msal:assembleLocal msal:connectedLocalDebugAndroidTest -PdisablePreDex

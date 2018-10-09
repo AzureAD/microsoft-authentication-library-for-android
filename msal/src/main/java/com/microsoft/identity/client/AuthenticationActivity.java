@@ -33,6 +33,10 @@ import android.support.customtabs.CustomTabsIntent;
 import android.support.customtabs.CustomTabsServiceConnection;
 import android.support.customtabs.CustomTabsSession;
 
+import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.internal.MsalUtils;
+import com.microsoft.identity.client.internal.telemetry.UiEvent;
+
 import java.lang.ref.WeakReference;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -64,6 +68,7 @@ public final class AuthenticationActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         mChromePackageWithCustomTabSupport = MsalUtils.getChromePackageWithCustomTabSupport(getApplicationContext());
+
 
         // If activity is killed by the os, savedInstance will be the saved bundle.
         if (savedInstanceState != null) {
@@ -105,6 +110,7 @@ public final class AuthenticationActivity extends Activity {
         super.onStart();
         if (mChromePackageWithCustomTabSupport != null) {
             warmUpCustomTabs();
+
         }
     }
 
@@ -154,6 +160,8 @@ public final class AuthenticationActivity extends Activity {
 
     private static class MsalCustomTabsServiceConnection extends CustomTabsServiceConnection {
 
+        private static final String TAG = MsalCustomTabsServiceConnection.class.getSimpleName();
+
         private final WeakReference<CountDownLatch> mLatchWeakReference;
         private CustomTabsClient mCustomTabsClient;
         private CustomTabsSession mCustomTabsSession;
@@ -165,6 +173,12 @@ public final class AuthenticationActivity extends Activity {
 
         @Override
         public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
+            final String methodName = ":onCustomTabsServiceConnected";
+            com.microsoft.identity.common.internal.logging.Logger.info(
+                    TAG + methodName,
+                    "Connected."
+            );
+
             final CountDownLatch latch = mLatchWeakReference.get();
 
             mCustomTabsServiceIsBound = true;
@@ -174,12 +188,21 @@ public final class AuthenticationActivity extends Activity {
 
             if (null != latch) {
                 latch.countDown();
+                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                        TAG + methodName,
+                        "Decrementing latch"
+                );
             }
         }
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
+            final String methodName = ":onServiceDisconnected";
             mCustomTabsServiceIsBound = false;
+            com.microsoft.identity.common.internal.logging.Logger.info(
+                    TAG + methodName,
+                    "Disconnected."
+            );
         }
 
         /**
@@ -288,4 +311,5 @@ public final class AuthenticationActivity extends Activity {
         errorIntent.putExtra(Constants.UIResponse.ERROR_DESCRIPTION, errorDescription);
         returnToCaller(Constants.UIResponse.AUTH_CODE_ERROR, errorIntent);
     }
+
 }

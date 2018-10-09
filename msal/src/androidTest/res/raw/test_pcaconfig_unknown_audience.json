@@ -1,0 +1,18 @@
+{
+  "client_id": "4f528e7e-c610-4f77-bde6-8c9aace1a5a4",
+  "redirect_uri": "test://a.redirectUri.com",
+  "authorities": [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "foo"
+      },
+      "default": true
+    }
+  ],
+  "authorization_user_agent": "DEFAULT",
+  "http": {
+    "connect_timeout": 10000,
+    "read_timeout": 30000
+  }
+}

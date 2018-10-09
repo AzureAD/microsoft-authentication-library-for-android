@@ -1,0 +1,17 @@
+{
+  "redirect_uri": "test://a.redirectUri.com",
+  "authorities": [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADandPersonalMicrosoftAccount"
+      },
+      "default": true
+    }
+  ],
+  "authorization_user_agent": "DEFAULT",
+  "http": {
+    "connect_timeout": 10000,
+    "read_timeout": 30000
+  }
+}

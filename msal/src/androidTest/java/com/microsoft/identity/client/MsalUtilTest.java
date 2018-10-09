@@ -26,6 +26,7 @@ package com.microsoft.identity.client;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -33,6 +34,8 @@ import android.content.pm.ServiceInfo;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
+
+import com.microsoft.identity.client.internal.MsalUtils;
 
 import org.json.JSONException;
 import org.junit.Assert;
@@ -268,10 +271,18 @@ public final class MsalUtilTest {
 
         Assert.assertNull(MsalUtils.getChromePackage(mockedContext));
 
-        // The three chrome package all exists on the device, return the stable chrome package name.
+        //Chrome package exists in the device but is disabled
+        final PackageInfo mockedPackageInfo = Mockito.mock(PackageInfo.class);
+        final ApplicationInfo mockedApplicationInfo = Mockito.mock(ApplicationInfo.class);
         Mockito.when(mockedPackageManager.getPackageInfo(Matchers.refEq(MsalUtils.CHROME_PACKAGE),
-                Matchers.eq(PackageManager.GET_ACTIVITIES))).thenReturn(Mockito.mock(PackageInfo.class));
+                Matchers.eq(PackageManager.GET_ACTIVITIES))).thenReturn(mockedPackageInfo);
 
+        mockedPackageInfo.applicationInfo = mockedApplicationInfo;
+        mockedApplicationInfo.enabled = false;
+        Assert.assertNull(MsalUtils.getChromePackage(mockedContext));
+
+        // The three chrome package all exists on the device, return the stable chrome package name.
+        mockedApplicationInfo.enabled = true;
         Assert.assertTrue(MsalUtils.getChromePackage(mockedContext).equals(MsalUtils.CHROME_PACKAGE));
     }
 

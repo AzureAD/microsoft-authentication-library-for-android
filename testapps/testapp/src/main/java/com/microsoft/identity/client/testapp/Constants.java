@@ -35,11 +35,10 @@ public class Constants {
         AAD_GUEST
     }
 
-    enum DataProfile {
-        MSDEVEX,
-        OFFICE,
-        ONEDRIVE;
-        // Todo: what's the other data profile?
+    enum UserAgent {
+        DEFAULT,
+        BROWSER,
+        WEBVIEW
     }
 
     final static String AAD_AUTHORITY = "https://login.microsoftonline.com/common";

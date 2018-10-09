@@ -1,0 +1,21 @@
+{
+  "authorities": [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADMyOrg"
+      },
+      "default": true
+    }
+  ],
+  "authorization_user_agent": "DEFAULT",
+  "http": {
+    "connect_timeout": 10000,
+    "read_timeout": 30000
+  },
+  "logging": {
+    "log_level": "warning",
+    "pii_enabled": "false"
+  },
+  "token_expiration_buffer": 5000
+}

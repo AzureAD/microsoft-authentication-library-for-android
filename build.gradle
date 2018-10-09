@@ -1,19 +1,33 @@
+// Load credentials for VSTS Maven
+project.ext.vstsUsername = System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") : project.findProperty("vstsUsername")
+project.ext.vstsPassword = System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") : project.findProperty("vstsADALAndroidInternalGradleAccessToken")
+
 buildscript {
     apply from: rootProject.file("gradle/versions.gradle")
 
     repositories {
         jcenter()
+        google()
     }
 
     dependencies {
         classpath "com.android.tools.build:gradle:$rootProject.ext.gradleVersion"
-        classpath "com.github.dcendents:android-maven-gradle-plugin:$rootProject.ext.androidMavenGradlePluginVersion"
     }
 }
 
 allprojects {
     repositories {
+        mavenLocal()
         jcenter()
+        google()
+        maven {
+            name "vsts-maven-adal-android"
+            url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
+            credentials {
+                username project.vstsUsername
+                password project.vstsPassword
+            }
+        }
     }
 }
 

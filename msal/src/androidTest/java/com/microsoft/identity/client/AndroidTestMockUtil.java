@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.client;
 
+import com.microsoft.identity.common.internal.net.HttpUrlConnectionFactory;
+
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -74,6 +76,12 @@ public final class AndroidTestMockUtil {
     static void mockSuccessInstanceDiscovery(final String tenantDiscoveryEndpoint) throws IOException {
         final HttpURLConnection mockedConnection = getMockedConnectionWithSuccessResponse(
                 AndroidTestUtil.getSuccessInstanceDiscoveryResponse(tenantDiscoveryEndpoint));
+        HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
+    }
+
+    static void mockSuccessInstanceDiscoveryAPIVersion1_1() throws IOException {
+        final HttpURLConnection mockedConnection = getMockedConnectionWithSuccessResponse(
+                AndroidTestUtil.getSuccessInstanceDiscoveryResponseAPIVersion1_1());
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
     }
 
