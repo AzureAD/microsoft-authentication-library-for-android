@@ -23,16 +23,19 @@
 package com.microsoft.identity.client.internal.authorities;
 
 import com.google.gson.annotations.SerializedName;
+import com.microsoft.identity.common.internal.logging.Logger;
 
 public abstract class AzureActiveDirectoryAudience {
+
+    private static final String TAG = AzureActiveDirectoryAudience.class.getSimpleName();
 
     private String cloudUrl;
     @SerializedName("tenant_id")
     private String tenantId;
 
-    private static final String ORGANIZATIONS = "organizations";
-    private static final String CONSUMERS = "consumers";
-    private static final String ALL = "common";
+    public static final String ORGANIZATIONS = "organizations";
+    public static final String CONSUMERS = "consumers";
+    public static final String ALL = "common";
 
     public String getCloudUrl() {
         return this.cloudUrl;
@@ -52,19 +55,36 @@ public abstract class AzureActiveDirectoryAudience {
 
     public static AzureActiveDirectoryAudience getAzureActiveDirectoryAudience(final String cloudUrl,
                                                                                final String tenantId) {
+        final String methodName = ":getAzureActiveDirectoryAudience";
         AzureActiveDirectoryAudience audience = null;
 
         switch (tenantId.toLowerCase()) {
             case ORGANIZATIONS:
+                Logger.verbose(
+                        TAG + methodName,
+                        "Audience: AnyOrganizationalAccount"
+                );
                 audience = new AnyOrganizationalAccount(cloudUrl);
                 break;
             case CONSUMERS:
+                Logger.verbose(
+                        TAG + methodName,
+                        "Audience: AnyPersonalAccount"
+                );
                 audience = new AnyPersonalAccount();
                 break;
             case ALL:
+                Logger.verbose(
+                        TAG + methodName,
+                        "Audience: AllAccounts"
+                );
                 audience = new AllAccounts();
                 break;
             default:
+                Logger.verbose(
+                        TAG + methodName,
+                        "Audience: AccountsInOneOrganization"
+                );
                 audience = new AccountsInOneOrganization(cloudUrl, tenantId);
         }
 

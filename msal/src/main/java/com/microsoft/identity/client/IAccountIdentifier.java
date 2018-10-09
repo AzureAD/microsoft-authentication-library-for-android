@@ -22,10 +22,12 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import java.io.Serializable;
+
 /**
  * Interface describing an identifier with a {@link String} representation.
  */
-public interface IAccountIdentifier {
+public interface IAccountIdentifier extends Serializable {
 
     /**
      * Gets the identifier.

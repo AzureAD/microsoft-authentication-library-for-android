@@ -25,7 +25,6 @@ package com.microsoft.identity.client.internal.telemetry;
 
 import android.util.Pair;
 
-import com.microsoft.identity.client.Telemetry;
 import com.microsoft.identity.client.internal.MsalUtils;
 
 import java.util.ArrayList;
@@ -119,7 +118,7 @@ public class Event extends ArrayList<Pair<String, String>> {
      * @return True, if the field can be reported. False otherwise.
      */
     public static boolean isPrivacyCompliant(final String fieldName) {
-        return Telemetry.getAllowPii() || !TelemetryUtils.GDPR_FILTERED_FIELDS.contains(fieldName);
+        return /*Telemetry.getAllowPii() ||*/ !TelemetryUtils.GDPR_FILTERED_FIELDS.contains(fieldName);
     }
 
     /**

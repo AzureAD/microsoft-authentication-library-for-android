@@ -39,6 +39,7 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAudience;
+import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.client.internal.configuration.AuthorityDeserializer;
 import com.microsoft.identity.client.internal.configuration.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
@@ -740,6 +741,10 @@ public final class PublicClientApplication {
                                         @NonNull final AuthenticationCallback callback) {
         String requestAuthority = Authority.getAuthorityFromAccount(account);
 
+        if (null == requestAuthority) {
+            requestAuthority = mAuthorityString;
+        }
+
         final MSALAcquireTokenSilentOperationParameters params = getSilentOperationParameters(
                 scopes,
                 requestAuthority,
@@ -780,7 +785,8 @@ public final class PublicClientApplication {
         String requestAuthority = authority;
 
         if (StringUtil.isEmpty(requestAuthority)) {
-            requestAuthority = Authority.getAuthorityFromAccount(account);
+            requestAuthority = this.getSilentRequestAuthority(account);
+
             if (requestAuthority == null) {
                 requestAuthority = mAuthorityString;
             }
@@ -801,6 +807,28 @@ public final class PublicClientApplication {
         );
 
         MSALApiDispatcher.submitSilent(silentTokenCommand);
+    }
+
+    private String getSilentRequestAuthority(final IAccount account) {
+        String requestAuthority = null;
+
+        // For a B2C request, the silent request will use the passed-in authority string from client app.
+        try {
+            if (!StringUtil.isEmpty(mAuthorityString)
+                    && Authority.getAuthorityFromAuthorityUrl(mAuthorityString) instanceof AzureActiveDirectoryB2CAuthority) {
+                requestAuthority = mAuthorityString;
+            }
+        } catch (final IllegalArgumentException exc) {
+            com.microsoft.identity.common.internal.logging.Logger.warn(TAG, exc.getMessage());
+        }
+
+        // If the request is not a B2C request or the passed-in authority is not a valid URL.
+        // MSAL will construct the request authority based on the account info.
+        if (requestAuthority == null) {
+            requestAuthority = Authority.getAuthorityFromAccount(account);
+        }
+
+        return requestAuthority;
     }
 
     private MSALAcquireTokenSilentOperationParameters getSilentOperationParameters(final String[] scopes,
@@ -826,6 +854,11 @@ public final class PublicClientApplication {
     }
 
     private void loadMetaDataFromManifest() {
+        final String methodName = ":loadMetaDataFromManifest";
+        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                TAG + methodName,
+                "Loading metadata from manifest..."
+        );
         final ApplicationInfo applicationInfo = MsalUtils.getApplicationInfo(mAppContext);
         if (applicationInfo == null || applicationInfo.metaData == null) {
             throw new IllegalArgumentException("No meta-data exists");
@@ -903,6 +936,11 @@ public final class PublicClientApplication {
     }
 
     private PublicClientApplicationConfiguration loadDefaultConfiguration(@NonNull final Context context) {
+        final String methodName = ":loadDefaultConfiguration";
+        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                TAG + methodName,
+                "Loading default configuration"
+        );
         return loadConfiguration(context, R.raw.msal_default_config);
     }
 
@@ -937,7 +975,12 @@ public final class PublicClientApplication {
      * Otherwise the library will use the configured redirect URI.
      */
     private String createRedirectUri(final String clientId) {
+        final String methodName = ":createRedirectUri";
         if (!StringUtil.isEmpty(mPublicClientConfiguration.getRedirectUri())) {
+            com.microsoft.identity.common.internal.logging.Logger.verbose(
+                    TAG + methodName,
+                    "Returning redirectUri from configuration"
+            );
             return mPublicClientConfiguration.getRedirectUri();
         } else {
             return "msal" + clientId + "://auth";
@@ -952,10 +995,15 @@ public final class PublicClientApplication {
                                                                                   @Nullable final String[] extraScopesToConsent,
                                                                                   @Nullable final String authority,
                                                                                   @Nullable final IAccount account) {
+        final String methodName = ":getInteractiveOperationParameters";
         final MSALAcquireTokenOperationParameters params = new MSALAcquireTokenOperationParameters();
 
         if (StringUtil.isEmpty(authority)) {
             if (mPublicClientConfiguration.isDefaultAuthorityConfigured()) {
+                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                        TAG + methodName,
+                        "Using default configured authority"
+                );
                 params.setAuthority(mPublicClientConfiguration.getDefaultAuthority());
             } else {
                 params.setAuthority(Authority.getAuthorityFromAuthorityUrl(mAuthorityString));
@@ -963,6 +1011,11 @@ public final class PublicClientApplication {
         } else {
             params.setAuthority(Authority.getAuthorityFromAuthorityUrl(authority));
         }
+
+        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                TAG + methodName,
+                "Using authority: [" + params.getAuthority().getAuthorityUri() + "]"
+        );
 
         params.setScopes(new ArrayList<>(Arrays.asList(scopes)));
         params.setClientId(mClientId);
@@ -984,7 +1037,7 @@ public final class PublicClientApplication {
         }
 
         if (uiBehavior == null) {
-            params.setUIBehavior(uiBehavior.SELECT_ACCOUNT);
+            params.setUIBehavior(UiBehavior.SELECT_ACCOUNT);
         } else {
             params.setUIBehavior(uiBehavior);
         }
@@ -1007,6 +1060,11 @@ public final class PublicClientApplication {
             MicrosoftStsTokenResponse,
             MicrosoftAccount,
             MicrosoftRefreshToken> initCommonCache(final Context context) {
+        final String methodName = ":initCommonCache";
+        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                TAG + methodName,
+                "Initializing common cache"
+        );
         // Init the new-schema cache
         final ICacheKeyValueDelegate cacheKeyValueDelegate = new CacheKeyValueDelegate();
         final IStorageHelper storageHelper = new StorageHelper(context);

@@ -28,6 +28,7 @@ import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.client.exception.MsalUserCancelException;
 import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationErrorResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenErrorResponse;
@@ -38,32 +39,51 @@ import java.io.IOException;
 
 public class ExceptionAdapter {
 
+    private static final String TAG = ExceptionAdapter.class.getSimpleName();
+
     public static MsalException exceptionFromAcquireTokenResult(final AcquireTokenResult result) {
+        final String methodName = ":exceptionFromAcquireTokenResult";
         final AuthorizationResult authorizationResult = result.getAuthorizationResult();
-        final AuthorizationErrorResponse authorizationErrorResponse = authorizationResult.getAuthorizationErrorResponse();
+
+        if (null != authorizationResult) {
+            final AuthorizationErrorResponse authorizationErrorResponse = authorizationResult.getAuthorizationErrorResponse();
+            if (!authorizationResult.getSuccess()) {
+                //THERE ARE CURRENTLY NO USAGES of INVALID_REQUEST
+                switch (result.getAuthorizationResult().getAuthorizationStatus()) {
+                    case FAIL:
+                        return new MsalServiceException(authorizationErrorResponse.getError(), authorizationErrorResponse.getError() + ";"
+                                + authorizationErrorResponse.getErrorDescription(), MsalServiceException.DEFAULT_STATUS_CODE, null);
+                    case USER_CANCEL:
+                        return new MsalUserCancelException();
+
+                }
+            }
+        } else {
+            Logger.warn(
+                    TAG + methodName,
+                    "AuthorizationResult was null -- expected for ATS cases."
+            );
+        }
+
         final TokenResult tokenResult = result.getTokenResult();
         final TokenErrorResponse tokenErrorResponse;
 
-        if (!authorizationResult.getSuccess()) {
-            //THERE ARE CURRENTLY NO USAGES of INVALID_REQUEST
-            switch (result.getAuthorizationResult().getAuthorizationStatus()) {
-                case FAIL:
-                    return new MsalServiceException(authorizationErrorResponse.getError(), authorizationErrorResponse.getError() + ";"
-                            + authorizationErrorResponse.getErrorDescription(), MsalServiceException.DEFAULT_STATUS_CODE, null);
-                case USER_CANCEL:
-                    return new MsalUserCancelException();
-
-            }
-        }
-
         if (!result.getTokenResult().getSuccess()) {
-
             tokenErrorResponse = tokenResult.getErrorResponse();
+
             if (tokenErrorResponse.getError().equalsIgnoreCase(MsalUiRequiredException.INVALID_GRANT)) {
+                Logger.warn(
+                        TAG + methodName,
+                        "Received invalid_grant"
+                );
                 return new MsalUiRequiredException(tokenErrorResponse.getError(), tokenErrorResponse.getErrorDescription(), null);
             }
 
             if (StringUtil.isEmpty(tokenErrorResponse.getError())) {
+                Logger.warn(
+                        TAG + methodName,
+                        "Received unknown error"
+                );
                 return new MsalServiceException(MsalServiceException.UNKNOWN_ERROR, "Request failed, but no error returned back from service.", null);
             }
 
@@ -74,7 +94,6 @@ public class ExceptionAdapter {
     }
 
     public static MsalException msalExceptionFromException(final Exception e) {
-
         MsalException msalException = null;
 
         if (e instanceof IOException) {

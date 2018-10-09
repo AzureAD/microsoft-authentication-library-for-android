@@ -35,30 +35,31 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ILoggerCallback;
-import com.microsoft.identity.client.IMsalEventReceiver;
 import com.microsoft.identity.client.Logger;
+import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
-import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.Telemetry;
-import com.microsoft.identity.client.UiBehavior;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * The app's main activity.
@@ -67,23 +68,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         AcquireTokenFragment.OnFragmentInteractionListener, CacheFragment.OnFragmentInteractionListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-
-    static {
-        Telemetry.getInstance().registerReceiver(new IMsalEventReceiver() {
-            @Override
-            public void onEventsReceived(List<Map<String, String>> events) {
-                Log.d(TAG, "Received events");
-                Log.d(TAG, "Event count: [" + events.size() + "]");
-                for (final Map<String, String> event : events) {
-                    Log.d(TAG, "Begin event --------");
-                    for (final String key : event.keySet()) {
-                        Log.d(TAG, "\t" + key + " :: " + event.get(key));
-                    }
-                    Log.d(TAG, "End event ----------");
-                }
-            }
-        });
-    }
 
     private PublicClientApplication mApplication;
     private IAccount mSelectedAccount;
@@ -117,8 +101,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * Application can also set the component name. There are cases that other sdks will also take dependency on MSAL i.e. microsoft graph sdk
      * or Intune mam sdk, providing the component name will help separate the logs from application and the logs from the sdk running inside of
      * the apps.
-     * To set component name:
-     * {@link PublicClientApplication#setComponent(String)}
      * <p>
      * For the {@link AuthenticationCallback}, MSAL exposes three results 1) Success, which contains the {@link AuthenticationResult} 2) Failure case,
      * which contains {@link MsalException} and 3) Cancel, specifically for user canceling the flow.
@@ -230,14 +212,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         callAcquireToken(mScopes, mUiBehavior, mLoginHint, mExtraQp, mExtraScopesToConsent);
     }
 
-    public void onRemoveUserClicked() {
+    public void onRemoveUserClicked(String username) {
         final List<IAccount> accountsToRemove = mApplication.getAccounts();
 
         for (final IAccount accountToRemove : accountsToRemove) {
-            mApplication.removeAccount(accountToRemove);
+            if (TextUtils.isEmpty(username) || accountToRemove.getUsername().equals(username.trim().toLowerCase())) {
+                    mApplication.removeAccount(accountToRemove);
+            }
         }
-
-        mSelectedAccount = null;
     }
 
     IAccount getAccount(final String loginHint) {
@@ -253,9 +235,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
+
         final IAccount requestAccount = getAccount(requestOptions.getLoginHint());
 
         callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
+    }
+
+    @Override
+    public void bindSelectAccountSpinner(Spinner selectUser) {
+        final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
+                getApplicationContext(), android.R.layout.simple_spinner_item,
+                new ArrayList<String>() {{
+                    for (IAccount account : mApplication.getAccounts())
+                        add(account.getUsername());
+                }}
+        );
+        userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        selectUser.setAdapter(userAdapter);
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
@@ -264,6 +260,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mUiBehavior = requestOptions.getUiBehavior();
         mEnablePiiLogging = requestOptions.enablePiiLogging();
         mForceRefresh = requestOptions.forceRefresh();
+        Constants.UserAgent userAgent = requestOptions.getUserAgent();
+
 
         final String scopes = requestOptions.getScopes();
         if (scopes == null) {
@@ -272,6 +270,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         mScopes = scopes.toLowerCase().split(" ");
         mExtraScopesToConsent = requestOptions.getExtraScopesToConsent() == null ? null : requestOptions.getExtraScopesToConsent().toLowerCase().split(" ");
+
+        if(userAgent.name().equalsIgnoreCase("BROWSER")){
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config_browser);
+        }else if(userAgent.name().equalsIgnoreCase("WEBVIEW")){
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config_webview);
+        }else {
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
+        }
     }
 
     final String getAuthority(Constants.AuthorityType authorityTypeType) {

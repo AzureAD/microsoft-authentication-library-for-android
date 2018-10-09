@@ -37,6 +37,7 @@
         android:paddingTop="@dimen/activity_vertical_margin">
 
         <LinearLayout
+            android:paddingBottom="5dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -44,17 +45,19 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="2"
+                android:layout_weight="3"
                 android:text="@string/authority_text"/>
 
             <Spinner
                 android:id="@+id/authorityType"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="8" />
+                android:layout_weight="7" />
         </LinearLayout>
 
         <LinearLayout
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -63,38 +66,22 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="2"
-                android:text="@string/login_hint_text" />
-
-            <EditText
-                android:id="@+id/loginHint"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="8" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="10">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="2"
+                android:layout_weight="3"
                 android:text="@string/ui_behavior_text" />
 
             <Spinner
                 android:id="@+id/uiBehavior"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="8" />
+                android:layout_weight="7" />
 
         </LinearLayout>
 
         <LinearLayout
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
             android:layout_width="match_parent"
+            android:gravity="center_vertical"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:weightSum="10">
@@ -102,18 +89,21 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="2"
-                android:text="@string/data_profile_text" />
+                android:layout_weight="3"
+                android:gravity="center_vertical"
+                android:text="@string/auth_user_agent"/>
 
             <Spinner
-                android:id="@+id/data_profile"
+                android:id="@+id/auth_user_agent"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="8" />
-
+                android:layout_weight="7" />
         </LinearLayout>
 
+
         <LinearLayout
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -122,18 +112,43 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="2"
+                android:layout_weight="3"
+                android:text="@string/login_hint_text" />
+
+            <EditText
+                android:id="@+id/loginHint"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="7" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="10">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
                 android:text="@string/scope_text" />
 
             <EditText
                 android:id="@+id/scope"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="8"
+                android:textSize="12sp"
+                android:text="@string/scope_default_text"
+                android:layout_weight="7"
                 android:hint="@string/scope_text_hint"/>
         </LinearLayout>
 
         <LinearLayout
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -142,43 +157,74 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="2"
+                android:layout_weight="3"
                 android:text="@string/extra_scope_text" />
 
             <EditText
                 android:id="@+id/extraScope"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="8"
+                android:layout_weight="7"
+                android:textSize="12sp"
                 android:hint="@string/scope_text_hint"/>
         </LinearLayout>
     
         <LinearLayout
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
             android:layout_width="match_parent"
             android:gravity="center_vertical"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:weightSum="10">
+            android:weightSum="8">
         
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:minLines="3"
-                android:layout_weight="2"
+                android:gravity="center_vertical"
+                android:layout_weight="5"
                 android:text="@string/enable_pii_text"/>
         
             <Switch
                 android:id="@+id/enablePII"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="2.47"
+                android:gravity="center_vertical"
+                android:layout_weight="3"
                 android:textOn="on"
                 android:textOff="off"/>
         </LinearLayout>
 
         <LinearLayout
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
             android:layout_width="match_parent"
             android:gravity="center_vertical"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="8">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:gravity="center_vertical"
+                android:text="@string/force_refresh"/>
+
+            <Switch
+                android:id="@+id/forceRefresh"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:gravity="center_vertical"
+                android:textOn="on"
+                android:textOff="off"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:weightSum="10">
@@ -186,23 +232,44 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:minLines="3"
-                android:layout_weight="2"
-                android:text="@string/force_refresh"/>
+                android:layout_weight="4"
+                android:text="@string/default_browser" />
 
-            <Switch
-                android:id="@+id/forceRefresh"
+            <TextView
+                android:id="@+id/default_browser"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="2.47"
-                android:textOn="on"
-                android:textOff="off"/>
+                android:textSize="12sp"
+                android:layout_weight="6"/>
         </LinearLayout>
 
         <LinearLayout
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
+            android:orientation="horizontal"
+            android:weightSum="10">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:text="@string/select_user" />
+
+            <Spinner
+                android:id="@+id/select_user"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="7" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:weightSum="10">
 
@@ -210,28 +277,23 @@
                 android:id="@+id/btn_getUsers"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:layout_weight="5"
                 android:text="@string/btn_getUser" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:weightSum="10">
 
             <Button
                 android:id="@+id/btn_clearCache"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:layout_weight="5"
                 android:text="@string/btn_removeUser" />
 
         </LinearLayout>
 
+
         <RelativeLayout
+            android:paddingTop="5dp"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center">
