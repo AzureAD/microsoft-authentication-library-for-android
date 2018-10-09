@@ -1,0 +1,18 @@
+{
+  "client_id" : "86d15sqys79ck1",
+  "redirect_uri" : "http://localhost/someapp",
+  "authorization_user_agent" : "DEFAULT",
+  "authorities" : [
+    {
+      "type": "LI",
+      "authority_url": "https://www.linkedin.com"
+    }
+  ],
+  "scopes" : [
+    "reference only",
+    "r_basicprofile",
+    "r_emailaddress",
+    "rw_company_admin",
+    "w_share"
+  ]
+}

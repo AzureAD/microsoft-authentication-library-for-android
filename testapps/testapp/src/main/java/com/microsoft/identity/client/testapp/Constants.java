@@ -32,7 +32,8 @@ public class Constants {
         AAD_COMMON,
         B2C,
         AAD_MSDEVEX,
-        AAD_GUEST
+        AAD_GUEST,
+        LI
     }
 
     enum UserAgent {

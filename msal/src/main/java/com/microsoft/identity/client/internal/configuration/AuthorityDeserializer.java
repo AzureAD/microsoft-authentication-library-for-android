@@ -11,7 +11,7 @@ import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAu
 import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.client.internal.authorities.UnknownAuthority;
 import com.microsoft.identity.common.internal.logging.Logger;
-import com.microsoft.identity.client.authorities.LiAuthority;
+import com.microsoft.identity.client.internal.authorities.LiAuthority;
 
 
 

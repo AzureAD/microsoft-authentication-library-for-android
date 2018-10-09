@@ -276,7 +276,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }else if(userAgent.name().equalsIgnoreCase("WEBVIEW")){
             mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config_webview);
         }else {
-            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
+            if(requestOptions.getAuthorityType() == Constants.AuthorityType.B2C) {
+                mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.b2c_config);
+            }else if(requestOptions.getAuthorityType() == Constants.AuthorityType.LI){
+                mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.li_config);
+            }else{
+                mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
+            }
         }
     }
 
@@ -290,6 +296,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 return Constants.AAD_MSDEVEX;
             case AAD_GUEST:
                 return Constants.AAD_GUEST;
+            case LI:
+                return "Not needed";
         }
 
         throw new IllegalArgumentException("Not supported authority type");
