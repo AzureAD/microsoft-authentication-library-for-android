@@ -26,13 +26,14 @@ import android.content.Intent;
 
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.exception.ClientException;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 public interface MSALTokenOperation {
-    public AcquireTokenResult execute() throws InterruptedException, ExecutionException, IOException, ClientException, MsalClientException, MsalArgumentException;
+    AcquireTokenResult execute() throws InterruptedException, ExecutionException, IOException, ClientException, MsalClientException, MsalArgumentException, MsalUiRequiredException;
 
-    public void notify(int requestCode, int resultCode, final Intent data);
+    void notify(int requestCode, int resultCode, final Intent data);
 }

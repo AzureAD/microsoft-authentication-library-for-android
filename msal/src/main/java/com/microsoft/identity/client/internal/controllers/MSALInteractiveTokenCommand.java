@@ -29,11 +29,14 @@ import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.internal.logging.Logger;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 public class MSALInteractiveTokenCommand extends MSALTokenCommand {
+
+    private static final String TAG = MSALInteractiveTokenCommand.class.getSimpleName();
 
     public MSALInteractiveTokenCommand(Context context, MSALOperationParameters parameters, MSALController controller, AuthenticationCallback callback) {
         mContext = context;
@@ -48,7 +51,12 @@ public class MSALInteractiveTokenCommand extends MSALTokenCommand {
 
     @Override
     public AcquireTokenResult execute() throws InterruptedException, ExecutionException, IOException, ClientException, MsalClientException, MsalArgumentException {
+        final String methodName = ":execute";
         if (getParameters() instanceof MSALAcquireTokenOperationParameters) {
+            Logger.info(
+                    TAG + methodName,
+                    "Executing interactive token command..."
+            );
             return getController().acquireToken((MSALAcquireTokenOperationParameters) getParameters());
         } else {
             throw new IllegalArgumentException("Invalid operation parameters");

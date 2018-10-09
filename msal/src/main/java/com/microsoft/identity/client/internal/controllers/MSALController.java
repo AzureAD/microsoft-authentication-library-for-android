@@ -26,6 +26,7 @@ import android.content.Intent;
 
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.exception.ClientException;
 
 import java.io.IOException;
@@ -37,6 +38,6 @@ public abstract class MSALController {
 
     public abstract void completeAcquireToken(int requestCode, int resultCode, final Intent data);
 
-    public abstract AcquireTokenResult acquireTokenSilent(MSALAcquireTokenSilentOperationParameters request) throws MsalClientException, IOException, ClientException, MsalArgumentException;
+    public abstract AcquireTokenResult acquireTokenSilent(MSALAcquireTokenSilentOperationParameters request) throws MsalClientException, IOException, ClientException, MsalArgumentException, MsalUiRequiredException;
 
 }

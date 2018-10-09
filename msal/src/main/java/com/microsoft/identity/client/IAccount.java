@@ -22,10 +22,12 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import java.io.Serializable;
+
 /**
  * Interface describing MSAL's externally-exposed Account representation.
  */
-public interface IAccount {
+public interface IAccount extends Serializable {
 
     /**
      * Gets the {@link IAccountIdentifier} for this Account -- this value is authority-specific.

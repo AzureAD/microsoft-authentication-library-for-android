@@ -29,13 +29,18 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import com.microsoft.identity.client.UiBehavior;
+import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.internal.ui.browser.Browser;
+import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 
 import java.util.ArrayList;
 
@@ -49,7 +54,7 @@ public class AcquireTokenFragment extends Fragment {
     private Spinner mAuthority;
     private EditText mLoginhint;
     private Spinner mUiBehavior;
-    private Spinner mDataProfile;
+    private Spinner mUserAgent;
     private EditText mScope;
     private EditText mExtraScope;
     private Switch mEnablePII;
@@ -58,6 +63,8 @@ public class AcquireTokenFragment extends Fragment {
     private Button mClearCache;
     private Button mAcquireToken;
     private Button mAcquireTokenSilent;
+    private TextView mDefaultBrowser;
+    private Spinner mSelectAccount;
 
     private OnFragmentInteractionListener mOnFragmentInteractionListener;
 
@@ -69,23 +76,24 @@ public class AcquireTokenFragment extends Fragment {
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_acquire, container, false);
 
-        mAuthority = (Spinner) view.findViewById(R.id.authorityType);
-        mLoginhint = (EditText) view.findViewById(R.id.loginHint);
-        mUiBehavior = (Spinner) view.findViewById(R.id.uiBehavior);
-        mDataProfile = (Spinner) view.findViewById(R.id.data_profile);
-        mScope = (EditText) view.findViewById(R.id.scope);
-        mExtraScope = (EditText) view.findViewById(R.id.extraScope);
-        mEnablePII = (Switch) view.findViewById(enablePII);
-        mForceRefresh = (Switch) view.findViewById(R.id.forceRefresh);
-
-        mGetUsers = (Button) view.findViewById(R.id.btn_getUsers);
-        mClearCache = (Button) view.findViewById(R.id.btn_clearCache);
-        mAcquireToken = (Button) view.findViewById(R.id.btn_acquiretoken);
-        mAcquireTokenSilent = (Button) view.findViewById(R.id.btn_acquiretokensilent);
+        mAuthority = view.findViewById(R.id.authorityType);
+        mLoginhint = view.findViewById(R.id.loginHint);
+        mUiBehavior = view.findViewById(R.id.uiBehavior);
+        mUserAgent = view.findViewById(R.id.auth_user_agent);
+        mScope = view.findViewById(R.id.scope);
+        mExtraScope = view.findViewById(R.id.extraScope);
+        mEnablePII = view.findViewById(enablePII);
+        mForceRefresh = view.findViewById(R.id.forceRefresh);
+        mDefaultBrowser = view.findViewById(R.id.default_browser);
+        mSelectAccount = view.findViewById(R.id.select_user);
+        mGetUsers = view.findViewById(R.id.btn_getUsers);
+        mClearCache = view.findViewById(R.id.btn_clearCache);
+        mAcquireToken = view.findViewById(R.id.btn_acquiretoken);
+        mAcquireTokenSilent = view.findViewById(R.id.btn_acquiretokensilent);
 
         bindSpinnerChoice(mAuthority, Constants.AuthorityType.class);
         bindSpinnerChoice(mUiBehavior, UiBehavior.class);
-        bindSpinnerChoice(mDataProfile, Constants.DataProfile.class);
+        bindSpinnerChoice(mUserAgent, Constants.UserAgent.class);
 
         mAcquireToken.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -97,7 +105,24 @@ public class AcquireTokenFragment extends Fragment {
         mAcquireTokenSilent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(mSelectAccount.getSelectedItem()!=null){
+                    mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
+                }
                 mOnFragmentInteractionListener.onAcquireTokenSilentClicked(getCurrentRequestOptions());
+            }
+        });
+
+        mSelectAccount.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if(parent.getSelectedItem()!=null){
+                    mLoginhint.setText(parent.getSelectedItem().toString());
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
             }
         });
 
@@ -111,11 +136,39 @@ public class AcquireTokenFragment extends Fragment {
         mClearCache.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mOnFragmentInteractionListener.onRemoveUserClicked();
+                String accountToRemove = null;
+                if(mSelectAccount.getSelectedItem()!=null){
+                    accountToRemove = mSelectAccount.getSelectedItem().toString();
+                }
+
+                mOnFragmentInteractionListener.onRemoveUserClicked(accountToRemove);
             }
         });
 
         return view;
+    }
+
+    private void setCurrentDefaultBrowserValue() {
+        try {
+            if(getActivity()!=null) {
+                Browser browser = BrowserSelector.select(getActivity().getApplicationContext());
+                mDefaultBrowser.setText(browser.getPackageName());
+            }
+        } catch (ClientException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(mOnFragmentInteractionListener!=null){
+            mOnFragmentInteractionListener.bindSelectAccountSpinner(mSelectAccount);
+        }
+        if(mSelectAccount.getSelectedItem()!=null){
+            mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
+        }
+        setCurrentDefaultBrowserValue();
     }
 
     @Override
@@ -152,39 +205,40 @@ public class AcquireTokenFragment extends Fragment {
         final Constants.AuthorityType authorityType = Constants.AuthorityType.valueOf(mAuthority.getSelectedItem().toString()) ;
         final String loginHint = mLoginhint.getText().toString();
         final UiBehavior uiBehavior = UiBehavior.valueOf(mUiBehavior.getSelectedItem().toString());
-        final Constants.DataProfile dataProfile = Constants.DataProfile.valueOf(mDataProfile.getSelectedItem().toString());
+        final Constants.UserAgent userAgent = Constants.UserAgent.valueOf(mUserAgent.getSelectedItem().toString());
         final String scopes = mScope.getText().toString();
         final String extraScopesToConsent = mExtraScope.getText().toString();
         final boolean enablePII = mEnablePII.isChecked();
         final boolean forceRefresh = mForceRefresh.isChecked();
-        return RequestOptions.create(authorityType, loginHint, uiBehavior, dataProfile, scopes, extraScopesToConsent, enablePII, forceRefresh);
+        return RequestOptions.create(authorityType, loginHint, uiBehavior, userAgent, scopes, extraScopesToConsent, enablePII, forceRefresh);
     }
 
     static class RequestOptions {
         final Constants.AuthorityType mAuthorityType;
         final String mLoginHint;
         final UiBehavior mUiBehavior;
-        final Constants.DataProfile mDataProfile;
+        final Constants.UserAgent mUserAgent;
         final String mScope;
         final String mExtraScope;
         final boolean mEnablePII;
         final boolean mForceRefresh;
 
         RequestOptions(final Constants.AuthorityType authorityType, final String loginHint, final UiBehavior uiBehavior,
-                       final Constants.DataProfile dataProfile, final String scope, final String extraScope, final boolean enablePII, final boolean forceRefresh) {
+                       final Constants.UserAgent userAgent, final String scope,
+                       final String extraScope, final boolean enablePII, final boolean forceRefresh) {
             mAuthorityType = authorityType;
             mLoginHint = loginHint;
             mUiBehavior = uiBehavior;
-            mDataProfile = dataProfile;
+            mUserAgent = userAgent;
             mScope = scope;
             mExtraScope = extraScope;
             mEnablePII = enablePII;
             mForceRefresh = forceRefresh;
         }
 
-        static RequestOptions create(final Constants.AuthorityType authority, final String loginHint, final UiBehavior uiBehavior, final Constants.DataProfile dataProfile,
-                                     final String scope, final String extraScope, final boolean enablePII, final boolean forceRefresh) {
-            return new RequestOptions(authority, loginHint, uiBehavior, dataProfile, scope, extraScope, enablePII, forceRefresh);
+        static RequestOptions create(final Constants.AuthorityType authority, final String loginHint, final UiBehavior uiBehavior,
+                                     final Constants.UserAgent userAgent, final String scope, final String extraScope, final boolean enablePII, final boolean forceRefresh) {
+            return new RequestOptions(authority, loginHint, uiBehavior, userAgent, scope, extraScope, enablePII, forceRefresh);
         }
 
         Constants.AuthorityType getAuthorityType() {
@@ -197,10 +251,6 @@ public class AcquireTokenFragment extends Fragment {
 
         UiBehavior getUiBehavior() {
             return mUiBehavior;
-        }
-
-        Constants.DataProfile getDataProfile() {
-            return mDataProfile;
         }
 
         String getScopes() {
@@ -218,15 +268,21 @@ public class AcquireTokenFragment extends Fragment {
         boolean forceRefresh() {
             return mForceRefresh;
         }
+
+        Constants.UserAgent getUserAgent(){
+            return mUserAgent;
+        }
     }
 
     public interface OnFragmentInteractionListener {
         void onGetUser();
 
-        void onRemoveUserClicked();
+        void onRemoveUserClicked(String username);
 
         void onAcquireTokenClicked(final RequestOptions requestOptions);
 
         void onAcquireTokenSilentClicked(final RequestOptions requestOptions);
+
+        void bindSelectAccountSpinner(Spinner selectAccount);
     }
 }

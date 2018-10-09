@@ -1,7 +1,7 @@
 // Variables for entire project
 ext {
     // SDK
-    minSdkVersion = 16
+    minSdkVersion = 21
     targetSdkVersion = 27
     compileSdkVersion = 27
     buildToolsVersion = "27.0.3"

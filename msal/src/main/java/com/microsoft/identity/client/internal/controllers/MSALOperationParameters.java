@@ -27,12 +27,15 @@ import android.content.Context;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.dto.IAccountRecord;
+import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class MSALOperationParameters {
+
+    private static final String TAG = MSALOperationParameters.class.getSimpleName();
 
     private Context mAppContext;
     private OAuth2TokenCache mTokenCache;
@@ -102,7 +105,11 @@ public class MSALOperationParameters {
      * Since this is about validating MSAL Parameters and not an authorization request or token request.  I've placed this here.
      */
     public void validate() throws MsalArgumentException {
-
+        final String methodName = ":validate";
+        Logger.verbose(
+                TAG + methodName,
+                "Validating operation params..."
+        );
         Boolean validScopeArgument = false;
 
         if (mScopes != null) {
