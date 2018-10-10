@@ -133,10 +133,14 @@ public class LocalMSALController extends MSALController {
                                                          final MSALOperationParameters parameters) {
         AuthorizationRequest.Builder builder = strategy.createAuthorizationRequestBuilder(parameters.getAccount());
 
+
+
         List<String> msalScopes = new ArrayList<>();
-        msalScopes.add("openid");
-        msalScopes.add("profile");
-        msalScopes.add("offline_access");
+        if(strategy.supportsOIDC()) {
+            msalScopes.add("openid");
+            msalScopes.add("profile");
+            msalScopes.add("offline_access");
+        }
         msalScopes.addAll(parameters.getScopes());
 
         //TODO: Not sure why diagnostic context is using AuthenticationConstants....
