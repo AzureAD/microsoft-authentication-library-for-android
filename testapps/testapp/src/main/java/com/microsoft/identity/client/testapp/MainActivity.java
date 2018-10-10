@@ -241,18 +241,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
     }
 
-    @Override
-    public void bindSelectAccountSpinner(Spinner selectUser) {
-        final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
-                getApplicationContext(), android.R.layout.simple_spinner_item,
-                new ArrayList<String>() {{
-                    for (IAccount account : mApplication.getAccounts())
-                        add(account.getUsername());
-                }}
-        );
-        userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        selectUser.setAdapter(userAdapter);
-    }
+//    @Override
+//    public void bindSelectAccountSpinner(Spinner selectUser) {
+//        final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
+//                getApplicationContext(), android.R.layout.simple_spinner_item,
+//                new ArrayList<String>() {{
+//                    for (IAccount account : mApplication.getAccounts())
+//                        add(account.getUsername());
+//                }}
+//        );
+//        userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//        selectUser.setAdapter(userAdapter);
+//    }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
         mAuthority = getAuthority(requestOptions.getAuthorityType());

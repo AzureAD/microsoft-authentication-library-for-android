@@ -11,7 +11,7 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion rootProject.ext.minSdkVersion
+        minSdkVersion 16
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode getAppVersionCode()
         versionName getAppVersionName()
@@ -125,11 +125,11 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '0.0.5', changing: true)
-
-    distApi("com.microsoft.identity:common:0.0.5") {
-        transitive = false
-    }
+//    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '0.0.5', changing: true)
+//
+//    distApi("com.microsoft.identity:common:0.0.5") {
+//        transitive = false
+//    }
 }
 
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
