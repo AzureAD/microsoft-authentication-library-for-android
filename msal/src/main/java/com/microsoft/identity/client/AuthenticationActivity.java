@@ -42,10 +42,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Invoking a custom tabs require a browser on the device that also supports the custom tabs mechanism, chrome with version >= 45 comes with the
- * support and is available on all devices with API version >= 16. MSAL is capable of using any custom tab or device browser.
- * MSAL prefers the user's default browser and will check for custom tab support before falling back to launching the full browser.
- * AuthenticationActivity checks if a custom tab is accessible for a given browser, if not, will
+ * Invoking CustomTabs requires a browser on the device that also supports the CustomTabs API, chrome with version >= 45 comes with the
+ * support and is available on all devices with API version >= 16. MSAL is capable of using CustomTabs or device browser.
+ * MSAL prefers the user's default browser and will check for CustomTabs support before falling back to launching the full browser.
+ * AuthenticationActivity checks if CustomTabs is accessible for a given browser, if not, will
  * go with full browser, if chrome is not installed, we generate an error.
  */
 public final class AuthenticationActivity extends Activity {
