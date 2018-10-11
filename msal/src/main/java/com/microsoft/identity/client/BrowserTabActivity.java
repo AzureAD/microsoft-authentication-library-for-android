@@ -33,7 +33,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActi
  * endpoint. This activity has to be exposed by "android:exported=true", and intent filter has to be declared in the
  * manifest for the activity.
  * <p>
- * When chrome custom tab is launched, and we're redirected back with the redirect
+ * When the authorization agent is launched, and we're redirected back with the redirect
  * uri (the redirect must be unique across apps on a device), the os will fire an intent with the redirect,
  * and the BrowserTabActivity will be launched.
  * <pre>

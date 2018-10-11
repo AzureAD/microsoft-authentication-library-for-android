@@ -42,12 +42,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Custom tab requires the device to have a browser with custom tab support, chrome with version >= 45 comes with the
- * support and is available on all devices with API version >= 16 . The sdk use chrome custom tab, and before launching
- * chrome custom tab, we need to check if chrome package is in the device. If it is, it's safe to launch the chrome
- * custom tab; Otherwise the sdk will launch chrome.
- * AuthenticationActivity will be responsible for checking if it's safe to launch chrome custom tab, if not, will
- * go with chrome browser, if chrome is not installed, we throw error back.
+ * Invoking a custom tabs require a browser on the device that also supports the custom tabs mechanism, chrome with version >= 45 comes with the
+ * support and is available on all devices with API version >= 16. MSAL is capable of using any custom tab or device browser.
+ * MSAL prefers the user's default browser and will check for custom tab support before falling back to launching the full browser.
+ * AuthenticationActivity checks if a custom tab is accessible for a given browser, if not, will
+ * go with full browser, if chrome is not installed, we generate an error.
  */
 public final class AuthenticationActivity extends Activity {
 
@@ -92,8 +91,6 @@ public final class AuthenticationActivity extends Activity {
             return;
         }
 
-        // We'll use custom tab if the chrome installed on the device comes with custom tab support(on 45 and above it
-        // does). If the chrome package doesn't contain the support, we'll use chrome to launch the UI.
         if (MsalUtils.getChromePackage(this.getApplicationContext()) == null) {
             Logger.info(TAG, null, "Chrome is not installed on the device, cannot continue with auth.");
             sendError(MsalClientException.CHROME_NOT_INSTALLED, "Chrome is not installed on the device, cannot proceed with auth");
