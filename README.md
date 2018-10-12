@@ -43,11 +43,12 @@ Add to your app's Build.Gradle:
         mavenCentral()
     }
     dependencies {
-        compile('com.microsoft.identity.client:msal:0.1.3') {
+        compile('com.microsoft.identity.client:msal:0.2.1') {
             // if your app includes android support
-            // libraries or GSON in its dependencies
+            // libraries, nimbus-jose, or GSON in its dependencies
             // uncomment below
 
+            // exclude group: 'com.nimbusds', module: 'nimbus-jose-jwt'
             // exclude group: 'com.android.support', module: 'appcompat-v7'
             // exclude group: 'com.google.code.gson'
         }
@@ -90,7 +91,6 @@ Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MI
 
 ### Requirements
 * Android SDK 21+
-* [Chrome](https://github.com/Azure-Samples/active-directory-general-docs/blob/master/AndroidEmulator.md) 
 
 ### Step 1: Configure the AndroidManifest.xml
 
