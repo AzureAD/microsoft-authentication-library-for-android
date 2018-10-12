@@ -1,5 +1,11 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 0.2.1
+----------------------------
+- Picks up common@0.0.6
+    * Bugfix: Resolves MSAL/#420
+    * Corrects an issue whereby expired access tokens can be returned from the cache
+
 Version 0.2.0
 ----------------------------
 - Cache schema has been redesigned to support migration from ADAL 1.15.2+
