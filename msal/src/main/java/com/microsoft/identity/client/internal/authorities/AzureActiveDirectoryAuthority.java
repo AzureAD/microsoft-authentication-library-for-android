@@ -49,6 +49,10 @@ public class AzureActiveDirectoryAuthority extends Authority {
     @SerializedName("flight_parameters")
     public Map<String, String> mFlightParameters;
 
+    @SerializedName("multiple_clouds_supported")
+    public Boolean mMultipleCloudsSupported;
+
+
     private AzureActiveDirectoryCloud mAzureActiveDirectoryCloud;
 
     private void getAzureActiveDirectoryCloud() {
@@ -146,6 +150,9 @@ public class AzureActiveDirectoryAuthority extends Authority {
                 config.getFlightParameters().put(entry.getKey(), entry.getValue());
             }
         }
+
+
+        config.setMultipleCloudsSupported(mMultipleCloudsSupported);
 
         return new MicrosoftStsOAuth2Strategy(config);
     }

@@ -7,7 +7,8 @@
       "type": "AAD",
       "audience": {
         "type": "AzureADandPersonalMicrosoftAccount"
-      }
+      },
+      "multiple_clouds_supported":false
     }
   ]
 }
