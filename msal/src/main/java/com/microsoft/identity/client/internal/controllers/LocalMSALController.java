@@ -39,6 +39,7 @@ import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsRefreshTokenRequestParameters;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
@@ -424,11 +425,14 @@ public class LocalMSALController extends MSALController {
                 "Requesting tokens..."
         );
         throwIfNetworkNotAvailable(parameters.getAppContext());
-        return strategy.requestToken(
-                strategy.createRefreshTokenRequest(
-                        parameters.getRefreshToken(),
-                        parameters.getScopes()
-                )
-        );
+
+        final MicrosoftStsRefreshTokenRequestParameters refreshTokenRequestParameters = new MicrosoftStsRefreshTokenRequestParameters();
+        refreshTokenRequestParameters.setClientId(parameters.getClientId());
+        refreshTokenRequestParameters.setGrantType(TokenRequest.GrantTypes.REFRESH_TOKEN);
+        refreshTokenRequestParameters.setScopes(parameters.getScopes());
+        refreshTokenRequestParameters.setRefreshToken(parameters.getRefreshToken().getSecret());
+        refreshTokenRequestParameters.setRedirectUri(parameters.getRedirectUri());
+
+        return strategy.requestToken(strategy.createRefreshTokenRequest(refreshTokenRequestParameters));
     }
 }
