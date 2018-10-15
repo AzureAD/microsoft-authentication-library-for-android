@@ -26,14 +26,6 @@
 apply plugin: 'com.android.application'
 
 android {
-    signingConfigs {
-        config {
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
-            storeFile file('E:/projects/github.com/azuread/msal_android/testapps/testapp/debug/debug.keystore')
-            storePassword 'android'
-        }
-    }
     compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "com.microsoft.identity.client.sample"
@@ -53,7 +45,6 @@ android {
     }
     flavorDimensions "main"
     productFlavors {
-        def signingInfo = signingConfigs.config
         local {
             applicationIdSuffix ".local"
             versionNameSuffix "-local"
@@ -63,7 +54,6 @@ android {
             applicationIdSuffix ".dist"
             versionNameSuffix "-dist"
             resValue("string", "application_name", "msal-dist")
-            signingConfig signingInfo
         }
     }
 }
@@ -71,7 +61,6 @@ android {
 dependencies {
     // Compile Dependency
     implementation project(':msal')
-    distImplementation group: 'com.microsoft.identity.client', name: 'msal', version: '0.2.0'
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
     implementation "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
