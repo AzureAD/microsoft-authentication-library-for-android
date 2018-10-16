@@ -27,7 +27,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
-
     defaultConfig {
         applicationId "com.microsoft.identity.client.sample"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -41,12 +40,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
     lintOptions {
         abortOnError false
     }
     flavorDimensions "main"
-
     productFlavors {
         local {
             applicationIdSuffix ".local"
