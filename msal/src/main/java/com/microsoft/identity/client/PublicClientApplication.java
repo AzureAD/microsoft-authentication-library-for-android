@@ -24,6 +24,7 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -653,6 +654,9 @@ public final class PublicClientApplication {
                         null // account
                 );
 
+        params.setCompleteIntent(mCompleteIntent);
+        params.setCancelIntent(mCancelIntent);
+
         final MSALInteractiveTokenCommand command =
                 new MSALInteractiveTokenCommand(
                         mAppContext,
@@ -663,6 +667,17 @@ public final class PublicClientApplication {
         MSALApiDispatcher.beginInteractive(command);
     }
 
+    private PendingIntent mCompleteIntent;
+
+    private PendingIntent mCancelIntent;
+
+    public void setCompleteIntent(PendingIntent intent) {
+        mCompleteIntent = intent;
+    }
+
+    public void setCancelIntent(PendingIntent intent) {
+        mCancelIntent = intent;
+    }
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
      * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.

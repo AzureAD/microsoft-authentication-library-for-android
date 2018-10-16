@@ -27,6 +27,7 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
+import android.support.annotation.WorkerThread;
 import android.text.TextUtils;
 
 import com.microsoft.identity.client.AuthenticationResult;
@@ -50,6 +51,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.TokenRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
 import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
+import com.microsoft.identity.common.internal.ui.browser.BrowserAuthorizationStrategy;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.io.IOException;
@@ -112,6 +114,7 @@ public class LocalMSALController extends MSALController {
         return acquireTokenResult;
     }
 
+    @WorkerThread
     private AuthorizationResult performAuthorizationRequest(final OAuth2Strategy strategy,
                                                             final MSALAcquireTokenOperationParameters parameters)
             throws ExecutionException, InterruptedException, MsalClientException {
@@ -119,6 +122,11 @@ public class LocalMSALController extends MSALController {
 
         mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(parameters.getActivity(), parameters.getAuthorizationAgent());
         mAuthorizationRequest = getAuthorizationRequest(strategy, parameters);
+
+        if(mAuthorizationStrategy instanceof BrowserAuthorizationStrategy) {
+            ((BrowserAuthorizationStrategy) mAuthorizationStrategy).setCancelIntent(parameters.getCancelIntent());
+            ((BrowserAuthorizationStrategy) mAuthorizationStrategy).setCompleteIntent(parameters.getCompleteIntent());
+        }
 
         Future<AuthorizationResult> future = strategy.requestAuthorization(mAuthorizationRequest, mAuthorizationStrategy);
 

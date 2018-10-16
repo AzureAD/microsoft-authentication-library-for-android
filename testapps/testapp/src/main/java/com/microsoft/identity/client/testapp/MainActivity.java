@@ -23,6 +23,7 @@
 
 package com.microsoft.identity.client.testapp;
 
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -56,6 +57,9 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity;
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -139,6 +143,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
         }
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (getIntent() != null
+                && getIntent().hasExtra(AuthorizationStrategy.RESULT_CODE)) {
+            mApplication.handleInteractiveRequestRedirect(1001, getIntent().getIntExtra(AuthorizationStrategy.RESULT_CODE, 2003), getIntent());
+        }
     }
 
     @Override
@@ -311,6 +324,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else {
             Logger.getInstance().setEnablePII(false);
         }
+
+        /*
+        Create CompleteIntent/
+         */
+        Intent completionIntent = new Intent(this, MainActivity.class);
+
+        /*
+        Create Cancel Intent.
+         */
+        Intent cancelIntent = new Intent(this, MainActivity.class);
+        //cancelIntent.putExtra(AuthorizationStrategy.UIResponse.AUTH_CODE_CANCEL, true);
+        cancelIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        mApplication.setCompleteIntent(PendingIntent.getActivity(this, 0, completionIntent, 0));
+        mApplication.setCancelIntent(PendingIntent.getActivity(this, 0, cancelIntent, 0));
 
         try {
             mApplication.acquireToken(

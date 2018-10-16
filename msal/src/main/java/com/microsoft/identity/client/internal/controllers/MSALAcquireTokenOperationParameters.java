@@ -23,6 +23,7 @@
 package com.microsoft.identity.client.internal.controllers;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.util.Pair;
 
 import com.microsoft.identity.client.UiBehavior;
@@ -37,6 +38,25 @@ public class MSALAcquireTokenOperationParameters extends MSALOperationParameters
     private UiBehavior mUIBehavior;
     private List<Pair<String, String>> mExtraQueryStringParameters;
     private List<String> mExtraScopesToConsent;
+
+    public PendingIntent getCompleteIntent() {
+        return mCompleteIntent;
+    }
+
+    public void setCompleteIntent(PendingIntent completeIntent) {
+        mCompleteIntent = completeIntent;
+    }
+
+    public PendingIntent getCancelIntent() {
+        return mCancelIntent;
+    }
+
+    public void setCancelIntent(PendingIntent cancelIntent) {
+        mCancelIntent = cancelIntent;
+    }
+
+    private PendingIntent mCompleteIntent;
+    private PendingIntent mCancelIntent;
 
     public AuthorizationAgent getAuthorizationAgent() {
         return mAuthorizationAgent;
