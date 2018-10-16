@@ -34,12 +34,12 @@ import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.client.internal.authorities.Authority;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.common.internal.logging.Logger;
-import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsRefreshTokenRequestParameters;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
@@ -426,13 +426,19 @@ public class LocalMSALController extends MSALController {
         );
         throwIfNetworkNotAvailable(parameters.getAppContext());
 
-        final MicrosoftStsRefreshTokenRequestParameters refreshTokenRequestParameters = new MicrosoftStsRefreshTokenRequestParameters();
-        refreshTokenRequestParameters.setClientId(parameters.getClientId());
-        refreshTokenRequestParameters.setGrantType(TokenRequest.GrantTypes.REFRESH_TOKEN);
-        refreshTokenRequestParameters.setScopes(parameters.getScopes());
-        refreshTokenRequestParameters.setRefreshToken(parameters.getRefreshToken().getSecret());
-        refreshTokenRequestParameters.setRedirectUri(parameters.getRedirectUri());
+        final TokenRequest refreshTokenRequest = strategy.createRefreshTokenRequest();
+        refreshTokenRequest.setClientId(parameters.getClientId());
+        refreshTokenRequest.setScope(StringUtil.join(' ', parameters.getScopes()));
+        refreshTokenRequest.setRefreshToken(parameters.getRefreshToken().getSecret());
+        refreshTokenRequest.setRedirectUri(parameters.getRedirectUri());
 
-        return strategy.requestToken(strategy.createRefreshTokenRequest(refreshTokenRequestParameters));
+        if (!StringExtensions.isNullOrBlank(refreshTokenRequest.getScope())) {
+            Logger.verbosePII(
+                    TAG + methodName,
+                    "Scopes: [" + refreshTokenRequest.getScope() + "]"
+            );
+        }
+
+        return strategy.requestToken(refreshTokenRequest);
     }
 }
