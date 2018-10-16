@@ -2,9 +2,11 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 Version 0.2.1
 ----------------------------
-- Picks up common@0.0.6
+- Picks up common@0.0.7
     * Bugfix: Resolves MSAL/#420
-    * Corrects an issue whereby expired access tokens can be returned from the cache
+        - Corrects an issue whereby expired access tokens can be returned from the cache
+    * Bugfix: Resolves MSAL/#418
+        - Adds client_id, redirect_uri to refresh token requests (previously missing, yielding inconsistent behavior depending on account type).
 
 Version 0.2.0
 ----------------------------
