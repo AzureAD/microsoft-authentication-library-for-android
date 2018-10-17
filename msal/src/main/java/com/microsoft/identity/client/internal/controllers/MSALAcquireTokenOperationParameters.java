@@ -39,25 +39,6 @@ public class MSALAcquireTokenOperationParameters extends MSALOperationParameters
     private List<Pair<String, String>> mExtraQueryStringParameters;
     private List<String> mExtraScopesToConsent;
 
-    public PendingIntent getCompleteIntent() {
-        return mCompleteIntent;
-    }
-
-    public void setCompleteIntent(PendingIntent completeIntent) {
-        mCompleteIntent = completeIntent;
-    }
-
-    public PendingIntent getCancelIntent() {
-        return mCancelIntent;
-    }
-
-    public void setCancelIntent(PendingIntent cancelIntent) {
-        mCancelIntent = cancelIntent;
-    }
-
-    private PendingIntent mCompleteIntent;
-    private PendingIntent mCancelIntent;
-
     public AuthorizationAgent getAuthorizationAgent() {
         return mAuthorizationAgent;
     }

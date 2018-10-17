@@ -123,11 +123,6 @@ public class LocalMSALController extends MSALController {
         mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(parameters.getActivity(), parameters.getAuthorizationAgent());
         mAuthorizationRequest = getAuthorizationRequest(strategy, parameters);
 
-        if(mAuthorizationStrategy instanceof BrowserAuthorizationStrategy) {
-            ((BrowserAuthorizationStrategy) mAuthorizationStrategy).setCancelIntent(parameters.getCancelIntent());
-            ((BrowserAuthorizationStrategy) mAuthorizationStrategy).setCompleteIntent(parameters.getCompleteIntent());
-        }
-
         Future<AuthorizationResult> future = strategy.requestAuthorization(mAuthorizationRequest, mAuthorizationStrategy);
 
         //We could implement Timeout Here if we wish instead of blocking indefinitely

@@ -28,7 +28,7 @@
           package="com.microsoft.identity.client.testapp">
 
     <uses-sdk
-        android:minSdkVersion="21"
+        android:minSdkVersion="17"
         android:targetSdkVersion="25" />
 
     <uses-permission android:name="android.permission.INTERNET" />
