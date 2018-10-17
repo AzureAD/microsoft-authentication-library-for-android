@@ -842,6 +842,7 @@ public final class PublicClientApplication {
         parameters.setClientId(mClientId);
         parameters.setTokenCache(mOauth2TokenCache);
         parameters.setAuthority(Authority.getAuthorityFromAuthorityUrl(authorityStr));
+        parameters.setRedirectUri(mRedirectUri);
         if (null != account) {
             parameters.setAccount(
                     getAccountInternal(
