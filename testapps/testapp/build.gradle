@@ -30,7 +30,7 @@ android {
 
     defaultConfig {
         applicationId "com.microsoft.identity.client.sample"
-        minSdkVersion 16
+        minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"

@@ -23,7 +23,6 @@
 package com.microsoft.identity.client.internal.controllers;
 
 import android.app.Activity;
-import android.app.PendingIntent;
 import android.util.Pair;
 
 import com.microsoft.identity.client.UiBehavior;
