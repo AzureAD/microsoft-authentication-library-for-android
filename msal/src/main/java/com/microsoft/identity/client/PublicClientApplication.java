@@ -54,6 +54,7 @@ import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
 import com.microsoft.identity.client.internal.telemetry.Defaults;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.internal.cache.ADALTokenCacheItem;
 import com.microsoft.identity.common.internal.cache.AccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
@@ -80,6 +81,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static com.microsoft.identity.common.internal.cache.AccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
 
@@ -305,6 +307,30 @@ public final class PublicClientApplication {
      */
     public static String getSdkVersion() {
         return BuildConfig.VERSION_NAME;
+    }
+
+    public static void restoreAdalCache(final Context context) {
+        final String methodName = ":restoreAdalCache";
+        final IStorageHelper storageHelper = new StorageHelper(context);
+        final ISharedPreferencesFileManager sharedPreferencesFileManager =
+                new SharedPreferencesFileManager(
+                        context,
+                        "com.microsoft.aad.adal.cache",
+                        storageHelper
+                );
+        final Map<String, String> credentials = sharedPreferencesFileManager.getAll();
+        final List<ADALTokenCacheItem> tokenCacheItems = new ArrayList<>();
+        final Gson gson = new Gson();
+        for (final Map.Entry<String, String> credential : credentials.entrySet()) {
+            com.microsoft.identity.common.internal.logging.Logger.info(
+                    TAG + methodName,
+                    "Key: " + credential.getKey()
+                            + "\n"
+                            + "Value: " + credential.getValue()
+            );
+            final ADALTokenCacheItem tokenCacheItem = gson.fromJson(credential.getValue(), ADALTokenCacheItem.class);
+            tokenCacheItems.add(tokenCacheItem);
+        }
     }
 
     /**
@@ -851,8 +877,8 @@ public final class PublicClientApplication {
             );
         }
 
-        if(parameters.getAuthority() instanceof AzureActiveDirectoryAuthority){
-            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority)parameters.getAuthority();
+        if (parameters.getAuthority() instanceof AzureActiveDirectoryAuthority) {
+            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) parameters.getAuthority();
             aadAuthority.setMultipleCloudsSupported(mPublicClientConfiguration.mMultipleCloudsSupported);
         }
         parameters.setForceRefresh(forceRefresh);
@@ -1019,8 +1045,8 @@ public final class PublicClientApplication {
             params.setAuthority(Authority.getAuthorityFromAuthorityUrl(authority));
         }
 
-        if(params.getAuthority() instanceof AzureActiveDirectoryAuthority){
-            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority)params.getAuthority();
+        if (params.getAuthority() instanceof AzureActiveDirectoryAuthority) {
+            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) params.getAuthority();
             aadAuthority.setMultipleCloudsSupported(mPublicClientConfiguration.getMultipleCloudsSupported());
         }
 
