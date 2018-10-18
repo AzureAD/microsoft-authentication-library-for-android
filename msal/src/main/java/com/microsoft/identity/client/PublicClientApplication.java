@@ -39,6 +39,7 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAudience;
+import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.client.internal.configuration.AuthorityDeserializer;
 import com.microsoft.identity.client.internal.configuration.AzureActiveDirectoryAudienceDeserializer;
@@ -841,12 +842,18 @@ public final class PublicClientApplication {
         parameters.setClientId(mClientId);
         parameters.setTokenCache(mOauth2TokenCache);
         parameters.setAuthority(Authority.getAuthorityFromAuthorityUrl(authorityStr));
+        parameters.setRedirectUri(mRedirectUri);
         if (null != account) {
             parameters.setAccount(
                     getAccountInternal(
                             account.getHomeAccountIdentifier().getIdentifier()
                     )
             );
+        }
+
+        if(parameters.getAuthority() instanceof AzureActiveDirectoryAuthority){
+            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority)parameters.getAuthority();
+            aadAuthority.setMultipleCloudsSupported(mPublicClientConfiguration.mMultipleCloudsSupported);
         }
         parameters.setForceRefresh(forceRefresh);
 
@@ -1010,6 +1017,11 @@ public final class PublicClientApplication {
             }
         } else {
             params.setAuthority(Authority.getAuthorityFromAuthorityUrl(authority));
+        }
+
+        if(params.getAuthority() instanceof AzureActiveDirectoryAuthority){
+            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority)params.getAuthority();
+            aadAuthority.setMultipleCloudsSupported(mPublicClientConfiguration.getMultipleCloudsSupported());
         }
 
         com.microsoft.identity.common.internal.logging.Logger.verbosePII(
