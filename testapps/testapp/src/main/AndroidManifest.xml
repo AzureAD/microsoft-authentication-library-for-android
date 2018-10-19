@@ -61,10 +61,12 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+                <!--
                 <data android:scheme="msale3b9ad76-9763-4827-b088-80c7a7888f79"
                     android:host="auth" />
+                -->
 
-                <!--<data android:scheme="http" android:host="localhost" android:path="/someapp" />-->
+                <data android:scheme="http" android:host="86d15sqys79ck1.msal.com"  />
             </intent-filter>
         </activity>
 

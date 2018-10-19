@@ -1,7 +1,7 @@
 {
   "client_id" : "86d15sqys79ck1",
-  "redirect_uri" : "http://localhost/someapp",
-  "authorization_user_agent" : "DEFAULT",
+  "redirect_uri" : "http://127.0.0.1:80/someapp",
+  "authorization_user_agent" : "WEBVIEW",
   "authorities" : [
     {
       "type": "LI",

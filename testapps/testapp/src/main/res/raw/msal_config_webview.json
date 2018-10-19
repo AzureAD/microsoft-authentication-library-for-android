@@ -1,7 +1,7 @@
 {
   "client_id" : "9851987a-55e5-46e2-8d70-75f8dc060f21",
   "authorization_user_agent" : "WEBVIEW",
-  "redirect_uri" : "msal9851987a-55e5-46e2-8d70-75f8dc060f21://auth",
+  "redirect_uri" : "http://127.0.0.1:80/someapp ",
   "authorities" : [
     {
       "type": "AAD",
