@@ -54,15 +54,16 @@ import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
 import com.microsoft.identity.client.internal.telemetry.Defaults;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
-import com.microsoft.identity.common.internal.cache.ADALTokenCacheItem;
 import com.microsoft.identity.common.internal.cache.AccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.ICacheKeyValueDelegate;
+import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.cache.migration.DefaultTokenCacheItemAdapter;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
@@ -309,8 +310,10 @@ public final class PublicClientApplication {
         return BuildConfig.VERSION_NAME;
     }
 
-    public static void restoreAdalCache(final Context context) {
+    public void restoreAdalCache(final Context context) {
         final String methodName = ":restoreAdalCache";
+
+        // Create the SharedPreferencesFileManager for the legacy accounts/credentials
         final IStorageHelper storageHelper = new StorageHelper(context);
         final ISharedPreferencesFileManager sharedPreferencesFileManager =
                 new SharedPreferencesFileManager(
@@ -318,18 +321,18 @@ public final class PublicClientApplication {
                         "com.microsoft.aad.adal.cache",
                         storageHelper
                 );
+
+        // Load the old TokenCacheItems as key/value JSON
         final Map<String, String> credentials = sharedPreferencesFileManager.getAll();
-        final List<ADALTokenCacheItem> tokenCacheItems = new ArrayList<>();
-        final Gson gson = new Gson();
-        for (final Map.Entry<String, String> credential : credentials.entrySet()) {
-            com.microsoft.identity.common.internal.logging.Logger.info(
-                    TAG + methodName,
-                    "Key: " + credential.getKey()
-                            + "\n"
-                            + "Value: " + credential.getValue()
-            );
-            final ADALTokenCacheItem tokenCacheItem = gson.fromJson(credential.getValue(), ADALTokenCacheItem.class);
-            tokenCacheItems.add(tokenCacheItem);
+
+        // Deserialize into native objects
+        final List<Pair<MicrosoftAccount, MicrosoftRefreshToken>> tokens = new DefaultTokenCacheItemAdapter().adapt(credentials);
+
+        for (final Pair<MicrosoftAccount, MicrosoftRefreshToken> ssoPair : tokens) {
+            if (mOauth2TokenCache instanceof IShareSingleSignOnState) {
+                IShareSingleSignOnState ssoCache = (IShareSingleSignOnState) mOauth2TokenCache;
+                ssoCache.setSingleSignOnState(ssoPair.first, ssoPair.second);
+            }
         }
     }
 
