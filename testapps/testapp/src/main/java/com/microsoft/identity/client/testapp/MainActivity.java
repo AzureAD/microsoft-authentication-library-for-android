@@ -232,7 +232,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         final DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         drawerLayout.closeDrawer(GravityCompat.START);
-        fragmentTransaction.replace(R.id.content_main, fragment).addToBackStack(null).commitAllowingStateLoss();
+        fragmentTransaction.replace(mContentMain.getId(), fragment).addToBackStack(null).commit();
     }
 
     @Override
@@ -380,7 +380,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 mAuthResult = authenticationResult;
-                //showMessage("Response from :token " + authenticationResult.getAccessToken());
                 onNavigationItemSelected(getNavigationView().getMenu().getItem(1));
                 mSelectedAccount = null;
             }
