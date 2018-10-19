@@ -129,6 +129,7 @@ public final class MsalClientException extends MsalException {
     public static final String AUTHORITY_VALIDATION_NOT_SUPPORTED = "authority_validation_not_supported";
 
     /**
+     * Note: after MSAL 0.2.0 this error is no longer relevant. 
      * chrome_not_installed: Chrome is not installed on the device. The sdk uses chrome custom tab for
      * authorization requests if available, and will fall back to chrome browser.
      */
