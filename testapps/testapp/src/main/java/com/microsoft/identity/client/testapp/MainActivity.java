@@ -168,9 +168,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             showMessage("Fail to generate secret key:" + ex.getMessage());
         }
 
-        if (savedInstanceState == null
-                && getIntent() != null
-                && getIntent().hasExtra(AuthorizationStrategy.RESULT_CODE)) {
+        if (savedInstanceState == null) {
             // auto select the first item
             onNavigationItemSelected(navigationView.getMenu().getItem(0));
         }
@@ -179,18 +177,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
         }
 
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (getIntent() != null
-                && getIntent().hasExtra(AuthorizationStrategy.RESULT_CODE)) {
-            mApplication.handleInteractiveRequestRedirect(
-                    getIntent().getIntExtra(AuthorizationStrategy.REQUEST_CODE, 0),
-                    getIntent().getIntExtra(AuthorizationStrategy.RESULT_CODE, 0),
-                    getIntent());
-        }
     }
 
     @Override
@@ -229,11 +215,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         return true;
     }
-
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        mApplication.handleInteractiveRequestRedirect(requestCode, resultCode, data);
-//    }
 
     @Override
     public void onGetUser() {
@@ -294,18 +275,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
     }
 
-//    @Override
-//    public void bindSelectAccountSpinner(Spinner selectUser) {
-//        final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
-//                getApplicationContext(), android.R.layout.simple_spinner_item,
-//                new ArrayList<String>() {{
-//                    for (IAccount account : mApplication.getAccounts())
-//                        add(account.getUsername());
-//                }}
-//        );
-//        userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//        selectUser.setAdapter(userAdapter);
-//    }
+    @Override
+    public void bindSelectAccountSpinner(Spinner selectUser) {
+        final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
+                getApplicationContext(), android.R.layout.simple_spinner_item,
+                new ArrayList<String>() {{
+                    for (IAccount account : mApplication.getAccounts())
+                        add(account.getUsername());
+                }}
+        );
+        userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        selectUser.setAdapter(userAdapter);
+    }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
         mAuthority = getAuthority(requestOptions.getAuthorityType());
@@ -399,8 +380,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
                 mAuthResult = authenticationResult;
-                showMessage("Response from :token " + authenticationResult.getAccessToken());
-                //onNavigationItemSelected(getNavigationView().getMenu().getItem(1));
+                //showMessage("Response from :token " + authenticationResult.getAccessToken());
+                onNavigationItemSelected(getNavigationView().getMenu().getItem(1));
                 mSelectedAccount = null;
             }
 

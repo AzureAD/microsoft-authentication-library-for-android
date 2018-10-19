@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -30,6 +31,7 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.BrowserTabActivity;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
@@ -39,6 +41,7 @@ import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
@@ -116,8 +119,9 @@ public class LocalMSALController extends MSALController {
                                                             final MSALAcquireTokenOperationParameters parameters)
             throws ExecutionException, InterruptedException, MsalClientException {
         throwIfNetworkNotAvailable(parameters.getAppContext());
-
-        mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(parameters.getActivity(), parameters.getAuthorizationAgent());
+        //Create pendingIntent to handle the authorization result intent back to the calling activity
+        final Intent resultIntent = new Intent(parameters.getActivity(), BrowserTabActivity.class);
+        mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(parameters.getActivity(), parameters.getAuthorizationAgent(), resultIntent);
         mAuthorizationRequest = getAuthorizationRequest(strategy, parameters);
 
         Future<AuthorizationResult> future = strategy.requestAuthorization(mAuthorizationRequest, mAuthorizationStrategy);
