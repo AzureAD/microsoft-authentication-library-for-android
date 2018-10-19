@@ -232,7 +232,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         final DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         drawerLayout.closeDrawer(GravityCompat.START);
-        fragmentTransaction.replace(mContentMain.getId(), fragment).addToBackStack(null).commit();
+        fragmentTransaction.replace(mContentMain.getId(), fragment).addToBackStack(null).commitAllowingStateLoss();
     }
 
     @Override
