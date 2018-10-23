@@ -89,13 +89,29 @@ public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount,
                     "Found [" + nativeCacheItems.size() + "] common tokens."
             );
 
-            // TODO Do I need to filter by clientId? (yes)
+            // Split these by clientId, key is client id - secondary key is original TKI key
+            Map<String, Map<String, ADALTokenCacheItem>> nativeCacheItemByClientId = segmentByClientId(nativeCacheItems);
 
-            // Split these by users, key is userId
-            Map<String, Map<String, ADALTokenCacheItem>> cacheItemsByUniqueId = segmentByUser(nativeCacheItems);
+            for (final Map.Entry<String, Map<String, ADALTokenCacheItem>> entry : nativeCacheItemByClientId.entrySet()) {
+                final Map<String, ADALTokenCacheItem> tokensForClientId = entry.getValue();
+                result.addAll(selectTokensByUser(segmentByUser(tokensForClientId)));
+            }
+        }
 
-            // Foreach user, select the 'best' token
-            result.addAll(selectTokensByUser(cacheItemsByUniqueId));
+        return result;
+    }
+
+    private Map<String, Map<String, ADALTokenCacheItem>> segmentByClientId(@NonNull final Map<String, ADALTokenCacheItem> nativeCacheItems) {
+        Map<String, Map<String, ADALTokenCacheItem>> result = new HashMap<>();
+
+        for (final Map.Entry<String, ADALTokenCacheItem> entry : nativeCacheItems.entrySet()) {
+            final String currentClientId = entry.getValue().getClientId();
+
+            if (null == result.get(currentClientId)) {
+                result.put(currentClientId, new HashMap<String, ADALTokenCacheItem>());
+            }
+
+            result.get(currentClientId).put(entry.getKey(), entry.getValue());
         }
 
         return result;
