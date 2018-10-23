@@ -63,7 +63,6 @@ import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManage
 import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
-import com.microsoft.identity.common.internal.cache.migration.DefaultTokenCacheItemAdapter;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
@@ -325,15 +324,20 @@ public final class PublicClientApplication {
         // Load the old TokenCacheItems as key/value JSON
         final Map<String, String> credentials = sharedPreferencesFileManager.getAll();
 
-        // Deserialize into native objects
-        final List<Pair<MicrosoftAccount, MicrosoftRefreshToken>> tokens = new DefaultTokenCacheItemAdapter().adapt(credentials);
-
-        for (final Pair<MicrosoftAccount, MicrosoftRefreshToken> ssoPair : tokens) {
-            if (mOauth2TokenCache instanceof IShareSingleSignOnState) {
-                IShareSingleSignOnState ssoCache = (IShareSingleSignOnState) mOauth2TokenCache;
-                ssoCache.setSingleSignOnState(ssoPair.first, ssoPair.second);
-            }
-        }
+        new TokenMigrationUtility<MicrosoftAccount, MicrosoftRefreshToken>()._import(
+                new AdalMigrationAdapter(mClientId),
+                credentials,
+                (IShareSingleSignOnState<MicrosoftAccount, MicrosoftRefreshToken>) mOauth2TokenCache,
+                new TokenMigrationCallback() {
+                    @Override
+                    public void onMigrationFinished(int numberOfAccountsMigrated) {
+                        com.microsoft.identity.common.internal.logging.Logger.info(
+                                TAG,
+                                "Migrated [" + numberOfAccountsMigrated + "] accounts"
+                        );
+                    }
+                }
+        );
     }
 
     /**

@@ -47,10 +47,10 @@ public class TokenMigrationUtility<T extends BaseAccount, U extends RefreshToken
      * @param destination IShareSingleSignOnState instance to which migrated tokens should be written.
      * @param callback    Callback to receive the event when the import has finished.
      */
-    void _import(final IMigrationAdapter<T, U> adapter,
-                 final Map<String, String> credentials,
-                 final IShareSingleSignOnState<T, U> destination,
-                 final TokenMigrationCallback callback) {
+    public void _import(final IMigrationAdapter<T, U> adapter,
+                        final Map<String, String> credentials,
+                        final IShareSingleSignOnState<T, U> destination,
+                        final TokenMigrationCallback callback) {
         // Do all work on a background thread
         sBackgroundExecutor.execute(new Runnable() {
             @Override
