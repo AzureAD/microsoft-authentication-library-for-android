@@ -23,21 +23,105 @@
 package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Intent;
+import android.os.Bundle;
+import android.os.RemoteException;
+
+import com.microsoft.identity.common.internal.broker.BrokerRequest;
+import com.microsoft.identity.common.internal.broker.IMicrosoftAuthService;
+import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
+import com.microsoft.identity.common.internal.broker.MicrosoftAuthServiceFuture;
+import com.microsoft.identity.common.internal.logging.DiagnosticContext;
+import com.microsoft.identity.common.internal.util.StringUtil;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 public class BrokerMSALController extends MSALController {
 
     @Override
     public AcquireTokenResult acquireToken(MSALAcquireTokenOperationParameters request) {
-        throw new UnsupportedOperationException();
+        Intent interactiveRequestIntent = null;
+        IMicrosoftAuthService service = null;
+
+        MicrosoftAuthClient client = new MicrosoftAuthClient(request.getAppContext());
+        MicrosoftAuthServiceFuture future = client.connect();
+
+        try {
+            service = future.get();
+        } catch (Exception e){
+            throw new RuntimeException("Exception occurred while awaiting (get) return of MicrosoftAuthService", e);
+        }
+
+        try {
+            interactiveRequestIntent = service.getIntentForInteractiveRequest();
+        } catch (RemoteException e) {
+            throw new RuntimeException("Exception occurred while attempting to invoke remote service", e);
+        }
+
+        //TODO: We need activity that we can start that will in turn invoke the intent activity
+        //startActivity
+
+        return null;
     }
 
     @Override
     public void completeAcquireToken(int requestCode, int resultCode, Intent data) {
-        throw new UnsupportedOperationException();
+
+
+
+
     }
 
     @Override
     public AcquireTokenResult acquireTokenSilent(MSALAcquireTokenSilentOperationParameters request) {
-        throw new UnsupportedOperationException();
+        Bundle result = null;
+        IMicrosoftAuthService service = null;
+        Map requestParameters = null;
+
+        MicrosoftAuthClient client = new MicrosoftAuthClient(request.getAppContext());
+        MicrosoftAuthServiceFuture future = client.connect();
+
+        try {
+            //Do we want a time out here?
+            service = future.get();
+        } catch (Exception e){
+            throw new RuntimeException("Exception occurred while awaiting (get) return of MicrosoftAuthService", e);
+        }
+
+        try {
+            result = service.acquireTokenSilently(getSilentParameters(request));
+        } catch (RemoteException e) {
+            throw new RuntimeException("Exception occurred while attempting to invoke remote service", e);
+        }
+
+        //Need to map result bundle into AcquireTokenResult
+        return null;
     }
+
+    private Map getSilentParameters(MSALAcquireTokenSilentOperationParameters parameters){
+
+        HashMap<String, String> silentParameters = null;
+
+        BrokerRequest request = new BrokerRequest();
+        //request.setApplicationName("");
+        request.setAuthority(parameters.getAuthority().getAuthorityURL().toString());
+        //request.setClaims("");
+        request.setClientId(parameters.getClientId());
+        request.setCorrelationId(DiagnosticContext.getRequestContext().get(DiagnosticContext.CORRELATION_ID));
+        //request.setExtraQueryStringParameter();
+        request.setForceRefresh(parameters.getForceRefresh());
+        request.setLoginHint(parameters.getAccount().getUsername());
+        request.setName(parameters.getAccount().getUsername());
+        request.setUserId(parameters.getAccount().getHomeAccountId());
+        //request.setPrompt(parameters.get);
+        //TODO: This should be the broker redirect URI and not the non-broker redirect URI
+        request.setRedirect(parameters.getRedirectUri());
+        request.setScope(StringUtil.join(' ', parameters.getScopes()));
+        //request.setVersion();
+
+
+        return silentParameters;
+    }
+
 }
