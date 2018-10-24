@@ -53,16 +53,45 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Adapts tokens from the ADAL cache format to the MSAL (common schema) format.
+ */
 public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount, MicrosoftRefreshToken> {
 
+    /**
+     * The log tag of this class.
+     */
     private static final String TAG = AdalMigrationAdapter.class.getSimpleName();
+
+    /**
+     * The cache-key component, unique to MRRT tokens.
+     */
     private static final String MRRT_FLAG = "$y$";
+
+    /**
+     * The cache-key component, unique to FOCI tokens.
+     */
     private static final String FOCI_FLAG = "$foci-";
+
+    /**
+     * The name of the SharedPreferences file used by this class for tracking migration state.
+     */
     private static final String MIGRATION_STATUS_SHARED_PREFERENCES =
             "com.microsoft.identity.client.migration_status";
+
+    /**
+     * The migration-state cache-key used to persist/check whether or not migration has occurred or not.
+     */
     private static final String KEY_MIGRATION_STATUS = "adal-migration-complete";
 
+    /**
+     * The SharedPreferences used to tracking migration state.
+     */
     private final SharedPreferences mSharedPrefs;
+
+    /**
+     * Force-override to initiate migration, even if it's already happened before.
+     */
     private final boolean mForceMigration;
 
     /**
@@ -121,25 +150,48 @@ public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount,
         return result;
     }
 
+    /**
+     * Sets the migration-state in the SharedPreferences file.
+     *
+     * @param migrationStatus The status to set.
+     */
     @SuppressLint("ApplySharedPref")
     private void setMigrationStatus(boolean migrationStatus) {
         mSharedPrefs.edit().putBoolean(KEY_MIGRATION_STATUS, migrationStatus).commit();
     }
 
+    /**
+     * Gets the migration-state from the SharedPreferences file.
+     *
+     * @return True, if migration has already happened. False otherwise.
+     */
     private boolean getMigrationStatus() {
         return mSharedPrefs.getBoolean(KEY_MIGRATION_STATUS, false);
     }
 
+    /**
+     * Splits the provided credentials into a Map, keyed on the clientId of the application to which
+     * they are associated.
+     *
+     * @param nativeCacheItems The cache items to inspect.
+     * @return A Map of the provided Credentials, keyed by clientId.
+     */
     private Map<String, Map<String, ADALTokenCacheItem>> segmentByClientId(@NonNull final Map<String, ADALTokenCacheItem> nativeCacheItems) {
+        // Declare a List to hold the result
         Map<String, Map<String, ADALTokenCacheItem>> result = new HashMap<>();
 
+        // Iterate over the supplied entries
         for (final Map.Entry<String, ADALTokenCacheItem> entry : nativeCacheItems.entrySet()) {
+            // Grab the clientId of the current credential.
             final String currentClientId = entry.getValue().getClientId();
 
+            // If this is the first time we have seen it, create a secondary Map for the destination
+            // of this credential
             if (null == result.get(currentClientId)) {
                 result.put(currentClientId, new HashMap<String, ADALTokenCacheItem>());
             }
 
+            // Add the current credential to the token map
             result.get(currentClientId).put(entry.getKey(), entry.getValue());
         }
 
@@ -170,12 +222,15 @@ public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount,
             }
 
             if (null != refreshTokenPair) {
+                // Create the account to 'own' this RT
                 account = createAccount(refreshTokenPair.second);
 
                 if (null != account) {
+                    // If we were able to create the account, create the associated RT
                     msRt = createMicrosoftRefreshToken(account, isFrt, refreshTokenPair);
 
                     if (null != msRt) {
+                        // If we have the account and RT, we're done. Move on...
                         result.add(new Pair<>(account, msRt));
                     }
                 }
@@ -185,6 +240,14 @@ public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount,
         return result;
     }
 
+    /**
+     * Creates a {@link MicrosoftRefreshToken} from the supplied credential data.
+     *
+     * @param account          The account which will 'own' this token.
+     * @param isFrt            True, if the supplied token is an FRT. False otherwise.
+     * @param refreshTokenPair The 'legacy' format pair -- the key & value.
+     * @return The resulting MicrosoftRefreshToken.
+     */
     private MicrosoftRefreshToken createMicrosoftRefreshToken(@NonNull final MicrosoftAccount account,
                                                               final boolean isFrt,
                                                               @NonNull final Pair<String, ADALTokenCacheItem> refreshTokenPair) {
@@ -195,7 +258,7 @@ public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount,
             final String rawRt = refreshTokenPair.second.getRawIdToken();
             final String clientInfoStr = account.getClientInfo();
             final ClientInfo clientInfo = new ClientInfo(clientInfoStr);
-            final String scope = "openid profile offline_access";
+            final String scope = "openid profile offline_access"; // default scopes
             final String clientId = refreshTokenPair.second.getClientId();
             final String environment = new URL(refreshTokenPair.second.getAuthority()).getHost();
             String familyId = null;
@@ -234,6 +297,12 @@ public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount,
         }
     }
 
+    /**
+     * Creates a {@link MicrosoftAccount} from the supplied {@link ADALTokenCacheItem}.
+     *
+     * @param refreshToken The credential used to derive the new account.
+     * @return The newly created MicrosoftAccount.
+     */
     private MicrosoftAccount createAccount(@NonNull final ADALTokenCacheItem refreshToken) {
         final String methodName = ":createAccount";
         try {
@@ -271,6 +340,12 @@ public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount,
         }
     }
 
+    /**
+     * Selects a non-null RT from the supplied cache items. Order is nondeterministic.
+     *
+     * @param cacheItems The cache items to inspect.
+     * @return A non-null RT and its associated key.
+     */
     private Pair<String, ADALTokenCacheItem> findRt(@NonNull final Map<String, ADALTokenCacheItem> cacheItems) {
         for (Map.Entry<String, ADALTokenCacheItem> entry : cacheItems.entrySet()) {
             if (null != entry.getValue().getRefreshToken()) {
@@ -281,14 +356,33 @@ public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount,
         return null;
     }
 
+    /**
+     * Selects a non-null MRRT from the supplied cache items. Order is nondeterministic.
+     *
+     * @param cacheItems The cache items to inspect.
+     * @return A non-null RT and its associated key.
+     */
     private Pair<String, ADALTokenCacheItem> findMrrt(@NonNull final Map<String, ADALTokenCacheItem> cacheItems) {
         return findRtKeyVariant(MRRT_FLAG, cacheItems);
     }
 
+    /**
+     * Selects a non-null FRT from the supplied cache items. Order is nondeterministic.
+     *
+     * @param cacheItems The cache items to inspect.
+     * @return A non-null RT and its associated key.
+     */
     private Pair<String, ADALTokenCacheItem> findFrt(@NonNull final Map<String, ADALTokenCacheItem> cacheItems) {
         return findRtKeyVariant(FOCI_FLAG, cacheItems);
     }
 
+    /**
+     * Utility method for finding various token types, based on key metadata.
+     *
+     * @param keyVariant The key component used to search the supplied cache items.
+     * @param cacheItems The cache items to inspect.
+     * @return A refresh token matching the specified criteria (and its key).
+     */
     private Pair<String, ADALTokenCacheItem> findRtKeyVariant(@NonNull final String keyVariant,
                                                               @NonNull final Map<String, ADALTokenCacheItem> cacheItems) {
         for (Map.Entry<String, ADALTokenCacheItem> entry : cacheItems.entrySet()) {
@@ -326,12 +420,19 @@ public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount,
         return result;
     }
 
-    private Map<String, ADALTokenCacheItem> filterByEndpoint(@NonNull final List<String> commonEndpoints,
+    /**
+     * Filters the supplied list of credentials relative to a List of supplied endpoints.
+     *
+     * @param endpoints        The endpoints to search for.
+     * @param nativeCacheItems The credentials to inspect.
+     * @return The filtered credential Map.
+     */
+    private Map<String, ADALTokenCacheItem> filterByEndpoint(@NonNull final List<String> endpoints,
                                                              @NonNull final Map<String, ADALTokenCacheItem> nativeCacheItems) {
         final Map<String, ADALTokenCacheItem> result = new HashMap<>();
 
         for (final Map.Entry<String, ADALTokenCacheItem> cacheItemEntry : nativeCacheItems.entrySet()) {
-            if (commonEndpoints.contains(cacheItemEntry.getValue().getAuthority())) {
+            if (endpoints.contains(cacheItemEntry.getValue().getAuthority())) {
                 result.put(cacheItemEntry.getKey(), cacheItemEntry.getValue());
             }
         }
@@ -339,6 +440,12 @@ public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount,
         return result;
     }
 
+    /**
+     * Converts the supplied Map of key/value JSON credentials into a Map of key/POJO.
+     *
+     * @param tokenCacheItems The credentials to inspect.
+     * @return The deserialized credentials and their associated keys.
+     */
     private Map<String, ADALTokenCacheItem> deserialize(final Map<String, String> tokenCacheItems) {
         final Map<String, ADALTokenCacheItem> result = new HashMap<>();
 
@@ -353,6 +460,11 @@ public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount,
         return result;
     }
 
+    /**
+     * Loads the comprehensive list of 'common' endpoints, based on the loaded InstanceDiscoveryMetadata.
+     *
+     * @return The complete list of known common endpoints.
+     */
     private List<String> getCommonEndpoints() {
         final String protocol = "https://";
         final String pathSeparator = "/";
@@ -388,6 +500,11 @@ public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount,
         return commonEndpoints;
     }
 
+    /**
+     * Loads the InstanceDiscoveryMetadata.
+     *
+     * @return True, if the metadata loads successfully. False otherwise.
+     */
     private static boolean loadCloudDiscoveryMetadata() {
         final String methodName = ":loadCloudDiscoveryMetadata";
         boolean succeeded = true;
