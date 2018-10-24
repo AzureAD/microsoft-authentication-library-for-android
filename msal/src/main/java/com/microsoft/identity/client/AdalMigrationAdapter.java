@@ -22,13 +22,16 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Base64;
 import android.util.Pair;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.cache.ADALTokenCacheItem;
 import com.microsoft.identity.common.internal.cache.ADALUserInfo;
@@ -55,15 +58,25 @@ public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount,
     private static final String TAG = AdalMigrationAdapter.class.getSimpleName();
     private static final String MRRT_FLAG = "$y$";
     private static final String FOCI_FLAG = "$foci-";
+    private static final String MIGRATION_STATUS_SHARED_PREFERENCES =
+            "com.microsoft.identity.client.migration_status";
+    private static final String KEY_MIGRATION_STATUS = "adal-migration-complete";
 
-    private final String mClientId;
+    private final SharedPreferences mSharedPrefs;
+    private final boolean mForceMigration;
 
-    public AdalMigrationAdapter(@NonNull final String clientId) {
-        if (StringExtensions.isNullOrBlank(clientId)) {
-            throw new IllegalArgumentException("ClientId cannnot be null");
-        }
-
-        mClientId = clientId;
+    /**
+     * Constructs a new AdalMigrationAdapter.
+     *
+     * @param context Context used to track migration state.
+     * @param force   Force migration to occur, even if it has run before.
+     */
+    public AdalMigrationAdapter(@Nullable final Context context,
+                                final boolean force) {
+        mSharedPrefs = null != context
+                ? context.getSharedPreferences(MIGRATION_STATUS_SHARED_PREFERENCES, Context.MODE_PRIVATE)
+                : null;
+        mForceMigration = force;
     }
 
     @Override
@@ -71,34 +84,50 @@ public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount,
         final String methodName = ":adapt";
         final List<Pair<MicrosoftAccount, MicrosoftRefreshToken>> result = new ArrayList<>();
 
-        // Initialize the InstanceDiscoveryMetadata so we know about all the clouds and possible /common endpoints
-        final boolean cloudMetadataLoaded = loadCloudDiscoveryMetadata();
+        final boolean hasMigrated = getMigrationStatus();
 
-        if (cloudMetadataLoaded) {
-            final List<String> commonEndpoints = getCommonEndpoints();
-            Logger.verbose(
-                    TAG + methodName,
-                    "Identified [" + commonEndpoints.size() + "] common endpoints"
-            );
+        if (!hasMigrated && !mForceMigration) {
+            // Initialize the InstanceDiscoveryMetadata so we know about all the clouds and possible /common endpoints
+            final boolean cloudMetadataLoaded = loadCloudDiscoveryMetadata();
 
-            // Convert the JSON to native ADALTokenCacheItem representation, original keys used to key the Map
-            Map<String, ADALTokenCacheItem> nativeCacheItems = deserialize(cacheItems);
-            nativeCacheItems = filterByEndpoint(commonEndpoints, nativeCacheItems);
-            Logger.verbose(
-                    TAG + methodName,
-                    "Found [" + nativeCacheItems.size() + "] common tokens."
-            );
+            if (cloudMetadataLoaded) {
+                final List<String> commonEndpoints = getCommonEndpoints();
+                Logger.verbose(
+                        TAG + methodName,
+                        "Identified [" + commonEndpoints.size() + "] common endpoints"
+                );
 
-            // Split these by clientId, key is client id - secondary key is original TKI key
-            Map<String, Map<String, ADALTokenCacheItem>> nativeCacheItemByClientId = segmentByClientId(nativeCacheItems);
+                // Convert the JSON to native ADALTokenCacheItem representation, original keys used to key the Map
+                Map<String, ADALTokenCacheItem> nativeCacheItems = deserialize(cacheItems);
+                nativeCacheItems = filterByEndpoint(commonEndpoints, nativeCacheItems);
+                Logger.verbose(
+                        TAG + methodName,
+                        "Found [" + nativeCacheItems.size() + "] common tokens."
+                );
 
-            for (final Map.Entry<String, Map<String, ADALTokenCacheItem>> entry : nativeCacheItemByClientId.entrySet()) {
-                final Map<String, ADALTokenCacheItem> tokensForClientId = entry.getValue();
-                result.addAll(selectTokensByUser(segmentByUser(tokensForClientId)));
+                // Split these by clientId, key is client id - secondary key is original TKI key
+                Map<String, Map<String, ADALTokenCacheItem>> nativeCacheItemByClientId = segmentByClientId(nativeCacheItems);
+
+                for (final Map.Entry<String, Map<String, ADALTokenCacheItem>> entry : nativeCacheItemByClientId.entrySet()) {
+                    final Map<String, ADALTokenCacheItem> tokensForClientId = entry.getValue();
+                    result.addAll(selectTokensByUser(segmentByUser(tokensForClientId)));
+                }
             }
+
+            // Update the migrated status
+            setMigrationStatus(true);
         }
 
         return result;
+    }
+
+    @SuppressLint("ApplySharedPref")
+    private void setMigrationStatus(boolean migrationStatus) {
+        mSharedPrefs.edit().putBoolean(KEY_MIGRATION_STATUS, migrationStatus).commit();
+    }
+
+    private boolean getMigrationStatus() {
+        return mSharedPrefs.getBoolean(KEY_MIGRATION_STATUS, false);
     }
 
     private Map<String, Map<String, ADALTokenCacheItem>> segmentByClientId(@NonNull final Map<String, ADALTokenCacheItem> nativeCacheItems) {

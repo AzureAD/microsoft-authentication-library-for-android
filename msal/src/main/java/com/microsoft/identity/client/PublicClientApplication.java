@@ -325,7 +325,7 @@ public final class PublicClientApplication {
         final Map<String, String> credentials = sharedPreferencesFileManager.getAll();
 
         new TokenMigrationUtility<MicrosoftAccount, MicrosoftRefreshToken>()._import(
-                new AdalMigrationAdapter(mClientId),
+                new AdalMigrationAdapter(context, false),
                 credentials,
                 (IShareSingleSignOnState<MicrosoftAccount, MicrosoftRefreshToken>) mOauth2TokenCache,
                 new TokenMigrationCallback() {
