@@ -36,6 +36,7 @@ import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.client.internal.authorities.Authority;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
@@ -428,11 +429,20 @@ public class LocalMSALController extends MSALController {
                 "Requesting tokens..."
         );
         throwIfNetworkNotAvailable(parameters.getAppContext());
-        return strategy.requestToken(
-                strategy.createRefreshTokenRequest(
-                        parameters.getRefreshToken(),
-                        parameters.getScopes()
-                )
-        );
+
+        final TokenRequest refreshTokenRequest = strategy.createRefreshTokenRequest();
+        refreshTokenRequest.setClientId(parameters.getClientId());
+        refreshTokenRequest.setScope(StringUtil.join(' ', parameters.getScopes()));
+        refreshTokenRequest.setRefreshToken(parameters.getRefreshToken().getSecret());
+        refreshTokenRequest.setRedirectUri(parameters.getRedirectUri());
+
+        if (!StringExtensions.isNullOrBlank(refreshTokenRequest.getScope())) {
+            Logger.verbosePII(
+                    TAG + methodName,
+                    "Scopes: [" + refreshTokenRequest.getScope() + "]"
+            );
+        }
+
+        return strategy.requestToken(refreshTokenRequest);
     }
 }

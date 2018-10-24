@@ -25,6 +25,7 @@ package com.microsoft.identity.client.internal.authorities;
 import android.net.Uri;
 
 import com.google.gson.annotations.SerializedName;
+import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryCloud;
@@ -48,6 +49,9 @@ public class AzureActiveDirectoryAuthority extends Authority {
 
     @SerializedName("flight_parameters")
     public Map<String, String> mFlightParameters;
+
+    public Boolean mMultipleCloudsSupported = false;
+
 
     private AzureActiveDirectoryCloud mAzureActiveDirectoryCloud;
 
@@ -81,6 +85,7 @@ public class AzureActiveDirectoryAuthority extends Authority {
         //Defaulting to AllAccounts which maps to the "common" tenant
         mAudience = new AllAccounts();
         mAuthorityTypeString = "AAD";
+        mMultipleCloudsSupported = false;
         getAzureActiveDirectoryCloud();
     }
 
@@ -91,6 +96,10 @@ public class AzureActiveDirectoryAuthority extends Authority {
     public Map<String, String> getFlightParameters() {
         return this.mFlightParameters;
     }
+
+    public void setMultipleCloudsSupported(Boolean supported) { mMultipleCloudsSupported = supported;}
+
+    public Boolean getMultipleCloudsSupported() { return mMultipleCloudsSupported;}
 
     @Override
     public Uri getAuthorityUri() {
@@ -146,6 +155,9 @@ public class AzureActiveDirectoryAuthority extends Authority {
                 config.getFlightParameters().put(entry.getKey(), entry.getValue());
             }
         }
+
+
+        config.setMultipleCloudsSupported(mMultipleCloudsSupported);
 
         return new MicrosoftStsOAuth2Strategy(config);
     }
