@@ -22,8 +22,16 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+/**
+ * Callback to notify invokers that token migration has finished.
+ */
 interface TokenMigrationCallback {
 
+    /**
+     * Called once token migration has finished.
+     *
+     * @param numberOfAccountsMigrated The number of accounts migrated.
+     */
     void onMigrationFinished(int numberOfAccountsMigrated);
 
 }
