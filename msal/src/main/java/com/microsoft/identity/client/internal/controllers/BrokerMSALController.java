@@ -40,6 +40,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * The implementation of MSAL Controller for Broker
+ */
 public class BrokerMSALController extends MSALController {
 
     private BrokerResultFuture mBrokerResultFuture;
@@ -69,7 +72,12 @@ public class BrokerMSALController extends MSALController {
         return null;
     }
 
-    private Intent getBrokerAuthorizationItent(MSALAcquireTokenOperationParameters request){
+    /**
+     * Get the intent for the broker interactive request
+     * @param request
+     * @return
+     */
+    private Intent getBrokerAuthorizationItent(MSALAcquireTokenOperationParameters request) {
         Intent interactiveRequestIntent = null;
         IMicrosoftAuthService service = null;
 
@@ -81,9 +89,9 @@ public class BrokerMSALController extends MSALController {
             interactiveRequestIntent = service.getIntentForInteractiveRequest();
         } catch (RemoteException e) {
             throw new RuntimeException("Exception occurred while attempting to invoke remote service", e);
-        } catch(Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("Exception occurred while awaiting (get) return of MicrosoftAuthService", e);
-        }finally {
+        } finally {
             client.disconnect();
         }
 
@@ -95,6 +103,7 @@ public class BrokerMSALController extends MSALController {
      * BrokerActivity will pass along the response to the broker controller
      * The Broker controller will map th response into the broker result
      * And signal the future with the broker result to unblock the request.
+     *
      * @param requestCode
      * @param resultCode
      * @param data
@@ -104,7 +113,6 @@ public class BrokerMSALController extends MSALController {
 
         //TODO: Map data into broker result and signal future
         mBrokerResultFuture.setBrokerResult(new BrokerResult(new BrokerTokenResult()));
-
 
 
     }
@@ -121,7 +129,7 @@ public class BrokerMSALController extends MSALController {
         try {
             //Do we want a time out here?
             service = future.get();
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("Exception occurred while awaiting (get) return of MicrosoftAuthService", e);
         }
 
@@ -135,7 +143,13 @@ public class BrokerMSALController extends MSALController {
         return null;
     }
 
-    private Map getSilentParameters(MSALAcquireTokenSilentOperationParameters parameters){
+    /**
+     * Map MSALAcquireTokenSilentOperationParameters to Broker Request
+     * NOTE: TBD to update this code with BrokerRequest object
+     * @param parameters
+     * @return
+     */
+    private Map getSilentParameters(MSALAcquireTokenSilentOperationParameters parameters) {
 
         HashMap<String, String> silentParameters = null;
 
