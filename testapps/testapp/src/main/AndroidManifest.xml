@@ -27,10 +27,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.microsoft.identity.client.testapp">
 
-    <uses-sdk
-        android:minSdkVersion="21"
-        android:targetSdkVersion="25" />
-
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
@@ -46,17 +42,13 @@
             android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
 
         <activity
-            android:name="com.microsoft.identity.client.AuthenticationActivity">
-        </activity>
-
-        <activity
-            android:name="com.microsoft.identity.client.BrowserTabActivity">
+            android:name="com.microsoft.identity.client.BrowserTabActivity"
+            android:launchMode="singleTask" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
