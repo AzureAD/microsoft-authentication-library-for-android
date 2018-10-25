@@ -27,6 +27,9 @@ import android.os.Bundle;
 import android.os.RemoteException;
 
 import com.microsoft.identity.common.internal.broker.BrokerRequest;
+import com.microsoft.identity.common.internal.broker.BrokerResult;
+import com.microsoft.identity.common.internal.broker.BrokerResultFuture;
+import com.microsoft.identity.common.internal.broker.BrokerTokenResult;
 import com.microsoft.identity.common.internal.broker.IMicrosoftAuthService;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthServiceFuture;
@@ -39,35 +42,68 @@ import java.util.concurrent.ExecutionException;
 
 public class BrokerMSALController extends MSALController {
 
+    private BrokerResultFuture mBrokerResultFuture;
+
     @Override
-    public AcquireTokenResult acquireToken(MSALAcquireTokenOperationParameters request) {
-        Intent interactiveRequestIntent = null;
-        IMicrosoftAuthService service = null;
+    public AcquireTokenResult acquireToken(MSALAcquireTokenOperationParameters request) throws ExecutionException, InterruptedException {
 
-        MicrosoftAuthClient client = new MicrosoftAuthClient(request.getAppContext());
-        MicrosoftAuthServiceFuture future = client.connect();
+        //Create BrokerResultFuture to block on response from the broker... response will be return as an activity result
+        //BrokerActivity will receive the result and ask the ask the API dispatcher to complete the request
+        //In completeAquireToken below we will set the result on the future and unblock the flow
+        mBrokerResultFuture = new BrokerResultFuture();
 
-        try {
-            service = future.get();
-        } catch (Exception e){
-            throw new RuntimeException("Exception occurred while awaiting (get) return of MicrosoftAuthService", e);
-        }
+        //Get the broker interactive rqeuest intent
+        Intent interactiveRequestIntent = getBrokerAuthorizationItent(request);
 
-        try {
-            interactiveRequestIntent = service.getIntentForInteractiveRequest();
-        } catch (RemoteException e) {
-            throw new RuntimeException("Exception occurred while attempting to invoke remote service", e);
-        }
+        //Pass this intent to the BrokerActivity which will be used to start this activity
+        Intent brokerActivityIntent = new Intent(request.getAppContext(), BrokerActivity.class);
+        //TODO: Set the request values on the broker intent
+        brokerActivityIntent.putExtra(BrokerActivity.BROKER_INTENT, brokerActivityIntent);
 
-        //TODO: We need activity that we can start that will in turn invoke the intent activity
-        //startActivity
+        //Start the BrokerActivity
+        request.getActivity().startActivity(brokerActivityIntent);
+
+        //Wait to be notified of the result being returned... we could add a timeout here if we want to
+        BrokerResult brokerResult = mBrokerResultFuture.get();
 
         return null;
     }
 
+    private Intent getBrokerAuthorizationItent(MSALAcquireTokenOperationParameters request){
+        Intent interactiveRequestIntent = null;
+        IMicrosoftAuthService service = null;
+
+        MicrosoftAuthClient client = new MicrosoftAuthClient(request.getAppContext());
+        MicrosoftAuthServiceFuture authServiceFuture = client.connect();
+
+        try {
+            service = authServiceFuture.get();
+            interactiveRequestIntent = service.getIntentForInteractiveRequest();
+        } catch (RemoteException e) {
+            throw new RuntimeException("Exception occurred while attempting to invoke remote service", e);
+        } catch(Exception e){
+            throw new RuntimeException("Exception occurred while awaiting (get) return of MicrosoftAuthService", e);
+        }finally {
+            client.disconnect();
+        }
+
+        return interactiveRequestIntent;
+    }
+
+    /**
+     * Get the response from the Broker captured by BrokerActivity.
+     * BrokerActivity will pass along the response to the broker controller
+     * The Broker controller will map th response into the broker result
+     * And signal the future with the broker result to unblock the request.
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
     @Override
     public void completeAcquireToken(int requestCode, int resultCode, Intent data) {
 
+        //TODO: Map data into broker result and signal future
+        mBrokerResultFuture.setBrokerResult(new BrokerResult(new BrokerTokenResult()));
 
 
 
