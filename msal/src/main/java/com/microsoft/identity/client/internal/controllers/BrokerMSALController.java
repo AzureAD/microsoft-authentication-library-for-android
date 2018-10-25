@@ -74,6 +74,7 @@ public class BrokerMSALController extends MSALController {
 
     /**
      * Get the intent for the broker interactive request
+     *
      * @param request
      * @return
      */
@@ -146,6 +147,7 @@ public class BrokerMSALController extends MSALController {
     /**
      * Map MSALAcquireTokenSilentOperationParameters to Broker Request
      * NOTE: TBD to update this code with BrokerRequest object
+     *
      * @param parameters
      * @return
      */
