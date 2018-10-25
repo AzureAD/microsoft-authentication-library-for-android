@@ -6,8 +6,8 @@ buildscript {
     apply from: rootProject.file("gradle/versions.gradle")
 
     repositories {
-        jcenter()
         google()
+        jcenter()
     }
 
     dependencies {
@@ -17,9 +17,9 @@ buildscript {
 
 allprojects {
     repositories {
+        google()
         mavenLocal()
         jcenter()
-        google()
         maven {
             name "vsts-maven-adal-android"
             url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
