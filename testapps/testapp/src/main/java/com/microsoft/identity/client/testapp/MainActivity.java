@@ -23,9 +23,6 @@
 
 package com.microsoft.identity.client.testapp;
 
-import android.app.PendingIntent;
-import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.NavigationView;
@@ -58,10 +55,7 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
-import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity;
-import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -222,10 +216,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         attachFragment(fragment);
     }
 
-    List<IAccount> getAccounts() {
-        return mApplication.getAccounts();
-    }
-
     private void attachFragment(final Fragment fragment) {
         final FragmentManager fragmentManager = getSupportFragmentManager();
         final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -246,46 +236,65 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         callAcquireToken(mScopes, mUiBehavior, mLoginHint, mExtraQp, mExtraScopesToConsent);
     }
 
-    public void onRemoveUserClicked(String username) {
-        final List<IAccount> accountsToRemove = mApplication.getAccounts();
-
-        for (final IAccount accountToRemove : accountsToRemove) {
-            if (TextUtils.isEmpty(username) || accountToRemove.getUsername().equals(username.trim().toLowerCase())) {
-                    mApplication.removeAccount(accountToRemove);
+    public void onRemoveUserClicked(final String username) {
+        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedListener() {
+            @Override
+            public void onAccountsLoaded(List<IAccount> accountsToRemove) {
+                for (final IAccount accountToRemove : accountsToRemove) {
+                    if (TextUtils.isEmpty(username) || accountToRemove.getUsername().equals(username.trim().toLowerCase())) {
+                        mApplication.removeAccount(accountToRemove);
+                    }
+                }
             }
-        }
+        });
     }
 
-    IAccount getAccount(final String loginHint) {
-        for (final IAccount account : mApplication.getAccounts()) {
-            if (account.getUsername().equals(loginHint.trim().toLowerCase())) {
-                return account;
-            }
-        }
-
-        return null;
+    public PublicClientApplication getPublicClientApplication() {
+        return mApplication;
     }
 
     @Override
     public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
 
-        final IAccount requestAccount = getAccount(requestOptions.getLoginHint());
+        //final IAccount requestAccount = getAccount();
+        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedListener() {
+            @Override
+            public void onAccountsLoaded(final List<IAccount> accounts) {
+                IAccount requestAccount = null;
 
-        callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
+                for (final IAccount account : accounts) {
+                    if (account.getUsername().equals(requestOptions.getLoginHint().trim().toLowerCase())) {
+                        requestAccount = account;
+                        break;
+                    }
+                }
+
+                if (null != requestAccount) {
+                    callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
+                } else {
+                    showMessage("No account found matching loginHint");
+                }
+            }
+        });
     }
 
     @Override
-    public void bindSelectAccountSpinner(Spinner selectUser) {
-        final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
-                getApplicationContext(), android.R.layout.simple_spinner_item,
-                new ArrayList<String>() {{
-                    for (IAccount account : mApplication.getAccounts())
-                        add(account.getUsername());
-                }}
-        );
-        userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        selectUser.setAdapter(userAdapter);
+    public void bindSelectAccountSpinner(final Spinner selectUser) {
+        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedListener() {
+            @Override
+            public void onAccountsLoaded(final List<IAccount> accounts) {
+                final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
+                        getApplicationContext(), android.R.layout.simple_spinner_item,
+                        new ArrayList<String>() {{
+                            for (IAccount account : accounts)
+                                add(account.getUsername());
+                        }}
+                );
+                userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                selectUser.setAdapter(userAdapter);
+            }
+        });
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
@@ -305,11 +314,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mScopes = scopes.toLowerCase().split(" ");
         mExtraScopesToConsent = requestOptions.getExtraScopesToConsent() == null ? null : requestOptions.getExtraScopesToConsent().toLowerCase().split(" ");
 
-        if(userAgent.name().equalsIgnoreCase("BROWSER")){
+        if (userAgent.name().equalsIgnoreCase("BROWSER")) {
             mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config_browser);
-        }else if(userAgent.name().equalsIgnoreCase("WEBVIEW")){
+        } else if (userAgent.name().equalsIgnoreCase("WEBVIEW")) {
             mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config_webview);
-        }else {
+        } else {
             mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
         }
     }
