@@ -105,11 +105,9 @@ public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount,
      * @param context Context used to track migration state.
      * @param force   Force migration to occur, even if it has run before.
      */
-    public AdalMigrationAdapter(@Nullable final Context context,
+    public AdalMigrationAdapter(final Context context,
                                 final boolean force) {
-        mSharedPrefs = null != context
-                ? context.getSharedPreferences(MIGRATION_STATUS_SHARED_PREFERENCES, Context.MODE_PRIVATE)
-                : null;
+        mSharedPrefs = context.getSharedPreferences(MIGRATION_STATUS_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         mForceMigration = force;
     }
 
