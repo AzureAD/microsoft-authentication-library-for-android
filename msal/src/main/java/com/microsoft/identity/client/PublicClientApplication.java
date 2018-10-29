@@ -309,37 +309,6 @@ public final class PublicClientApplication {
         return BuildConfig.VERSION_NAME;
     }
 
-    public void restoreAdalCache(final Context context) {
-        final String methodName = ":restoreAdalCache";
-
-        // Create the SharedPreferencesFileManager for the legacy accounts/credentials
-        final IStorageHelper storageHelper = new StorageHelper(context);
-        final ISharedPreferencesFileManager sharedPreferencesFileManager =
-                new SharedPreferencesFileManager(
-                        context,
-                        "com.microsoft.aad.adal.cache",
-                        storageHelper
-                );
-
-        // Load the old TokenCacheItems as key/value JSON
-        final Map<String, String> credentials = sharedPreferencesFileManager.getAll();
-
-        new TokenMigrationUtility<MicrosoftAccount, MicrosoftRefreshToken>()._import(
-                new AdalMigrationAdapter(context, false),
-                credentials,
-                (IShareSingleSignOnState<MicrosoftAccount, MicrosoftRefreshToken>) mOauth2TokenCache,
-                new TokenMigrationCallback() {
-                    @Override
-                    public void onMigrationFinished(int numberOfAccountsMigrated) {
-                        com.microsoft.identity.common.internal.logging.Logger.info(
-                                TAG,
-                                "Migrated [" + numberOfAccountsMigrated + "] accounts"
-                        );
-                    }
-                }
-        );
-    }
-
     /**
      * Returns the PublicClientConfiguration for this instance of PublicClientApplication
      * Configuration is based on the defaults established for MSAl and can be overridden by creating the
@@ -349,6 +318,57 @@ public final class PublicClientApplication {
      */
     public PublicClientApplicationConfiguration getConfiguration() {
         return mPublicClientConfiguration;
+    }
+
+    /**
+     * Listener callback for asynchronous loading of Accounts.
+     */
+    public interface AccountsLoadedListener {
+
+        /**
+         * Called once Accounts have been loaded from the cache.
+         *
+         * @param accounts The accounts in the cache.
+         */
+        void onAccountsLoaded(List<IAccount> accounts);
+
+    }
+
+    /**
+     * Asynchronously returns a List of {@link IAccount} objects for which this application has RefreshTokens.
+     *
+     * @param callback The callback to notify once this action has finished.
+     */
+    public void getAccounts(final AccountsLoadedListener callback) {
+        final String methodName = ":getAccounts";
+
+        // Create the SharedPreferencesFileManager for the legacy accounts/credentials
+        final IStorageHelper storageHelper = new StorageHelper(mAppContext);
+        final ISharedPreferencesFileManager sharedPreferencesFileManager =
+                new SharedPreferencesFileManager(
+                        mAppContext,
+                        "com.microsoft.aad.adal.cache",
+                        storageHelper
+                );
+
+        // Load the old TokenCacheItems as key/value JSON
+        final Map<String, String> credentials = sharedPreferencesFileManager.getAll();
+
+        new TokenMigrationUtility<MicrosoftAccount, MicrosoftRefreshToken>()._import(
+                new AdalMigrationAdapter(mAppContext, false),
+                credentials,
+                (IShareSingleSignOnState<MicrosoftAccount, MicrosoftRefreshToken>) mOauth2TokenCache,
+                new TokenMigrationCallback() {
+                    @Override
+                    public void onMigrationFinished(int numberOfAccountsMigrated) {
+                        com.microsoft.identity.common.internal.logging.Logger.info(
+                                TAG,
+                                "Migrated [" + numberOfAccountsMigrated + "] accounts"
+                        );
+                        callback.onAccountsLoaded(getAccounts());
+                    }
+                }
+        );
     }
 
     /**
