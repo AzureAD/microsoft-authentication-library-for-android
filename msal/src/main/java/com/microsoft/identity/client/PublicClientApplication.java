@@ -28,6 +28,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
@@ -340,35 +342,60 @@ public final class PublicClientApplication {
      * @param callback The callback to notify once this action has finished.
      */
     public void getAccounts(final AccountsLoadedListener callback) {
+        MSALApiDispatcher.initializeDiagnosticContext();
         final String methodName = ":getAccounts";
-
-        // Create the SharedPreferencesFileManager for the legacy accounts/credentials
-        final IStorageHelper storageHelper = new StorageHelper(mAppContext);
-        final ISharedPreferencesFileManager sharedPreferencesFileManager =
-                new SharedPreferencesFileManager(
-                        mAppContext,
-                        "com.microsoft.aad.adal.cache",
-                        storageHelper
-                );
-
-        // Load the old TokenCacheItems as key/value JSON
-        final Map<String, String> credentials = sharedPreferencesFileManager.getAll();
-
-        new TokenMigrationUtility<MicrosoftAccount, MicrosoftRefreshToken>()._import(
-                new AdalMigrationAdapter(mAppContext, false),
-                credentials,
-                (IShareSingleSignOnState<MicrosoftAccount, MicrosoftRefreshToken>) mOauth2TokenCache,
-                new TokenMigrationCallback() {
-                    @Override
-                    public void onMigrationFinished(int numberOfAccountsMigrated) {
-                        com.microsoft.identity.common.internal.logging.Logger.info(
-                                TAG,
-                                "Migrated [" + numberOfAccountsMigrated + "] accounts"
-                        );
-                        callback.onAccountsLoaded(getAccounts());
-                    }
-                }
+        final List<IAccount> accounts = getAccounts();
+        final boolean invokeOnMainThread = Looper.myLooper() == Looper.getMainLooper();
+        final Handler handler = new Handler(
+                invokeOnMainThread
+                        ? Looper.getMainLooper()
+                        : Looper.myLooper()
         );
+
+        if (accounts.isEmpty()) {
+            // Create the SharedPreferencesFileManager for the legacy accounts/credentials
+            final IStorageHelper storageHelper = new StorageHelper(mAppContext);
+            final ISharedPreferencesFileManager sharedPreferencesFileManager =
+                    new SharedPreferencesFileManager(
+                            mAppContext,
+                            "com.microsoft.aad.adal.cache",
+                            storageHelper
+                    );
+
+            // Load the old TokenCacheItems as key/value JSON
+            final Map<String, String> credentials = sharedPreferencesFileManager.getAll();
+
+            new TokenMigrationUtility<MicrosoftAccount, MicrosoftRefreshToken>()._import(
+                    new AdalMigrationAdapter(mAppContext, false),
+                    credentials,
+                    (IShareSingleSignOnState<MicrosoftAccount, MicrosoftRefreshToken>) mOauth2TokenCache,
+                    new TokenMigrationCallback() {
+                        @Override
+                        public void onMigrationFinished(int numberOfAccountsMigrated) {
+                            final String extendedMethodName = ":onMigrationFinished";
+                            com.microsoft.identity.common.internal.logging.Logger.info(
+                                    TAG + methodName + extendedMethodName,
+                                    "Migrated [" + numberOfAccountsMigrated + "] accounts"
+                            );
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    callback.onAccountsLoaded(getAccounts());
+                                }
+                            });
+                        }
+                    }
+            );
+        } else {
+            // The cache contains items - mark migration as complete
+            new AdalMigrationAdapter(mAppContext, false).setMigrationStatus(true);
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    callback.onAccountsLoaded(accounts);
+                }
+            });
+        }
     }
 
     /**
@@ -376,8 +403,7 @@ public final class PublicClientApplication {
      *
      * @return An immutable List of IAccount objects - empty if no IAccounts exist.
      */
-    public List<IAccount> getAccounts() {
-        MSALApiDispatcher.initializeDiagnosticContext();
+    private List<IAccount> getAccounts() {
         final List<IAccount> accountsToReturn = new ArrayList<>();
 
         // Grab the Accounts from the common cache

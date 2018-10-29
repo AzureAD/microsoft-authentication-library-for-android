@@ -59,6 +59,11 @@ import java.util.Map;
 public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount, MicrosoftRefreshToken> {
 
     /**
+     * Object lock to prevent multiple threads from running migration simultaneously.
+     */
+    private static final Object sLock = new Object();
+
+    /**
      * The log tag of this class.
      */
     private static final String TAG = AdalMigrationAdapter.class.getSimpleName();
@@ -113,38 +118,40 @@ public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount,
         final String methodName = ":adapt";
         final List<Pair<MicrosoftAccount, MicrosoftRefreshToken>> result = new ArrayList<>();
 
-        final boolean hasMigrated = getMigrationStatus();
+        synchronized (sLock) { // To prevent multiple threads from potentially running migration
+            final boolean hasMigrated = getMigrationStatus();
 
-        if (!hasMigrated && !mForceMigration) {
-            // Initialize the InstanceDiscoveryMetadata so we know about all the clouds and possible /common endpoints
-            final boolean cloudMetadataLoaded = loadCloudDiscoveryMetadata();
+            if (!hasMigrated && !mForceMigration) {
+                // Initialize the InstanceDiscoveryMetadata so we know about all the clouds and possible /common endpoints
+                final boolean cloudMetadataLoaded = loadCloudDiscoveryMetadata();
 
-            if (cloudMetadataLoaded) {
-                final List<String> commonEndpoints = getCommonEndpoints();
-                Logger.verbose(
-                        TAG + methodName,
-                        "Identified [" + commonEndpoints.size() + "] common endpoints"
-                );
+                if (cloudMetadataLoaded) {
+                    final List<String> commonEndpoints = getCommonEndpoints();
+                    Logger.verbose(
+                            TAG + methodName,
+                            "Identified [" + commonEndpoints.size() + "] common endpoints"
+                    );
 
-                // Convert the JSON to native ADALTokenCacheItem representation, original keys used to key the Map
-                Map<String, ADALTokenCacheItem> nativeCacheItems = deserialize(cacheItems);
-                nativeCacheItems = filterByEndpoint(commonEndpoints, nativeCacheItems);
-                Logger.verbose(
-                        TAG + methodName,
-                        "Found [" + nativeCacheItems.size() + "] common tokens."
-                );
+                    // Convert the JSON to native ADALTokenCacheItem representation, original keys used to key the Map
+                    Map<String, ADALTokenCacheItem> nativeCacheItems = deserialize(cacheItems);
+                    nativeCacheItems = filterByEndpoint(commonEndpoints, nativeCacheItems);
+                    Logger.verbose(
+                            TAG + methodName,
+                            "Found [" + nativeCacheItems.size() + "] common tokens."
+                    );
 
-                // Split these by clientId, key is client id - secondary key is original TKI key
-                Map<String, Map<String, ADALTokenCacheItem>> nativeCacheItemByClientId = segmentByClientId(nativeCacheItems);
+                    // Split these by clientId, key is client id - secondary key is original TKI key
+                    Map<String, Map<String, ADALTokenCacheItem>> nativeCacheItemByClientId = segmentByClientId(nativeCacheItems);
 
-                for (final Map.Entry<String, Map<String, ADALTokenCacheItem>> entry : nativeCacheItemByClientId.entrySet()) {
-                    final Map<String, ADALTokenCacheItem> tokensForClientId = entry.getValue();
-                    result.addAll(selectTokensByUser(segmentByUser(tokensForClientId)));
+                    for (final Map.Entry<String, Map<String, ADALTokenCacheItem>> entry : nativeCacheItemByClientId.entrySet()) {
+                        final Map<String, ADALTokenCacheItem> tokensForClientId = entry.getValue();
+                        result.addAll(selectTokensByUser(segmentByUser(tokensForClientId)));
+                    }
                 }
-            }
 
-            // Update the migrated status
-            setMigrationStatus(true);
+                // Update the migrated status
+                setMigrationStatus(true);
+            }
         }
 
         return result;
@@ -153,11 +160,11 @@ public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount,
     /**
      * Sets the migration-state in the SharedPreferences file.
      *
-     * @param migrationStatus The status to set.
+     * @param hasMigrated The status to set.
      */
     @SuppressLint("ApplySharedPref")
-    private void setMigrationStatus(boolean migrationStatus) {
-        mSharedPrefs.edit().putBoolean(KEY_MIGRATION_STATUS, migrationStatus).commit();
+    void setMigrationStatus(boolean hasMigrated) {
+        mSharedPrefs.edit().putBoolean(KEY_MIGRATION_STATUS, hasMigrated).commit();
     }
 
     /**
@@ -255,7 +262,7 @@ public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount,
 
         try {
             final String legacyCacheKey = refreshTokenPair.first;
-            final String rawRt = refreshTokenPair.second.getRawIdToken();
+            final String rawRt = refreshTokenPair.second.getRefreshToken();
             final String clientInfoStr = account.getClientInfo();
             final ClientInfo clientInfo = new ClientInfo(clientInfoStr);
             final String scope = "openid profile offline_access"; // default scopes
