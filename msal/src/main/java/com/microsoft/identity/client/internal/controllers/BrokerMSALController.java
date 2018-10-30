@@ -26,6 +26,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.RemoteException;
 
+import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.broker.BrokerRequest;
 import com.microsoft.identity.common.internal.broker.BrokerResult;
 import com.microsoft.identity.common.internal.broker.BrokerResultFuture;
@@ -48,7 +49,7 @@ public class BrokerMSALController extends MSALController {
     private BrokerResultFuture mBrokerResultFuture;
 
     @Override
-    public AcquireTokenResult acquireToken(MSALAcquireTokenOperationParameters request) throws ExecutionException, InterruptedException {
+    public AcquireTokenResult acquireToken(MSALAcquireTokenOperationParameters request) throws ExecutionException, InterruptedException, ClientException {
 
         //Create BrokerResultFuture to block on response from the broker... response will be return as an activity result
         //BrokerActivity will receive the result and ask the ask the API dispatcher to complete the request
@@ -78,7 +79,7 @@ public class BrokerMSALController extends MSALController {
      * @param request
      * @return
      */
-    private Intent getBrokerAuthorizationItent(MSALAcquireTokenOperationParameters request) {
+    private Intent getBrokerAuthorizationItent(MSALAcquireTokenOperationParameters request) throws ClientException {
         Intent interactiveRequestIntent = null;
         IMicrosoftAuthService service = null;
 
@@ -119,7 +120,7 @@ public class BrokerMSALController extends MSALController {
     }
 
     @Override
-    public AcquireTokenResult acquireTokenSilent(MSALAcquireTokenSilentOperationParameters request) {
+    public AcquireTokenResult acquireTokenSilent(MSALAcquireTokenSilentOperationParameters request) throws ClientException {
         Bundle result = null;
         IMicrosoftAuthService service = null;
         Map requestParameters = null;
