@@ -26,7 +26,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Base64;
 import android.util.Pair;
 
@@ -145,10 +144,10 @@ public class AdalMigrationAdapter implements IMigrationAdapter<MicrosoftAccount,
                         final Map<String, ADALTokenCacheItem> tokensForClientId = entry.getValue();
                         result.addAll(selectTokensByUser(segmentByUser(tokensForClientId)));
                     }
-                }
 
-                // Update the migrated status
-                setMigrationStatus(true);
+                    // Update the migrated status
+                    setMigrationStatus(true);
+                }
             }
         }
 
