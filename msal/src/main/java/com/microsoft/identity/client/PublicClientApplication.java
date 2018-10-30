@@ -66,6 +66,9 @@ import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentia
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
+import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
+import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
