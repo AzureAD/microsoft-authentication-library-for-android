@@ -238,7 +238,10 @@ public final class MsalUtils {
      */
     public static String getChromePackageWithCustomTabSupport(final Context context) {
         if (context.getPackageManager() == null) {
-            Logger.warning(TAG, null, "getPackageManager() returned null.");
+            com.microsoft.identity.common.internal.logging.Logger.warn(
+                    TAG,
+                    "getPackageManager() returned null."
+            );
             return null;
         }
 
@@ -248,7 +251,10 @@ public final class MsalUtils {
 
         // queryIntentServices could return null or an empty list if no matching service existed.
         if (resolveInfoList == null || resolveInfoList.isEmpty()) {
-            Logger.warning(TAG, null, "No Service responded to Intent: " + CUSTOM_TABS_SERVICE_ACTION);
+            com.microsoft.identity.common.internal.logging.Logger.warn(
+                    TAG,
+                    "No Service responded to Intent: " + CUSTOM_TABS_SERVICE_ACTION
+            );
             return null;
         }
 
@@ -259,7 +265,11 @@ public final class MsalUtils {
             }
         }
 
-        Logger.warning(TAG, null, "No pkg with CustomTab support found.");
+        com.microsoft.identity.common.internal.logging.Logger.warn(
+                TAG,
+                "No pkg with CustomTab support found."
+        );
+
         return null;
     }
 
@@ -285,7 +295,11 @@ public final class MsalUtils {
             }
         } catch (final PackageManager.NameNotFoundException e) {
             // swallow this exception. If the package is not existed, the exception will be thrown.
-            Logger.error(TAG, null, "Failed to retrieve chrome package info.", e);
+            com.microsoft.identity.common.internal.logging.Logger.error(
+                    TAG,
+                    "Failed to retrieve chrome package info.",
+                    e
+            );
         }
 
         return installedChromePackage;
@@ -323,7 +337,11 @@ public final class MsalUtils {
                     decodedUrlMap.put(key, value);
                 }
             } catch (final UnsupportedEncodingException e) {
-                Logger.errorPII(TAG, null, "URL form decode failed.", e);
+                com.microsoft.identity.common.internal.logging.Logger.errorPII(
+                        TAG,
+                        "URL form decode failed.",
+                        e
+                );
             }
         }
 
@@ -421,7 +439,11 @@ public final class MsalUtils {
         try {
             url = new URL(endpoint);
         } catch (MalformedURLException e1) {
-            Logger.errorPII(MsalUtils.class.getSimpleName(), null, "Url is invalid", e1);
+            com.microsoft.identity.common.internal.logging.Logger.errorPII(
+                    TAG,
+                    "Url is invalid",
+                    e1
+            );
         }
 
         return url;

@@ -28,6 +28,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
@@ -58,11 +60,15 @@ import com.microsoft.identity.common.internal.cache.AccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.ICacheKeyValueDelegate;
+import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
+import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
+import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
@@ -80,6 +86,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static com.microsoft.identity.common.internal.cache.AccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
 
@@ -319,12 +326,87 @@ public final class PublicClientApplication {
     }
 
     /**
+     * Listener callback for asynchronous loading of Accounts.
+     */
+    public interface AccountsLoadedListener {
+
+        /**
+         * Called once Accounts have been loaded from the cache.
+         *
+         * @param accounts The accounts in the cache.
+         */
+        void onAccountsLoaded(List<IAccount> accounts);
+
+    }
+
+    /**
+     * Asynchronously returns a List of {@link IAccount} objects for which this application has RefreshTokens.
+     *
+     * @param callback The callback to notify once this action has finished.
+     */
+    public void getAccounts(final AccountsLoadedListener callback) {
+        MSALApiDispatcher.initializeDiagnosticContext();
+        final String methodName = ":getAccounts";
+        final List<IAccount> accounts = getAccounts();
+        final boolean invokeOnMainThread = Looper.myLooper() == Looper.getMainLooper();
+        final Handler handler = new Handler(
+                invokeOnMainThread
+                        ? Looper.getMainLooper()
+                        : Looper.myLooper()
+        );
+
+        if (accounts.isEmpty()) {
+            // Create the SharedPreferencesFileManager for the legacy accounts/credentials
+            final IStorageHelper storageHelper = new StorageHelper(mAppContext);
+            final ISharedPreferencesFileManager sharedPreferencesFileManager =
+                    new SharedPreferencesFileManager(
+                            mAppContext,
+                            "com.microsoft.aad.adal.cache",
+                            storageHelper
+                    );
+
+            // Load the old TokenCacheItems as key/value JSON
+            final Map<String, String> credentials = sharedPreferencesFileManager.getAll();
+
+            new TokenMigrationUtility<MicrosoftAccount, MicrosoftRefreshToken>()._import(
+                    new AdalMigrationAdapter(mAppContext, false),
+                    credentials,
+                    (IShareSingleSignOnState<MicrosoftAccount, MicrosoftRefreshToken>) mOauth2TokenCache,
+                    new TokenMigrationCallback() {
+                        @Override
+                        public void onMigrationFinished(int numberOfAccountsMigrated) {
+                            final String extendedMethodName = ":onMigrationFinished";
+                            com.microsoft.identity.common.internal.logging.Logger.info(
+                                    TAG + methodName + extendedMethodName,
+                                    "Migrated [" + numberOfAccountsMigrated + "] accounts"
+                            );
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    callback.onAccountsLoaded(getAccounts());
+                                }
+                            });
+                        }
+                    }
+            );
+        } else {
+            // The cache contains items - mark migration as complete
+            new AdalMigrationAdapter(mAppContext, false).setMigrationStatus(true);
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    callback.onAccountsLoaded(accounts);
+                }
+            });
+        }
+    }
+
+    /**
      * Returns a List of {@link IAccount} objects for which this application has RefreshTokens.
      *
      * @return An immutable List of IAccount objects - empty if no IAccounts exist.
      */
-    public List<IAccount> getAccounts() {
-        MSALApiDispatcher.initializeDiagnosticContext();
+    private List<IAccount> getAccounts() {
         final List<IAccount> accountsToReturn = new ArrayList<>();
 
         // Grab the Accounts from the common cache
@@ -851,8 +933,8 @@ public final class PublicClientApplication {
             );
         }
 
-        if(parameters.getAuthority() instanceof AzureActiveDirectoryAuthority){
-            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority)parameters.getAuthority();
+        if (parameters.getAuthority() instanceof AzureActiveDirectoryAuthority) {
+            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) parameters.getAuthority();
             aadAuthority.setMultipleCloudsSupported(mPublicClientConfiguration.mMultipleCloudsSupported);
         }
         parameters.setForceRefresh(forceRefresh);
@@ -1019,8 +1101,8 @@ public final class PublicClientApplication {
             params.setAuthority(Authority.getAuthorityFromAuthorityUrl(authority));
         }
 
-        if(params.getAuthority() instanceof AzureActiveDirectoryAuthority){
-            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority)params.getAuthority();
+        if (params.getAuthority() instanceof AzureActiveDirectoryAuthority) {
+            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) params.getAuthority();
             aadAuthority.setMultipleCloudsSupported(mPublicClientConfiguration.getMultipleCloudsSupported());
         }
 
