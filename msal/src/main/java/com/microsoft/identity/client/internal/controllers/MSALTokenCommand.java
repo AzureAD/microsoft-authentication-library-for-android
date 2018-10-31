@@ -33,12 +33,16 @@ import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.exception.ClientException;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class MSALTokenCommand implements MSALTokenOperation {
 
+    private static final String TAG = MSALTokenCommand.class.getSimpleName();
+
     protected MSALOperationParameters mParameters;
     protected MSALController mController;
+    protected List<MSALController> mControllers;
     protected Context mContext;
     protected AuthenticationCallback mCallback;
 
@@ -60,9 +64,51 @@ public class MSALTokenCommand implements MSALTokenOperation {
         }
     }
 
+    public MSALTokenCommand(@NonNull final Context context,
+                            @NonNull final MSALOperationParameters parameters,
+                            @NonNull final List<MSALController> controllers,
+                            @NonNull final AuthenticationCallback callback) {
+        mContext = context;
+        mParameters = parameters;
+        mController = null;
+        mControllers = controllers;
+        mCallback = callback;
+
+        if (!(mParameters instanceof MSALAcquireTokenSilentOperationParameters)) {
+            throw new IllegalArgumentException("Invalid operation parameters");
+        }
+    }
+
     @Override
     public AcquireTokenResult execute() throws InterruptedException, ExecutionException, IOException, ClientException, MsalClientException, MsalArgumentException, MsalUiRequiredException {
-        return getController().acquireTokenSilent((MSALAcquireTokenSilentOperationParameters) getParameters());
+
+        AcquireTokenResult result = null;
+        final String methodName = ":execute";
+
+        for(MSALController controller : mControllers) {
+            try {
+                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                        TAG + methodName,
+                        "Executing with controller: " + controller.getClass().getSimpleName()
+                );
+                result = controller.acquireTokenSilent((MSALAcquireTokenSilentOperationParameters) getParameters());
+                if(result.getSucceeded()){
+                    com.microsoft.identity.common.internal.logging.Logger.verbose(
+                            TAG + methodName,
+                            "Executing with controller: " + controller.getClass().getSimpleName() + ": Succeeded"
+                    );
+                    return result;
+                }
+            }catch(MsalUiRequiredException e){
+                if(e.getErrorCode() == MsalUiRequiredException.INVALID_GRANT){
+                    continue;
+                }else{
+                    throw e;
+                }
+            }
+        }
+
+        return result;
     }
 
     @Override
@@ -84,6 +130,10 @@ public class MSALTokenCommand implements MSALTokenOperation {
     public MSALController getController() {
         return mController;
     }
+
+    public List<MSALController> getControllers () { return mControllers; }
+
+    public void setControllers(List<MSALController> controllers){ this.mControllers = controllers;}
 
     public void setController(MSALController controller) {
         this.mController = controller;

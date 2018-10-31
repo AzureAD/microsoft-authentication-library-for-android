@@ -48,6 +48,7 @@ import com.microsoft.identity.client.internal.controllers.LocalMSALController;
 import com.microsoft.identity.client.internal.controllers.MSALAcquireTokenOperationParameters;
 import com.microsoft.identity.client.internal.controllers.MSALAcquireTokenSilentOperationParameters;
 import com.microsoft.identity.client.internal.controllers.MSALApiDispatcher;
+import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MSALInteractiveTokenCommand;
 import com.microsoft.identity.client.internal.controllers.MSALTokenCommand;
 import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
@@ -450,7 +451,7 @@ public final class PublicClientApplication {
                 new MSALInteractiveTokenCommand(
                         mAppContext,
                         params,
-                        new LocalMSALController(),
+                        MSALControllerFactory.getAcquireTokenController(mAppContext, params.getAuthority(), mPublicClientConfiguration),
                         callback
                 );
         MSALApiDispatcher.beginInteractive(command);
@@ -496,7 +497,7 @@ public final class PublicClientApplication {
                 new MSALInteractiveTokenCommand(
                         mAppContext,
                         params,
-                        new LocalMSALController(),
+                        MSALControllerFactory.getAcquireTokenController(mAppContext, params.getAuthority(), mPublicClientConfiguration),
                         callback
                 );
         MSALApiDispatcher.beginInteractive(command);
@@ -546,7 +547,7 @@ public final class PublicClientApplication {
                 new MSALInteractiveTokenCommand(
                         mAppContext,
                         params,
-                        new LocalMSALController(),
+                        MSALControllerFactory.getAcquireTokenController(mAppContext, params.getAuthority(), mPublicClientConfiguration),
                         callback
                 );
         MSALApiDispatcher.beginInteractive(command);
@@ -604,7 +605,7 @@ public final class PublicClientApplication {
                 new MSALInteractiveTokenCommand(
                         mAppContext,
                         params,
-                        new LocalMSALController(),
+                        MSALControllerFactory.getAcquireTokenController(mAppContext, params.getAuthority(), mPublicClientConfiguration),
                         callback
                 );
         MSALApiDispatcher.beginInteractive(command);
@@ -658,7 +659,7 @@ public final class PublicClientApplication {
                 new MSALInteractiveTokenCommand(
                         mAppContext,
                         params,
-                        new LocalMSALController(),
+                        MSALControllerFactory.getAcquireTokenController(mAppContext, params.getAuthority(), mPublicClientConfiguration),
                         callback
                 );
         MSALApiDispatcher.beginInteractive(command);
@@ -718,7 +719,7 @@ public final class PublicClientApplication {
                 new MSALInteractiveTokenCommand(
                         mAppContext,
                         params,
-                        new LocalMSALController(),
+                        MSALControllerFactory.getAcquireTokenController(mAppContext, params.getAuthority(), mPublicClientConfiguration),
                         callback
                 );
         MSALApiDispatcher.beginInteractive(command);
@@ -756,7 +757,7 @@ public final class PublicClientApplication {
         final MSALTokenCommand silentTokenCommand = new MSALTokenCommand(
                 mAppContext,
                 params,
-                new LocalMSALController(),
+                MSALControllerFactory.getAcquireTokenSilentControllers(mAppContext, params.getAuthority(), mPublicClientConfiguration),
                 callback
         );
 
@@ -803,7 +804,7 @@ public final class PublicClientApplication {
         final MSALTokenCommand silentTokenCommand = new MSALTokenCommand(
                 mAppContext,
                 params,
-                new LocalMSALController(),
+                MSALControllerFactory.getAcquireTokenSilentControllers(mAppContext, params.getAuthority(), mPublicClientConfiguration),
                 callback
         );
 

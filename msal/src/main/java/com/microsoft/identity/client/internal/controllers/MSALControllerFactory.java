@@ -59,7 +59,7 @@ public class MSALControllerFactory {
      *
      * @return
      */
-    public MSALController getAcquireTokenController(Context applicationContext, Authority authority, PublicClientApplicationConfiguration applicationConfiguration) {
+    public static MSALController getAcquireTokenController(Context applicationContext, Authority authority, PublicClientApplicationConfiguration applicationConfiguration) {
 
         if(brokerEligible(applicationContext, authority, applicationConfiguration)){
             return new BrokerMSALController();
@@ -84,7 +84,7 @@ public class MSALControllerFactory {
      * 5) The broker redirect URI for the client is registered
      * @return
      */
-    public List<MSALController> getAcquireTokenSilentControllers(Context applicationContext, Authority authority, PublicClientApplicationConfiguration applicationConfiguration) {
+    public static List<MSALController> getAcquireTokenSilentControllers(Context applicationContext, Authority authority, PublicClientApplicationConfiguration applicationConfiguration) {
 
         List<MSALController> controllers = new ArrayList<MSALController>();
         controllers.add(new LocalMSALController());
@@ -110,7 +110,7 @@ public class MSALControllerFactory {
      * @param applicationConfiguration
      * @return
      */
-    public boolean brokerEligible(Context applicationContext, Authority authority, PublicClientApplicationConfiguration applicationConfiguration){
+    public static boolean brokerEligible(Context applicationContext, Authority authority, PublicClientApplicationConfiguration applicationConfiguration){
 
         //If app has asked for Broker or if the authority is not AAD return false
         if(!applicationConfiguration.getUseBroker() || !(authority instanceof AzureActiveDirectoryAuthority) ){
@@ -144,7 +144,7 @@ public class MSALControllerFactory {
      * @param applicationContext
      * @return
      */
-    private boolean brokerInstalled(Context applicationContext) {
+    private static boolean brokerInstalled(Context applicationContext) {
 
         BrokerValidator brokerValidator = new BrokerValidator(applicationContext);
         AccountManager accountManager = AccountManager.get(applicationContext);
