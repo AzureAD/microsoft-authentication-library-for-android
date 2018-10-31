@@ -241,7 +241,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onAccountsLoaded(List<IAccount> accountsToRemove) {
                 for (final IAccount accountToRemove : accountsToRemove) {
-                    if (TextUtils.isEmpty(username) || accountToRemove.getUsername().equals(username.trim().toLowerCase())) {
+                    if (TextUtils.isEmpty(username) || accountToRemove.getUsername().equalsIgnoreCase(username.trim())) {
                         mApplication.removeAccount(accountToRemove);
                     }
                 }
@@ -264,7 +264,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 IAccount requestAccount = null;
 
                 for (final IAccount account : accounts) {
-                    if (account.getUsername().equals(requestOptions.getLoginHint().trim().toLowerCase())) {
+                    if (account.getUsername().equalsIgnoreCase(requestOptions.getLoginHint().trim())) {
                         requestAccount = account;
                         break;
                     }
