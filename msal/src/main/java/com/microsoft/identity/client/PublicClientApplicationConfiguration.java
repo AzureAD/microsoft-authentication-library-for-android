@@ -42,6 +42,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.LOGGING;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.MULTIPLE_CLOUDS_SUPPORTED;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
 
 public class PublicClientApplicationConfiguration {
 
@@ -53,6 +54,7 @@ public class PublicClientApplicationConfiguration {
         static final String HTTP = "http";
         static final String LOGGING = "logging";
         static final String MULTIPLE_CLOUDS_SUPPORTED = "multiple_clouds_supported";
+        static final String USE_BROKER = "broker_redirect_uri_registered";
     }
 
     @SerializedName(CLIENT_ID)
@@ -75,6 +77,9 @@ public class PublicClientApplicationConfiguration {
 
     @SerializedName(MULTIPLE_CLOUDS_SUPPORTED)
     Boolean mMultipleCloudsSupported;
+
+    @SerializedName(USE_BROKER)
+    Boolean mUseBroker;
 
     /**
      * Gets the currently configured client id for the PublicClientApplication.
@@ -141,6 +146,17 @@ public class PublicClientApplicationConfiguration {
         return mMultipleCloudsSupported;
     }
 
+    /**
+     * Indicates whether the PublicClientApplication would like to leverage the broker if available.
+     *
+     * The client must have registered
+     *
+     * @return The boolean indicator of whether multiple clouds are supported by this application.
+     */
+    public Boolean getUseBroker() {
+        return mUseBroker;
+    }
+
     public Authority getDefaultAuthority() {
         if (mAuthorities != null) {
             if (mAuthorities.size() > 1) {
@@ -195,6 +211,7 @@ public class PublicClientApplicationConfiguration {
         this.mAuthorizationAgent = config.mAuthorizationAgent == null ? this.mAuthorizationAgent : config.mAuthorizationAgent;
         this.mHttpConfiguration = config.mHttpConfiguration == null ? this.mHttpConfiguration : config.mHttpConfiguration;
         this.mMultipleCloudsSupported = config.mMultipleCloudsSupported == null ? this.mMultipleCloudsSupported : config.mMultipleCloudsSupported;
+        this.mUseBroker = config.mUseBroker == null ? this.mUseBroker : config.mUseBroker;
     }
 
     void validateConfiguration() {

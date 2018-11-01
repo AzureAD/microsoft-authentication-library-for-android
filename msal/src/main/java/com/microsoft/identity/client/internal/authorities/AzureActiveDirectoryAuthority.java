@@ -162,4 +162,8 @@ public class AzureActiveDirectoryAuthority extends Authority {
         return new MicrosoftStsOAuth2Strategy(config);
     }
 
+    public AzureActiveDirectoryAudience getAudience(){
+        return mAudience;
+    }
+
 }
