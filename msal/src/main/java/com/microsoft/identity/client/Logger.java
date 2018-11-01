@@ -22,12 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.client.internal.MsalUtils;
-
-import java.util.concurrent.atomic.AtomicReference;
-
-import static com.microsoft.identity.msal.BuildConfig.VERSION_NAME;
-
 /**
  * MSAL Logger for diagnostic purpose. The sdk generates logs with both logcat logging or the external logger.
  * By default, the sdk enables logging with logcat. To turn off logging:
@@ -66,7 +60,7 @@ import static com.microsoft.identity.msal.BuildConfig.VERSION_NAME;
 public final class Logger {
     private static final Logger sINSTANCE = new Logger();
 
-    private AtomicReference<ILoggerCallback> mExternalLogger = new AtomicReference<>(null);
+    private ILoggerCallback mExternalLogger;
 
     /**
      * @return The single instance of {@link Logger}.
@@ -133,12 +127,12 @@ public final class Logger {
      *                       output the logs to the designated places.
      * @throws IllegalStateException if external logger is already set, and the caller is trying to set it again.
      */
-    public void setExternalLogger(final ILoggerCallback externalLogger) {
+    public synchronized void setExternalLogger(final ILoggerCallback externalLogger) {
         if (externalLogger == null) {
             return;
         }
 
-        if (mExternalLogger.get() != null) {
+        if (null != mExternalLogger) {
             throw new IllegalStateException("External logger is already set, cannot be set again.");
         }
 
@@ -148,16 +142,16 @@ public final class Logger {
             public void log(String tag, com.microsoft.identity.common.internal.logging.Logger.LogLevel logLevel, String message, boolean containsPII) {
                 switch (logLevel) {
                     case ERROR:
-                        mExternalLogger.get().log(tag, LogLevel.ERROR, message, containsPII);
+                        mExternalLogger.log(tag, LogLevel.ERROR, message, containsPII);
                         break;
                     case WARN:
-                        mExternalLogger.get().log(tag, LogLevel.WARNING, message, containsPII);
+                        mExternalLogger.log(tag, LogLevel.WARNING, message, containsPII);
                         break;
                     case VERBOSE:
-                        mExternalLogger.get().log(tag, LogLevel.VERBOSE, message, containsPII);
+                        mExternalLogger.log(tag, LogLevel.VERBOSE, message, containsPII);
                         break;
                     case INFO:
-                        mExternalLogger.get().log(tag, LogLevel.INFO, message, containsPII);
+                        mExternalLogger.log(tag, LogLevel.INFO, message, containsPII);
                         break;
                     default:
                         throw new IllegalArgumentException("Unknown logLevel");
@@ -165,7 +159,7 @@ public final class Logger {
             }
         });
 
-        mExternalLogger.set(externalLogger);
+        mExternalLogger = externalLogger;
     }
 
     /**
@@ -184,142 +178,5 @@ public final class Logger {
      */
     public void setEnablePII(final boolean enablePII) {
         com.microsoft.identity.common.internal.logging.Logger.setAllowPii(enablePII);
-    }
-
-    /**
-     * Send a {@link LogLevel#ERROR} log message without PII.
-     *
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#error(String, String, String, Throwable)} instead.
-     */
-    @Deprecated
-    public static void error(final String tag, final RequestContext requestContext, final String errorMessage,
-                             final Throwable exception) {
-        getInstance().commonCoreWrapper(tag, LogLevel.ERROR, requestContext, errorMessage, exception, false);
-    }
-
-    /**
-     * Send a {@link LogLevel#ERROR} log message with PII.
-     *
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#errorPII(String, String, String, Throwable)} instead.
-     */
-    @Deprecated
-    public static void errorPII(final String tag, final RequestContext requestContext, final String errorMessage,
-                                final Throwable exception) {
-        getInstance().commonCoreWrapper(tag, LogLevel.ERROR, requestContext, errorMessage, exception, true);
-    }
-
-    /**
-     * Send a {@link LogLevel#WARNING} log message without PII.
-     *
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#warn(String, String, String)} instead.
-     */
-    @Deprecated
-    public static void warning(final String tag, final RequestContext requestContext, final String message) {
-        getInstance().commonCoreWrapper(tag, LogLevel.WARNING, requestContext, message, null, false);
-    }
-
-    /**
-     * Send a {@link LogLevel#WARNING} log message with PII.
-     *
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#warnPII(String, String, String)} instead.
-     */
-    @Deprecated
-    public static void warningPII(final String tag, final RequestContext requestContext, final String message) {
-        getInstance().commonCoreWrapper(tag, LogLevel.WARNING, requestContext, message, null, true);
-    }
-
-    /**
-     * Send a {@link LogLevel#INFO} log message without PII.
-     *
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#info(String, String, String)} instead.
-     */
-    @Deprecated
-    static void info(final String tag, final RequestContext requestContext, final String message) {
-        getInstance().commonCoreWrapper(tag, LogLevel.INFO, requestContext, message, null, false);
-    }
-
-    /**
-     * Send a {@link LogLevel#INFO} log message with PII.
-     *
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#infoPII(String, String, String)} instead.
-     */
-    @Deprecated
-    static void infoPII(final String tag, final RequestContext requestContext, final String message) {
-        getInstance().commonCoreWrapper(tag, LogLevel.INFO, requestContext, message, null, true);
-    }
-
-    /**
-     * Send a {@link LogLevel#VERBOSE} log message without PII.
-     *
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#verbose(String, String, String)} instead.
-     */
-    @Deprecated
-    static void verbose(final String tag, final RequestContext requestContext, final String message) {
-        getInstance().commonCoreWrapper(tag, LogLevel.VERBOSE, requestContext, message, null, false);
-    }
-
-    /**
-     * Send a {@link LogLevel#VERBOSE} log message with PII.
-     *
-     * @deprecated use {@link com.microsoft.identity.common.internal.logging.Logger#verbosePII(String, String, String)} instead.
-     */
-    @Deprecated
-    static void verbosePII(final String tag, final RequestContext requestContext, final String message) {
-        getInstance().commonCoreWrapper(tag, LogLevel.VERBOSE, requestContext, message, null, true);
-    }
-
-    private String getCorrelationId(RequestContext requestContext) {
-        if (requestContext != null && requestContext.getCorrelationId() != null) {
-            return requestContext.getCorrelationId().toString();
-        } else {
-            return null;
-        }
-    }
-
-    private void commonCoreWrapper(final String tag, final LogLevel logLevel, final RequestContext requestContext,
-                                   final String message, final Throwable throwable, final boolean containsPII) {
-        final String messageWithComponent = appendComponent(requestContext) + message + " SDK ver:" + VERSION_NAME;
-        final String correlationID = getCorrelationId(requestContext);
-
-        switch (logLevel) {
-            case ERROR:
-                if (containsPII) {
-                    com.microsoft.identity.common.internal.logging.Logger.errorPII(tag, correlationID, messageWithComponent, throwable);
-                } else {
-                    com.microsoft.identity.common.internal.logging.Logger.error(tag, correlationID, messageWithComponent, throwable);
-                }
-                break;
-            case WARNING:
-                if (containsPII) {
-                    com.microsoft.identity.common.internal.logging.Logger.warnPII(tag, correlationID, messageWithComponent);
-                } else {
-                    com.microsoft.identity.common.internal.logging.Logger.warn(tag, correlationID, messageWithComponent);
-                }
-                break;
-            case INFO:
-                if (containsPII) {
-                    com.microsoft.identity.common.internal.logging.Logger.infoPII(tag, correlationID, messageWithComponent);
-                } else {
-                    com.microsoft.identity.common.internal.logging.Logger.info(tag, correlationID, messageWithComponent);
-                }
-                break;
-            case VERBOSE:
-                if (containsPII) {
-                    com.microsoft.identity.common.internal.logging.Logger.verbosePII(tag, correlationID, messageWithComponent);
-                } else {
-                    com.microsoft.identity.common.internal.logging.Logger.verbose(tag, correlationID, messageWithComponent);
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown logLevel");
-        }
-    }
-
-    private String appendComponent(final RequestContext requestContext) {
-        if (requestContext != null && !MsalUtils.isEmpty(requestContext.getComponent())) {
-            return "(" + requestContext.getComponent() + ") ";
-        }
-
-        return "";
     }
 }
