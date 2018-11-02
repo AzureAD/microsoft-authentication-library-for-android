@@ -23,15 +23,15 @@ public class ClaimsRequestSerializer implements JsonSerializer<ClaimsRequest> {
         addPropertiesToObject(src.getUserInfoClaimsRequested(), userInfoObject, context);
 
         if(userInfoObject.keySet().size() != 0) {
-            claimsRequest.add("userinfo", userInfoObject);
+            claimsRequest.add(ClaimsRequest.USERINFO, userInfoObject);
         }
 
         if(idTokenObject.keySet().size() != 0) {
-            claimsRequest.add("id_token", idTokenObject);
+            claimsRequest.add(ClaimsRequest.ID_TOKEN, idTokenObject);
         }
 
         if(accessTokenObject.keySet().size() != 0) {
-            claimsRequest.add("access_token", accessTokenObject);
+            claimsRequest.add(ClaimsRequest.ACCESS_TOKEN, accessTokenObject);
         }
 
         return claimsRequest;

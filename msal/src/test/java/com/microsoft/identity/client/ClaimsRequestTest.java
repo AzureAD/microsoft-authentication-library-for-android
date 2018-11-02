@@ -20,24 +20,6 @@ public class ClaimsRequestTest {
 
 
 
-    private String getSerializedClaimsRequest(ClaimsRequest claimsRequest){
-        GsonBuilder gsonBuilder = new GsonBuilder();
-
-        ClaimsRequestSerializer claimsRequestSerializer = new ClaimsRequestSerializer();
-        RequestClaimAdditionalInformationSerializer informationSerializer = new RequestClaimAdditionalInformationSerializer();
-        gsonBuilder.registerTypeAdapter(ClaimsRequest.class, claimsRequestSerializer);
-        gsonBuilder.registerTypeAdapter(RequestedClaimAdditionalInformation.class, informationSerializer);
-        //If you omit this... you won't be requesting an claims that don't have additional info specified
-        gsonBuilder.serializeNulls();
-
-        Gson claimsRequestGson = gsonBuilder.create();
-
-        String claimsRequestJson = claimsRequestGson.toJson(claimsRequest);
-
-        return claimsRequestJson;
-
-    }
-
     @Test
     public void testSerializeBasicClaimsRequest(){
 
@@ -49,7 +31,7 @@ public class ClaimsRequestTest {
         requestedClaim.setName(DEVICE_ID_CLAIM_NAME);
         cr.getAccessTokenClaimsRequested().add(requestedClaim);
 
-        String claimsRequestJson = getSerializedClaimsRequest(cr);
+        String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(cr);
 
         Assert.assertEquals(CLAIMS_REQUEST_JSON, claimsRequestJson);
 
@@ -70,7 +52,7 @@ public class ClaimsRequestTest {
         requestedClaim.setAdditionalInformation(additionalInformation);
         cr.getAccessTokenClaimsRequested().add(requestedClaim);
 
-        String claimsRequestJson = getSerializedClaimsRequest(cr);
+        String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(cr);
 
         Assert.assertEquals(CLAIMS_REQUEST_JSON, claimsRequestJson);
 
@@ -98,7 +80,7 @@ public class ClaimsRequestTest {
         requestedClaim.setAdditionalInformation(additionalInformation);
         cr.getAccessTokenClaimsRequested().add(requestedClaim);
 
-        String claimsRequestJson = getSerializedClaimsRequest(cr);
+        String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(cr);
 
         Assert.assertEquals(CLAIMS_REQUEST_JSON, claimsRequestJson);
 
