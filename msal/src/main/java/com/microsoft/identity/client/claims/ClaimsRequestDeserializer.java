@@ -33,7 +33,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 
-public class ClaimsRequestDeserializer implements JsonDeserializer<ClaimsRequest> {
+class ClaimsRequestDeserializer implements JsonDeserializer<ClaimsRequest> {
     @Override
     public ClaimsRequest deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         ClaimsRequest claimsRequest = new ClaimsRequest();

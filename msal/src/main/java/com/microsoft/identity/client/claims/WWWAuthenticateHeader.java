@@ -22,6 +22,10 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.claims;
 
+/**
+ * Helper class for pulling any available claims directive out of the WWW-Authenticate header returned
+ * by resource servers
+ */
 public class WWWAuthenticateHeader {
 
     static final String CLAIMS_DIRECTIVE = "claims=";
@@ -30,6 +34,12 @@ public class WWWAuthenticateHeader {
     static final char SPACE = ' ';
     static final char COMMA = ',';
 
+    /**
+     * Returns a claims request parameter that corresponds to the contents of the claims directive in a
+     * WWW-Authenticate Header.
+     * @param headerValue - String content of the www-authenticate header
+     * @return
+     */
     public static ClaimsRequest getClaimsRequestFromWWWAuthenticateHeaderValue(String headerValue) {
 
         int claimsDirectiveIndex = headerValue.indexOf(CLAIMS_DIRECTIVE);
@@ -72,6 +82,11 @@ public class WWWAuthenticateHeader {
     }
 
 
+    /**
+     * Checks if the WWW-Authenticate header value contains the claims directive
+     * @param headerValue
+     * @return
+     */
     public static Boolean hasClaimsDirective(String headerValue) {
         int claimsDirectiveIndex = headerValue.indexOf(CLAIMS_DIRECTIVE);
 

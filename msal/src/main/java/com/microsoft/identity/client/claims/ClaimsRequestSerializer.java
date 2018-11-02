@@ -30,7 +30,7 @@ import com.google.gson.JsonSerializer;
 import java.lang.reflect.Type;
 import java.util.List;
 
-public class ClaimsRequestSerializer implements JsonSerializer<ClaimsRequest> {
+class ClaimsRequestSerializer implements JsonSerializer<ClaimsRequest> {
 
 
     @Override
@@ -44,15 +44,15 @@ public class ClaimsRequestSerializer implements JsonSerializer<ClaimsRequest> {
         addPropertiesToObject(src.getIdTokenClaimsRequested(), idTokenObject, context);
         addPropertiesToObject(src.getUserInfoClaimsRequested(), userInfoObject, context);
 
-        if (userInfoObject.keySet().size() != 0) {
+        if (userInfoObject.size() != 0) {
             claimsRequest.add(ClaimsRequest.USERINFO, userInfoObject);
         }
 
-        if (idTokenObject.keySet().size() != 0) {
+        if (idTokenObject.size() != 0) {
             claimsRequest.add(ClaimsRequest.ID_TOKEN, idTokenObject);
         }
 
-        if (accessTokenObject.keySet().size() != 0) {
+        if (accessTokenObject.size() != 0) {
             claimsRequest.add(ClaimsRequest.ACCESS_TOKEN, accessTokenObject);
         }
 

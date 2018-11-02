@@ -22,23 +22,43 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.claims;
 
+/**
+ * Represents an individual requested claims that's part of a complete claims request parameter
+ * @see <a href="https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter">https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter</a>
+ */
 public class RequestedClaim {
 
     private String mName;
     private RequestedClaimAdditionalInformation mInformation;
 
+    /**
+     * Returns the name of the claim being requested
+     * @return
+     */
     public String getName() {
         return mName;
     }
 
+    /**
+     * Sets the name of the claim being requested
+     * @param name
+     */
     public void setName(String name) {
         mName = name;
     }
 
+    /**
+     * Returns additional information that can be optionally sent to the authorization server (default is null) for a particular requested claim
+     * @return
+     */
     public RequestedClaimAdditionalInformation getAdditionalInformation() {
         return mInformation;
     }
 
+    /**
+     * Sets additional information that can be optionally sent to the authorization server (default is null) for a particular requested claim
+     * @return
+     */
     public void setAdditionalInformation(RequestedClaimAdditionalInformation information) {
         mInformation = information;
     }

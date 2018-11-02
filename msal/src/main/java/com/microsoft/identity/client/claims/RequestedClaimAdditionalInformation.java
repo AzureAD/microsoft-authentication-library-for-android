@@ -27,15 +27,25 @@ import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents the additional information that can be sent to an authorization server for a request claim in the claim request parameter
+ * @see <a href="https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter">https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter</a>
+ */
 public class RequestedClaimAdditionalInformation {
 
-    @SerializedName("essential")
+    public static final class SerializedNames {
+        static final String ESSENTIAL = "essential";
+        static final String VALUES = "values";
+        static final String VALUE = "value";
+    }
+
+    @SerializedName(SerializedNames.ESSENTIAL)
     private Boolean mEssential = false;
 
-    @SerializedName("values")
+    @SerializedName(SerializedNames.VALUES)
     private List<Object> mValues = new ArrayList<>();
 
-    @SerializedName("value")
+    @SerializedName(SerializedNames.VALUE)
     private Object mValue = null;
 
     public void setEssential(Boolean essential) {

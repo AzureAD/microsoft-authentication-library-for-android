@@ -30,17 +30,17 @@ import com.google.gson.JsonSerializer;
 
 import java.lang.reflect.Type;
 
-public class RequestClaimAdditionalInformationSerializer implements JsonSerializer<RequestedClaimAdditionalInformation> {
+class RequestClaimAdditionalInformationSerializer implements JsonSerializer<RequestedClaimAdditionalInformation> {
 
     @Override
     public JsonElement serialize(RequestedClaimAdditionalInformation src, Type typeOfSrc, JsonSerializationContext context) {
 
         JsonObject info = new JsonObject();
 
-        info.addProperty("essential", src.getEssential());
+        info.addProperty(RequestedClaimAdditionalInformation.SerializedNames.ESSENTIAL, src.getEssential());
 
         if (src.getValue() != null) {
-            info.addProperty("value", src.getValue().toString());
+            info.addProperty(RequestedClaimAdditionalInformation.SerializedNames.VALUE, src.getValue().toString());
         }
 
         if (src.getValues().size() > 0) {
@@ -48,7 +48,7 @@ public class RequestClaimAdditionalInformationSerializer implements JsonSerializ
             for (Object value : src.getValues()) {
                 valuesArray.add(value.toString());
             }
-            info.add("values", valuesArray);
+            info.add(RequestedClaimAdditionalInformation.SerializedNames.VALUES, valuesArray);
         }
 
         return info;
