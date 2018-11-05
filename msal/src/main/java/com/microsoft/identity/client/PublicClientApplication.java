@@ -57,7 +57,7 @@ import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
 import com.microsoft.identity.client.internal.telemetry.Defaults;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
-import com.microsoft.identity.common.internal.cache.AccountCredentialCache;
+import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.ICacheKeyValueDelegate;
@@ -89,7 +89,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static com.microsoft.identity.common.internal.cache.AccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
+import static com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
 
 /**
  * <p>
@@ -1170,7 +1170,7 @@ public final class PublicClientApplication {
                         storageHelper
                 );
         final IAccountCredentialCache accountCredentialCache =
-                new AccountCredentialCache(
+                new SharedPreferencesAccountCredentialCache(
                         cacheKeyValueDelegate,
                         sharedPreferencesFileManager
                 );
