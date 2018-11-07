@@ -24,11 +24,18 @@ package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Context;
 
+import com.microsoft.identity.client.PublicClientApplicationConfiguration;
+import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.internal.authorities.Authority;
+import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.client.parameters.AcquireTokenParameters;
+import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.dto.IAccountRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -129,4 +136,25 @@ public class MSALOperationParameters {
         }
 
     }
+
+    protected static AccountRecord getAccountInternal(final String clientId, OAuth2TokenCache oAuth2TokenCache, final String homeAccountIdentifier) {
+        final AccountRecord accountToReturn;
+
+        if (!StringUtil.isEmpty(homeAccountIdentifier)) {
+            accountToReturn = oAuth2TokenCache.getAccount(
+                    null, // * wildcard
+                    clientId,
+                    homeAccountIdentifier
+            );
+        } else {
+            com.microsoft.identity.common.internal.logging.Logger.warn(
+                    TAG,
+                    "homeAccountIdentifier was null or empty -- invalid criteria"
+            );
+            accountToReturn = null;
+        }
+
+        return accountToReturn;
+    }
+
 }

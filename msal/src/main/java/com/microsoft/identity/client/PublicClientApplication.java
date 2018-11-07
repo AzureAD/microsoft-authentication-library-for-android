@@ -55,6 +55,7 @@ import com.microsoft.identity.client.internal.controllers.MSALInteractiveTokenCo
 import com.microsoft.identity.client.internal.controllers.MSALTokenCommand;
 import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
 import com.microsoft.identity.client.internal.telemetry.Defaults;
+import com.microsoft.identity.client.parameters.AcquireTokenParameters;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
@@ -436,25 +437,6 @@ public final class PublicClientApplication {
         return null == accountToReturn ? null : AccountAdapter.adapt(accountToReturn);
     }
 
-    private AccountRecord getAccountInternal(final String homeAccountIdentifier) {
-        final AccountRecord accountToReturn;
-
-        if (!StringUtil.isEmpty(homeAccountIdentifier)) {
-            accountToReturn = mOauth2TokenCache.getAccount(
-                    null, // * wildcard
-                    mClientId,
-                    homeAccountIdentifier
-            );
-        } else {
-            com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG,
-                    "homeAccountIdentifier was null or empty -- invalid criteria"
-            );
-            accountToReturn = null;
-        }
-
-        return accountToReturn;
-    }
 
     /**
      * Removes the Account and Credentials (tokens) for the supplied IAccount.
@@ -806,6 +788,22 @@ public final class PublicClientApplication {
                 );
         MSALApiDispatcher.beginInteractive(command);
     }
+
+
+    public void acquireToken(@NonNull AcquireTokenParameters parameters) {
+
+        final MSALAcquireTokenOperationParameters params = MSALAcquireTokenOperationParameters.createMsalAcquireTokenOperationParameters(parameters, mPublicClientConfiguration);
+
+        final MSALInteractiveTokenCommand command =
+                new MSALInteractiveTokenCommand(
+                        mAppContext,
+                        params,
+                        MSALControllerFactory.getAcquireTokenController(mAppContext, params.getAuthority(), mPublicClientConfiguration),
+                        parameters.getCallback()
+                );
+        MSALApiDispatcher.beginInteractive(command);
+    }
+
 
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If

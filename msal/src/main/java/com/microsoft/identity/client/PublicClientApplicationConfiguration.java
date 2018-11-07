@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
@@ -31,6 +32,7 @@ import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.client.internal.authorities.UnknownAudience;
 import com.microsoft.identity.client.internal.authorities.UnknownAuthority;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 
 import java.util.List;
@@ -80,6 +82,10 @@ public class PublicClientApplicationConfiguration {
 
     @SerializedName(USE_BROKER)
     Boolean mUseBroker;
+
+    transient OAuth2TokenCache mOAuth2TokenCache;
+
+    transient Context mAppContext;
 
     /**
      * Gets the currently configured client id for the PublicClientApplication.
@@ -194,7 +200,7 @@ public class PublicClientApplicationConfiguration {
         }
     }
 
-    boolean isDefaultAuthorityConfigured() {
+    public boolean isDefaultAuthorityConfigured() {
         Authority authority = getDefaultAuthority();
 
         if (authority != null) {

@@ -25,9 +25,15 @@ package com.microsoft.identity.client.internal.controllers;
 import android.app.Activity;
 import android.util.Pair;
 
+import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.UiBehavior;
+import com.microsoft.identity.client.internal.authorities.Authority;
+import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.client.parameters.AcquireTokenParameters;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MSALAcquireTokenOperationParameters extends MSALOperationParameters {
@@ -86,5 +92,65 @@ public class MSALAcquireTokenOperationParameters extends MSALOperationParameters
 
     public String getLoginHint() {
         return this.mLoginHint;
+    }
+
+    public static MSALAcquireTokenOperationParameters createMsalAcquireTokenOperationParameters(AcquireTokenParameters parameters, PublicClientApplicationConfiguration publicClientApplicationConfiguration){
+        final String methodName = ":createMsalAcquireTokenOperationParameters";
+        final MSALAcquireTokenOperationParameters params = new MSALAcquireTokenOperationParameters();
+
+        if (StringUtil.isEmpty(parameters.getAuthority())) {
+            params.setAuthority(publicClientApplicationConfiguration.getDefaultAuthority());
+        } else {
+            params.setAuthority(Authority.getAuthorityFromAuthorityUrl(parameters.getAuthority()));
+        }
+
+        if (params.getAuthority() instanceof AzureActiveDirectoryAuthority) {
+            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) params.getAuthority();
+            aadAuthority.setMultipleCloudsSupported(publicClientApplicationConfiguration.getMultipleCloudsSupported());
+        }
+
+        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
+                methodName,
+                "Using authority: [" + params.getAuthority().getAuthorityUri() + "]"
+        );
+
+        params.setScopes(new ArrayList<>(parameters.getScopes()));
+        params.setClientId(publicClientApplicationConfiguration.getClientId());
+        params.setRedirectUri(publicClientApplicationConfiguration.getRedirectUri());
+        params.setActivity(parameters.getActivity());
+
+        if(parameters.getAccount() != null){
+            params.setLoginHint(parameters.getAccount().getUsername());
+            params.setAccount(
+                    getAccountInternal(
+                            publicClientApplicationConfiguration.getClientId(),
+                            null,
+                            parameters.getAccount().getHomeAccountIdentifier().getIdentifier()
+                    )
+            );
+        }else{
+            params.setLoginHint(parameters.getLoginHint());
+        }
+
+        //TODO: Add token cache to publicClientconfiguration
+        //params.setTokenCache();
+        params.setExtraQueryStringParameters(parameters.getExtraQueryStringParameters());
+        params.setExtraScopesToConsent(parameters.getExtraScopesToConsent());
+        //TODO: Add app context to publicclientConfiguration
+        //params.setAppContext(publicClientApplicationConfiguration.getApp);
+
+        if (null != publicClientApplicationConfiguration.getAuthorizationAgent()) {
+            params.setAuthorizationAgent(publicClientApplicationConfiguration.getAuthorizationAgent());
+        } else {
+            params.setAuthorizationAgent(AuthorizationAgent.DEFAULT);
+        }
+
+        if (parameters.getUIBehavior() == null) {
+            params.setUIBehavior(UiBehavior.SELECT_ACCOUNT);
+        } else {
+            params.setUIBehavior(parameters.getUIBehavior());
+        }
+
+        return params;
     }
 }
