@@ -66,6 +66,10 @@ public abstract class Authority {
         return mIsDefault;
     }
 
+    public void setDefault(Boolean isDefault){
+        mIsDefault = isDefault;
+    }
+
     /**
      * Returns an Authority based on an authority url.  This method attempts to parse the URL and based on the contents of it
      * determine the authority type and tenantid associated with it.

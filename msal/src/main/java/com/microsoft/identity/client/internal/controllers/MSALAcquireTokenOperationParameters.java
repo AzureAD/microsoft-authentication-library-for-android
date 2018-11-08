@@ -29,7 +29,7 @@ import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.client.parameters.AcquireTokenParameters;
+import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
@@ -121,23 +121,15 @@ public class MSALAcquireTokenOperationParameters extends MSALOperationParameters
 
         if(parameters.getAccount() != null){
             params.setLoginHint(parameters.getAccount().getUsername());
-            params.setAccount(
-                    getAccountInternal(
-                            publicClientApplicationConfiguration.getClientId(),
-                            null,
-                            parameters.getAccount().getHomeAccountIdentifier().getIdentifier()
-                    )
-            );
+            params.setAccount(parameters.getAccountRecord());
         }else{
             params.setLoginHint(parameters.getLoginHint());
         }
 
-        //TODO: Add token cache to publicClientconfiguration
-        //params.setTokenCache();
+        params.setTokenCache(publicClientApplicationConfiguration.getOAuth2TokenCache());
         params.setExtraQueryStringParameters(parameters.getExtraQueryStringParameters());
         params.setExtraScopesToConsent(parameters.getExtraScopesToConsent());
-        //TODO: Add app context to publicclientConfiguration
-        //params.setAppContext(publicClientApplicationConfiguration.getApp);
+        params.setAppContext(publicClientApplicationConfiguration.getAppContext());
 
         if (null != publicClientApplicationConfiguration.getAuthorizationAgent()) {
             params.setAuthorizationAgent(publicClientApplicationConfiguration.getAuthorizationAgent());

@@ -163,6 +163,22 @@ public class PublicClientApplicationConfiguration {
         return mUseBroker;
     }
 
+    public Context getAppContext() {
+        return mAppContext;
+    }
+
+    void setAppContext(Context applicationContext){
+        mAppContext = applicationContext;
+    }
+
+    public OAuth2TokenCache getOAuth2TokenCache(){
+        return mOAuth2TokenCache;
+    }
+
+    void setOAuth2TokenCache(OAuth2TokenCache tokenCache){
+        mOAuth2TokenCache = tokenCache;
+    }
+
     public Authority getDefaultAuthority() {
         if (mAuthorities != null) {
             if (mAuthorities.size() > 1) {

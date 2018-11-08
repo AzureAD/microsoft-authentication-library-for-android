@@ -1,9 +1,7 @@
-package com.microsoft.identity.client.parameters;
+package com.microsoft.identity.client;
 
 import android.app.Activity;
 import android.util.Pair;
-
-import com.microsoft.identity.client.UiBehavior;
 
 import java.util.List;
 

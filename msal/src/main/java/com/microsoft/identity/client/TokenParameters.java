@@ -1,18 +1,18 @@
-package com.microsoft.identity.client.parameters;
+package com.microsoft.identity.client;
 
-import com.microsoft.identity.client.AuthenticationCallback;
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.claims.ClaimsRequest;
+import com.microsoft.identity.common.internal.dto.AccountRecord;
 
 import java.util.List;
 
-public abstract class TokenParameters {
+abstract class TokenParameters {
     
     private List<String> mScopes;
     private IAccount mAccount;
     private String mAuthority;
     private ClaimsRequest mClaimsRequest;
     private AuthenticationCallback mCallback;
+    private AccountRecord mAccountRecord;
 
 
     public List<String> getScopes() {
@@ -53,5 +53,13 @@ public abstract class TokenParameters {
 
     public void setCallback(AuthenticationCallback callback) {
         this.mCallback = callback;
+    }
+
+    void setAccountRecord(AccountRecord record){
+        mAccountRecord = record;
+    }
+
+    public AccountRecord getAccountRecord(){
+        return mAccountRecord;
     }
 }

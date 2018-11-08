@@ -1,4 +1,4 @@
-package com.microsoft.identity.client.parameters;
+package com.microsoft.identity.client;
 
 public class AcquireTokenSilentParameters extends TokenParameters {
     private Boolean mForceRefresh;
