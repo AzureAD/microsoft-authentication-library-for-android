@@ -35,7 +35,6 @@ import android.net.Uri;
 import android.util.Base64;
 
 import com.microsoft.identity.client.BrowserTabActivity;
-import com.microsoft.identity.client.Logger;
 
 import org.json.JSONException;
 import org.json.JSONObject;
