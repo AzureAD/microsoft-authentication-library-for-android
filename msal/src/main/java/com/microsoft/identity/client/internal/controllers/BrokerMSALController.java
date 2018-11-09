@@ -30,7 +30,7 @@ import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.broker.BrokerRequest;
 import com.microsoft.identity.common.internal.broker.BrokerResult;
 import com.microsoft.identity.common.internal.broker.BrokerResultFuture;
-import com.microsoft.identity.common.internal.broker.BrokerTokenResult;
+import com.microsoft.identity.common.internal.broker.BrokerTokenResponse;
 import com.microsoft.identity.common.internal.broker.IMicrosoftAuthService;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthServiceFuture;
@@ -114,7 +114,7 @@ public class BrokerMSALController extends MSALController {
     public void completeAcquireToken(int requestCode, int resultCode, Intent data) {
 
         //TODO: Map data into broker result and signal future
-        mBrokerResultFuture.setBrokerResult(new BrokerResult(new BrokerTokenResult()));
+        mBrokerResultFuture.setBrokerResult(new BrokerResult(new BrokerTokenResponse()));
 
 
     }
@@ -136,7 +136,10 @@ public class BrokerMSALController extends MSALController {
         }
 
         try {
-            result = service.acquireTokenSilently(getSilentParameters(request));
+            //result = service.acquireTokenSilently(getSilentParameters(request));
+
+            // Path is broken by common/#303 - @kreedula & @shoatman to resolve
+            BrokerResult brokerResult = service.acquireTokenSilently(new BrokerRequest());
         } catch (RemoteException e) {
             throw new RuntimeException("Exception occurred while attempting to invoke remote service", e);
         }
