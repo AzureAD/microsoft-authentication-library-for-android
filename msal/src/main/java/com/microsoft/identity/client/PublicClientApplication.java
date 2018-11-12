@@ -477,6 +477,7 @@ public final class PublicClientApplication {
         AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters();
         acquireTokenParameters.setActivity(activity);
         acquireTokenParameters.setScopes(Arrays.asList(scopes));
+        acquireTokenParameters.setCallback(callback);
 
         acquireToken(acquireTokenParameters);
     }
@@ -510,6 +511,7 @@ public final class PublicClientApplication {
         acquireTokenParameters.setActivity(activity);
         acquireTokenParameters.setLoginHint(loginHint);
         acquireTokenParameters.setScopes(Arrays.asList(scopes));
+        acquireTokenParameters.setCallback(callback);
 
         acquireToken(acquireTokenParameters);
     }
@@ -549,6 +551,7 @@ public final class PublicClientApplication {
         acquireTokenParameters.setUIBehavior(uiBehavior);
         acquireTokenParameters.setExtraQueryStringParameters(extraQueryParameters);
         acquireTokenParameters.setLoginHint(loginHint);
+        acquireTokenParameters.setCallback(callback);
 
         acquireToken(acquireTokenParameters);
     }
@@ -589,6 +592,7 @@ public final class PublicClientApplication {
         acquireTokenParameters.setUIBehavior(uiBehavior);
         acquireTokenParameters.setExtraQueryStringParameters(extraQueryParameters);
         acquireTokenParameters.setAccountRecord(getAccountRecord(acquireTokenParameters.getAccount()));
+        acquireTokenParameters.setCallback(callback);
 
         acquireToken(acquireTokenParameters);
     }
@@ -634,6 +638,7 @@ public final class PublicClientApplication {
         acquireTokenParameters.setExtraScopesToConsent(Arrays.asList(extraScopesToConsent));
         acquireTokenParameters.setAuthority(authority);
         acquireTokenParameters.setLoginHint(loginHint);
+        acquireTokenParameters.setCallback(callback);
 
         acquireToken(acquireTokenParameters);
     }
@@ -680,6 +685,7 @@ public final class PublicClientApplication {
         acquireTokenParameters.setExtraScopesToConsent(Arrays.asList(extraScopesToConsent));
         acquireTokenParameters.setAuthority(authority);
         acquireTokenParameters.setAccountRecord(getAccountRecord(acquireTokenParameters.getAccount()));
+        acquireTokenParameters.setCallback(callback);
 
         acquireToken(acquireTokenParameters);
     }
