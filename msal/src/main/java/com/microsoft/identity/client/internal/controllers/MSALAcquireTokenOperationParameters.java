@@ -25,11 +25,13 @@ package com.microsoft.identity.client.internal.controllers;
 import android.app.Activity;
 import android.util.Pair;
 
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.client.AcquireTokenParameters;
+import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
@@ -94,55 +96,85 @@ public class MSALAcquireTokenOperationParameters extends MSALOperationParameters
         return this.mLoginHint;
     }
 
-    public static MSALAcquireTokenOperationParameters createMsalAcquireTokenOperationParameters(AcquireTokenParameters parameters, PublicClientApplicationConfiguration publicClientApplicationConfiguration){
+    public static MSALAcquireTokenOperationParameters createMsalAcquireTokenOperationParameters(AcquireTokenParameters acquireTokenParameters, PublicClientApplicationConfiguration publicClientApplicationConfiguration){
         final String methodName = ":createMsalAcquireTokenOperationParameters";
-        final MSALAcquireTokenOperationParameters params = new MSALAcquireTokenOperationParameters();
+        final MSALAcquireTokenOperationParameters msalAcquireTokenOperationParameters = new MSALAcquireTokenOperationParameters();
 
-        if (StringUtil.isEmpty(parameters.getAuthority())) {
-            params.setAuthority(publicClientApplicationConfiguration.getDefaultAuthority());
+        if (StringUtil.isEmpty(acquireTokenParameters.getAuthority())) {
+            if(acquireTokenParameters.getAccount() != null){
+                msalAcquireTokenOperationParameters.setAuthority(getRequestAuthority(acquireTokenParameters.getAccount(), publicClientApplicationConfiguration));
+            }else{
+                msalAcquireTokenOperationParameters.setAuthority(publicClientApplicationConfiguration.getDefaultAuthority());
+            }
+
         } else {
-            params.setAuthority(Authority.getAuthorityFromAuthorityUrl(parameters.getAuthority()));
+            msalAcquireTokenOperationParameters.setAuthority(Authority.getAuthorityFromAuthorityUrl(acquireTokenParameters.getAuthority()));
         }
 
-        if (params.getAuthority() instanceof AzureActiveDirectoryAuthority) {
-            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) params.getAuthority();
+        if (msalAcquireTokenOperationParameters.getAuthority() instanceof AzureActiveDirectoryAuthority) {
+            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) msalAcquireTokenOperationParameters.getAuthority();
             aadAuthority.setMultipleCloudsSupported(publicClientApplicationConfiguration.getMultipleCloudsSupported());
         }
 
         com.microsoft.identity.common.internal.logging.Logger.verbosePII(
                 methodName,
-                "Using authority: [" + params.getAuthority().getAuthorityUri() + "]"
+                "Using authority: [" + msalAcquireTokenOperationParameters.getAuthority().getAuthorityUri() + "]"
         );
 
-        params.setScopes(new ArrayList<>(parameters.getScopes()));
-        params.setClientId(publicClientApplicationConfiguration.getClientId());
-        params.setRedirectUri(publicClientApplicationConfiguration.getRedirectUri());
-        params.setActivity(parameters.getActivity());
+        msalAcquireTokenOperationParameters.setScopes(new ArrayList<>(acquireTokenParameters.getScopes()));
+        msalAcquireTokenOperationParameters.setClientId(publicClientApplicationConfiguration.getClientId());
+        msalAcquireTokenOperationParameters.setRedirectUri(publicClientApplicationConfiguration.getRedirectUri());
+        msalAcquireTokenOperationParameters.setActivity(acquireTokenParameters.getActivity());
 
-        if(parameters.getAccount() != null){
-            params.setLoginHint(parameters.getAccount().getUsername());
-            params.setAccount(parameters.getAccountRecord());
+        if(acquireTokenParameters.getAccount() != null){
+            msalAcquireTokenOperationParameters.setLoginHint(acquireTokenParameters.getAccount().getUsername());
+            msalAcquireTokenOperationParameters.setAccount(acquireTokenParameters.getAccountRecord());
         }else{
-            params.setLoginHint(parameters.getLoginHint());
+            msalAcquireTokenOperationParameters.setLoginHint(acquireTokenParameters.getLoginHint());
         }
 
-        params.setTokenCache(publicClientApplicationConfiguration.getOAuth2TokenCache());
-        params.setExtraQueryStringParameters(parameters.getExtraQueryStringParameters());
-        params.setExtraScopesToConsent(parameters.getExtraScopesToConsent());
-        params.setAppContext(publicClientApplicationConfiguration.getAppContext());
+        msalAcquireTokenOperationParameters.setTokenCache(publicClientApplicationConfiguration.getOAuth2TokenCache());
+        msalAcquireTokenOperationParameters.setExtraQueryStringParameters(acquireTokenParameters.getExtraQueryStringParameters());
+        msalAcquireTokenOperationParameters.setExtraScopesToConsent(acquireTokenParameters.getExtraScopesToConsent());
+        msalAcquireTokenOperationParameters.setAppContext(publicClientApplicationConfiguration.getAppContext());
 
         if (null != publicClientApplicationConfiguration.getAuthorizationAgent()) {
-            params.setAuthorizationAgent(publicClientApplicationConfiguration.getAuthorizationAgent());
+            msalAcquireTokenOperationParameters.setAuthorizationAgent(publicClientApplicationConfiguration.getAuthorizationAgent());
         } else {
-            params.setAuthorizationAgent(AuthorizationAgent.DEFAULT);
+            msalAcquireTokenOperationParameters.setAuthorizationAgent(AuthorizationAgent.DEFAULT);
         }
 
-        if (parameters.getUIBehavior() == null) {
-            params.setUIBehavior(UiBehavior.SELECT_ACCOUNT);
+        if (acquireTokenParameters.getUIBehavior() == null) {
+            msalAcquireTokenOperationParameters.setUIBehavior(UiBehavior.SELECT_ACCOUNT);
         } else {
-            params.setUIBehavior(parameters.getUIBehavior());
+            msalAcquireTokenOperationParameters.setUIBehavior(acquireTokenParameters.getUIBehavior());
         }
 
-        return params;
+        return msalAcquireTokenOperationParameters;
+    }
+
+
+    private static Authority getRequestAuthority(final IAccount account, final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
+        String requestAuthority = null;
+        Authority authority;
+
+        // For a B2C request, the silent request will use the passed-in authority string from client app.
+        if (publicClientApplicationConfiguration.getDefaultAuthority() instanceof AzureActiveDirectoryB2CAuthority) {
+            requestAuthority = publicClientApplicationConfiguration.getDefaultAuthority().getAuthorityURL().toString();
+        }
+
+        // If the request is not a B2C request or the passed-in authority is not a valid URL.
+        // MSAL will construct the request authority based on the account info.
+        if (requestAuthority == null) {
+            requestAuthority = Authority.getAuthorityFromAccount(account);
+        }
+
+        if(requestAuthority == null){
+            authority = publicClientApplicationConfiguration.getDefaultAuthority();
+        }else{
+            authority = Authority.getAuthorityFromAuthorityUrl(requestAuthority);
+        }
+
+        return authority;
     }
 }
