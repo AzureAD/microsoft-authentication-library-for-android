@@ -32,10 +32,10 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.net.Uri;
+import android.support.customtabs.CustomTabsService;
 import android.util.Base64;
 
 import com.microsoft.identity.client.BrowserTabActivity;
-import com.microsoft.identity.client.Logger;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -76,9 +76,6 @@ public final class MsalUtils {
     public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
 
     private static final String TAG = MsalUtils.class.getSimpleName();
-
-    private static final String CUSTOM_TABS_SERVICE_ACTION =
-            "android.support.customtabs.action.CustomTabsService";
 
     private static final String TOKEN_HASH_ALGORITHM = "SHA256";
 
@@ -245,7 +242,7 @@ public final class MsalUtils {
             return null;
         }
 
-        final Intent customTabServiceIntent = new Intent(CUSTOM_TABS_SERVICE_ACTION);
+        final Intent customTabServiceIntent = new Intent(CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION);
         final List<ResolveInfo> resolveInfoList = context.getPackageManager().queryIntentServices(
                 customTabServiceIntent, 0);
 
@@ -253,7 +250,7 @@ public final class MsalUtils {
         if (resolveInfoList == null || resolveInfoList.isEmpty()) {
             com.microsoft.identity.common.internal.logging.Logger.warn(
                     TAG,
-                    "No Service responded to Intent: " + CUSTOM_TABS_SERVICE_ACTION
+                    "No Service responded to Intent: " + CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION
             );
             return null;
         }
