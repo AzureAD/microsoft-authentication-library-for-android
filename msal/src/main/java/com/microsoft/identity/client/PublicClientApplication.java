@@ -615,6 +615,7 @@ public final class PublicClientApplication {
         String authority = null;
 
         AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters();
+        acquireTokenParameters.setAccount(account);
         acquireTokenParameters.setActivity(activity);
         acquireTokenParameters.setScopes(Arrays.asList(scopes));
         acquireTokenParameters.setUIBehavior(uiBehavior);
