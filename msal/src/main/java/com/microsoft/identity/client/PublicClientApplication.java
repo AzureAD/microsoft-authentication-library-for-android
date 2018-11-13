@@ -37,16 +37,14 @@ import android.util.Pair;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAudience;
-import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.client.internal.configuration.AuthorityDeserializer;
 import com.microsoft.identity.client.internal.configuration.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
-import com.microsoft.identity.client.internal.controllers.LocalMSALController;
 import com.microsoft.identity.client.internal.controllers.MSALAcquireTokenOperationParameters;
 import com.microsoft.identity.client.internal.controllers.MSALAcquireTokenSilentOperationParameters;
 import com.microsoft.identity.client.internal.controllers.MSALApiDispatcher;
@@ -57,7 +55,6 @@ import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
 import com.microsoft.identity.client.internal.telemetry.Defaults;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
-import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.ICacheKeyValueDelegate;
@@ -65,6 +62,7 @@ import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
@@ -76,7 +74,6 @@ import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.M
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsTokenResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
-import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.msal.BuildConfig;
 import com.microsoft.identity.msal.R;
@@ -144,25 +141,7 @@ public final class PublicClientApplication {
     private static final String AUTHORITY_META_DATA = "com.microsoft.identity.client.AuthorityMetadata";
     private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
-    private static final String DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common/";
 
-    private final Context mAppContext;
-    private final OAuth2TokenCache mOauth2TokenCache;
-
-    /**
-     * The authority the application will use to obtain tokens.
-     */
-    private String mAuthorityString;
-
-    /**
-     * The client ID of the application. This should come from the app developer portal.
-     */
-    private String mClientId;
-
-    /**
-     * The redirect URI for the application.
-     */
-    private String mRedirectUri;
 
     private PublicClientApplicationConfiguration mPublicClientConfiguration;
 
@@ -195,14 +174,11 @@ public final class PublicClientApplication {
             throw new IllegalArgumentException("context is null.");
         }
 
-        mAppContext = context;
-        mOauth2TokenCache = getOAuth2TokenCache();
-
-        //This order matters for now...
-        setupConfiguration();
+        setupConfiguration(context);
         loadMetaDataFromManifest();
         initializeApplication();
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
+
     }
 
     /**
@@ -228,10 +204,10 @@ public final class PublicClientApplication {
             throw new IllegalArgumentException("context is null.");
         }
 
-        mAppContext = context;
-        mOauth2TokenCache = getOAuth2TokenCache();
-        setupConfiguration(configFileResourceId);
+        setupConfiguration(configFileResourceId, context);
+
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
+
     }
 
     /**
@@ -255,12 +231,9 @@ public final class PublicClientApplication {
             throw new IllegalArgumentException("client id is empty or null");
         }
 
-        mAppContext = context;
-        mOauth2TokenCache = getOAuth2TokenCache();
-        mClientId = clientId;
-        setupConfiguration();
+        setupConfiguration(context);
+        mPublicClientConfiguration.mClientId = clientId;
         initializeApplication();
-        mAuthorityString = DEFAULT_AUTHORITY;
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
     }
 
@@ -286,9 +259,12 @@ public final class PublicClientApplication {
             throw new IllegalArgumentException("authority is empty or null");
         }
 
-        mAuthorityString = authority;
         mPublicClientConfiguration.getAuthorities().clear();
-        mPublicClientConfiguration.getAuthorities().add(Authority.getAuthorityFromAuthorityUrl(authority));
+        if(authority != null) {
+            Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority);
+            authorityObject.setDefault(true);
+            mPublicClientConfiguration.getAuthorities().add(authorityObject);
+        }
 
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
     }
@@ -296,10 +272,10 @@ public final class PublicClientApplication {
     private void initializeApplication() {
         // Init Events with defaults (application-wide)
         DefaultEvent.initializeDefaults(
-                Defaults.forApplication(mAppContext, mClientId)
+                Defaults.forApplication(mPublicClientConfiguration.getAppContext(), mPublicClientConfiguration.getClientId())
         );
 
-        mRedirectUri = createRedirectUri(mClientId);
+        mPublicClientConfiguration.mRedirectUri = createRedirectUri(mPublicClientConfiguration.getClientId());
         checkIntentFilterAddedToAppManifest();
 
         // Since network request is sent from the sdk, if calling app doesn't declare the internet permission in the
@@ -358,10 +334,10 @@ public final class PublicClientApplication {
 
         if (accounts.isEmpty()) {
             // Create the SharedPreferencesFileManager for the legacy accounts/credentials
-            final IStorageHelper storageHelper = new StorageHelper(mAppContext);
+            final IStorageHelper storageHelper = new StorageHelper(mPublicClientConfiguration.getAppContext());
             final ISharedPreferencesFileManager sharedPreferencesFileManager =
                     new SharedPreferencesFileManager(
-                            mAppContext,
+                            mPublicClientConfiguration.getAppContext(),
                             "com.microsoft.aad.adal.cache",
                             storageHelper
                     );
@@ -370,9 +346,9 @@ public final class PublicClientApplication {
             final Map<String, String> credentials = sharedPreferencesFileManager.getAll();
 
             new TokenMigrationUtility<MicrosoftAccount, MicrosoftRefreshToken>()._import(
-                    new AdalMigrationAdapter(mAppContext, false),
+                    new AdalMigrationAdapter(mPublicClientConfiguration.getAppContext(), false),
                     credentials,
-                    (IShareSingleSignOnState<MicrosoftAccount, MicrosoftRefreshToken>) mOauth2TokenCache,
+                    (IShareSingleSignOnState<MicrosoftAccount, MicrosoftRefreshToken>) mPublicClientConfiguration.getOAuth2TokenCache(),
                     new TokenMigrationCallback() {
                         @Override
                         public void onMigrationFinished(int numberOfAccountsMigrated) {
@@ -392,7 +368,7 @@ public final class PublicClientApplication {
             );
         } else {
             // The cache contains items - mark migration as complete
-            new AdalMigrationAdapter(mAppContext, false).setMigrationStatus(true);
+            new AdalMigrationAdapter(mPublicClientConfiguration.getAppContext(), false).setMigrationStatus(true);
             handler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -411,9 +387,9 @@ public final class PublicClientApplication {
         final List<IAccount> accountsToReturn = new ArrayList<>();
 
         // Grab the Accounts from the common cache
-        final List<AccountRecord> accountsInCache = mOauth2TokenCache.getAccounts(
+        final List<AccountRecord> accountsInCache = mPublicClientConfiguration.getOAuth2TokenCache().getAccounts(
                 null, // * wildcard
-                mClientId
+                mPublicClientConfiguration.getClientId()
         );
 
         // Adapt them to the MSAL model
@@ -432,29 +408,10 @@ public final class PublicClientApplication {
      */
     public IAccount getAccount(final String homeAccountIdentifier) {
         MSALApiDispatcher.initializeDiagnosticContext();
-        final AccountRecord accountToReturn = getAccountInternal(homeAccountIdentifier);
+        final AccountRecord accountToReturn = AccountAdapter.getAccountInternal(mPublicClientConfiguration.getClientId(), mPublicClientConfiguration.getOAuth2TokenCache(), homeAccountIdentifier);
         return null == accountToReturn ? null : AccountAdapter.adapt(accountToReturn);
     }
 
-    private AccountRecord getAccountInternal(final String homeAccountIdentifier) {
-        final AccountRecord accountToReturn;
-
-        if (!StringUtil.isEmpty(homeAccountIdentifier)) {
-            accountToReturn = mOauth2TokenCache.getAccount(
-                    null, // * wildcard
-                    mClientId,
-                    homeAccountIdentifier
-            );
-        } else {
-            com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG,
-                    "homeAccountIdentifier was null or empty -- invalid criteria"
-            );
-            accountToReturn = null;
-        }
-
-        return accountToReturn;
-    }
 
     /**
      * Removes the Account and Credentials (tokens) for the supplied IAccount.
@@ -475,9 +432,9 @@ public final class PublicClientApplication {
             return false;
         }
 
-        return mOauth2TokenCache.removeAccount(
+        return mPublicClientConfiguration.getOAuth2TokenCache().removeAccount(
                 account.getEnvironment(),
-                mClientId,
+                mPublicClientConfiguration.getClientId(),
                 account.getHomeAccountIdentifier().getIdentifier()
         );
     }
@@ -517,26 +474,7 @@ public final class PublicClientApplication {
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
-        final MSALAcquireTokenOperationParameters params =
-                getInteractiveOperationParameters(
-                        activity,
-                        scopes,
-                        null, // login hint
-                        UiBehavior.SELECT_ACCOUNT,
-                        null, // extra query params
-                        null, // extra scopes to consent
-                        null, // authority
-                        null // account
-                );
-
-        final MSALInteractiveTokenCommand command =
-                new MSALInteractiveTokenCommand(
-                        mAppContext,
-                        params,
-                        MSALControllerFactory.getAcquireTokenController(mAppContext, params.getAuthority(), mPublicClientConfiguration),
-                        callback
-                );
-        MSALApiDispatcher.beginInteractive(command);
+        acquireToken(activity, scopes, null, null, null, null, null, callback, null, null );
     }
 
     /**
@@ -563,26 +501,8 @@ public final class PublicClientApplication {
                              @NonNull final String[] scopes,
                              @Nullable final String loginHint,
                              @NonNull final AuthenticationCallback callback) {
-        final MSALAcquireTokenOperationParameters params =
-                getInteractiveOperationParameters(
-                        activity,
-                        scopes,
-                        loginHint,
-                        UiBehavior.SELECT_ACCOUNT,
-                        null, // extra query params
-                        null, // extra scopes to consent
-                        null, // authority,
-                        null
-                );
 
-        final MSALInteractiveTokenCommand command =
-                new MSALInteractiveTokenCommand(
-                        mAppContext,
-                        params,
-                        MSALControllerFactory.getAcquireTokenController(mAppContext, params.getAuthority(), mPublicClientConfiguration),
-                        callback
-                );
-        MSALApiDispatcher.beginInteractive(command);
+        acquireToken(activity, scopes, null, null, null, null, null, callback, loginHint, null );
     }
 
     /**
@@ -613,26 +533,8 @@ public final class PublicClientApplication {
                              @NonNull final UiBehavior uiBehavior,
                              @Nullable final List<Pair<String, String>> extraQueryParameters,
                              @NonNull final AuthenticationCallback callback) {
-        final MSALAcquireTokenOperationParameters params =
-                getInteractiveOperationParameters(
-                        activity,
-                        scopes,
-                        loginHint,
-                        uiBehavior,
-                        extraQueryParameters,
-                        null,
-                        null,
-                        null
-                );
 
-        final MSALInteractiveTokenCommand command =
-                new MSALInteractiveTokenCommand(
-                        mAppContext,
-                        params,
-                        MSALControllerFactory.getAcquireTokenController(mAppContext, params.getAuthority(), mPublicClientConfiguration),
-                        callback
-                );
-        MSALApiDispatcher.beginInteractive(command);
+        acquireToken(activity, scopes, null, uiBehavior, extraQueryParameters, null, null, callback, loginHint, null );
     }
 
     /**
@@ -663,34 +565,8 @@ public final class PublicClientApplication {
                              @NonNull final UiBehavior uiBehavior,
                              @Nullable final List<Pair<String, String>> extraQueryParameters,
                              @NonNull final AuthenticationCallback callback) {
-        String loginHint = null;
-        String authority = null;
 
-        if (null != account) {
-            loginHint = account.getUsername();
-            authority = account.getEnvironment();
-        }
-
-        final MSALAcquireTokenOperationParameters params =
-                getInteractiveOperationParameters(
-                        activity,
-                        scopes,
-                        loginHint,
-                        uiBehavior,
-                        extraQueryParameters,
-                        null,
-                        authority,
-                        account
-                );
-
-        final MSALInteractiveTokenCommand command =
-                new MSALInteractiveTokenCommand(
-                        mAppContext,
-                        params,
-                        MSALControllerFactory.getAcquireTokenController(mAppContext, params.getAuthority(), mPublicClientConfiguration),
-                        callback
-                );
-        MSALApiDispatcher.beginInteractive(command);
+        acquireToken(activity, scopes, account, uiBehavior, extraQueryParameters, null, null, callback, null, null );
     }
 
     /**
@@ -725,26 +601,8 @@ public final class PublicClientApplication {
                              final String[] extraScopesToConsent,
                              final String authority,
                              @NonNull final AuthenticationCallback callback) {
-        final MSALAcquireTokenOperationParameters params =
-                getInteractiveOperationParameters(
-                        activity,
-                        scopes,
-                        loginHint,
-                        uiBehavior,
-                        extraQueryParameters,
-                        extraScopesToConsent,
-                        authority,
-                        null // account
-                );
 
-        final MSALInteractiveTokenCommand command =
-                new MSALInteractiveTokenCommand(
-                        mAppContext,
-                        params,
-                        MSALControllerFactory.getAcquireTokenController(mAppContext, params.getAuthority(), mPublicClientConfiguration),
-                        callback
-                );
-        MSALApiDispatcher.beginInteractive(command);
+        acquireToken(activity, scopes, null, uiBehavior, extraQueryParameters, extraScopesToConsent, authority, callback, loginHint, null );
     }
 
     /**
@@ -779,33 +637,72 @@ public final class PublicClientApplication {
                              @Nullable final String[] extraScopesToConsent,
                              @Nullable final String authority,
                              @NonNull final AuthenticationCallback callback) {
-        String loginHint = null;
 
-        if (null != account) {
-            loginHint = account.getUsername();
-        }
+       acquireToken(activity, scopes, account, uiBehavior, extraQueryParameters, extraScopesToConsent, authority, callback, null, null );
 
-        final MSALAcquireTokenOperationParameters params =
-                getInteractiveOperationParameters(
-                        activity,
-                        scopes,
-                        loginHint,
-                        uiBehavior,
-                        extraQueryParameters,
-                        extraScopesToConsent,
-                        authority,
-                        account
-                );
+    }
+
+    private void acquireToken(final Activity activity,
+                              final String[] scopes,
+                              final IAccount account,
+                              final UiBehavior uiBehavior,
+                              final List<Pair<String, String>> extraQueryParameters,
+                              final String[] extraScopesToConsent,
+                              final String authority,
+                              final AuthenticationCallback callback,
+                              final String loginHint,
+                              final ClaimsRequest claimsRequest) {
+
+        AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
+        AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(activity)
+                .forAccount(account)
+                .withScopes(Arrays.asList(scopes))
+                .withUiBehavior(uiBehavior)
+                .withAuthorizationQueryStringParameters(extraQueryParameters)
+                .withOtherScopesToAuthorize(Arrays.asList(extraScopesToConsent))
+                .fromAuthority(authority)
+                .callback(callback)
+                .withLoginHint(loginHint)
+                .withClaims(claimsRequest)
+                .build();
+
+        acquireTokenAsync(acquireTokenParameters);
+
+    }
+
+
+
+    /**
+     * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
+     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
+     *
+     * Convey parameters via the AquireTokenParameters object
+     *
+     * @param acquireTokenParameters
+     */
+    public void acquireTokenAsync(@NonNull AcquireTokenParameters acquireTokenParameters) {
+
+
+        acquireTokenParameters.setAccountRecord(getAccountRecord(acquireTokenParameters.getAccount()));
+        final MSALAcquireTokenOperationParameters params = MSALAcquireTokenOperationParameters.createMsalAcquireTokenOperationParameters(acquireTokenParameters, mPublicClientConfiguration);
 
         final MSALInteractiveTokenCommand command =
                 new MSALInteractiveTokenCommand(
-                        mAppContext,
+                        mPublicClientConfiguration.getAppContext(),
                         params,
-                        MSALControllerFactory.getAcquireTokenController(mAppContext, params.getAuthority(), mPublicClientConfiguration),
-                        callback
+                        MSALControllerFactory.getAcquireTokenController(mPublicClientConfiguration.getAppContext(), params.getAuthority(), mPublicClientConfiguration),
+                        acquireTokenParameters.getCallback()
                 );
         MSALApiDispatcher.beginInteractive(command);
     }
+
+    private AccountRecord getAccountRecord(IAccount account){
+        if(account != null) {
+            return AccountAdapter.getAccountInternal(mPublicClientConfiguration.getClientId(), mPublicClientConfiguration.getOAuth2TokenCache(), account.getHomeAccountIdentifier().getIdentifier());
+        }
+        return null;
+    }
+
 
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
@@ -823,27 +720,8 @@ public final class PublicClientApplication {
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final IAccount account,
                                         @NonNull final AuthenticationCallback callback) {
-        String requestAuthority = Authority.getAuthorityFromAccount(account);
 
-        if (null == requestAuthority) {
-            requestAuthority = mAuthorityString;
-        }
-
-        final MSALAcquireTokenSilentOperationParameters params = getSilentOperationParameters(
-                scopes,
-                requestAuthority,
-                false,
-                account
-        );
-
-        final MSALTokenCommand silentTokenCommand = new MSALTokenCommand(
-                mAppContext,
-                params,
-                MSALControllerFactory.getAcquireTokenSilentControllers(mAppContext, params.getAuthority(), mPublicClientConfiguration),
-                callback
-        );
-
-        MSALApiDispatcher.submitSilent(silentTokenCommand);
+        acquireTokenSilent(scopes, account, null, false, null, callback);
     }
 
     /**
@@ -866,90 +744,62 @@ public final class PublicClientApplication {
                                         @Nullable final String authority,
                                         final boolean forceRefresh,
                                         @NonNull final AuthenticationCallback callback) {
-        String requestAuthority = authority;
 
-        if (StringUtil.isEmpty(requestAuthority)) {
-            requestAuthority = this.getSilentRequestAuthority(account);
+        acquireTokenSilent(scopes, account, authority, forceRefresh, null, callback);
 
-            if (requestAuthority == null) {
-                requestAuthority = mAuthorityString;
-            }
-        }
+    }
 
-        final MSALAcquireTokenSilentOperationParameters params = getSilentOperationParameters(
-                scopes,
-                requestAuthority,
-                forceRefresh,
-                account
-        );
+    private void acquireTokenSilent(final String[] scopes,
+                                    final IAccount account,
+                                    final String authority,
+                                    final boolean forceRefresh,
+                                    final ClaimsRequest claimsRequest,
+                                    final AuthenticationCallback callback){
+
+        AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
+        AcquireTokenSilentParameters acquireTokenSilentParameters =  builder.withScopes(Arrays.asList(scopes))
+                .forAccount(account)
+                .fromAuthority(authority)
+                .forceRefresh(forceRefresh)
+                .withClaims(claimsRequest)
+                .callback(callback)
+                .build();
+
+        acquireTokenSilentAsync(acquireTokenSilentParameters);
+
+    }
+
+    /**
+     * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
+     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
+     * or it fails the refresh, exception will be sent back via callback.
+     *
+     * @param acquireTokenSilentParameters
+     */
+    public void acquireTokenSilentAsync(AcquireTokenSilentParameters acquireTokenSilentParameters){
+
+        acquireTokenSilentParameters.setAccountRecord(getAccountRecord(acquireTokenSilentParameters.getAccount()));
+        final MSALAcquireTokenSilentOperationParameters params =
+                MSALAcquireTokenSilentOperationParameters.createMSALAcquireTokenSilentOperationParameters(
+                        acquireTokenSilentParameters, mPublicClientConfiguration);
 
         final MSALTokenCommand silentTokenCommand = new MSALTokenCommand(
-                mAppContext,
+                mPublicClientConfiguration.getAppContext(),
                 params,
-                MSALControllerFactory.getAcquireTokenSilentControllers(mAppContext, params.getAuthority(), mPublicClientConfiguration),
-                callback
+                MSALControllerFactory.getAcquireTokenSilentControllers(mPublicClientConfiguration.getAppContext(), params.getAuthority(), mPublicClientConfiguration),
+                acquireTokenSilentParameters.getCallback()
         );
 
         MSALApiDispatcher.submitSilent(silentTokenCommand);
     }
 
-    private String getSilentRequestAuthority(final IAccount account) {
-        String requestAuthority = null;
-
-        // For a B2C request, the silent request will use the passed-in authority string from client app.
-        try {
-            if (!StringUtil.isEmpty(mAuthorityString)
-                    && Authority.getAuthorityFromAuthorityUrl(mAuthorityString) instanceof AzureActiveDirectoryB2CAuthority) {
-                requestAuthority = mAuthorityString;
-            }
-        } catch (final IllegalArgumentException exc) {
-            com.microsoft.identity.common.internal.logging.Logger.warn(TAG, exc.getMessage());
-        }
-
-        // If the request is not a B2C request or the passed-in authority is not a valid URL.
-        // MSAL will construct the request authority based on the account info.
-        if (requestAuthority == null) {
-            requestAuthority = Authority.getAuthorityFromAccount(account);
-        }
-
-        return requestAuthority;
-    }
-
-    private MSALAcquireTokenSilentOperationParameters getSilentOperationParameters(final String[] scopes,
-                                                                                   final String authorityStr,
-                                                                                   final boolean forceRefresh,
-                                                                                   final IAccount account) {
-        final MSALAcquireTokenSilentOperationParameters parameters = new MSALAcquireTokenSilentOperationParameters();
-        parameters.setAppContext(mAppContext);
-        parameters.setScopes(new ArrayList<>(Arrays.asList(scopes)));
-        parameters.setClientId(mClientId);
-        parameters.setTokenCache(mOauth2TokenCache);
-        parameters.setAuthority(Authority.getAuthorityFromAuthorityUrl(authorityStr));
-        parameters.setRedirectUri(mRedirectUri);
-        if (null != account) {
-            parameters.setAccount(
-                    getAccountInternal(
-                            account.getHomeAccountIdentifier().getIdentifier()
-                    )
-            );
-        }
-
-        if (parameters.getAuthority() instanceof AzureActiveDirectoryAuthority) {
-            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) parameters.getAuthority();
-            aadAuthority.setMultipleCloudsSupported(mPublicClientConfiguration.mMultipleCloudsSupported);
-        }
-        parameters.setForceRefresh(forceRefresh);
-
-        return parameters;
-    }
-
-    private void loadMetaDataFromManifest() {
+     private void loadMetaDataFromManifest() {
         final String methodName = ":loadMetaDataFromManifest";
         com.microsoft.identity.common.internal.logging.Logger.verbose(
                 TAG + methodName,
                 "Loading metadata from manifest..."
         );
-        final ApplicationInfo applicationInfo = MsalUtils.getApplicationInfo(mAppContext);
+        final ApplicationInfo applicationInfo = MsalUtils.getApplicationInfo(mPublicClientConfiguration.getAppContext());
         if (applicationInfo == null || applicationInfo.metaData == null) {
             throw new IllegalArgumentException("No meta-data exists");
         }
@@ -958,12 +808,8 @@ public final class PublicClientApplication {
         final String authority = applicationInfo.metaData.getString(AUTHORITY_META_DATA);
 
         if (!MsalUtils.isEmpty(authority)) {
-            mAuthorityString = authority;
             mPublicClientConfiguration.getAuthorities().clear();
-            mPublicClientConfiguration.getAuthorities().add(Authority.getAuthorityFromAuthorityUrl(mAuthorityString));
-        } else {
-            mAuthorityString = DEFAULT_AUTHORITY;
-            //mPublicClientConfiguration already has the default authority configured.
+            mPublicClientConfiguration.getAuthorities().add(Authority.getAuthorityFromAuthorityUrl(authority));
         }
 
         // read client id from manifest
@@ -973,33 +819,22 @@ public final class PublicClientApplication {
             throw new IllegalArgumentException("client id missing from manifest");
         }
 
-        mClientId = clientId;
         mPublicClientConfiguration.mClientId = clientId;
     }
 
-    private void setupConfiguration(final int configResourceId) {
-        final PublicClientApplicationConfiguration developerConfig = loadConfiguration(mAppContext, configResourceId);
-        final PublicClientApplicationConfiguration defaultConfig = loadDefaultConfiguration(mAppContext);
+    private void setupConfiguration(final int configResourceId, Context context) {
+        final PublicClientApplicationConfiguration developerConfig = loadConfiguration(context, configResourceId);
+        final PublicClientApplicationConfiguration defaultConfig = loadDefaultConfiguration(context);
         defaultConfig.mergeConfiguration(developerConfig);
         mPublicClientConfiguration = defaultConfig;
-
-        if (!StringUtil.isEmpty(mPublicClientConfiguration.getClientId())) {
-            mClientId = mPublicClientConfiguration.getClientId();
-        }
-
-        if (!StringUtil.isEmpty(mPublicClientConfiguration.getRedirectUri())) {
-            mRedirectUri = mPublicClientConfiguration.getRedirectUri();
-        }
-
-        if (mPublicClientConfiguration.isDefaultAuthorityConfigured()) {
-            mAuthorityString = mPublicClientConfiguration.getDefaultAuthority().getAuthorityURL().toString();
-        } else {
-            mAuthorityString = DEFAULT_AUTHORITY;
-        }
+        mPublicClientConfiguration.setAppContext(context);
+        mPublicClientConfiguration.setOAuth2TokenCache(getOAuth2TokenCache());
     }
 
-    private void setupConfiguration() {
-        mPublicClientConfiguration = loadDefaultConfiguration(mAppContext);
+    private void setupConfiguration(Context context) {
+        mPublicClientConfiguration = loadDefaultConfiguration(context);
+        mPublicClientConfiguration.setAppContext(context);
+        mPublicClientConfiguration.setOAuth2TokenCache(getOAuth2TokenCache());
     }
 
     @VisibleForTesting
@@ -1044,17 +879,17 @@ public final class PublicClientApplication {
 
     // TODO: if no more input validation is needed, this could be moved back to the constructor.
     private void checkIntentFilterAddedToAppManifest() {
-        if (!MsalUtils.hasCustomTabRedirectActivity(mAppContext, mRedirectUri)) {
+        if (!MsalUtils.hasCustomTabRedirectActivity(mPublicClientConfiguration.getAppContext(), mPublicClientConfiguration.getRedirectUri())) {
             throw new IllegalStateException("Intent filter for: "
                     + BrowserTabActivity.class.getSimpleName() + " is missing.  Please refer to the MSAL readme.");
         }
     }
 
     private void checkInternetPermission() {
-        final PackageManager packageManager = mAppContext.getPackageManager();
-        if (packageManager.checkPermission(INTERNET_PERMISSION, mAppContext.getPackageName())
+        final PackageManager packageManager = mPublicClientConfiguration.getAppContext().getPackageManager();
+        if (packageManager.checkPermission(INTERNET_PERMISSION, mPublicClientConfiguration.getAppContext().getPackageName())
                 != PackageManager.PERMISSION_GRANTED
-                || packageManager.checkPermission(ACCESS_NETWORK_STATE_PERMISSION, mAppContext.getPackageName())
+                || packageManager.checkPermission(ACCESS_NETWORK_STATE_PERMISSION, mPublicClientConfiguration.getAppContext().getPackageName())
                 != PackageManager.PERMISSION_GRANTED) {
             throw new IllegalStateException("android.permission.Internet or android.permission.ACCESS_NETWORK_STATE is missing");
         }
@@ -1075,78 +910,6 @@ public final class PublicClientApplication {
         } else {
             return "msal" + clientId + "://auth";
         }
-    }
-
-    private MSALAcquireTokenOperationParameters getInteractiveOperationParameters(@NonNull final Activity activity,
-                                                                                  @NonNull final String[] scopes,
-                                                                                  @Nullable final String loginHint,
-                                                                                  final UiBehavior uiBehavior,
-                                                                                  @Nullable List<Pair<String, String>> extraQueryParameters,
-                                                                                  @Nullable final String[] extraScopesToConsent,
-                                                                                  @Nullable final String authority,
-                                                                                  @Nullable final IAccount account) {
-        final String methodName = ":getInteractiveOperationParameters";
-        final MSALAcquireTokenOperationParameters params = new MSALAcquireTokenOperationParameters();
-
-        if (StringUtil.isEmpty(authority)) {
-            if (mPublicClientConfiguration.isDefaultAuthorityConfigured()) {
-                com.microsoft.identity.common.internal.logging.Logger.verbose(
-                        TAG + methodName,
-                        "Using default configured authority"
-                );
-                params.setAuthority(mPublicClientConfiguration.getDefaultAuthority());
-            } else {
-                params.setAuthority(Authority.getAuthorityFromAuthorityUrl(mAuthorityString));
-            }
-        } else {
-            params.setAuthority(Authority.getAuthorityFromAuthorityUrl(authority));
-        }
-
-        if (params.getAuthority() instanceof AzureActiveDirectoryAuthority) {
-            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) params.getAuthority();
-            aadAuthority.setMultipleCloudsSupported(mPublicClientConfiguration.getMultipleCloudsSupported());
-        }
-
-        com.microsoft.identity.common.internal.logging.Logger.verbosePII(
-                TAG + methodName,
-                "Using authority: [" + params.getAuthority().getAuthorityUri() + "]"
-        );
-
-        params.setScopes(new ArrayList<>(Arrays.asList(scopes)));
-        params.setClientId(mClientId);
-        params.setRedirectUri(mRedirectUri);
-        params.setActivity(activity);
-        params.setLoginHint(loginHint);
-        params.setTokenCache(mOauth2TokenCache);
-        params.setExtraQueryStringParameters(extraQueryParameters);
-        params.setExtraScopesToConsent(
-                null != extraScopesToConsent
-                        ? Arrays.asList(extraScopesToConsent)
-                        : new ArrayList<String>()
-        );
-        params.setAppContext(mAppContext);
-        if (null != mPublicClientConfiguration.getAuthorizationAgent()) {
-            params.setAuthorizationAgent(mPublicClientConfiguration.getAuthorizationAgent());
-        } else {
-            params.setAuthorizationAgent(AuthorizationAgent.DEFAULT);
-        }
-
-        if (uiBehavior == null) {
-            params.setUIBehavior(UiBehavior.SELECT_ACCOUNT);
-        } else {
-            params.setUIBehavior(uiBehavior);
-        }
-
-        params.setAppContext(mAppContext);
-        if (null != account) {
-            params.setAccount(
-                    getAccountInternal(
-                            account.getHomeAccountIdentifier().getIdentifier()
-                    )
-            );
-        }
-
-        return params;
     }
 
     private MsalOAuth2TokenCache<
@@ -1185,6 +948,6 @@ public final class PublicClientApplication {
     }
 
     private OAuth2TokenCache<?, ?, ?> getOAuth2TokenCache() {
-        return initCommonCache(mAppContext);
+        return initCommonCache(mPublicClientConfiguration.getAppContext());
     }
 }

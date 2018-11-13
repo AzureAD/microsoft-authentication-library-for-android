@@ -25,11 +25,13 @@ package com.microsoft.identity.client;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 /**
  * Adapter class for Account transformations.
  */
-class AccountAdapter {
+public class AccountAdapter {
 
     private static final String TAG = AccountAdapter.class.getSimpleName();
 
@@ -105,5 +107,25 @@ class AccountAdapter {
         );
 
         return accountOut;
+    }
+
+    static AccountRecord getAccountInternal(final String clientId, OAuth2TokenCache oAuth2TokenCache, final String homeAccountIdentifier) {
+        final AccountRecord accountToReturn;
+
+        if (!StringUtil.isEmpty(homeAccountIdentifier)) {
+            accountToReturn = oAuth2TokenCache.getAccount(
+                    null, // * wildcard
+                    clientId,
+                    homeAccountIdentifier
+            );
+        } else {
+            com.microsoft.identity.common.internal.logging.Logger.warn(
+                    TAG,
+                    "homeAccountIdentifier was null or empty -- invalid criteria"
+            );
+            accountToReturn = null;
+        }
+
+        return accountToReturn;
     }
 }
