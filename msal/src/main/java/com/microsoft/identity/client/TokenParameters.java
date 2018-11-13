@@ -23,10 +23,14 @@
 
 package com.microsoft.identity.client;
 
+import android.util.Pair;
+
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Base class for AcquireTokenParameters and AcquireTokenSilentParameters
@@ -39,6 +43,14 @@ abstract class TokenParameters {
     private ClaimsRequest mClaimsRequest;
     private AuthenticationCallback mCallback;
     private AccountRecord mAccountRecord;
+
+    protected TokenParameters(final TokenParameters.Builder builder) {
+        mAccount = builder.mAccount;
+        mAuthority = builder.mAuthority;
+        mCallback = builder.mCallback;
+        mClaimsRequest = builder.mClaimsRequest;
+        mScopes = builder.mScopes;
+    }
 
 
     /**
@@ -147,5 +159,49 @@ abstract class TokenParameters {
 
     public AccountRecord getAccountRecord(){
         return mAccountRecord;
+    }
+
+    /**
+     * TokenParameters builder
+     * @param <B>
+     */
+    public static abstract class Builder<B extends TokenParameters.Builder<B>> {
+
+        private List<String> mScopes;
+        private IAccount mAccount;
+        private String mAuthority;
+        private ClaimsRequest mClaimsRequest;
+        private AuthenticationCallback mCallback;
+
+        public B withScopes(List<String> scopes) {
+            mScopes = scopes;
+            return self();
+        }
+
+        public B forAccount(IAccount account) {
+            mAccount = account;
+            return self();
+        }
+
+        public B fromAuthority(String authority) {
+            mAuthority = authority;
+            return self();
+        }
+
+        //TODO: Needs it's own builder... possible added here
+        public B withClaims(ClaimsRequest claimsRequest) {
+            mClaimsRequest = claimsRequest;
+            return self();
+        }
+
+        public B callback(AuthenticationCallback callback) {
+            mCallback = callback;
+            return self();
+        }
+
+        public abstract B self();
+
+        public abstract TokenParameters build();
+
     }
 }

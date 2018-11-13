@@ -25,6 +25,11 @@ package com.microsoft.identity.client;
 public class AcquireTokenSilentParameters extends TokenParameters {
     private Boolean mForceRefresh;
 
+    public AcquireTokenSilentParameters(AcquireTokenSilentParameters.Builder builder){
+        super(builder);
+        mForceRefresh = builder.mForceRefresh;
+    }
+
     /**
      * Boolean.  Indicates whether MSAL should refresh the access token.  Default is false and
      * unless you have good reason to.  You should not use this parameter.
@@ -43,5 +48,23 @@ public class AcquireTokenSilentParameters extends TokenParameters {
         return mForceRefresh;
     }
 
+    public static class Builder extends TokenParameters.Builder<AcquireTokenSilentParameters.Builder> {
+
+        private Boolean mForceRefresh;
+
+        public AcquireTokenSilentParameters.Builder forceRefresh(Boolean force) {
+            mForceRefresh = force;
+            return self();
+        }
+
+        @Override
+        public AcquireTokenSilentParameters.Builder self() {
+            return this;
+        }
+
+        public AcquireTokenSilentParameters build() {
+            return new AcquireTokenSilentParameters(this);
+        }
+    }
 
 }

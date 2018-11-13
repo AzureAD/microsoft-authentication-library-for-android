@@ -26,6 +26,9 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 import android.util.Pair;
 
+import com.microsoft.identity.client.exception.MsalArgumentException;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
+
 import java.util.List;
 
 /**
@@ -35,9 +38,19 @@ public class AcquireTokenParameters extends TokenParameters {
 
     private Activity mActivity;
     private String mLoginHint;
-    private UiBehavior mUIBehavior;
+    private UiBehavior mUiBehavior;
     private List<String> mExtraScopesToConsent;
     private List<Pair<String, String>> mExtraQueryStringParameters;
+
+
+    public AcquireTokenParameters(AcquireTokenParameters.Builder builder){
+        super(builder);
+        mActivity = builder.mActivity;
+        mLoginHint = builder.mLoginHint;
+        mUiBehavior = builder.mUiBehavior;
+        mExtraScopesToConsent = builder.mExtraScopesToConsent;
+        mExtraQueryStringParameters = builder.mExtraQueryStringParameters;
+    }
 
 
     /**
@@ -76,16 +89,16 @@ public class AcquireTokenParameters extends TokenParameters {
      * Controls the value of the prompt parameter sent along with the authorization request.
      * @return
      */
-    public UiBehavior getUIBehavior() {
-        return mUIBehavior;
+    public UiBehavior getUiBehavior() {
+        return mUiBehavior;
     }
 
     /**
      * Controls the value of the prompt parameter sent along with the authorization request.
      * @param uiBehavior
      */
-    public void setUIBehavior(UiBehavior uiBehavior) {
-        this.mUIBehavior = uiBehavior;
+    public void setUiBehavior(UiBehavior uiBehavior) {
+        this.mUiBehavior = uiBehavior;
     }
 
     /**
@@ -122,6 +135,49 @@ public class AcquireTokenParameters extends TokenParameters {
      */
     public void setExtraQueryStringParameters(List<Pair<String, String>> extraQueryStringParameters) {
         this.mExtraQueryStringParameters = extraQueryStringParameters;
+    }
+
+    public static class Builder extends TokenParameters.Builder<AcquireTokenParameters.Builder> {
+
+        private Activity mActivity;
+        private String mLoginHint;
+        private UiBehavior mUiBehavior;
+        private List<String> mExtraScopesToConsent;
+        private List<Pair<String, String>> mExtraQueryStringParameters;
+
+        public AcquireTokenParameters.Builder startAuthorizationFromActivity(Activity activity) {
+            mActivity = activity;
+            return self();
+        }
+
+        public AcquireTokenParameters.Builder withLoginHint(String loginHint) {
+            mLoginHint = loginHint;
+            return self();
+        }
+
+        public AcquireTokenParameters.Builder withUiBehavior(UiBehavior uiBehavior) {
+            mUiBehavior = uiBehavior;
+            return self();
+        }
+
+        public AcquireTokenParameters.Builder withOtherScopesToAuthorize(List<String> scopes) {
+            mExtraScopesToConsent = scopes;
+            return self();
+        }
+
+        public AcquireTokenParameters.Builder withAuthorizationQueryStringParameters(List<Pair<String, String>> parameters) {
+            mExtraQueryStringParameters = parameters;
+            return self();
+        }
+
+        @Override
+        public AcquireTokenParameters.Builder self() {
+            return this;
+        }
+
+        public AcquireTokenParameters build() {
+            return new AcquireTokenParameters(this);
+        }
     }
 
 }

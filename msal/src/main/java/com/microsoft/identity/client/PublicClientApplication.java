@@ -37,6 +37,7 @@ import android.util.Pair;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.authorities.Authority;
@@ -473,13 +474,7 @@ public final class PublicClientApplication {
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
-
-        AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters();
-        acquireTokenParameters.setActivity(activity);
-        acquireTokenParameters.setScopes(Arrays.asList(scopes));
-        acquireTokenParameters.setCallback(callback);
-
-        acquireToken(acquireTokenParameters);
+        acquireToken(activity, scopes, null, null, null, null, null, callback, null, null );
     }
 
     /**
@@ -507,13 +502,7 @@ public final class PublicClientApplication {
                              @Nullable final String loginHint,
                              @NonNull final AuthenticationCallback callback) {
 
-        AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters();
-        acquireTokenParameters.setActivity(activity);
-        acquireTokenParameters.setLoginHint(loginHint);
-        acquireTokenParameters.setScopes(Arrays.asList(scopes));
-        acquireTokenParameters.setCallback(callback);
-
-        acquireToken(acquireTokenParameters);
+        acquireToken(activity, scopes, null, null, null, null, null, callback, loginHint, null );
     }
 
     /**
@@ -545,15 +534,7 @@ public final class PublicClientApplication {
                              @Nullable final List<Pair<String, String>> extraQueryParameters,
                              @NonNull final AuthenticationCallback callback) {
 
-        AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters();
-        acquireTokenParameters.setActivity(activity);
-        acquireTokenParameters.setScopes(Arrays.asList(scopes));
-        acquireTokenParameters.setUIBehavior(uiBehavior);
-        acquireTokenParameters.setExtraQueryStringParameters(extraQueryParameters);
-        acquireTokenParameters.setLoginHint(loginHint);
-        acquireTokenParameters.setCallback(callback);
-
-        acquireToken(acquireTokenParameters);
+        acquireToken(activity, scopes, null, uiBehavior, extraQueryParameters, null, null, callback, loginHint, null );
     }
 
     /**
@@ -585,16 +566,7 @@ public final class PublicClientApplication {
                              @Nullable final List<Pair<String, String>> extraQueryParameters,
                              @NonNull final AuthenticationCallback callback) {
 
-        AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters();
-        acquireTokenParameters.setAccount(account);
-        acquireTokenParameters.setActivity(activity);
-        acquireTokenParameters.setScopes(Arrays.asList(scopes));
-        acquireTokenParameters.setUIBehavior(uiBehavior);
-        acquireTokenParameters.setExtraQueryStringParameters(extraQueryParameters);
-        acquireTokenParameters.setAccountRecord(getAccountRecord(acquireTokenParameters.getAccount()));
-        acquireTokenParameters.setCallback(callback);
-
-        acquireToken(acquireTokenParameters);
+        acquireToken(activity, scopes, account, uiBehavior, extraQueryParameters, null, null, callback, null, null );
     }
 
     /**
@@ -630,17 +602,7 @@ public final class PublicClientApplication {
                              final String authority,
                              @NonNull final AuthenticationCallback callback) {
 
-        AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters();
-        acquireTokenParameters.setActivity(activity);
-        acquireTokenParameters.setScopes(Arrays.asList(scopes));
-        acquireTokenParameters.setUIBehavior(uiBehavior);
-        acquireTokenParameters.setExtraQueryStringParameters(extraQueryParameters);
-        acquireTokenParameters.setExtraScopesToConsent(Arrays.asList(extraScopesToConsent));
-        acquireTokenParameters.setAuthority(authority);
-        acquireTokenParameters.setLoginHint(loginHint);
-        acquireTokenParameters.setCallback(callback);
-
-        acquireToken(acquireTokenParameters);
+        acquireToken(activity, scopes, null, uiBehavior, extraQueryParameters, extraScopesToConsent, authority, callback, loginHint, null );
     }
 
     /**
@@ -676,19 +638,38 @@ public final class PublicClientApplication {
                              @Nullable final String authority,
                              @NonNull final AuthenticationCallback callback) {
 
-        AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters();
-        acquireTokenParameters.setActivity(activity);
-        acquireTokenParameters.setAccount(account);
-        acquireTokenParameters.setScopes(Arrays.asList(scopes));
-        acquireTokenParameters.setUIBehavior(uiBehavior);
-        acquireTokenParameters.setExtraQueryStringParameters(extraQueryParameters);
-        acquireTokenParameters.setExtraScopesToConsent(Arrays.asList(extraScopesToConsent));
-        acquireTokenParameters.setAuthority(authority);
-        acquireTokenParameters.setAccountRecord(getAccountRecord(acquireTokenParameters.getAccount()));
-        acquireTokenParameters.setCallback(callback);
+       acquireToken(activity, scopes, account, uiBehavior, extraQueryParameters, extraScopesToConsent, authority, callback, null, null );
 
-        acquireToken(acquireTokenParameters);
     }
+
+    private void acquireToken(final Activity activity,
+                              final String[] scopes,
+                              final IAccount account,
+                              final UiBehavior uiBehavior,
+                              final List<Pair<String, String>> extraQueryParameters,
+                              final String[] extraScopesToConsent,
+                              final String authority,
+                              final AuthenticationCallback callback,
+                              final String loginHint,
+                              final ClaimsRequest claimsRequest) {
+
+        AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
+        AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(activity)
+                .forAccount(account)
+                .withScopes(Arrays.asList(scopes))
+                .withUiBehavior(uiBehavior)
+                .withAuthorizationQueryStringParameters(extraQueryParameters)
+                .withOtherScopesToAuthorize(Arrays.asList(extraScopesToConsent))
+                .fromAuthority(authority)
+                .callback(callback)
+                .withLoginHint(loginHint)
+                .withClaims(claimsRequest)
+                .build();
+
+        acquireTokenAsync(acquireTokenParameters);
+
+    }
+
 
 
     /**
@@ -699,7 +680,7 @@ public final class PublicClientApplication {
      *
      * @param acquireTokenParameters
      */
-    public void acquireToken(@NonNull AcquireTokenParameters acquireTokenParameters) {
+    public void acquireTokenAsync(@NonNull AcquireTokenParameters acquireTokenParameters) {
 
 
         acquireTokenParameters.setAccountRecord(getAccountRecord(acquireTokenParameters.getAccount()));
@@ -740,13 +721,7 @@ public final class PublicClientApplication {
                                         @NonNull final IAccount account,
                                         @NonNull final AuthenticationCallback callback) {
 
-        AcquireTokenSilentParameters acquireTokenSilentParameters = new AcquireTokenSilentParameters();
-        acquireTokenSilentParameters.setScopes(Arrays.asList(scopes));
-        acquireTokenSilentParameters.setAccount(account);
-        acquireTokenSilentParameters.setAccountRecord(getAccountRecord(acquireTokenSilentParameters.getAccount()));
-        acquireTokenSilentParameters.setCallback(callback);
-
-        acquireTokenSilentAsync(acquireTokenSilentParameters);
+        acquireTokenSilent(scopes, account, null, false, null, callback);
     }
 
     /**
@@ -770,16 +745,28 @@ public final class PublicClientApplication {
                                         final boolean forceRefresh,
                                         @NonNull final AuthenticationCallback callback) {
 
-        AcquireTokenSilentParameters acquireTokenSilentParameters = new AcquireTokenSilentParameters();
-        acquireTokenSilentParameters.setAuthority(authority);
-        acquireTokenSilentParameters.setScopes(Arrays.asList(scopes));
-        acquireTokenSilentParameters.setAccount(account);
-        acquireTokenSilentParameters.setAccountRecord(getAccountRecord(acquireTokenSilentParameters.getAccount()));
-        acquireTokenSilentParameters.setForceRefresh(forceRefresh);
-        acquireTokenSilentParameters.setCallback(callback);
+        acquireTokenSilent(scopes, account, authority, forceRefresh, null, callback);
 
+    }
+
+    private void acquireTokenSilent(final String[] scopes,
+                                    final IAccount account,
+                                    final String authority,
+                                    final boolean forceRefresh,
+                                    final ClaimsRequest claimsRequest,
+                                    final AuthenticationCallback callback){
+
+        AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
+        AcquireTokenSilentParameters acquireTokenSilentParameters =  builder.withScopes(Arrays.asList(scopes))
+                .forAccount(account)
+                .fromAuthority(authority)
+                .forceRefresh(forceRefresh)
+                .withClaims(claimsRequest)
+                .callback(callback)
+                .build();
 
         acquireTokenSilentAsync(acquireTokenSilentParameters);
+
     }
 
     /**
@@ -791,6 +778,7 @@ public final class PublicClientApplication {
      */
     public void acquireTokenSilentAsync(AcquireTokenSilentParameters acquireTokenSilentParameters){
 
+        acquireTokenSilentParameters.setAccountRecord(getAccountRecord(acquireTokenSilentParameters.getAccount()));
         final MSALAcquireTokenSilentOperationParameters params =
                 MSALAcquireTokenSilentOperationParameters.createMSALAcquireTokenSilentOperationParameters(
                         acquireTokenSilentParameters, mPublicClientConfiguration);

@@ -144,10 +144,10 @@ public class MSALAcquireTokenOperationParameters extends MSALOperationParameters
             msalAcquireTokenOperationParameters.setAuthorizationAgent(AuthorizationAgent.DEFAULT);
         }
 
-        if (acquireTokenParameters.getUIBehavior() == null) {
+        if (acquireTokenParameters.getUiBehavior() == null) {
             msalAcquireTokenOperationParameters.setUIBehavior(UiBehavior.SELECT_ACCOUNT);
         } else {
-            msalAcquireTokenOperationParameters.setUIBehavior(acquireTokenParameters.getUIBehavior());
+            msalAcquireTokenOperationParameters.setUIBehavior(acquireTokenParameters.getUiBehavior());
         }
 
         return msalAcquireTokenOperationParameters;
