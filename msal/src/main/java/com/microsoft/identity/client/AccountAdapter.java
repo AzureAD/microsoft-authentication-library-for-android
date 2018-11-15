@@ -23,6 +23,7 @@
 package com.microsoft.identity.client;
 
 import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.dto.IAccountRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 
@@ -39,7 +40,7 @@ class AccountAdapter {
      * @param accountIn The Account to transform.
      * @return A representation of the supplied Account, as an IAccount.
      */
-    static IAccount adapt(final AccountRecord accountIn) {
+    static IAccount adapt(final IAccountRecord accountIn) {
         final String methodName = ":adapt";
         final com.microsoft.identity.client.Account accountOut
                 = new com.microsoft.identity.client.Account();
