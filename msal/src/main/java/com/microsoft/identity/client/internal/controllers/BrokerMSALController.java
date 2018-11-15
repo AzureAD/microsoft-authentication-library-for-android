@@ -40,6 +40,7 @@ import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.dto.AccessTokenRecord;
 import com.microsoft.identity.common.internal.dto.CredentialType;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
+import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAccount;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
@@ -52,6 +53,8 @@ import java.util.concurrent.ExecutionException;
  */
 public class BrokerMSALController extends MSALController {
 
+    private static final String TAG = BrokerMSALController.class.getSimpleName();
+
     private BrokerResultFuture mBrokerResultFuture;
 
     @Override
@@ -63,7 +66,7 @@ public class BrokerMSALController extends MSALController {
         mBrokerResultFuture = new BrokerResultFuture();
 
         //Get the broker interactive request intent
-        Intent interactiveRequestIntent = getBrokerAuthorizationItent(request);
+        Intent interactiveRequestIntent = getBrokerAuthorizationIntent(request);
 
         //Pass this intent to the BrokerActivity which will be used to start this activity
         Intent brokerActivityIntent = new Intent(request.getAppContext(), BrokerActivity.class);
@@ -85,7 +88,7 @@ public class BrokerMSALController extends MSALController {
      * @param request
      * @return
      */
-    private Intent getBrokerAuthorizationItent(MSALAcquireTokenOperationParameters request) throws ClientException {
+    private Intent getBrokerAuthorizationIntent(MSALAcquireTokenOperationParameters request) throws ClientException {
         Intent interactiveRequestIntent = null;
         IMicrosoftAuthService service = null;
 
@@ -141,13 +144,15 @@ public class BrokerMSALController extends MSALController {
 
         try {
             BrokerResult brokerResult = service.acquireTokenSilently(getBrokerRequest(parameters));
-            if(brokerResult.isSuccessful()){
-                return getAcquireTokenResultFromBroker(brokerResult.getTokenResponse());
-            }else {
-                return  getErrorAcquireTokenResult(brokerResult.getErrorResponse());
+            AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
+            acquireTokenResult.setTokenResult(brokerResult);
+            if (brokerResult.isSuccessful() && brokerResult.getTokenResponse() != null) {
+                AuthenticationResult result = getAuthenticationResult(brokerResult.getTokenResponse());
+                if (result != null) {
+                    acquireTokenResult.setAuthenticationResult(result);
+                }
             }
-
-
+            return acquireTokenResult;
         } catch (RemoteException e) {
             throw new RuntimeException("Exception occurred while attempting to invoke remote service", e);
         }
@@ -175,7 +180,7 @@ public class BrokerMSALController extends MSALController {
         request.setUserId(parameters.getAccount().getLocalAccountId());
         //request.setPrompt(parameters.get);
         //TODO: This should be the broker redirect URI and not the non-broker redirect URI
-        request.setRedirect("msauth://com.microsoft.aad.adal.userappwithbroker/IcB5PxIyvbLkbFVtBI%2FitkW%2Fejk%3D");
+        request.setRedirect(parameters.getRedirectUri());
         //NOTE: Assumption: Broker will handle removing empty string scopes and appending stanard OIDC scopes
         request.setScope(StringUtil.join(' ', parameters.getScopes()));
         request.setApplicationName(parameters.getAppContext().getPackageName());
@@ -184,8 +189,7 @@ public class BrokerMSALController extends MSALController {
         return request;
     }
 
-    private AcquireTokenResult getAcquireTokenResultFromBroker(BrokerTokenResponse brokerTokenResponse){
-        AcquireTokenResult tokenResult = new AcquireTokenResult();
+    private AuthenticationResult getAuthenticationResult(BrokerTokenResponse brokerTokenResponse){
         try {
             ClientInfo clientInfo = new ClientInfo(brokerTokenResponse.getClientInfo());
             String homeAccountId = SchemaUtil.getHomeAccountId(clientInfo);
@@ -207,12 +211,13 @@ public class BrokerMSALController extends MSALController {
             MicrosoftStsAccount microsoftStsAccount = new MicrosoftStsAccount(new IDToken(idToken), clientInfo);
             AuthenticationResult authenticationResult = new AuthenticationResult(accessTokenRecord,tenantId, homeAccountId, idToken, microsoftStsAccount);
 
-            tokenResult.setAuthenticationResult(authenticationResult);
+            return authenticationResult;
 
         } catch (ServiceException e) {
-            e.printStackTrace();
+            Logger.error(TAG, "Unable to construct Authentication result from BrokerTokenResponse ", e);
+            return null;
         }
-        return tokenResult;
+
     }
 
     private AcquireTokenResult getErrorAcquireTokenResult(BrokerErrorResponse errorResponse){
