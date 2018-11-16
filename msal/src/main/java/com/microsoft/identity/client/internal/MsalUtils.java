@@ -60,6 +60,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Internal Util class for MSAL.
@@ -448,6 +449,12 @@ public final class MsalUtils {
 
     public static String getUniqueUserIdentifier(final String uid, final String utid) {
         return base64UrlEncodeToString(uid) + "." + base64UrlEncodeToString(utid);
+    }
+
+    public static long getExpiresOn(long expiresIn) {
+        final long currentTimeMillis = System.currentTimeMillis();
+        final long currentTimeSecs = TimeUnit.MILLISECONDS.toSeconds(currentTimeMillis);
+        return currentTimeSecs + expiresIn;
     }
 
     public static ApplicationInfo getApplicationInfo(final Context context) {

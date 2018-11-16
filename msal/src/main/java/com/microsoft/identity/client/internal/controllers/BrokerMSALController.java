@@ -26,9 +26,9 @@ import android.content.Intent;
 import android.os.RemoteException;
 
 import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ServiceException;
-import com.microsoft.identity.common.internal.broker.BrokerErrorResponse;
 import com.microsoft.identity.common.internal.broker.BrokerRequest;
 import com.microsoft.identity.common.internal.broker.BrokerResult;
 import com.microsoft.identity.common.internal.broker.BrokerResultFuture;
@@ -71,7 +71,7 @@ public class BrokerMSALController extends MSALController {
         //Pass this intent to the BrokerActivity which will be used to start this activity
         Intent brokerActivityIntent = new Intent(request.getAppContext(), BrokerActivity.class);
         //TODO: Set the request values on the broker intent
-        brokerActivityIntent.putExtra(BrokerActivity.BROKER_INTENT, brokerActivityIntent);
+        brokerActivityIntent.putExtra(BrokerActivity.BROKER_INTENT, interactiveRequestIntent);
 
         //Start the BrokerActivity
         request.getActivity().startActivity(brokerActivityIntent);
@@ -204,24 +204,17 @@ public class BrokerMSALController extends MSALController {
             accessTokenRecord.setHomeAccountId(homeAccountId);
             accessTokenRecord.setTarget(brokerTokenResponse.getScope());
             accessTokenRecord.setCredentialType(CredentialType.AccessToken.name());
-            // TODO : broker response returns expires in , should we convert to expires on here?
-            //accessTokenRecord.setExpiresOn();
-            //accessTokenRecord.setExtendedExpiresOn();
+            accessTokenRecord.setExpiresOn(String.valueOf(MsalUtils.getExpiresOn(brokerTokenResponse.getExpiresIn())));
+            accessTokenRecord.setExtendedExpiresOn(String.valueOf(MsalUtils.getExpiresOn(brokerTokenResponse.getExtExpiresIn())));
 
             MicrosoftStsAccount microsoftStsAccount = new MicrosoftStsAccount(new IDToken(idToken), clientInfo);
-            AuthenticationResult authenticationResult = new AuthenticationResult(accessTokenRecord,tenantId, homeAccountId, idToken, microsoftStsAccount);
-
-            return authenticationResult;
+            return new AuthenticationResult(accessTokenRecord, idToken, microsoftStsAccount);
 
         } catch (ServiceException e) {
             Logger.error(TAG, "Unable to construct Authentication result from BrokerTokenResponse ", e);
             return null;
         }
 
-    }
-
-    private AcquireTokenResult getErrorAcquireTokenResult(BrokerErrorResponse errorResponse){
-        return null;
     }
 
 }

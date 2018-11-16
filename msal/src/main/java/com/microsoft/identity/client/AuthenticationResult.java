@@ -53,13 +53,11 @@ public final class AuthenticationResult {
     }
 
     public AuthenticationResult(AccessTokenRecord accessToken,
-                                String tenantId,
-                                String uniqueId,
                                 String rawIdToken,
                                 IAccountRecord accountRecord){
         mAccessToken = accessToken;
-        mTenantId = tenantId;
-        mUniqueId = uniqueId;
+        mTenantId = accessToken.getRealm();
+        mUniqueId = accessToken.getHomeAccountId();
         mRawIdToken = rawIdToken;
         mAccount = AccountAdapter.adapt(accountRecord);
 
