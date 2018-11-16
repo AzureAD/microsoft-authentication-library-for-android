@@ -183,7 +183,6 @@ public class BrokerMSALController extends MSALController {
         request.setRedirect(parameters.getRedirectUri());
         //NOTE: Assumption: Broker will handle removing empty string scopes and appending stanard OIDC scopes
         request.setScope(StringUtil.join(' ', parameters.getScopes()));
-        request.setApplicationName(parameters.getAppContext().getPackageName());
         //request.setVersion();
 
         return request;
