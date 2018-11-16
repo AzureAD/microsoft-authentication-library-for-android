@@ -177,7 +177,7 @@ public class BrokerMSALController extends MSALController {
         request.setForceRefresh(parameters.getForceRefresh());
         request.setLoginHint(parameters.getAccount().getUsername());
         request.setName(parameters.getAccount().getUsername());
-        request.setUserId(parameters.getAccount().getLocalAccountId());
+        request.setUserId(parameters.getAccount().getHomeAccountId());
         //request.setPrompt(parameters.get);
         //TODO: This should be the broker redirect URI and not the non-broker redirect URI
         request.setRedirect(parameters.getRedirectUri());
