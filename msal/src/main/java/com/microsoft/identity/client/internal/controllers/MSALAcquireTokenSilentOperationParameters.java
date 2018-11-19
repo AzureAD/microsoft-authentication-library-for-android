@@ -22,8 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
-import com.microsoft.identity.client.AccountAdapter;
-import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
@@ -35,7 +33,6 @@ import com.microsoft.identity.common.internal.dto.RefreshTokenRecord;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class MSALAcquireTokenSilentOperationParameters extends MSALOperationParameters {
 
@@ -70,19 +67,20 @@ public class MSALAcquireTokenSilentOperationParameters extends MSALOperationPara
 
     /**
      * Factory method for creating MSALAcquireTokenSilentOperation parameters based on the public API AcquireTokenSilentParameters
+     *
      * @param acquireTokenSilentParameters
      * @param publicClientApplicationConfiguration
      * @return
      */
-    public static MSALAcquireTokenSilentOperationParameters createMSALAcquireTokenSilentOperationParameters(AcquireTokenSilentParameters acquireTokenSilentParameters, PublicClientApplicationConfiguration publicClientApplicationConfiguration){
+    public static MSALAcquireTokenSilentOperationParameters createMSALAcquireTokenSilentOperationParameters(AcquireTokenSilentParameters acquireTokenSilentParameters, PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
         final MSALAcquireTokenSilentOperationParameters msalAcquireTokenSilentOperationParameters = new MSALAcquireTokenSilentOperationParameters();
         msalAcquireTokenSilentOperationParameters.setAppContext(publicClientApplicationConfiguration.getAppContext());
-        msalAcquireTokenSilentOperationParameters.setScopes(new ArrayList<>(acquireTokenSilentParameters.getScopes()) );
+        msalAcquireTokenSilentOperationParameters.setScopes(new ArrayList<>(acquireTokenSilentParameters.getScopes()));
         msalAcquireTokenSilentOperationParameters.setClientId(publicClientApplicationConfiguration.getClientId());
         msalAcquireTokenSilentOperationParameters.setTokenCache(publicClientApplicationConfiguration.getOAuth2TokenCache());
         msalAcquireTokenSilentOperationParameters.setAccount(acquireTokenSilentParameters.getAccountRecord());
 
-        if(StringUtil.isEmpty(acquireTokenSilentParameters.getAuthority())){
+        if (StringUtil.isEmpty(acquireTokenSilentParameters.getAuthority())) {
             acquireTokenSilentParameters.setAuthority(getSilentRequestAuthority(acquireTokenSilentParameters.getAccount(), publicClientApplicationConfiguration));
         }
         msalAcquireTokenSilentOperationParameters.setAuthority(Authority.getAuthorityFromAuthorityUrl(acquireTokenSilentParameters.getAuthority()));
@@ -100,6 +98,7 @@ public class MSALAcquireTokenSilentOperationParameters extends MSALOperationPara
 
     /**
      * Return the correct silent request authority when none provided as a parameter to public acquireTokenSilent method.
+     *
      * @param account
      * @param publicClientApplicationConfiguration
      * @return
@@ -118,7 +117,7 @@ public class MSALAcquireTokenSilentOperationParameters extends MSALOperationPara
             requestAuthority = Authority.getAuthorityFromAccount(account);
         }
 
-        if(requestAuthority == null){
+        if (requestAuthority == null) {
             requestAuthority = publicClientApplicationConfiguration.getDefaultAuthority().getAuthorityURL().toString();
         }
 
