@@ -25,6 +25,7 @@ package com.microsoft.identity.client;
 
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccessTokenRecord;
+import com.microsoft.identity.common.internal.dto.IAccountRecord;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -49,6 +50,17 @@ public final class AuthenticationResult {
         mUniqueId = cacheRecord.getAccount().getHomeAccountId();
         mRawIdToken = cacheRecord.getIdToken().getSecret();
         mAccount = AccountAdapter.adapt(cacheRecord.getAccount());
+    }
+
+    public AuthenticationResult(AccessTokenRecord accessToken,
+                                String rawIdToken,
+                                IAccountRecord accountRecord){
+        mAccessToken = accessToken;
+        mTenantId = accessToken.getRealm();
+        mUniqueId = accessToken.getHomeAccountId();
+        mRawIdToken = rawIdToken;
+        mAccount = AccountAdapter.adapt(accountRecord);
+
     }
 
     /**
