@@ -22,7 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -42,7 +41,6 @@ import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.common.internal.logging.Logger;
-import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
@@ -104,11 +102,24 @@ public class LocalMSALController extends MSALController {
 
         if (result.getAuthorizationStatus().equals(AuthorizationStatus.SUCCESS)) {
             //3) Exchange authorization code for token
-            final TokenResult tokenResult = performTokenRequest(oAuth2Strategy, mAuthorizationRequest, result.getAuthorizationResponse(), parameters);
+            final TokenResult tokenResult = performTokenRequest(
+                    oAuth2Strategy,
+                    mAuthorizationRequest,
+                    result.getAuthorizationResponse(),
+                    parameters
+            );
+
             acquireTokenResult.setTokenResult(tokenResult);
+
             if (tokenResult != null && tokenResult.getSuccess()) {
                 //4) Save tokens in token cache
-                final ICacheRecord cacheRecord = saveTokens(oAuth2Strategy, mAuthorizationRequest, tokenResult.getTokenResponse(), parameters.getTokenCache());
+                final ICacheRecord cacheRecord = saveTokens(
+                        oAuth2Strategy,
+                        mAuthorizationRequest,
+                        tokenResult.getTokenResponse(),
+                        parameters.getTokenCache()
+                );
+
                 acquireTokenResult.setAuthenticationResult(new AuthenticationResult(cacheRecord));
             }
         }
@@ -429,6 +440,13 @@ public class LocalMSALController extends MSALController {
                 "Requesting tokens..."
         );
         throwIfNetworkNotAvailable(parameters.getAppContext());
+
+        // Check that the authority is known
+        Authority.KnownAuthorityResult authorityResult = Authority.getKnownAuthorityResult(parameters.getAuthority());
+
+        if (!authorityResult.getKnown()) {
+            throw authorityResult.getMsalClientException();
+        }
 
         final TokenRequest refreshTokenRequest = strategy.createRefreshTokenRequest();
         refreshTokenRequest.setClientId(parameters.getClientId());
