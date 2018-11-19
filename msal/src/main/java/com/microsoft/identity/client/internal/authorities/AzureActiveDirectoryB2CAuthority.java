@@ -55,6 +55,7 @@ public class AzureActiveDirectoryB2CAuthority extends Authority {
     @Override
     public OAuth2Strategy createOAuth2Strategy() {
         MicrosoftStsOAuth2Configuration config = new MicrosoftStsOAuth2Configuration();
+        config.setMultipleCloudsSupported(false);
         config.setAuthorityUrl(this.getAuthorityURL());
         return new MicrosoftStsOAuth2Strategy(config);
     }
