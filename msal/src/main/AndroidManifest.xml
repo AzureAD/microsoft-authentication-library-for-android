@@ -21,5 +21,9 @@
         <activity
             android:name="com.microsoft.identity.client.BrowserTabActivity"
             android:exported="true" />
+
+        <activity
+            android:name="com.microsoft.identity.client.internal.controllers.BrokerActivity"
+            android:exported="true" />
     </application>
 </manifest>

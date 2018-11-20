@@ -27,6 +27,7 @@ import android.os.RemoteException;
 
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.internal.MsalUtils;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.broker.BrokerRequest;
@@ -58,28 +59,28 @@ public class BrokerMSALController extends MSALController {
     private BrokerResultFuture mBrokerResultFuture;
 
     @Override
-    public AcquireTokenResult acquireToken(MSALAcquireTokenOperationParameters request) throws ExecutionException, InterruptedException, ClientException {
+    public AcquireTokenResult acquireToken(MSALAcquireTokenOperationParameters parameters) throws ExecutionException, InterruptedException, ClientException {
 
         //Create BrokerResultFuture to block on response from the broker... response will be return as an activity result
-        //BrokerActivity will receive the result and ask the ask the API dispatcher to complete the request
+        //BrokerActivity will receive the result and ask the ask the API dispatcher to complete the parameters
         //In completeAquireToken below we will set the result on the future and unblock the flow
         mBrokerResultFuture = new BrokerResultFuture();
 
-        //Get the broker interactive request intent
-        Intent interactiveRequestIntent = getBrokerAuthorizationIntent(request);
+        //Get the broker interactive parameters intent
+        Intent interactiveRequestIntent = getBrokerAuthorizationIntent(parameters);
+        interactiveRequestIntent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST_V2,  getBrokerRequestForInteractive(parameters));
 
         //Pass this intent to the BrokerActivity which will be used to start this activity
-        Intent brokerActivityIntent = new Intent(request.getAppContext(), BrokerActivity.class);
-        //TODO: Set the request values on the broker intent
+        Intent brokerActivityIntent = new Intent(parameters.getAppContext(), BrokerActivity.class);
         brokerActivityIntent.putExtra(BrokerActivity.BROKER_INTENT, interactiveRequestIntent);
 
         //Start the BrokerActivity
-        request.getActivity().startActivity(brokerActivityIntent);
+        parameters.getActivity().startActivity(brokerActivityIntent);
 
         //Wait to be notified of the result being returned... we could add a timeout here if we want to
         BrokerResult brokerResult = mBrokerResultFuture.get();
 
-        return null;
+        return getAcquireTokenResult(brokerResult);
     }
 
     /**
@@ -121,16 +122,13 @@ public class BrokerMSALController extends MSALController {
      */
     @Override
     public void completeAcquireToken(int requestCode, int resultCode, Intent data) {
-
-        //TODO: Map data into broker result and signal future
-        mBrokerResultFuture.setBrokerResult(new BrokerResult(new BrokerTokenResponse()));
-
-
+        BrokerResult brokerResult = data.getParcelableExtra(AuthenticationConstants.Broker.BROKER_RESULT_V2);
+        mBrokerResultFuture.setBrokerResult(brokerResult);
     }
 
     @Override
     public AcquireTokenResult acquireTokenSilent(MSALAcquireTokenSilentOperationParameters parameters) throws ClientException {
-        IMicrosoftAuthService service = null;
+        IMicrosoftAuthService service;
 
         MicrosoftAuthClient client = new MicrosoftAuthClient(parameters.getAppContext());
         MicrosoftAuthServiceFuture future = client.connect();
@@ -144,15 +142,7 @@ public class BrokerMSALController extends MSALController {
 
         try {
             BrokerResult brokerResult = service.acquireTokenSilently(getBrokerRequest(parameters));
-            AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
-            acquireTokenResult.setTokenResult(brokerResult);
-            if (brokerResult.isSuccessful() && brokerResult.getTokenResponse() != null) {
-                AuthenticationResult result = getAuthenticationResult(brokerResult.getTokenResponse());
-                if (result != null) {
-                    acquireTokenResult.setAuthenticationResult(result);
-                }
-            }
-            return acquireTokenResult;
+            return getAcquireTokenResult(brokerResult);
         } catch (RemoteException e) {
             throw new RuntimeException("Exception occurred while attempting to invoke remote service", e);
         }
@@ -163,7 +153,7 @@ public class BrokerMSALController extends MSALController {
      * NOTE: TBD to update this code with BrokerRequest object
      *
      * @param parameters
-     * @return {@link BrokerResult}
+     * @return {@link BrokerRequest}
      */
     private BrokerRequest getBrokerRequest(MSALAcquireTokenSilentOperationParameters parameters) {
 
@@ -186,6 +176,31 @@ public class BrokerMSALController extends MSALController {
         //request.setVersion();
 
         return request;
+    }
+
+    private BrokerRequest getBrokerRequestForInteractive(MSALAcquireTokenOperationParameters parameters){
+        BrokerRequest request = new BrokerRequest();
+        request.setApplicationName(parameters.getAppContext().getPackageName());
+        request.setAuthority(parameters.getAuthority().getAuthorityURL().toString());
+        request.setClientId(parameters.getClientId());
+        request.setCorrelationId(DiagnosticContext.getRequestContext().get(DiagnosticContext.CORRELATION_ID));
+        request.setLoginHint(parameters.getLoginHint());
+        request.setName(parameters.getLoginHint());
+        request.setRedirect(parameters.getRedirectUri());
+        request.setScope(StringUtil.join(' ', parameters.getScopes()));
+        return request;
+    }
+
+    private AcquireTokenResult getAcquireTokenResult(BrokerResult brokerResult){
+        AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
+        acquireTokenResult.setTokenResult(brokerResult);
+        if (brokerResult.isSuccessful() && brokerResult.getTokenResponse() != null) {
+            AuthenticationResult result = getAuthenticationResult(brokerResult.getTokenResponse());
+            if (result != null) {
+                acquireTokenResult.setAuthenticationResult(result);
+            }
+        }
+        return acquireTokenResult;
     }
 
     private AuthenticationResult getAuthenticationResult(BrokerTokenResponse brokerTokenResponse){
