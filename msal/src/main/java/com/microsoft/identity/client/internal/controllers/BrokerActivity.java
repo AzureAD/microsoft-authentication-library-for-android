@@ -26,6 +26,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+
 public final class BrokerActivity extends Activity {
 
     public static final String BROKER_INTENT = "broker_intent";
@@ -85,10 +87,11 @@ public final class BrokerActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        //Todo: Need the possible resultCodes that could be returned....
-        if (requestCode == BROKER_INTENT_REQUEST_CODE) {
+        //Todo: Need the possible resultCodes(failures)  that could be returned
+        if (resultCode == AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE) {
             MSALApiDispatcher.completeInteractive(requestCode, resultCode, data);
         }
+        finish();
     }
 
 
