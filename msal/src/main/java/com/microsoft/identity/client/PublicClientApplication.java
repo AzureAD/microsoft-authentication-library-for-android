@@ -260,7 +260,7 @@ public final class PublicClientApplication {
         }
 
         mPublicClientConfiguration.getAuthorities().clear();
-        if(authority != null) {
+        if (authority != null) {
             Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority);
             authorityObject.setDefault(true);
             mPublicClientConfiguration.getAuthorities().add(authorityObject);
@@ -406,9 +406,15 @@ public final class PublicClientApplication {
      * @param homeAccountIdentifier The home_account_id of the sought IAccount.
      * @return The IAccount stored in the cache or null, if no such matching entry exists.
      */
-    public IAccount getAccount(final String homeAccountIdentifier) {
+    public IAccount getAccount(@NonNull final String homeAccountIdentifier,
+                               @Nullable final String realm) {
         MSALApiDispatcher.initializeDiagnosticContext();
-        final AccountRecord accountToReturn = AccountAdapter.getAccountInternal(mPublicClientConfiguration.getClientId(), mPublicClientConfiguration.getOAuth2TokenCache(), homeAccountIdentifier);
+        final AccountRecord accountToReturn = AccountAdapter.getAccountInternal(
+                mPublicClientConfiguration.getClientId(),
+                mPublicClientConfiguration.getOAuth2TokenCache(),
+                homeAccountIdentifier,
+                realm
+        );
         return null == accountToReturn ? null : AccountAdapter.adapt(accountToReturn);
     }
 
@@ -432,11 +438,27 @@ public final class PublicClientApplication {
             return false;
         }
 
+        final String realm = getRealm(account);
+
         return mPublicClientConfiguration.getOAuth2TokenCache().removeAccount(
                 account.getEnvironment(),
                 mPublicClientConfiguration.getClientId(),
-                account.getHomeAccountIdentifier().getIdentifier()
+                account.getHomeAccountIdentifier().getIdentifier(),
+                realm
         );
+    }
+
+    @Nullable
+    private static String getRealm(IAccount account) {
+        String realm = null;
+
+        if (null != account.getAccountIdentifier() // This is an AAD account w/ tenant info
+                && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier) {
+            final AzureActiveDirectoryAccountIdentifier identifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier();
+            realm = identifier.getTenantIdentifier();
+        }
+
+        return realm;
     }
 
     /**
@@ -474,7 +496,7 @@ public final class PublicClientApplication {
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
-        acquireToken(activity, scopes, null, null, null, null, null, callback, null, null );
+        acquireToken(activity, scopes, null, null, null, null, null, callback, null, null);
     }
 
     /**
@@ -502,7 +524,7 @@ public final class PublicClientApplication {
                              @Nullable final String loginHint,
                              @NonNull final AuthenticationCallback callback) {
 
-        acquireToken(activity, scopes, null, null, null, null, null, callback, loginHint, null );
+        acquireToken(activity, scopes, null, null, null, null, null, callback, loginHint, null);
     }
 
     /**
@@ -534,7 +556,7 @@ public final class PublicClientApplication {
                              @Nullable final List<Pair<String, String>> extraQueryParameters,
                              @NonNull final AuthenticationCallback callback) {
 
-        acquireToken(activity, scopes, null, uiBehavior, extraQueryParameters, null, null, callback, loginHint, null );
+        acquireToken(activity, scopes, null, uiBehavior, extraQueryParameters, null, null, callback, loginHint, null);
     }
 
     /**
@@ -566,7 +588,7 @@ public final class PublicClientApplication {
                              @Nullable final List<Pair<String, String>> extraQueryParameters,
                              @NonNull final AuthenticationCallback callback) {
 
-        acquireToken(activity, scopes, account, uiBehavior, extraQueryParameters, null, null, callback, null, null );
+        acquireToken(activity, scopes, account, uiBehavior, extraQueryParameters, null, null, callback, null, null);
     }
 
     /**
@@ -602,7 +624,7 @@ public final class PublicClientApplication {
                              final String authority,
                              @NonNull final AuthenticationCallback callback) {
 
-        acquireToken(activity, scopes, null, uiBehavior, extraQueryParameters, extraScopesToConsent, authority, callback, loginHint, null );
+        acquireToken(activity, scopes, null, uiBehavior, extraQueryParameters, extraScopesToConsent, authority, callback, loginHint, null);
     }
 
     /**
@@ -638,7 +660,7 @@ public final class PublicClientApplication {
                              @Nullable final String authority,
                              @NonNull final AuthenticationCallback callback) {
 
-       acquireToken(activity, scopes, account, uiBehavior, extraQueryParameters, extraScopesToConsent, authority, callback, null, null );
+        acquireToken(activity, scopes, account, uiBehavior, extraQueryParameters, extraScopesToConsent, authority, callback, null, null);
 
     }
 
@@ -671,11 +693,10 @@ public final class PublicClientApplication {
     }
 
 
-
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
      * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
-     *
+     * <p>
      * Convey parameters via the AquireTokenParameters object
      *
      * @param acquireTokenParameters
@@ -696,9 +717,14 @@ public final class PublicClientApplication {
         MSALApiDispatcher.beginInteractive(command);
     }
 
-    private AccountRecord getAccountRecord(IAccount account){
-        if(account != null) {
-            return AccountAdapter.getAccountInternal(mPublicClientConfiguration.getClientId(), mPublicClientConfiguration.getOAuth2TokenCache(), account.getHomeAccountIdentifier().getIdentifier());
+    private AccountRecord getAccountRecord(IAccount account) {
+        if (account != null) {
+            return AccountAdapter.getAccountInternal(
+                    mPublicClientConfiguration.getClientId(),
+                    mPublicClientConfiguration.getOAuth2TokenCache(),
+                    account.getHomeAccountIdentifier().getIdentifier(),
+                    getRealm(account)
+            );
         }
         return null;
     }
@@ -754,10 +780,10 @@ public final class PublicClientApplication {
                                     final String authority,
                                     final boolean forceRefresh,
                                     final ClaimsRequest claimsRequest,
-                                    final AuthenticationCallback callback){
+                                    final AuthenticationCallback callback) {
 
         AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
-        AcquireTokenSilentParameters acquireTokenSilentParameters =  builder.withScopes(Arrays.asList(scopes))
+        AcquireTokenSilentParameters acquireTokenSilentParameters = builder.withScopes(Arrays.asList(scopes))
                 .forAccount(account)
                 .fromAuthority(authority)
                 .forceRefresh(forceRefresh)
@@ -776,24 +802,30 @@ public final class PublicClientApplication {
      *
      * @param acquireTokenSilentParameters
      */
-    public void acquireTokenSilentAsync(AcquireTokenSilentParameters acquireTokenSilentParameters){
+    public void acquireTokenSilentAsync(AcquireTokenSilentParameters acquireTokenSilentParameters) {
 
         acquireTokenSilentParameters.setAccountRecord(getAccountRecord(acquireTokenSilentParameters.getAccount()));
         final MSALAcquireTokenSilentOperationParameters params =
                 MSALAcquireTokenSilentOperationParameters.createMSALAcquireTokenSilentOperationParameters(
-                        acquireTokenSilentParameters, mPublicClientConfiguration);
+                        acquireTokenSilentParameters,
+                        mPublicClientConfiguration
+                );
 
         final MSALTokenCommand silentTokenCommand = new MSALTokenCommand(
                 mPublicClientConfiguration.getAppContext(),
                 params,
-                MSALControllerFactory.getAcquireTokenSilentControllers(mPublicClientConfiguration.getAppContext(), params.getAuthority(), mPublicClientConfiguration),
+                MSALControllerFactory.getAcquireTokenSilentControllers(
+                        mPublicClientConfiguration.getAppContext(),
+                        params.getAuthority(),
+                        mPublicClientConfiguration
+                ),
                 acquireTokenSilentParameters.getCallback()
         );
 
         MSALApiDispatcher.submitSilent(silentTokenCommand);
     }
 
-     private void loadMetaDataFromManifest() {
+    private void loadMetaDataFromManifest() {
         final String methodName = ":loadMetaDataFromManifest";
         com.microsoft.identity.common.internal.logging.Logger.verbose(
                 TAG + methodName,

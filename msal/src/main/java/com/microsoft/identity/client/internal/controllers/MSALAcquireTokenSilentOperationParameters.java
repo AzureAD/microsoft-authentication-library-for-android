@@ -72,7 +72,8 @@ public class MSALAcquireTokenSilentOperationParameters extends MSALOperationPara
      * @param publicClientApplicationConfiguration
      * @return
      */
-    public static MSALAcquireTokenSilentOperationParameters createMSALAcquireTokenSilentOperationParameters(AcquireTokenSilentParameters acquireTokenSilentParameters, PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
+    public static MSALAcquireTokenSilentOperationParameters createMSALAcquireTokenSilentOperationParameters(AcquireTokenSilentParameters acquireTokenSilentParameters,
+                                                                                                            PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
         final MSALAcquireTokenSilentOperationParameters msalAcquireTokenSilentOperationParameters = new MSALAcquireTokenSilentOperationParameters();
         msalAcquireTokenSilentOperationParameters.setAppContext(publicClientApplicationConfiguration.getAppContext());
         msalAcquireTokenSilentOperationParameters.setScopes(new ArrayList<>(acquireTokenSilentParameters.getScopes()));
@@ -83,14 +84,15 @@ public class MSALAcquireTokenSilentOperationParameters extends MSALOperationPara
         if (StringUtil.isEmpty(acquireTokenSilentParameters.getAuthority())) {
             acquireTokenSilentParameters.setAuthority(getSilentRequestAuthority(acquireTokenSilentParameters.getAccount(), publicClientApplicationConfiguration));
         }
-        msalAcquireTokenSilentOperationParameters.setAuthority(Authority.getAuthorityFromAuthorityUrl(acquireTokenSilentParameters.getAuthority()));
 
+        msalAcquireTokenSilentOperationParameters.setAuthority(Authority.getAuthorityFromAuthorityUrl(acquireTokenSilentParameters.getAuthority()));
         msalAcquireTokenSilentOperationParameters.setRedirectUri(publicClientApplicationConfiguration.getRedirectUri());
 
         if (msalAcquireTokenSilentOperationParameters.getAuthority() instanceof AzureActiveDirectoryAuthority) {
             AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) msalAcquireTokenSilentOperationParameters.getAuthority();
             aadAuthority.setMultipleCloudsSupported(publicClientApplicationConfiguration.getMultipleCloudsSupported());
         }
+
         msalAcquireTokenSilentOperationParameters.setForceRefresh(acquireTokenSilentParameters.getForceRefresh());
 
         return msalAcquireTokenSilentOperationParameters;

@@ -280,12 +280,18 @@ public class LocalMSALController extends MSALController {
 
         final String clientId = parameters.getClientId();
         final String homeAccountId = parameters.getAccount().getHomeAccountId();
+        final String localAccountId = parameters.getAccount().getLocalAccountId();
 
-        final AccountRecord targetAccount = tokenCache.getAccount(
-                null, // wildcard (*) - The request environment may not match due to aliasing
-                clientId,
-                homeAccountId
-        );
+        final List<AccountRecord> accounts = tokenCache.getAccounts(null, clientId);
+
+        AccountRecord targetAccount = null;
+
+        for (final AccountRecord accountRecord : accounts) {
+            if (homeAccountId.equals(accountRecord.getHomeAccountId())
+                    && localAccountId.equals(accountRecord.getLocalAccountId())) {
+                targetAccount = accountRecord;
+            }
+        }
 
         if (null == targetAccount) {
             Logger.errorPII(
