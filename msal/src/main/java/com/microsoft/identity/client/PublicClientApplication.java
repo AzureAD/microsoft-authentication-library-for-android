@@ -511,14 +511,14 @@ public final class PublicClientApplication {
         acquireToken(
                 activity,
                 scopes,
-                null,
-                null,
-                null,
-                null,
-                null,
+                null, // account
+                null, // uiBehavior
+                null, // extraQueryParams
+                null, // extraScopes
+                null, // authority
                 callback,
-                null,
-                null
+                null, // loginHint
+                null // claimsRequest
         );
     }
 
@@ -549,14 +549,14 @@ public final class PublicClientApplication {
         acquireToken(
                 activity,
                 scopes,
-                null,
-                null,
-                null,
-                null,
-                null,
+                null, // account
+                null, // uiBehavior
+                null, // extraQueryParams
+                null, // extraScopes
+                null, // authority
                 callback,
                 loginHint,
-                null
+                null // claimsRequest
         );
     }
 
@@ -591,14 +591,14 @@ public final class PublicClientApplication {
         acquireToken(
                 activity,
                 scopes,
-                null,
+                null, // account
                 uiBehavior,
                 extraQueryParameters,
-                null,
-                null,
+                null, // extraScopes
+                null, // authority
                 callback,
                 loginHint,
-                null
+                null // claimsRequest
         );
     }
 
@@ -636,11 +636,11 @@ public final class PublicClientApplication {
                 account,
                 uiBehavior,
                 extraQueryParameters,
-                null,
-                null,
+                null, // extraScopes
+                null, // authority
                 callback,
-                null,
-                null
+                null, // loginHint
+                null // claimsRequest
         );
     }
 
@@ -679,14 +679,14 @@ public final class PublicClientApplication {
         acquireToken(
                 activity,
                 scopes,
-                null,
+                null, // account
                 uiBehavior,
                 extraQueryParameters,
                 extraScopesToConsent,
                 authority,
                 callback,
                 loginHint,
-                null
+                null // claimsRequest
         );
     }
 
@@ -731,8 +731,8 @@ public final class PublicClientApplication {
                 extraScopesToConsent,
                 authority,
                 callback,
-                null,
-                null
+                null, // loginHint
+                null //claimsRequest
         );
     }
 
@@ -835,9 +835,9 @@ public final class PublicClientApplication {
         acquireTokenSilent(
                 scopes,
                 account,
-                null,
-                false,
-                null,
+                null, // authority
+                false, // forceRefresh
+                null, // claimsRequest
                 callback
         );
     }
@@ -862,7 +862,14 @@ public final class PublicClientApplication {
                                         @Nullable final String authority,
                                         final boolean forceRefresh,
                                         @NonNull final AuthenticationCallback callback) {
-        acquireTokenSilent(scopes, account, authority, forceRefresh, null, callback);
+        acquireTokenSilent(
+                scopes,
+                account,
+                authority,
+                forceRefresh,
+                null, // claimsRequest
+                callback
+        );
     }
 
     private void acquireTokenSilent(@NonNull final String[] scopes,
