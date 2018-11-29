@@ -190,11 +190,8 @@ public class BrokerMSALController extends MSALController {
         request.setName(parameters.getLoginHint());
         request.setRedirect(parameters.getRedirectUri());
         request.setScope(StringUtil.join(' ', parameters.getScopes()));
-        List<Pair<String, String>> list = new ArrayList<>();
-        list.add(new Pair("first", "second"));
-        list.add(new Pair("third", "fourth"));
-        parameters.setExtraQueryStringParameters(list);
-        request.setExtraQueryStringParameter(BrokerRequest.getJsonStringForExtraQueryParams(parameters.getExtraQueryStringParameters()));
+        String extraQP = BrokerRequest.getJsonStringForExtraQueryParams(parameters.getExtraQueryStringParameters());
+        request.setExtraQueryStringParameter(extraQP);
         request.setClaims(ClaimsRequest.getJsonStringFromClaimsRequest(parameters.getClaimsRequest()));
         return request;
     }
