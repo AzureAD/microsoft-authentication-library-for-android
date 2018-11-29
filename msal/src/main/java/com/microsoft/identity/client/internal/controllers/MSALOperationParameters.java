@@ -24,6 +24,7 @@ package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Context;
 
+import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.dto.IAccountRecord;
@@ -44,6 +45,7 @@ public class MSALOperationParameters {
     private String clientId;
     private String redirectUri;
     private Authority mAuthority;
+    private ClaimsRequest mClaimsRequest;
 
     public Context getAppContext() {
         return mAppContext;
@@ -99,6 +101,14 @@ public class MSALOperationParameters {
 
     public IAccountRecord getAccount() {
         return mAccount;
+    }
+
+    public ClaimsRequest getClaimsRequest() {
+        return mClaimsRequest;
+    }
+
+    public void setClaimsRequest(ClaimsRequest mClaimsRequest) {
+        this.mClaimsRequest = mClaimsRequest;
     }
 
     /**

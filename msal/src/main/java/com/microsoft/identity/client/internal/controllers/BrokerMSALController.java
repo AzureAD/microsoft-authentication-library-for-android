@@ -24,8 +24,10 @@ package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Intent;
 import android.os.RemoteException;
+import android.util.Pair;
 
 import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.ClientException;
@@ -48,6 +50,8 @@ import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.msal.BuildConfig;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -161,18 +165,16 @@ public class BrokerMSALController extends MSALController {
         BrokerRequest request = new BrokerRequest();
         request.setApplicationName(parameters.getAppContext().getPackageName());
         request.setAuthority(parameters.getAuthority().getAuthorityURL().toString());
-        //request.setClaims("");
         request.setClientId(parameters.getClientId());
         request.setCorrelationId(DiagnosticContext.getRequestContext().get(DiagnosticContext.CORRELATION_ID));
-        //request.setExtraQueryStringParameter();
         request.setForceRefresh(parameters.getForceRefresh());
         request.setLoginHint(parameters.getAccount().getUsername());
         request.setName(parameters.getAccount().getUsername());
         request.setUserId(parameters.getAccount().getHomeAccountId());
-        //request.setPrompt(parameters.get);
         //TODO: This should be the broker redirect URI and not the non-broker redirect URI
         request.setRedirect(parameters.getRedirectUri());
         request.setScope(StringUtil.join(' ', parameters.getScopes()));
+        request.setClaims(ClaimsRequest.getJsonStringFromClaimsRequest(parameters.getClaimsRequest()));
         request.setVersion(BuildConfig.VERSION_NAME);
 
         return request;
@@ -188,6 +190,12 @@ public class BrokerMSALController extends MSALController {
         request.setName(parameters.getLoginHint());
         request.setRedirect(parameters.getRedirectUri());
         request.setScope(StringUtil.join(' ', parameters.getScopes()));
+        List<Pair<String, String>> list = new ArrayList<>();
+        list.add(new Pair("first", "second"));
+        list.add(new Pair("third", "fourth"));
+        parameters.setExtraQueryStringParameters(list);
+        request.setExtraQueryStringParameter(BrokerRequest.getJsonStringForExtraQueryParams(parameters.getExtraQueryStringParameters()));
+        request.setClaims(ClaimsRequest.getJsonStringFromClaimsRequest(parameters.getClaimsRequest()));
         return request;
     }
 

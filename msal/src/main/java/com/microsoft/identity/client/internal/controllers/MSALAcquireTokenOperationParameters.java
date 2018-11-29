@@ -137,6 +137,7 @@ public class MSALAcquireTokenOperationParameters extends MSALOperationParameters
         msalAcquireTokenOperationParameters.setExtraQueryStringParameters(acquireTokenParameters.getExtraQueryStringParameters());
         msalAcquireTokenOperationParameters.setExtraScopesToConsent(acquireTokenParameters.getExtraScopesToConsent());
         msalAcquireTokenOperationParameters.setAppContext(publicClientApplicationConfiguration.getAppContext());
+        msalAcquireTokenOperationParameters.setClaimsRequest(acquireTokenParameters.getClaimsRequest());
 
         if (null != publicClientApplicationConfiguration.getAuthorizationAgent()) {
             msalAcquireTokenOperationParameters.setAuthorizationAgent(publicClientApplicationConfiguration.getAuthorizationAgent());
