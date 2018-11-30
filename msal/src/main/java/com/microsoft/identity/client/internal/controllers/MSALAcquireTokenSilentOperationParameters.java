@@ -91,6 +91,7 @@ public class MSALAcquireTokenSilentOperationParameters extends MSALOperationPara
             AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) msalAcquireTokenSilentOperationParameters.getAuthority();
             aadAuthority.setMultipleCloudsSupported(publicClientApplicationConfiguration.getMultipleCloudsSupported());
         }
+        msalAcquireTokenSilentOperationParameters.setClaimsRequest(acquireTokenSilentParameters.getClaimsRequest());
         msalAcquireTokenSilentOperationParameters.setForceRefresh(acquireTokenSilentParameters.getForceRefresh());
 
         return msalAcquireTokenSilentOperationParameters;
