@@ -93,6 +93,7 @@ public class MSALAcquireTokenSilentOperationParameters extends MSALOperationPara
             aadAuthority.setMultipleCloudsSupported(publicClientApplicationConfiguration.getMultipleCloudsSupported());
         }
 
+        msalAcquireTokenSilentOperationParameters.setClaimsRequest(acquireTokenSilentParameters.getClaimsRequest());
         msalAcquireTokenSilentOperationParameters.setForceRefresh(acquireTokenSilentParameters.getForceRefresh());
 
         return msalAcquireTokenSilentOperationParameters;

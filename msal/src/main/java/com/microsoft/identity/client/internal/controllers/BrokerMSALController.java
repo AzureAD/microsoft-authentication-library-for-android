@@ -26,6 +26,7 @@ import android.content.Intent;
 import android.os.RemoteException;
 
 import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.ClientException;
@@ -45,6 +46,7 @@ import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAccount;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
+import com.microsoft.identity.common.internal.util.QueryParamsAdapter;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.msal.BuildConfig;
 
@@ -161,18 +163,16 @@ public class BrokerMSALController extends MSALController {
         BrokerRequest request = new BrokerRequest();
         request.setApplicationName(parameters.getAppContext().getPackageName());
         request.setAuthority(parameters.getAuthority().getAuthorityURL().toString());
-        //request.setClaims("");
         request.setClientId(parameters.getClientId());
         request.setCorrelationId(DiagnosticContext.getRequestContext().get(DiagnosticContext.CORRELATION_ID));
-        //request.setExtraQueryStringParameter();
         request.setForceRefresh(parameters.getForceRefresh());
         request.setLoginHint(parameters.getAccount().getUsername());
         request.setName(parameters.getAccount().getUsername());
         request.setUserId(parameters.getAccount().getHomeAccountId());
-        //request.setPrompt(parameters.get);
         //TODO: This should be the broker redirect URI and not the non-broker redirect URI
         request.setRedirect(parameters.getRedirectUri());
         request.setScope(StringUtil.join(' ', parameters.getScopes()));
+        request.setClaims(ClaimsRequest.getJsonStringFromClaimsRequest(parameters.getClaimsRequest()));
         request.setVersion(BuildConfig.VERSION_NAME);
 
         return request;
@@ -188,6 +188,9 @@ public class BrokerMSALController extends MSALController {
         request.setName(parameters.getLoginHint());
         request.setRedirect(parameters.getRedirectUri());
         request.setScope(StringUtil.join(' ', parameters.getScopes()));
+        String extraQP = QueryParamsAdapter._toJson(parameters.getExtraQueryStringParameters());
+        request.setExtraQueryStringParameter(extraQP);
+        request.setClaims(ClaimsRequest.getJsonStringFromClaimsRequest(parameters.getClaimsRequest()));
         return request;
     }
 
