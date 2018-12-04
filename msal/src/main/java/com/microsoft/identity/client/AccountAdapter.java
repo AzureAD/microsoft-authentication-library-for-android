@@ -114,6 +114,7 @@ public class AccountAdapter {
         return accountOut;
     }
 
+    @Nullable
     static AccountRecord getAccountInternal(@NonNull final String clientId,
                                             @NonNull OAuth2TokenCache oAuth2TokenCache,
                                             @NonNull final String homeAccountIdentifier,
