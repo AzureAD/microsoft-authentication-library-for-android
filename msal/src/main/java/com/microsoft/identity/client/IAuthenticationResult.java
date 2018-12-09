@@ -20,37 +20,59 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.exception.MsalServiceException;
-import com.microsoft.identity.client.exception.MsalUiRequiredException;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
-/**
- * Callback passed with token acquisition. {@link IAuthenticationResult} or {@link MsalException} will be returned back via callback.
- */
-public interface AuthenticationCallback {
+import java.util.Date;
+
+public interface IAuthenticationResult {
 
     /**
-     * Authentication finishes successfully.
+     * @return The access token requested.
+     */
+    @NonNull
+    String getAccessToken();
+
+    /**
+     * @return The expiration time of the access token returned in the Token property.
+     * This value is calculated based on current UTC time measured locally and the value expiresIn returned from the
+     * service.
+     */
+    @NonNull
+    Date getExpiresOn();
+
+    /**
+     * @return A unique tenant identifier that was used in token acquisiton. Could be null if tenant information is not
+     * returned by the service.
+     */
+    @Nullable
+    String getTenantId();
+
+    /**
+     * @return The unique identifier of the user.
+     */
+    @NonNull
+    String getUniqueId();
+
+    /**
+     * @return The id token returned by the service or null if no id token is returned.
+     */
+    @Nullable
+    String getIdToken();
+
+    /**
+     * Gets the Account.
      *
-     * @param authenticationResult {@link IAuthenticationResult} that contains the success response.
+     * @return The Account to get.
      */
-    void onSuccess(final IAuthenticationResult authenticationResult);
+    @NonNull
+    IAccount getAccount();
 
     /**
-     * Error occurs during the authentication.
-     *
-     * @param exception The {@link MsalException} contains the error code, error message and cause if applicable. The exception
-     *                  returned in the callback could be {@link MsalClientException}, {@link MsalServiceException} or
-     *                  {@link MsalUiRequiredException}.
+     * @return The scopes returned from the service.
      */
-    void onError(final MsalException exception);
-
-    /**
-     * Will be called if user cancels the flow.
-     */
-    void onCancel();
+    @NonNull
+    String[] getScope();
 }
