@@ -450,14 +450,19 @@ public final class PublicClientApplication {
             return false;
         }
 
-        final String realm = getRealm(account);
+        // FEATURE SWITCH: Set to false to allow deleting Accounts in a tenant-specific way.
+        final boolean deleteAccountsInAllTenants = true;
 
-        return mPublicClientConfiguration.getOAuth2TokenCache().removeAccount(
-                account.getEnvironment(),
-                mPublicClientConfiguration.getClientId(),
-                account.getHomeAccountIdentifier().getIdentifier(),
-                realm
-        );
+        final String realm = deleteAccountsInAllTenants ? null : getRealm(account);
+
+        return !mPublicClientConfiguration
+                .getOAuth2TokenCache()
+                .removeAccount(
+                        account.getEnvironment(),
+                        mPublicClientConfiguration.getClientId(),
+                        account.getHomeAccountIdentifier().getIdentifier(),
+                        realm
+                ).isEmpty();
     }
 
     @Nullable
