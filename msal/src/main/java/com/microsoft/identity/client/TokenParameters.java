@@ -23,14 +23,10 @@
 
 package com.microsoft.identity.client;
 
-import android.util.Pair;
-
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Base class for AcquireTokenParameters and AcquireTokenSilentParameters
@@ -130,7 +126,7 @@ abstract class TokenParameters {
      * 1) If user cancels the flow by pressing the device back button, the result will be sent
      * back via {@link AuthenticationCallback#onCancel()}.
      * 2) If the sdk successfully receives the token back, result will be sent back via
-     * {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     * {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
      * 3) All the other errors will be sent back via
      * {@link AuthenticationCallback#onError(com.microsoft.identity.client.exception.MsalException)}.
      * @return
@@ -144,7 +140,7 @@ abstract class TokenParameters {
      * 1) If user cancels the flow by pressing the device back button, the result will be sent
      * back via {@link AuthenticationCallback#onCancel()}.
      * 2) If the sdk successfully receives the token back, result will be sent back via
-     * {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     * {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
      * 3) All the other errors will be sent back via
      * {@link AuthenticationCallback#onError(com.microsoft.identity.client.exception.MsalException)}.
      * @param callback

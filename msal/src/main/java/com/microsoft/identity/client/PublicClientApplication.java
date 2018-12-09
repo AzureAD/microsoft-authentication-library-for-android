@@ -506,7 +506,7 @@ public final class PublicClientApplication {
      *                 1) If user cancels the flow by pressing the device back button, the result will be sent
      *                 back via {@link AuthenticationCallback#onCancel()}.
      *                 2) If the sdk successfully receives the token back, result will be sent back via
-     *                 {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     *                 {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
      *                 3) All the other errors will be sent back via
      *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
@@ -543,7 +543,7 @@ public final class PublicClientApplication {
      *                  1) If user cancels the flow by pressing the device back button, the result will be sent
      *                  back via {@link AuthenticationCallback#onCancel()}.
      *                  2) If the sdk successfully receives the token back, result will be sent back via
-     *                  {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     *                  {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
      *                  3) All the other errors will be sent back via
      *                  {@link AuthenticationCallback#onError(MsalException)}.
      */
@@ -583,7 +583,7 @@ public final class PublicClientApplication {
      *                             1) If user cancels the flow by pressing the device back button, the result will be sent
      *                             back via {@link AuthenticationCallback#onCancel()}.
      *                             2) If the sdk successfully receives the token back, result will be sent back via
-     *                             {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     *                             {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
      *                             3) All the other errors will be sent back via
      *                             {@link AuthenticationCallback#onError(MsalException)}.
      */
@@ -625,7 +625,7 @@ public final class PublicClientApplication {
      *                             1) If user cancels the flow by pressing the device back button, the result will be sent
      *                             back via {@link AuthenticationCallback#onCancel()}.
      *                             2) If the sdk successfully receives the token back, result will be sent back via
-     *                             {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     *                             {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
      *                             3) All the other errors will be sent back via
      *                             {@link AuthenticationCallback#onError(MsalException)}.
      */
@@ -669,7 +669,7 @@ public final class PublicClientApplication {
      *                             1) If user cancels the flow by pressing the device back button, the result will be sent
      *                             back via {@link AuthenticationCallback#onCancel()}.
      *                             2) If the sdk successfully receives the token back, result will be sent back via
-     *                             {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     *                             {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
      *                             3) All the other errors will be sent back via
      *                             {@link AuthenticationCallback#onError(MsalException)}.
      */
@@ -715,7 +715,7 @@ public final class PublicClientApplication {
      *                             1) If user cancels the flow by pressing the device back button, the result will be sent
      *                             back via {@link AuthenticationCallback#onCancel()}.
      *                             2) If the sdk successfully receives the token back, result will be sent back via
-     *                             {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     *                             {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
      *                             3) All the other errors will be sent back via
      *                             {@link AuthenticationCallback#onError(MsalException)}.
      */
@@ -830,7 +830,7 @@ public final class PublicClientApplication {
      *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
      * @param account  {@link IAccount} represents the account to silently request tokens.
      * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
-     *                 sent back via {@link AuthenticationCallback#onSuccess(AuthenticationResult)}.
+     *                 sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
      *                 Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
@@ -858,7 +858,7 @@ public final class PublicClientApplication {
      * @param authority    Optional. Can be passed to override the configured authority.
      * @param forceRefresh True if the request is forced to refresh, false otherwise.
      * @param callback     {@link AuthenticationCallback} that is used to send the result back. The success result will be
-     *                     sent back via {@link AuthenticationCallback#onSuccess(AuthenticationResult)}.
+     *                     sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
      *                     Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */

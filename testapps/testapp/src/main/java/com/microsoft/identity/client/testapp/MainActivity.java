@@ -46,6 +46,7 @@ import android.widget.Toast;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.ILoggerCallback;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.PublicClientApplication;
@@ -89,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private String[] mExtraScopesToConsent;
     private boolean mEnablePiiLogging;
     private boolean mForceRefresh;
-    private AuthenticationResult mAuthResult;
+    private IAuthenticationResult mAuthResult;
 
     private RelativeLayout mContentMain;
 
@@ -387,7 +388,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return new AuthenticationCallback() {
 
             @Override
-            public void onSuccess(AuthenticationResult authenticationResult) {
+            public void onSuccess(IAuthenticationResult authenticationResult) {
                 mAuthResult = authenticationResult;
                 onNavigationItemSelected(getNavigationView().getMenu().getItem(1));
                 mSelectedAccount = null;
@@ -421,7 +422,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private NavigationView getNavigationView() {
-        final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        final NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         return navigationView;

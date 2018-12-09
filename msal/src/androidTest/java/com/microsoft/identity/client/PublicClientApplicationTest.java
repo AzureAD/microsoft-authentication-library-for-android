@@ -217,7 +217,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                                       final CountDownLatch releaseLock) {
                 publicClientApplication.acquireToken(activity, SCOPE, "loginhint", null, null, null, "https://someauthority", new AuthenticationCallback() {
                     @Override
-                    public void onSuccess(AuthenticationResult authenticationResult) {
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
                         fail("Unexpected success");
                     }
 
@@ -262,7 +262,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                                       final CountDownLatch releaseLock) {
                 publicClientApplication.acquireToken(activity, new String[]{" "}, new AuthenticationCallback() {
                     @Override
-                    public void onSuccess(AuthenticationResult authenticationResult) {
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
                         Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
                         final IAccount account = authenticationResult.getAccount();
                         Assert.assertTrue(account.getHomeAccountIdentifier().getIdentifier().equals(""));
@@ -311,7 +311,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                                       final CountDownLatch releaseLock) {
                 publicClientApplication.acquireToken(activity, SCOPE, new AuthenticationCallback() {
                     @Override
-                    public void onSuccess(AuthenticationResult authenticationResult) {
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
                         Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
                         final IAccount account = authenticationResult.getAccount();
                         Assert.assertEquals(account.getHomeAccountIdentifier().getIdentifier(), MOCK_UID + "." + MOCK_UTID);
@@ -374,7 +374,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
                 publicClientApplication.acquireToken(activity, SCOPE, "somehint", new AuthenticationCallback() {
                     @Override
-                    public void onSuccess(AuthenticationResult authenticationResult) {
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
                         fail();
                     }
 
@@ -442,7 +442,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                         }},
                         null, null, new AuthenticationCallback() {
                             @Override
-                            public void onSuccess(AuthenticationResult authenticationResult) {
+                            public void onSuccess(IAuthenticationResult authenticationResult) {
                                 fail("unexpected success result");
                             }
 
@@ -505,7 +505,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                         }},
                         null, null, new AuthenticationCallback() {
                             @Override
-                            public void onSuccess(AuthenticationResult authenticationResult) {
+                            public void onSuccess(IAuthenticationResult authenticationResult) {
                                 fail("unexpected success result");
                             }
 
@@ -554,7 +554,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                                       final CountDownLatch releaseLock) {
                 publicClientApplication.acquireToken(activity, SCOPE, mUser, UiBehavior.SELECT_ACCOUNT, null, null, null, new AuthenticationCallback() {
                     @Override
-                    public void onSuccess(AuthenticationResult authenticationResult) {
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
                         fail();
                     }
 
