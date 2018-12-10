@@ -22,6 +22,9 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.dto.IAccountRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
@@ -42,7 +45,8 @@ public class AccountAdapter {
      * @param accountIn The Account to transform.
      * @return A representation of the supplied Account, as an IAccount.
      */
-    static IAccount adapt(final IAccountRecord accountIn) {
+    @NonNull
+    static IAccount adapt(@NonNull final IAccountRecord accountIn) {
         final String methodName = ":adapt";
         final com.microsoft.identity.client.Account accountOut
                 = new com.microsoft.identity.client.Account();
@@ -61,7 +65,7 @@ public class AccountAdapter {
             accountId = new AzureActiveDirectoryAccountIdentifier() {{ // This is the local_account_id
                 setIdentifier(accountIn.getLocalAccountId());
                 setObjectIdentifier(accountIn.getLocalAccountId());
-                setTenantIdentifier(accountIn.getRealm()); // TODO verify this is the proper field...
+                setTenantIdentifier(accountIn.getRealm());
             }};
             homeAccountId = new AzureActiveDirectoryAccountIdentifier() {{ // This is the home_account_id
                 // Grab the homeAccountId
@@ -110,14 +114,19 @@ public class AccountAdapter {
         return accountOut;
     }
 
-    static AccountRecord getAccountInternal(final String clientId, OAuth2TokenCache oAuth2TokenCache, final String homeAccountIdentifier) {
+    @Nullable
+    static AccountRecord getAccountInternal(@NonNull final String clientId,
+                                            @NonNull OAuth2TokenCache oAuth2TokenCache,
+                                            @NonNull final String homeAccountIdentifier,
+                                            @Nullable final String realm) {
         final AccountRecord accountToReturn;
 
         if (!StringUtil.isEmpty(homeAccountIdentifier)) {
             accountToReturn = oAuth2TokenCache.getAccount(
                     null, // * wildcard
                     clientId,
-                    homeAccountIdentifier
+                    homeAccountIdentifier,
+                    realm
             );
         } else {
             com.microsoft.identity.common.internal.logging.Logger.warn(

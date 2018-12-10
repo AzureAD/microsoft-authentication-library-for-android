@@ -85,24 +85,25 @@ public class MSALTokenCommand implements MSALTokenOperation {
         AcquireTokenResult result = null;
         final String methodName = ":execute";
 
-        for(MSALController controller : mControllers) {
+        for (MSALController controller : mControllers) {
             try {
                 com.microsoft.identity.common.internal.logging.Logger.verbose(
                         TAG + methodName,
                         "Executing with controller: " + controller.getClass().getSimpleName()
                 );
                 result = controller.acquireTokenSilent((MSALAcquireTokenSilentOperationParameters) getParameters());
-                if(result.getSucceeded()){
+
+                if (result.getSucceeded()) {
                     com.microsoft.identity.common.internal.logging.Logger.verbose(
                             TAG + methodName,
                             "Executing with controller: " + controller.getClass().getSimpleName() + ": Succeeded"
                     );
                     return result;
                 }
-            }catch(MsalUiRequiredException e){
-                if(e.getErrorCode() == MsalUiRequiredException.INVALID_GRANT){
+            } catch (MsalUiRequiredException e) {
+                if (MsalUiRequiredException.INVALID_GRANT.equals(e.getErrorCode())) {
                     continue;
-                }else{
+                } else {
                     throw e;
                 }
             }
@@ -131,9 +132,13 @@ public class MSALTokenCommand implements MSALTokenOperation {
         return mController;
     }
 
-    public List<MSALController> getControllers () { return mControllers; }
+    public List<MSALController> getControllers() {
+        return mControllers;
+    }
 
-    public void setControllers(List<MSALController> controllers){ this.mControllers = controllers;}
+    public void setControllers(List<MSALController> controllers) {
+        this.mControllers = controllers;
+    }
 
     public void setController(MSALController controller) {
         this.mController = controller;

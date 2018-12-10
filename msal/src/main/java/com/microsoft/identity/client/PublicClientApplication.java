@@ -42,6 +42,7 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAudience;
+import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.client.internal.configuration.AuthorityDeserializer;
 import com.microsoft.identity.client.internal.configuration.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
@@ -86,6 +87,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.microsoft.identity.client.internal.authorities.Authority.getAuthorityFromAuthorityUrl;
+import static com.microsoft.identity.client.internal.controllers.MSALAcquireTokenOperationParameters.createMsalAcquireTokenOperationParameters;
+import static com.microsoft.identity.client.internal.controllers.MSALAcquireTokenSilentOperationParameters.createMSALAcquireTokenSilentOperationParameters;
 import static com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
 
 /**
@@ -260,8 +264,8 @@ public final class PublicClientApplication {
         }
 
         mPublicClientConfiguration.getAuthorities().clear();
-        if(authority != null) {
-            Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority);
+        if (authority != null) {
+            Authority authorityObject = getAuthorityFromAuthorityUrl(authority);
             authorityObject.setDefault(true);
             mPublicClientConfiguration.getAuthorities().add(authorityObject);
         }
@@ -272,7 +276,10 @@ public final class PublicClientApplication {
     private void initializeApplication() {
         // Init Events with defaults (application-wide)
         DefaultEvent.initializeDefaults(
-                Defaults.forApplication(mPublicClientConfiguration.getAppContext(), mPublicClientConfiguration.getClientId())
+                Defaults.forApplication(
+                        mPublicClientConfiguration.getAppContext(),
+                        mPublicClientConfiguration.getClientId()
+                )
         );
 
         mPublicClientConfiguration.mRedirectUri = createRedirectUri(mPublicClientConfiguration.getClientId());
@@ -321,7 +328,7 @@ public final class PublicClientApplication {
      *
      * @param callback The callback to notify once this action has finished.
      */
-    public void getAccounts(final AccountsLoadedListener callback) {
+    public void getAccounts(@NonNull final AccountsLoadedListener callback) {
         MSALApiDispatcher.initializeDiagnosticContext();
         final String methodName = ":getAccounts";
         final List<IAccount> accounts = getAccounts();
@@ -368,7 +375,11 @@ public final class PublicClientApplication {
             );
         } else {
             // The cache contains items - mark migration as complete
-            new AdalMigrationAdapter(mPublicClientConfiguration.getAppContext(), false).setMigrationStatus(true);
+            new AdalMigrationAdapter(
+                    mPublicClientConfiguration.getAppContext(),
+                    false
+            ).setMigrationStatus(true);
+
             handler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -387,10 +398,13 @@ public final class PublicClientApplication {
         final List<IAccount> accountsToReturn = new ArrayList<>();
 
         // Grab the Accounts from the common cache
-        final List<AccountRecord> accountsInCache = mPublicClientConfiguration.getOAuth2TokenCache().getAccounts(
-                null, // * wildcard
-                mPublicClientConfiguration.getClientId()
-        );
+        final List<AccountRecord> accountsInCache =
+                mPublicClientConfiguration
+                        .getOAuth2TokenCache()
+                        .getAccounts(
+                                null, // * wildcard
+                                mPublicClientConfiguration.getClientId()
+                        );
 
         // Adapt them to the MSAL model
         for (final AccountRecord account : accountsInCache) {
@@ -404,11 +418,35 @@ public final class PublicClientApplication {
      * Returns the IAccount object matching the supplied home_account_id.
      *
      * @param homeAccountIdentifier The home_account_id of the sought IAccount.
+     * @param authority             The authority of the sought IAccount.
      * @return The IAccount stored in the cache or null, if no such matching entry exists.
      */
-    public IAccount getAccount(final String homeAccountIdentifier) {
+    public IAccount getAccount(@NonNull final String homeAccountIdentifier,
+                               @Nullable final String authority) {
+        final String methodName = ":getAccount";
+
+        String realm = StringUtil.getTenantInfo(homeAccountIdentifier).second;
+
+        Authority authorityObj = Authority.getAuthorityFromAuthorityUrl(authority);
+
+        if (authorityObj instanceof AzureActiveDirectoryAuthority) {
+            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) authorityObj;
+            AzureActiveDirectoryAudience audience = aadAuthority.getAudience();
+            realm = audience.getTenantId();
+        } else {
+            com.microsoft.identity.common.internal.logging.Logger.warn(
+                    TAG + methodName,
+                    "Provided authority was not AAD - defaulting to parsed home_account_id"
+            );
+        }
+
         MSALApiDispatcher.initializeDiagnosticContext();
-        final AccountRecord accountToReturn = AccountAdapter.getAccountInternal(mPublicClientConfiguration.getClientId(), mPublicClientConfiguration.getOAuth2TokenCache(), homeAccountIdentifier);
+        final AccountRecord accountToReturn = AccountAdapter.getAccountInternal(
+                mPublicClientConfiguration.getClientId(),
+                mPublicClientConfiguration.getOAuth2TokenCache(),
+                homeAccountIdentifier,
+                realm
+        );
         return null == accountToReturn ? null : AccountAdapter.adapt(accountToReturn);
     }
 
@@ -419,7 +457,7 @@ public final class PublicClientApplication {
      * @param account The IAccount whose entry and associated tokens should be removed.
      * @return True, if the account was removed. False otherwise.
      */
-    public boolean removeAccount(final IAccount account) {
+    public boolean removeAccount(@Nullable final IAccount account) {
         MSALApiDispatcher.initializeDiagnosticContext();
         if (null == account
                 || null == account.getHomeAccountIdentifier()
@@ -432,11 +470,32 @@ public final class PublicClientApplication {
             return false;
         }
 
-        return mPublicClientConfiguration.getOAuth2TokenCache().removeAccount(
-                account.getEnvironment(),
-                mPublicClientConfiguration.getClientId(),
-                account.getHomeAccountIdentifier().getIdentifier()
-        );
+        // FEATURE SWITCH: Set to false to allow deleting Accounts in a tenant-specific way.
+        final boolean deleteAccountsInAllTenants = true;
+
+        final String realm = deleteAccountsInAllTenants ? null : getRealm(account);
+
+        return !mPublicClientConfiguration
+                .getOAuth2TokenCache()
+                .removeAccount(
+                        account.getEnvironment(),
+                        mPublicClientConfiguration.getClientId(),
+                        account.getHomeAccountIdentifier().getIdentifier(),
+                        realm
+                ).isEmpty();
+    }
+
+    @Nullable
+    private static String getRealm(@NonNull IAccount account) {
+        String realm = null;
+
+        if (null != account.getAccountIdentifier() // This is an AAD account w/ tenant info
+                && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier) {
+            final AzureActiveDirectoryAccountIdentifier identifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier();
+            realm = identifier.getTenantIdentifier();
+        }
+
+        return realm;
     }
 
     /**
@@ -449,7 +508,7 @@ public final class PublicClientApplication {
      */
     public void handleInteractiveRequestRedirect(final int requestCode,
                                                  final int resultCode,
-                                                 final Intent data) {
+                                                 @NonNull final Intent data) {
         MSALApiDispatcher.completeInteractive(requestCode, resultCode, data);
     }
 
@@ -467,14 +526,25 @@ public final class PublicClientApplication {
      *                 1) If user cancels the flow by pressing the device back button, the result will be sent
      *                 back via {@link AuthenticationCallback#onCancel()}.
      *                 2) If the sdk successfully receives the token back, result will be sent back via
-     *                 {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     *                 {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
      *                 3) All the other errors will be sent back via
      *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
-        acquireToken(activity, scopes, null, null, null, null, null, callback, null, null );
+        acquireToken(
+                activity,
+                scopes,
+                null, // account
+                null, // uiBehavior
+                null, // extraQueryParams
+                null, // extraScopes
+                null, // authority
+                callback,
+                null, // loginHint
+                null // claimsRequest
+        );
     }
 
     /**
@@ -493,7 +563,7 @@ public final class PublicClientApplication {
      *                  1) If user cancels the flow by pressing the device back button, the result will be sent
      *                  back via {@link AuthenticationCallback#onCancel()}.
      *                  2) If the sdk successfully receives the token back, result will be sent back via
-     *                  {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     *                  {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
      *                  3) All the other errors will be sent back via
      *                  {@link AuthenticationCallback#onError(MsalException)}.
      */
@@ -501,8 +571,18 @@ public final class PublicClientApplication {
                              @NonNull final String[] scopes,
                              @Nullable final String loginHint,
                              @NonNull final AuthenticationCallback callback) {
-
-        acquireToken(activity, scopes, null, null, null, null, null, callback, loginHint, null );
+        acquireToken(
+                activity,
+                scopes,
+                null, // account
+                null, // uiBehavior
+                null, // extraQueryParams
+                null, // extraScopes
+                null, // authority
+                callback,
+                loginHint,
+                null // claimsRequest
+        );
     }
 
     /**
@@ -523,7 +603,7 @@ public final class PublicClientApplication {
      *                             1) If user cancels the flow by pressing the device back button, the result will be sent
      *                             back via {@link AuthenticationCallback#onCancel()}.
      *                             2) If the sdk successfully receives the token back, result will be sent back via
-     *                             {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     *                             {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
      *                             3) All the other errors will be sent back via
      *                             {@link AuthenticationCallback#onError(MsalException)}.
      */
@@ -533,8 +613,18 @@ public final class PublicClientApplication {
                              @NonNull final UiBehavior uiBehavior,
                              @Nullable final List<Pair<String, String>> extraQueryParameters,
                              @NonNull final AuthenticationCallback callback) {
-
-        acquireToken(activity, scopes, null, uiBehavior, extraQueryParameters, null, null, callback, loginHint, null );
+        acquireToken(
+                activity,
+                scopes,
+                null, // account
+                uiBehavior,
+                extraQueryParameters,
+                null, // extraScopes
+                null, // authority
+                callback,
+                loginHint,
+                null // claimsRequest
+        );
     }
 
     /**
@@ -555,7 +645,7 @@ public final class PublicClientApplication {
      *                             1) If user cancels the flow by pressing the device back button, the result will be sent
      *                             back via {@link AuthenticationCallback#onCancel()}.
      *                             2) If the sdk successfully receives the token back, result will be sent back via
-     *                             {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     *                             {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
      *                             3) All the other errors will be sent back via
      *                             {@link AuthenticationCallback#onError(MsalException)}.
      */
@@ -565,8 +655,18 @@ public final class PublicClientApplication {
                              @NonNull final UiBehavior uiBehavior,
                              @Nullable final List<Pair<String, String>> extraQueryParameters,
                              @NonNull final AuthenticationCallback callback) {
-
-        acquireToken(activity, scopes, account, uiBehavior, extraQueryParameters, null, null, callback, null, null );
+        acquireToken(
+                activity,
+                scopes,
+                account,
+                uiBehavior,
+                extraQueryParameters,
+                null, // extraScopes
+                null, // authority
+                callback,
+                null, // loginHint
+                null // claimsRequest
+        );
     }
 
     /**
@@ -589,20 +689,30 @@ public final class PublicClientApplication {
      *                             1) If user cancels the flow by pressing the device back button, the result will be sent
      *                             back via {@link AuthenticationCallback#onCancel()}.
      *                             2) If the sdk successfully receives the token back, result will be sent back via
-     *                             {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     *                             {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
      *                             3) All the other errors will be sent back via
      *                             {@link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
-                             final String loginHint,
-                             final UiBehavior uiBehavior,
+                             @Nullable final String loginHint,
+                             @Nullable final UiBehavior uiBehavior,
                              @Nullable final List<Pair<String, String>> extraQueryParameters,
-                             final String[] extraScopesToConsent,
-                             final String authority,
+                             @Nullable final String[] extraScopesToConsent,
+                             @Nullable final String authority,
                              @NonNull final AuthenticationCallback callback) {
-
-        acquireToken(activity, scopes, null, uiBehavior, extraQueryParameters, extraScopesToConsent, authority, callback, loginHint, null );
+        acquireToken(
+                activity,
+                scopes,
+                null, // account
+                uiBehavior,
+                extraQueryParameters,
+                extraScopesToConsent,
+                authority,
+                callback,
+                loginHint,
+                null // claimsRequest
+        );
     }
 
     /**
@@ -625,7 +735,7 @@ public final class PublicClientApplication {
      *                             1) If user cancels the flow by pressing the device back button, the result will be sent
      *                             back via {@link AuthenticationCallback#onCancel()}.
      *                             2) If the sdk successfully receives the token back, result will be sent back via
-     *                             {@link AuthenticationCallback#onSuccess(AuthenticationResult)}
+     *                             {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
      *                             3) All the other errors will be sent back via
      *                             {@link AuthenticationCallback#onError(MsalException)}.
      */
@@ -637,29 +747,43 @@ public final class PublicClientApplication {
                              @Nullable final String[] extraScopesToConsent,
                              @Nullable final String authority,
                              @NonNull final AuthenticationCallback callback) {
-
-       acquireToken(activity, scopes, account, uiBehavior, extraQueryParameters, extraScopesToConsent, authority, callback, null, null );
-
+        acquireToken(
+                activity,
+                scopes,
+                account,
+                uiBehavior,
+                extraQueryParameters,
+                extraScopesToConsent,
+                authority,
+                callback,
+                null, // loginHint
+                null //claimsRequest
+        );
     }
 
-    private void acquireToken(final Activity activity,
-                              final String[] scopes,
-                              final IAccount account,
-                              final UiBehavior uiBehavior,
-                              final List<Pair<String, String>> extraQueryParameters,
-                              final String[] extraScopesToConsent,
-                              final String authority,
-                              final AuthenticationCallback callback,
-                              final String loginHint,
-                              final ClaimsRequest claimsRequest) {
-
+    private void acquireToken(@NonNull final Activity activity,
+                              @NonNull final String[] scopes,
+                              @Nullable final IAccount account,
+                              @Nullable final UiBehavior uiBehavior,
+                              @Nullable final List<Pair<String, String>> extraQueryParameters,
+                              @Nullable final String[] extraScopesToConsent,
+                              @Nullable final String authority,
+                              @NonNull final AuthenticationCallback callback,
+                              @Nullable final String loginHint,
+                              @Nullable final ClaimsRequest claimsRequest) {
         AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
         AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(activity)
                 .forAccount(account)
                 .withScopes(Arrays.asList(scopes))
                 .withUiBehavior(uiBehavior)
                 .withAuthorizationQueryStringParameters(extraQueryParameters)
-                .withOtherScopesToAuthorize(Arrays.asList(extraScopesToConsent))
+                .withOtherScopesToAuthorize(
+                        Arrays.asList(
+                                null == extraScopesToConsent
+                                        ? new String[]{}
+                                        : extraScopesToConsent
+                        )
+                )
                 .fromAuthority(authority)
                 .callback(callback)
                 .withLoginHint(loginHint)
@@ -667,39 +791,52 @@ public final class PublicClientApplication {
                 .build();
 
         acquireTokenAsync(acquireTokenParameters);
-
     }
-
 
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
      * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
-     *
+     * <p>
      * Convey parameters via the AquireTokenParameters object
      *
      * @param acquireTokenParameters
      */
-    public void acquireTokenAsync(@NonNull AcquireTokenParameters acquireTokenParameters) {
+    public void acquireTokenAsync(@NonNull final AcquireTokenParameters acquireTokenParameters) {
+        acquireTokenParameters.setAccountRecord(
+                getAccountRecord(acquireTokenParameters.getAccount())
+        );
 
-
-        acquireTokenParameters.setAccountRecord(getAccountRecord(acquireTokenParameters.getAccount()));
-        final MSALAcquireTokenOperationParameters params = MSALAcquireTokenOperationParameters.createMsalAcquireTokenOperationParameters(acquireTokenParameters, mPublicClientConfiguration);
+        final MSALAcquireTokenOperationParameters params =
+                createMsalAcquireTokenOperationParameters(
+                        acquireTokenParameters,
+                        mPublicClientConfiguration
+                );
 
         final MSALInteractiveTokenCommand command =
                 new MSALInteractiveTokenCommand(
                         mPublicClientConfiguration.getAppContext(),
                         params,
-                        MSALControllerFactory.getAcquireTokenController(mPublicClientConfiguration.getAppContext(), params.getAuthority(), mPublicClientConfiguration),
+                        MSALControllerFactory.getAcquireTokenController(
+                                mPublicClientConfiguration.getAppContext(),
+                                params.getAuthority(),
+                                mPublicClientConfiguration
+                        ),
                         acquireTokenParameters.getCallback()
                 );
         MSALApiDispatcher.beginInteractive(command);
     }
 
-    private AccountRecord getAccountRecord(IAccount account){
-        if(account != null) {
-            return AccountAdapter.getAccountInternal(mPublicClientConfiguration.getClientId(), mPublicClientConfiguration.getOAuth2TokenCache(), account.getHomeAccountIdentifier().getIdentifier());
+    private AccountRecord getAccountRecord(@Nullable final IAccount account) {
+        if (account != null) {
+            return AccountAdapter.getAccountInternal(
+                    mPublicClientConfiguration.getClientId(),
+                    mPublicClientConfiguration.getOAuth2TokenCache(),
+                    account.getHomeAccountIdentifier().getIdentifier(),
+                    getRealm(account)
+            );
         }
+
         return null;
     }
 
@@ -713,15 +850,21 @@ public final class PublicClientApplication {
      *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
      * @param account  {@link IAccount} represents the account to silently request tokens.
      * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
-     *                 sent back via {@link AuthenticationCallback#onSuccess(AuthenticationResult)}.
+     *                 sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
      *                 Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final IAccount account,
                                         @NonNull final AuthenticationCallback callback) {
-
-        acquireTokenSilent(scopes, account, null, false, null, callback);
+        acquireTokenSilent(
+                scopes,
+                account,
+                null, // authority
+                false, // forceRefresh
+                null, // claimsRequest
+                callback
+        );
     }
 
     /**
@@ -735,7 +878,7 @@ public final class PublicClientApplication {
      * @param authority    Optional. Can be passed to override the configured authority.
      * @param forceRefresh True if the request is forced to refresh, false otherwise.
      * @param callback     {@link AuthenticationCallback} that is used to send the result back. The success result will be
-     *                     sent back via {@link AuthenticationCallback#onSuccess(AuthenticationResult)}.
+     *                     sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
      *                     Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
@@ -744,29 +887,34 @@ public final class PublicClientApplication {
                                         @Nullable final String authority,
                                         final boolean forceRefresh,
                                         @NonNull final AuthenticationCallback callback) {
-
-        acquireTokenSilent(scopes, account, authority, forceRefresh, null, callback);
-
+        acquireTokenSilent(
+                scopes,
+                account,
+                authority,
+                forceRefresh,
+                null, // claimsRequest
+                callback
+        );
     }
 
-    private void acquireTokenSilent(final String[] scopes,
-                                    final IAccount account,
-                                    final String authority,
+    private void acquireTokenSilent(@NonNull final String[] scopes,
+                                    @NonNull final IAccount account,
+                                    @Nullable final String authority,
                                     final boolean forceRefresh,
-                                    final ClaimsRequest claimsRequest,
-                                    final AuthenticationCallback callback){
+                                    @Nullable final ClaimsRequest claimsRequest,
+                                    @NonNull final AuthenticationCallback callback) {
 
         AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
-        AcquireTokenSilentParameters acquireTokenSilentParameters =  builder.withScopes(Arrays.asList(scopes))
-                .forAccount(account)
-                .fromAuthority(authority)
-                .forceRefresh(forceRefresh)
-                .withClaims(claimsRequest)
-                .callback(callback)
-                .build();
+        AcquireTokenSilentParameters acquireTokenSilentParameters =
+                builder.withScopes(Arrays.asList(scopes))
+                        .forAccount(account)
+                        .fromAuthority(authority)
+                        .forceRefresh(forceRefresh)
+                        .withClaims(claimsRequest)
+                        .callback(callback)
+                        .build();
 
         acquireTokenSilentAsync(acquireTokenSilentParameters);
-
     }
 
     /**
@@ -776,24 +924,33 @@ public final class PublicClientApplication {
      *
      * @param acquireTokenSilentParameters
      */
-    public void acquireTokenSilentAsync(AcquireTokenSilentParameters acquireTokenSilentParameters){
-
-        acquireTokenSilentParameters.setAccountRecord(getAccountRecord(acquireTokenSilentParameters.getAccount()));
+    public void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
+        acquireTokenSilentParameters.setAccountRecord(
+                getAccountRecord(
+                        acquireTokenSilentParameters.getAccount()
+                )
+        );
         final MSALAcquireTokenSilentOperationParameters params =
-                MSALAcquireTokenSilentOperationParameters.createMSALAcquireTokenSilentOperationParameters(
-                        acquireTokenSilentParameters, mPublicClientConfiguration);
+                createMSALAcquireTokenSilentOperationParameters(
+                        acquireTokenSilentParameters,
+                        mPublicClientConfiguration
+                );
 
         final MSALTokenCommand silentTokenCommand = new MSALTokenCommand(
                 mPublicClientConfiguration.getAppContext(),
                 params,
-                MSALControllerFactory.getAcquireTokenSilentControllers(mPublicClientConfiguration.getAppContext(), params.getAuthority(), mPublicClientConfiguration),
+                MSALControllerFactory.getAcquireTokenSilentControllers(
+                        mPublicClientConfiguration.getAppContext(),
+                        params.getAuthority(),
+                        mPublicClientConfiguration
+                ),
                 acquireTokenSilentParameters.getCallback()
         );
 
         MSALApiDispatcher.submitSilent(silentTokenCommand);
     }
 
-     private void loadMetaDataFromManifest() {
+    private void loadMetaDataFromManifest() {
         final String methodName = ":loadMetaDataFromManifest";
         com.microsoft.identity.common.internal.logging.Logger.verbose(
                 TAG + methodName,
@@ -809,7 +966,7 @@ public final class PublicClientApplication {
 
         if (!MsalUtils.isEmpty(authority)) {
             mPublicClientConfiguration.getAuthorities().clear();
-            mPublicClientConfiguration.getAuthorities().add(Authority.getAuthorityFromAuthorityUrl(authority));
+            mPublicClientConfiguration.getAuthorities().add(getAuthorityFromAuthorityUrl(authority));
         }
 
         // read client id from manifest
@@ -822,7 +979,7 @@ public final class PublicClientApplication {
         mPublicClientConfiguration.mClientId = clientId;
     }
 
-    private void setupConfiguration(final int configResourceId, Context context) {
+    private void setupConfiguration(final int configResourceId, @NonNull final Context context) {
         final PublicClientApplicationConfiguration developerConfig = loadConfiguration(context, configResourceId);
         final PublicClientApplicationConfiguration defaultConfig = loadDefaultConfiguration(context);
         defaultConfig.mergeConfiguration(developerConfig);
@@ -871,9 +1028,18 @@ public final class PublicClientApplication {
 
     private static Gson getGsonForLoadingConfiguration() {
         return new GsonBuilder()
-                .registerTypeAdapter(Authority.class, new AuthorityDeserializer())
-                .registerTypeAdapter(AzureActiveDirectoryAudience.class, new AzureActiveDirectoryAudienceDeserializer())
-                .registerTypeAdapter(Logger.LogLevel.class, new LogLevelDeserializer())
+                .registerTypeAdapter(
+                        Authority.class,
+                        new AuthorityDeserializer()
+                )
+                .registerTypeAdapter(
+                        AzureActiveDirectoryAudience.class,
+                        new AzureActiveDirectoryAudienceDeserializer()
+                )
+                .registerTypeAdapter(
+                        Logger.LogLevel.class,
+                        new LogLevelDeserializer()
+                )
                 .create();
     }
 
@@ -917,7 +1083,7 @@ public final class PublicClientApplication {
             MicrosoftStsAuthorizationRequest,
             MicrosoftStsTokenResponse,
             MicrosoftAccount,
-            MicrosoftRefreshToken> initCommonCache(final Context context) {
+            MicrosoftRefreshToken> initCommonCache(@NonNull final Context context) {
         final String methodName = ":initCommonCache";
         com.microsoft.identity.common.internal.logging.Logger.verbose(
                 TAG + methodName,

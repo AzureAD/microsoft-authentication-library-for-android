@@ -24,6 +24,7 @@ package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Intent;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.util.Pair;
 
 import com.microsoft.identity.client.AuthenticationResult;
@@ -244,7 +245,7 @@ public class MSALApiDispatcher {
         sCommand.notify(requestCode, resultCode, data);
     }
 
-    public static void submitSilent(final MSALTokenCommand command) {
+    public static void submitSilent(@NonNull final MSALTokenCommand command) {
         final String methodName = ":submitSilent";
         Logger.verbose(
                 TAG + methodName,

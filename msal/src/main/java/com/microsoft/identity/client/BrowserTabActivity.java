@@ -36,7 +36,7 @@ import com.microsoft.identity.common.internal.util.StringUtil;
  * endpoint. This activity has to be exposed by "android:exported=true", and intent filter has to be declared in the
  * manifest for the activity.
  * <p>
- * When the AuthoirzationAgent is launched, and we're redirected back with the redirect
+ * When the AuthorizationAgent is launched, and we're redirected back with the redirect
  * uri (the redirect must be unique across apps on a device), the os will fire an intent with the redirect,
  * and the BrowserTabActivity will be launched.
  * <pre>

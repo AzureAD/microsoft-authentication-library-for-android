@@ -66,7 +66,7 @@ public abstract class Authority {
         return mIsDefault;
     }
 
-    public void setDefault(Boolean isDefault){
+    public void setDefault(Boolean isDefault) {
         mIsDefault = isDefault;
     }
 
