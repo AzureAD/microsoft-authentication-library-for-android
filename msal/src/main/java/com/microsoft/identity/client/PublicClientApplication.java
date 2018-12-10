@@ -37,24 +37,21 @@ import android.util.Pair;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.MsalUtils;
-import com.microsoft.identity.client.internal.authorities.Authority;
-import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAudience;
-import com.microsoft.identity.client.internal.configuration.AuthorityDeserializer;
-import com.microsoft.identity.client.internal.configuration.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
-import com.microsoft.identity.client.internal.controllers.MSALAcquireTokenOperationParameters;
-import com.microsoft.identity.client.internal.controllers.MSALAcquireTokenSilentOperationParameters;
-import com.microsoft.identity.client.internal.controllers.MSALApiDispatcher;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
-import com.microsoft.identity.client.internal.controllers.MSALInteractiveTokenCommand;
-import com.microsoft.identity.client.internal.controllers.MSALTokenCommand;
+import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
+import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
 import com.microsoft.identity.client.internal.telemetry.Defaults;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.exception.BaseException;
+import com.microsoft.identity.common.internal.authorities.Authority;
+import com.microsoft.identity.common.internal.authorities.AuthorityDeserializer;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.ICacheKeyValueDelegate;
@@ -64,6 +61,10 @@ import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentia
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.claims.ClaimsRequest;
+import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
+import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
+import com.microsoft.identity.common.internal.controllers.TokenCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
@@ -74,6 +75,10 @@ import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.M
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsTokenResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
+import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
+import com.microsoft.identity.common.internal.request.IAuthenticationCallback;
+import com.microsoft.identity.common.internal.result.IAuthenticationResult;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.msal.BuildConfig;
 import com.microsoft.identity.msal.R;
@@ -322,7 +327,7 @@ public final class PublicClientApplication {
      * @param callback The callback to notify once this action has finished.
      */
     public void getAccounts(final AccountsLoadedListener callback) {
-        MSALApiDispatcher.initializeDiagnosticContext();
+        ApiDispatcher.initializeDiagnosticContext();
         final String methodName = ":getAccounts";
         final List<IAccount> accounts = getAccounts();
         final boolean invokeOnMainThread = Looper.myLooper() == Looper.getMainLooper();
@@ -407,7 +412,7 @@ public final class PublicClientApplication {
      * @return The IAccount stored in the cache or null, if no such matching entry exists.
      */
     public IAccount getAccount(final String homeAccountIdentifier) {
-        MSALApiDispatcher.initializeDiagnosticContext();
+        ApiDispatcher.initializeDiagnosticContext();
         final AccountRecord accountToReturn = AccountAdapter.getAccountInternal(mPublicClientConfiguration.getClientId(), mPublicClientConfiguration.getOAuth2TokenCache(), homeAccountIdentifier);
         return null == accountToReturn ? null : AccountAdapter.adapt(accountToReturn);
     }
@@ -420,7 +425,7 @@ public final class PublicClientApplication {
      * @return True, if the account was removed. False otherwise.
      */
     public boolean removeAccount(final IAccount account) {
-        MSALApiDispatcher.initializeDiagnosticContext();
+        ApiDispatcher.initializeDiagnosticContext();
         if (null == account
                 || null == account.getHomeAccountIdentifier()
                 || StringUtil.isEmpty(account.getHomeAccountIdentifier().getIdentifier())) {
@@ -450,7 +455,7 @@ public final class PublicClientApplication {
     public void handleInteractiveRequestRedirect(final int requestCode,
                                                  final int resultCode,
                                                  final Intent data) {
-        MSALApiDispatcher.completeInteractive(requestCode, resultCode, data);
+        ApiDispatcher.completeInteractive(requestCode, resultCode, data);
     }
 
     /**
@@ -670,8 +675,6 @@ public final class PublicClientApplication {
 
     }
 
-
-
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
      * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
@@ -682,23 +685,36 @@ public final class PublicClientApplication {
      */
     public void acquireTokenAsync(@NonNull AcquireTokenParameters acquireTokenParameters) {
 
-
         acquireTokenParameters.setAccountRecord(getAccountRecord(acquireTokenParameters.getAccount()));
-        final MSALAcquireTokenOperationParameters params = MSALAcquireTokenOperationParameters.createMsalAcquireTokenOperationParameters(acquireTokenParameters, mPublicClientConfiguration);
+        final AcquireTokenOperationParameters params = OperationParametersAdapter.
+                createAcquireTokenOperationParameters(
+                        acquireTokenParameters,
+                        mPublicClientConfiguration
+                );
 
-        final MSALInteractiveTokenCommand command =
-                new MSALInteractiveTokenCommand(
+        IAuthenticationCallback authenticationCallback = getAuthenticationCallback(acquireTokenParameters.getCallback());
+
+        final InteractiveTokenCommand command = new InteractiveTokenCommand(
                         mPublicClientConfiguration.getAppContext(),
                         params,
-                        MSALControllerFactory.getAcquireTokenController(mPublicClientConfiguration.getAppContext(), params.getAuthority(), mPublicClientConfiguration),
-                        acquireTokenParameters.getCallback()
+                        MSALControllerFactory.getAcquireTokenController(
+                                mPublicClientConfiguration.getAppContext(),
+                                params.getAuthority(),
+                                mPublicClientConfiguration
+                        ),
+                        authenticationCallback
                 );
-        MSALApiDispatcher.beginInteractive(command);
+        ApiDispatcher.beginInteractive(command);
+
     }
 
     private AccountRecord getAccountRecord(IAccount account){
         if(account != null) {
-            return AccountAdapter.getAccountInternal(mPublicClientConfiguration.getClientId(), mPublicClientConfiguration.getOAuth2TokenCache(), account.getHomeAccountIdentifier().getIdentifier());
+            return AccountAdapter.getAccountInternal(
+                    mPublicClientConfiguration.getClientId(),
+                    mPublicClientConfiguration.getOAuth2TokenCache(),
+                    account.getHomeAccountIdentifier().getIdentifier()
+            );
         }
         return null;
     }
@@ -779,18 +795,26 @@ public final class PublicClientApplication {
     public void acquireTokenSilentAsync(AcquireTokenSilentParameters acquireTokenSilentParameters){
 
         acquireTokenSilentParameters.setAccountRecord(getAccountRecord(acquireTokenSilentParameters.getAccount()));
-        final MSALAcquireTokenSilentOperationParameters params =
-                MSALAcquireTokenSilentOperationParameters.createMSALAcquireTokenSilentOperationParameters(
-                        acquireTokenSilentParameters, mPublicClientConfiguration);
+        final AcquireTokenSilentOperationParameters params =
+                OperationParametersAdapter.createAcquireTokenSilentOperationParameters(
+                        acquireTokenSilentParameters,
+                        mPublicClientConfiguration
+                );
 
-        final MSALTokenCommand silentTokenCommand = new MSALTokenCommand(
+        IAuthenticationCallback callback = getAuthenticationCallback(acquireTokenSilentParameters.getCallback());
+
+        final TokenCommand silentTokenCommand = new TokenCommand(
                 mPublicClientConfiguration.getAppContext(),
                 params,
-                MSALControllerFactory.getAcquireTokenSilentControllers(mPublicClientConfiguration.getAppContext(), params.getAuthority(), mPublicClientConfiguration),
-                acquireTokenSilentParameters.getCallback()
+                MSALControllerFactory.getAcquireTokenSilentControllers(
+                        mPublicClientConfiguration.getAppContext(),
+                        params.getAuthority(),
+                        mPublicClientConfiguration
+                ),
+                callback
         );
 
-        MSALApiDispatcher.submitSilent(silentTokenCommand);
+        ApiDispatcher.submitSilent(silentTokenCommand);
     }
 
      private void loadMetaDataFromManifest() {
@@ -945,6 +969,26 @@ public final class PublicClientApplication {
                 accountCredentialCache,
                 accountCredentialAdapter
         );
+    }
+
+    private static IAuthenticationCallback getAuthenticationCallback(final AuthenticationCallback authenticationCallback){
+        return new IAuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                authenticationCallback.onSuccess((AuthenticationResult) authenticationResult);
+            }
+
+            @Override
+            public void onError(BaseException exception) {
+                MsalException msalException = MsalExceptionAdapter.msalExceptionFromBaseException(exception);
+                authenticationCallback.onError(msalException);
+            }
+
+            @Override
+            public void onCancel() {
+                authenticationCallback.onCancel();
+            }
+        };
     }
 
     private OAuth2TokenCache<?, ?, ?> getOAuth2TokenCache() {

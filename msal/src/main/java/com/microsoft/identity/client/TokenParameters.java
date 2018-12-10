@@ -23,14 +23,10 @@
 
 package com.microsoft.identity.client;
 
-import android.util.Pair;
-
-import com.microsoft.identity.client.claims.ClaimsRequest;
+import com.microsoft.identity.common.internal.claims.ClaimsRequest;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Base class for AcquireTokenParameters and AcquireTokenSilentParameters

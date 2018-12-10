@@ -22,21 +22,17 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
-import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AuthenticatorDescription;
-import android.app.Application;
 import android.content.Context;
 
-import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
-import com.microsoft.identity.client.internal.authorities.AnyPersonalAccount;
-import com.microsoft.identity.client.internal.authorities.Authority;
-import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAudience;
-import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.internal.authorities.AnyPersonalAccount;
+import com.microsoft.identity.common.internal.authorities.Authority;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.internal.controllers.BaseController;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +55,9 @@ public class MSALControllerFactory {
      *
      * @return
      */
-    public static MSALController getAcquireTokenController(Context applicationContext, Authority authority, PublicClientApplicationConfiguration applicationConfiguration) {
+    public static BaseController getAcquireTokenController(Context applicationContext,
+                                                           Authority authority,
+                                                           PublicClientApplicationConfiguration applicationConfiguration) {
 
         if(brokerEligible(applicationContext, authority, applicationConfiguration)){
             return new BrokerMSALController();
@@ -84,9 +82,11 @@ public class MSALControllerFactory {
      * 5) The broker redirect URI for the client is registered
      * @return
      */
-    public static List<MSALController> getAcquireTokenSilentControllers(Context applicationContext, Authority authority, PublicClientApplicationConfiguration applicationConfiguration) {
+    public static List<BaseController> getAcquireTokenSilentControllers(Context applicationContext,
+                                                                        Authority authority,
+                                                                        PublicClientApplicationConfiguration applicationConfiguration) {
 
-        List<MSALController> controllers = new ArrayList<MSALController>();
+        List<BaseController> controllers = new ArrayList<BaseController>();
         controllers.add(new LocalMSALController());
         if(brokerEligible(applicationContext, authority, applicationConfiguration)) {
             controllers.add(new BrokerMSALController());
@@ -110,7 +110,9 @@ public class MSALControllerFactory {
      * @param applicationConfiguration
      * @return
      */
-    public static boolean brokerEligible(Context applicationContext, Authority authority, PublicClientApplicationConfiguration applicationConfiguration){
+    public static boolean brokerEligible(Context applicationContext,
+                                         Authority authority,
+                                         PublicClientApplicationConfiguration applicationConfiguration){
 
         //If app has asked for Broker or if the authority is not AAD return false
         if(!applicationConfiguration.getUseBroker() || !(authority instanceof AzureActiveDirectoryAuthority) ){
@@ -118,7 +120,7 @@ public class MSALControllerFactory {
         }
 
         //Do not use broker when the audience is MSA only (personal accounts / consumers tenant alias)
-        AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority)authority;
+        AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
         if(azureActiveDirectoryAuthority.getAudience() instanceof AnyPersonalAccount){
             return false;
         }

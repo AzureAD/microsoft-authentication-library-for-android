@@ -27,7 +27,9 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
 
+//TODO : Can be removed after adding support to do a complete interactive acquire token call using common.
 public final class BrokerActivity extends Activity {
 
     public static final String BROKER_INTENT = "broker_intent";
@@ -89,7 +91,7 @@ public final class BrokerActivity extends Activity {
 
         //Todo: Need the possible resultCodes(failures)  that could be returned
         if (resultCode == AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE) {
-            MSALApiDispatcher.completeInteractive(requestCode, resultCode, data);
+            ApiDispatcher.completeInteractive(requestCode, resultCode, data);
         }
         finish();
     }

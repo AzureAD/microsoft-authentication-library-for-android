@@ -26,6 +26,7 @@ package com.microsoft.identity.client;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccessTokenRecord;
 import com.microsoft.identity.common.internal.dto.IAccountRecord;
+import com.microsoft.identity.common.internal.result.IAuthenticationResult;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +35,7 @@ import java.util.concurrent.TimeUnit;
  * MSAL successful authentication result. When auth succeeds, token will be wrapped into the
  * {@link AuthenticationResult} and passed back through the {@link AuthenticationCallback}.
  */
-public final class AuthenticationResult {
+public final class AuthenticationResult implements IAuthenticationResult {
 
     //Fields for Legacy Cache
     private final String mTenantId;
@@ -66,6 +67,7 @@ public final class AuthenticationResult {
     /**
      * @return The access token requested.
      */
+    @Override
     public String getAccessToken() {
         return mAccessToken.getSecret();
     }
@@ -93,6 +95,7 @@ public final class AuthenticationResult {
      * @return A unique tenant identifier that was used in token acquisiton. Could be null if tenant information is not
      * returned by the service.
      */
+    @Override
     public String getTenantId() {
         return mTenantId;
     }
@@ -100,6 +103,7 @@ public final class AuthenticationResult {
     /**
      * @return The unique identifier of the user.
      */
+    @Override
     public String getUniqueId() {
         return mUniqueId;
     }
@@ -107,8 +111,17 @@ public final class AuthenticationResult {
     /**
      * @return The id token returned by the service or null if no id token is returned.
      */
+    @Override
     public String getIdToken() {
         return mRawIdToken;
+    }
+
+    /**
+     * @return The scopes returned from the service.
+     */
+    @Override
+    public String[] getScope() {
+        return mAccessToken.getTarget().split("\\s");
     }
 
     /**
@@ -118,12 +131,5 @@ public final class AuthenticationResult {
      */
     public IAccount getAccount() {
         return mAccount;
-    }
-
-    /**
-     * @return The scopes returned from the service.
-     */
-    public String[] getScope() {
-        return mAccessToken.getTarget().split("\\s");
     }
 }
