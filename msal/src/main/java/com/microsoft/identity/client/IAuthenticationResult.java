@@ -31,6 +31,15 @@ import java.util.Date;
 
 public interface IAuthenticationResult extends IBaseAuthenticationResult {
 
+
+    /**
+     * Gets the Account.
+     *
+     * @return The Account to get.
+     */
+    @NonNull
+    IAccount getAccount();
+
     /**
      * @return The access token requested.
      */
@@ -68,14 +77,6 @@ public interface IAuthenticationResult extends IBaseAuthenticationResult {
     @Nullable
     @Override
     String getIdToken();
-
-    /**
-     * Gets the Account.
-     *
-     * @return The Account to get.
-     */
-    @NonNull
-    IAccount getAccount();
 
     /**
      * @return The scopes returned from the service.

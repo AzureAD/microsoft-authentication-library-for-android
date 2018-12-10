@@ -37,6 +37,7 @@ import android.util.Pair;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
@@ -1133,9 +1134,23 @@ public final class PublicClientApplication {
     private static IAuthenticationCallback getAuthenticationCallback(final AuthenticationCallback authenticationCallback){
 
         return new IAuthenticationCallback() {
+
             @Override
             public void onSuccess(IBaseAuthenticationResult authenticationResult) {
-                authenticationCallback.onSuccess((AuthenticationResult) authenticationResult);
+                if(authenticationResult instanceof IAuthenticationResult) {
+                    authenticationCallback.onSuccess((IAuthenticationResult) authenticationResult);
+                }else {
+                    /**
+                     * This is strictly a safety check and should never happen as the Msal's {@link AuthenticationResult}
+                     * implements {@link IAuthenticationResult}
+                     */
+                    authenticationCallback.onError(
+                            new MsalClientException(
+                                    MsalClientException.UNKNOWN_ERROR,
+                                    "Invalid ClassCast: AuthenticationResult"
+                            )
+                    );
+                }
             }
 
             @Override
