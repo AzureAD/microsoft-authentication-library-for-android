@@ -421,17 +421,20 @@ public final class PublicClientApplication {
      * @param authority             The authority of the sought IAccount.
      * @return The IAccount stored in the cache or null, if no such matching entry exists.
      */
+    @Nullable
     public IAccount getAccount(@NonNull final String homeAccountIdentifier,
                                @Nullable final String authority) {
         final String methodName = ":getAccount";
+
+        MSALApiDispatcher.initializeDiagnosticContext();
 
         String realm = StringUtil.getTenantInfo(homeAccountIdentifier).second;
 
         Authority authorityObj = Authority.getAuthorityFromAuthorityUrl(authority);
 
         if (authorityObj instanceof AzureActiveDirectoryAuthority) {
-            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) authorityObj;
-            AzureActiveDirectoryAudience audience = aadAuthority.getAudience();
+            final AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) authorityObj;
+            final AzureActiveDirectoryAudience audience = aadAuthority.getAudience();
             realm = audience.getTenantId();
         } else {
             com.microsoft.identity.common.internal.logging.Logger.warn(
@@ -440,13 +443,22 @@ public final class PublicClientApplication {
             );
         }
 
-        MSALApiDispatcher.initializeDiagnosticContext();
-        final AccountRecord accountToReturn = AccountAdapter.getAccountInternal(
-                mPublicClientConfiguration.getClientId(),
-                mPublicClientConfiguration.getOAuth2TokenCache(),
-                homeAccountIdentifier,
-                realm
-        );
+        AccountRecord accountToReturn = null;
+
+        if (null != realm) {
+            accountToReturn = AccountAdapter.getAccountInternal(
+                    mPublicClientConfiguration.getClientId(),
+                    mPublicClientConfiguration.getOAuth2TokenCache(),
+                    homeAccountIdentifier,
+                    realm
+            );
+        } else {
+            com.microsoft.identity.common.internal.logging.Logger.warn(
+                    TAG + methodName,
+                    "Realm could not be resolved. Returning null."
+            );
+        }
+
         return null == accountToReturn ? null : AccountAdapter.adapt(accountToReturn);
     }
 
