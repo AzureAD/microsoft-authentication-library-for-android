@@ -28,11 +28,12 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
-import com.microsoft.identity.client.internal.authorities.AnyPersonalAccount;
-import com.microsoft.identity.client.internal.authorities.Authority;
-import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.internal.authorities.AnyPersonalAccount;
+import com.microsoft.identity.common.internal.authorities.Authority;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
+import com.microsoft.identity.common.internal.controllers.BaseController;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +56,8 @@ public class MSALControllerFactory {
      *
      * @return
      */
-    public static MSALController getAcquireTokenController(@NonNull final Context applicationContext,
+
+    public static BaseController getAcquireTokenController(@NonNull final Context applicationContext,
                                                            @NonNull final Authority authority,
                                                            @NonNull final PublicClientApplicationConfiguration applicationConfiguration) {
         if (brokerEligible(applicationContext, authority, applicationConfiguration)) {
@@ -82,10 +84,10 @@ public class MSALControllerFactory {
      *
      * @return
      */
-    public static List<MSALController> getAcquireTokenSilentControllers(@NonNull final Context applicationContext,
+    public static List<BaseController> getAcquireTokenSilentControllers(@NonNull final Context applicationContext,
                                                                         @NonNull final Authority authority,
                                                                         @NonNull final PublicClientApplicationConfiguration applicationConfiguration) {
-        List<MSALController> controllers = new ArrayList<MSALController>();
+        List<BaseController> controllers = new ArrayList<>();
         controllers.add(new LocalMSALController());
         if (brokerEligible(applicationContext, authority, applicationConfiguration)) {
             controllers.add(new BrokerMSALController());
@@ -117,6 +119,7 @@ public class MSALControllerFactory {
 
         //Do not use broker when the audience is MSA only (personal accounts / consumers tenant alias)
         AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
+
         if (azureActiveDirectoryAuthority.getAudience() instanceof AnyPersonalAccount) {
             return false;
         }

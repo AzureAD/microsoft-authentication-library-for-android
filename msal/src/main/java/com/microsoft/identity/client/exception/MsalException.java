@@ -24,19 +24,19 @@
 package com.microsoft.identity.client.exception;
 
 import com.microsoft.identity.client.internal.MsalUtils;
+import com.microsoft.identity.common.exception.BaseException;
 
 /**
  * {@link MsalException} thrown or sent back via callback, representing the detailed exception
  * thrown by the sdk. It will contain the error code, error description (could be null) or
  * throwable (could be null).
  */
-public class MsalException extends Exception {
-    private String mErrorCode;
-
+public class MsalException extends BaseException {
     /**
      * Default constructor.
      */
     MsalException() {
+        super();
     }
 
     /**
@@ -45,7 +45,7 @@ public class MsalException extends Exception {
      * @param errorCode The error code contained in the exception.
      */
     MsalException(final String errorCode) {
-        mErrorCode = errorCode;
+        super(errorCode);
     }
 
     /**
@@ -55,8 +55,7 @@ public class MsalException extends Exception {
      * @param errorMessage The error message contained in the exception.
      */
     MsalException(final String errorCode, final String errorMessage) {
-        super(errorMessage);
-        mErrorCode = errorCode;
+        super(errorCode, errorMessage);
     }
 
     /**
@@ -68,16 +67,16 @@ public class MsalException extends Exception {
      */
     MsalException(final String errorCode, final String errorMessage,
                   final Throwable throwable) {
-        super(errorMessage, throwable);
-        mErrorCode = errorCode;
+        super(errorCode, errorMessage, throwable);
     }
 
     /**
      * @return The error code for the exception, could be null. {@link MsalException} is the top level base exception, for the
      * constants value of all the error code.
      */
+    @Override
     public String getErrorCode() {
-        return mErrorCode;
+        return super.getErrorCode();
     }
 
     /**

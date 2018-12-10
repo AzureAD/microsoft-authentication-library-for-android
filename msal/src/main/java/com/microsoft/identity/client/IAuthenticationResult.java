@@ -25,14 +25,17 @@ package com.microsoft.identity.client;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.microsoft.identity.common.internal.result.IBaseAuthenticationResult;
+
 import java.util.Date;
 
-public interface IAuthenticationResult {
+public interface IAuthenticationResult extends IBaseAuthenticationResult {
 
     /**
      * @return The access token requested.
      */
     @NonNull
+    @Override
     String getAccessToken();
 
     /**
@@ -41,6 +44,7 @@ public interface IAuthenticationResult {
      * service.
      */
     @NonNull
+    @Override
     Date getExpiresOn();
 
     /**
@@ -48,18 +52,21 @@ public interface IAuthenticationResult {
      * returned by the service.
      */
     @Nullable
+    @Override
     String getTenantId();
 
     /**
      * @return The unique identifier of the user.
      */
     @NonNull
+    @Override
     String getUniqueId();
 
     /**
      * @return The id token returned by the service or null if no id token is returned.
      */
     @Nullable
+    @Override
     String getIdToken();
 
     /**
@@ -74,5 +81,6 @@ public interface IAuthenticationResult {
      * @return The scopes returned from the service.
      */
     @NonNull
+    @Override
     String[] getScope();
 }
