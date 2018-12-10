@@ -43,8 +43,8 @@ public abstract class Authority {
 
     private static final String TAG = Authority.class.getSimpleName();
 
-    public static final String ADFS_PATH_SEGMENT = "adfs";
-    public static final String B2C_PATH_SEGMENT = "tfp";
+    private static final String ADFS_PATH_SEGMENT = "adfs";
+    private static final String B2C_PATH_SEGMENT = "tfp";
 
     protected boolean mKnownToMicrosoft = false;
     protected boolean mKnownToDeveloper = false;
