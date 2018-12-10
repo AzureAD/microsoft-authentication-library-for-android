@@ -28,7 +28,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -43,6 +42,7 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.authorities.Authority;
 import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAudience;
+import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.client.internal.configuration.AuthorityDeserializer;
 import com.microsoft.identity.client.internal.configuration.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
@@ -81,20 +81,13 @@ import com.microsoft.identity.msal.R;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static com.microsoft.identity.client.internal.authorities.Authority.ADFS_PATH_SEGMENT;
-import static com.microsoft.identity.client.internal.authorities.Authority.B2C_PATH_SEGMENT;
 import static com.microsoft.identity.client.internal.authorities.Authority.getAuthorityFromAuthorityUrl;
-import static com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAudience.ALL;
-import static com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAudience.CONSUMERS;
-import static com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAudience.ORGANIZATIONS;
 import static com.microsoft.identity.client.internal.controllers.MSALAcquireTokenOperationParameters.createMsalAcquireTokenOperationParameters;
 import static com.microsoft.identity.client.internal.controllers.MSALAcquireTokenSilentOperationParameters.createMSALAcquireTokenSilentOperationParameters;
 import static com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
@@ -434,41 +427,17 @@ public final class PublicClientApplication {
 
         String realm = StringUtil.getTenantInfo(homeAccountIdentifier).second;
 
-        if (null != authority) {
-            com.microsoft.identity.common.internal.logging.Logger.info(
+        Authority authorityObj = Authority.getAuthorityFromAuthorityUrl(authority);
+
+        if (authorityObj instanceof AzureActiveDirectoryAuthority) {
+            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) authorityObj;
+            AzureActiveDirectoryAudience audience = aadAuthority.getAudience();
+            realm = audience.getTenantId();
+        } else {
+            com.microsoft.identity.common.internal.logging.Logger.warn(
                     TAG + methodName,
-                    "Authority was provided. Parsing for tenant info."
+                    "Provided authority was not AAD - defaulting to parsed home_account_id"
             );
-
-            // Try to parse the tenant id off of the authority
-            final URL authorityUrl;
-
-            try {
-                authorityUrl = new URL(authority);
-            } catch (MalformedURLException e) {
-                throw new IllegalArgumentException("Invalid authority URL");
-            }
-
-            final Uri authorityUri = Uri.parse(authorityUrl.toString());
-            final List<String> pathSegments = authorityUri.getPathSegments();
-
-            if (!pathSegments.isEmpty()) {
-                final String tenantInfo = pathSegments.get(0);
-                switch (tenantInfo.toLowerCase()) {
-                    case B2C_PATH_SEGMENT:
-                    case ADFS_PATH_SEGMENT:
-                    case ALL:
-                    case ORGANIZATIONS:
-                    case CONSUMERS:
-                        com.microsoft.identity.common.internal.logging.Logger.info(
-                                TAG + methodName,
-                                "Authority defaulted to home tenant."
-                        );
-                        break;
-                    default:
-                        realm = tenantInfo;
-                }
-            }
         }
 
         MSALApiDispatcher.initializeDiagnosticContext();
