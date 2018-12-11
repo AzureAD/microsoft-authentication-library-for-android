@@ -27,14 +27,14 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.microsoft.identity.client.configuration.HttpConfiguration;
-import com.microsoft.identity.client.internal.authorities.AccountsInOneOrganization;
-import com.microsoft.identity.client.internal.authorities.ActiveDirectoryFederationServicesAuthority;
-import com.microsoft.identity.client.internal.authorities.AllAccounts;
-import com.microsoft.identity.client.internal.authorities.AnyOrganizationalAccount;
-import com.microsoft.identity.client.internal.authorities.AnyPersonalAccount;
-import com.microsoft.identity.client.internal.authorities.Authority;
-import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryB2CAuthority;
+import com.microsoft.identity.common.internal.authorities.AccountsInOneOrganization;
+import com.microsoft.identity.common.internal.authorities.ActiveDirectoryFederationServicesAuthority;
+import com.microsoft.identity.common.internal.authorities.AllAccounts;
+import com.microsoft.identity.common.internal.authorities.AnyOrganizationalAccount;
+import com.microsoft.identity.common.internal.authorities.AnyPersonalAccount;
+import com.microsoft.identity.common.internal.authorities.Authority;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.msal.test.R;
 

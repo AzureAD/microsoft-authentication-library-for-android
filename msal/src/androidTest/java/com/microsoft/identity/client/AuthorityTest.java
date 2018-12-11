@@ -2,7 +2,7 @@ package com.microsoft.identity.client;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import com.microsoft.identity.client.internal.authorities.Authority;
+import com.microsoft.identity.common.internal.authorities.Authority;
 
 import junit.framework.Assert;
 
