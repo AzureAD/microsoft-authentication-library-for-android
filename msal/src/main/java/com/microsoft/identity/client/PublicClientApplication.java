@@ -524,6 +524,7 @@ public final class PublicClientApplication {
     public void handleInteractiveRequestRedirect(final int requestCode,
                                                  final int resultCode,
                                                  @NonNull final Intent data) {
+
         ApiDispatcher.completeInteractive(requestCode, resultCode, data);
     }
 
@@ -807,7 +808,6 @@ public final class PublicClientApplication {
 
         acquireTokenAsync(acquireTokenParameters);
     }
-
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
@@ -1134,7 +1134,6 @@ public final class PublicClientApplication {
     private static IAuthenticationCallback getAuthenticationCallback(final AuthenticationCallback authenticationCallback){
 
         return new IAuthenticationCallback() {
-
             @Override
             public void onSuccess(IBaseAuthenticationResult authenticationResult) {
                 if(authenticationResult instanceof IAuthenticationResult) {
