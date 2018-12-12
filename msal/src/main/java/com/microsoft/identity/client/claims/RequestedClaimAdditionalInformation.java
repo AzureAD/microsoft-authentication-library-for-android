@@ -29,6 +29,7 @@ import java.util.List;
 
 /**
  * Represents the additional information that can be sent to an authorization server for a request claim in the claim request parameter
+ *
  * @see <a href="https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter">https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter</a>
  */
 public class RequestedClaimAdditionalInformation {

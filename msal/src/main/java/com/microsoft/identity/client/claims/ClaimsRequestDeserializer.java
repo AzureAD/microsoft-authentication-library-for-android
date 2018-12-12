@@ -56,7 +56,10 @@ class ClaimsRequestDeserializer implements JsonDeserializer<ClaimsRequest> {
             claim.setName(key);
             JsonElement element = addTo.get(key);
             if (!(element instanceof JsonNull)) {
-                RequestedClaimAdditionalInformation additionalInformation = context.deserialize(addTo.getAsJsonObject(key), RequestedClaimAdditionalInformation.class);
+                RequestedClaimAdditionalInformation additionalInformation = context.deserialize(
+                        addTo.getAsJsonObject(key),
+                        RequestedClaimAdditionalInformation.class
+                );
                 claim.setAdditionalInformation(additionalInformation);
             }
             claimList.add(claim);

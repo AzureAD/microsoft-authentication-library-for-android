@@ -30,6 +30,7 @@ import java.util.List;
 
 /**
  * Represents the claims request parameter as an object
+ *
  * @see <a href="https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter">https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter</a>
  */
 public class ClaimsRequest {
@@ -45,6 +46,7 @@ public class ClaimsRequest {
 
     /**
      * Return the list of requested claims for the userinfo endpoint in the claims request parameter object
+     *
      * @return
      */
     public List<RequestedClaim> getUserInfoClaimsRequested() {
@@ -53,6 +55,7 @@ public class ClaimsRequest {
 
     /**
      * Return the list of requested claims for an Access Token in the claims request parameter object
+     *
      * @return
      */
     public List<RequestedClaim> getAccessTokenClaimsRequested() {
@@ -61,6 +64,7 @@ public class ClaimsRequest {
 
     /**
      * Return the list of requested claims for an ID Token in the claims request parameter object
+     *
      * @return
      */
     public List<RequestedClaim> getIdTokenClaimsRequested() {
@@ -69,9 +73,10 @@ public class ClaimsRequest {
 
     /**
      * Returns a claims request parameter object based on the JSON representation of the same.
-     * @see <a href="https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter">https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter</a>
+     *
      * @param claimsRequestJson
      * @return
+     * @see <a href="https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter">https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter</a>
      */
     public static ClaimsRequest getClaimsRequestFromJsonString(String claimsRequestJson) {
         return deserializeClaimsRequest(claimsRequestJson);
@@ -79,9 +84,10 @@ public class ClaimsRequest {
 
     /**
      * Returns the JSON representation of the claims request parameter
-     * @see <a href="https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter">https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter</a>
+     *
      * @param claimsRequest
      * @return
+     * @see <a href="https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter">https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter</a>
      */
     public static String getJsonStringFromClaimsRequest(ClaimsRequest claimsRequest) {
         return serializeClaimsRequest(claimsRequest);
@@ -121,32 +127,35 @@ public class ClaimsRequest {
 
     /**
      * Adds a request for a specific claim to be included in an access token via the claims request parameter
+     *
      * @param name
      * @param additionalInformation
      */
-    public void requestClaimInAccessToken(String name, RequestedClaimAdditionalInformation additionalInformation){
+    public void requestClaimInAccessToken(String name, RequestedClaimAdditionalInformation additionalInformation) {
         requestClaimIn(mAccessTokenClaimsRequested, name, additionalInformation);
     }
 
     /**
      * Adds a request for a specific claim to be included in an id token via the claims request parameter
+     *
      * @param name
      * @param additionalInformation
      */
-    public void requestClaimInIdToken(String name, RequestedClaimAdditionalInformation additionalInformation){
+    public void requestClaimInIdToken(String name, RequestedClaimAdditionalInformation additionalInformation) {
         requestClaimIn(mIdTokenClaimsRequested, name, additionalInformation);
     }
 
     /**
      * Adds a request for a specific claim to be included in the userinfo response via the claims request parameter
+     *
      * @param name
      * @param additionalInformation
      */
-    public void requestClaimInUserInfo(String name, RequestedClaimAdditionalInformation additionalInformation){
+    public void requestClaimInUserInfo(String name, RequestedClaimAdditionalInformation additionalInformation) {
         requestClaimIn(mUserInfoClaimsRequested, name, additionalInformation);
     }
 
-    private void requestClaimIn(List<RequestedClaim> claims, String name, RequestedClaimAdditionalInformation additionalInformation){
+    private void requestClaimIn(List<RequestedClaim> claims, String name, RequestedClaimAdditionalInformation additionalInformation) {
         RequestedClaim requestedClaim = new RequestedClaim();
         requestedClaim.setName(name);
         requestedClaim.setAdditionalInformation(additionalInformation);

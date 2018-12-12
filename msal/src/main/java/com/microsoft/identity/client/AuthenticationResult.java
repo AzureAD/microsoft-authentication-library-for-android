@@ -37,7 +37,6 @@ import java.util.concurrent.TimeUnit;
  * {@link AuthenticationResult} and passed back through the {@link AuthenticationCallback}.
  */
 public final class AuthenticationResult implements IAuthenticationResult {
-
     //Fields for Legacy Cache
     private final String mTenantId;
     private final String mRawIdToken;

@@ -24,6 +24,7 @@ package com.microsoft.identity.client.claims;
 
 /**
  * Represents an individual requested claims that's part of a complete claims request parameter
+ *
  * @see <a href="https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter">https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter</a>
  */
 public class RequestedClaim {
@@ -33,6 +34,7 @@ public class RequestedClaim {
 
     /**
      * Returns the name of the claim being requested
+     *
      * @return
      */
     public String getName() {
@@ -41,6 +43,7 @@ public class RequestedClaim {
 
     /**
      * Sets the name of the claim being requested
+     *
      * @param name
      */
     public void setName(String name) {
@@ -49,6 +52,7 @@ public class RequestedClaim {
 
     /**
      * Returns additional information that can be optionally sent to the authorization server (default is null) for a particular requested claim
+     *
      * @return
      */
     public RequestedClaimAdditionalInformation getAdditionalInformation() {
@@ -57,6 +61,7 @@ public class RequestedClaim {
 
     /**
      * Sets additional information that can be optionally sent to the authorization server (default is null) for a particular requested claim
+     *
      * @return
      */
     public void setAdditionalInformation(RequestedClaimAdditionalInformation information) {

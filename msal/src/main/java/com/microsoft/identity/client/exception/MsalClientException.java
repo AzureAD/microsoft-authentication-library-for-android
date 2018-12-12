@@ -24,6 +24,7 @@
 package com.microsoft.identity.client.exception;
 
 import com.microsoft.identity.client.AuthenticationActivity;
+import com.microsoft.identity.common.exception.ClientException;
 
 /**
  * This exception class represents general errors that are local to the library. Below is the table of proposed codes and a short description of each.
@@ -59,58 +60,58 @@ public final class MsalClientException extends MsalException {
      * or refresh token from the cache. Likely it's a bug in the sdk when caching tokens or authority
      * is not proviced in the silent request and multiple tokens were found.
      */
-    public static final String MULTIPLE_MATCHING_TOKENS_DETECTED = "multiple_matching_tokens_detected";
+    public static final String MULTIPLE_MATCHING_TOKENS_DETECTED = ClientException.MULTIPLE_MATCHING_TOKENS_DETECTED;
 
     /**
      * No active network is available on the device.
      */
-    public static final String DEVICE_NETWORK_NOT_AVAILABLE = "device_network_not_available";
+    public static final String DEVICE_NETWORK_NOT_AVAILABLE = ClientException.DEVICE_NETWORK_NOT_AVAILABLE;
 
     /**
      * A scope is required when making a token request
      */
-    public static final String SCOPE_EMPTY_OR_NULL = "scope_empty_or_null";
+    public static final String SCOPE_EMPTY_OR_NULL = ClientException.SCOPE_EMPTY_OR_NULL;
 
     /**
      * The sdk failed to parse the Json format.
      */
-    public static final String JSON_PARSE_FAILURE = "json_parse_failure";
+    public static final String JSON_PARSE_FAILURE = ClientException.JSON_PARSE_FAILURE;
 
     /**
      * IOException happened, could be the device/network errors.
      */
-    public static final String IO_ERROR = "io_error";
+    public static final String IO_ERROR = ClientException.IO_ERROR;
 
     /**
      * The url is malformed.  Likely caused when constructing the auth request, authority, or redirect URI.
      */
-    public static final String MALFORMED_URL = "malformed_url";
+    public static final String MALFORMED_URL = ClientException.MALFORMED_URL;
 
     /**
      * The authority is unknown.  Occurs when the authority is not part of configuration or the authority host is not recognized by Microsoft.
      */
-    public static final String UNKNOWN_AUTHORITY = "unknown_authority";
+    public static final String UNKNOWN_AUTHORITY = ClientException.UNKNOWN_AUTHORITY;
 
     /**
      * The encoding is not supported by the device.
      */
-    public static final String UNSUPPORTED_ENCODING = "unsupported_encoding";
+    public static final String UNSUPPORTED_ENCODING = ClientException.UNSUPPORTED_ENCODING;
 
     /**
      * The algorithm used to generate pkce challenge is not supported.
      */
-    public static final String NO_SUCH_ALGORITHM = "no_such_algorithm";
+    public static final String NO_SUCH_ALGORITHM = ClientException.NO_SUCH_ALGORITHM;
 
     /**
      * JWT returned by the server is not valid, empty or malformed.
      */
-    public static final String INVALID_JWT = "invalid_jwt";
+    public static final String INVALID_JWT = ClientException.INVALID_JWT;
 
     /**
      * State from authorization response did not match the state in the authorization request.
      * For authorization requests, the sdk will verify the state returned from redirect and the one sent in the request.
      */
-    public static final String STATE_MISMATCH = "state_mismatch";
+    public static final String STATE_MISMATCH = ClientException.STATE_MISMATCH;
 
     /**
      * The intent to launch {@link AuthenticationActivity} is not resolvable by the OS or the intent doesn't contain the required data.
@@ -120,13 +121,13 @@ public final class MsalClientException extends MsalException {
     /**
      * Unsupported url, cannot perform adfs authority validation.
      */
-    public static final String UNSUPPORTED_URL = "unsupported_url";
+    public static final String UNSUPPORTED_URL = ClientException.UNSUPPORTED_URL;
 
     /**
      * The authority is not supported for authority validation. The sdk supports b2c authority, but we don't support b2c authority validation yet.
      * Only well-known host will be supported.
      */
-    public static final String AUTHORITY_VALIDATION_NOT_SUPPORTED = "authority_validation_not_supported";
+    public static final String AUTHORITY_VALIDATION_NOT_SUPPORTED = ClientException.AUTHORITY_VALIDATION_NOT_SUPPORTED;
 
     /**
      * Note: after MSAL 0.2.0 this error is no longer relevant. 
@@ -138,17 +139,17 @@ public final class MsalClientException extends MsalException {
     /**
      * The user provided in the acquire token request doesn't match the user returned from server.
      */
-    public static final String USER_MISMATCH = "user_mismatch";
+    public static final String USER_MISMATCH = ClientException.USER_MISMATCH;
 
     /**
      * Extra query parameters set by the client app is already sent by the sdk.
      */
-    public static final String DUPLICATE_QUERY_PARAMETER = "duplicate_query_parameter";
+    public static final String DUPLICATE_QUERY_PARAMETER = ClientException.DUPLICATE_QUERY_PARAMETER;
 
     /**
      * Extra query parameters set by the client app is already sent by the sdk.
      */
-    public static final String UNKNOWN_ERROR = "unknown_error";
+    public static final String UNKNOWN_ERROR = ClientException.UNKNOWN_ERROR;
 
     /**
      * Temporary non-exposed error code to indicate that ADFS authority validation fails. ADFS as authority is not supported

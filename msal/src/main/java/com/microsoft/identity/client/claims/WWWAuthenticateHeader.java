@@ -37,6 +37,7 @@ public class WWWAuthenticateHeader {
     /**
      * Returns a claims request parameter that corresponds to the contents of the claims directive in a
      * WWW-Authenticate Header.
+     *
      * @param headerValue - String content of the www-authenticate header
      * @return
      */
@@ -84,6 +85,7 @@ public class WWWAuthenticateHeader {
 
     /**
      * Checks if the WWW-Authenticate header value contains the claims directive
+     *
      * @param headerValue
      * @return
      */
