@@ -28,6 +28,7 @@ import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.UiBehavior;
+import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
@@ -49,7 +50,8 @@ public class OperationParametersAdapter {
             PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
 
         final String methodName = ":createAcquireTokenOperationParameters";
-        final AcquireTokenOperationParameters acquireTokenOperationParameters = new AcquireTokenOperationParameters();
+        final AcquireTokenOperationParameters acquireTokenOperationParameters =
+                new AcquireTokenOperationParameters();
 
         if (StringUtil.isEmpty(acquireTokenParameters.getAuthority())) {
             if (acquireTokenParameters.getAccount() != null) {
@@ -59,52 +61,95 @@ public class OperationParametersAdapter {
                                 publicClientApplicationConfiguration)
                 );
             } else {
-                acquireTokenOperationParameters.setAuthority(publicClientApplicationConfiguration.getDefaultAuthority());
+                acquireTokenOperationParameters.
+                        setAuthority(
+                                publicClientApplicationConfiguration.getDefaultAuthority()
+                        );
             }
 
         } else {
-            acquireTokenOperationParameters.setAuthority(Authority.getAuthorityFromAuthorityUrl(acquireTokenParameters.getAuthority()));
+            acquireTokenOperationParameters.setAuthority(
+                    Authority.getAuthorityFromAuthorityUrl(
+                            acquireTokenParameters.getAuthority()
+                    )
+            );
         }
 
         if (acquireTokenOperationParameters.getAuthority() instanceof AzureActiveDirectoryAuthority) {
-            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) acquireTokenOperationParameters.getAuthority();
-            aadAuthority.setMultipleCloudsSupported(publicClientApplicationConfiguration.getMultipleCloudsSupported());
-        }
+            AzureActiveDirectoryAuthority aadAuthority =
+                    (AzureActiveDirectoryAuthority) acquireTokenOperationParameters.getAuthority();
 
+            aadAuthority.setMultipleCloudsSupported(
+                    publicClientApplicationConfiguration.getMultipleCloudsSupported()
+            );
+        }
         com.microsoft.identity.common.internal.logging.Logger.verbosePII(
                 methodName,
-                "Using authority: [" + acquireTokenOperationParameters.getAuthority().getAuthorityUri() + "]"
+                "Using authority: [" + acquireTokenOperationParameters
+                        .getAuthority()
+                        .getAuthorityUri() + "]"
+        );
+        acquireTokenOperationParameters.setScopes(
+                new ArrayList<>(acquireTokenParameters.getScopes()
+                )
+        );
+        acquireTokenOperationParameters.setClientId(
+                publicClientApplicationConfiguration.getClientId()
+        );
+        acquireTokenOperationParameters.setRedirectUri(
+                publicClientApplicationConfiguration.getRedirectUri()
+        );
+        acquireTokenOperationParameters.setActivity(
+                acquireTokenParameters.getActivity()
         );
 
-        acquireTokenOperationParameters.setScopes(new ArrayList<>(acquireTokenParameters.getScopes()));
-        acquireTokenOperationParameters.setClientId(publicClientApplicationConfiguration.getClientId());
-        acquireTokenOperationParameters.setRedirectUri(publicClientApplicationConfiguration.getRedirectUri());
-        acquireTokenOperationParameters.setActivity(acquireTokenParameters.getActivity());
-
         if (acquireTokenParameters.getAccount() != null) {
-            acquireTokenOperationParameters.setLoginHint(acquireTokenParameters.getAccount().getUsername());
-            acquireTokenOperationParameters.setAccount(acquireTokenParameters.getAccountRecord());
+            acquireTokenOperationParameters.setLoginHint(
+                    acquireTokenParameters.getAccount().getUsername()
+            );
+            acquireTokenOperationParameters.setAccount(
+                    acquireTokenParameters.getAccountRecord()
+            );
         } else {
-            acquireTokenOperationParameters.setLoginHint(acquireTokenParameters.getLoginHint());
+            acquireTokenOperationParameters.setLoginHint(
+                    acquireTokenParameters.getLoginHint()
+            );
         }
-
-        acquireTokenOperationParameters.setTokenCache(publicClientApplicationConfiguration.getOAuth2TokenCache());
-        acquireTokenOperationParameters.setExtraQueryStringParameters(acquireTokenParameters.getExtraQueryStringParameters());
-        acquireTokenOperationParameters.setExtraScopesToConsent(acquireTokenParameters.getExtraScopesToConsent());
-        acquireTokenOperationParameters.setAppContext(publicClientApplicationConfiguration.getAppContext());
-        acquireTokenOperationParameters.setClaimsRequest(acquireTokenParameters.getClaimsRequest());
+        acquireTokenOperationParameters.setTokenCache(
+                publicClientApplicationConfiguration.getOAuth2TokenCache()
+        );
+        acquireTokenOperationParameters.setExtraQueryStringParameters(
+                acquireTokenParameters.getExtraQueryStringParameters()
+        );
+        acquireTokenOperationParameters.setExtraScopesToConsent(
+                acquireTokenParameters.getExtraScopesToConsent()
+        );
+        acquireTokenOperationParameters.setAppContext(
+                publicClientApplicationConfiguration.getAppContext()
+        );
+        acquireTokenOperationParameters.setClaimsRequest(
+                ClaimsRequest.getJsonStringFromClaimsRequest(
+                        acquireTokenParameters.getClaimsRequest()
+                )
+        );
 
         if (null != publicClientApplicationConfiguration.getAuthorizationAgent()) {
-            acquireTokenOperationParameters.setAuthorizationAgent(publicClientApplicationConfiguration.getAuthorizationAgent());
+            acquireTokenOperationParameters.setAuthorizationAgent(
+                    publicClientApplicationConfiguration.getAuthorizationAgent()
+            );
         } else {
             acquireTokenOperationParameters.setAuthorizationAgent(AuthorizationAgent.DEFAULT);
         }
 
         if (acquireTokenParameters.getUiBehavior() == null) {
-            acquireTokenOperationParameters.setOpenIdConnectPromptParameter(OpenIdConnectPromptParameter.SELECT_ACCOUNT);
+            acquireTokenOperationParameters.setOpenIdConnectPromptParameter(
+                    OpenIdConnectPromptParameter.SELECT_ACCOUNT
+            );
         } else {
             acquireTokenOperationParameters.setOpenIdConnectPromptParameter(
-                    UiBehavior.mapUIBehaviorToOpenIdConnect(acquireTokenParameters.getUiBehavior())
+                    acquireTokenParameters
+                            .getUiBehavior()
+                            .toOpenIdConnectPromptParameter()
             );
         }
 
@@ -115,35 +160,58 @@ public class OperationParametersAdapter {
             AcquireTokenSilentParameters acquireTokenSilentParameters,
             PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
 
-        final AcquireTokenSilentOperationParameters acquireTokenSilentOperationParameters = new AcquireTokenSilentOperationParameters();
-        acquireTokenSilentOperationParameters.setAppContext(publicClientApplicationConfiguration.getAppContext());
-        acquireTokenSilentOperationParameters.setScopes(new ArrayList<>(acquireTokenSilentParameters.getScopes()));
-        acquireTokenSilentOperationParameters.setClientId(publicClientApplicationConfiguration.getClientId());
-        acquireTokenSilentOperationParameters.setTokenCache(publicClientApplicationConfiguration.getOAuth2TokenCache());
-        acquireTokenSilentOperationParameters.setAccount(acquireTokenSilentParameters.getAccountRecord());
+        final AcquireTokenSilentOperationParameters acquireTokenSilentOperationParameters
+                = new AcquireTokenSilentOperationParameters();
+
+        acquireTokenSilentOperationParameters.setAppContext(
+                publicClientApplicationConfiguration.getAppContext()
+        );
+        acquireTokenSilentOperationParameters.setScopes(
+                new ArrayList<>(acquireTokenSilentParameters.getScopes()
+                )
+        );
+        acquireTokenSilentOperationParameters.setClientId(
+                publicClientApplicationConfiguration.getClientId()
+        );
+        acquireTokenSilentOperationParameters.setTokenCache(
+                publicClientApplicationConfiguration.getOAuth2TokenCache()
+        );
+        acquireTokenSilentOperationParameters.setAccount(
+                acquireTokenSilentParameters.getAccountRecord()
+        );
 
         if (StringUtil.isEmpty(acquireTokenSilentParameters.getAuthority())) {
             acquireTokenSilentParameters.setAuthority(
-                    getSilentRequestAuthority(acquireTokenSilentParameters.getAccount(),
-                            publicClientApplicationConfiguration)
+                    getSilentRequestAuthority(
+                            acquireTokenSilentParameters.getAccount(),
+                            publicClientApplicationConfiguration
+                    )
             );
         }
         acquireTokenSilentOperationParameters.setAuthority(
                 Authority.getAuthorityFromAuthorityUrl(acquireTokenSilentParameters.getAuthority())
         );
-
         acquireTokenSilentOperationParameters.setRedirectUri(
                 publicClientApplicationConfiguration.getRedirectUri()
         );
 
         if (acquireTokenSilentOperationParameters.getAuthority() instanceof AzureActiveDirectoryAuthority) {
-            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) acquireTokenSilentOperationParameters.getAuthority();
+            AzureActiveDirectoryAuthority aadAuthority =
+                    (AzureActiveDirectoryAuthority) acquireTokenSilentOperationParameters.getAuthority();
+
             aadAuthority.setMultipleCloudsSupported(
                     publicClientApplicationConfiguration.getMultipleCloudsSupported()
             );
         }
-        acquireTokenSilentOperationParameters.setClaimsRequest(acquireTokenSilentParameters.getClaimsRequest());
-        acquireTokenSilentOperationParameters.setForceRefresh(acquireTokenSilentParameters.getForceRefresh());
+        acquireTokenSilentOperationParameters.setClaimsRequest(
+                ClaimsRequest.getJsonStringFromClaimsRequest(
+                        acquireTokenSilentParameters.getClaimsRequest()
+                )
+        );
+
+        acquireTokenSilentOperationParameters.setForceRefresh(
+                acquireTokenSilentParameters.getForceRefresh()
+        );
 
         return acquireTokenSilentOperationParameters;
     }
@@ -157,7 +225,10 @@ public class OperationParametersAdapter {
 
         // For a B2C request, the silent request will use the passed-in authority string from client app.
         if (publicClientApplicationConfiguration.getDefaultAuthority() instanceof AzureActiveDirectoryB2CAuthority) {
-            requestAuthority = publicClientApplicationConfiguration.getDefaultAuthority().getAuthorityURL().toString();
+            requestAuthority = publicClientApplicationConfiguration
+                    .getDefaultAuthority()
+                    .getAuthorityURL()
+                    .toString();
         }
 
         // If the request is not a B2C request or the passed-in authority is not a valid URL.
@@ -183,7 +254,10 @@ public class OperationParametersAdapter {
 
         // For a B2C request, the silent request will use the passed-in authority string from client app.
         if (publicClientApplicationConfiguration.getDefaultAuthority() instanceof AzureActiveDirectoryB2CAuthority) {
-            requestAuthority = publicClientApplicationConfiguration.getDefaultAuthority().getAuthorityURL().toString();
+            requestAuthority = publicClientApplicationConfiguration
+                    .getDefaultAuthority()
+                    .getAuthorityURL()
+                    .toString();
         }
 
         // If the request is not a B2C request or the passed-in authority is not a valid URL.
@@ -193,7 +267,10 @@ public class OperationParametersAdapter {
         }
 
         if (requestAuthority == null) {
-            requestAuthority = publicClientApplicationConfiguration.getDefaultAuthority().getAuthorityURL().toString();
+            requestAuthority = publicClientApplicationConfiguration
+                    .getDefaultAuthority()
+                    .getAuthorityURL()
+                    .toString();
         }
 
         return requestAuthority;

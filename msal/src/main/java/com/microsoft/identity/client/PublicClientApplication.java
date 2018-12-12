@@ -37,7 +37,7 @@ import android.util.Pair;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
@@ -63,7 +63,6 @@ import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentia
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
-import com.microsoft.identity.common.internal.claims.ClaimsRequest;
 import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
 import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
 import com.microsoft.identity.common.internal.controllers.TokenCommand;
@@ -79,8 +78,8 @@ import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.M
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
-import com.microsoft.identity.common.internal.request.IAuthenticationCallback;
-import com.microsoft.identity.common.internal.result.IBaseAuthenticationResult;
+import com.microsoft.identity.common.internal.request.ILocalAuthenticationCallback;
+import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.msal.BuildConfig;
 import com.microsoft.identity.msal.R;
@@ -828,7 +827,10 @@ public final class PublicClientApplication {
                         mPublicClientConfiguration
                 );
 
-        IAuthenticationCallback authenticationCallback = getAuthenticationCallback(acquireTokenParameters.getCallback());
+        ILocalAuthenticationCallback localAuthenticationCallback =
+                getLocalAuthenticationCallback(
+                        acquireTokenParameters.getCallback()
+        );
 
         final InteractiveTokenCommand command = new InteractiveTokenCommand(
                 mPublicClientConfiguration.getAppContext(),
@@ -838,7 +840,7 @@ public final class PublicClientApplication {
                         params.getAuthority(),
                         mPublicClientConfiguration
                 ),
-                authenticationCallback
+                localAuthenticationCallback
         );
         ApiDispatcher.beginInteractive(command);
     }
@@ -952,7 +954,7 @@ public final class PublicClientApplication {
                         mPublicClientConfiguration
                 );
 
-        IAuthenticationCallback callback = getAuthenticationCallback(acquireTokenSilentParameters.getCallback());
+        ILocalAuthenticationCallback callback = getLocalAuthenticationCallback(acquireTokenSilentParameters.getCallback());
 
         final TokenCommand silentTokenCommand = new TokenCommand(
                 mPublicClientConfiguration.getAppContext(),
@@ -1131,26 +1133,14 @@ public final class PublicClientApplication {
         );
     }
 
-    private static IAuthenticationCallback getAuthenticationCallback(final AuthenticationCallback authenticationCallback){
+    private static ILocalAuthenticationCallback getLocalAuthenticationCallback(final AuthenticationCallback authenticationCallback){
 
-        return new IAuthenticationCallback() {
+        return new ILocalAuthenticationCallback() {
 
             @Override
-            public void onSuccess(IBaseAuthenticationResult authenticationResult) {
-                if(authenticationResult instanceof IAuthenticationResult) {
-                    authenticationCallback.onSuccess((IAuthenticationResult) authenticationResult);
-                }else {
-                    /**
-                     * This is strictly a safety check and should never happen as the Msal's {@link AuthenticationResult}
-                     * implements {@link IAuthenticationResult}
-                     */
-                    authenticationCallback.onError(
-                            new MsalClientException(
-                                    MsalClientException.UNKNOWN_ERROR,
-                                    "Invalid ClassCast: AuthenticationResult"
-                            )
-                    );
-                }
+            public void onSuccess(ILocalAuthenticationResult localAuthenticationResult) {
+                IAuthenticationResult authenticationResult = AuthenticationResultAdapter.adapt(localAuthenticationResult);
+                authenticationCallback.onSuccess(authenticationResult);
             }
 
             @Override

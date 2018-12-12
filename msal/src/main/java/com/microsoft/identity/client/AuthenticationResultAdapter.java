@@ -22,57 +22,17 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 
-import java.util.Date;
+public class AuthenticationResultAdapter {
 
-public interface IAuthenticationResult {
+    static IAuthenticationResult adapt(ILocalAuthenticationResult localAuthenticationResult) {
 
-    /**
-     * @return The access token requested.
-     */
-    @NonNull
-    String getAccessToken();
-
-    /**
-     * @return The expiration time of the access token returned in the Token property.
-     * This value is calculated based on current UTC time measured locally and the value expiresIn returned from the
-     * service.
-     */
-    @NonNull
-    Date getExpiresOn();
-
-    /**
-     * @return A unique tenant identifier that was used in token acquisiton. Could be null if tenant information is not
-     * returned by the service.
-     */
-    @Nullable
-    String getTenantId();
-
-    /**
-     * @return The unique identifier of the user.
-     */
-    @NonNull
-    String getUniqueId();
-
-    /**
-     * @return The id token returned by the service or null if no id token is returned.
-     */
-    @Nullable
-    String getIdToken();
-
-    /**
-     * Gets the Account.
-     *
-     * @return The Account to get.
-     */
-    @NonNull
-    IAccount getAccount();
-
-    /**
-     * @return The scopes returned from the service.
-     */
-    @NonNull
-    String[] getScope();
+        IAuthenticationResult authenticationResult = new AuthenticationResult(
+                localAuthenticationResult.getAccessTokenRecord(),
+                localAuthenticationResult.getIdToken(),
+                localAuthenticationResult.getAccountRecord()
+        );
+        return authenticationResult;
+    }
 }

@@ -22,16 +22,11 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
-import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
-import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.BrowserTabActivity;
-import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.exception.ArgumentException;
@@ -39,24 +34,23 @@ import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.UiRequiredException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
-import com.microsoft.identity.common.internal.result.AcquireTokenResult;
-import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
-import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
-import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStatus;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenRequest;
-import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
+import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
+import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
+import com.microsoft.identity.common.internal.request.OperationParameters;
+import com.microsoft.identity.common.internal.result.AcquireTokenResult;
+import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
@@ -124,7 +118,9 @@ public class LocalMSALController extends BaseController {
                         parameters.getTokenCache()
                 );
 
-                acquireTokenResult.setAuthenticationResult(new AuthenticationResult(cacheRecord));
+                acquireTokenResult.setLocalAuthenticationResult(
+                        new LocalAuthenticationResult(cacheRecord)
+                );
             }
         }
         return acquireTokenResult;
@@ -136,10 +132,19 @@ public class LocalMSALController extends BaseController {
         throwIfNetworkNotAvailable(parameters.getAppContext());
         //Create pendingIntent to handle the authorization result intent back to the calling activity
         final Intent resultIntent = new Intent(parameters.getActivity(), BrowserTabActivity.class);
-        mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance().getAuthorizationStrategy(parameters.getActivity(), parameters.getAuthorizationAgent(), resultIntent);
+        mAuthorizationStrategy = AuthorizationStrategyFactory
+                .getInstance()
+                .getAuthorizationStrategy(
+                        parameters.getActivity(),
+                        parameters.getAuthorizationAgent(),
+                        resultIntent
+                );
         mAuthorizationRequest = getAuthorizationRequest(strategy, parameters);
 
-        Future<AuthorizationResult> future = strategy.requestAuthorization(mAuthorizationRequest, mAuthorizationStrategy);
+        Future<AuthorizationResult> future = strategy.requestAuthorization(
+                mAuthorizationRequest,
+                mAuthorizationStrategy
+        );
 
         //We could implement Timeout Here if we wish instead of blocking indefinitely
         //future.get(10, TimeUnit.MINUTES);  // Need to handle timeout exception in the scenario it doesn't return within a reasonable amount of time
@@ -194,52 +199,7 @@ public class LocalMSALController extends BaseController {
         return request.build();
     }
 
-    private TokenResult performTokenRequest(final OAuth2Strategy strategy,
-                                            final AuthorizationRequest request,
-                                            final AuthorizationResponse response,
-                                            final AcquireTokenOperationParameters parameters)
-            throws IOException, ClientException {
-        throwIfNetworkNotAvailable(parameters.getAppContext());
 
-        TokenRequest tokenRequest = strategy.createTokenRequest(request, response);
-        tokenRequest.setGrantType(TokenRequest.GrantTypes.AUTHORIZATION_CODE);
-
-        TokenResult tokenResult = null;
-
-        tokenResult = strategy.requestToken(tokenRequest);
-
-        return tokenResult;
-    }
-
-    void throwIfNetworkNotAvailable(final Context context) throws ClientException {
-        final String methodName = ":throwIfNetworkNotAvailable";
-        final ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        final NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-
-        if (networkInfo == null || !networkInfo.isConnected()) {
-            throw new ClientException(
-                    MsalClientException.DEVICE_NETWORK_NOT_AVAILABLE,
-                    "Device network connection is not available."
-            );
-        }
-
-        Logger.info(
-                TAG + methodName,
-                "Network status: connected"
-        );
-    }
-
-    private ICacheRecord saveTokens(final OAuth2Strategy strategy,
-                                    final AuthorizationRequest request,
-                                    final TokenResponse tokenResponse,
-                                    final OAuth2TokenCache tokenCache) throws ClientException {
-        final String methodName = ":saveTokens";
-        Logger.verbose(
-                TAG + methodName,
-                "Saving tokens..."
-        );
-        return tokenCache.save(strategy, request, tokenResponse);
-    }
 
     @Override
     public void completeAcquireToken(final int requestCode,
@@ -364,8 +324,8 @@ public class LocalMSALController extends BaseController {
                     "Returning silent result"
             );
             // the result checks out, return that....
-            acquireTokenSilentResult.setAuthenticationResult(
-                    new AuthenticationResult(cacheRecord)
+            acquireTokenSilentResult.setLocalAuthenticationResult(
+                    new LocalAuthenticationResult(cacheRecord)
             );
         }
 
@@ -400,10 +360,10 @@ public class LocalMSALController extends BaseController {
             );
 
             // Create a new AuthenticationResult to hold the saved record
-            final AuthenticationResult authenticationResult = new AuthenticationResult(savedRecord);
+            final LocalAuthenticationResult authenticationResult = new LocalAuthenticationResult(savedRecord);
 
             // Set the AuthenticationResult on the final result object
-            acquireTokenSilentResult.setAuthenticationResult(authenticationResult);
+            acquireTokenSilentResult.setLocalAuthenticationResult(authenticationResult);
         } else {
             // Log all the particulars...
             if (null != tokenResult.getErrorResponse()) {
@@ -431,14 +391,6 @@ public class LocalMSALController extends BaseController {
                 }
             }
         }
-    }
-
-    private boolean refreshTokenIsNull(ICacheRecord cacheRecord) {
-        return null == cacheRecord.getRefreshToken();
-    }
-
-    private boolean accessTokenIsNull(ICacheRecord cacheRecord) {
-        return null == cacheRecord.getAccessToken();
     }
 
     private TokenResult performSilentTokenRequest(

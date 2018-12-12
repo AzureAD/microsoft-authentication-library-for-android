@@ -23,7 +23,7 @@
 
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.common.internal.claims.ClaimsRequest;
+import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 
 import java.util.List;

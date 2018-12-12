@@ -25,7 +25,6 @@ package com.microsoft.identity.client.internal.controllers;
 import android.content.Intent;
 import android.os.RemoteException;
 
-import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.ClientException;
@@ -38,10 +37,6 @@ import com.microsoft.identity.common.internal.broker.IMicrosoftAuthService;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthServiceFuture;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
-import com.microsoft.identity.common.internal.claims.ClaimsRequest;
-import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
-import com.microsoft.identity.common.internal.result.AcquireTokenResult;
-import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.dto.AccessTokenRecord;
 import com.microsoft.identity.common.internal.dto.CredentialType;
@@ -50,6 +45,10 @@ import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAccount;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
+import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
+import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
+import com.microsoft.identity.common.internal.result.AcquireTokenResult;
+import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.util.QueryParamsAdapter;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.msal.BuildConfig;
@@ -176,7 +175,7 @@ public class BrokerMSALController extends BaseController {
         //TODO: This should be the broker redirect URI and not the non-broker redirect URI
         request.setRedirect(parameters.getRedirectUri());
         request.setScope(StringUtil.join(' ', parameters.getScopes()));
-        request.setClaims(ClaimsRequest.getJsonStringFromClaimsRequest(parameters.getClaimsRequest()));
+        request.setClaims(parameters.getClaimsRequestJson());
         request.setVersion(BuildConfig.VERSION_NAME);
 
         return request;
@@ -194,7 +193,7 @@ public class BrokerMSALController extends BaseController {
         request.setScope(StringUtil.join(' ', parameters.getScopes()));
         String extraQP = QueryParamsAdapter._toJson(parameters.getExtraQueryStringParameters());
         request.setExtraQueryStringParameter(extraQP);
-        request.setClaims(ClaimsRequest.getJsonStringFromClaimsRequest(parameters.getClaimsRequest()));
+        request.setClaims(parameters.getClaimsRequestJson());
         return request;
     }
 
@@ -202,16 +201,16 @@ public class BrokerMSALController extends BaseController {
         AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
         acquireTokenResult.setTokenResult(brokerResult);
         if (brokerResult.isSuccessful() && brokerResult.getTokenResponse() != null) {
-            AuthenticationResult result = getAuthenticationResult(brokerResult.getTokenResponse());
+            LocalAuthenticationResult result = getAuthenticationResult(brokerResult.getTokenResponse());
             if (result != null) {
-                acquireTokenResult.setAuthenticationResult(result);
+                acquireTokenResult.setLocalAuthenticationResult(result);
             }
         }
         return acquireTokenResult;
     }
 
-    private static AuthenticationResult getAuthenticationResult(BrokerTokenResponse brokerTokenResponse){
-        final String methodName = "getAuthenticationResult";
+    private static LocalAuthenticationResult getAuthenticationResult(BrokerTokenResponse brokerTokenResponse){
+        final String methodName = "getLocalAuthenticationResult";
         try {
             ClientInfo clientInfo = new ClientInfo(brokerTokenResponse.getClientInfo());
             String homeAccountId = SchemaUtil.getHomeAccountId(clientInfo);
@@ -231,7 +230,7 @@ public class BrokerMSALController extends BaseController {
 
             MicrosoftStsAccount microsoftStsAccount = new MicrosoftStsAccount(new IDToken(idToken), clientInfo);
             Logger.info(TAG, methodName + " AuthenticationResult successfully returned ");
-            return new AuthenticationResult(accessTokenRecord, idToken, microsoftStsAccount);
+            return new LocalAuthenticationResult(accessTokenRecord, idToken, microsoftStsAccount);
 
         } catch (ServiceException e) {
             Logger.error(TAG, "Unable to construct Authentication result from BrokerTokenResponse ", e);
