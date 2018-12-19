@@ -78,6 +78,7 @@ android {
 
 // Task to generate javadoc
 task javadoc(type: Javadoc) {
+    failOnError false
     source = android.sourceSets.main.java.srcDirs
     classpath += configurations.compile
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
@@ -87,8 +88,13 @@ task javadoc(type: Javadoc) {
 
     exclude '**/BuildConfig.Java'
     exclude '**/R.java'
-    classpath = configurations.compile
     destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
+}
+
+afterEvaluate {
+    javadoc.classpath += files(android.libraryVariants.collect { variant ->
+        variant.javaCompile.classpath.files
+    })
 }
 
 // Task to generate javadoc.jar
