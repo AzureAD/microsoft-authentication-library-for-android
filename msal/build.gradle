@@ -91,12 +91,6 @@ task javadoc(type: Javadoc) {
     destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
 }
 
-afterEvaluate {
-    javadoc.classpath += files(android.libraryVariants.collect { variant ->
-        variant.javaCompile.classpath.files
-    })
-}
-
 // Task to generate javadoc.jar
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
