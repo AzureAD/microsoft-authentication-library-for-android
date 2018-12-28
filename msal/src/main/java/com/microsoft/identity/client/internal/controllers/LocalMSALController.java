@@ -36,7 +36,6 @@ import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
@@ -48,9 +47,8 @@ import com.microsoft.identity.common.internal.providers.oauth2.TokenRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
-import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
-import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
+import com.microsoft.identity.common.internal.result.MicrosoftStsAuthenticationResult;
 import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
@@ -58,7 +56,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -119,7 +116,7 @@ public class LocalMSALController extends BaseController {
                 );
 
                 acquireTokenResult.setLocalAuthenticationResult(
-                        new LocalAuthenticationResult(cacheRecord)
+                        new MicrosoftStsAuthenticationResult(cacheRecord)
                 );
             }
         }
@@ -152,53 +149,6 @@ public class LocalMSALController extends BaseController {
 
         return result;
     }
-
-    private AuthorizationRequest getAuthorizationRequest(final OAuth2Strategy strategy,
-                                                         final OperationParameters parameters) {
-        AuthorizationRequest.Builder builder = strategy.createAuthorizationRequestBuilder(parameters.getAccount());
-
-        List<String> msalScopes = new ArrayList<>();
-        msalScopes.add("openid");
-        msalScopes.add("profile");
-        msalScopes.add("offline_access");
-        msalScopes.addAll(parameters.getScopes());
-
-        //TODO: Not sure why diagnostic context is using AuthenticationConstants....
-
-        UUID correlationId = null;
-
-        try {
-            correlationId = UUID.fromString(DiagnosticContext.getRequestContext().get(DiagnosticContext.CORRELATION_ID));
-        } catch (IllegalArgumentException ex) {
-            Logger.error("LocalMsalController", "correlation id from diagnostic context is not a UUID", ex);
-        }
-
-        AuthorizationRequest.Builder request = builder
-                .setClientId(parameters.getClientId())
-                .setRedirectUri(parameters.getRedirectUri())
-                .setCorrelationId(correlationId);
-
-        if (parameters instanceof AcquireTokenOperationParameters) {
-            AcquireTokenOperationParameters acquireTokenOperationParameters = (AcquireTokenOperationParameters) parameters;
-            msalScopes.addAll(acquireTokenOperationParameters.getExtraScopesToConsent());
-
-            // Add additional fields to the AuthorizationRequest.Builder to support interactive
-            request.setLoginHint(
-                    acquireTokenOperationParameters.getLoginHint()
-            ).setExtraQueryParams(
-                    acquireTokenOperationParameters.getExtraQueryStringParameters()
-            ).setPrompt(
-                    acquireTokenOperationParameters.getOpenIdConnectPromptParameter().toString()
-            );
-        }
-
-        //Remove empty strings and null values
-        msalScopes.removeAll(Arrays.asList("", null));
-        request.setScope(StringUtil.join(' ', msalScopes));
-
-        return request.build();
-    }
-
 
 
     @Override
@@ -325,7 +275,7 @@ public class LocalMSALController extends BaseController {
             );
             // the result checks out, return that....
             acquireTokenSilentResult.setLocalAuthenticationResult(
-                    new LocalAuthenticationResult(cacheRecord)
+                    new MicrosoftStsAuthenticationResult(cacheRecord)
             );
         }
 
@@ -360,7 +310,7 @@ public class LocalMSALController extends BaseController {
             );
 
             // Create a new AuthenticationResult to hold the saved record
-            final LocalAuthenticationResult authenticationResult = new LocalAuthenticationResult(savedRecord);
+            final MicrosoftStsAuthenticationResult authenticationResult = new MicrosoftStsAuthenticationResult(savedRecord);
 
             // Set the AuthenticationResult on the final result object
             acquireTokenSilentResult.setLocalAuthenticationResult(authenticationResult);
