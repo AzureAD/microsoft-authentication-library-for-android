@@ -48,7 +48,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
-import com.microsoft.identity.common.internal.result.MicrosoftStsAuthenticationResult;
+import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.util.QueryParamsAdapter;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.msal.BuildConfig;
@@ -201,7 +201,7 @@ public class BrokerMSALController extends BaseController {
         AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
         acquireTokenResult.setTokenResult(brokerResult);
         if (brokerResult.isSuccessful() && brokerResult.getTokenResponse() != null) {
-            MicrosoftStsAuthenticationResult result = getAuthenticationResult(brokerResult.getTokenResponse());
+            LocalAuthenticationResult result = getAuthenticationResult(brokerResult.getTokenResponse());
             if (result != null) {
                 acquireTokenResult.setLocalAuthenticationResult(result);
             }
@@ -209,7 +209,7 @@ public class BrokerMSALController extends BaseController {
         return acquireTokenResult;
     }
 
-    private static MicrosoftStsAuthenticationResult getAuthenticationResult(BrokerTokenResponse brokerTokenResponse){
+    private static LocalAuthenticationResult getAuthenticationResult(BrokerTokenResponse brokerTokenResponse){
         final String methodName = "getLocalAuthenticationResult";
         try {
             ClientInfo clientInfo = new ClientInfo(brokerTokenResponse.getClientInfo());
@@ -230,7 +230,7 @@ public class BrokerMSALController extends BaseController {
 
             MicrosoftStsAccount microsoftStsAccount = new MicrosoftStsAccount(new IDToken(idToken), clientInfo);
             Logger.info(TAG, methodName + " AuthenticationResult successfully returned ");
-            return new MicrosoftStsAuthenticationResult(accessTokenRecord, idToken, microsoftStsAccount);
+            return new LocalAuthenticationResult(accessTokenRecord, idToken, microsoftStsAccount);
 
         } catch (ServiceException e) {
             Logger.error(TAG, "Unable to construct Authentication result from BrokerTokenResponse ", e);
