@@ -153,54 +153,6 @@ public class LocalMSALController extends BaseController {
         return result;
     }
 
-    private AuthorizationRequest getAuthorizationRequest(final OAuth2Strategy strategy,
-                                                         final OperationParameters parameters) {
-        AuthorizationRequest.Builder builder = strategy.createAuthorizationRequestBuilder(parameters.getAccount());
-
-        List<String> msalScopes = new ArrayList<>();
-        msalScopes.add("openid");
-        msalScopes.add("profile");
-        msalScopes.add("offline_access");
-        msalScopes.addAll(parameters.getScopes());
-
-        //TODO: Not sure why diagnostic context is using AuthenticationConstants....
-
-        UUID correlationId = null;
-
-        try {
-            correlationId = UUID.fromString(DiagnosticContext.getRequestContext().get(DiagnosticContext.CORRELATION_ID));
-        } catch (IllegalArgumentException ex) {
-            Logger.error("LocalMsalController", "correlation id from diagnostic context is not a UUID", ex);
-        }
-
-        AuthorizationRequest.Builder request = builder
-                .setClientId(parameters.getClientId())
-                .setRedirectUri(parameters.getRedirectUri())
-                .setCorrelationId(correlationId);
-
-        if (parameters instanceof AcquireTokenOperationParameters) {
-            AcquireTokenOperationParameters acquireTokenOperationParameters = (AcquireTokenOperationParameters) parameters;
-            msalScopes.addAll(acquireTokenOperationParameters.getExtraScopesToConsent());
-
-            // Add additional fields to the AuthorizationRequest.Builder to support interactive
-            request.setLoginHint(
-                    acquireTokenOperationParameters.getLoginHint()
-            ).setExtraQueryParams(
-                    acquireTokenOperationParameters.getExtraQueryStringParameters()
-            ).setPrompt(
-                    acquireTokenOperationParameters.getOpenIdConnectPromptParameter().toString()
-            );
-        }
-
-        //Remove empty strings and null values
-        msalScopes.removeAll(Arrays.asList("", null));
-        request.setScope(StringUtil.join(' ', msalScopes));
-
-        return request.build();
-    }
-
-
-
     @Override
     public void completeAcquireToken(final int requestCode,
                                      final int resultCode,
