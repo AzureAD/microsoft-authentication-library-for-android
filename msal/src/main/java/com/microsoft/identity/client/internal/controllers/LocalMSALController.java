@@ -36,6 +36,7 @@ import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.logging.DiagnosticContext;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
@@ -47,8 +48,9 @@ import com.microsoft.identity.common.internal.providers.oauth2.TokenRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
+import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
-import com.microsoft.identity.common.internal.result.MicrosoftStsAuthenticationResult;
+import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
@@ -56,6 +58,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -116,7 +119,7 @@ public class LocalMSALController extends BaseController {
                 );
 
                 acquireTokenResult.setLocalAuthenticationResult(
-                        new MicrosoftStsAuthenticationResult(cacheRecord)
+                        new LocalAuthenticationResult(cacheRecord)
                 );
             }
         }
@@ -149,7 +152,6 @@ public class LocalMSALController extends BaseController {
 
         return result;
     }
-
 
     @Override
     public void completeAcquireToken(final int requestCode,
@@ -275,7 +277,7 @@ public class LocalMSALController extends BaseController {
             );
             // the result checks out, return that....
             acquireTokenSilentResult.setLocalAuthenticationResult(
-                    new MicrosoftStsAuthenticationResult(cacheRecord)
+                    new LocalAuthenticationResult(cacheRecord)
             );
         }
 
@@ -310,7 +312,7 @@ public class LocalMSALController extends BaseController {
             );
 
             // Create a new AuthenticationResult to hold the saved record
-            final MicrosoftStsAuthenticationResult authenticationResult = new MicrosoftStsAuthenticationResult(savedRecord);
+            final LocalAuthenticationResult authenticationResult = new LocalAuthenticationResult(savedRecord);
 
             // Set the AuthenticationResult on the final result object
             acquireTokenSilentResult.setLocalAuthenticationResult(authenticationResult);
