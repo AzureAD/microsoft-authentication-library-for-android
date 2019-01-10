@@ -26,9 +26,6 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 import android.util.Pair;
 
-import com.microsoft.identity.client.exception.MsalArgumentException;
-import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
-
 import java.util.List;
 
 /**

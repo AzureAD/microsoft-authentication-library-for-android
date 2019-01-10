@@ -42,8 +42,8 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.internal.MsalUtils;
-import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
 import com.microsoft.identity.client.internal.controllers.RequestCodes;
+import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
 import com.microsoft.identity.common.internal.net.HttpUrlConnectionFactory;
 
 import org.junit.After;
