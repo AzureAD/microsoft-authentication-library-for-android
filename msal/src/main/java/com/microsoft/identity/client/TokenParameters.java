@@ -32,7 +32,7 @@ import java.util.List;
  * Base class for AcquireTokenParameters and AcquireTokenSilentParameters
  */
 abstract class TokenParameters {
-    
+
     private List<String> mScopes;
     private IAccount mAccount;
     private String mAuthority;
@@ -91,6 +91,7 @@ abstract class TokenParameters {
 
     /**
      * Optional. Can be passed to override the default authority.
+     *
      * @return
      */
     public String getAuthority() {
@@ -99,6 +100,7 @@ abstract class TokenParameters {
 
     /**
      * Optional. Can be passed to override the default authority.
+     *
      * @param authority
      */
     public void setAuthority(String authority) {
@@ -107,6 +109,7 @@ abstract class TokenParameters {
 
     /**
      * Optional. Can be passed into request specific claims in the id_token and access_token
+     *
      * @return
      */
     public ClaimsRequest getClaimsRequest() {
@@ -115,6 +118,7 @@ abstract class TokenParameters {
 
     /**
      * Optional. Can be passed into request specific claims in the id_token and access_token
+     *
      * @param claimsRequest
      */
     public void setClaimsRequest(ClaimsRequest claimsRequest) {
@@ -129,6 +133,7 @@ abstract class TokenParameters {
      * {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
      * 3) All the other errors will be sent back via
      * {@link AuthenticationCallback#onError(com.microsoft.identity.client.exception.MsalException)}.
+     *
      * @return
      */
     public AuthenticationCallback getCallback() {
@@ -143,22 +148,24 @@ abstract class TokenParameters {
      * {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
      * 3) All the other errors will be sent back via
      * {@link AuthenticationCallback#onError(com.microsoft.identity.client.exception.MsalException)}.
+     *
      * @param callback
      */
     public void setCallback(AuthenticationCallback callback) {
         this.mCallback = callback;
     }
 
-    void setAccountRecord(AccountRecord record){
+    void setAccountRecord(AccountRecord record) {
         mAccountRecord = record;
     }
 
-    public AccountRecord getAccountRecord(){
+    public AccountRecord getAccountRecord() {
         return mAccountRecord;
     }
 
     /**
      * TokenParameters builder
+     *
      * @param <B>
      */
     public static abstract class Builder<B extends TokenParameters.Builder<B>> {

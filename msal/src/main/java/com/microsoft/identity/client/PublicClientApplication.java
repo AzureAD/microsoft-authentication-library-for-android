@@ -830,7 +830,7 @@ public final class PublicClientApplication {
         ILocalAuthenticationCallback localAuthenticationCallback =
                 getLocalAuthenticationCallback(
                         acquireTokenParameters.getCallback()
-        );
+                );
 
         final InteractiveTokenCommand command = new InteractiveTokenCommand(
                 mPublicClientConfiguration.getAppContext(),
@@ -1133,7 +1133,7 @@ public final class PublicClientApplication {
         );
     }
 
-    private static ILocalAuthenticationCallback getLocalAuthenticationCallback(final AuthenticationCallback authenticationCallback){
+    private static ILocalAuthenticationCallback getLocalAuthenticationCallback(final AuthenticationCallback authenticationCallback) {
 
         return new ILocalAuthenticationCallback() {
 
