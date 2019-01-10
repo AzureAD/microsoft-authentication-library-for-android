@@ -40,7 +40,7 @@ public class AcquireTokenParameters extends TokenParameters {
     private List<Pair<String, String>> mExtraQueryStringParameters;
 
 
-    public AcquireTokenParameters(AcquireTokenParameters.Builder builder){
+    public AcquireTokenParameters(AcquireTokenParameters.Builder builder) {
         super(builder);
         mActivity = builder.mActivity;
         mLoginHint = builder.mLoginHint;
@@ -52,6 +52,7 @@ public class AcquireTokenParameters extends TokenParameters {
 
     /**
      * Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}
+     *
      * @return
      */
     public Activity getActivity() {
@@ -60,6 +61,7 @@ public class AcquireTokenParameters extends TokenParameters {
 
     /**
      * Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}
+     *
      * @param activity
      */
     public void setActivity(Activity activity) {
@@ -68,6 +70,7 @@ public class AcquireTokenParameters extends TokenParameters {
 
     /**
      * Optional. Gets the login hint sent along with the authorization request.
+     *
      * @return
      */
     public String getLoginHint() {
@@ -76,6 +79,7 @@ public class AcquireTokenParameters extends TokenParameters {
 
     /**
      * Sets the login hint sent along with the authorization request.
+     *
      * @param loginHint
      */
     public void setLoginHint(String loginHint) {
@@ -84,6 +88,7 @@ public class AcquireTokenParameters extends TokenParameters {
 
     /**
      * Controls the value of the prompt parameter sent along with the authorization request.
+     *
      * @return
      */
     public UiBehavior getUiBehavior() {
@@ -92,6 +97,7 @@ public class AcquireTokenParameters extends TokenParameters {
 
     /**
      * Controls the value of the prompt parameter sent along with the authorization request.
+     *
      * @param uiBehavior
      */
     public void setUiBehavior(UiBehavior uiBehavior) {
@@ -101,6 +107,7 @@ public class AcquireTokenParameters extends TokenParameters {
     /**
      * These are additional scopes that you would like the user to authorize the use of, while getting consent
      * for the first set of scopes
+     *
      * @return
      */
     public List<String> getExtraScopesToConsent() {
@@ -110,6 +117,7 @@ public class AcquireTokenParameters extends TokenParameters {
     /**
      * These are additional scopes that you would like the user to authorize the use of, while getting consent
      * for the first set of scopes
+     *
      * @param extraScopesToConsent
      */
     public void setExtraScopesToConsent(List<String> extraScopesToConsent) {
@@ -119,6 +127,7 @@ public class AcquireTokenParameters extends TokenParameters {
     /**
      * If you've been instructed to pass additional query string parameters to the authorization endpoint.  You can get these here.
      * Otherwise... would recommend not touching.
+     *
      * @return
      */
     public List<Pair<String, String>> getExtraQueryStringParameters() {
@@ -128,6 +137,7 @@ public class AcquireTokenParameters extends TokenParameters {
     /**
      * If you've been instructed to pass additional query string parameters to the authorization endpoint.  You can set these here.
      * Otherwise... would recommend not touching.
+     *
      * @param extraQueryStringParameters
      */
     public void setExtraQueryStringParameters(List<Pair<String, String>> extraQueryStringParameters) {

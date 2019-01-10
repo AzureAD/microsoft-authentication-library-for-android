@@ -74,7 +74,7 @@ public class BrokerMSALController extends BaseController {
 
         //Get the broker interactive parameters intent
         Intent interactiveRequestIntent = getBrokerAuthorizationIntent(parameters);
-        interactiveRequestIntent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST_V2,  getBrokerRequestForInteractive(parameters));
+        interactiveRequestIntent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST_V2, getBrokerRequestForInteractive(parameters));
 
         //Pass this intent to the BrokerActivity which will be used to start this activity
         Intent brokerActivityIntent = new Intent(parameters.getAppContext(), BrokerActivity.class);
@@ -181,7 +181,7 @@ public class BrokerMSALController extends BaseController {
         return request;
     }
 
-    private static BrokerRequest getBrokerRequestForInteractive(AcquireTokenOperationParameters parameters){
+    private static BrokerRequest getBrokerRequestForInteractive(AcquireTokenOperationParameters parameters) {
         BrokerRequest request = new BrokerRequest();
         request.setApplicationName(parameters.getAppContext().getPackageName());
         request.setAuthority(parameters.getAuthority().getAuthorityURL().toString());
@@ -197,7 +197,7 @@ public class BrokerMSALController extends BaseController {
         return request;
     }
 
-    private static AcquireTokenResult getAcquireTokenResult(BrokerResult brokerResult){
+    private static AcquireTokenResult getAcquireTokenResult(BrokerResult brokerResult) {
         AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
         acquireTokenResult.setTokenResult(brokerResult);
         if (brokerResult.isSuccessful() && brokerResult.getTokenResponse() != null) {
@@ -209,7 +209,7 @@ public class BrokerMSALController extends BaseController {
         return acquireTokenResult;
     }
 
-    private static LocalAuthenticationResult getAuthenticationResult(BrokerTokenResponse brokerTokenResponse){
+    private static LocalAuthenticationResult getAuthenticationResult(BrokerTokenResponse brokerTokenResponse) {
         final String methodName = "getLocalAuthenticationResult";
         try {
             ClientInfo clientInfo = new ClientInfo(brokerTokenResponse.getClientInfo());

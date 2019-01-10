@@ -62,7 +62,7 @@ public enum UiBehavior {
         }
     }
 
-    public OpenIdConnectPromptParameter toOpenIdConnectPromptParameter(){
+    public OpenIdConnectPromptParameter toOpenIdConnectPromptParameter() {
         switch (this) {
             case SELECT_ACCOUNT:
                 return OpenIdConnectPromptParameter.SELECT_ACCOUNT;

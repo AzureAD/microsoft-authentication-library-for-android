@@ -154,7 +154,7 @@ public class PublicClientApplicationConfiguration {
 
     /**
      * Indicates whether the PublicClientApplication would like to leverage the broker if available.
-     *
+     * <p>
      * The client must have registered
      *
      * @return The boolean indicator of whether multiple clouds are supported by this application.
@@ -167,15 +167,15 @@ public class PublicClientApplicationConfiguration {
         return mAppContext;
     }
 
-    void setAppContext(Context applicationContext){
+    void setAppContext(Context applicationContext) {
         mAppContext = applicationContext;
     }
 
-    public OAuth2TokenCache getOAuth2TokenCache(){
+    public OAuth2TokenCache getOAuth2TokenCache() {
         return mOAuth2TokenCache;
     }
 
-    void setOAuth2TokenCache(OAuth2TokenCache tokenCache){
+    void setOAuth2TokenCache(OAuth2TokenCache tokenCache) {
         mOAuth2TokenCache = tokenCache;
     }
 

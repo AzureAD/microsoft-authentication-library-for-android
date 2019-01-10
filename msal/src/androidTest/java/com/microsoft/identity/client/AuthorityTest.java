@@ -21,37 +21,37 @@ public final class AuthorityTest {
 
 
     @Test
-    public void testGetAuthorityFromAuthorityUrlAllAccounts(){
+    public void testGetAuthorityFromAuthorityUrlAllAccounts() {
         Authority authority = Authority.getAuthorityFromAuthorityUrl(COMMON_AUTHORITY_URL);
         Assert.assertEquals(COMMON_AUTHORITY_URL, authority.getAuthorityURL().toString());
     }
 
     @Test
-    public void testGetAuthorityFromAuthorityUrlAllOrganizations(){
+    public void testGetAuthorityFromAuthorityUrlAllOrganizations() {
         Authority authority = Authority.getAuthorityFromAuthorityUrl(ORGANIZATIONS_AUTHORITY_URL);
         Assert.assertEquals(ORGANIZATIONS_AUTHORITY_URL, authority.getAuthorityURL().toString());
     }
 
     @Test
-    public void testGetAuthorityFromAuthorityUrlAnyPersonalAccount(){
+    public void testGetAuthorityFromAuthorityUrlAnyPersonalAccount() {
         Authority authority = Authority.getAuthorityFromAuthorityUrl(CONSUMERS_AUTHORITY_URL);
         Assert.assertEquals(CONSUMERS_AUTHORITY_URL, authority.getAuthorityURL().toString());
     }
 
     @Test
-    public void testGetAuthorityFromAuthorityUrlAlternateCloudAnyOrganization(){
+    public void testGetAuthorityFromAuthorityUrlAlternateCloudAnyOrganization() {
         Authority authority = Authority.getAuthorityFromAuthorityUrl(ALTERNATE_CLOUD_ORGANIZATIONS_AUTHORITY_URL);
         Assert.assertEquals(ALTERNATE_CLOUD_ORGANIZATIONS_AUTHORITY_URL, authority.getAuthorityURL().toString());
     }
 
     @Test
-    public void testGetAuthorityFromAuthorityUrlAlternateCloudOneOrganization(){
+    public void testGetAuthorityFromAuthorityUrlAlternateCloudOneOrganization() {
         Authority authority = Authority.getAuthorityFromAuthorityUrl(ALTERNATE_CLOUD_ORGANIZATIONS_TENANT_AUTHORITY_URL);
         Assert.assertEquals(ALTERNATE_CLOUD_ORGANIZATIONS_TENANT_AUTHORITY_URL, authority.getAuthorityURL().toString());
     }
 
     @Test
-    public void testGetAuthorityFromAuthorityUrlOneOrganization(){
+    public void testGetAuthorityFromAuthorityUrlOneOrganization() {
         Authority authority = Authority.getAuthorityFromAuthorityUrl(ORGANIZATIONS_TENANT_AUTHORITY_URL);
         Assert.assertEquals(ORGANIZATIONS_TENANT_AUTHORITY_URL, authority.getAuthorityURL().toString());
     }
