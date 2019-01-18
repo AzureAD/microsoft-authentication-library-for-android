@@ -1038,18 +1038,19 @@ public final class PublicClientApplication {
         return loadConfiguration(configStream, useDefaultConfigResourceId);
     }
 
-    private void setupConfiguration(Context context) {
-        mPublicClientConfiguration = loadDefaultConfiguration(context);
-        mPublicClientConfiguration.setAppContext(context);
-        mPublicClientConfiguration.setOAuth2TokenCache(getOAuth2TokenCache());
-    }
-
-    private static PublicClientApplicationConfiguration loadConfiguration(File configFile) {
+    @VisibleForTesting
+    static PublicClientApplicationConfiguration loadConfiguration(@NonNull File configFile) {
         try {
             return loadConfiguration(new FileInputStream(configFile), false);
         } catch (FileNotFoundException e) {
             throw new IllegalArgumentException("Provided config file path=" + configFile.getPath() + " not found");
         }
+    }
+
+    private void setupConfiguration(Context context) {
+        mPublicClientConfiguration = loadDefaultConfiguration(context);
+        mPublicClientConfiguration.setAppContext(context);
+        mPublicClientConfiguration.setOAuth2TokenCache(getOAuth2TokenCache());
     }
 
     private static PublicClientApplicationConfiguration loadConfiguration(InputStream configStream, boolean useDefaultConfigResourceId) {
