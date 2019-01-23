@@ -1043,7 +1043,7 @@ public final class PublicClientApplication {
         try {
             return loadConfiguration(new FileInputStream(configFile), false);
         } catch (FileNotFoundException e) {
-            throw new IllegalArgumentException("Provided config file path=" + configFile.getPath() + " not found");
+            throw new IllegalArgumentException("Provided configuration file path=" + configFile.getPath() + " not found.");
         }
     }
 
@@ -1061,9 +1061,9 @@ public final class PublicClientApplication {
             configStream.read(buffer);
         } catch (IOException e) {
             if (isDefaultConfiguration) {
-                throw new IllegalStateException("Unable to open default configuration file. MSAL module may be incomplete.");
+                throw new IllegalStateException("Unable to open default configuration file.", e);
             } else {
-                throw new IllegalArgumentException("Provided config file resource id could not be accessed");
+                throw new IllegalArgumentException("Unable to open provided configuration file.", e);
             }
         }
 
