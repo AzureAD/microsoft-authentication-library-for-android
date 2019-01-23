@@ -1053,15 +1053,15 @@ public final class PublicClientApplication {
         mPublicClientConfiguration.setOAuth2TokenCache(getOAuth2TokenCache());
     }
 
-    private static PublicClientApplicationConfiguration loadConfiguration(InputStream configStream, boolean useDefaultConfigResourceId) {
+    private static PublicClientApplicationConfiguration loadConfiguration(InputStream configStream, boolean isDefaultConfiguration) {
         byte[] buffer;
 
         try {
             buffer = new byte[configStream.available()];
             configStream.read(buffer);
         } catch (IOException e) {
-            if (useDefaultConfigResourceId) {
-                throw new IllegalStateException("Unable to open default configuration file.  MSAL module may be incomplete.");
+            if (isDefaultConfiguration) {
+                throw new IllegalStateException("Unable to open default configuration file. MSAL module may be incomplete.");
             } else {
                 throw new IllegalArgumentException("Provided config file resource id could not be accessed");
             }
