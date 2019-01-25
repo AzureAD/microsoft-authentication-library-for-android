@@ -4,14 +4,14 @@ Microsoft Authentication Library (MSAL) Preview for Android
 | [Getting Started](https://docs.microsoft.com/en-us/azure/active-directory/develop/guidedsetups/active-directory-mobileanddesktopapp-android-intro) | [Sample Code](https://github.com/Azure-Samples/active-directory-android-native-v2) | [Library Reference](http://javadoc.io/doc/com.microsoft.identity.client/msal) | [Support](README.md#community-help-and-support)
 | --- | --- | --- | --- |
 
-The MSAL library for Android gives your app the ability to begin using the [Microsoft Cloud](https://cloud.microsoft.com) by supporting [Microsoft Azure Active Directory](https://azure.microsoft.com/en-us/services/active-directory/) and [Microsoft Accounts](https://account.microsoft.com) in a converged experience using industry standard OAuth2 and OpenID Connect. The library also supports [Azure AD B2C](https://azure.microsoft.com/services/active-directory-b2c/).
+The MSAL library for Android gives your app the ability to use the [Microsoft Cloud](https://cloud.microsoft.com) by supporting [Microsoft Azure Active Directory](https://azure.microsoft.com/en-us/services/active-directory/) and [Microsoft Accounts](https://account.microsoft.com) in a converged experience using industry standard OAuth2 and OpenID Connect. The library also supports [Azure AD B2C](https://azure.microsoft.com/services/active-directory-b2c/).
 
 [![Version Badge](https://img.shields.io/maven-central/v/com.microsoft.identity.client/msal.svg)](http://repo1.maven.org/maven2/com/microsoft/identity/client/msal/)
 [![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-android.svg?branch=master)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-android)
 
 ## Important Note about the MSAL Preview
 
-This library is suitable for use in a production environment. We provide the same production level support for this library as we do our current production libraries. During the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability release we will require you to update to the General Availability version within six months, as applications written using a preview version of library may no longer work.
+This library can be used in a production environment. We provide the same production level support for this library as we do our current production libraries. During the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability (GA) release we will require you to update to the GA version within 6 months. Applications written using a preview version of library may no longer work.
 
 ## Example
 
@@ -30,7 +30,7 @@ This library is suitable for use in a production environment. We provide the sam
     String accessToken = authenticationResult.getAccessToken();
 ```
 
-For a full example, checkout the full [code sample](https://github.com/Azure-Samples/active-directory-android-native-v2).
+For a full example, checkout the [code sample](https://github.com/Azure-Samples/active-directory-android-native-v2).
 
 ## Installation
 
@@ -46,27 +46,27 @@ Add to your app's build.gradle:
 ```
 
 ### AAR package inside libs folder
-You can get the AAR file from maven central and drop into **libs** folder in your project.
+You can get the AAR file from maven central and drop it into **libs** folder of your project.
 
 ## Community Help and Support
 
-We use [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) with the community to provide support. We highly recommend you ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before. 
+We use [StackOverflow](http://stackoverflow.com/questions/tagged/msal) with the community to provide support. You should browse existing issues to see if someone has asked about your issue before. If there are workable solutions to your issue then try out those solutions. If not, ask your question and let the community help you out. We're part of the community too and watch for new questions. We help with answers when the community cannot give you a solution.
 
 If you find and bug or have a feature request, please raise the issue on [GitHub Issues](../../issues). 
 
 ## Contribute
 
-We enthusiastically welcome contributions and feedback. You can clone the repo and start contributing now. 
+We enthusiastically welcome contributions and feedback. You should clone the repo and start contributing now. 
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 ## Security Library
 
-This library controls how users sign-in and access services. We recommend you always take the latest version of our library in your app when possible. We use [semantic versioning](http://semver.org) so you can control the risk associated with updating your app. As an example, always downloading the latest minor version number (e.g. x.*y*.x) ensures you get the latest security and feature enhanements but our API surface remains the same. You can always see the latest version and release notes under the Releases tab of GitHub.
+This library controls how users sign-in and access services. We recommend you always take the latest version of our library in your app when you can. We use [semantic versioning](http://semver.org) so you can control the risk of updating your app. For example, always downloading the latest minor version number (e.g. x.*y*.x) ensures you get the latest security and feature enhanements with the assurance that our API surface area has not changed. You can always see the latest version and release notes under the **Releases** tab of GitHub.
 
 ## Security Reporting
 
-If you find a security issue with our libraries or services please report it to [secure@microsoft.com](mailto:secure@microsoft.com) with as much detail as possible. Your submission may be eligible for a bounty through the [Microsoft Bounty](http://aka.ms/bugbounty) program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting [this page](https://technet.microsoft.com/en-us/security/dd252948) and subscribing to Security Advisory Alerts.
+If you find a security issue with our libraries or services, please report the issue to [secure@microsoft.com](mailto:secure@microsoft.com) with as much detail as you can provide. Your submission may be eligible for a bounty through the [Microsoft Bounty](http://aka.ms/bugbounty) program. Please do not post security issues to **GitHub Issues** or any other public site. We will contact you shortly after receiving your issue report. We encourage you to get new security incident notifications by visiting [Microsoft technical security notifications](https://technet.microsoft.com/en-us/security/dd252948) to subscribe to Security Advisory Alerts.
 
 
 Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MIT License (the "License");
