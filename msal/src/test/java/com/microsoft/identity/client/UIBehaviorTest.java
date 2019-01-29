@@ -34,19 +34,19 @@ public final class UIBehaviorTest {
 
 
     @Test
-    public void testToStringForceLogin(){
+    public void testToStringForceLogin() {
         UiBehavior behavior = UiBehavior.FORCE_LOGIN;
         Assert.assertEquals(behavior.toString(), FORCE_LOGIN);
     }
 
     @Test
-    public void testToStringConsent(){
+    public void testToStringConsent() {
         UiBehavior behavior = UiBehavior.CONSENT;
         Assert.assertEquals(behavior.toString(), CONSENT);
     }
 
     @Test
-    public void testToStringSelectAccount(){
+    public void testToStringSelectAccount() {
         UiBehavior behavior = UiBehavior.SELECT_ACCOUNT;
         Assert.assertEquals(behavior.toString(), SELECT_ACCOUNT);
     }

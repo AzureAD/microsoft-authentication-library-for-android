@@ -84,6 +84,9 @@ import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.msal.BuildConfig;
 import com.microsoft.identity.msal.R;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -210,10 +213,38 @@ public final class PublicClientApplication {
             throw new IllegalArgumentException("context is null.");
         }
 
-        setupConfiguration(configFileResourceId, context);
+        final PublicClientApplicationConfiguration developerConfig = loadConfiguration(context, configFileResourceId);
+        setupConfiguration(context, developerConfig);
 
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
 
+    }
+
+    /**
+     * {@link PublicClientApplication#PublicClientApplication(Context, File)} will read the client id and other configuration settings from the
+     * specified file.
+     *
+     * @param context    Application's {@link Context}. The sdk requires the application context to be passed in
+     *                   {@link PublicClientApplication}. Cannot be null.
+     *                   <p>
+     *                   Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
+     *                   strong reference to the activity, thus preventing correct garbage collection and causing bugs.
+     *                   </p>
+     * @param configFile The file containing the JSON configuration for the PublicClientApplication
+     * @see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     * <p>
+     * For more information on the schema of the MSAL config json please
+     * @see <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     */
+    public PublicClientApplication(@NonNull final Context context, final File configFile) {
+        if (context == null) {
+            throw new IllegalArgumentException("context is null.");
+        }
+
+        final PublicClientApplicationConfiguration developerConfig = loadConfiguration(configFile);
+        setupConfiguration(context, developerConfig);
+
+        Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
     }
 
     /**
@@ -830,7 +861,7 @@ public final class PublicClientApplication {
         ILocalAuthenticationCallback localAuthenticationCallback =
                 getLocalAuthenticationCallback(
                         acquireTokenParameters.getCallback()
-        );
+                );
 
         final InteractiveTokenCommand command = new InteractiveTokenCommand(
                 mPublicClientConfiguration.getAppContext(),
@@ -999,13 +1030,21 @@ public final class PublicClientApplication {
         mPublicClientConfiguration.mClientId = clientId;
     }
 
-    private void setupConfiguration(final int configResourceId, @NonNull final Context context) {
-        final PublicClientApplicationConfiguration developerConfig = loadConfiguration(context, configResourceId);
-        final PublicClientApplicationConfiguration defaultConfig = loadDefaultConfiguration(context);
-        defaultConfig.mergeConfiguration(developerConfig);
-        mPublicClientConfiguration = defaultConfig;
-        mPublicClientConfiguration.setAppContext(context);
-        mPublicClientConfiguration.setOAuth2TokenCache(getOAuth2TokenCache());
+    @VisibleForTesting
+    static PublicClientApplicationConfiguration loadConfiguration(@NonNull final Context context,
+                                                                  final int configResourceId) {
+        InputStream configStream = context.getResources().openRawResource(configResourceId);
+        boolean useDefaultConfigResourceId = configResourceId == R.raw.msal_default_config;
+        return loadConfiguration(configStream, useDefaultConfigResourceId);
+    }
+
+    @VisibleForTesting
+    static PublicClientApplicationConfiguration loadConfiguration(@NonNull File configFile) {
+        try {
+            return loadConfiguration(new FileInputStream(configFile), false);
+        } catch (FileNotFoundException e) {
+            throw new IllegalArgumentException("Provided configuration file path=" + configFile.getPath() + " not found.");
+        }
     }
 
     private void setupConfiguration(Context context) {
@@ -1014,20 +1053,17 @@ public final class PublicClientApplication {
         mPublicClientConfiguration.setOAuth2TokenCache(getOAuth2TokenCache());
     }
 
-    @VisibleForTesting
-    static PublicClientApplicationConfiguration loadConfiguration(@NonNull final Context context,
-                                                                  final int configResourceId) {
-        InputStream configStream = context.getResources().openRawResource(configResourceId);
+    private static PublicClientApplicationConfiguration loadConfiguration(InputStream configStream, boolean isDefaultConfiguration) {
         byte[] buffer;
 
         try {
             buffer = new byte[configStream.available()];
             configStream.read(buffer);
         } catch (IOException e) {
-            if (configResourceId == R.raw.msal_default_config) {
-                throw new IllegalStateException("Unable to open default configuration file.  MSAL module may be incomplete.");
+            if (isDefaultConfiguration) {
+                throw new IllegalStateException("Unable to open default configuration file.", e);
             } else {
-                throw new IllegalArgumentException("Provided config file resource id could not be accessed");
+                throw new IllegalArgumentException("Unable to open provided configuration file.", e);
             }
         }
 
@@ -1035,6 +1071,14 @@ public final class PublicClientApplication {
         final Gson gson = getGsonForLoadingConfiguration();
 
         return gson.fromJson(config, PublicClientApplicationConfiguration.class);
+    }
+
+    private void setupConfiguration(@NonNull Context context, PublicClientApplicationConfiguration developerConfig) {
+        final PublicClientApplicationConfiguration defaultConfig = loadDefaultConfiguration(context);
+        defaultConfig.mergeConfiguration(developerConfig);
+        mPublicClientConfiguration = defaultConfig;
+        mPublicClientConfiguration.setAppContext(context);
+        mPublicClientConfiguration.setOAuth2TokenCache(getOAuth2TokenCache());
     }
 
     private PublicClientApplicationConfiguration loadDefaultConfiguration(@NonNull final Context context) {
@@ -1133,7 +1177,7 @@ public final class PublicClientApplication {
         );
     }
 
-    private static ILocalAuthenticationCallback getLocalAuthenticationCallback(final AuthenticationCallback authenticationCallback){
+    private static ILocalAuthenticationCallback getLocalAuthenticationCallback(final AuthenticationCallback authenticationCallback) {
 
         return new ILocalAuthenticationCallback() {
 

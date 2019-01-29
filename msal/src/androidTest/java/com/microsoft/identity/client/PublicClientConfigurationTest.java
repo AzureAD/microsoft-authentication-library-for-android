@@ -23,6 +23,7 @@
 package com.microsoft.identity.client;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -38,10 +39,16 @@ import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.msal.test.R;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
@@ -59,6 +66,14 @@ public class PublicClientConfigurationTest {
     public void setUp() {
         mContext = InstrumentationRegistry.getContext().getApplicationContext();
         mDefaultConfig = loadConfig(R.raw.msal_default_config);
+    }
+
+    @After
+    public void tearDown() {
+        File testConfigFile = getTestConfigFile();
+        if (testConfigFile.exists()) {
+            assertTrue(testConfigFile.delete());
+        }
     }
 
     /**
@@ -100,15 +115,11 @@ public class PublicClientConfigurationTest {
      * <p>
      * Is merged with the default configuration correctly.
      */
-    @Test
-    public void testMinimumValidConfigurationMerge() {
+    private void testMinimumValidConfigurationMerge(PublicClientApplicationConfiguration minConfig) {
         // Record the values of the default config to verify the merge action
         final List<Authority> authorities = mDefaultConfig.mAuthorities;
         final AuthorizationAgent agent = mDefaultConfig.mAuthorizationAgent;
         final HttpConfiguration httpConfiguration = mDefaultConfig.mHttpConfiguration;
-
-        // Load the min config
-        final PublicClientApplicationConfiguration minConfig = loadConfig(R.raw.test_pcaconfig_min);
 
         // Merge it
         mDefaultConfig.mergeConfiguration(minConfig);
@@ -121,12 +132,21 @@ public class PublicClientConfigurationTest {
         assertEquals(minConfig.mRedirectUri, mDefaultConfig.mRedirectUri);
     }
 
+    @Test
+    public void testMinimumValidConfigurationMergeViaResource() {
+        testMinimumValidConfigurationMerge(loadConfig(R.raw.test_pcaconfig_min));
+    }
+
+    @Test
+    public void testMinimumValidConfigurationMergeViaFile() throws IOException {
+        final File file = copyResourceToTestFile(R.raw.test_pcaconfig_min);
+        testMinimumValidConfigurationMerge(PublicClientApplication.loadConfiguration(file));
+    }
+
     /**
      * Verify B2C Authority set via configuration correctly.
      */
-    @Test
-    public void testB2CAuthorityValidConfiguration() {
-        final PublicClientApplicationConfiguration b2cConfig = loadConfig(R.raw.test_pcaconfig_b2c);
+    private void testB2CAuthorityValidConfiguration(PublicClientApplicationConfiguration b2cConfig) {
         assertNotNull(b2cConfig);
         assertNotNull(b2cConfig.mClientId);
         assertNotNull(b2cConfig.mRedirectUri);
@@ -139,6 +159,19 @@ public class PublicClientConfigurationTest {
         // Test that it is a B2C Authority.
         assertTrue(config instanceof AzureActiveDirectoryB2CAuthority);
         assertNotNull(config.getAuthorityUri());
+    }
+
+    @Test
+    public void testB2CAuthorityValidConfigurationViaResource() {
+        final PublicClientApplicationConfiguration b2cConfig = loadConfig(R.raw.test_pcaconfig_b2c);
+        testB2CAuthorityValidConfiguration(b2cConfig);
+    }
+
+    @Test
+    public void testB2CAuthorityValidConfigurationViaFile() throws IOException {
+        final File file = copyResourceToTestFile(R.raw.test_pcaconfig_b2c);
+        final PublicClientApplicationConfiguration b2cConfig = loadConfig(file);
+        testB2CAuthorityValidConfiguration(b2cConfig);
     }
 
     /**
@@ -356,4 +389,25 @@ public class PublicClientConfigurationTest {
         return PublicClientApplication.loadConfiguration(mContext, resourceId);
     }
 
+    private PublicClientApplicationConfiguration loadConfig(final File file) {
+        return PublicClientApplication.loadConfiguration(file);
+    }
+
+    @NonNull
+    private File getTestConfigFile() {
+        return new File(mContext.getFilesDir(), "test.json");
+    }
+
+    @NonNull
+    private File copyResourceToTestFile(final int resId) throws IOException {
+        final InputStream inputStream = mContext.getResources().openRawResource(resId);
+        final byte[] buffer = new byte[inputStream.available()];
+        assertTrue(inputStream.read(buffer) > 0);
+        final String config = new String(buffer);
+        final File file = getTestConfigFile();
+        try (final BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write(config);
+        }
+        return file;
+    }
 }
