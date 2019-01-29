@@ -9,6 +9,8 @@
     }
   ],
   "authorization_user_agent": "DEFAULT",
+  "multiple_clouds_supported": false,
+  "broker_redirect_uri_registered": false,
   "http": {
     "connect_timeout": 10000,
     "read_timeout": 30000

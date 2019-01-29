@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.client.exception;
 
+import com.microsoft.identity.common.exception.ServiceException;
+
 /**
  * This exception class represents errors when communicating to the service, can be from the authorize or token endpoints.
  * MSAL reads the error and error_description from the server response. Generally, these errors are resolved by fixing app
@@ -56,42 +58,42 @@ public final class MsalServiceException extends MsalException {
      * This request is missing a required parameter, includes an invalid parameter, includes a parameter more than
      * once, or is otherwise malformed.
      */
-    public static final String INVALID_REQUEST = "invalid_request";
+    public static final String INVALID_REQUEST = ServiceException.INVALID_REQUEST;
 
     /**
      * The client is not authorized to request an authorization code.
      */
-    public static final String UNAUTHORIZED_CLIENT = "unauthorized_client";
+    public static final String UNAUTHORIZED_CLIENT = ServiceException.UNAUTHORIZED_CLIENT;
 
     /**
      * The resource owner or authorization server denied the request.
      */
-    public static final String ACCESS_DENIED = "access_denied";
+    public static final String ACCESS_DENIED = ServiceException.ACCESS_DENIED;
 
     /**
      * The request scope is invalid, unknown or malformed.
      */
-    public static final String INVALID_SCOPE = "invalid_scope";
+    public static final String INVALID_SCOPE = ServiceException.INVALID_SCOPE;
 
     /**
      * Represents 500/503/504 error codes.
      */
-    public static final String SERVICE_NOT_AVAILABLE = "service_not_available";
+    public static final String SERVICE_NOT_AVAILABLE = ServiceException.SERVICE_NOT_AVAILABLE;
 
     /**
      * Represents {@link java.net.SocketTimeoutException}.
      */
-    public static final String REQUEST_TIMEOUT = "request_timeout";
+    public static final String REQUEST_TIMEOUT = ServiceException.REQUEST_TIMEOUT;
 
     /**
      * AuthorityMetadata validation failed.
      */
-    public static final String INVALID_INSTANCE = "invalid_instance";
+    public static final String INVALID_INSTANCE = ServiceException.INVALID_INSTANCE;
 
     /**
      * Request to server failed, but no error and error_description is returned back from the service.
      */
-    public static final String UNKNOWN_ERROR = "unknown_error";
+    public static final String UNKNOWN_ERROR = ServiceException.UNKNOWN_ERROR;
 
     private final int mHttpStatusCode;
 

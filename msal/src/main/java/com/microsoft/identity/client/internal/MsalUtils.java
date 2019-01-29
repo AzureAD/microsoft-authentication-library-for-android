@@ -32,10 +32,10 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.net.Uri;
+import android.support.customtabs.CustomTabsService;
 import android.util.Base64;
 
 import com.microsoft.identity.client.BrowserTabActivity;
-import com.microsoft.identity.client.Logger;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -60,6 +60,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Internal Util class for MSAL.
@@ -76,9 +77,6 @@ public final class MsalUtils {
     public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
 
     private static final String TAG = MsalUtils.class.getSimpleName();
-
-    private static final String CUSTOM_TABS_SERVICE_ACTION =
-            "android.support.customtabs.action.CustomTabsService";
 
     private static final String TOKEN_HASH_ALGORITHM = "SHA256";
 
@@ -238,17 +236,23 @@ public final class MsalUtils {
      */
     public static String getChromePackageWithCustomTabSupport(final Context context) {
         if (context.getPackageManager() == null) {
-            Logger.warning(TAG, null, "getPackageManager() returned null.");
+            com.microsoft.identity.common.internal.logging.Logger.warn(
+                    TAG,
+                    "getPackageManager() returned null."
+            );
             return null;
         }
 
-        final Intent customTabServiceIntent = new Intent(CUSTOM_TABS_SERVICE_ACTION);
+        final Intent customTabServiceIntent = new Intent(CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION);
         final List<ResolveInfo> resolveInfoList = context.getPackageManager().queryIntentServices(
                 customTabServiceIntent, 0);
 
         // queryIntentServices could return null or an empty list if no matching service existed.
         if (resolveInfoList == null || resolveInfoList.isEmpty()) {
-            Logger.warning(TAG, null, "No Service responded to Intent: " + CUSTOM_TABS_SERVICE_ACTION);
+            com.microsoft.identity.common.internal.logging.Logger.warn(
+                    TAG,
+                    "No Service responded to Intent: " + CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION
+            );
             return null;
         }
 
@@ -259,7 +263,11 @@ public final class MsalUtils {
             }
         }
 
-        Logger.warning(TAG, null, "No pkg with CustomTab support found.");
+        com.microsoft.identity.common.internal.logging.Logger.warn(
+                TAG,
+                "No pkg with CustomTab support found."
+        );
+
         return null;
     }
 
@@ -285,7 +293,11 @@ public final class MsalUtils {
             }
         } catch (final PackageManager.NameNotFoundException e) {
             // swallow this exception. If the package is not existed, the exception will be thrown.
-            Logger.error(TAG, null, "Failed to retrieve chrome package info.", e);
+            com.microsoft.identity.common.internal.logging.Logger.error(
+                    TAG,
+                    "Failed to retrieve chrome package info.",
+                    e
+            );
         }
 
         return installedChromePackage;
@@ -323,7 +335,11 @@ public final class MsalUtils {
                     decodedUrlMap.put(key, value);
                 }
             } catch (final UnsupportedEncodingException e) {
-                Logger.errorPII(TAG, null, "URL form decode failed.", e);
+                com.microsoft.identity.common.internal.logging.Logger.errorPII(
+                        TAG,
+                        "URL form decode failed.",
+                        e
+                );
             }
         }
 
@@ -421,7 +437,11 @@ public final class MsalUtils {
         try {
             url = new URL(endpoint);
         } catch (MalformedURLException e1) {
-            Logger.errorPII(MsalUtils.class.getSimpleName(), null, "Url is invalid", e1);
+            com.microsoft.identity.common.internal.logging.Logger.errorPII(
+                    TAG,
+                    "Url is invalid",
+                    e1
+            );
         }
 
         return url;
@@ -429,6 +449,12 @@ public final class MsalUtils {
 
     public static String getUniqueUserIdentifier(final String uid, final String utid) {
         return base64UrlEncodeToString(uid) + "." + base64UrlEncodeToString(utid);
+    }
+
+    public static long getExpiresOn(long expiresIn) {
+        final long currentTimeMillis = System.currentTimeMillis();
+        final long currentTimeSecs = TimeUnit.MILLISECONDS.toSeconds(currentTimeMillis);
+        return currentTimeSecs + expiresIn;
     }
 
     public static ApplicationInfo getApplicationInfo(final Context context) {

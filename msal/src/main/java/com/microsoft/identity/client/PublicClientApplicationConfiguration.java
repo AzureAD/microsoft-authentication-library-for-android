@@ -22,15 +22,17 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
-import com.microsoft.identity.client.internal.authorities.Authority;
-import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.client.internal.authorities.UnknownAudience;
-import com.microsoft.identity.client.internal.authorities.UnknownAuthority;
+import com.microsoft.identity.common.internal.authorities.Authority;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.common.internal.authorities.UnknownAudience;
+import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 
 import java.util.List;
@@ -40,7 +42,9 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CLIENT_ID;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.HTTP;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.LOGGING;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.MULTIPLE_CLOUDS_SUPPORTED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
 
 public class PublicClientApplicationConfiguration {
 
@@ -51,6 +55,8 @@ public class PublicClientApplicationConfiguration {
         static final String AUTHORIZATION_USER_AGENT = "authorization_user_agent";
         static final String HTTP = "http";
         static final String LOGGING = "logging";
+        static final String MULTIPLE_CLOUDS_SUPPORTED = "multiple_clouds_supported";
+        static final String USE_BROKER = "broker_redirect_uri_registered";
     }
 
     @SerializedName(CLIENT_ID)
@@ -70,6 +76,16 @@ public class PublicClientApplicationConfiguration {
 
     @SerializedName(LOGGING)
     LoggerConfiguration mLoggerConfiguration;
+
+    @SerializedName(MULTIPLE_CLOUDS_SUPPORTED)
+    Boolean mMultipleCloudsSupported;
+
+    @SerializedName(USE_BROKER)
+    Boolean mUseBroker;
+
+    transient OAuth2TokenCache mOAuth2TokenCache;
+
+    transient Context mAppContext;
 
     /**
      * Gets the currently configured client id for the PublicClientApplication.
@@ -126,6 +142,43 @@ public class PublicClientApplicationConfiguration {
         return this.mAuthorizationAgent;
     }
 
+    /**
+     * Indicates whether the PublicClientApplication supports multiple clouds.  Automatic redirection to the cloud
+     * associated with the authenticated user
+     *
+     * @return The boolean indicator of whether multiple clouds are supported by this application.
+     */
+    public Boolean getMultipleCloudsSupported() {
+        return mMultipleCloudsSupported;
+    }
+
+    /**
+     * Indicates whether the PublicClientApplication would like to leverage the broker if available.
+     * <p>
+     * The client must have registered
+     *
+     * @return The boolean indicator of whether multiple clouds are supported by this application.
+     */
+    public Boolean getUseBroker() {
+        return mUseBroker;
+    }
+
+    public Context getAppContext() {
+        return mAppContext;
+    }
+
+    void setAppContext(Context applicationContext) {
+        mAppContext = applicationContext;
+    }
+
+    public OAuth2TokenCache getOAuth2TokenCache() {
+        return mOAuth2TokenCache;
+    }
+
+    void setOAuth2TokenCache(OAuth2TokenCache tokenCache) {
+        mOAuth2TokenCache = tokenCache;
+    }
+
     public Authority getDefaultAuthority() {
         if (mAuthorities != null) {
             if (mAuthorities.size() > 1) {
@@ -163,7 +216,7 @@ public class PublicClientApplicationConfiguration {
         }
     }
 
-    boolean isDefaultAuthorityConfigured() {
+    public boolean isDefaultAuthorityConfigured() {
         Authority authority = getDefaultAuthority();
 
         if (authority != null) {
@@ -179,6 +232,8 @@ public class PublicClientApplicationConfiguration {
         this.mAuthorities = config.mAuthorities == null ? this.mAuthorities : config.mAuthorities;
         this.mAuthorizationAgent = config.mAuthorizationAgent == null ? this.mAuthorizationAgent : config.mAuthorizationAgent;
         this.mHttpConfiguration = config.mHttpConfiguration == null ? this.mHttpConfiguration : config.mHttpConfiguration;
+        this.mMultipleCloudsSupported = config.mMultipleCloudsSupported == null ? this.mMultipleCloudsSupported : config.mMultipleCloudsSupported;
+        this.mUseBroker = config.mUseBroker == null ? this.mUseBroker : config.mUseBroker;
     }
 
     void validateConfiguration() {

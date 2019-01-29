@@ -37,10 +37,6 @@
         </activity>
 
         <activity
-            android:name="com.microsoft.identity.client.AuthenticationActivity">
-        </activity>
-
-        <activity
             android:name="com.microsoft.identity.client.BrowserTabActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

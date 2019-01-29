@@ -23,7 +23,6 @@
 
 package com.microsoft.identity.client.testapp;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.NavigationView;
@@ -47,6 +46,7 @@ import android.widget.Toast;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.ILoggerCallback;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.PublicClientApplication;
@@ -56,10 +56,19 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
+import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * The app's main activity.
@@ -81,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private String[] mExtraScopesToConsent;
     private boolean mEnablePiiLogging;
     private boolean mForceRefresh;
-    private AuthenticationResult mAuthResult;
+    private IAuthenticationResult mAuthResult;
 
     private RelativeLayout mContentMain;
 
@@ -130,6 +139,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         final NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        // Provide secret key for token encryption.
+        try {
+            // For API version lower than 18, you have to provide the secret key. The secret key
+            // needs to be 256 bits. You can use the following way to generate the secret key. And
+            // use AuthenticationSettings.Instance.setSecretKey(secretKeyBytes) to supply us the key.
+            // For API version 18 and above, we use android keystore to generate keypair, and persist
+            // the keypair in AndroidKeyStore. Current investigation shows 1)Keystore may be locked with
+            // a lock screen, if calling app has a lot of background activity, keystore cannot be
+            // accessed when locked, we'll be unable to decrypt the cache items 2) AndroidKeystore could
+            // be reset when gesture to unlock the device is changed.
+            // We do recommend the calling app the supply us the key with the above two limitations.
+            if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
+                // use same key for tests
+                SecretKeyFactory keyFactory = SecretKeyFactory
+                        .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
+                SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
+                        "abcdedfdfd".getBytes("UTF-8"), 100, 256));
+                SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
+                AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
+            }
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | UnsupportedEncodingException ex) {
+            showMessage("Fail to generate secret key:" + ex.getMessage());
+        }
+
         if (savedInstanceState == null) {
             // auto select the first item
             onNavigationItemSelected(navigationView.getMenu().getItem(0));
@@ -174,12 +207,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         attachFragment(fragment);
-        return true;
-    }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        mApplication.handleInteractiveRequestRedirect(requestCode, resultCode, data);
+        return true;
     }
 
     @Override
@@ -188,17 +217,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         attachFragment(fragment);
     }
 
-    List<IAccount> getAccounts() {
-        return mApplication.getAccounts();
-    }
-
     private void attachFragment(final Fragment fragment) {
         final FragmentManager fragmentManager = getSupportFragmentManager();
         final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         final DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         drawerLayout.closeDrawer(GravityCompat.START);
-        fragmentTransaction.replace(mContentMain.getId(), fragment).addToBackStack(null).commit();
+        fragmentTransaction.replace(mContentMain.getId(), fragment).addToBackStack(null).commitAllowingStateLoss();
     }
 
     @Override
@@ -212,46 +237,65 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         callAcquireToken(mScopes, mUiBehavior, mLoginHint, mExtraQp, mExtraScopesToConsent);
     }
 
-    public void onRemoveUserClicked(String username) {
-        final List<IAccount> accountsToRemove = mApplication.getAccounts();
-
-        for (final IAccount accountToRemove : accountsToRemove) {
-            if (TextUtils.isEmpty(username) || accountToRemove.getUsername().equals(username.trim().toLowerCase())) {
-                    mApplication.removeAccount(accountToRemove);
+    public void onRemoveUserClicked(final String username) {
+        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedListener() {
+            @Override
+            public void onAccountsLoaded(List<IAccount> accountsToRemove) {
+                for (final IAccount accountToRemove : accountsToRemove) {
+                    if (TextUtils.isEmpty(username) || accountToRemove.getUsername().equalsIgnoreCase(username.trim())) {
+                        mApplication.removeAccount(accountToRemove);
+                    }
+                }
             }
-        }
+        });
     }
 
-    IAccount getAccount(final String loginHint) {
-        for (final IAccount account : mApplication.getAccounts()) {
-            if (account.getUsername().equals(loginHint.trim().toLowerCase())) {
-                return account;
-            }
-        }
-
-        return null;
+    public PublicClientApplication getPublicClientApplication() {
+        return mApplication;
     }
 
     @Override
     public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
 
-        final IAccount requestAccount = getAccount(requestOptions.getLoginHint());
+        //final IAccount requestAccount = getAccount();
+        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedListener() {
+            @Override
+            public void onAccountsLoaded(final List<IAccount> accounts) {
+                IAccount requestAccount = null;
 
-        callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
+                for (final IAccount account : accounts) {
+                    if (account.getUsername().equalsIgnoreCase(requestOptions.getLoginHint().trim())) {
+                        requestAccount = account;
+                        break;
+                    }
+                }
+
+                if (null != requestAccount) {
+                    callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
+                } else {
+                    showMessage("No account found matching loginHint");
+                }
+            }
+        });
     }
 
     @Override
-    public void bindSelectAccountSpinner(Spinner selectUser) {
-        final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
-                getApplicationContext(), android.R.layout.simple_spinner_item,
-                new ArrayList<String>() {{
-                    for (IAccount account : mApplication.getAccounts())
-                        add(account.getUsername());
-                }}
-        );
-        userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        selectUser.setAdapter(userAdapter);
+    public void bindSelectAccountSpinner(final Spinner selectUser) {
+        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedListener() {
+            @Override
+            public void onAccountsLoaded(final List<IAccount> accounts) {
+                final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
+                        getApplicationContext(), android.R.layout.simple_spinner_item,
+                        new ArrayList<String>() {{
+                            for (IAccount account : accounts)
+                                add(account.getUsername());
+                        }}
+                );
+                userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                selectUser.setAdapter(userAdapter);
+            }
+        });
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
@@ -271,11 +315,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mScopes = scopes.toLowerCase().split(" ");
         mExtraScopesToConsent = requestOptions.getExtraScopesToConsent() == null ? null : requestOptions.getExtraScopesToConsent().toLowerCase().split(" ");
 
-        if(userAgent.name().equalsIgnoreCase("BROWSER")){
+        if (userAgent.name().equalsIgnoreCase("BROWSER")) {
             mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config_browser);
-        }else if(userAgent.name().equalsIgnoreCase("WEBVIEW")){
+        } else if (userAgent.name().equalsIgnoreCase("WEBVIEW")) {
             mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config_webview);
-        }else {
+        } else {
             mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
         }
     }
@@ -344,7 +388,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return new AuthenticationCallback() {
 
             @Override
-            public void onSuccess(AuthenticationResult authenticationResult) {
+            public void onSuccess(IAuthenticationResult authenticationResult) {
                 mAuthResult = authenticationResult;
                 onNavigationItemSelected(getNavigationView().getMenu().getItem(1));
                 mSelectedAccount = null;
@@ -378,7 +422,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private NavigationView getNavigationView() {
-        final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        final NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         return navigationView;

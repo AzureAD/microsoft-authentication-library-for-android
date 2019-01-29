@@ -20,37 +20,59 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
 package com.microsoft.identity.client;
 
-import java.util.UUID;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
-/**
- * MSAL internal class for representing the request context. It contains correlation id and
- * component name.
- */
+import java.util.Date;
 
-final class RequestContext {
-    private final UUID mCorrelationId;
-    private final String mComponent;
-    private final String mTelemetryRequestId;
+public interface IAuthenticationResult {
 
-    RequestContext(final UUID correlationId, final String component,
-                   final String telemetryRequestId) {
-        mCorrelationId = correlationId;
-        mComponent = component;
-        mTelemetryRequestId = telemetryRequestId;
-    }
+    /**
+     * @return The access token requested.
+     */
+    @NonNull
+    String getAccessToken();
 
-    UUID getCorrelationId() {
-        return mCorrelationId;
-    }
+    /**
+     * @return The expiration time of the access token returned in the Token property.
+     * This value is calculated based on current UTC time measured locally and the value expiresIn returned from the
+     * service.
+     */
+    @NonNull
+    Date getExpiresOn();
 
-    String getComponent() {
-        return mComponent;
-    }
+    /**
+     * @return A unique tenant identifier that was used in token acquisiton. Could be null if tenant information is not
+     * returned by the service.
+     */
+    @Nullable
+    String getTenantId();
 
-    String getTelemetryRequestId() {
-        return mTelemetryRequestId;
-    }
+    /**
+     * @return The unique identifier of the user.
+     */
+    @NonNull
+    String getUniqueId();
+
+    /**
+     * @return The id token returned by the service or null if no id token is returned.
+     */
+    @Nullable
+    String getIdToken();
+
+    /**
+     * Gets the Account.
+     *
+     * @return The Account to get.
+     */
+    @NonNull
+    IAccount getAccount();
+
+    /**
+     * @return The scopes returned from the service.
+     */
+    @NonNull
+    String[] getScope();
 }

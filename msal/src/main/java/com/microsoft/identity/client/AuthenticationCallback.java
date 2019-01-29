@@ -29,16 +29,16 @@ import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 
 /**
- * Callback passed with token acquisition. {@link AuthenticationResult} or {@link MsalException} will be returned back via callback.
+ * Callback passed with token acquisition. {@link IAuthenticationResult} or {@link MsalException} will be returned back via callback.
  */
 public interface AuthenticationCallback {
 
     /**
      * Authentication finishes successfully.
      *
-     * @param authenticationResult {@link AuthenticationResult} that contains the success response.
+     * @param authenticationResult {@link IAuthenticationResult} that contains the success response.
      */
-    void onSuccess(final AuthenticationResult authenticationResult);
+    void onSuccess(final IAuthenticationResult authenticationResult);
 
     /**
      * Error occurs during the authentication.

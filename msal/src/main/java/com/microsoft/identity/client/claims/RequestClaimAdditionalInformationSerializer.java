@@ -20,24 +20,37 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.internal.controllers;
+package com.microsoft.identity.client.claims;
 
-import android.content.Intent;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 
-import com.microsoft.identity.client.exception.MsalArgumentException;
-import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.client.exception.MsalUiRequiredException;
-import com.microsoft.identity.common.exception.ClientException;
+import java.lang.reflect.Type;
 
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
+class RequestClaimAdditionalInformationSerializer implements JsonSerializer<RequestedClaimAdditionalInformation> {
 
-public abstract class MSALController {
+    @Override
+    public JsonElement serialize(RequestedClaimAdditionalInformation src, Type typeOfSrc, JsonSerializationContext context) {
 
-    public abstract AcquireTokenResult acquireToken(MSALAcquireTokenOperationParameters request) throws ExecutionException, InterruptedException, ClientException, IOException, MsalClientException, MsalArgumentException;
+        JsonObject info = new JsonObject();
 
-    public abstract void completeAcquireToken(int requestCode, int resultCode, final Intent data);
+        info.addProperty(RequestedClaimAdditionalInformation.SerializedNames.ESSENTIAL, src.getEssential());
 
-    public abstract AcquireTokenResult acquireTokenSilent(MSALAcquireTokenSilentOperationParameters request) throws MsalClientException, IOException, ClientException, MsalArgumentException, MsalUiRequiredException;
+        if (src.getValue() != null) {
+            info.addProperty(RequestedClaimAdditionalInformation.SerializedNames.VALUE, src.getValue().toString());
+        }
 
+        if (src.getValues().size() > 0) {
+            JsonArray valuesArray = new JsonArray();
+            for (Object value : src.getValues()) {
+                valuesArray.add(value.toString());
+            }
+            info.add(RequestedClaimAdditionalInformation.SerializedNames.VALUES, valuesArray);
+        }
+
+        return info;
+    }
 }

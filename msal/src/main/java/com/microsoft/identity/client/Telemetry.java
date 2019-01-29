@@ -199,7 +199,12 @@ final class Telemetry {
 
         // If we did not find the Builder to stop, log a warning and return
         if (null == builderToStop) {
-            Logger.warning(TAG, null, "Could not stop Event: [" + eventBuilder.getEventName() + "] because no Event in progress was found.");
+            com.microsoft.identity.common.internal.logging.Logger.warn(
+                    TAG,
+                    "Could not stop Event: ["
+                            + eventBuilder.getEventName()
+                            + "] because no Event in progress was found."
+            );
             return;
         }
 
@@ -209,7 +214,10 @@ final class Telemetry {
         // If we did not get anything back from the dictionary, most likely its a bug that stopEvent
         // was called without a corresponding startEvent
         if (null == eventStartTime) {
-            Logger.warning(TAG, null, "Stop Event called without a corresponding start_event");
+            com.microsoft.identity.common.internal.logging.Logger.warn(
+                    TAG,
+                    "Stop Event called without a corresponding start_event"
+            );
             return;
         }
 
@@ -241,7 +249,10 @@ final class Telemetry {
         }
 
         if (null == eventsToBuild) {
-            Logger.warning(TAG, null, "No completed Events returned for RequestId.");
+            com.microsoft.identity.common.internal.logging.Logger.warn(
+                    TAG,
+                    "No completed Events returned for RequestId."
+            );
             return;
         }
 
