@@ -169,14 +169,14 @@ public class BrokerMSALController extends BaseController {
         request.setClientId(parameters.getClientId());
         request.setCorrelationId(DiagnosticContext.getRequestContext().get(DiagnosticContext.CORRELATION_ID));
         request.setForceRefresh(parameters.getForceRefresh());
-        request.setLoginHint(parameters.getAccount().getUsername());
-        request.setName(parameters.getAccount().getUsername());
-        request.setUserId(parameters.getAccount().getHomeAccountId());
+        request.setUserName(parameters.getAccount().getUsername());
+        request.setName(parameters.getAccount().getName());
+        request.setHomeAccountId(parameters.getAccount().getHomeAccountId());
         //TODO: This should be the broker redirect URI and not the non-broker redirect URI
         request.setRedirect(parameters.getRedirectUri());
         request.setScope(StringUtil.join(' ', parameters.getScopes()));
         request.setClaims(parameters.getClaimsRequestJson());
-        request.setVersion(BuildConfig.VERSION_NAME);
+        request.setMsalVersion(BuildConfig.VERSION_NAME);
 
         return request;
     }
@@ -187,8 +187,8 @@ public class BrokerMSALController extends BaseController {
         request.setAuthority(parameters.getAuthority().getAuthorityURL().toString());
         request.setClientId(parameters.getClientId());
         request.setCorrelationId(DiagnosticContext.getRequestContext().get(DiagnosticContext.CORRELATION_ID));
-        request.setLoginHint(parameters.getLoginHint());
-        request.setName(parameters.getLoginHint());
+        request.setUserName(parameters.getLoginHint());
+        request.setName(parameters.getAccount().getName());
         request.setRedirect(parameters.getRedirectUri());
         request.setScope(StringUtil.join(' ', parameters.getScopes()));
         String extraQP = QueryParamsAdapter._toJson(parameters.getExtraQueryStringParameters());
@@ -230,7 +230,12 @@ public class BrokerMSALController extends BaseController {
 
             MicrosoftStsAccount microsoftStsAccount = new MicrosoftStsAccount(new IDToken(idToken), clientInfo);
             Logger.info(TAG, methodName + " AuthenticationResult successfully returned ");
-            return new LocalAuthenticationResult(accessTokenRecord, idToken, microsoftStsAccount);
+            return new LocalAuthenticationResult(
+                    accessTokenRecord,
+                    brokerTokenResponse.getRefreshToken(),
+                    idToken,
+                    microsoftStsAccount
+            );
 
         } catch (ServiceException e) {
             Logger.error(TAG, "Unable to construct Authentication result from BrokerTokenResponse ", e);
