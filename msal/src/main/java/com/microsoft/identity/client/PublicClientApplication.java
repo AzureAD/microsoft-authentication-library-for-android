@@ -1066,6 +1066,23 @@ public final class PublicClientApplication {
                 throw new IllegalArgumentException("Unable to open provided configuration file.", e);
             }
         }
+        finally {
+            try {
+                configStream.close();
+            } catch (IOException e) {
+                if (isDefaultConfiguration) {
+                    com.microsoft.identity.common.internal.logging.Logger.verbose(
+                        TAG + "loadConfiguration",
+                        "Unable to close default configuration file. This can cause memory leak."
+                    );
+                } else {
+                    com.microsoft.identity.common.internal.logging.Logger.verbose(
+                            TAG + "loadConfiguration",
+                            "Unable to close provided configuration file. This can cause memory leak."
+                    );
+                }
+            }
+        }
 
         final String config = new String(buffer);
         final Gson gson = getGsonForLoadingConfiguration();
