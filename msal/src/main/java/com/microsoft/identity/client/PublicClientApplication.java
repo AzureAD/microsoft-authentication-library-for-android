@@ -1071,12 +1071,12 @@ public final class PublicClientApplication {
                 configStream.close();
             } catch (IOException e) {
                 if (isDefaultConfiguration) {
-                    com.microsoft.identity.common.internal.logging.Logger.verbose(
+                    com.microsoft.identity.common.internal.logging.Logger.warn(
                         TAG + "loadConfiguration",
                         "Unable to close default configuration file. This can cause memory leak."
                     );
                 } else {
-                    com.microsoft.identity.common.internal.logging.Logger.verbose(
+                    com.microsoft.identity.common.internal.logging.Logger.warn(
                             TAG + "loadConfiguration",
                             "Unable to close provided configuration file. This can cause memory leak."
                     );
