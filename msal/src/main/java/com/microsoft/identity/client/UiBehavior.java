@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.client;
 
+import com.microsoft.identity.common.internal.providers.oauth2.OpenIdConnectPromptParameter;
+
 /**
  * The UI options that developer can pass during interactive token acquisition requests.
  */
@@ -57,6 +59,19 @@ public enum UiBehavior {
                 return CONSENT.name().toLowerCase();
             default:
                 throw new IllegalArgumentException();
+        }
+    }
+
+    public OpenIdConnectPromptParameter toOpenIdConnectPromptParameter() {
+        switch (this) {
+            case SELECT_ACCOUNT:
+                return OpenIdConnectPromptParameter.SELECT_ACCOUNT;
+            case FORCE_LOGIN:
+                return OpenIdConnectPromptParameter.LOGIN;
+            case CONSENT:
+                return OpenIdConnectPromptParameter.CONSENT;
+            default:
+                return OpenIdConnectPromptParameter.SELECT_ACCOUNT;
         }
     }
 }

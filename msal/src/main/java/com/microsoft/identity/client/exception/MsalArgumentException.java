@@ -1,12 +1,14 @@
 package com.microsoft.identity.client.exception;
 
+import com.microsoft.identity.common.exception.ArgumentException;
+
 public class MsalArgumentException extends MsalException {
 
-    public final static String ACQUIRE_TOKEN_OPERATION_NAME = "acquireToken";
-    public final static String ACQUIRE_TOKEN_SILENT_OPERATION_NAME = "acquireToken";
+    public final static String ACQUIRE_TOKEN_OPERATION_NAME = ArgumentException.ACQUIRE_TOKEN_OPERATION_NAME;
+    public final static String ACQUIRE_TOKEN_SILENT_OPERATION_NAME = ArgumentException.ACQUIRE_TOKEN_SILENT_OPERATION_NAME;
 
-    public final static String SCOPE_ARGUMENT_NAME = "scopes";
-    public final static String IACCOUNT_ARGUMENT_NAME = "account";
+    public final static String SCOPE_ARGUMENT_NAME = ArgumentException.SCOPE_ARGUMENT_NAME;
+    public final static String IACCOUNT_ARGUMENT_NAME = ArgumentException.IACCOUNT_ARGUMENT_NAME;
 
     private final static String ILLEGAL_ARGUMENT_ERROR_CODE = "illegal_argument_exception";
 

@@ -20,11 +20,14 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
 package com.microsoft.identity.client;
+
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccessTokenRecord;
+import com.microsoft.identity.common.internal.dto.IAccountRecord;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -33,8 +36,7 @@ import java.util.concurrent.TimeUnit;
  * MSAL successful authentication result. When auth succeeds, token will be wrapped into the
  * {@link AuthenticationResult} and passed back through the {@link AuthenticationCallback}.
  */
-public final class AuthenticationResult {
-
+public final class AuthenticationResult implements IAuthenticationResult {
     //Fields for Legacy Cache
     private final String mTenantId;
     private final String mRawIdToken;
@@ -43,7 +45,7 @@ public final class AuthenticationResult {
     private final AccessTokenRecord mAccessToken;
     private final IAccount mAccount;
 
-    public AuthenticationResult(final ICacheRecord cacheRecord) {
+    public AuthenticationResult(@NonNull final ICacheRecord cacheRecord) {
         mAccessToken = cacheRecord.getAccessToken();
         mTenantId = cacheRecord.getAccount().getRealm();
         mUniqueId = cacheRecord.getAccount().getHomeAccountId();
@@ -51,18 +53,25 @@ public final class AuthenticationResult {
         mAccount = AccountAdapter.adapt(cacheRecord.getAccount());
     }
 
-    /**
-     * @return The access token requested.
-     */
+    public AuthenticationResult(@NonNull AccessTokenRecord accessToken,
+                                @Nullable String rawIdToken,
+                                @NonNull IAccountRecord accountRecord) {
+        mAccessToken = accessToken;
+        mTenantId = accessToken.getRealm();
+        mUniqueId = accessToken.getHomeAccountId();
+        mRawIdToken = rawIdToken;
+        mAccount = AccountAdapter.adapt(accountRecord);
+
+    }
+
+    @Override
+    @NonNull
     public String getAccessToken() {
         return mAccessToken.getSecret();
     }
 
-    /**
-     * @return The expiration time of the access token returned in the Token property.
-     * This value is calculated based on current UTC time measured locally and the value expiresIn returned from the
-     * service.
-     */
+    @Override
+    @NonNull
     public Date getExpiresOn() {
         final Date expiresOn;
 
@@ -77,40 +86,32 @@ public final class AuthenticationResult {
         return expiresOn;
     }
 
-    /**
-     * @return A unique tenant identifier that was used in token acquisiton. Could be null if tenant information is not
-     * returned by the service.
-     */
+    @Override
+    @Nullable
     public String getTenantId() {
         return mTenantId;
     }
 
-    /**
-     * @return The unique identifier of the user.
-     */
+    @Override
+    @NonNull
     public String getUniqueId() {
         return mUniqueId;
     }
 
-    /**
-     * @return The id token returned by the service or null if no id token is returned.
-     */
+    @Override
+    @Nullable
     public String getIdToken() {
         return mRawIdToken;
     }
 
-    /**
-     * Gets the Account.
-     *
-     * @return The Account to get.
-     */
+    @Override
+    @NonNull
     public IAccount getAccount() {
         return mAccount;
     }
 
-    /**
-     * @return The scopes returned from the service.
-     */
+    @Override
+    @NonNull
     public String[] getScope() {
         return mAccessToken.getTarget().split("\\s");
     }

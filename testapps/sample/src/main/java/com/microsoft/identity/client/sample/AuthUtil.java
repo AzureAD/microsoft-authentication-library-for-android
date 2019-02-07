@@ -29,11 +29,11 @@ import android.content.Intent;
 import android.util.Pair;
 
 import com.microsoft.identity.client.AuthenticationCallback;
-import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.IAccount;
-import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.UiBehavior;
+import com.microsoft.identity.client.exception.MsalException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,7 +108,7 @@ final class AuthUtil {
                 null,
                 new AuthenticationCallback() {
                     @Override
-                    public void onSuccess(AuthenticationResult authenticationResult) {
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
                         // Not filled in for the sample app, ideally the callback should be passed and action taken on success
                     }
 
@@ -126,7 +126,7 @@ final class AuthUtil {
 
     private static final class AuthCallback implements AuthenticationCallback {
 
-        private AuthenticationResult mAuthResult = null;
+        private IAuthenticationResult mAuthResult = null;
         private AuthenticatedTask mTask = null;
 
         public AuthCallback(AuthenticatedTask task) {
@@ -134,7 +134,7 @@ final class AuthUtil {
         }
 
         @Override
-        public void onSuccess(AuthenticationResult authenticationResult) {
+        public void onSuccess(IAuthenticationResult authenticationResult) {
             mAuthResult = authenticationResult;
             mTask.useAccessToken(mAuthResult.getAccessToken());
         }

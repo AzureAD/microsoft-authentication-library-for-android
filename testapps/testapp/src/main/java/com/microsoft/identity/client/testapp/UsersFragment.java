@@ -38,6 +38,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
 import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.PublicClientApplication;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,25 +64,31 @@ public class UsersFragment extends Fragment {
 
         mUserList = view.findViewById(R.id.user_list);
 
-        final List<IAccount> accounts = ((MainActivity) this.getActivity()).getAccounts();
-        mGson = new GsonBuilder().setPrettyPrinting().create();
-        final List<String> serializedUsers = new ArrayList<>(accounts.size());
-        for (final IAccount account : accounts) {
-            JsonObject jsonAcct = transformToJson(account);
-            serializedUsers.add(mGson.toJson(jsonAcct));
-        }
-
-        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, serializedUsers);
-        mUserList.setAdapter(arrayAdapter);
-
-        mUserList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        final PublicClientApplication pca = ((MainActivity) this.getActivity()).getPublicClientApplication();
+        pca.getAccounts(new PublicClientApplication.AccountsLoadedListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                final IAccount selectedAccount = accounts.get(position);
-                ((MainActivity) getActivity()).setUser(selectedAccount);
-                getFragmentManager().popBackStack();
+            public void onAccountsLoaded(final List<IAccount> accounts) {
+                mGson = new GsonBuilder().setPrettyPrinting().create();
+                final List<String> serializedUsers = new ArrayList<>(accounts.size());
+                for (final IAccount account : accounts) {
+                    JsonObject jsonAcct = transformToJson(account);
+                    serializedUsers.add(mGson.toJson(jsonAcct));
+                }
+
+                final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, serializedUsers);
+                mUserList.setAdapter(arrayAdapter);
+
+                mUserList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        final IAccount selectedAccount = accounts.get(position);
+                        ((MainActivity) getActivity()).setUser(selectedAccount);
+                        getFragmentManager().popBackStack();
+                    }
+                });
             }
         });
+
         return view;
     }
 

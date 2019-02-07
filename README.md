@@ -19,14 +19,14 @@ This library is suitable for use in a production environment. We provide the sam
     // Instantiates MSAL Public Client App
     PublicClientApplication myApp = new PublicClientApplication(
                     this.getApplicationContext(),
-                    CLIENT_ID);
+                    R.raw.auth_config);
 
     // Acquires a token from AzureAD 
     myApp.acquireToken(this, SCOPES, getAuthInteractiveCallback());
 
     // ...
 
-    // The access token can now be used to access a protected service!
+    // The access token can now be used to access a protected API!
     String accessToken = authenticationResult.getAccessToken();
 ```
 
@@ -36,21 +36,11 @@ For a full example, checkout the full [code sample](https://github.com/Azure-Sam
 
 ### Binaries via Gradle (Recommended way)
 
-Add to your app's Build.Gradle:
+Add to your app's build.gradle:
 
 ```gradle
-    repositories {
-        mavenCentral()
-    }
     dependencies {
-        compile('com.microsoft.identity.client:msal:0.2.1') {
-            // if your app includes android support
-            // libraries, nimbus-jose, or GSON in its dependencies
-            // uncomment below
-
-            // exclude group: 'com.nimbusds', module: 'nimbus-jose-jwt'
-            // exclude group: 'com.android.support', module: 'appcompat-v7'
-            // exclude group: 'com.google.code.gson'
+        implementation 'com.microsoft.identity.client:msal:0.2.+'
         }
     }
 ```
@@ -63,8 +53,6 @@ You can get the AAR file from maven central and drop into **libs** folder in you
 We use [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) with the community to provide support. We highly recommend you ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before. 
 
 If you find and bug or have a feature request, please raise the issue on [GitHub Issues](../../issues). 
-
-To provide a recommendation, visit our [User Voice page](https://feedback.azure.com/forums/169401-azure-active-directory).
 
 ## Contribute
 
@@ -87,10 +75,10 @@ Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MI
 
 - Make sure you've included MSAL in your app's *build.gradle*.
 
-- Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to register an application. For Azure AD v2.0, use [the app registration portal](https://apps.dev.microsoft.com). For Azure AD B2C, checkout [how to register your app with B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-app-registration).  
+- Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to register an application. For Azure AD and Microsoft accounts, use [the app registration portal](https://apps.dev.microsoft.com). For Azure AD B2C, checkout [how to register your app with B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-app-registration).  
 
 ### Requirements
-* Android SDK 21+
+* Android 21+
 
 ### Step 1: Configure the AndroidManifest.xml
 
@@ -124,13 +112,13 @@ Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MI
 ```Java
     PublicClientApplication myApp = new PublicClientApplication(
                     this.getApplicationContext(),
-                    CLIENT_ID);
+                    R.raw.auth_config);
 ```
 
 2. Acquire a token
 
 ```Java
-    myApp.acquireToken(this, "User.Read", getAuthInteractiveCallback());
+    myApp.acquireToken(this, SCOPES, getAuthInteractiveCallback());
 ```
 
 ### Step 3: Configure the Auth helpers
@@ -176,6 +164,6 @@ Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MI
 
 ### Step 4: Use the token!
 
-The access token can now be used in an [HTTP Bearer request](https://github.com/Azure-Samples/active-directory-android-native-v2/blob/56b8cca297adf616946e9ac2200847b71fd7578a/app/src/main/java/com/azuresamples/msalandroidapp/MainActivity.java#L152).
+The access token can now be used to [Call an API](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/Calling-an-API)).
 
 
