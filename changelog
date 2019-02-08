@@ -1,5 +1,13 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 0.2.2
+----------------------------
+- Picks up common@0.0.8
+	* Bugfix: Resolves MSAL/#517
+		- Fix the bug caused by fragment parameter when extracting the redirect url
+	* Bugfix: Resolves COMMON/#343
+		- Fix the discrepancy on "mIdentityProvider" of Account object between ADAL v1.14.1 and ADAL v1.15.1
+
 Version 0.2.1
 ----------------------------
 - Picks up common@0.0.7
