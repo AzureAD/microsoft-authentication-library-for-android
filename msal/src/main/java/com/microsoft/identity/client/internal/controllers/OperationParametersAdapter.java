@@ -38,7 +38,7 @@ import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 
 public class OperationParametersAdapter {
 
@@ -89,7 +89,7 @@ public class OperationParametersAdapter {
                         .getAuthorityUri() + "]"
         );
         acquireTokenOperationParameters.setScopes(
-                new ArrayList<>(acquireTokenParameters.getScopes()
+                new HashSet<>(acquireTokenParameters.getScopes()
                 )
         );
         acquireTokenOperationParameters.setClientId(
@@ -166,7 +166,7 @@ public class OperationParametersAdapter {
                 publicClientApplicationConfiguration.getAppContext()
         );
         acquireTokenSilentOperationParameters.setScopes(
-                new ArrayList<>(acquireTokenSilentParameters.getScopes()
+                new HashSet<>(acquireTokenSilentParameters.getScopes()
                 )
         );
         acquireTokenSilentOperationParameters.setClientId(
