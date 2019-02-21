@@ -24,6 +24,7 @@ package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Intent;
 import android.os.RemoteException;
+import android.text.TextUtils;
 
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
@@ -50,7 +51,6 @@ import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperatio
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.util.QueryParamsAdapter;
-import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.msal.BuildConfig;
 
 import java.util.concurrent.ExecutionException;
@@ -174,7 +174,7 @@ public class BrokerMSALController extends BaseController {
         request.setHomeAccountId(parameters.getAccount().getHomeAccountId());
         //TODO: This should be the broker redirect URI and not the non-broker redirect URI
         request.setRedirect(parameters.getRedirectUri());
-        request.setScope(StringUtil.join(' ', parameters.getScopes()));
+        request.setScope(TextUtils.join(" ", parameters.getScopes()));
         request.setClaims(parameters.getClaimsRequestJson());
         request.setMsalVersion(BuildConfig.VERSION_NAME);
 
@@ -190,7 +190,7 @@ public class BrokerMSALController extends BaseController {
         request.setUserName(parameters.getLoginHint());
         request.setName(parameters.getAccount().getName());
         request.setRedirect(parameters.getRedirectUri());
-        request.setScope(StringUtil.join(' ', parameters.getScopes()));
+        request.setScope(TextUtils.join(" ", parameters.getScopes()));
         String extraQP = QueryParamsAdapter._toJson(parameters.getExtraQueryStringParameters());
         request.setExtraQueryStringParameter(extraQP);
         request.setClaims(parameters.getClaimsRequestJson());
