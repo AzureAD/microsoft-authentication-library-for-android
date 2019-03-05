@@ -23,6 +23,7 @@
 
 package com.microsoft.identity.client.exception;
 
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.UiRequiredException;
 
 /**
@@ -40,7 +41,7 @@ public final class MsalUiRequiredException extends MsalException {
     /**
      * The refresh token used to redeem access token is invalid, expired, revoked.
      */
-    public static final String INVALID_GRANT = UiRequiredException.INVALID_GRANT;
+    public static final String INVALID_GRANT = AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
 
     /**
      * Access token doesn't exist and there is no refresh token can be found to redeem access token.
