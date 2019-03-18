@@ -23,7 +23,8 @@
 
 package com.microsoft.identity.client.exception;
 
-import com.microsoft.identity.common.exception.UiRequiredException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.exception.ErrorStrings;
 
 /**
  * This exception indicates that UI is required for authentication to succeed.
@@ -40,17 +41,17 @@ public final class MsalUiRequiredException extends MsalException {
     /**
      * The refresh token used to redeem access token is invalid, expired, revoked.
      */
-    public static final String INVALID_GRANT = UiRequiredException.INVALID_GRANT;
+    public static final String INVALID_GRANT = AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
 
     /**
      * Access token doesn't exist and there is no refresh token can be found to redeem access token.
      */
-    public static final String NO_TOKENS_FOUND = UiRequiredException.NO_TOKENS_FOUND;
+    public static final String NO_TOKENS_FOUND = ErrorStrings.NO_TOKENS_FOUND;
 
     /**
      * The supplied Account cannot be found in the cache.
      */
-    public static final String NO_ACCOUNT_FOUND = UiRequiredException.NO_ACCOUNT_FOUND;
+    public static final String NO_ACCOUNT_FOUND = ErrorStrings.NO_ACCOUNT_FOUND;
 
     public MsalUiRequiredException(final String errorCode) {
         super(errorCode);
