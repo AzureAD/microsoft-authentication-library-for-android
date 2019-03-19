@@ -864,7 +864,6 @@ public final class PublicClientApplication {
                 );
 
         final InteractiveTokenCommand command = new InteractiveTokenCommand(
-                mPublicClientConfiguration.getAppContext(),
                 params,
                 MSALControllerFactory.getAcquireTokenController(
                         mPublicClientConfiguration.getAppContext(),
@@ -988,7 +987,6 @@ public final class PublicClientApplication {
         ILocalAuthenticationCallback callback = getLocalAuthenticationCallback(acquireTokenSilentParameters.getCallback());
 
         final TokenCommand silentTokenCommand = new TokenCommand(
-                mPublicClientConfiguration.getAppContext(),
                 params,
                 MSALControllerFactory.getAcquireTokenSilentControllers(
                         mPublicClientConfiguration.getAppContext(),
@@ -1065,15 +1063,14 @@ public final class PublicClientApplication {
             } else {
                 throw new IllegalArgumentException("Unable to open provided configuration file.", e);
             }
-        }
-        finally {
+        } finally {
             try {
                 configStream.close();
             } catch (IOException e) {
                 if (isDefaultConfiguration) {
                     com.microsoft.identity.common.internal.logging.Logger.warn(
-                        TAG + "loadConfiguration",
-                        "Unable to close default configuration file. This can cause memory leak."
+                            TAG + "loadConfiguration",
+                            "Unable to close default configuration file. This can cause memory leak."
                     );
                 } else {
                     com.microsoft.identity.common.internal.logging.Logger.warn(
