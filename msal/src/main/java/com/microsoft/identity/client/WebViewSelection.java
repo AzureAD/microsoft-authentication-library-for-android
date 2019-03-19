@@ -13,7 +13,7 @@ public enum WebViewSelection {
 
     private int mId;
 
-    private WebViewSelection(final int id) {
+    WebViewSelection(final int id) {
         mId = id;
     }
 
