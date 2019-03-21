@@ -92,6 +92,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -385,8 +386,18 @@ public final class PublicClientApplication {
             // Load the old TokenCacheItems as key/value JSON
             final Map<String, String> credentials = sharedPreferencesFileManager.getAll();
 
+            final Map<String, String> redirects = new HashMap<>();
+            redirects.put(
+                    mPublicClientConfiguration.mClientId, // Our client id
+                    mPublicClientConfiguration.mRedirectUri // Our redirect uri
+            );
+
             new TokenMigrationUtility<MicrosoftAccount, MicrosoftRefreshToken>()._import(
-                    new AdalMigrationAdapter(mPublicClientConfiguration.getAppContext(), false),
+                    new AdalMigrationAdapter(
+                            mPublicClientConfiguration.getAppContext(),
+                            redirects,
+                            false
+                    ),
                     credentials,
                     (IShareSingleSignOnState<MicrosoftAccount, MicrosoftRefreshToken>) mPublicClientConfiguration.getOAuth2TokenCache(),
                     new TokenMigrationCallback() {
@@ -410,6 +421,7 @@ public final class PublicClientApplication {
             // The cache contains items - mark migration as complete
             new AdalMigrationAdapter(
                     mPublicClientConfiguration.getAppContext(),
+                    null, // unused for this path
                     false
             ).setMigrationStatus(true);
 
