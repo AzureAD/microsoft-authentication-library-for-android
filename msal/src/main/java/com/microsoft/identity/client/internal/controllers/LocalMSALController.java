@@ -49,7 +49,6 @@ import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -181,40 +180,11 @@ public class LocalMSALController extends BaseController {
 
         final OAuth2TokenCache tokenCache = parameters.getTokenCache();
 
-        final String clientId = parameters.getClientId();
-        final String homeAccountId = parameters.getAccount().getHomeAccountId();
-        final String localAccountId = parameters.getAccount().getLocalAccountId();
-
-        final List<AccountRecord> accounts = tokenCache.getAccounts(null, clientId);
-
-        AccountRecord targetAccount = null;
-
-        for (final AccountRecord accountRecord : accounts) {
-            if (homeAccountId.equals(accountRecord.getHomeAccountId())
-                    && localAccountId.equals(accountRecord.getLocalAccountId())) {
-                targetAccount = accountRecord;
-            }
-        }
-
-        if (null == targetAccount) {
-            Logger.errorPII(
-                    TAG,
-                    "No accounts found for clientId, homeAccountId: ["
-                            + clientId
-                            + ", "
-                            + homeAccountId
-                            + "]",
-                    null
-            );
-            throw new ClientException(
-                    MsalUiRequiredException.NO_ACCOUNT_FOUND,
-                    "No cached accounts found for the supplied homeAccountId"
-            );
-        }
+        final AccountRecord targetAccount = getCachedAccountRecord(parameters);
 
         final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy();
         final ICacheRecord cacheRecord = tokenCache.load(
-                clientId,
+                parameters.getClientId(),
                 TextUtils.join(" ", parameters.getScopes()),
                 targetAccount
         );
