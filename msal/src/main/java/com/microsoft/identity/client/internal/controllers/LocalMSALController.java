@@ -163,7 +163,7 @@ public class LocalMSALController extends BaseController {
     @Override
     public AcquireTokenResult acquireTokenSilent(
             final AcquireTokenSilentOperationParameters parameters)
-            throws IOException, ClientException, UiRequiredException, ArgumentException {
+            throws IOException, ClientException, ArgumentException {
         final String methodName = ":acquireTokenSilent";
         Logger.verbose(
                 TAG + methodName,
