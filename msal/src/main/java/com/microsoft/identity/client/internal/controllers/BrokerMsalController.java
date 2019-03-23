@@ -25,26 +25,22 @@ package com.microsoft.identity.client.internal.controllers;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.RemoteException;
-import android.text.TextUtils;
+import android.support.annotation.NonNull;
 
 import com.microsoft.identity.client.IMicrosoftAuthService;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
-import com.microsoft.identity.common.internal.broker.BrokerRequest;
-import com.microsoft.identity.common.internal.broker.BrokerResult;
 import com.microsoft.identity.common.internal.broker.BrokerResultFuture;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthServiceFuture;
 import com.microsoft.identity.common.internal.controllers.BaseController;
-import com.microsoft.identity.common.internal.logging.DiagnosticContext;
+import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
+import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
-import com.microsoft.identity.common.internal.util.QueryParamsAdapter;
-import com.microsoft.identity.msal.BuildConfig;
-
-import java.util.concurrent.ExecutionException;
 
 /**
  * The implementation of MSAL Controller for Broker
@@ -57,7 +53,7 @@ public class BrokerMsalController extends BaseController {
 
     @Override
     public AcquireTokenResult acquireToken(AcquireTokenOperationParameters parameters)
-            throws ExecutionException, InterruptedException, ClientException {
+            throws  InterruptedException, BaseException {
 
         //Create BrokerResultFuture to block on response from the broker... response will be return as an activity result
         //BrokerActivity will receive the result and ask the API dispatcher to complete the request
@@ -65,8 +61,13 @@ public class BrokerMsalController extends BaseController {
         mBrokerResultFuture = new BrokerResultFuture();
 
         //Get the broker interactive parameters intent
-        Intent interactiveRequestIntent = getBrokerAuthorizationIntent(parameters);
-        interactiveRequestIntent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST_V2, getBrokerRequestForInteractive(parameters));
+        final Intent interactiveRequestIntent = getBrokerAuthorizationIntent(parameters);
+
+        final MsalBrokerRequestAdapter msalBrokerRequestAdapter = new MsalBrokerRequestAdapter();
+        interactiveRequestIntent.putExtra(
+                AuthenticationConstants.Broker.BROKER_REQUEST_V2,
+                msalBrokerRequestAdapter.bundleFromAcquireTokenParameters(parameters)
+        );
 
         //Pass this intent to the BrokerActivity which will be used to start this activity
         Intent brokerActivityIntent = new Intent(parameters.getAppContext(), BrokerActivity.class);
@@ -78,21 +79,7 @@ public class BrokerMsalController extends BaseController {
         //Wait to be notified of the result being returned... we could add a timeout here if we want to
         Bundle resultBundle = mBrokerResultFuture.get();
 
-        final MsalBrokerResultAdapter resultAdapter = new MsalBrokerResultAdapter();
-
-        if(resultBundle.getBoolean("isSuccess")){
-            final AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
-
-            acquireTokenResult.setLocalAuthenticationResult(
-                    resultAdapter.authenticationResultFromBundle(resultBundle)
-            );
-
-            return acquireTokenResult;
-        }
-
-        throw resultAdapter.baseExceptionFromBundle(resultBundle);
-
-
+        return getAcquireTokenResult(resultBundle);
 
     }
 
@@ -102,16 +89,18 @@ public class BrokerMsalController extends BaseController {
      * @param request
      * @return
      */
-    private Intent getBrokerAuthorizationIntent(AcquireTokenOperationParameters request) throws ClientException {
-        Intent interactiveRequestIntent = null;
-        IMicrosoftAuthService service = null;
+    private Intent getBrokerAuthorizationIntent(@NonNull final AcquireTokenOperationParameters request) throws ClientException {
+        Intent interactiveRequestIntent;
+        IMicrosoftAuthService service;
 
-        MicrosoftAuthClient client = new MicrosoftAuthClient(request.getAppContext());
-        MicrosoftAuthServiceFuture authServiceFuture = client.connect();
+        final MicrosoftAuthClient client = new MicrosoftAuthClient(request.getAppContext());
+        final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
 
         try {
             service = authServiceFuture.get();
             interactiveRequestIntent = service.getIntentForInteractiveRequest();
+
+            // TODO : See what's the right exception here
         } catch (RemoteException e) {
             throw new RuntimeException("Exception occurred while attempting to invoke remote service", e);
         } catch (Exception e) {
@@ -140,7 +129,7 @@ public class BrokerMsalController extends BaseController {
     }
 
     @Override
-    public AcquireTokenResult acquireTokenSilent(AcquireTokenSilentOperationParameters parameters) throws ClientException {
+    public AcquireTokenResult acquireTokenSilent(AcquireTokenSilentOperationParameters parameters) throws BaseException {
         IMicrosoftAuthService service;
 
         MicrosoftAuthClient client = new MicrosoftAuthClient(parameters.getAppContext());
@@ -154,52 +143,36 @@ public class BrokerMsalController extends BaseController {
         }
 
         try {
-            BrokerResult brokerResult = service.acquireTokenSilently(getBrokerRequestForSilent(parameters));
-            return getAcquireTokenResult(brokerResult);
+            final MsalBrokerRequestAdapter msalBrokerRequestAdapter = new MsalBrokerRequestAdapter();
+            final Bundle resultBundle = service.acquireTokenSilently(
+                    msalBrokerRequestAdapter.bundleFromSilentOperationParameters(parameters)
+            );
+            return getAcquireTokenResult(resultBundle);
+
         } catch (RemoteException e) {
+            // TODO : See what's the right exception here
             throw new RuntimeException("Exception occurred while attempting to invoke remote service", e);
         }
     }
 
-    /**
-     * Map AcquireTokenSilentOperationParameters to Broker Request
-     * NOTE: TBD to update this code with BrokerRequest object
-     *
-     * @param parameters
-     * @return {@link BrokerRequest}
-     */
-    private static BrokerRequest getBrokerRequestForSilent(AcquireTokenSilentOperationParameters parameters) {
+    private AcquireTokenResult getAcquireTokenResult(final Bundle resultBundle) throws BaseException {
 
-        BrokerRequest request = new BrokerRequest();
-        request.setApplicationName(parameters.getAppContext().getPackageName());
-        request.setAuthority(parameters.getAuthority().getAuthorityURL().toString());
-        request.setClientId(parameters.getClientId());
-        request.setCorrelationId(DiagnosticContext.getRequestContext().get(DiagnosticContext.CORRELATION_ID));
-        request.setForceRefresh(parameters.getForceRefresh());
-        request.setUserName(parameters.getAccount().getUsername());
-        request.setHomeAccountId(parameters.getAccount().getHomeAccountId());
-        //TODO: This should be the broker redirect URI and not the non-broker redirect URI
-        request.setRedirect(parameters.getRedirectUri());
-        request.setScope(TextUtils.join(" ", parameters.getScopes()));
-        request.setClaims(parameters.getClaimsRequestJson());
-        request.setMsalVersion(BuildConfig.VERSION_NAME);
+        final MsalBrokerResultAdapter resultAdapter = new MsalBrokerResultAdapter();
 
-        return request;
-    }
+        if(resultBundle.getBoolean(AuthenticationConstants.Broker.BROKER_REQUEST_V2_SUCCESS)){
+            Logger.verbose(TAG, "Successful result from the broker ");
 
-    private static BrokerRequest getBrokerRequestForInteractive(AcquireTokenOperationParameters parameters) {
-        BrokerRequest request = new BrokerRequest();
-        request.setApplicationName(parameters.getAppContext().getPackageName());
-        request.setAuthority(parameters.getAuthority().getAuthorityURL().toString());
-        request.setClientId(parameters.getClientId());
-        request.setCorrelationId(DiagnosticContext.getRequestContext().get(DiagnosticContext.CORRELATION_ID));
-        request.setUserName(parameters.getLoginHint());
-        request.setRedirect(parameters.getRedirectUri());
-        request.setScope(TextUtils.join(" ", parameters.getScopes()));
-        String extraQP = QueryParamsAdapter._toJson(parameters.getExtraQueryStringParameters());
-        request.setExtraQueryStringParameter(extraQP);
-        request.setClaims(parameters.getClaimsRequestJson());
-        return request;
+            final AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
+            acquireTokenResult.setLocalAuthenticationResult(
+                    resultAdapter.authenticationResultFromBundle(resultBundle)
+            );
+
+            return acquireTokenResult;
+        }
+
+        Logger.warn(TAG, "Exception returned from broker, retrieving exception details ");
+
+        throw resultAdapter.baseExceptionFromBundle(resultBundle);
     }
 
 }
