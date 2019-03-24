@@ -23,12 +23,10 @@
 package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Intent;
-import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.microsoft.identity.client.BrowserTabActivity;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.exception.ArgumentException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.UiRequiredException;
@@ -43,21 +41,18 @@ import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStat
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
-import com.microsoft.identity.common.internal.providers.oauth2.TokenRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
-import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+
+import static com.microsoft.identity.common.adal.internal.net.HttpWebRequest.throwIfNetworkNotAvailable;
 
 public class LocalMSALController extends BaseController {
 
@@ -168,7 +163,7 @@ public class LocalMSALController extends BaseController {
     @Override
     public AcquireTokenResult acquireTokenSilent(
             final AcquireTokenSilentOperationParameters parameters)
-            throws IOException, ClientException, UiRequiredException, ArgumentException {
+            throws IOException, ClientException, ArgumentException {
         final String methodName = ":acquireTokenSilent";
         Logger.verbose(
                 TAG + methodName,
@@ -185,40 +180,11 @@ public class LocalMSALController extends BaseController {
 
         final OAuth2TokenCache tokenCache = parameters.getTokenCache();
 
-        final String clientId = parameters.getClientId();
-        final String homeAccountId = parameters.getAccount().getHomeAccountId();
-        final String localAccountId = parameters.getAccount().getLocalAccountId();
-
-        final List<AccountRecord> accounts = tokenCache.getAccounts(null, clientId);
-
-        AccountRecord targetAccount = null;
-
-        for (final AccountRecord accountRecord : accounts) {
-            if (homeAccountId.equals(accountRecord.getHomeAccountId())
-                    && localAccountId.equals(accountRecord.getLocalAccountId())) {
-                targetAccount = accountRecord;
-            }
-        }
-
-        if (null == targetAccount) {
-            Logger.errorPII(
-                    TAG,
-                    "No accounts found for clientId, homeAccountId: ["
-                            + clientId
-                            + ", "
-                            + homeAccountId
-                            + "]",
-                    null
-            );
-            throw new ClientException(
-                    MsalUiRequiredException.NO_ACCOUNT_FOUND,
-                    "No cached accounts found for the supplied homeAccountId"
-            );
-        }
+        final AccountRecord targetAccount = getCachedAccountRecord(parameters);
 
         final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy();
         final ICacheRecord cacheRecord = tokenCache.load(
-                clientId,
+                parameters.getClientId(),
                 TextUtils.join(" ", parameters.getScopes()),
                 targetAccount
         );
