@@ -30,14 +30,17 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.NetworkOnMainThreadException;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
+import android.support.annotation.WorkerThread;
 import android.util.Pair;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.microsoft.identity.client.claims.ClaimsRequest;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
@@ -95,6 +98,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
 
@@ -975,6 +980,116 @@ public final class PublicClientApplication {
                         .build();
 
         acquireTokenSilentAsync(acquireTokenSilentParameters);
+    }
+
+    /**
+     * Perform acquire token silent call synchronously. If there is a valid access token in the cache, the sdk will return the access token; If
+     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
+     * or it fails the refresh, a {@link MsalException} will be thrown.
+     * <p>
+     * Note: This method will throw a {@link NetworkOnMainThreadException} if called from the main thread.
+     * </p>
+     *
+     * @param scopes   The non-null array of scopes to be requested for the access token.
+     *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param account  {@link IAccount} represents the account to silently request tokens.
+     */
+    @WorkerThread
+    public IAuthenticationResult acquireTokenSilentSync(@NonNull final String[] scopes,
+                                                        @NonNull final IAccount account)
+            throws InterruptedException, MsalException {
+        return acquireTokenSilentSync(
+                scopes,
+                account,
+                null, // authority
+                false, // forceRefresh
+                null // claimsRequest
+        );
+    }
+
+    /**
+     * Perform acquire token silent call synchronously. If there is a valid access token in the cache, the sdk will return the access token; If
+     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
+     * or it fails the refresh, a {@link MsalException} will be thrown.
+     * <p>
+     * Note: This method will throw a {@link NetworkOnMainThreadException} if called from the main thread.
+     * </p>
+     *
+     * @param scopes       The non-null array of scopes to be requested for the access token.
+     *                     MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param account      {@link IAccount} represents the account to silently request tokens.
+     * @param authority    Optional. Can be passed to override the configured authority.
+     * @param forceRefresh True if the request is forced to refresh, false otherwise.
+     */
+    @WorkerThread
+    public IAuthenticationResult acquireTokenSilenSync(@NonNull final String[] scopes,
+                                                       @NonNull final IAccount account,
+                                                       @Nullable final String authority,
+                                                       final boolean forceRefresh)
+            throws InterruptedException, MsalException {
+        return acquireTokenSilentSync(
+                scopes,
+                account,
+                authority,
+                forceRefresh,
+                null // claimsRequest
+        );
+    }
+
+    private IAuthenticationResult acquireTokenSilentSync(@NonNull final String[] scopes,
+                                                         @NonNull final IAccount account,
+                                                         @Nullable final String authority,
+                                                         final boolean forceRefresh,
+                                                         @Nullable final ClaimsRequest claimsRequest)
+            throws InterruptedException, MsalException {
+
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            final NetworkOnMainThreadException exception = new NetworkOnMainThreadException();
+            com.microsoft.identity.common.internal.logging.Logger.error(
+                    TAG + ":acquireTokenSilentSync",
+                    "Synchronous network calls must not be invoked on the main thread.",
+                    exception
+            );
+            throw exception;
+        }
+
+        final AtomicReference<IAuthenticationResult> authenticationResultRef = new AtomicReference<>();
+        final AtomicReference<MsalException> exceptionRef = new AtomicReference<>();
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        final AuthenticationCallback authenticationCallback = new AuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                authenticationResultRef.set(authenticationResult);
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                exceptionRef.set(exception);
+                latch.countDown();
+            }
+
+            @Override
+            public void onCancel() {
+                exceptionRef.set(new MsalClientException(
+                        MsalClientException.UNKNOWN_ERROR,
+                        "acquireTokenSilentSync() was cancelled."
+                ));
+                latch.countDown();
+            }
+        };
+
+        acquireTokenSilent(scopes, account, authority, forceRefresh, claimsRequest, authenticationCallback);
+
+        latch.await();
+
+        final MsalException exception = exceptionRef.get();
+        if (exception != null) {
+            throw exception;
+        }
+
+        return authenticationResultRef.get();
     }
 
     /**
