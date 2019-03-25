@@ -89,10 +89,7 @@ public final class BrokerActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        //Todo: Need the possible resultCodes(failures)  that could be returned
-        if (resultCode == AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE) {
-            ApiDispatcher.completeInteractive(requestCode, resultCode, data);
-        }
+        ApiDispatcher.completeInteractive(requestCode, resultCode, data);
         finish();
     }
 

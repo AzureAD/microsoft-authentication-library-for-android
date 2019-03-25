@@ -70,14 +70,14 @@ public class BrokerMsalController extends BaseController {
         );
 
         //Pass this intent to the BrokerActivity which will be used to start this activity
-        Intent brokerActivityIntent = new Intent(parameters.getAppContext(), BrokerActivity.class);
+        final Intent brokerActivityIntent = new Intent(parameters.getAppContext(), BrokerActivity.class);
         brokerActivityIntent.putExtra(BrokerActivity.BROKER_INTENT, interactiveRequestIntent);
 
         //Start the BrokerActivity
         parameters.getActivity().startActivity(brokerActivityIntent);
 
         //Wait to be notified of the result being returned... we could add a timeout here if we want to
-        Bundle resultBundle = mBrokerResultFuture.get();
+        final Bundle resultBundle = mBrokerResultFuture.get();
 
         return getAcquireTokenResult(resultBundle);
 
