@@ -88,10 +88,11 @@ public class MSALControllerFactory {
                                                                         @NonNull final Authority authority,
                                                                         @NonNull final PublicClientApplicationConfiguration applicationConfiguration) {
         List<BaseController> controllers = new ArrayList<>();
-        controllers.add(new LocalMSALController());
         if (brokerEligible(applicationContext, authority, applicationConfiguration)) {
             controllers.add(new BrokerMsalController());
         }
+        controllers.add(new LocalMSALController());
+
 
         return controllers;
     }
