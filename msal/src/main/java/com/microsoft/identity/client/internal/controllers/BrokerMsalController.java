@@ -31,6 +31,7 @@ import com.microsoft.identity.client.IMicrosoftAuthService;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.internal.broker.BrokerRequest;
 import com.microsoft.identity.common.internal.broker.BrokerResultFuture;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthServiceFuture;
@@ -66,7 +67,7 @@ public class BrokerMsalController extends BaseController {
         final MsalBrokerRequestAdapter msalBrokerRequestAdapter = new MsalBrokerRequestAdapter();
         interactiveRequestIntent.putExtra(
                 AuthenticationConstants.Broker.BROKER_REQUEST_V2,
-                msalBrokerRequestAdapter.bundleFromAcquireTokenParameters(parameters)
+                msalBrokerRequestAdapter.brokerRequestFromAcquireTokenParameters(parameters)
         );
 
         //Pass this intent to the BrokerActivity which will be used to start this activity
@@ -124,8 +125,7 @@ public class BrokerMsalController extends BaseController {
      */
     @Override
     public void completeAcquireToken(int requestCode, int resultCode, Intent data) {
-        final Bundle resultBundle = data.getBundleExtra(AuthenticationConstants.Broker.BROKER_RESULT_V2);
-        mBrokerResultFuture.setResultBundle(resultBundle);
+        mBrokerResultFuture.setResultBundle(data.getExtras());
     }
 
     @Override
@@ -144,9 +144,15 @@ public class BrokerMsalController extends BaseController {
 
         try {
             final MsalBrokerRequestAdapter msalBrokerRequestAdapter = new MsalBrokerRequestAdapter();
-            final Bundle resultBundle = service.acquireTokenSilently(
-                    msalBrokerRequestAdapter.bundleFromSilentOperationParameters(parameters)
-            );
+
+            final Bundle requestBundle = new Bundle();
+            final BrokerRequest brokerRequest =  msalBrokerRequestAdapter.
+                    brokerRequestFromSilentOperationParameters(parameters);
+
+            requestBundle.putSerializable(AuthenticationConstants.Broker.BROKER_REQUEST_V2, brokerRequest);
+
+            final Bundle resultBundle = service.acquireTokenSilently(requestBundle);
+
             return getAcquireTokenResult(resultBundle);
 
         } catch (RemoteException e) {
