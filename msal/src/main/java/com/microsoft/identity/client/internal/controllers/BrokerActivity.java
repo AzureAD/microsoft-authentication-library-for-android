@@ -98,7 +98,7 @@ public final class BrokerActivity extends Activity {
 
         if (resultCode == AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE ||
                 resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL
-                || requestCode == AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR) {
+                || resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR) {
 
             Logger.verbose(TAG + methodName, "Completing interactive request ");
             ApiDispatcher.completeInteractive(requestCode, resultCode, data);

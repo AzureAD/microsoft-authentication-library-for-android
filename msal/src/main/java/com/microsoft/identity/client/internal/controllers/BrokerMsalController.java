@@ -31,6 +31,7 @@ import com.microsoft.identity.client.IMicrosoftAuthService;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.broker.BrokerRequest;
 import com.microsoft.identity.common.internal.broker.BrokerResultFuture;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
@@ -101,11 +102,14 @@ public class BrokerMsalController extends BaseController {
             service = authServiceFuture.get();
             interactiveRequestIntent = service.getIntentForInteractiveRequest();
 
-            // TODO : See what's the right exception here
         } catch (RemoteException e) {
-            throw new RuntimeException("Exception occurred while attempting to invoke remote service", e);
+            throw new ClientException(ErrorStrings.BROKER_BIND_SERVICE_FAILED,
+                    "Exception occurred while attempting to invoke remote service",
+                    e);
         } catch (Exception e) {
-            throw new RuntimeException("Exception occurred while awaiting (get) return of MicrosoftAuthService", e);
+            throw new ClientException(ErrorStrings.BROKER_BIND_SERVICE_FAILED,
+                    "Exception occurred while awaiting (get) return of MicrosoftAuthService",
+                    e);
         } finally {
             client.disconnect();
         }
@@ -156,8 +160,11 @@ public class BrokerMsalController extends BaseController {
             return getAcquireTokenResult(resultBundle);
 
         } catch (RemoteException e) {
-            // TODO : See what's the right exception here
-            throw new RuntimeException("Exception occurred while attempting to invoke remote service", e);
+            throw new ClientException(
+                    ErrorStrings.BROKER_BIND_SERVICE_FAILED,
+                    "Exception occurred while attempting to invoke remote service",
+                    e
+            );
         }
     }
 
