@@ -264,7 +264,7 @@ public class PublicClientApplicationConfiguration {
         }
     }
 
-    void nullConfigurationCheck(String configKey, String configValue) {
+    private void nullConfigurationCheck(String configKey, String configValue) {
         if (configValue == null) {
             throw new IllegalArgumentException(configKey + " cannot be null.  Invalid configuration.");
         }
