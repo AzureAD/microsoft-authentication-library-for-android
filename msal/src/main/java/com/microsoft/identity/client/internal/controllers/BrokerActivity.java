@@ -28,8 +28,8 @@ import android.os.Bundle;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
+import com.microsoft.identity.common.internal.logging.Logger;
 
-//TODO : Can be removed after adding support to do a complete interactive acquire token call using common.
 public final class BrokerActivity extends Activity {
 
     public static final String BROKER_INTENT = "broker_intent";
@@ -89,8 +89,18 @@ public final class BrokerActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        //Todo: Need the possible resultCodes(failures)  that could be returned
-        if (resultCode == AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE) {
+        final String methodName = ":onActivityResult";
+        Logger.info(TAG + methodName,
+                "Result received from Broker "
+                        + "Request code: " + requestCode
+                        +  " Result code: " + requestCode
+        );
+
+        if (resultCode == AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE ||
+                resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL
+                || resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR) {
+
+            Logger.verbose(TAG + methodName, "Completing interactive request ");
             ApiDispatcher.completeInteractive(requestCode, resultCode, data);
         }
         finish();

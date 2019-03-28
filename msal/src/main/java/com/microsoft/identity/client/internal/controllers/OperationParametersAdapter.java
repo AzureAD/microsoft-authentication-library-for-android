@@ -22,10 +22,16 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.support.annotation.NonNull;
+
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
 import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.common.internal.authorities.Authority;
@@ -152,6 +158,14 @@ public class OperationParametersAdapter {
             );
         }
 
+        final Context context = acquireTokenParameters.getActivity().getApplicationContext();
+
+        acquireTokenOperationParameters.setApplicationName(context.getPackageName());
+
+        acquireTokenOperationParameters.setApplicationVersion(getPackageVersion(context));
+
+        acquireTokenOperationParameters.setSdkVersion(PublicClientApplication.getSdkVersion());
+
         return acquireTokenOperationParameters;
     }
 
@@ -211,6 +225,14 @@ public class OperationParametersAdapter {
         acquireTokenSilentOperationParameters.setForceRefresh(
                 acquireTokenSilentParameters.getForceRefresh()
         );
+
+        final Context context = publicClientApplicationConfiguration.getAppContext();
+
+        acquireTokenSilentOperationParameters.setApplicationName(context.getPackageName());
+
+        acquireTokenSilentOperationParameters.setApplicationVersion(getPackageVersion(context));
+
+        acquireTokenSilentOperationParameters.setSdkVersion(PublicClientApplication.getSdkVersion());
 
         return acquireTokenSilentOperationParameters;
     }
@@ -300,6 +322,17 @@ public class OperationParametersAdapter {
             );
         }
 
+        return null;
+    }
+
+    private static String getPackageVersion(@NonNull final Context context) {
+        final String packageName = context.getPackageName();
+        try {
+            final PackageInfo packageInfo = context.getPackageManager().getPackageInfo(packageName, 0);
+            return packageInfo.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 }
