@@ -72,6 +72,7 @@ import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsTokenResponse;
@@ -216,7 +217,7 @@ public final class PublicClientApplication {
 
         final PublicClientApplicationConfiguration developerConfig = loadConfiguration(context, configFileResourceId);
         setupConfiguration(context, developerConfig);
-
+        AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getmEnvironment());
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
 
     }
@@ -244,7 +245,7 @@ public final class PublicClientApplication {
 
         final PublicClientApplicationConfiguration developerConfig = loadConfiguration(configFile);
         setupConfiguration(context, developerConfig);
-
+        AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getmEnvironment());
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
     }
 

@@ -30,6 +30,7 @@ import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.common.internal.authorities.Environment;
 import com.microsoft.identity.common.internal.authorities.UnknownAudience;
 import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
@@ -45,6 +46,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.MULTIPLE_CLOUDS_SUPPORTED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ENVIRONMENT;
 
 public class PublicClientApplicationConfiguration {
 
@@ -57,6 +59,7 @@ public class PublicClientApplicationConfiguration {
         static final String LOGGING = "logging";
         static final String MULTIPLE_CLOUDS_SUPPORTED = "multiple_clouds_supported";
         static final String USE_BROKER = "broker_redirect_uri_registered";
+        static final String ENVIRONMENT = "environment";
     }
 
     @SerializedName(CLIENT_ID)
@@ -83,6 +86,9 @@ public class PublicClientApplicationConfiguration {
     @SerializedName(USE_BROKER)
     Boolean mUseBroker;
 
+    @SerializedName(ENVIRONMENT)
+    Environment mEnvironment;
+
     transient OAuth2TokenCache mOAuth2TokenCache;
 
     transient Context mAppContext;
@@ -104,6 +110,15 @@ public class PublicClientApplicationConfiguration {
      */
     public List<Authority> getAuthorities() {
         return mAuthorities;
+    }
+
+    /**
+     * Gets the environment (Production, PPE) that the public client application is registered in
+     *
+     * @return The environment
+     */
+    public Environment getmEnvironment() {
+        return mEnvironment;
     }
 
     /**
@@ -231,6 +246,7 @@ public class PublicClientApplicationConfiguration {
         this.mRedirectUri = config.mRedirectUri == null ? this.mRedirectUri : config.mRedirectUri;
         this.mAuthorities = config.mAuthorities == null ? this.mAuthorities : config.mAuthorities;
         this.mAuthorizationAgent = config.mAuthorizationAgent == null ? this.mAuthorizationAgent : config.mAuthorizationAgent;
+        this.mEnvironment = config.mEnvironment == null ? this.mEnvironment : config.mEnvironment;
         this.mHttpConfiguration = config.mHttpConfiguration == null ? this.mHttpConfiguration : config.mHttpConfiguration;
         this.mMultipleCloudsSupported = config.mMultipleCloudsSupported == null ? this.mMultipleCloudsSupported : config.mMultipleCloudsSupported;
         this.mUseBroker = config.mUseBroker == null ? this.mUseBroker : config.mUseBroker;
