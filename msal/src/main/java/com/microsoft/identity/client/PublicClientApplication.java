@@ -188,7 +188,6 @@ public final class PublicClientApplication {
         loadMetaDataFromManifest();
         initializeApplication();
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
-
     }
 
     /**
@@ -218,7 +217,6 @@ public final class PublicClientApplication {
         setupConfiguration(context, developerConfig);
 
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
-
     }
 
     /**

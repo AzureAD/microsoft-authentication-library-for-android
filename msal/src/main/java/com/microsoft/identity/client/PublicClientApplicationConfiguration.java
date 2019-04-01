@@ -28,6 +28,7 @@ import android.support.annotation.NonNull;
 import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
+import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.UnknownAudience;
@@ -36,6 +37,8 @@ import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 
 import java.util.List;
+
+import javax.crypto.SecretKey;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORITIES;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_USER_AGENT;
@@ -86,6 +89,17 @@ public class PublicClientApplicationConfiguration {
     transient OAuth2TokenCache mOAuth2TokenCache;
 
     transient Context mAppContext;
+
+    /**
+     * Sets the secret key bytes to use when encrypting/decrypting cache entries.
+     * {@link java.security.spec.KeySpec} algorithm is AES.
+     *
+     * @param rawKey The SecretKey to use in its primary encoding format.
+     * @see SecretKey#getEncoded()
+     */
+    public void setTokenCacheSecretKeys(@NonNull final byte[] rawKey) {
+        AuthenticationSettings.INSTANCE.setSecretKey(rawKey);
+    }
 
     /**
      * Gets the currently configured client id for the PublicClientApplication.
@@ -264,7 +278,7 @@ public class PublicClientApplicationConfiguration {
         }
     }
 
-    void nullConfigurationCheck(String configKey, String configValue) {
+    private void nullConfigurationCheck(String configKey, String configValue) {
         if (configValue == null) {
             throw new IllegalArgumentException(configKey + " cannot be null.  Invalid configuration.");
         }
