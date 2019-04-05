@@ -344,7 +344,7 @@ public final class PublicClientApplication {
     /**
      * Listener callback for asynchronous loading of Accounts.
      */
-    public interface AccountsLoadedListener {
+    public interface AccountsLoadedCallback {
 
         /**
          * Called once Accounts have been loaded from the cache.
@@ -360,7 +360,7 @@ public final class PublicClientApplication {
      *
      * @param callback The callback to notify once this action has finished.
      */
-    public void getAccounts(@NonNull final AccountsLoadedListener callback) {
+    public void getAccounts(@NonNull final AccountsLoadedCallback callback) {
         ApiDispatcher.initializeDiagnosticContext();
         final String methodName = ":getAccounts";
         final List<IAccount> accounts = getAccounts();

@@ -65,7 +65,7 @@ public class UsersFragment extends Fragment {
         mUserList = view.findViewById(R.id.user_list);
 
         final PublicClientApplication pca = ((MainActivity) this.getActivity()).getPublicClientApplication();
-        pca.getAccounts(new PublicClientApplication.AccountsLoadedListener() {
+        pca.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
             @Override
             public void onAccountsLoaded(final List<IAccount> accounts) {
                 mGson = new GsonBuilder().setPrettyPrinting().create();

@@ -238,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void onRemoveUserClicked(final String username) {
-        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedListener() {
+        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
             @Override
             public void onAccountsLoaded(List<IAccount> accountsToRemove) {
                 for (final IAccount accountToRemove : accountsToRemove) {
@@ -259,7 +259,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         prepareRequestParameters(requestOptions);
 
         //final IAccount requestAccount = getAccount();
-        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedListener() {
+        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
             @Override
             public void onAccountsLoaded(final List<IAccount> accounts) {
                 IAccount requestAccount = null;
@@ -282,7 +282,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void bindSelectAccountSpinner(final Spinner selectUser) {
-        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedListener() {
+        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
             @Override
             public void onAccountsLoaded(final List<IAccount> accounts) {
                 final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
