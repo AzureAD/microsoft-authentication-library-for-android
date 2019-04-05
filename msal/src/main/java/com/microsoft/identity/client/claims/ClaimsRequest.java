@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.claims;
 
+import android.support.annotation.Nullable;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -89,37 +91,39 @@ public class ClaimsRequest {
      * @return
      * @see <a href="https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter">https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter</a>
      */
-    public static String getJsonStringFromClaimsRequest(ClaimsRequest claimsRequest) {
+    public static String getJsonStringFromClaimsRequest(@Nullable final ClaimsRequest claimsRequest) {
         return serializeClaimsRequest(claimsRequest);
     }
 
-    private static String serializeClaimsRequest(ClaimsRequest claimsRequest) {
-        GsonBuilder gsonBuilder = new GsonBuilder();
+    private static String serializeClaimsRequest(@Nullable final ClaimsRequest claimsRequest) {
+        final GsonBuilder gsonBuilder = new GsonBuilder();
 
-        ClaimsRequestSerializer claimsRequestSerializer = new ClaimsRequestSerializer();
-        RequestClaimAdditionalInformationSerializer informationSerializer = new RequestClaimAdditionalInformationSerializer();
+        final ClaimsRequestSerializer claimsRequestSerializer = new ClaimsRequestSerializer();
+        final RequestClaimAdditionalInformationSerializer informationSerializer =
+                new RequestClaimAdditionalInformationSerializer();
+
         gsonBuilder.registerTypeAdapter(ClaimsRequest.class, claimsRequestSerializer);
         gsonBuilder.registerTypeAdapter(RequestedClaimAdditionalInformation.class, informationSerializer);
         //If you omit this... you won't be requesting an claims that don't have additional info specified
         gsonBuilder.serializeNulls();
 
-        Gson claimsRequestGson = gsonBuilder.create();
+        final Gson claimsRequestGson = gsonBuilder.create();
 
-        String claimsRequestJson = claimsRequestGson.toJson(claimsRequest);
+        final String claimsRequestJson = claimsRequest != null ? claimsRequestGson.toJson(claimsRequest) : null;
 
         return claimsRequestJson;
 
     }
 
-    private static ClaimsRequest deserializeClaimsRequest(String claimsRequestJson) {
-        GsonBuilder gsonBuilder = new GsonBuilder();
+    private static ClaimsRequest deserializeClaimsRequest(@Nullable final String claimsRequestJson) {
+        final GsonBuilder gsonBuilder = new GsonBuilder();
 
-        ClaimsRequestDeserializer deserializer = new ClaimsRequestDeserializer();
+        final ClaimsRequestDeserializer deserializer = new ClaimsRequestDeserializer();
         gsonBuilder.registerTypeAdapter(ClaimsRequest.class, deserializer);
 
-        Gson claimsRequestGson = gsonBuilder.create();
+        final Gson claimsRequestGson = gsonBuilder.create();
 
-        ClaimsRequest claimsRequest = claimsRequestGson.fromJson(claimsRequestJson, ClaimsRequest.class);
+        final ClaimsRequest claimsRequest = claimsRequestGson.fromJson(claimsRequestJson, ClaimsRequest.class);
 
         return claimsRequest;
 
