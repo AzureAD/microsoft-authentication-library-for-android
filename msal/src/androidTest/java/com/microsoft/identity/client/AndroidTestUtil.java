@@ -31,6 +31,7 @@ import android.net.NetworkInfo;
 import android.util.Base64;
 
 import com.microsoft.identity.client.internal.MsalUtils;
+import com.microsoft.identity.common.internal.util.StringUtil;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -238,7 +239,7 @@ public final class AndroidTestUtil {
 
     static String encodeProtocolState(final String authority, final Set<String> scopes) throws UnsupportedEncodingException {
         String state = String.format("a=%s&r=%s", MsalUtils.urlFormEncode(authority),
-                MsalUtils.urlFormEncode(MsalUtils.convertSetToString(scopes, " ")));
+                MsalUtils.urlFormEncode(StringUtil.convertSetToString(scopes, " ")));
         return Base64.encodeToString(state.getBytes(Charset.forName("UTF-8")), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 
