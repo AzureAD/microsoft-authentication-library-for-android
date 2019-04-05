@@ -92,5 +92,14 @@ public class ClaimsRequestTest {
 
     }
 
+    @Test
+    public void testSerializeNullClaimsRequest() {
+
+        final String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(null);
+        Assert.assertEquals(null, claimsRequestJson);
+
+    }
+
+
 
 }
