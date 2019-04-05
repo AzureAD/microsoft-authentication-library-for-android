@@ -46,6 +46,7 @@ import com.microsoft.identity.client.internal.controllers.RequestCodes;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
 import com.microsoft.identity.common.internal.net.HttpUrlConnectionFactory;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -694,7 +695,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     private String convertScopesArrayToString(final String[] scopes) {
         final Set<String> scopesInSet = new HashSet<>(Arrays.asList(scopes));
-        return MsalUtils.convertSetToString(scopesInSet, " ");
+        return StringUtil.convertSetToString(scopesInSet, " ");
     }
 
     private Context getMockedContext(final String clientId) throws PackageManager.NameNotFoundException {

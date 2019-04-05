@@ -36,6 +36,7 @@ import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
 
 import com.microsoft.identity.client.internal.MsalUtils;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 import org.json.JSONException;
 import org.junit.Assert;
@@ -305,12 +306,12 @@ public final class MsalUtilTest {
 
     @Test
     public void testConvertSetToStringEmptyOrNullSetOrDelimiter() {
-        Assert.assertTrue(MsalUtils.convertSetToString(null, " ").equals(""));
-        Assert.assertTrue(MsalUtils.convertSetToString(Collections.EMPTY_SET, " ").equals(""));
+        Assert.assertTrue(StringUtil.convertSetToString(null, " ").equals(""));
+        Assert.assertTrue(StringUtil.convertSetToString(Collections.EMPTY_SET, " ").equals(""));
 
         final Set<String> set = new HashSet<>();
         set.add("some string");
-        Assert.assertTrue(MsalUtils.convertSetToString(set, null).equals(""));
+        Assert.assertTrue(StringUtil.convertSetToString(set, null).equals(""));
     }
 
     @Test
@@ -318,7 +319,7 @@ public final class MsalUtilTest {
         final List<String> input = new ArrayList<>();
         input.add("scope1");
         input.add("scope2");
-        final String result = MsalUtils.convertSetToString(new HashSet<>(input), " ");
+        final String result = StringUtil.convertSetToString(new HashSet<>(input), " ");
 
         Assert.assertTrue(result.equals("scope1 scope2"));
     }
