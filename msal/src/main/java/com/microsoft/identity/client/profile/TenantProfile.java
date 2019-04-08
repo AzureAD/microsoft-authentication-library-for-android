@@ -25,6 +25,7 @@ package com.microsoft.identity.client.profile;
 import android.support.annotation.NonNull;
 
 import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
@@ -36,11 +37,6 @@ import java.util.Map;
 public class TenantProfile implements ITenantProfile {
 
     private static final String TAG = TenantProfile.class.getSimpleName();
-
-    /**
-     * OID in this tenant.
-     */
-    private String mUserObjectId;
 
     /**
      * TID of this tenant.
@@ -60,7 +56,11 @@ public class TenantProfile implements ITenantProfile {
     @NonNull
     @Override
     public String getId() {
-        return mUserObjectId;
+        return (String) getClaims().get(MicrosoftIdToken.OBJECT_ID);
+    }
+
+    void setTenantId(final String tenantId) {
+        mTenantId = tenantId;
     }
 
     @NonNull
@@ -69,10 +69,12 @@ public class TenantProfile implements ITenantProfile {
         return mTenantId;
     }
 
-    @NonNull
-    @Override
-    public String getIdToken() {
-        return mRawIdToken;
+    void setIdToken(final String rawIdToken) {
+        mRawIdToken = rawIdToken;
+    }
+
+    void setAuthority(final String authority) {
+        mAuthority = authority;
     }
 
     @NonNull
@@ -83,6 +85,7 @@ public class TenantProfile implements ITenantProfile {
 
     @Override
     public boolean isFreemium() {
+        // TODO Which claim does this use?
         return false;
     }
 
@@ -110,6 +113,7 @@ public class TenantProfile implements ITenantProfile {
 
     @Override
     public boolean isHomeTenant() {
+        // TODO How should this behave for B2C?
         return false;
     }
 }

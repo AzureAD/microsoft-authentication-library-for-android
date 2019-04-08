@@ -25,6 +25,7 @@ package com.microsoft.identity.client.profile;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 
 public class Account implements IAccount {
@@ -32,7 +33,7 @@ public class Account implements IAccount {
     /**
      * Corresponds to one of AccountType.values()
      */
-    public AccountType mAccountType;
+    private AccountType mAccountType;
 
     /**
      * Corresponds to preferred_username / upn.
@@ -49,10 +50,18 @@ public class Account implements IAccount {
      */
     private List<ITenantProfile> mTenantProfiles;
 
+    void setUsername(final String username) {
+        mUsername = username;
+    }
+
     @Nullable
     @Override
     public String getUsername() {
         return mUsername;
+    }
+
+    void setId(final String id) {
+        mId = id;
     }
 
     @NonNull
@@ -61,15 +70,23 @@ public class Account implements IAccount {
         return mId;
     }
 
+    void setAccountType(final AccountType type) {
+        mAccountType = type;
+    }
+
     @NonNull
     @Override
     public AccountType getAccountType() {
         return mAccountType;
     }
 
+    void setTenantProfiles(final List<ITenantProfile> tenantProfiles) {
+        mTenantProfiles = tenantProfiles;
+    }
+
     @NonNull
     @Override
     public List<ITenantProfile> getTenantProfiles() {
-        return mTenantProfiles;
+        return Collections.unmodifiableList(mTenantProfiles);
     }
 }

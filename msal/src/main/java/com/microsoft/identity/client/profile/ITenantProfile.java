@@ -41,12 +41,6 @@ public interface ITenantProfile {
     String getTenantId();
 
     /**
-     * Gets the IdToken associated to this TenantProfile.
-     */
-    @NonNull
-    String getIdToken();
-
-    /**
      * Gets the Authority of this TenantProfile.
      */
     @NonNull
