@@ -305,6 +305,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mEnablePiiLogging = requestOptions.enablePiiLogging();
         mForceRefresh = requestOptions.forceRefresh();
         Constants.UserAgent userAgent = requestOptions.getUserAgent();
+        //Azure Active Environment (PPE vs. Prod)
+        Constants.AzureActiveDirectoryEnvironment environment = requestOptions.getEnvironment();
 
 
         final String scopes = requestOptions.getScopes();
@@ -321,6 +323,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config_webview);
         } else {
             mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
+        }
+
+        if(environment == Constants.AzureActiveDirectoryEnvironment.PREPRODUCTION){
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_ppe_config);
         }
     }
 

@@ -55,6 +55,29 @@
                 android:layout_weight="7" />
         </LinearLayout>
 
+
+        <LinearLayout
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="10">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:text="@string/environment_text" />
+
+            <Spinner
+                android:id="@+id/environment"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="7" />
+
+        </LinearLayout>
+
         <LinearLayout
             android:paddingTop="5dp"
             android:paddingBottom="5dp"
