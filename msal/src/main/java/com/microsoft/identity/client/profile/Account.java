@@ -31,11 +31,6 @@ import java.util.List;
 public class Account implements IAccount {
 
     /**
-     * Corresponds to one of AccountType.values()
-     */
-    private AccountType mAccountType;
-
-    /**
      * Corresponds to preferred_username / upn.
      */
     private String mUsername;
@@ -68,16 +63,6 @@ public class Account implements IAccount {
     @Override
     public String getId() {
         return mId;
-    }
-
-    void setAccountType(final AccountType type) {
-        mAccountType = type;
-    }
-
-    @NonNull
-    @Override
-    public AccountType getAccountType() {
-        return mAccountType;
     }
 
     void setTenantProfiles(final List<ITenantProfile> tenantProfiles) {

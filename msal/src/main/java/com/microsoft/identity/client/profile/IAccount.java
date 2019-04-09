@@ -36,8 +36,5 @@ public interface IAccount {
     public String getId();
 
     @NonNull
-    public AccountType getAccountType();
-
-    @NonNull
     public List<ITenantProfile> getTenantProfiles();
 }

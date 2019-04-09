@@ -59,7 +59,6 @@ public class AccountAdapter {
 
         for (final AccountRecord record : uniquePrinciples.values()) {
             final Account account = new Account();
-            account.setAccountType(AccountType.AzureAD); // TODO How should this be determined?
             account.setUsername(record.getUsername());
             account.setId(getTenantInfo(record.getHomeAccountId()).first);
             account.setTenantProfiles(new ArrayList<ITenantProfile>());
