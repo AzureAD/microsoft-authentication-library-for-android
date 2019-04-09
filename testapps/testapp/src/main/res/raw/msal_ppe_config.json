@@ -1,0 +1,16 @@
+{
+  "client_id" : "7cc2dd84-bb0f-4711-8fca-4c7d01249f56",
+  "authorization_user_agent" : "DEFAULT",
+  "redirect_uri" : "msal7cc2dd84-bb0f-4711-8fca-4c7d01249f56://auth",
+  "multiple_clouds_supported":true,
+  "broker_redirect_uri_registered": true,
+  "environment": "PreProduction",
+  "authorities" : [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADandPersonalMicrosoftAccount"
+      }
+    }
+  ]
+}
