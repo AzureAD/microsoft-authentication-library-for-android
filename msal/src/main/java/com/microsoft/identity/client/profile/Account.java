@@ -23,17 +23,11 @@
 package com.microsoft.identity.client.profile;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import java.util.Collections;
 import java.util.List;
 
 public class Account implements IAccount {
-
-    /**
-     * Corresponds to preferred_username / upn.
-     */
-    private String mUsername;
 
     /**
      * Home tenant user OID.
@@ -44,16 +38,6 @@ public class Account implements IAccount {
      * The collection of tenant profiles associated to this user.
      */
     private List<ITenantProfile> mTenantProfiles;
-
-    void setUsername(final String username) {
-        mUsername = username;
-    }
-
-    @Nullable
-    @Override
-    public String getUsername() {
-        return mUsername;
-    }
 
     void setId(final String id) {
         mId = id;

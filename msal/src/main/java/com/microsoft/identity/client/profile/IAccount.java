@@ -23,18 +23,14 @@
 package com.microsoft.identity.client.profile;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import java.util.List;
 
 public interface IAccount {
 
-    @Nullable // @Nullable for B2C cases?
-    public String getUsername();
+    @NonNull
+    String getId();
 
     @NonNull
-    public String getId();
-
-    @NonNull
-    public List<ITenantProfile> getTenantProfiles();
+    List<ITenantProfile> getTenantProfiles();
 }
