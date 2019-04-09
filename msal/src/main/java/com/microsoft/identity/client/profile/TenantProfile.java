@@ -83,12 +83,6 @@ public class TenantProfile implements ITenantProfile {
         return mAuthority;
     }
 
-    @Override
-    public boolean isFreemium() {
-        // TODO Which claim does this use?
-        return false;
-    }
-
     @NonNull
     @Override
     public Map<String, ?> getClaims() {

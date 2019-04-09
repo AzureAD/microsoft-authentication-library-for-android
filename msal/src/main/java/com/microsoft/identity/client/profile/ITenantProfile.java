@@ -46,9 +46,6 @@ public interface ITenantProfile {
     @NonNull
     String getAuthority();
 
-    // Convenience Functions for 1st Party Claims
-    boolean isFreemium();
-
     // Generalized convenience functions
     Map<String, ?> getClaims();
 
