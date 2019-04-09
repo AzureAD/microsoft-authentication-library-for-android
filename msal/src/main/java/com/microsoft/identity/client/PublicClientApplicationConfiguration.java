@@ -131,7 +131,7 @@ public class PublicClientApplicationConfiguration {
      *
      * @return The environment
      */
-    public Environment getmEnvironment() {
+    public Environment getEnvironment() {
         return mEnvironment;
     }
 

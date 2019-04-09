@@ -216,7 +216,7 @@ public final class PublicClientApplication {
 
         final PublicClientApplicationConfiguration developerConfig = loadConfiguration(context, configFileResourceId);
         setupConfiguration(context, developerConfig);
-        AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getmEnvironment());
+        AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
     }
 
@@ -243,7 +243,7 @@ public final class PublicClientApplication {
 
         final PublicClientApplicationConfiguration developerConfig = loadConfiguration(configFile);
         setupConfiguration(context, developerConfig);
-        AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getmEnvironment());
+        AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
     }
 
