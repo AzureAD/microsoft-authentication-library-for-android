@@ -829,7 +829,6 @@ public final class PublicClientApplication {
                               @Nullable final ClaimsRequest claimsRequest) {
         validateNonNullArgument(activity, "Activity");
         validateNonNullArgument(callback, "Callback");
-        validateScopeArguments(scopes);
 
         AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
         AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(activity)
@@ -862,13 +861,6 @@ public final class PublicClientApplication {
             );
         }
     }
-
-    private static void validateScopeArguments(@NonNull String[] scopes) {
-        if (null == scopes || 0 == scopes.length) {
-            throw new IllegalArgumentException("Scopes cannot be null or empty.");
-        }
-    }
-
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
@@ -982,7 +974,6 @@ public final class PublicClientApplication {
                                     final boolean forceRefresh,
                                     @Nullable final ClaimsRequest claimsRequest,
                                     @NonNull final AuthenticationCallback callback) {
-        validateScopeArguments(scopes);
         validateNonNullArgument(account, "Account");
         validateNonNullArgument(callback, "Callback");
 
