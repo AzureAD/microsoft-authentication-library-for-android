@@ -365,12 +365,14 @@ public final class PublicClientApplication {
         ApiDispatcher.initializeDiagnosticContext();
         final String methodName = ":getAccounts";
         final List<IAccount> accounts = getAccounts();
-        final boolean invokeOnMainThread = Looper.myLooper() == Looper.getMainLooper();
-        final Handler handler = new Handler(
-                invokeOnMainThread
-                        ? Looper.getMainLooper()
-                        : Looper.myLooper()
-        );
+
+        final Handler handler;
+
+        if (null != Looper.myLooper() && Looper.getMainLooper() != Looper.myLooper()) {
+            handler = new Handler(Looper.myLooper());
+        } else {
+            handler = new Handler(Looper.getMainLooper());
+        }
 
         if (accounts.isEmpty()) {
             // Create the SharedPreferencesFileManager for the legacy accounts/credentials
