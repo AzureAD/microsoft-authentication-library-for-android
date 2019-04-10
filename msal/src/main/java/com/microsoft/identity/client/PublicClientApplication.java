@@ -827,6 +827,10 @@ public final class PublicClientApplication {
                               @NonNull final AuthenticationCallback callback,
                               @Nullable final String loginHint,
                               @Nullable final ClaimsRequest claimsRequest) {
+        validateNonNullArgument(activity, "Activity");
+        validateNonNullArgument(callback, "Callback");
+        validateScopeArguments(scopes);
+
         AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
         AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(activity)
                 .forAccount(account)
@@ -847,6 +851,22 @@ public final class PublicClientApplication {
                 .build();
 
         acquireTokenAsync(acquireTokenParameters);
+    }
+
+    private static void validateNonNullArgument(@Nullable Object o,
+                                                @NonNull String argName) {
+        if (null == o) {
+            throw new IllegalArgumentException(
+                    argName
+                            + " cannot be null or empty"
+            );
+        }
+    }
+
+    private static void validateScopeArguments(@NonNull String[] scopes) {
+        if (null == scopes || 0 == scopes.length) {
+            throw new IllegalArgumentException("Scopes cannot be null or empty.");
+        }
     }
 
 
@@ -962,6 +982,9 @@ public final class PublicClientApplication {
                                     final boolean forceRefresh,
                                     @Nullable final ClaimsRequest claimsRequest,
                                     @NonNull final AuthenticationCallback callback) {
+        validateScopeArguments(scopes);
+        validateNonNullArgument(account, "Account");
+        validateNonNullArgument(callback, "Callback");
 
         AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
         AcquireTokenSilentParameters acquireTokenSilentParameters =
