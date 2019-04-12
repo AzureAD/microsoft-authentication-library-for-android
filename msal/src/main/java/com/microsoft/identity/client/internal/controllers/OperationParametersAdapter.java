@@ -27,6 +27,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 
+import com.microsoft.identity.client.AccountAdapter;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
@@ -37,6 +38,7 @@ import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
+import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.providers.oauth2.OpenIdConnectPromptParameter;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
@@ -113,7 +115,7 @@ public class OperationParametersAdapter {
                     acquireTokenParameters.getAccount().getUsername()
             );
             acquireTokenOperationParameters.setAccount(
-                    acquireTokenParameters.getAccountRecord()
+                    acquireTokenParameters.getAccount()
             );
         } else {
             acquireTokenOperationParameters.setLoginHint(
@@ -189,8 +191,9 @@ public class OperationParametersAdapter {
         acquireTokenSilentOperationParameters.setTokenCache(
                 publicClientApplicationConfiguration.getOAuth2TokenCache()
         );
+
         acquireTokenSilentOperationParameters.setAccount(
-                acquireTokenSilentParameters.getAccountRecord()
+                acquireTokenSilentParameters.getAccount()
         );
 
         if (StringUtil.isEmpty(acquireTokenSilentParameters.getAuthority())) {
@@ -237,8 +240,10 @@ public class OperationParametersAdapter {
         return acquireTokenSilentOperationParameters;
     }
 
+
+
     private static Authority getRequestAuthority(
-            final IAccount account,
+            final AccountRecord account,
             final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
 
         String requestAuthority = null;
@@ -268,7 +273,7 @@ public class OperationParametersAdapter {
     }
 
     private static String getSilentRequestAuthority(
-            final IAccount account,
+            final AccountRecord account,
             final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
 
         String requestAuthority = null;
@@ -297,23 +302,20 @@ public class OperationParametersAdapter {
         return requestAuthority;
     }
 
-    public static String getAuthorityFromAccount(final IAccount account) {
+    public static String getAuthorityFromAccount(final AccountRecord account) {
         final String methodName = ":getAuthorityFromAccount";
         com.microsoft.identity.common.internal.logging.Logger.verbose(
                 TAG + methodName,
                 "Getting authority from account..."
         );
 
-        final AzureActiveDirectoryAccountIdentifier aadIdentifier;
         if (null != account
-                && null != account.getAccountIdentifier()
-                && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier
-                && null != (aadIdentifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier()).getTenantIdentifier()
-                && !StringUtil.isEmpty(aadIdentifier.getTenantIdentifier())) {
+                && !StringUtil.isEmpty(account.getEnvironment())
+                && !StringUtil.isEmpty(account.getRealm())) {
             return "https://"
                     + account.getEnvironment()
                     + "/"
-                    + aadIdentifier.getTenantIdentifier()
+                    + account.getRealm()
                     + "/";
         } else {
             com.microsoft.identity.common.internal.logging.Logger.warn(

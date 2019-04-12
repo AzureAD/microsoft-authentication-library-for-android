@@ -22,12 +22,21 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.util.Pair;
 
+import com.microsoft.identity.client.AccountAdapter;
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMicrosoftAuthService;
+import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
@@ -36,13 +45,30 @@ import com.microsoft.identity.common.internal.broker.BrokerRequest;
 import com.microsoft.identity.common.internal.broker.BrokerResultFuture;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthServiceFuture;
+import com.microsoft.identity.common.internal.cache.ADALTokenCacheItem;
 import com.microsoft.identity.common.internal.controllers.BaseController;
+import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
+import com.microsoft.identity.common.internal.util.StringUtil;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_ENVIRONMENT_KEY;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT;
 
 /**
  * The implementation of MSAL Controller for Broker
@@ -55,7 +81,7 @@ public class BrokerMsalController extends BaseController {
 
     @Override
     public AcquireTokenResult acquireToken(AcquireTokenOperationParameters parameters)
-            throws  InterruptedException, BaseException {
+            throws InterruptedException, BaseException {
 
         //Create BrokerResultFuture to block on response from the broker... response will be return as an activity result
         //BrokerActivity will receive the result and ask the API dispatcher to complete the request
@@ -150,7 +176,7 @@ public class BrokerMsalController extends BaseController {
             final MsalBrokerRequestAdapter msalBrokerRequestAdapter = new MsalBrokerRequestAdapter();
 
             final Bundle requestBundle = new Bundle();
-            final BrokerRequest brokerRequest =  msalBrokerRequestAdapter.
+            final BrokerRequest brokerRequest = msalBrokerRequestAdapter.
                     brokerRequestFromSilentOperationParameters(parameters);
 
             requestBundle.putSerializable(AuthenticationConstants.Broker.BROKER_REQUEST_V2, brokerRequest);
@@ -165,6 +191,8 @@ public class BrokerMsalController extends BaseController {
                     "Exception occurred while attempting to invoke remote service",
                     e
             );
+        } finally {
+            client.disconnect();
         }
     }
 
@@ -172,7 +200,7 @@ public class BrokerMsalController extends BaseController {
 
         final MsalBrokerResultAdapter resultAdapter = new MsalBrokerResultAdapter();
 
-        if(resultBundle.getBoolean(AuthenticationConstants.Broker.BROKER_REQUEST_V2_SUCCESS)){
+        if (resultBundle.getBoolean(AuthenticationConstants.Broker.BROKER_REQUEST_V2_SUCCESS)) {
             Logger.verbose(TAG, "Successful result from the broker ");
 
             final AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
@@ -188,4 +216,87 @@ public class BrokerMsalController extends BaseController {
         throw resultAdapter.baseExceptionFromBundle(resultBundle);
     }
 
+    /**
+     * Listener callback for asynchronous loading of broker AccountRecord accounts.
+     */
+    public interface BrokerAccountsLoadedCallback {
+        /**
+         * Called once Accounts have been loaded from the broker.
+         * @param accountRecords The accountRecords in broker.
+         */
+        void onAccountsLoaded(List<AccountRecord> accountRecords);
+    }
+
+    public void getBrokerAccounts(final PublicClientApplicationConfiguration configuration,
+                                  final BrokerAccountsLoadedCallback callback) {
+        IMicrosoftAuthService service;
+        final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
+
+        try {
+            final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
+
+            service = authServiceFuture.get();
+
+            Bundle requestBundle = new Bundle();
+            requestBundle.putString(ACCOUNT_CLIENTID_KEY, configuration.getClientId());
+            requestBundle.putString(ACCOUNT_ENVIRONMENT_KEY, null);
+            final List<AccountRecord> accountRecords
+                    = MsalBrokerResultAdapter.getAccountRecordListFromBundle(
+                    service.getAccounts(requestBundle));
+
+            Handler handler = new Handler(Looper.getMainLooper());
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    callback.onAccountsLoaded(accountRecords);
+                }
+            });
+        } catch (Exception e) {
+            //TODO
+            Logger.error(TAG, "get exception", e);
+        } finally {
+            client.disconnect();
+        }
+
+    }
+
+    private Bundle getRemoveAccountFromBrokerRequestBundle(@Nullable final IAccount account,
+                                                          @NonNull PublicClientApplicationConfiguration configuration) {
+        final Bundle requestBundle = new Bundle();
+        requestBundle.putString(ACCOUNT_CLIENTID_KEY, configuration.getClientId());
+        if (null != account) {
+            requestBundle.putString(ACCOUNT_ENVIRONMENT_KEY, account.getEnvironment());
+            requestBundle.putString(ACCOUNT_LOGIN_HINT, account.getUsername());
+        }
+
+        return requestBundle;
+    }
+
+    public void removeBrokerAccount(@Nullable final IAccount account,
+                                    @NonNull PublicClientApplicationConfiguration configuration,
+                                    @NonNull final PublicClientApplication.AccountsRemovedCallback callback) {
+        IMicrosoftAuthService service;
+        final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
+
+        try {
+            final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
+
+            service = authServiceFuture.get();
+
+            Bundle requestBundle = getRemoveAccountFromBrokerRequestBundle(account, configuration);
+            service.removeAccount(requestBundle);
+            Handler handler = new Handler(Looper.getMainLooper());
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    callback.onAccountsRemoved(true);
+                }
+            });
+        } catch (Exception e) {
+            //TODO
+            Logger.error(TAG, "get exception", e);
+        } finally {
+            client.disconnect();
+        }
+    }
 }

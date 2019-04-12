@@ -38,7 +38,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -62,7 +61,6 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.crypto.SecretKey;
@@ -243,7 +241,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onAccountsLoaded(List<IAccount> accountsToRemove) {
                 for (final IAccount accountToRemove : accountsToRemove) {
                     if (TextUtils.isEmpty(username) || accountToRemove.getUsername().equalsIgnoreCase(username.trim())) {
-                        mApplication.removeAccount(accountToRemove);
+                        mApplication.removeAccount(
+                                accountToRemove,
+                                new PublicClientApplication.AccountsRemovedCallback() {
+                                    @Override
+                                    public void onAccountsRemoved(Boolean isSuccess) {
+                                        if (isSuccess) {
+                                            showMessage("The account is successfully removed.");
+                                        } else {
+                                            showMessage("Failed to remove the account.");
+                                        }
+                                    }
+                                });
                     }
                 }
             }
