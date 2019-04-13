@@ -30,6 +30,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
@@ -50,6 +51,7 @@ import com.microsoft.identity.client.internal.telemetry.Defaults;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.exception.BaseException;
+import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AuthorityDeserializer;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
@@ -96,6 +98,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
@@ -362,7 +365,6 @@ public final class PublicClientApplication {
          * @param accounts The accounts in the cache.
          */
         void onAccountsLoaded(List<IAccount> accounts);
-
     }
 
     /**
@@ -376,7 +378,17 @@ public final class PublicClientApplication {
          * @param isSuccess true if the account is successfully removed.
          */
         void onAccountsRemoved(Boolean isSuccess);
+    }
 
+    /**
+     * Listener callback for asynchronous loading of broker AccountRecord accounts.
+     */
+    public interface BrokerAccountsLoadedCallback {
+        /**
+         * Called once Accounts have been loaded from the broker.
+         * @param accountRecords The accountRecords in broker.
+         */
+        void onAccountsLoaded(List<AccountRecord> accountRecords);
     }
 
     /**
@@ -397,6 +409,7 @@ public final class PublicClientApplication {
             handler = new Handler(Looper.getMainLooper());
         }
 
+        //TODO the threading design for getAccounts and removeAccounts need to align with APIDispatcher and TokenCommand
         if (accounts.isEmpty()) {
             // Create the SharedPreferencesFileManager for the legacy accounts/credentials
             final IStorageHelper storageHelper = new StorageHelper(mPublicClientConfiguration.getAppContext());
@@ -438,29 +451,39 @@ public final class PublicClientApplication {
                                     .brokerEligible(mPublicClientConfiguration.getAppContext(),
                                             mPublicClientConfiguration.getDefaultAuthority(),
                                             mPublicClientConfiguration)) {
-                                new BrokerMsalController().getBrokerAccounts(mPublicClientConfiguration, new BrokerMsalController.BrokerAccountsLoadedCallback() {
-                                    @Override
-                                    public void onAccountsLoaded(List<AccountRecord> accountRecords) {
-                                        mBrokerAccountRecords.set(accountRecords);
-                                        // merge account
-                                        List<IAccount> accountList = new ArrayList<>();
-                                        List<AccountRecord> accountRecordList = new ArrayList<>();
-                                        accountRecordList.addAll(getLocalAccounts());
-                                        accountRecordList.addAll(accountRecords);
+                                try {
+                                    new BrokerMsalController().getBrokerAccounts(mPublicClientConfiguration, new BrokerAccountsLoadedCallback() {
+                                        @Override
+                                        public void onAccountsLoaded(List<AccountRecord> accountRecords) {
+                                            mBrokerAccountRecords.set(accountRecords);
+                                            // merge account
+                                            List<IAccount> accountList = new ArrayList<>();
+                                            List<AccountRecord> accountRecordList = new ArrayList<>();
+                                            accountRecordList.addAll(getLocalAccounts());
+                                            accountRecordList.addAll(accountRecords);
 
-                                        if (accountRecordList != null && accountRecordList.size() > 0) {
-                                            for (AccountRecord accountRecord : accountRecordList) {
-                                                accountList.add(AccountAdapter.adapt(accountRecord));
+                                            if (accountRecordList != null && accountRecordList.size() > 0) {
+                                                for (AccountRecord accountRecord : accountRecordList) {
+                                                    accountList.add(AccountAdapter.adapt(accountRecord));
+                                                }
                                             }
+                                            accountsToResult.set(accountList);
                                         }
-                                        accountsToResult.set(accountList);
-                                    }
-                                });
+                                    });
+                                } catch (final BaseException | InterruptedException | ExecutionException | RemoteException e) {
+                                    //TODO Need to discuss whether to this exception back to AuthenticationCallback
+                                    com.microsoft.identity.common.internal.logging.Logger.error(
+                                            TAG + methodName,
+                                            "Exception is thrown when trying to get target account."
+                                                    + e.getMessage(),
+                                            ErrorStrings.IO_ERROR,
+                                            e);
+                                }
 
                                 handler.post(new Runnable() {
                                     @Override
                                     public void run() {
-                                        callback.onAccountsLoaded(accountsToResult.get());
+                                        callback.onAccountsLoaded(accountsToResult.getAndSet(null));
                                     }
                                 });
                             } else {
@@ -495,32 +518,42 @@ public final class PublicClientApplication {
                     @Override
                     public void run() {
                         final AtomicReference<List<IAccount>> accountsToResult = new AtomicReference<>();
+                        try {
 
-                        new BrokerMsalController().getBrokerAccounts(
-                                mPublicClientConfiguration,
-                                new BrokerMsalController.BrokerAccountsLoadedCallback() {
-                                    @Override
-                                    public void onAccountsLoaded(List<AccountRecord> accountRecords) {
-                                        mBrokerAccountRecords.set(accountRecords);
-                                        // merge account
-                                        List<IAccount> accountList = new ArrayList<>();
-                                        List<AccountRecord> accountRecordList = new ArrayList<>();
-                                        accountRecordList.addAll(getLocalAccounts());
-                                        accountRecordList.addAll(accountRecords);
+                            new BrokerMsalController().getBrokerAccounts(
+                                    mPublicClientConfiguration,
+                                    new BrokerAccountsLoadedCallback() {
+                                        @Override
+                                        public void onAccountsLoaded(List<AccountRecord> accountRecords) {
+                                            mBrokerAccountRecords.set(accountRecords);
+                                            // merge account
+                                            List<IAccount> accountList = new ArrayList<>();
+                                            List<AccountRecord> accountRecordList = new ArrayList<>();
+                                            accountRecordList.addAll(getLocalAccounts());
+                                            accountRecordList.addAll(accountRecords);
 
-                                        if (accountRecordList != null && accountRecordList.size() > 0) {
-                                            for (AccountRecord accountRecord : accountRecordList) {
-                                                accountList.add(AccountAdapter.adapt(accountRecord));
+                                            if (accountRecordList != null && accountRecordList.size() > 0) {
+                                                for (AccountRecord accountRecord : accountRecordList) {
+                                                    accountList.add(AccountAdapter.adapt(accountRecord));
+                                                }
                                             }
+                                            accountsToResult.set(accountList);
                                         }
-                                        accountsToResult.set(accountList);
-                                    }
-                                });
+                                    });
+                        } catch (final BaseException | InterruptedException | ExecutionException | RemoteException e) {
+                            //TODO Need to discuss whether to this exception back to AuthenticationCallback
+                            com.microsoft.identity.common.internal.logging.Logger.error(
+                                    TAG + methodName,
+                                    "Exception is thrown when trying to get target account."
+                                            + e.getMessage(),
+                                    ErrorStrings.IO_ERROR,
+                                    e);
+                        }
 
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
-                                callback.onAccountsLoaded(accountsToResult.get());
+                                callback.onAccountsLoaded(accountsToResult.getAndSet(null));
                             }
                         });
                     }
@@ -567,7 +600,7 @@ public final class PublicClientApplication {
      * @return The IAccount stored in the cache or null, if no such matching entry exists.
      */
     @Nullable
-    public IAccount getAccount(@NonNull final String homeAccountIdentifier,
+    public IAccount getAccount(@NonNull final String homeAccountIdentifier, //TODO Do we still need this method?
                                @Nullable final String authority) {
         final String methodName = ":getAccount";
 
@@ -640,9 +673,7 @@ public final class PublicClientApplication {
                         realm
                 ).isEmpty();
 
-        if (!localRemoveAccountSuccess) {
-            callback.onAccountsRemoved(false);
-        } else if (MSALControllerFactory
+        if (MSALControllerFactory
                 .brokerEligible(mPublicClientConfiguration.getAppContext(),
                 mPublicClientConfiguration.getDefaultAuthority(),
                 mPublicClientConfiguration)) {
@@ -650,9 +681,21 @@ public final class PublicClientApplication {
             sBackgroundExecutor.submit(new Runnable() {
                 @Override
                 public void run() {
-                    new BrokerMsalController().removeBrokerAccount(account, mPublicClientConfiguration, callback);
+                    try {
+                        new BrokerMsalController().removeBrokerAccount(account, mPublicClientConfiguration, callback);
+                    } catch (final BaseException | InterruptedException | ExecutionException | RemoteException e) {
+                        //TODO Need to discuss whether to this exception back to AuthenticationCallback
+                        com.microsoft.identity.common.internal.logging.Logger.error(
+                                TAG,
+                                "Exception is thrown when trying to get target account."
+                                        + e.getMessage(),
+                                ErrorStrings.IO_ERROR,
+                                e);
+                    }
                 }
             });
+        } else {
+            callback.onAccountsRemoved(localRemoveAccountSuccess);
         }
     }
 

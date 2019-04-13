@@ -55,7 +55,10 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
+import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
+import com.microsoft.identity.common.exception.BaseException;
+import com.microsoft.identity.common.exception.ErrorStrings;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;

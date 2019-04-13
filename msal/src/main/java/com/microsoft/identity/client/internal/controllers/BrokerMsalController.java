@@ -62,6 +62,7 @@ import com.microsoft.identity.common.internal.util.StringUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
@@ -69,6 +70,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_ENVIRONMENT_KEY;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_REDIRECT;
 
 /**
  * The implementation of MSAL Controller for Broker
@@ -216,19 +218,9 @@ public class BrokerMsalController extends BaseController {
         throw resultAdapter.baseExceptionFromBundle(resultBundle);
     }
 
-    /**
-     * Listener callback for asynchronous loading of broker AccountRecord accounts.
-     */
-    public interface BrokerAccountsLoadedCallback {
-        /**
-         * Called once Accounts have been loaded from the broker.
-         * @param accountRecords The accountRecords in broker.
-         */
-        void onAccountsLoaded(List<AccountRecord> accountRecords);
-    }
-
     public void getBrokerAccounts(final PublicClientApplicationConfiguration configuration,
-                                  final BrokerAccountsLoadedCallback callback) {
+                                  final PublicClientApplication.BrokerAccountsLoadedCallback callback)
+            throws BaseException, RemoteException, InterruptedException, ExecutionException {
         IMicrosoftAuthService service;
         final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
 
@@ -236,13 +228,13 @@ public class BrokerMsalController extends BaseController {
             final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
 
             service = authServiceFuture.get();
+            final Bundle requestBundle = getRequestBundleForGetAccounts(configuration);
 
-            Bundle requestBundle = new Bundle();
-            requestBundle.putString(ACCOUNT_CLIENTID_KEY, configuration.getClientId());
-            requestBundle.putString(ACCOUNT_ENVIRONMENT_KEY, null);
-            final List<AccountRecord> accountRecords
-                    = MsalBrokerResultAdapter.getAccountRecordListFromBundle(
-                    service.getAccounts(requestBundle));
+            final List<AccountRecord> accountRecords =
+                    MsalBrokerResultAdapter
+                            .getAccountRecordListFromBundle(
+                                    service.getAccounts(requestBundle)
+                            );
 
             Handler handler = new Handler(Looper.getMainLooper());
             handler.post(new Runnable() {
@@ -251,30 +243,23 @@ public class BrokerMsalController extends BaseController {
                     callback.onAccountsLoaded(accountRecords);
                 }
             });
-        } catch (Exception e) {
-            //TODO
-            Logger.error(TAG, "get exception", e);
         } finally {
             client.disconnect();
         }
-
     }
 
-    private Bundle getRemoveAccountFromBrokerRequestBundle(@Nullable final IAccount account,
-                                                          @NonNull PublicClientApplicationConfiguration configuration) {
+    private Bundle getRequestBundleForGetAccounts(@NonNull PublicClientApplicationConfiguration configuration) {
         final Bundle requestBundle = new Bundle();
         requestBundle.putString(ACCOUNT_CLIENTID_KEY, configuration.getClientId());
-        if (null != account) {
-            requestBundle.putString(ACCOUNT_ENVIRONMENT_KEY, account.getEnvironment());
-            requestBundle.putString(ACCOUNT_LOGIN_HINT, account.getUsername());
-        }
-
+        requestBundle.putString(ACCOUNT_REDIRECT, configuration.getRedirectUri());
+        //Disable the environment and tenantID. Just return all accounts belong to this clientID.
         return requestBundle;
     }
 
     public void removeBrokerAccount(@Nullable final IAccount account,
                                     @NonNull PublicClientApplicationConfiguration configuration,
-                                    @NonNull final PublicClientApplication.AccountsRemovedCallback callback) {
+                                    @NonNull final PublicClientApplication.AccountsRemovedCallback callback)
+            throws BaseException, InterruptedException, ExecutionException, RemoteException {
         IMicrosoftAuthService service;
         final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
 
@@ -283,7 +268,7 @@ public class BrokerMsalController extends BaseController {
 
             service = authServiceFuture.get();
 
-            Bundle requestBundle = getRemoveAccountFromBrokerRequestBundle(account, configuration);
+            Bundle requestBundle = getRequestBundleForRemoveAccount(account, configuration);
             service.removeAccount(requestBundle);
             Handler handler = new Handler(Looper.getMainLooper());
             handler.post(new Runnable() {
@@ -292,11 +277,20 @@ public class BrokerMsalController extends BaseController {
                     callback.onAccountsRemoved(true);
                 }
             });
-        } catch (Exception e) {
-            //TODO
-            Logger.error(TAG, "get exception", e);
         } finally {
             client.disconnect();
         }
+    }
+
+    private Bundle getRequestBundleForRemoveAccount(@Nullable final IAccount account,
+                                                    @NonNull PublicClientApplicationConfiguration configuration) {
+        final Bundle requestBundle = new Bundle();
+        requestBundle.putString(ACCOUNT_CLIENTID_KEY, configuration.getClientId());
+        if (null != account) {
+            requestBundle.putString(ACCOUNT_ENVIRONMENT_KEY, account.getEnvironment());
+            requestBundle.putString(ACCOUNT_LOGIN_HINT, account.getUsername());
+        }
+
+        return requestBundle;
     }
 }
