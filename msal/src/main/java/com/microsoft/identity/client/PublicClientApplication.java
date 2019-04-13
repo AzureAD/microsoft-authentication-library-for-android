@@ -102,6 +102,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
+
 import static com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
 
 /**
@@ -465,10 +466,10 @@ public final class PublicClientApplication {
                     false
             ).setMigrationStatus(true);
 
-            if (MSALControllerFactory
-                    .brokerEligible(mPublicClientConfiguration.getAppContext(),
-                            mPublicClientConfiguration.getDefaultAuthority(),
-                            mPublicClientConfiguration)) {
+            if (MSALControllerFactory.brokerEligible(
+                    mPublicClientConfiguration.getAppContext(),
+                    mPublicClientConfiguration.getDefaultAuthority(),
+                    mPublicClientConfiguration)) {
                 postBrokerAndLocalAccountsResult(handler, callback);
             } else {
                 postLocalAccountsResult(handler, callback);
@@ -514,8 +515,6 @@ public final class PublicClientApplication {
                                 TAG + methodName,
                                 "Accounts loaded from broker " + accountRecords.size()
                         );
-
-                        mBrokerAccountRecords.set(accountRecords);
                         // merge account
                         final List<IAccount> accountList = new ArrayList<>();
                         final List<AccountRecord> accountRecordList = new ArrayList<>();
@@ -953,7 +952,7 @@ public final class PublicClientApplication {
 
         AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
         AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(activity)
-                .forAccount(getAccountRecord(account))
+                .forAccount(account)
                 .withScopes(Arrays.asList(scopes))
                 .withUiBehavior(uiBehavior)
                 .withAuthorizationQueryStringParameters(extraQueryParameters)
@@ -992,8 +991,9 @@ public final class PublicClientApplication {
      * @param acquireTokenParameters
      */
     public void acquireTokenAsync(@NonNull final AcquireTokenParameters acquireTokenParameters) {
-        acquireTokenParameters.setAccount(
-                acquireTokenParameters.getAccount());
+        acquireTokenParameters.setAccountRecord(
+                getAccountRecord(acquireTokenParameters.getAccount())
+        );
 
         final AcquireTokenOperationParameters params = OperationParametersAdapter.
                 createAcquireTokenOperationParameters(
@@ -1016,6 +1016,19 @@ public final class PublicClientApplication {
                 localAuthenticationCallback
         );
         ApiDispatcher.beginInteractive(command);
+    }
+
+    private AccountRecord getAccountRecord(@Nullable final IAccount account) {
+        if (account != null) {
+            return AccountAdapter.getAccountInternal(
+                    mPublicClientConfiguration.getClientId(),
+                    mPublicClientConfiguration.getOAuth2TokenCache(),
+                    account.getHomeAccountIdentifier().getIdentifier(),
+                    getRealm(account)
+            );
+        }
+
+        return null;
     }
 
     /**
@@ -1086,7 +1099,7 @@ public final class PublicClientApplication {
         AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
         AcquireTokenSilentParameters acquireTokenSilentParameters =
                 builder.withScopes(Arrays.asList(scopes))
-                        .forAccount(getAccountRecord(account))
+                        .forAccount(account)
                         .fromAuthority(authority)
                         .forceRefresh(forceRefresh)
                         .withClaims(claimsRequest)
@@ -1094,33 +1107,6 @@ public final class PublicClientApplication {
                         .build();
 
         acquireTokenSilentAsync(acquireTokenSilentParameters);
-    }
-
-    public AccountRecord getAccountRecord(final IAccount account) {
-        final AtomicReference<AccountRecord> result = new AtomicReference<>();
-        if (account != null) {
-            AccountRecord localRecord = AccountAdapter.getAccountInternal(
-                    mPublicClientConfiguration.getClientId(),
-                    mPublicClientConfiguration.getOAuth2TokenCache(),
-                    account.getHomeAccountIdentifier().getIdentifier(),
-                    getRealm(account)
-            );
-
-            if (null != localRecord) {
-                result.set(localRecord);
-            } else {
-                final List<AccountRecord> brokerAccounts = mBrokerAccountRecords.get();
-                if (brokerAccounts!=null) {
-                    for (AccountRecord accountRecord : brokerAccounts) {
-                        if (accountRecord.getLocalAccountId().equalsIgnoreCase(account.getAccountIdentifier().getIdentifier())) {
-                            result.set(accountRecord);
-                        }
-                    }
-                }
-            }
-        }
-
-        return result.get();
     }
 
     /**

@@ -34,10 +34,11 @@ import java.util.List;
 abstract class TokenParameters {
 
     private List<String> mScopes;
-    private AccountRecord mAccount;
+    private IAccount mAccount;
     private String mAuthority;
     private ClaimsRequest mClaimsRequest;
     private AuthenticationCallback mCallback;
+    private AccountRecord mAccountRecord;
 
     protected TokenParameters(final TokenParameters.Builder builder) {
         mAccount = builder.mAccount;
@@ -74,7 +75,7 @@ abstract class TokenParameters {
      *
      * @return
      */
-    public AccountRecord getAccount() {
+    public IAccount getAccount() {
         return mAccount;
     }
 
@@ -84,7 +85,7 @@ abstract class TokenParameters {
      *
      * @param account
      */
-    public void setAccount(AccountRecord account) {
+    public void setAccount(IAccount account) {
         this.mAccount = account;
     }
 
@@ -153,6 +154,14 @@ abstract class TokenParameters {
     public void setCallback(AuthenticationCallback callback) {
         this.mCallback = callback;
     }
+
+    void setAccountRecord(AccountRecord record) {
+        mAccountRecord = record;
+    }
+
+    public AccountRecord getAccountRecord() {
+        return mAccountRecord;
+    }
     
     /**
      * TokenParameters builder
@@ -162,7 +171,7 @@ abstract class TokenParameters {
     public static abstract class Builder<B extends TokenParameters.Builder<B>> {
 
         private List<String> mScopes;
-        private AccountRecord mAccount;
+        private IAccount mAccount;
         private String mAuthority;
         private ClaimsRequest mClaimsRequest;
         private AuthenticationCallback mCallback;
@@ -172,7 +181,7 @@ abstract class TokenParameters {
             return self();
         }
 
-        public B forAccount(AccountRecord account) {
+        public B forAccount(IAccount account) {
             mAccount = account;
             return self();
         }
