@@ -115,7 +115,7 @@ public class OperationParametersAdapter {
                     acquireTokenParameters.getAccount().getUsername()
             );
             acquireTokenOperationParameters.setAccount(
-                    acquireTokenParameters.getAccount()
+                    acquireTokenParameters.getAccountRecord()
             );
         } else {
             acquireTokenOperationParameters.setLoginHint(
@@ -193,7 +193,7 @@ public class OperationParametersAdapter {
         );
 
         acquireTokenSilentOperationParameters.setAccount(
-                acquireTokenSilentParameters.getAccount()
+                acquireTokenSilentParameters.getAccountRecord()
         );
 
         if (StringUtil.isEmpty(acquireTokenSilentParameters.getAuthority())) {
@@ -243,7 +243,7 @@ public class OperationParametersAdapter {
 
 
     private static Authority getRequestAuthority(
-            final AccountRecord account,
+            final IAccount account,
             final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
 
         String requestAuthority = null;
@@ -273,7 +273,7 @@ public class OperationParametersAdapter {
     }
 
     private static String getSilentRequestAuthority(
-            final AccountRecord account,
+            final IAccount account,
             final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
 
         String requestAuthority = null;
@@ -302,20 +302,23 @@ public class OperationParametersAdapter {
         return requestAuthority;
     }
 
-    public static String getAuthorityFromAccount(final AccountRecord account) {
+    public static String getAuthorityFromAccount(final IAccount account) {
         final String methodName = ":getAuthorityFromAccount";
         com.microsoft.identity.common.internal.logging.Logger.verbose(
                 TAG + methodName,
                 "Getting authority from account..."
         );
 
+        final AzureActiveDirectoryAccountIdentifier aadIdentifier;
         if (null != account
-                && !StringUtil.isEmpty(account.getEnvironment())
-                && !StringUtil.isEmpty(account.getRealm())) {
+                && null != account.getAccountIdentifier()
+                && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier
+                && null != (aadIdentifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier()).getTenantIdentifier()
+                && !StringUtil.isEmpty(aadIdentifier.getTenantIdentifier())) {
             return "https://"
                     + account.getEnvironment()
                     + "/"
-                    + account.getRealm()
+                    + aadIdentifier.getTenantIdentifier()
                     + "/";
         } else {
             com.microsoft.identity.common.internal.logging.Logger.warn(

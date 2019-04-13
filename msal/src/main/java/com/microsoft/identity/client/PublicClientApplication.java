@@ -162,8 +162,6 @@ public final class PublicClientApplication {
 
     private PublicClientApplicationConfiguration mPublicClientConfiguration;
 
-    private final AtomicReference<List<AccountRecord>> mBrokerAccountRecords = new AtomicReference<>();
-
     /**
      * ExecutorService to handle background computation.
      */
@@ -1117,9 +1115,12 @@ public final class PublicClientApplication {
      * @param acquireTokenSilentParameters
      */
     public void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
-        acquireTokenSilentParameters.setAccount(
-                acquireTokenSilentParameters.getAccount()
+        acquireTokenSilentParameters.setAccountRecord(
+                getAccountRecord(
+                        acquireTokenSilentParameters.getAccount()
+                )
         );
+
         final AcquireTokenSilentOperationParameters params =
                 OperationParametersAdapter.createAcquireTokenSilentOperationParameters(
                         acquireTokenSilentParameters,
