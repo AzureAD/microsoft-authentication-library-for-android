@@ -399,7 +399,7 @@ public final class PublicClientApplication {
     public void getAccounts(@NonNull final AccountsLoadedCallback callback) {
         ApiDispatcher.initializeDiagnosticContext();
         final String methodName = ":getAccounts";
-        final List<AccountRecord> accounts  = getLocalAccounts();
+        final List<AccountRecord> accounts = getLocalAccounts();
 
         final Handler handler;
 
@@ -441,63 +441,18 @@ public final class PublicClientApplication {
                         @Override
                         public void onMigrationFinished(int numberOfAccountsMigrated) {
                             final String extendedMethodName = ":onMigrationFinished";
-                            final AtomicReference<List<IAccount>> accountsToResult = new AtomicReference<>();
                             com.microsoft.identity.common.internal.logging.Logger.info(
                                     TAG + methodName + extendedMethodName,
                                     "Migrated [" + numberOfAccountsMigrated + "] accounts"
                             );
-
-                            if (MSALControllerFactory
-                                    .brokerEligible(mPublicClientConfiguration.getAppContext(),
-                                            mPublicClientConfiguration.getDefaultAuthority(),
-                                            mPublicClientConfiguration)) {
-                                try {
-                                    new BrokerMsalController().getBrokerAccounts(mPublicClientConfiguration, new BrokerAccountsLoadedCallback() {
-                                        @Override
-                                        public void onAccountsLoaded(List<AccountRecord> accountRecords) {
-                                            mBrokerAccountRecords.set(accountRecords);
-                                            // merge account
-                                            List<IAccount> accountList = new ArrayList<>();
-                                            List<AccountRecord> accountRecordList = new ArrayList<>();
-                                            accountRecordList.addAll(getLocalAccounts());
-                                            accountRecordList.addAll(accountRecords);
-
-                                            if (accountRecordList != null && accountRecordList.size() > 0) {
-                                                for (AccountRecord accountRecord : accountRecordList) {
-                                                    accountList.add(AccountAdapter.adapt(accountRecord));
-                                                }
-                                            }
-                                            accountsToResult.set(accountList);
-                                        }
-                                    });
-                                } catch (final BaseException | InterruptedException | ExecutionException | RemoteException e) {
-                                    //TODO Need to discuss whether to this exception back to AuthenticationCallback
-                                    com.microsoft.identity.common.internal.logging.Logger.error(
-                                            TAG + methodName,
-                                            "Exception is thrown when trying to get target account."
-                                                    + e.getMessage(),
-                                            ErrorStrings.IO_ERROR,
-                                            e);
-                                }
-
-                                handler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        callback.onAccountsLoaded(accountsToResult.getAndSet(null));
-                                    }
-                                });
+                            // Merge migrated accounts with broker or local accounts.
+                            if (MSALControllerFactory.brokerEligible(
+                                    mPublicClientConfiguration.getAppContext(),
+                                    mPublicClientConfiguration.getDefaultAuthority(),
+                                    mPublicClientConfiguration)) {
+                                postBrokerAndLocalAccountsResult(handler, callback);
                             } else {
-                                handler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        List<IAccount> accountsToReturn = new ArrayList<>();
-                                        for (AccountRecord accountRecord : getLocalAccounts()) {
-                                            accountsToReturn.add(AccountAdapter.adapt(accountRecord));
-                                        }
-
-                                        callback.onAccountsLoaded(accountsToReturn);
-                                    }
-                                });
+                                postLocalAccountsResult(handler, callback);
                             }
                         }
                     }
@@ -514,64 +469,72 @@ public final class PublicClientApplication {
                     .brokerEligible(mPublicClientConfiguration.getAppContext(),
                             mPublicClientConfiguration.getDefaultAuthority(),
                             mPublicClientConfiguration)) {
-                sBackgroundExecutor.submit(new Runnable() {
+                postBrokerAndLocalAccountsResult(handler, callback);
+            } else {
+                postLocalAccountsResult(handler, callback);
+            }
+        }
+    }
+
+    /**
+     * Helper method which returns all the local accounts using {@link AccountsLoadedCallback}
+     * @param handler : handler to post
+     * @param callback: AccountsLoadedCallback
+     */
+    private void postLocalAccountsResult(final Handler handler, final AccountsLoadedCallback callback) {
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                List<IAccount> accountsToReturn = new ArrayList<>();
+                for (AccountRecord accountRecord : getLocalAccounts()) {
+                    accountsToReturn.add(AccountAdapter.adapt(accountRecord));
+                }
+
+                callback.onAccountsLoaded(accountsToReturn);
+            }
+        });
+    }
+
+    /**
+     * Helper method which returns both broker and local accounts using {@link AccountsLoadedCallback}
+     * @param handler : handler to post
+     * @param callback: AccountsLoadedCallback
+     */
+    private void postBrokerAndLocalAccountsResult(final Handler handler, final AccountsLoadedCallback callback) {
+
+        final String methodName = ":postBrokerAndLocalAccountsResult";
+
+        new BrokerMsalController().getBrokerAccounts(
+                mPublicClientConfiguration,
+                new BrokerAccountsLoadedCallback() {
                     @Override
-                    public void run() {
-                        final AtomicReference<List<IAccount>> accountsToResult = new AtomicReference<>();
-                        try {
+                    public void onAccountsLoaded(final List<AccountRecord> accountRecords) {
+                        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                                TAG + methodName,
+                                "Accounts loaded from broker " + accountRecords.size()
+                        );
 
-                            new BrokerMsalController().getBrokerAccounts(
-                                    mPublicClientConfiguration,
-                                    new BrokerAccountsLoadedCallback() {
-                                        @Override
-                                        public void onAccountsLoaded(List<AccountRecord> accountRecords) {
-                                            mBrokerAccountRecords.set(accountRecords);
-                                            // merge account
-                                            List<IAccount> accountList = new ArrayList<>();
-                                            List<AccountRecord> accountRecordList = new ArrayList<>();
-                                            accountRecordList.addAll(getLocalAccounts());
-                                            accountRecordList.addAll(accountRecords);
+                        mBrokerAccountRecords.set(accountRecords);
+                        // merge account
+                        final List<IAccount> accountList = new ArrayList<>();
+                        final List<AccountRecord> accountRecordList = new ArrayList<>();
+                        accountRecordList.addAll(getLocalAccounts());
+                        accountRecordList.addAll(accountRecords);
 
-                                            if (accountRecordList != null && accountRecordList.size() > 0) {
-                                                for (AccountRecord accountRecord : accountRecordList) {
-                                                    accountList.add(AccountAdapter.adapt(accountRecord));
-                                                }
-                                            }
-                                            accountsToResult.set(accountList);
-                                        }
-                                    });
-                        } catch (final BaseException | InterruptedException | ExecutionException | RemoteException e) {
-                            //TODO Need to discuss whether to this exception back to AuthenticationCallback
-                            com.microsoft.identity.common.internal.logging.Logger.error(
-                                    TAG + methodName,
-                                    "Exception is thrown when trying to get target account."
-                                            + e.getMessage(),
-                                    ErrorStrings.IO_ERROR,
-                                    e);
+                        if (accountRecordList.size() > 0) {
+                            for (AccountRecord accountRecord : accountRecordList) {
+                                accountList.add(AccountAdapter.adapt(accountRecord));
+                            }
                         }
-
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
-                                callback.onAccountsLoaded(accountsToResult.getAndSet(null));
+                                callback.onAccountsLoaded(accountList);
                             }
                         });
                     }
                 });
-            } else {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        List<IAccount> accountsToReturn = new ArrayList<>();
-                        for (AccountRecord accountRecord : getLocalAccounts()) {
-                            accountsToReturn.add(AccountAdapter.adapt(accountRecord));
-                        }
-
-                        callback.onAccountsLoaded(accountsToReturn);
-                    }
-                });
-            }
-        }
     }
 
     /**

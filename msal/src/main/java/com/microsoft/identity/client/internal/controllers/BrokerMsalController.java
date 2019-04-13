@@ -218,34 +218,59 @@ public class BrokerMsalController extends BaseController {
         throw resultAdapter.baseExceptionFromBundle(resultBundle);
     }
 
+    /**
+     * This method might be called on an UI thread, since we connect to broker,
+     * this needs to be called on background thread.
+     */
     public void getBrokerAccounts(final PublicClientApplicationConfiguration configuration,
-                                  final PublicClientApplication.BrokerAccountsLoadedCallback callback)
-            throws BaseException, RemoteException, InterruptedException, ExecutionException {
-        IMicrosoftAuthService service;
-        final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
+                                  final PublicClientApplication.BrokerAccountsLoadedCallback callback) {
 
-        try {
-            final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
+        final String methodName = ":getBrokerAccounts";
+        final Handler handler = new Handler(Looper.getMainLooper());
 
-            service = authServiceFuture.get();
-            final Bundle requestBundle = getRequestBundleForGetAccounts(configuration);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                IMicrosoftAuthService service;
+                final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
+                try {
+                    final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
 
-            final List<AccountRecord> accountRecords =
-                    MsalBrokerResultAdapter
-                            .getAccountRecordListFromBundle(
-                                    service.getAccounts(requestBundle)
-                            );
+                    service = authServiceFuture.get();
+                    final Bundle requestBundle = getRequestBundleForGetAccounts(configuration);
 
-            Handler handler = new Handler(Looper.getMainLooper());
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    callback.onAccountsLoaded(accountRecords);
+                    final List<AccountRecord> accountRecords =
+                            MsalBrokerResultAdapter
+                                    .getAccountRecordListFromBundle(
+                                            service.getAccounts(requestBundle)
+                                    );
+
+
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onAccountsLoaded(accountRecords);
+                        }
+                    });
+                } catch (final ClientException | InterruptedException | ExecutionException | RemoteException e) {
+                    com.microsoft.identity.common.internal.logging.Logger.error(
+                            TAG + methodName,
+                            "Exception is thrown when trying to get account from Broker, returning empty list."
+                                    + e.getMessage(),
+                            ErrorStrings.IO_ERROR,
+                            e);
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onAccountsLoaded(new ArrayList<AccountRecord>());
+                        }
+                    });
+                } finally {
+                    client.disconnect();
                 }
-            });
-        } finally {
-            client.disconnect();
-        }
+            }
+        }).start();
+
     }
 
     private Bundle getRequestBundleForGetAccounts(@NonNull PublicClientApplicationConfiguration configuration) {
