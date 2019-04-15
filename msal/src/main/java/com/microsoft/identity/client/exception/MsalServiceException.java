@@ -53,7 +53,7 @@ import com.microsoft.identity.common.exception.ServiceException;
  * </li>
  * </ul>
  */
-public final class MsalServiceException extends MsalException {
+public class MsalServiceException extends MsalException {
     /**
      * This request is missing a required parameter, includes an invalid parameter, includes a parameter more than
      * once, or is otherwise malformed.
