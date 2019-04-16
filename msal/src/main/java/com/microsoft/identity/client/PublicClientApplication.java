@@ -101,7 +101,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
 
@@ -161,11 +160,6 @@ public final class PublicClientApplication {
 
 
     private PublicClientApplicationConfiguration mPublicClientConfiguration;
-
-    /**
-     * ExecutorService to handle background computation.
-     */
-    private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
 
     /**
      * @param context Application's {@link Context}. The sdk requires the application context to be passed in
@@ -633,27 +627,19 @@ public final class PublicClientApplication {
                         realm
                 ).isEmpty();
 
-        if (MSALControllerFactory
-                .brokerEligible(mPublicClientConfiguration.getAppContext(),
+        if (MSALControllerFactory.brokerEligible(
+                mPublicClientConfiguration.getAppContext(),
                 mPublicClientConfiguration.getDefaultAuthority(),
                 mPublicClientConfiguration)) {
+
             //Remove the account from Broker
-            sBackgroundExecutor.submit(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        new BrokerMsalController().removeBrokerAccount(account, mPublicClientConfiguration, callback);
-                    } catch (final BaseException | InterruptedException | ExecutionException | RemoteException e) {
-                        //TODO Need to discuss whether to this exception back to AuthenticationCallback
-                        com.microsoft.identity.common.internal.logging.Logger.error(
-                                TAG,
-                                "Exception is thrown when trying to get target account."
-                                        + e.getMessage(),
-                                ErrorStrings.IO_ERROR,
-                                e);
-                    }
-                }
-            });
+            //TODO Need to create the result bundle to avoid the waiting from calling app.
+            //TODO Need add logger and replace the logger with common ones.
+            new BrokerMsalController().removeBrokerAccount(
+                    account,
+                    mPublicClientConfiguration,
+                    callback
+            );
         } else {
             callback.onAccountsRemoved(localRemoveAccountSuccess);
         }

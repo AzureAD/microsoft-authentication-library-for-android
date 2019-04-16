@@ -81,6 +81,11 @@ public class BrokerMsalController extends BaseController {
 
     private BrokerResultFuture mBrokerResultFuture;
 
+    /**
+     * ExecutorService to handle background computation.
+     */
+    private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
+
     @Override
     public AcquireTokenResult acquireToken(AcquireTokenOperationParameters parameters)
             throws InterruptedException, BaseException {
@@ -282,29 +287,41 @@ public class BrokerMsalController extends BaseController {
     }
 
     public void removeBrokerAccount(@Nullable final IAccount account,
-                                    @NonNull PublicClientApplicationConfiguration configuration,
-                                    @NonNull final PublicClientApplication.AccountsRemovedCallback callback)
-            throws BaseException, InterruptedException, ExecutionException, RemoteException {
-        IMicrosoftAuthService service;
-        final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
+                                    @NonNull final PublicClientApplicationConfiguration configuration,
+                                    @NonNull final PublicClientApplication.AccountsRemovedCallback callback) {
+        sBackgroundExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                IMicrosoftAuthService service;
+                final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
 
-        try {
-            final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
+                try {
+                    final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
 
-            service = authServiceFuture.get();
+                    service = authServiceFuture.get();
 
-            Bundle requestBundle = getRequestBundleForRemoveAccount(account, configuration);
-            service.removeAccount(requestBundle);
-            Handler handler = new Handler(Looper.getMainLooper());
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    callback.onAccountsRemoved(true);
+                    Bundle requestBundle = getRequestBundleForRemoveAccount(account, configuration);
+                    Bundle resultBundle = service.removeAccount(requestBundle);
+                    Handler handler = new Handler(Looper.getMainLooper());
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onAccountsRemoved(true);
+                        }
+                    });
+                } catch (final BaseException | InterruptedException | ExecutionException | RemoteException e) {
+                    //TODO Need to discuss whether to this exception back to AuthenticationCallback
+                    com.microsoft.identity.common.internal.logging.Logger.error(
+                            TAG,
+                            "Exception is thrown when trying to get target account."
+                                    + e.getMessage(),
+                            ErrorStrings.IO_ERROR,
+                            e);
+                } finally {
+                    client.disconnect();
                 }
-            });
-        } finally {
-            client.disconnect();
-        }
+            }
+        });
     }
 
     private Bundle getRequestBundleForRemoveAccount(@Nullable final IAccount account,
