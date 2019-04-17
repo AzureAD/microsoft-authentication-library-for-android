@@ -192,9 +192,22 @@ public class OperationParametersAdapter {
                 publicClientApplicationConfiguration.getOAuth2TokenCache()
         );
 
-        acquireTokenSilentOperationParameters.setAccount(
-                acquireTokenSilentParameters.getAccountRecord()
-        );
+        if (null != acquireTokenSilentParameters.getAccountRecord()) {
+            acquireTokenSilentOperationParameters.setAccount(
+                    acquireTokenSilentParameters.getAccountRecord()
+            );
+        } else if (null != acquireTokenSilentParameters.getAccount()){
+            // This will happen when the account exists in broker.
+            // We need to construct the AccountRecord object with IAccount.
+            // for broker acquireToken request only.
+            final IAccount account = acquireTokenSilentParameters.getAccount();
+            final AccountRecord requestAccountRecord = new AccountRecord();
+            requestAccountRecord.setEnvironment(account.getEnvironment());
+            requestAccountRecord.setUsername(account.getUsername());
+            requestAccountRecord.setHomeAccountId(account.getHomeAccountIdentifier().getIdentifier());
+            requestAccountRecord.setAlternativeAccountId(account.getAccountIdentifier().getIdentifier());
+            acquireTokenSilentOperationParameters.setAccount(requestAccountRecord);
+        }
 
         if (StringUtil.isEmpty(acquireTokenSilentParameters.getAuthority())) {
             acquireTokenSilentParameters.setAuthority(
