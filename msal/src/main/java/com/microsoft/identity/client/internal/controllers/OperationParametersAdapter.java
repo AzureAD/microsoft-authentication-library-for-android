@@ -253,8 +253,6 @@ public class OperationParametersAdapter {
         return acquireTokenSilentOperationParameters;
     }
 
-
-
     private static Authority getRequestAuthority(
             final IAccount account,
             final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {

@@ -547,7 +547,7 @@ public final class PublicClientApplication {
      * @return The IAccount stored in the cache or null, if no such matching entry exists.
      */
     @Nullable
-    public IAccount getAccount(@NonNull final String homeAccountIdentifier, //TODO Do we still need this method?
+    public IAccount getAccount(@NonNull final String homeAccountIdentifier,
                                @Nullable final String authority) {
         final String methodName = ":getAccount";
 
@@ -626,8 +626,6 @@ public final class PublicClientApplication {
                 mPublicClientConfiguration)) {
 
             //Remove the account from Broker
-            //TODO Need to create the result bundle to avoid the waiting from calling app.
-            //TODO Need add logger and replace the logger with common ones.
             new BrokerMsalController().removeBrokerAccount(
                     account,
                     mPublicClientConfiguration,

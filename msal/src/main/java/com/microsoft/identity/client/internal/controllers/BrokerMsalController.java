@@ -291,7 +291,7 @@ public class BrokerMsalController extends BaseController {
                     service = authServiceFuture.get();
 
                     Bundle requestBundle = getRequestBundleForRemoveAccount(account, configuration);
-                    Bundle resultBundle = service.removeAccount(requestBundle);
+                    service.removeAccount(requestBundle);
                     Handler handler = new Handler(Looper.getMainLooper());
                     handler.post(new Runnable() {
                         @Override
