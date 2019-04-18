@@ -23,6 +23,7 @@
 package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.microsoft.identity.client.BrowserTabActivity;
@@ -61,13 +62,15 @@ public class LocalMSALController extends BaseController {
     private AuthorizationRequest mAuthorizationRequest = null;
 
     @Override
-    public AcquireTokenResult acquireToken(final AcquireTokenOperationParameters parameters)
+    public AcquireTokenResult acquireToken(@NonNull final AcquireTokenOperationParameters parameters)
             throws ExecutionException, InterruptedException, ClientException, IOException, ArgumentException {
         final String methodName = ":acquireToken";
+
         Logger.verbose(
                 TAG + methodName,
                 "Acquiring token..."
         );
+
         final AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
 
         //00) Validate MSAL Parameters
@@ -75,6 +78,8 @@ public class LocalMSALController extends BaseController {
 
         // Add default scopes
         addDefaultScopes(parameters);
+
+        logParameters(TAG, parameters);
 
         //0) Get known authority result
         throwIfNetworkNotAvailable(parameters.getAppContext());
@@ -91,6 +96,8 @@ public class LocalMSALController extends BaseController {
         //2) Request authorization interactively
         final AuthorizationResult result = performAuthorizationRequest(oAuth2Strategy, parameters);
         acquireTokenResult.setAuthorizationResult(result);
+
+        logResult(TAG, result);
 
         if (result.getAuthorizationStatus().equals(AuthorizationStatus.SUCCESS)) {
             //3) Exchange authorization code for token
@@ -117,11 +124,12 @@ public class LocalMSALController extends BaseController {
                 );
             }
         }
+
         return acquireTokenResult;
     }
 
-    private AuthorizationResult performAuthorizationRequest(final OAuth2Strategy strategy,
-                                                            final AcquireTokenOperationParameters parameters)
+    private AuthorizationResult performAuthorizationRequest(@NonNull final OAuth2Strategy strategy,
+                                                            @NonNull final AcquireTokenOperationParameters parameters)
             throws ExecutionException, InterruptedException, ClientException {
         throwIfNetworkNotAvailable(parameters.getAppContext());
         //Create pendingIntent to handle the authorization result intent back to the calling activity
@@ -161,7 +169,7 @@ public class LocalMSALController extends BaseController {
 
     @Override
     public AcquireTokenResult acquireTokenSilent(
-            final AcquireTokenSilentOperationParameters parameters)
+            @NonNull final AcquireTokenSilentOperationParameters parameters)
             throws IOException, ClientException, ArgumentException {
         final String methodName = ":acquireTokenSilent";
         Logger.verbose(
