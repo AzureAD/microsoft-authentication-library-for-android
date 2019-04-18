@@ -1,13 +1,22 @@
 package com.microsoft.identity.client;
 
+import android.net.Uri;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.microsoft.identity.common.internal.authorities.Authority;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 
 import junit.framework.Assert;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 @RunWith(AndroidJUnit4.class)
 public final class AuthorityTest {
@@ -54,6 +63,65 @@ public final class AuthorityTest {
     public void testGetAuthorityFromAuthorityUrlOneOrganization() {
         Authority authority = Authority.getAuthorityFromAuthorityUrl(ORGANIZATIONS_TENANT_AUTHORITY_URL);
         Assert.assertEquals(ORGANIZATIONS_TENANT_AUTHORITY_URL, authority.getAuthorityURL().toString());
+    }
+
+    @Test
+    public void testGetAuthorityAAD() {
+        // First add a known authority to the Authority class' List
+        final String testB2CAuthority = "https://login.microsoftonline.com/common";
+        final String type = "AAD";
+
+        final Authority authority = new MockAuthority(testB2CAuthority, type);
+        final List<Authority> authorities = new ArrayList<>();
+        authorities.add(authority);
+
+        Authority.addKnownAuthorities(authorities);
+
+        final Authority result = Authority.getAuthorityFromAuthorityUrl(testB2CAuthority);
+        Assert.assertEquals(AzureActiveDirectoryAuthority.class, result.getClass());
+    }
+
+    @Test
+    public void testGetAuthorityB2CNonTfp() {
+        // First add a known authority to the Authority class' List
+        final String testB2CAuthority = "https://contoso.b2clogin.com/B2C_1_SISOPolicy/";
+        final String type = "B2C";
+
+        final Authority authority = new MockAuthority(testB2CAuthority, type);
+        final List<Authority> authorities = new ArrayList<>();
+        authorities.add(authority);
+
+        Authority.addKnownAuthorities(authorities);
+
+        final Authority result = Authority.getAuthorityFromAuthorityUrl(testB2CAuthority);
+        Assert.assertEquals(AzureActiveDirectoryB2CAuthority.class, result.getClass());
+    }
+
+    private class MockAuthority extends Authority {
+
+        MockAuthority(final String authorityUrl, final String type) {
+            super.mAuthorityUrl = authorityUrl;
+            super.mAuthorityTypeString = type;
+        }
+
+        @Override
+        public Uri getAuthorityUri() {
+            return Uri.parse(super.mAuthorityUrl);
+        }
+
+        @Override
+        public URL getAuthorityURL() {
+            try {
+                return new URL(this.getAuthorityUri().toString());
+            } catch (MalformedURLException e) {
+                throw new IllegalArgumentException("Authority URL is not a URL.", e);
+            }
+        }
+
+        @Override
+        public OAuth2Strategy createOAuth2Strategy() {
+            return null; // Unimplemented...
+        }
     }
 
 }
