@@ -32,6 +32,7 @@ import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.broker.BrokerRequest;
 import com.microsoft.identity.common.internal.broker.BrokerResult;
@@ -226,15 +227,14 @@ public class BrokerMsalController extends BaseController {
                         clientInfo,
                         brokerResult.getScope(),
                         brokerResult.getClientId(),
-                        false, // TODO : is family refresh token valid here ? Should we get this info from Broker
                         brokerResult.getEnvironment(),
-                        null
+                        brokerResult.getFamilyId()
                 );
 
                 msalOAuth2TokenCache.setSingleSignOnState(microsoftStsAccount, microsoftRefreshToken);
 
-            } catch (Exception e) {
-                Logger.error(TAG, "Exception while creating Idtoken or ClientInfo," +
+            } catch (ServiceException e) {
+                Logger.errorPII(TAG, "Exception while creating Idtoken or ClientInfo," +
                         " cannot save MSA account tokens", e
                 );
             }
