@@ -32,12 +32,20 @@ import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.exception.ServiceException;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.broker.BrokerRequest;
+import com.microsoft.identity.common.internal.broker.BrokerResult;
 import com.microsoft.identity.common.internal.broker.BrokerResultFuture;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthServiceFuture;
+import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAccount;
+import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
@@ -81,21 +89,23 @@ public class BrokerMsalController extends BaseController {
         //Wait to be notified of the result being returned... we could add a timeout here if we want to
         final Bundle resultBundle = mBrokerResultFuture.get();
 
+        // For MSA Accounts Broker doesn't save the accounts, instead it just passes the result along,
+        // MSAL needs to save this account locally for future token calls.
+        saveMsaAccountToCache(resultBundle, (MsalOAuth2TokenCache)parameters.getTokenCache());
+
         return getAcquireTokenResult(resultBundle);
-
     }
-
     /**
      * Get the intent for the broker interactive request
      *
-     * @param request
+     * @param parameters
      * @return
      */
-    private Intent getBrokerAuthorizationIntent(@NonNull final AcquireTokenOperationParameters request) throws ClientException {
+    private Intent getBrokerAuthorizationIntent(@NonNull final AcquireTokenOperationParameters parameters) throws ClientException {
         Intent interactiveRequestIntent;
         IMicrosoftAuthService service;
 
-        final MicrosoftAuthClient client = new MicrosoftAuthClient(request.getAppContext());
+        final MicrosoftAuthClient client = new MicrosoftAuthClient(parameters.getAppContext());
         final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
 
         try {
@@ -186,6 +196,53 @@ public class BrokerMsalController extends BaseController {
         Logger.warn(TAG, "Exception returned from broker, retrieving exception details ");
 
         throw resultAdapter.baseExceptionFromBundle(resultBundle);
+    }
+
+    /**
+     * Checks if the account returns is a MSA Account and sets single on state in cache
+     * @param resultBundle
+     * @param msalOAuth2TokenCache
+     */
+    private void saveMsaAccountToCache(@NonNull final Bundle resultBundle,
+                                       @NonNull final MsalOAuth2TokenCache msalOAuth2TokenCache) throws ClientException {
+        final String methodName = ":saveMsaAccountToCache";
+
+        final BrokerResult brokerResult = (BrokerResult) resultBundle.getSerializable(
+                AuthenticationConstants.Broker.BROKER_RESULT_V2
+        );
+
+        if (resultBundle.getBoolean(AuthenticationConstants.Broker.BROKER_REQUEST_V2_SUCCESS)
+                && brokerResult != null &&
+                AzureActiveDirectoryAudience.MSA_MEGA_TENANT_ID.equalsIgnoreCase(brokerResult.getTenantId())) {
+            Logger.info(TAG + methodName, "Result returned for MSA Account, saving to cache");
+
+            try {
+                final ClientInfo clientInfo = new ClientInfo(brokerResult.getClientInfo());
+                final MicrosoftStsAccount microsoftStsAccount = new MicrosoftStsAccount(
+                        new IDToken(brokerResult.getIdToken()),
+                        clientInfo
+                );
+                microsoftStsAccount.setEnvironment(brokerResult.getEnvironment());
+
+                final MicrosoftRefreshToken microsoftRefreshToken = new MicrosoftRefreshToken(
+                        brokerResult.getRefreshToken(),
+                        clientInfo,
+                        brokerResult.getScope(),
+                        brokerResult.getClientId(),
+                        brokerResult.getEnvironment(),
+                        brokerResult.getFamilyId()
+                );
+
+                msalOAuth2TokenCache.setSingleSignOnState(microsoftStsAccount, microsoftRefreshToken);
+
+            } catch (ServiceException e) {
+                Logger.errorPII(TAG + methodName, "Exception while creating Idtoken or ClientInfo," +
+                        " cannot save MSA account tokens", e
+                );
+                throw new ClientException(ErrorStrings.INVALID_JWT, e.getMessage(), e);
+            }
+        }
+
     }
 
 }
