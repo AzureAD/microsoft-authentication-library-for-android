@@ -243,7 +243,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onAccountsLoaded(List<IAccount> accountsToRemove) {
                 for (final IAccount accountToRemove : accountsToRemove) {
                     if (TextUtils.isEmpty(username) || accountToRemove.getUsername().equalsIgnoreCase(username.trim())) {
-                        mApplication.removeAccount(accountToRemove);
+                        mApplication.removeAccount(
+                                accountToRemove,
+                                new PublicClientApplication.AccountsRemovedCallback() {
+                                    @Override
+                                    public void onAccountsRemoved(Boolean isSuccess) {
+                                        if (isSuccess) {
+                                            showMessage("The account is successfully removed.");
+                                        } else {
+                                            showMessage("Failed to remove the account.");
+                                        }
+                                    }
+                                });
                     }
                 }
             }

@@ -205,6 +205,8 @@ public class LocalMSALController extends BaseController {
                         cacheRecord
                 );
             } else {
+                //TODO need the refactor, should just throw the ui required exception, rather than
+                // wrap the exception later in the exception wrapper.
                 throw new ClientException(
                         MsalUiRequiredException.NO_TOKENS_FOUND,
                         "No refresh token was found. "
