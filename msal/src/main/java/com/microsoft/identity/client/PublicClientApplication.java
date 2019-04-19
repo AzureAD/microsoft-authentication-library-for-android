@@ -498,13 +498,21 @@ public final class PublicClientApplication {
                     public void onAccountsLoaded(final List<AccountRecord> accountRecords) {
                         com.microsoft.identity.common.internal.logging.Logger.verbose(
                                 TAG + methodName,
-                                "Accounts loaded from broker " + accountRecords.size()
+                                "Accounts loaded from broker "
+                                        + (accountRecords == null ? 0 : accountRecords.size())
                         );
+
                         // merge account
                         final List<IAccount> accountList = new ArrayList<>();
                         final List<AccountRecord> accountRecordList = new ArrayList<>();
+
+                        if (accountRecords != null) {
+                            //Add broker accounts
+                            accountRecordList.addAll(accountRecords);
+                        }
+
+                        //Add local accounts
                         accountRecordList.addAll(getLocalAccounts());
-                        accountRecordList.addAll(accountRecords);
 
                         if (accountRecordList.size() > 0) {
                             for (AccountRecord accountRecord : accountRecordList) {

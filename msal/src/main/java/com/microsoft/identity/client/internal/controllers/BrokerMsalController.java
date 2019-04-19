@@ -58,7 +58,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_ENVIRONMENT_KEY;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ENVIRONMENT;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_REDIRECT;
 
@@ -319,7 +319,7 @@ public class BrokerMsalController extends BaseController {
         final Bundle requestBundle = new Bundle();
         requestBundle.putString(ACCOUNT_CLIENTID_KEY, configuration.getClientId());
         if (null != account) {
-            requestBundle.putString(ACCOUNT_ENVIRONMENT_KEY, account.getEnvironment());
+            requestBundle.putString(ENVIRONMENT, account.getEnvironment());
             requestBundle.putString(ACCOUNT_LOGIN_HINT, account.getUsername());
         }
 
