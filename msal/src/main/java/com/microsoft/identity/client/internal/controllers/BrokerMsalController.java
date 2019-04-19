@@ -204,7 +204,9 @@ public class BrokerMsalController extends BaseController {
      * @param msalOAuth2TokenCache
      */
     private void saveMsaAccountToCache(@NonNull final Bundle resultBundle,
-                                       @NonNull final MsalOAuth2TokenCache msalOAuth2TokenCache) {
+                                       @NonNull final MsalOAuth2TokenCache msalOAuth2TokenCache) throws ClientException {
+        final String methodName = ":saveMsaAccountToCache";
+
         final BrokerResult brokerResult = (BrokerResult) resultBundle.getSerializable(
                 AuthenticationConstants.Broker.BROKER_RESULT_V2
         );
@@ -212,7 +214,7 @@ public class BrokerMsalController extends BaseController {
         if (resultBundle.getBoolean(AuthenticationConstants.Broker.BROKER_REQUEST_V2_SUCCESS)
                 && brokerResult != null &&
                 AzureActiveDirectoryAudience.MSA_MEGA_TENANT_ID.equalsIgnoreCase(brokerResult.getTenantId())) {
-            Logger.info(TAG, "Result returned for MSA Account, saving to cache");
+            Logger.info(TAG + methodName, "Result returned for MSA Account, saving to cache");
 
             try {
                 final ClientInfo clientInfo = new ClientInfo(brokerResult.getClientInfo());
@@ -234,7 +236,7 @@ public class BrokerMsalController extends BaseController {
                 msalOAuth2TokenCache.setSingleSignOnState(microsoftStsAccount, microsoftRefreshToken);
 
             } catch (ServiceException e) {
-                Logger.errorPII(TAG, "Exception while creating Idtoken or ClientInfo," +
+                Logger.errorPII(TAG + methodName, "Exception while creating Idtoken or ClientInfo," +
                         " cannot save MSA account tokens", e
                 );
             }
