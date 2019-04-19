@@ -239,6 +239,7 @@ public class BrokerMsalController extends BaseController {
                 Logger.errorPII(TAG + methodName, "Exception while creating Idtoken or ClientInfo," +
                         " cannot save MSA account tokens", e
                 );
+                throw new ClientException(ErrorStrings.INVALID_JWT, e.getMessage(), e);
             }
         }
 
