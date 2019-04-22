@@ -157,6 +157,10 @@ public class LocalMSALController extends BaseController {
         try {
             result = future.get(BaseController.AUTH_REQUEST_TIMEOUT_IN_MINUTES, TimeUnit.MINUTES);
         } catch (TimeoutException e) {
+            Logger.error(TAG,
+                    "Auth Request could not be completed in " +
+                            "" + BaseController.AUTH_REQUEST_TIMEOUT_IN_MINUTES,
+                    e);
            throw new ClientException(ErrorStrings.AUTH_REQUEST_TIMED_OUT, e.getMessage(), e);
         }
 
