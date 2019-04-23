@@ -169,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         if (mApplication == null) {
-            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_arlington_config);
         }
 
     }
@@ -333,7 +333,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (userAgent.name().equalsIgnoreCase("WEBVIEW")) {
             mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config_webview);
         } else {
-            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_arlington_config);
         }
 
         if(environment == Constants.AzureActiveDirectoryEnvironment.PREPRODUCTION){
