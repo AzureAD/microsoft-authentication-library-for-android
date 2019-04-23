@@ -30,6 +30,7 @@ import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.google.gson.Gson;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMicrosoftAuthService;
 import com.microsoft.identity.client.PublicClientApplication;
@@ -91,7 +92,9 @@ public class BrokerMsalController extends BaseController {
         final MsalBrokerRequestAdapter msalBrokerRequestAdapter = new MsalBrokerRequestAdapter();
         interactiveRequestIntent.putExtra(
                 AuthenticationConstants.Broker.BROKER_REQUEST_V2,
-                msalBrokerRequestAdapter.brokerRequestFromAcquireTokenParameters(parameters)
+                new Gson().toJson(
+                        msalBrokerRequestAdapter.brokerRequestFromAcquireTokenParameters(parameters),
+                        BrokerRequest.class)
         );
 
         //Pass this intent to the BrokerActivity which will be used to start this activity
@@ -176,7 +179,10 @@ public class BrokerMsalController extends BaseController {
             final BrokerRequest brokerRequest = msalBrokerRequestAdapter.
                     brokerRequestFromSilentOperationParameters(parameters);
 
-            requestBundle.putSerializable(AuthenticationConstants.Broker.BROKER_REQUEST_V2, brokerRequest);
+            requestBundle.putString(
+                    AuthenticationConstants.Broker.BROKER_REQUEST_V2,
+                    new Gson().toJson(brokerRequest, BrokerRequest.class)
+            );
 
             final Bundle resultBundle = service.acquireTokenSilently(requestBundle);
 
