@@ -33,6 +33,7 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
+import android.text.TextUtils;
 import android.util.Pair;
 
 import com.google.gson.Gson;
@@ -216,6 +217,7 @@ public final class PublicClientApplication {
 
         final PublicClientApplicationConfiguration developerConfig = loadConfiguration(context, configFileResourceId);
         setupConfiguration(context, developerConfig);
+        initializeApplication();
         AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
     }
@@ -236,13 +238,19 @@ public final class PublicClientApplication {
      * For more information on the schema of the MSAL config json please
      * @see <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
      */
-    public PublicClientApplication(@NonNull final Context context, final File configFile) {
-        if (context == null) {
+    public PublicClientApplication(@NonNull final Context context,
+                                   @NonNull final File configFile) {
+        if (null == context) {
             throw new IllegalArgumentException("context is null.");
+        }
+
+        if (null == configFile) {
+            throw new IllegalArgumentException("config is null.");
         }
 
         final PublicClientApplicationConfiguration developerConfig = loadConfiguration(configFile);
         setupConfiguration(context, developerConfig);
+        initializeApplication();
         AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
     }
@@ -292,18 +300,16 @@ public final class PublicClientApplication {
                                    @NonNull final String authority) {
         this(context, clientId);
 
-        if (MsalUtils.isEmpty(authority)) {
+        if (TextUtils.isEmpty(authority)) {
             throw new IllegalArgumentException("authority is empty or null");
         }
 
         mPublicClientConfiguration.getAuthorities().clear();
-        if (authority != null) {
-            Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority);
-            authorityObject.setDefault(true);
-            mPublicClientConfiguration.getAuthorities().add(authorityObject);
-        }
-
+        Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority);
+        authorityObject.setDefault(true);
+        mPublicClientConfiguration.getAuthorities().add(authorityObject);
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
+        initializeApplication();
     }
 
     private void initializeApplication() {
