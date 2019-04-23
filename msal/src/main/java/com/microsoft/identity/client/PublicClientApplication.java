@@ -1117,6 +1117,7 @@ public final class PublicClientApplication {
     private void setupConfiguration(@NonNull Context context, PublicClientApplicationConfiguration developerConfig) {
         final PublicClientApplicationConfiguration defaultConfig = loadDefaultConfiguration(context);
         defaultConfig.mergeConfiguration(developerConfig);
+        defaultConfig.validateConfiguration();
         mPublicClientConfiguration = defaultConfig;
         mPublicClientConfiguration.setAppContext(context);
         mPublicClientConfiguration.setOAuth2TokenCache(getOAuth2TokenCache());
