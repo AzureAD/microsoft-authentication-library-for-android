@@ -162,7 +162,7 @@ abstract class TokenParameters {
     public AccountRecord getAccountRecord() {
         return mAccountRecord;
     }
-
+    
     /**
      * TokenParameters builder
      *

@@ -29,7 +29,6 @@ import com.microsoft.identity.client.BrowserTabActivity;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.exception.ArgumentException;
 import com.microsoft.identity.common.exception.ClientException;
-import com.microsoft.identity.common.exception.UiRequiredException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.controllers.BaseController;
@@ -206,7 +205,12 @@ public class LocalMSALController extends BaseController {
                         cacheRecord
                 );
             } else {
-                throw new ClientException(MsalUiRequiredException.NO_TOKENS_FOUND, "No refresh token was found. ");
+                //TODO need the refactor, should just throw the ui required exception, rather than
+                // wrap the exception later in the exception wrapper.
+                throw new ClientException(
+                        MsalUiRequiredException.NO_TOKENS_FOUND,
+                        "No refresh token was found. "
+                );
             }
         } else if (cacheRecord.getAccessToken().isExpired()) {
             Logger.warn(

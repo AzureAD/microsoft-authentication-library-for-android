@@ -27,6 +27,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 
+import com.microsoft.identity.client.AccountAdapter;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
@@ -37,6 +38,7 @@ import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
+import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.providers.oauth2.OpenIdConnectPromptParameter;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
@@ -189,9 +191,23 @@ public class OperationParametersAdapter {
         acquireTokenSilentOperationParameters.setTokenCache(
                 publicClientApplicationConfiguration.getOAuth2TokenCache()
         );
-        acquireTokenSilentOperationParameters.setAccount(
-                acquireTokenSilentParameters.getAccountRecord()
-        );
+
+        if (null != acquireTokenSilentParameters.getAccountRecord()) {
+            acquireTokenSilentOperationParameters.setAccount(
+                    acquireTokenSilentParameters.getAccountRecord()
+            );
+        } else if (null != acquireTokenSilentParameters.getAccount()){
+            // This will happen when the account exists in broker.
+            // We need to construct the AccountRecord object with IAccount.
+            // for broker acquireToken request only.
+            final IAccount account = acquireTokenSilentParameters.getAccount();
+            final AccountRecord requestAccountRecord = new AccountRecord();
+            requestAccountRecord.setEnvironment(account.getEnvironment());
+            requestAccountRecord.setUsername(account.getUsername());
+            requestAccountRecord.setHomeAccountId(account.getHomeAccountIdentifier().getIdentifier());
+            requestAccountRecord.setAlternativeAccountId(account.getAccountIdentifier().getIdentifier());
+            acquireTokenSilentOperationParameters.setAccount(requestAccountRecord);
+        }
 
         if (StringUtil.isEmpty(acquireTokenSilentParameters.getAuthority())) {
             acquireTokenSilentParameters.setAuthority(

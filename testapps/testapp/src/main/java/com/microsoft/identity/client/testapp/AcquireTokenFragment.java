@@ -65,6 +65,7 @@ public class AcquireTokenFragment extends Fragment {
     private Button mAcquireTokenSilent;
     private TextView mDefaultBrowser;
     private Spinner mSelectAccount;
+    private Spinner mAADEnvironments;
 
     private OnFragmentInteractionListener mOnFragmentInteractionListener;
 
@@ -90,10 +91,12 @@ public class AcquireTokenFragment extends Fragment {
         mClearCache = view.findViewById(R.id.btn_clearCache);
         mAcquireToken = view.findViewById(R.id.btn_acquiretoken);
         mAcquireTokenSilent = view.findViewById(R.id.btn_acquiretokensilent);
+        mAADEnvironments = view.findViewById(R.id.environment);
 
         bindSpinnerChoice(mAuthority, Constants.AuthorityType.class);
         bindSpinnerChoice(mUiBehavior, UiBehavior.class);
         bindSpinnerChoice(mUserAgent, Constants.UserAgent.class);
+        bindSpinnerChoice(mAADEnvironments, Constants.AzureActiveDirectoryEnvironment.class);
 
         mAcquireToken.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -105,7 +108,7 @@ public class AcquireTokenFragment extends Fragment {
         mAcquireTokenSilent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(mSelectAccount.getSelectedItem()!=null){
+                if (mSelectAccount.getSelectedItem() != null) {
                     mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
                 }
                 mOnFragmentInteractionListener.onAcquireTokenSilentClicked(getCurrentRequestOptions());
@@ -115,7 +118,7 @@ public class AcquireTokenFragment extends Fragment {
         mSelectAccount.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if(parent.getSelectedItem()!=null){
+                if (parent.getSelectedItem() != null) {
                     mLoginhint.setText(parent.getSelectedItem().toString());
                 }
             }
@@ -137,7 +140,7 @@ public class AcquireTokenFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 String accountToRemove = null;
-                if(mSelectAccount.getSelectedItem()!=null){
+                if (mSelectAccount.getSelectedItem() != null) {
                     accountToRemove = mSelectAccount.getSelectedItem().toString();
                 }
 
@@ -150,7 +153,7 @@ public class AcquireTokenFragment extends Fragment {
 
     private void setCurrentDefaultBrowserValue() {
         try {
-            if(getActivity()!=null) {
+            if (getActivity() != null) {
                 Browser browser = BrowserSelector.select(getActivity().getApplicationContext());
                 mDefaultBrowser.setText(browser.getPackageName());
             }
@@ -162,10 +165,10 @@ public class AcquireTokenFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        if(mOnFragmentInteractionListener!=null){
+        if (mOnFragmentInteractionListener != null) {
             mOnFragmentInteractionListener.bindSelectAccountSpinner(mSelectAccount);
         }
-        if(mSelectAccount.getSelectedItem()!=null){
+        if (mSelectAccount.getSelectedItem() != null) {
             mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
         }
         setCurrentDefaultBrowserValue();
@@ -192,8 +195,8 @@ public class AcquireTokenFragment extends Fragment {
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 getContext(), android.R.layout.simple_spinner_item,
                 new ArrayList<String>() {{
-                        for (Enum choice : spinnerChoiceClass.getEnumConstants())
-                            add(choice.name());
+                    for (Enum choice : spinnerChoiceClass.getEnumConstants())
+                        add(choice.name());
                 }}
         );
 
@@ -202,7 +205,8 @@ public class AcquireTokenFragment extends Fragment {
     }
 
     RequestOptions getCurrentRequestOptions() {
-        final Constants.AuthorityType authorityType = Constants.AuthorityType.valueOf(mAuthority.getSelectedItem().toString()) ;
+        final Constants.AuthorityType authorityType = Constants.AuthorityType.valueOf(mAuthority.getSelectedItem().toString());
+        final Constants.AzureActiveDirectoryEnvironment environment = Constants.AzureActiveDirectoryEnvironment.valueOf(mAADEnvironments.getSelectedItem().toString());
         final String loginHint = mLoginhint.getText().toString();
         final UiBehavior uiBehavior = UiBehavior.valueOf(mUiBehavior.getSelectedItem().toString());
         final Constants.UserAgent userAgent = Constants.UserAgent.valueOf(mUserAgent.getSelectedItem().toString());
@@ -210,11 +214,12 @@ public class AcquireTokenFragment extends Fragment {
         final String extraScopesToConsent = mExtraScope.getText().toString();
         final boolean enablePII = mEnablePII.isChecked();
         final boolean forceRefresh = mForceRefresh.isChecked();
-        return RequestOptions.create(authorityType, loginHint, uiBehavior, userAgent, scopes, extraScopesToConsent, enablePII, forceRefresh);
+        return RequestOptions.create(authorityType, environment, loginHint, uiBehavior, userAgent, scopes, extraScopesToConsent, enablePII, forceRefresh);
     }
 
     static class RequestOptions {
         final Constants.AuthorityType mAuthorityType;
+        final Constants.AzureActiveDirectoryEnvironment mEnvironment;
         final String mLoginHint;
         final UiBehavior mUiBehavior;
         final Constants.UserAgent mUserAgent;
@@ -223,10 +228,13 @@ public class AcquireTokenFragment extends Fragment {
         final boolean mEnablePII;
         final boolean mForceRefresh;
 
-        RequestOptions(final Constants.AuthorityType authorityType, final String loginHint, final UiBehavior uiBehavior,
+        RequestOptions(final Constants.AuthorityType authorityType,
+                       final Constants.AzureActiveDirectoryEnvironment environment,
+                       final String loginHint, final UiBehavior uiBehavior,
                        final Constants.UserAgent userAgent, final String scope,
                        final String extraScope, final boolean enablePII, final boolean forceRefresh) {
             mAuthorityType = authorityType;
+            mEnvironment = environment;
             mLoginHint = loginHint;
             mUiBehavior = uiBehavior;
             mUserAgent = userAgent;
@@ -236,14 +244,17 @@ public class AcquireTokenFragment extends Fragment {
             mForceRefresh = forceRefresh;
         }
 
-        static RequestOptions create(final Constants.AuthorityType authority, final String loginHint, final UiBehavior uiBehavior,
+        static RequestOptions create(final Constants.AuthorityType authority, final Constants.AzureActiveDirectoryEnvironment environment, final String loginHint,
+                                     final UiBehavior uiBehavior,
                                      final Constants.UserAgent userAgent, final String scope, final String extraScope, final boolean enablePII, final boolean forceRefresh) {
-            return new RequestOptions(authority, loginHint, uiBehavior, userAgent, scope, extraScope, enablePII, forceRefresh);
+            return new RequestOptions(authority, environment, loginHint, uiBehavior, userAgent, scope, extraScope, enablePII, forceRefresh);
         }
 
         Constants.AuthorityType getAuthorityType() {
             return mAuthorityType;
         }
+
+        Constants.AzureActiveDirectoryEnvironment getEnvironment() { return mEnvironment;}
 
         String getLoginHint() {
             return mLoginHint;
@@ -269,7 +280,7 @@ public class AcquireTokenFragment extends Fragment {
             return mForceRefresh;
         }
 
-        Constants.UserAgent getUserAgent(){
+        Constants.UserAgent getUserAgent() {
             return mUserAgent;
         }
     }

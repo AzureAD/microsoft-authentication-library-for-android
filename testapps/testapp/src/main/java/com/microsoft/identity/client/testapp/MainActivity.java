@@ -169,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         if (mApplication == null) {
-            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_arlington_config);
         }
 
     }
@@ -243,7 +243,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onAccountsLoaded(List<IAccount> accountsToRemove) {
                 for (final IAccount accountToRemove : accountsToRemove) {
                     if (TextUtils.isEmpty(username) || accountToRemove.getUsername().equalsIgnoreCase(username.trim())) {
-                        mApplication.removeAccount(accountToRemove);
+                        mApplication.removeAccount(
+                                accountToRemove,
+                                new PublicClientApplication.AccountsRemovedCallback() {
+                                    @Override
+                                    public void onAccountsRemoved(Boolean isSuccess) {
+                                        if (isSuccess) {
+                                            showMessage("The account is successfully removed.");
+                                        } else {
+                                            showMessage("Failed to remove the account.");
+                                        }
+                                    }
+                                });
                     }
                 }
             }
@@ -305,6 +316,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mEnablePiiLogging = requestOptions.enablePiiLogging();
         mForceRefresh = requestOptions.forceRefresh();
         Constants.UserAgent userAgent = requestOptions.getUserAgent();
+        //Azure Active Environment (PPE vs. Prod)
+        Constants.AzureActiveDirectoryEnvironment environment = requestOptions.getEnvironment();
 
 
         final String scopes = requestOptions.getScopes();
@@ -320,7 +333,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (userAgent.name().equalsIgnoreCase("WEBVIEW")) {
             mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config_webview);
         } else {
-            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_arlington_config);
+        }
+
+        if(environment == Constants.AzureActiveDirectoryEnvironment.PREPRODUCTION){
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_ppe_config);
         }
     }
 

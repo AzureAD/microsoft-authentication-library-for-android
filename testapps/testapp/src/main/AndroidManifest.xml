@@ -53,7 +53,9 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="msal9851987a-55e5-46e2-8d70-75f8dc060f21"
+                <!-- To Test PPE:  msal7cc2dd84-bb0f-4711-8fca-4c7d01249f56 -->
+                <!-- To Test Sovereign: msalcb7faed4-b8c0-49ee-b421-f5ed16894c83 -->
+                <data android:scheme="msalcb7faed4-b8c0-49ee-b421-f5ed16894c83"
                     android:host="auth" />
             </intent-filter>
         </activity>

@@ -24,10 +24,17 @@ package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
+import com.google.gson.Gson;
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMicrosoftAuthService;
+import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
@@ -37,12 +44,24 @@ import com.microsoft.identity.common.internal.broker.BrokerResultFuture;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthServiceFuture;
 import com.microsoft.identity.common.internal.controllers.BaseController;
+import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ENVIRONMENT;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_REDIRECT;
 
 /**
  * The implementation of MSAL Controller for Broker
@@ -53,9 +72,14 @@ public class BrokerMsalController extends BaseController {
 
     private BrokerResultFuture mBrokerResultFuture;
 
+    /**
+     * ExecutorService to handle background computation.
+     */
+    private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
+
     @Override
     public AcquireTokenResult acquireToken(AcquireTokenOperationParameters parameters)
-            throws  InterruptedException, BaseException {
+            throws InterruptedException, BaseException {
 
         //Create BrokerResultFuture to block on response from the broker... response will be return as an activity result
         //BrokerActivity will receive the result and ask the API dispatcher to complete the request
@@ -68,7 +92,9 @@ public class BrokerMsalController extends BaseController {
         final MsalBrokerRequestAdapter msalBrokerRequestAdapter = new MsalBrokerRequestAdapter();
         interactiveRequestIntent.putExtra(
                 AuthenticationConstants.Broker.BROKER_REQUEST_V2,
-                msalBrokerRequestAdapter.brokerRequestFromAcquireTokenParameters(parameters)
+                new Gson().toJson(
+                        msalBrokerRequestAdapter.brokerRequestFromAcquireTokenParameters(parameters),
+                        BrokerRequest.class)
         );
 
         //Pass this intent to the BrokerActivity which will be used to start this activity
@@ -150,10 +176,13 @@ public class BrokerMsalController extends BaseController {
             final MsalBrokerRequestAdapter msalBrokerRequestAdapter = new MsalBrokerRequestAdapter();
 
             final Bundle requestBundle = new Bundle();
-            final BrokerRequest brokerRequest =  msalBrokerRequestAdapter.
+            final BrokerRequest brokerRequest = msalBrokerRequestAdapter.
                     brokerRequestFromSilentOperationParameters(parameters);
 
-            requestBundle.putSerializable(AuthenticationConstants.Broker.BROKER_REQUEST_V2, brokerRequest);
+            requestBundle.putString(
+                    AuthenticationConstants.Broker.BROKER_REQUEST_V2,
+                    new Gson().toJson(brokerRequest, BrokerRequest.class)
+            );
 
             final Bundle resultBundle = service.acquireTokenSilently(requestBundle);
 
@@ -165,6 +194,8 @@ public class BrokerMsalController extends BaseController {
                     "Exception occurred while attempting to invoke remote service",
                     e
             );
+        } finally {
+            client.disconnect();
         }
     }
 
@@ -172,7 +203,7 @@ public class BrokerMsalController extends BaseController {
 
         final MsalBrokerResultAdapter resultAdapter = new MsalBrokerResultAdapter();
 
-        if(resultBundle.getBoolean(AuthenticationConstants.Broker.BROKER_REQUEST_V2_SUCCESS)){
+        if (resultBundle.getBoolean(AuthenticationConstants.Broker.BROKER_REQUEST_V2_SUCCESS)) {
             Logger.verbose(TAG, "Successful result from the broker ");
 
             final AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
@@ -188,4 +219,116 @@ public class BrokerMsalController extends BaseController {
         throw resultAdapter.baseExceptionFromBundle(resultBundle);
     }
 
+    /**
+     * This method might be called on an UI thread, since we connect to broker,
+     * this needs to be called on background thread.
+     */
+    public void getBrokerAccounts(final PublicClientApplicationConfiguration configuration,
+                                  final PublicClientApplication.BrokerAccountsLoadedCallback callback) {
+
+        final String methodName = ":getBrokerAccounts";
+        final Handler handler = new Handler(Looper.getMainLooper());
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                IMicrosoftAuthService service;
+                final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
+                try {
+                    final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
+
+                    service = authServiceFuture.get();
+                    final Bundle requestBundle = getRequestBundleForGetAccounts(configuration);
+
+                    final List<AccountRecord> accountRecords =
+                            MsalBrokerResultAdapter
+                                    .getAccountRecordListFromBundle(
+                                            service.getAccounts(requestBundle)
+                                    );
+
+
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onAccountsLoaded(accountRecords);
+                        }
+                    });
+                } catch (final ClientException | InterruptedException | ExecutionException | RemoteException e) {
+                    com.microsoft.identity.common.internal.logging.Logger.error(
+                            TAG + methodName,
+                            "Exception is thrown when trying to get account from Broker, returning empty list."
+                                    + e.getMessage(),
+                            ErrorStrings.IO_ERROR,
+                            e);
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onAccountsLoaded(new ArrayList<AccountRecord>());
+                        }
+                    });
+                } finally {
+                    client.disconnect();
+                }
+            }
+        }).start();
+
+    }
+
+    private Bundle getRequestBundleForGetAccounts(@NonNull PublicClientApplicationConfiguration configuration) {
+        final Bundle requestBundle = new Bundle();
+        requestBundle.putString(ACCOUNT_CLIENTID_KEY, configuration.getClientId());
+        requestBundle.putString(ACCOUNT_REDIRECT, configuration.getRedirectUri());
+        //Disable the environment and tenantID. Just return all accounts belong to this clientID.
+        return requestBundle;
+    }
+
+    public void removeBrokerAccount(@Nullable final IAccount account,
+                                    @NonNull final PublicClientApplicationConfiguration configuration,
+                                    @NonNull final PublicClientApplication.AccountsRemovedCallback callback) {
+        sBackgroundExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                IMicrosoftAuthService service;
+                final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
+
+                try {
+                    final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
+
+                    service = authServiceFuture.get();
+
+                    Bundle requestBundle = getRequestBundleForRemoveAccount(account, configuration);
+                    service.removeAccount(requestBundle);
+                    Handler handler = new Handler(Looper.getMainLooper());
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onAccountsRemoved(true);
+                        }
+                    });
+                } catch (final BaseException | InterruptedException | ExecutionException | RemoteException e) {
+                    //TODO Need to discuss whether to this exception back to AuthenticationCallback
+                    com.microsoft.identity.common.internal.logging.Logger.error(
+                            TAG,
+                            "Exception is thrown when trying to get target account."
+                                    + e.getMessage(),
+                            ErrorStrings.IO_ERROR,
+                            e);
+                } finally {
+                    client.disconnect();
+                }
+            }
+        });
+    }
+
+    private Bundle getRequestBundleForRemoveAccount(@Nullable final IAccount account,
+                                                    @NonNull PublicClientApplicationConfiguration configuration) {
+        final Bundle requestBundle = new Bundle();
+        requestBundle.putString(ACCOUNT_CLIENTID_KEY, configuration.getClientId());
+        if (null != account) {
+            requestBundle.putString(ENVIRONMENT, account.getEnvironment());
+            requestBundle.putString(ACCOUNT_LOGIN_HINT, account.getUsername());
+        }
+
+        return requestBundle;
+    }
 }

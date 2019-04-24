@@ -41,6 +41,11 @@ public class Constants {
         WEBVIEW
     }
 
+    enum AzureActiveDirectoryEnvironment {
+        PRODUCTION,
+        PREPRODUCTION
+    }
+
     final static String AAD_AUTHORITY = "https://login.microsoftonline.com/common";
     final static String AAD_MSDEVEX = "https://login.microsoftonline.com/msdevex.onmicrosoft.com";
     final static String AAD_GUEST = "https://login.microsoftonline.com/nomfaad.onmicrosoft.com";
