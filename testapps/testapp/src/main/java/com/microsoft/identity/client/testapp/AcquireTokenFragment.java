@@ -151,16 +151,16 @@ public class AcquireTokenFragment extends Fragment {
         return view;
     }
 
-    private void setCurrentDefaultBrowserValue() {
-        try {
-            if (getActivity() != null) {
-                Browser browser = BrowserSelector.select(getActivity().getApplicationContext());
-                mDefaultBrowser.setText(browser.getPackageName());
-            }
-        } catch (ClientException e) {
-            e.printStackTrace();
-        }
-    }
+//    private void setCurrentDefaultBrowserValue() {
+//        try {
+//            if (getActivity() != null) {
+//                Browser browser = BrowserSelector.select(getActivity().getApplicationContext(), );
+//                mDefaultBrowser.setText(browser.getPackageName());
+//            }
+//        } catch (ClientException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     @Override
     public void onResume() {
@@ -171,7 +171,7 @@ public class AcquireTokenFragment extends Fragment {
         if (mSelectAccount.getSelectedItem() != null) {
             mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
         }
-        setCurrentDefaultBrowserValue();
+        //setCurrentDefaultBrowserValue();
     }
 
     @Override
