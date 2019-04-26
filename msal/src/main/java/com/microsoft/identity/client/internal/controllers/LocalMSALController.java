@@ -23,10 +23,18 @@
 package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Intent;
+import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 
+import com.microsoft.identity.client.AccountAdapter;
 import com.microsoft.identity.client.BrowserTabActivity;
+import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.exception.ArgumentException;
 import com.microsoft.identity.common.exception.ClientException;
@@ -264,5 +272,40 @@ public class LocalMSALController extends BaseController {
         }
 
         return acquireTokenSilentResult;
+    }
+
+    public void removeLocalAccount(@Nullable final IAccount account,
+                                   @NonNull final PublicClientApplicationConfiguration configuration,
+                                   @NonNull final PublicClientApplication.AccountsRemovedCallback callback) {
+        // FEATURE SWITCH: Set to false to allow deleting Accounts in a tenant-specific way.
+        final boolean deleteAccountsInAllTenants = true;
+
+        final String realm = deleteAccountsInAllTenants ? null : AccountAdapter.getRealm(account);
+
+        // Step 1. clear msal local cache
+        final boolean localRemoveAccountSuccess = !configuration
+                .getOAuth2TokenCache()
+                .removeAccount(
+                        account.getEnvironment(),
+                        configuration.getClientId(),
+                        account.getHomeAccountIdentifier().getIdentifier(),
+                        realm
+                ).isEmpty();
+
+        // Step 2.
+        // Clear cookies from embedded webView.
+        final CookieManager cookieManager = CookieManager.getInstance();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+            cookieManager.removeAllCookies(null);
+            cookieManager.flush();
+        } else {
+            final CookieSyncManager syncManager = CookieSyncManager.createInstance(configuration.getAppContext());
+            syncManager.startSync();
+            cookieManager.removeAllCookie();
+            syncManager.stopSync();
+            syncManager.sync();
+        }
+
+        callback.onAccountsRemoved(localRemoveAccountSuccess);
     }
 }
