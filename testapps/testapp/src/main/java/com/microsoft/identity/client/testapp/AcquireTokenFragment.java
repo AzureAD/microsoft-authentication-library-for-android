@@ -63,7 +63,6 @@ public class AcquireTokenFragment extends Fragment {
     private Button mClearCache;
     private Button mAcquireToken;
     private Button mAcquireTokenSilent;
-    private TextView mDefaultBrowser;
     private Spinner mSelectAccount;
     private Spinner mAADEnvironments;
 
@@ -85,7 +84,6 @@ public class AcquireTokenFragment extends Fragment {
         mExtraScope = view.findViewById(R.id.extraScope);
         mEnablePII = view.findViewById(enablePII);
         mForceRefresh = view.findViewById(R.id.forceRefresh);
-        mDefaultBrowser = view.findViewById(R.id.default_browser);
         mSelectAccount = view.findViewById(R.id.select_user);
         mGetUsers = view.findViewById(R.id.btn_getUsers);
         mClearCache = view.findViewById(R.id.btn_clearCache);
@@ -151,17 +149,6 @@ public class AcquireTokenFragment extends Fragment {
         return view;
     }
 
-    private void setCurrentDefaultBrowserValue() {
-        try {
-            if (getActivity() != null) {
-                Browser browser = BrowserSelector.select(getActivity().getApplicationContext());
-                mDefaultBrowser.setText(browser.getPackageName());
-            }
-        } catch (ClientException e) {
-            e.printStackTrace();
-        }
-    }
-
     @Override
     public void onResume() {
         super.onResume();
@@ -171,7 +158,6 @@ public class AcquireTokenFragment extends Fragment {
         if (mSelectAccount.getSelectedItem() != null) {
             mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
         }
-        setCurrentDefaultBrowserValue();
     }
 
     @Override

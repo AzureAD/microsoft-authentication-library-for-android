@@ -27,7 +27,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 
-import com.microsoft.identity.client.AccountAdapter;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
@@ -81,6 +80,10 @@ public class OperationParametersAdapter {
                     )
             );
         }
+
+        acquireTokenOperationParameters.setBrowserSafeList(
+                publicClientApplicationConfiguration.getBrowserSafeList()
+        );
 
         if (acquireTokenOperationParameters.getAuthority() instanceof AzureActiveDirectoryAuthority) {
             AzureActiveDirectoryAuthority aadAuthority =
