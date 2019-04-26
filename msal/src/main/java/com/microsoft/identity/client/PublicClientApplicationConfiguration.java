@@ -288,7 +288,10 @@ public class PublicClientApplicationConfiguration {
         nullConfigurationCheck(CLIENT_ID, mClientId);
         checkDefaultAuthoritySpecified();
 
-        if (mBrowserSafeList == null) {
+        // Only validate the browser safe list configuration
+        // when the authorization agent is set either DEFAULT or BROWSER.
+        if ( !mAuthorizationAgent.equals(AuthorizationAgent.WEBVIEW)
+                && (mBrowserSafeList == null || mBrowserSafeList.isEmpty())) {
             throw new IllegalArgumentException(
                     "Null browser safe list configured."
             );
