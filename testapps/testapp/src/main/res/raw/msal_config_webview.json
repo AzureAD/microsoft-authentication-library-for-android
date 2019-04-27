@@ -1,7 +1,7 @@
 {
-  "client_id" : "9851987a-55e5-46e2-8d70-75f8dc060f21",
+  "client_id" : "2523b71d-3ac3-4aea-833d-7096286ec643",
   "authorization_user_agent" : "WEBVIEW",
-  "redirect_uri" : "msal9851987a-55e5-46e2-8d70-75f8dc060f21://auth",
+  "redirect_uri" : "msauth://com.azuresamples.msalandroidapp/IcB5PxIyvbLkbFVtBI%2FitkW%2Fejk%3D",
   "authorities" : [
     {
       "type": "AAD",

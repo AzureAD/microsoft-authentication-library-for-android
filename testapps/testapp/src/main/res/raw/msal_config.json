@@ -1,7 +1,7 @@
 {
-  "client_id" : "9851987a-55e5-46e2-8d70-75f8dc060f21",
+  "client_id" : "b92e0ba5-f86e-4411-8e18-6b5f928d968a",
   "authorization_user_agent" : "DEFAULT",
-  "redirect_uri" : "msal9851987a-55e5-46e2-8d70-75f8dc060f21://auth",
+  "redirect_uri" : "msauth://com.microsoft.identity.client.sample.local/QK0hWtPIQviyU3IX8AhunaS0IY4%3D",
   "multiple_clouds_supported":true,
   "broker_redirect_uri_registered": true,
   "authorities" : [
