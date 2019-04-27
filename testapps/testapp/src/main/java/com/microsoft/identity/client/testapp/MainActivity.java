@@ -169,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         if (mApplication == null) {
-            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_arlington_config);
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
         }
 
     }
@@ -333,10 +333,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (userAgent.name().equalsIgnoreCase("WEBVIEW")) {
             mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config_webview);
         } else {
-            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_arlington_config);
+            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
         }
 
-        if(environment == Constants.AzureActiveDirectoryEnvironment.PREPRODUCTION){
+        if (environment == Constants.AzureActiveDirectoryEnvironment.PREPRODUCTION) {
             mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_ppe_config);
         }
     }
@@ -409,6 +409,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 mAuthResult = authenticationResult;
                 onNavigationItemSelected(getNavigationView().getMenu().getItem(1));
                 mSelectedAccount = null;
+
+                mApplication.getAccountsNew();
             }
 
             @Override

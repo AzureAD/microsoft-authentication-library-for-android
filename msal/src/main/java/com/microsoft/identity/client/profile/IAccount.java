@@ -28,9 +28,19 @@ import java.util.List;
 
 public interface IAccount {
 
+    /**
+     * Gets this IAccount's home tenant OID.
+     *
+     * @return
+     */
     @NonNull
     String getId();
 
+    /**
+     * Gets a List of {@link ITenantProfile} associated to this IAccount.
+     *
+     * @return
+     */
     @NonNull
     List<ITenantProfile> getTenantProfiles();
 }

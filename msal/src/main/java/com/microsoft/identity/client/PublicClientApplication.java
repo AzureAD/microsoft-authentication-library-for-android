@@ -373,6 +373,7 @@ public final class PublicClientApplication {
     public interface BrokerAccountsLoadedCallback {
         /**
          * Called once Accounts have been loaded from the broker.
+         *
          * @param accountRecords The accountRecords in broker.
          */
         void onAccountsLoaded(List<AccountRecord> accountRecords);
@@ -462,9 +463,21 @@ public final class PublicClientApplication {
         }
     }
 
+    public List<com.microsoft.identity.client.profile.IAccount> getAccountsNew() {
+        ApiDispatcher.initializeDiagnosticContext();
+        return com.microsoft.identity.client.profile.AccountAdapter.adapt(
+                getOAuth2TokenCache()
+                        .getAccountsWithIdTokens(
+                                null,
+                                mPublicClientConfiguration.getClientId()
+                        )
+        );
+    }
+
     /**
      * Helper method which returns all the local accounts using {@link AccountsLoadedCallback}
-     * @param handler : handler to post
+     *
+     * @param handler   : handler to post
      * @param callback: AccountsLoadedCallback
      */
     private void postLocalAccountsResult(final Handler handler, final AccountsLoadedCallback callback) {
@@ -484,7 +497,8 @@ public final class PublicClientApplication {
 
     /**
      * Helper method which returns both broker and local accounts using {@link AccountsLoadedCallback}
-     * @param handler : handler to post
+     *
+     * @param handler   : handler to post
      * @param callback: AccountsLoadedCallback
      */
     private void postBrokerAndLocalAccountsResult(final Handler handler, final AccountsLoadedCallback callback) {

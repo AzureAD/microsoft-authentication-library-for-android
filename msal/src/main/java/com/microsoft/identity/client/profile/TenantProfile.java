@@ -39,11 +39,6 @@ public class TenantProfile implements ITenantProfile {
     private static final String TAG = TenantProfile.class.getSimpleName();
 
     /**
-     * TID of this tenant.
-     */
-    private String mTenantId;
-
-    /**
      * The raw IdToken - will be parsed.
      */
     private String mRawIdToken;
@@ -53,20 +48,18 @@ public class TenantProfile implements ITenantProfile {
      */
     private String mAuthority;
 
+    private boolean mIsHomeTenant;
+
     @NonNull
     @Override
     public String getId() {
         return (String) getClaims().get(MicrosoftIdToken.OBJECT_ID);
     }
 
-    void setTenantId(final String tenantId) {
-        mTenantId = tenantId;
-    }
-
     @NonNull
     @Override
     public String getTenantId() {
-        return mTenantId;
+        return (String) getClaims().get(MicrosoftIdToken.TENANT_ID);
     }
 
     void setIdToken(final String rawIdToken) {
@@ -86,12 +79,25 @@ public class TenantProfile implements ITenantProfile {
     @NonNull
     @Override
     public Map<String, ?> getClaims() {
-        final String methodName = ":getClaims()";
+        return getClaims(mRawIdToken);
+    }
+
+    public void setIsHomeTenant(boolean isHomeTenant) {
+        mIsHomeTenant = isHomeTenant;
+    }
+
+    @Override
+    public boolean isHomeTenant() {
+        return mIsHomeTenant;
+    }
+
+    private static Map<String, ?> getClaims(@NonNull final String rawIdToken) {
+        final String methodName = ":getClaims(String)";
 
         final Map<String, Object> result = new HashMap<>();
 
         try {
-            final JWT jwt = JWTParser.parse(mRawIdToken);
+            final JWT jwt = JWTParser.parse(rawIdToken);
             final JWTClaimsSet claimsSet = jwt.getJWTClaimsSet();
             result.putAll(claimsSet.getClaims());
         } catch (ParseException e) {
@@ -103,11 +109,5 @@ public class TenantProfile implements ITenantProfile {
         }
 
         return result;
-    }
-
-    @Override
-    public boolean isHomeTenant() {
-        // TODO How should this behave for B2C?
-        return false;
     }
 }
