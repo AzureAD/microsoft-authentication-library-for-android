@@ -37,6 +37,9 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.ui.browser.Browser;
@@ -106,9 +109,10 @@ public class AcquireTokenFragment extends Fragment {
         mAcquireTokenSilent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mSelectAccount.getSelectedItem() != null) {
-                    mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
-                }
+//                if (mSelectAccount.getSelectedItem() != null) {
+//                    IAccount account = new Gson().fromJson(mSelectAccount.getSelectedItem().toString(), IAccount.class);
+//                    mLoginhint.setText(account.getAccountIdentifier().getIdentifier());
+//                }
                 mOnFragmentInteractionListener.onAcquireTokenSilentClicked(getCurrentRequestOptions());
             }
         });

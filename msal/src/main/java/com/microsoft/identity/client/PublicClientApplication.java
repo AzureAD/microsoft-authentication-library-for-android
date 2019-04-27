@@ -56,6 +56,7 @@ import com.microsoft.identity.common.internal.authorities.AuthorityDeserializer;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.ICacheKeyValueDelegate;
@@ -361,6 +362,19 @@ public final class PublicClientApplication {
     }
 
     /**
+     * Listener callback for asynchronous finding of IAccount matching the given oid.
+     */
+    public interface AccountLoadedCallback {
+
+        /**
+         * Called once Account have been found from the cache.
+         *
+         * @param account The account in the cache.
+         */
+        void onAccountLoaded(IAccount account);
+    }
+
+    /**
      * Listener callback for asynchronous loading of msal IAccount accounts.
      */
     public interface AccountsRemovedCallback {
@@ -551,6 +565,116 @@ public final class PublicClientApplication {
                         );
 
         return accountsInCache;
+    }
+
+    public void getAccount(@NonNull final String oid, @NonNull final AccountLoadedCallback callback) {
+        final String methodName = ":getAccount";
+        if (StringUtil.isEmpty(oid)) {
+            throw new IllegalArgumentException("Illegal oid to get account.");
+        }
+
+        if (MSALControllerFactory.brokerEligible(
+                mPublicClientConfiguration.getAppContext(),
+                mPublicClientConfiguration.getDefaultAuthority(),
+                mPublicClientConfiguration)) {
+            com.microsoft.identity.common.internal.logging.Logger.info(
+                    TAG + methodName,
+                    "Eligible to use broker. Try to get the account from local and broker cache."
+            );
+            getBrokerAndLocalAccount(oid, callback);
+        } else {
+            // load local account and find the matching account
+            com.microsoft.identity.common.internal.logging.Logger.info(
+                    TAG + methodName,
+                    "Not eligible to use broker. Try to get the account from local cache."
+            );
+            getLocalAccount(oid, callback);
+        }
+    }
+
+    private void getBrokerAndLocalAccount(@NonNull final String oid, @NonNull final AccountLoadedCallback callback) {
+        final String methodName = ":getBrokerAndLocalAccount";
+
+        final Handler handler;
+        if (null != Looper.myLooper() && Looper.getMainLooper() != Looper.myLooper()) {
+            handler = new Handler(Looper.myLooper());
+        } else {
+            handler = new Handler(Looper.getMainLooper());
+        }
+
+        //Make a background call to get account from broker
+        new BrokerMsalController().getBrokerAccounts(
+                mPublicClientConfiguration,
+                new BrokerAccountsLoadedCallback() {
+                    @Override
+                    public void onAccountsLoaded(final List<AccountRecord> accountRecords) {
+                        final List<AccountRecord> cachedAccounts = new ArrayList<>();
+                        cachedAccounts.addAll(getLocalAccounts());
+                        cachedAccounts.addAll(accountRecords);
+
+                        if (cachedAccounts.isEmpty()) {
+                            com.microsoft.identity.common.internal.logging.Logger.info(
+                                    TAG + methodName,
+                                    "No account stored in the broker cache."
+                            );
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    callback.onAccountLoaded(null);
+                                }
+                            });
+                        }
+
+                        for (final AccountRecord accountRecord : cachedAccounts) {
+                            if (!StringUtil.isEmpty(accountRecord.getLocalAccountId())
+                                    && accountRecord.getLocalAccountId().equalsIgnoreCase(oid)) {
+                                com.microsoft.identity.common.internal.logging.Logger.info(
+                                        TAG + methodName,
+                                        "Found the matched account from broker cache."
+                                );
+
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        callback.onAccountLoaded(AccountAdapter.adapt(accountRecord));
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
+    }
+
+
+    private void getLocalAccount(@NonNull final String oid, @NonNull final AccountLoadedCallback callback) {
+        final String methodName = ":getLocalAccount";
+        List<AccountRecord> localAccountList = getLocalAccounts();
+        if (localAccountList == null || localAccountList.isEmpty()) {
+            com.microsoft.identity.common.internal.logging.Logger.info(
+                    TAG + methodName,
+                    "No account stored in the local cache."
+            );
+
+            callback.onAccountLoaded(null);
+        }
+
+        for (AccountRecord accountRecord : getLocalAccounts()) {
+            if (!StringUtil.isEmpty(accountRecord.getLocalAccountId())
+                    && accountRecord.getLocalAccountId().equalsIgnoreCase(oid)) {
+                com.microsoft.identity.common.internal.logging.Logger.info(
+                        TAG + methodName,
+                        "Found the matched account."
+                );
+
+                callback.onAccountLoaded(AccountAdapter.adapt(accountRecord));
+            }
+        }
+
+        com.microsoft.identity.common.internal.logging.Logger.info(
+                TAG + methodName,
+                "No account found in the local cache."
+        );
+        callback.onAccountLoaded(null);
     }
 
     /**
@@ -1287,7 +1411,10 @@ public final class PublicClientApplication {
             );
             return mPublicClientConfiguration.getRedirectUri();
         } else {
-            return "msal" + clientId + "://auth";
+            return BrokerValidator.getBrokerRedirectUri(
+                    mPublicClientConfiguration.getAppContext(),
+                    mPublicClientConfiguration.getAppContext().getPackageName()
+            );
         }
     }
 

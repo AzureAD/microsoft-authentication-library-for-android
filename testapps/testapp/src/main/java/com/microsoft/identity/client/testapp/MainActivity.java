@@ -270,25 +270,35 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         prepareRequestParameters(requestOptions);
 
         //final IAccount requestAccount = getAccount();
-        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
+        mApplication.getAccount(requestOptions.getLoginHint().trim(), new PublicClientApplication.AccountLoadedCallback() {
             @Override
-            public void onAccountsLoaded(final List<IAccount> accounts) {
-                IAccount requestAccount = null;
-
-                for (final IAccount account : accounts) {
-                    if (account.getUsername().equalsIgnoreCase(requestOptions.getLoginHint().trim())) {
-                        requestAccount = account;
-                        break;
-                    }
-                }
-
-                if (null != requestAccount) {
-                    callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
+            public void onAccountLoaded(IAccount account) {
+                if (null != account) {
+                    callAcquireTokenSilent(mScopes, account, mForceRefresh);
                 } else {
                     showMessage("No account found matching loginHint");
                 }
             }
         });
+//        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
+//            @Override
+//            public void onAccountsLoaded(final List<IAccount> accounts) {
+//                IAccount requestAccount = null;
+//
+//                for (final IAccount account : accounts) {
+//                    if (account.getUsername().equalsIgnoreCase(requestOptions.getLoginHint().trim())) {
+//                        requestAccount = account;
+//                        break;
+//                    }
+//                }
+//
+//                if (null != requestAccount) {
+//                    callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
+//                } else {
+//                    showMessage("No account found matching loginHint");
+//                }
+//            }
+//        });
     }
 
     @Override
