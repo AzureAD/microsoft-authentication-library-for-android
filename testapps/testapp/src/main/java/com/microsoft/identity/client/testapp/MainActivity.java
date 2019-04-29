@@ -269,7 +269,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
 
-        //final IAccount requestAccount = getAccount();
         mApplication.getAccount(requestOptions.getLoginHint().trim(), new PublicClientApplication.AccountLoadedCallback() {
             @Override
             public void onAccountLoaded(IAccount account) {
@@ -280,25 +279,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             }
         });
-//        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
-//            @Override
-//            public void onAccountsLoaded(final List<IAccount> accounts) {
-//                IAccount requestAccount = null;
-//
-//                for (final IAccount account : accounts) {
-//                    if (account.getUsername().equalsIgnoreCase(requestOptions.getLoginHint().trim())) {
-//                        requestAccount = account;
-//                        break;
-//                    }
-//                }
-//
-//                if (null != requestAccount) {
-//                    callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
-//                } else {
-//                    showMessage("No account found matching loginHint");
-//                }
-//            }
-//        });
     }
 
     @Override
@@ -310,7 +290,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         getApplicationContext(), android.R.layout.simple_spinner_item,
                         new ArrayList<String>() {{
                             for (IAccount account : accounts)
-                                add(account.getUsername());
+                                add(account.getAccountIdentifier().getIdentifier());
                         }}
                 );
                 userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);

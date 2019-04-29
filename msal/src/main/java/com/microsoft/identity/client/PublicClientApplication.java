@@ -567,10 +567,20 @@ public final class PublicClientApplication {
         return accountsInCache;
     }
 
-    public void getAccount(@NonNull final String oid, @NonNull final AccountLoadedCallback callback) {
+    /**
+     * Returns the IAccount object matching the supplied object id.
+     *
+     * @param oid The object id of the sought IAccount.
+     * @param callback AccountLoadedCallback
+     */
+    public void getAccount(@NonNull final String oid,
+                           @NonNull final AccountLoadedCallback callback) {
         final String methodName = ":getAccount";
+
+        ApiDispatcher.initializeDiagnosticContext();
+
         if (StringUtil.isEmpty(oid)) {
-            throw new IllegalArgumentException("Illegal oid to get account.");
+            throw new IllegalArgumentException("Illegal oid to get the sought account.");
         }
 
         if (MSALControllerFactory.brokerEligible(
@@ -592,7 +602,8 @@ public final class PublicClientApplication {
         }
     }
 
-    private void getBrokerAndLocalAccount(@NonNull final String oid, @NonNull final AccountLoadedCallback callback) {
+    private void getBrokerAndLocalAccount(@NonNull final String oid,
+                                          @NonNull final AccountLoadedCallback callback) {
         final String methodName = ":getBrokerAndLocalAccount";
 
         final Handler handler;
@@ -620,6 +631,7 @@ public final class PublicClientApplication {
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
+                                    //Return null if no account found.
                                     callback.onAccountLoaded(null);
                                 }
                             });
@@ -646,7 +658,8 @@ public final class PublicClientApplication {
     }
 
 
-    private void getLocalAccount(@NonNull final String oid, @NonNull final AccountLoadedCallback callback) {
+    private void getLocalAccount(@NonNull final String oid,
+                                 @NonNull final AccountLoadedCallback callback) {
         final String methodName = ":getLocalAccount";
         List<AccountRecord> localAccountList = getLocalAccounts();
         if (localAccountList == null || localAccountList.isEmpty()) {
@@ -675,54 +688,6 @@ public final class PublicClientApplication {
                 "No account found in the local cache."
         );
         callback.onAccountLoaded(null);
-    }
-
-    /**
-     * Returns the IAccount object matching the supplied home_account_id.
-     *
-     * @param homeAccountIdentifier The home_account_id of the sought IAccount.
-     * @param authority             The authority of the sought IAccount.
-     * @return The IAccount stored in the cache or null, if no such matching entry exists.
-     */
-    @Nullable
-    public IAccount getAccount(@NonNull final String homeAccountIdentifier,
-                               @Nullable final String authority) {
-        final String methodName = ":getAccount";
-
-        ApiDispatcher.initializeDiagnosticContext();
-
-        String realm = StringUtil.getTenantInfo(homeAccountIdentifier).second;
-
-        Authority authorityObj = Authority.getAuthorityFromAuthorityUrl(authority);
-
-        if (authorityObj instanceof AzureActiveDirectoryAuthority) {
-            final AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) authorityObj;
-            final AzureActiveDirectoryAudience audience = aadAuthority.getAudience();
-            realm = audience.getTenantId();
-        } else {
-            com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG + methodName,
-                    "Provided authority was not AAD - defaulting to parsed home_account_id"
-            );
-        }
-
-        AccountRecord accountToReturn = null;
-
-        if (null != realm) {
-            accountToReturn = AccountAdapter.getAccountInternal(
-                    mPublicClientConfiguration.getClientId(),
-                    mPublicClientConfiguration.getOAuth2TokenCache(),
-                    homeAccountIdentifier,
-                    realm
-            );
-        } else {
-            com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG + methodName,
-                    "Realm could not be resolved. Returning null."
-            );
-        }
-
-        return null == accountToReturn ? null : AccountAdapter.adapt(accountToReturn);
     }
 
     /**

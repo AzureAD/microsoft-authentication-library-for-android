@@ -109,10 +109,9 @@ public class AcquireTokenFragment extends Fragment {
         mAcquireTokenSilent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                if (mSelectAccount.getSelectedItem() != null) {
-//                    IAccount account = new Gson().fromJson(mSelectAccount.getSelectedItem().toString(), IAccount.class);
-//                    mLoginhint.setText(account.getAccountIdentifier().getIdentifier());
-//                }
+                if (mSelectAccount.getSelectedItem() != null) {
+                    mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
+                }
                 mOnFragmentInteractionListener.onAcquireTokenSilentClicked(getCurrentRequestOptions());
             }
         });
