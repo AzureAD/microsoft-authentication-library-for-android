@@ -712,6 +712,133 @@ public final class PublicClientApplication {
         );
     }
 
+    public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final String resource,
+                             @NonNull final AuthenticationCallback callback) {
+        acquireToken(
+                activity,
+                mapResourceToDefaultScope(resource),
+                null, // account
+                null, // uiBehavior
+                null, // extraQueryParams
+                null, // extraScopes
+                null, // authority
+                callback,
+                null, // loginHint
+                null // claimsRequest
+        );
+    }
+
+    public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final String resource,
+                             @Nullable final String loginHint,
+                             @NonNull final AuthenticationCallback callback) {
+        acquireToken(
+                activity,
+                mapResourceToDefaultScope(resource),
+                null, // account
+                null, // uiBehavior
+                null, // extraQueryParams
+                null, // extraScopes
+                null, // authority
+                callback,
+                loginHint,
+                null // claimsRequest
+        );
+    }
+
+    public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final String resource,
+                             @Nullable final String loginHint,
+                             @NonNull final UiBehavior uiBehavior,
+                             @Nullable final List<Pair<String, String>> extraQueryParameters,
+                             @NonNull final AuthenticationCallback callback) {
+        acquireToken(
+                activity,
+                mapResourceToDefaultScope(resource),
+                null, // account
+                uiBehavior,
+                extraQueryParameters,
+                null, // extraScopes
+                null, // authority
+                callback,
+                loginHint,
+                null // claimsRequest
+        );
+    }
+
+    public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final String resource,
+                             @Nullable final IAccount account,
+                             @NonNull final UiBehavior uiBehavior,
+                             @Nullable final List<Pair<String, String>> extraQueryParameters,
+                             @NonNull final AuthenticationCallback callback) {
+        acquireToken(
+                activity,
+                mapResourceToDefaultScope(resource),
+                account,
+                uiBehavior,
+                extraQueryParameters,
+                null, // extraScopes
+                null, // authority
+                callback,
+                null, // loginHint
+                null // claimsRequest
+        );
+    }
+
+    public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final String resource,
+                             @Nullable final String loginHint,
+                             @Nullable final UiBehavior uiBehavior,
+                             @Nullable final List<Pair<String, String>> extraQueryParameters,
+                             @Nullable final String[] extraScopesToConsent,
+                             @Nullable final String authority,
+                             @NonNull final AuthenticationCallback callback) {
+        acquireToken(
+                activity,
+                mapResourceToDefaultScope(resource),
+                null, // account
+                uiBehavior,
+                extraQueryParameters,
+                extraScopesToConsent,
+                authority,
+                callback,
+                loginHint,
+                null // claimsRequest
+        );
+    }
+
+    public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final String resource,
+                             @Nullable final IAccount account,
+                             @NonNull final UiBehavior uiBehavior,
+                             @Nullable final List<Pair<String, String>> extraQueryParameters,
+                             @Nullable final String[] extraScopesToConsent,
+                             @Nullable final String authority,
+                             @NonNull final AuthenticationCallback callback) {
+        acquireToken(
+                activity,
+                mapResourceToDefaultScope(resource),
+                account,
+                uiBehavior,
+                extraQueryParameters,
+                extraScopesToConsent,
+                authority,
+                callback,
+                null, // loginHint
+                null //claimsRequest
+        );
+    }
+
+    private static String[] mapResourceToDefaultScope(@NonNull String resource) {
+        if (!StringUtil.isEmpty(resource)) {
+            return new String[]{resource + "/.default"};
+        } else {
+            return new String[]{""};
+        }
+    }
+
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
      * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
