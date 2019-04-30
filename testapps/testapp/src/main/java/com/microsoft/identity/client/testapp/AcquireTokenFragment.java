@@ -37,9 +37,6 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.ui.browser.Browser;
