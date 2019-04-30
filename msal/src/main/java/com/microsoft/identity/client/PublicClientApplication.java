@@ -351,27 +351,14 @@ public final class PublicClientApplication {
     /**
      * Listener callback for asynchronous loading of msal IAccount accounts.
      */
-    public interface AccountsLoadedCallback {
+    public interface AccountsLoadedCallback<T> {
 
         /**
          * Called once Accounts have been loaded from the cache.
          *
          * @param accounts The accounts in the cache.
          */
-        void onAccountsLoaded(List<IAccount> accounts);
-    }
-
-    /**
-     * Listener callback for asynchronous finding of IAccount matching the given oid.
-     */
-    public interface AccountLoadedCallback {
-
-        /**
-         * Called once Account have been found from the cache.
-         *
-         * @param account The account in the cache.
-         */
-        void onAccountLoaded(IAccount account);
+        void onAccountsLoaded(T accounts);
     }
 
     /**
@@ -574,7 +561,7 @@ public final class PublicClientApplication {
      * @param callback AccountLoadedCallback
      */
     public void getAccount(@NonNull final String oid,
-                           @NonNull final AccountLoadedCallback callback) {
+                           @NonNull final AccountsLoadedCallback<IAccount> callback) {
         final String methodName = ":getAccount";
 
         ApiDispatcher.initializeDiagnosticContext();
@@ -603,7 +590,7 @@ public final class PublicClientApplication {
     }
 
     private void getBrokerAndLocalAccount(@NonNull final String oid,
-                                          @NonNull final AccountLoadedCallback callback) {
+                                          @NonNull final AccountsLoadedCallback callback) {
         final String methodName = ":getBrokerAndLocalAccount";
 
         final Handler handler;
@@ -632,7 +619,7 @@ public final class PublicClientApplication {
                                 @Override
                                 public void run() {
                                     //Return null if no account found.
-                                    callback.onAccountLoaded(null);
+                                    callback.onAccountsLoaded(null);
                                 }
                             });
                         }
@@ -648,7 +635,7 @@ public final class PublicClientApplication {
                                 handler.post(new Runnable() {
                                     @Override
                                     public void run() {
-                                        callback.onAccountLoaded(AccountAdapter.adapt(accountRecord));
+                                        callback.onAccountsLoaded(AccountAdapter.adapt(accountRecord));
                                     }
                                 });
                             }
@@ -659,7 +646,7 @@ public final class PublicClientApplication {
 
 
     private void getLocalAccount(@NonNull final String oid,
-                                 @NonNull final AccountLoadedCallback callback) {
+                                 @NonNull final AccountsLoadedCallback callback) {
         final String methodName = ":getLocalAccount";
         List<AccountRecord> localAccountList = getLocalAccounts();
         if (localAccountList == null || localAccountList.isEmpty()) {
@@ -668,7 +655,8 @@ public final class PublicClientApplication {
                     "No account stored in the local cache."
             );
 
-            callback.onAccountLoaded(null);
+            callback.onAccountsLoaded(null);
+            return;
         }
 
         for (AccountRecord accountRecord : getLocalAccounts()) {
@@ -679,7 +667,8 @@ public final class PublicClientApplication {
                         "Found the matched account."
                 );
 
-                callback.onAccountLoaded(AccountAdapter.adapt(accountRecord));
+                callback.onAccountsLoaded(AccountAdapter.adapt(accountRecord));
+                return;
             }
         }
 
@@ -687,7 +676,7 @@ public final class PublicClientApplication {
                 TAG + methodName,
                 "No account found in the local cache."
         );
-        callback.onAccountLoaded(null);
+        callback.onAccountsLoaded(null);
     }
 
     /**

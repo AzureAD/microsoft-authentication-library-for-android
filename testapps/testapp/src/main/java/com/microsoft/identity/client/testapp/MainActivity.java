@@ -238,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void onRemoveUserClicked(final String username) {
-        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
+        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback<List<IAccount>>() {
             @Override
             public void onAccountsLoaded(List<IAccount> accountsToRemove) {
                 for (final IAccount accountToRemove : accountsToRemove) {
@@ -269,9 +269,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
 
-        mApplication.getAccount(requestOptions.getLoginHint().trim(), new PublicClientApplication.AccountLoadedCallback() {
+        mApplication.getAccount(requestOptions.getLoginHint().trim(), new PublicClientApplication.AccountsLoadedCallback<IAccount>() {
             @Override
-            public void onAccountLoaded(IAccount account) {
+            public void onAccountsLoaded(IAccount account) {
                 if (null != account) {
                     callAcquireTokenSilent(mScopes, account, mForceRefresh);
                 } else {
@@ -283,7 +283,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void bindSelectAccountSpinner(final Spinner selectUser) {
-        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
+        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback<List<IAccount>>() {
             @Override
             public void onAccountsLoaded(final List<IAccount> accounts) {
                 final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(

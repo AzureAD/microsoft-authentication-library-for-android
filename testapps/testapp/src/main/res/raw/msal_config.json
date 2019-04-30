@@ -1,5 +1,5 @@
 {
-  "client_id" : "b92e0ba5-f86e-4411-8e18-6b5f928d968a",
+  "client_id" : "4b0db8c2-9f26-4417-8bde-3f0e3656f8e0",
   "authorization_user_agent" : "DEFAULT",
   "redirect_uri" : "msauth://com.microsoft.identity.client.sample.local/QK0hWtPIQviyU3IX8AhunaS0IY4%3D",
   "multiple_clouds_supported":true,
