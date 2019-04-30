@@ -273,8 +273,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     }
                 }
             });
-        }
-        else if (mApplication instanceof ISingleAccountPublicClientApplication) {
+        } else if (mApplication instanceof ISingleAccountPublicClientApplication) {
             final ISingleAccountPublicClientApplication application = (ISingleAccountPublicClientApplication)(mApplication);
 
             try {
@@ -288,8 +287,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         }
                     }
                 });
-            }
-            catch (MsalClientException e) {
+            } catch (MsalClientException e) {
                 showMessage(e.getMessage());
             }
 
@@ -327,9 +325,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     }
                 }
             });
-        }
-
-        else if (mApplication instanceof ISingleAccountPublicClientApplication) {
+        } else if (mApplication instanceof ISingleAccountPublicClientApplication) {
             final ISingleAccountPublicClientApplication application = (ISingleAccountPublicClientApplication)(mApplication);
 
             try {
@@ -348,8 +344,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         // No op.
                     }
                 });
-            }
-            catch (MsalClientException e) {
+            } catch (MsalClientException e) {
                 showMessage(e.getMessage());
             }
         }
@@ -386,8 +381,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         // No op.
                     }
                 });
-            }
-            catch (MsalClientException e) {
+            } catch (MsalClientException e) {
                 showMessage(e.getMessage());
             }
         }

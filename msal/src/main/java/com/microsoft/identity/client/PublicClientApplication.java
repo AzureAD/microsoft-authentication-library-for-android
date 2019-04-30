@@ -232,11 +232,9 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
         if (MsalUtils.isEmpty(clientId)) {
             throw new IllegalArgumentException("client id is empty or null");
         }
-        new BrokerMsalController().getBrokerAccountMode(context, new BrokerAccountModeCallback()
-        {
+        new BrokerMsalController().getBrokerAccountMode(context, new BrokerAccountModeCallback() {
             @Override
-            public void onGetMode(String mode)
-            {
+            public void onGetMode(String mode) {
                 if (AuthenticationConstants.Broker.BROKER_ACCOUNT_MODE_SINGLE_ACCOUNT.equalsIgnoreCase(mode)) {
                     // TODO: return SingleAccountPublicClientApplication
                     listener.onCreated(new PublicClientApplication(context, clientId));
@@ -279,11 +277,9 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
             throw new IllegalArgumentException("authority is null");
         }
 
-        new BrokerMsalController().getBrokerAccountMode(context, new BrokerAccountModeCallback()
-        {
+        new BrokerMsalController().getBrokerAccountMode(context, new BrokerAccountModeCallback() {
             @Override
-            public void onGetMode(String mode)
-            {
+            public void onGetMode(String mode) {
                 if (AuthenticationConstants.Broker.BROKER_ACCOUNT_MODE_SINGLE_ACCOUNT.equalsIgnoreCase(mode)) {
                     // TODO: return SingleAccountPublicClientApplication
                     listener.onCreated(new PublicClientApplication(context, clientId, authority));
@@ -298,11 +294,9 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
     private static void create(@NonNull final Context context,
                                final PublicClientApplicationConfiguration developerConfig,
                                @NonNull final ApplicationCreatedListener listener){
-        new BrokerMsalController().getBrokerAccountMode(context, new BrokerAccountModeCallback()
-        {
+        new BrokerMsalController().getBrokerAccountMode(context, new BrokerAccountModeCallback() {
             @Override
-            public void onGetMode(String mode)
-            {
+            public void onGetMode(String mode) {
                 if (AuthenticationConstants.Broker.BROKER_ACCOUNT_MODE_SINGLE_ACCOUNT.equalsIgnoreCase(mode)) {
                     // TODO: return SingleAccountPublicClientApplication
                     listener.onCreated(new PublicClientApplication(context, developerConfig));
@@ -403,6 +397,7 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
         return mPublicClientConfiguration;
     }
 
+    @Override
     public void getAccounts(@NonNull final AccountsLoadedCallback callback) {
         ApiDispatcher.initializeDiagnosticContext();
         final String methodName = ":getAccounts";
@@ -567,6 +562,7 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
         return accountsInCache;
     }
 
+    @Override
     @Nullable
     public IAccount getAccount(@NonNull final String homeAccountIdentifier,
                                @Nullable final String authority) {
@@ -608,6 +604,7 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
         return null == accountToReturn ? null : AccountAdapter.adapt(accountToReturn);
     }
 
+    @Override
     public void removeAccount(@Nullable final IAccount account, final AccountsRemovedCallback callback) {
         ApiDispatcher.initializeDiagnosticContext();
         if (null == account
@@ -664,12 +661,14 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
         return realm;
     }
 
+    @Override
     public void handleInteractiveRequestRedirect(final int requestCode,
                                                  final int resultCode,
                                                  @NonNull final Intent data) {
         ApiDispatcher.completeInteractive(requestCode, resultCode, data);
     }
 
+    @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
@@ -687,6 +686,7 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
         );
     }
 
+    @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @Nullable final String loginHint,
@@ -705,6 +705,7 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
         );
     }
 
+    @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @Nullable final String loginHint,
@@ -725,6 +726,7 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
         );
     }
 
+    @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @Nullable final IAccount account,
@@ -745,6 +747,7 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
         );
     }
 
+    @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @Nullable final String loginHint,
@@ -767,6 +770,7 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
         );
     }
 
+    @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @Nullable final IAccount account,
@@ -834,6 +838,7 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
         }
     }
 
+    @Override
     public void acquireTokenAsync(@NonNull final AcquireTokenParameters acquireTokenParameters) {
         acquireTokenParameters.setAccountRecord(
                 getAccountRecord(acquireTokenParameters.getAccount())
@@ -875,6 +880,7 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
         return null;
     }
 
+    @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final IAccount account,
                                         @NonNull final AuthenticationCallback callback) {
@@ -888,6 +894,7 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
         );
     }
 
+    @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final IAccount account,
                                         @Nullable final String authority,
@@ -925,6 +932,7 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
         acquireTokenSilentAsync(acquireTokenSilentParameters);
     }
 
+    @Override
     public void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
         acquireTokenSilentParameters.setAccountRecord(
                 getAccountRecord(

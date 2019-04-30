@@ -211,7 +211,7 @@ public class BrokerMsalController extends BaseController {
         final String methodName = ":getBrokerAccountMode";
         final Handler handler = new Handler(Looper.getMainLooper());
 
-        new Thread(new Runnable() {
+        sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
                 IMicrosoftAuthService service;
@@ -250,7 +250,7 @@ public class BrokerMsalController extends BaseController {
                     client.disconnect();
                 }
             }
-        }).start();
+        });
     }
 
     private AcquireTokenResult getAcquireTokenResult(final Bundle resultBundle) throws BaseException {
@@ -283,7 +283,7 @@ public class BrokerMsalController extends BaseController {
         final String methodName = ":getBrokerAccounts";
         final Handler handler = new Handler(Looper.getMainLooper());
 
-        new Thread(new Runnable() {
+        sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
                 IMicrosoftAuthService service;
@@ -299,7 +299,6 @@ public class BrokerMsalController extends BaseController {
                                     .getAccountRecordListFromBundle(
                                             service.getAccounts(requestBundle)
                                     );
-
 
                     handler.post(new Runnable() {
                         @Override
@@ -324,7 +323,7 @@ public class BrokerMsalController extends BaseController {
                     client.disconnect();
                 }
             }
-        }).start();
+        });
 
     }
 
