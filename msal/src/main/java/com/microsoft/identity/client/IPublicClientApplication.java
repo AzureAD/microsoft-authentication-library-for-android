@@ -273,4 +273,16 @@ public interface IPublicClientApplication {
      * @param acquireTokenSilentParameters
      */
     void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters);
+
+    /**
+     * Listener callback for asynchronous removal of msal IAccount account.
+     */
+    interface AccountRemovedListener {
+        /**
+         * Called once Accounts have been removed.
+         *
+         * @param isSuccess true if the account is successfully removed.
+         */
+        void onAccountRemoved(Boolean isSuccess);
+    }
 }

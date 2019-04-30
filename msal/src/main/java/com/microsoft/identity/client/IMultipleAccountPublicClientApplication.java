@@ -61,7 +61,7 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * @param account The IAccount whose entry and associated tokens should be removed.
      * @return True, if the account was removed. False otherwise.
      */
-    void removeAccount(@Nullable final IAccount account, final AccountsRemovedCallback callback);
+    void removeAccount(@Nullable final IAccount account, final AccountRemovedListener callback);
 
     /**
      * Listener callback for asynchronous loading of msal IAccount accounts.
@@ -84,17 +84,5 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
          * @param accountRecords The accountRecords in broker.
          */
         void onAccountsLoaded(List<AccountRecord> accountRecords);
-    }
-
-    /**
-     * Listener callback for asynchronous loading of msal IAccount accounts.
-     */
-    interface AccountsRemovedCallback {
-        /**
-         * Called once Accounts have been removed from the cache.
-         *
-         * @param isSuccess true if the account is successfully removed.
-         */
-        void onAccountsRemoved(Boolean isSuccess);
     }
 }

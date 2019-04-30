@@ -52,9 +52,7 @@ import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.Logger;
-import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
@@ -259,9 +257,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         if (TextUtils.isEmpty(username) || accountToRemove.getUsername().equalsIgnoreCase(username.trim())) {
                             application.removeAccount(
                                 accountToRemove,
-                                new PublicClientApplication.AccountsRemovedCallback() {
+                                new IPublicClientApplication.AccountRemovedListener() {
                                     @Override
-                                    public void onAccountsRemoved(Boolean isSuccess) {
+                                    public void onAccountRemoved(Boolean isSuccess) {
                                         if (isSuccess) {
                                             showMessage("The account is successfully removed.");
                                         } else {
@@ -277,9 +275,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             final ISingleAccountPublicClientApplication application = (ISingleAccountPublicClientApplication)(mApplication);
 
             try {
-                application.globalSignOut(new PublicClientApplication.AccountsRemovedCallback() {
+                application.globalSignOut(new IPublicClientApplication.AccountRemovedListener() {
                     @Override
-                    public void onAccountsRemoved(Boolean isSuccess) {
+                    public void onAccountRemoved(Boolean isSuccess) {
                         if (isSuccess) {
                             showMessage("The account is successfully removed.");
                         } else {

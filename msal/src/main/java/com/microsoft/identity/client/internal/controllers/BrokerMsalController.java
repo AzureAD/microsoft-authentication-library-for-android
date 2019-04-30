@@ -337,7 +337,7 @@ public class BrokerMsalController extends BaseController {
 
     public void removeBrokerAccount(@Nullable final IAccount account,
                                     @NonNull final PublicClientApplicationConfiguration configuration,
-                                    @NonNull final PublicClientApplication.AccountsRemovedCallback callback) {
+                                    @NonNull final IPublicClientApplication.AccountRemovedListener callback) {
         sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
@@ -355,7 +355,7 @@ public class BrokerMsalController extends BaseController {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onAccountsRemoved(true);
+                            callback.onAccountRemoved(true);
                         }
                     });
                 } catch (final BaseException | InterruptedException | ExecutionException | RemoteException e) {

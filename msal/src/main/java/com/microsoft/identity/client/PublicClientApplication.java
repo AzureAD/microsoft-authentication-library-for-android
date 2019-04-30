@@ -605,7 +605,7 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
     }
 
     @Override
-    public void removeAccount(@Nullable final IAccount account, final AccountsRemovedCallback callback) {
+    public void removeAccount(@Nullable final IAccount account, final AccountRemovedListener callback) {
         ApiDispatcher.initializeDiagnosticContext();
         if (null == account
                 || null == account.getHomeAccountIdentifier()
@@ -615,7 +615,7 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
                     "Requisite IAccount or IAccount fields were null. Insufficient criteria to remove IAccount."
             );
 
-            callback.onAccountsRemoved(false);
+            callback.onAccountRemoved(false);
         }
 
         // FEATURE SWITCH: Set to false to allow deleting Accounts in a tenant-specific way.
@@ -644,7 +644,7 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
                     callback
             );
         } else {
-            callback.onAccountsRemoved(localRemoveAccountSuccess);
+            callback.onAccountRemoved(localRemoveAccountSuccess);
         }
     }
 
