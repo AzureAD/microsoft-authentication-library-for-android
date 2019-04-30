@@ -1650,9 +1650,10 @@ public final class PublicClientApplication {
         return initCommonCache(mPublicClientConfiguration.getAppContext());
     }
 
-    private static String[] mapResourceToDefaultScope(@NonNull String resource) {
+    @VisibleForTesting
+    static String[] mapResourceToDefaultScope(@NonNull String resource) {
         if (!StringUtil.isEmpty(resource)) {
-            return new String[]{resource + "/.default"};
+            return new String[]{resource.toLowerCase().trim() + "/.default"};
         } else {
             return new String[]{""};
         }
