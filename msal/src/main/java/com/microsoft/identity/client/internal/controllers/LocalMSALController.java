@@ -148,8 +148,7 @@ public class LocalMSALController extends BaseController {
         mAuthorizationStrategy = AuthorizationStrategyFactory
                 .getInstance()
                 .getAuthorizationStrategy(
-                        parameters.getActivity(),
-                        parameters.getAuthorizationAgent(),
+                        parameters,
                         resultIntent
                 );
         mAuthorizationRequest = getAuthorizationRequest(strategy, parameters);

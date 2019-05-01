@@ -36,6 +36,7 @@ import com.microsoft.identity.common.internal.authorities.UnknownAudience;
 import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
+import com.microsoft.identity.common.internal.ui.browser.BrowserDescriptor;
 
 import java.util.List;
 
@@ -92,6 +93,9 @@ public class PublicClientApplicationConfiguration {
     @SerializedName(ENVIRONMENT)
     Environment mEnvironment;
 
+    @SerializedName("browser_safelist")
+    List<BrowserDescriptor> mBrowserSafeList;
+
     transient OAuth2TokenCache mOAuth2TokenCache;
 
     transient Context mAppContext;
@@ -105,6 +109,14 @@ public class PublicClientApplicationConfiguration {
      */
     public void setTokenCacheSecretKeys(@NonNull final byte[] rawKey) {
         AuthenticationSettings.INSTANCE.setSecretKey(rawKey);
+    }
+
+    /**
+     * Gets the list of browser safe list.
+     * @return The list of browser which are allowed to use for auth flow.
+     */
+    public List<BrowserDescriptor> getBrowserSafeList() {
+        return mBrowserSafeList;
     }
 
     /**
@@ -264,12 +276,26 @@ public class PublicClientApplicationConfiguration {
         this.mHttpConfiguration = config.mHttpConfiguration == null ? this.mHttpConfiguration : config.mHttpConfiguration;
         this.mMultipleCloudsSupported = config.mMultipleCloudsSupported == null ? this.mMultipleCloudsSupported : config.mMultipleCloudsSupported;
         this.mUseBroker = config.mUseBroker == null ? this.mUseBroker : config.mUseBroker;
+        if (this.mBrowserSafeList == null) {
+            this.mBrowserSafeList = config.mBrowserSafeList;
+        } else if (config.mBrowserSafeList != null){
+            this.mBrowserSafeList.addAll(config.mBrowserSafeList);
+        }
     }
 
     void validateConfiguration() {
         nullConfigurationCheck(REDIRECT_URI, mRedirectUri);
         nullConfigurationCheck(CLIENT_ID, mClientId);
         checkDefaultAuthoritySpecified();
+
+        // Only validate the browser safe list configuration
+        // when the authorization agent is set either DEFAULT or BROWSER.
+        if ( !mAuthorizationAgent.equals(AuthorizationAgent.WEBVIEW)
+                && (mBrowserSafeList == null || mBrowserSafeList.isEmpty())) {
+            throw new IllegalArgumentException(
+                    "Null browser safe list configured."
+            );
+        }
 
         for (final Authority authority : mAuthorities) {
             if (authority instanceof UnknownAuthority) {
