@@ -31,7 +31,7 @@ public interface IAccount {
     /**
      * Gets this IAccount's home tenant OID.
      *
-     * @return
+     * @return The oid of this IAccount.
      */
     @NonNull
     String getId();
@@ -39,7 +39,7 @@ public interface IAccount {
     /**
      * Gets a List of {@link ITenantProfile} associated to this IAccount.
      *
-     * @return
+     * @return The List of ITenantProfiles associated to this IAccount.
      */
     @NonNull
     List<ITenantProfile> getTenantProfiles();

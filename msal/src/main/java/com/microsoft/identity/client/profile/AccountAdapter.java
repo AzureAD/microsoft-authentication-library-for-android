@@ -26,6 +26,7 @@ import android.support.annotation.NonNull;
 import android.util.Pair;
 
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.internal.dto.IdTokenRecord;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,6 +35,9 @@ import java.util.List;
 import static com.microsoft.identity.common.internal.util.StringUtil.getTenantInfo;
 
 public class AccountAdapter {
+
+    // TODO Preferably have a function that returns these value sanely for AT/ATS/getAccts
+    // If getAccts, the homeTenantProfile should be first
 
     //@SuppressWarnings("unchecked")
     public static List<IAccount> adapt(final List<ICacheRecord> allCacheRecords) {
@@ -58,9 +62,10 @@ public class AccountAdapter {
                                            @NonNull final List<ICacheRecord> guestCacheRecords) {
         for (final IAccount account : accountList) {
             final ITenantProfile homeTenantProfile = account.getTenantProfiles().get(0);
+            final String homeTenantOid = homeTenantProfile.getId();
 
             final List<ICacheRecord> accountCacheRecords = filterRecordsMatchingHomeAccountId(
-                    homeTenantProfile.getId() + "." + homeTenantProfile.getTenantId(),
+                    homeTenantOid + "." + homeTenantProfile.getTenantId(),
                     guestCacheRecords
             );
 
@@ -69,28 +74,33 @@ public class AccountAdapter {
             for (final ICacheRecord accountCacheRecord : accountCacheRecords) {
                 // Create a TenantProfile for each...
                 final TenantProfile profile = new TenantProfile();
-                profile.setIsHomeTenant(false);
 
-                {
-                    // TODO Figure out which IdToken to show...
-                    profile.setIdToken(
-                            accountCacheRecord
-                                    .getIdToken()
-                                    .getSecret()
-                    );
+                // If the oid component of the home_account_id matches the local_account_id
+                // then this is the home profile
+                profile.setIsHomeTenant(
+                        homeTenantOid.equals(
+                                accountCacheRecord
+                                        .getAccount()
+                                        .getLocalAccountId()
+                        )
+                );
 
-                    profile.setAuthority(
-                            accountCacheRecord
-                                    .getIdToken()
-                                    .getAuthority()
-                    );
-                }
+                final IdTokenRecord idToken = getIdTokenRecord(accountCacheRecord);
+
+                profile.setIdToken(idToken.getSecret());
+                profile.setAuthority(idToken.getAuthority());
 
                 profiles.add(profile);
             }
 
             ((Account) account).setTenantProfiles(profiles);
         }
+    }
+
+    private static IdTokenRecord getIdTokenRecord(@NonNull final ICacheRecord accountCacheRecord) {
+        return null != accountCacheRecord.getIdToken()
+                ? accountCacheRecord.getIdToken() // Prefer the v2 idtoken since this is MSAL...
+                : accountCacheRecord.getV1IdToken();
     }
 
     @NonNull
@@ -127,28 +137,9 @@ public class AccountAdapter {
             final TenantProfile homeTenantProfile = new TenantProfile();
             homeTenantProfile.setIsHomeTenant(true);
 
-            {
-                /*
-                if the client is MSAL, give them a v2 id token
-
-                the only special affordance here is B2C which only yields v1 tokens (today)
-                 */
-
-
-                // TODO Figure out how to reconcile what we show here
-                // TODO It may be either v1 or v2 (B2C / Broker)
-                homeTenantProfile.setIdToken(
-                        cacheRecord
-                                .getIdToken()
-                                .getSecret()
-                ); // For now, just assume v2...
-
-                homeTenantProfile.setAuthority(
-                        cacheRecord
-                                .getIdToken()
-                                .getAuthority()
-                );
-            }
+            final IdTokenRecord idToken = getIdTokenRecord(cacheRecord);
+            homeTenantProfile.setIdToken(idToken.getSecret());
+            homeTenantProfile.setAuthority(idToken.getAuthority());
 
             final List<ITenantProfile> tenantProfiles = new ArrayList<>();
             tenantProfiles.add(homeTenantProfile);
