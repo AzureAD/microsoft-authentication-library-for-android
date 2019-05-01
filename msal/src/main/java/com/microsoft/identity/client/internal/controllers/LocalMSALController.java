@@ -134,18 +134,16 @@ public class LocalMSALController extends BaseController {
     private AuthorizationResult performAuthorizationRequest(@NonNull final OAuth2Strategy strategy,
                                                             @NonNull final AcquireTokenOperationParameters parameters)
             throws ExecutionException, InterruptedException, ClientException {
+
         throwIfNetworkNotAvailable(parameters.getAppContext());
-        //Create pendingIntent to handle the authorization result intent back to the calling activity
-        final Intent resultIntent = new Intent(parameters.getActivity(), BrowserTabActivity.class);
-        mAuthorizationStrategy = AuthorizationStrategyFactory
-                .getInstance()
+
+        mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance()
                 .getAuthorizationStrategy(
-                        parameters,
-                        resultIntent
+                        parameters
                 );
         mAuthorizationRequest = getAuthorizationRequest(strategy, parameters);
 
-        Future<AuthorizationResult> future = strategy.requestAuthorization(
+        final Future<AuthorizationResult> future = strategy.requestAuthorization(
                 mAuthorizationRequest,
                 mAuthorizationStrategy
         );
