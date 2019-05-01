@@ -191,32 +191,6 @@
                 android:textSize="12sp"
                 android:hint="@string/scope_text_hint"/>
         </LinearLayout>
-    
-        <LinearLayout
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
-            android:layout_width="match_parent"
-            android:gravity="center_vertical"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="8">
-        
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:layout_weight="5"
-                android:text="@string/enable_pii_text"/>
-        
-            <Switch
-                android:id="@+id/enablePII"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:layout_weight="3"
-                android:textOn="on"
-                android:textOff="off"/>
-        </LinearLayout>
 
         <LinearLayout
             android:paddingTop="5dp"
@@ -225,23 +199,52 @@
             android:gravity="center_vertical"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:weightSum="8">
+            android:weightSum="2">
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="5"
-                android:gravity="center_vertical"
-                android:text="@string/force_refresh"/>
+            <LinearLayout android:layout_width="match_parent"
+                          android:layout_height="match_parent"
+                          android:weightSum="8"
+                          android:orientation="horizontal"
+                          android:layout_weight="1">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="5"
+                    android:gravity="center_vertical"
+                    android:text="@string/force_refresh"/>
 
-            <Switch
-                android:id="@+id/forceRefresh"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="3"
-                android:gravity="center_vertical"
-                android:textOn="on"
-                android:textOff="off"/>
+                <Switch
+                    android:id="@+id/forceRefresh"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:gravity="center_vertical"
+                    android:textOn="on"
+                    android:textOff="off"/>
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent"
+                          android:layout_height="match_parent"
+                          android:weightSum="8"
+                          android:orientation="horizontal"
+                          android:layout_weight="1">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:layout_weight="5"
+                    android:text="@string/enable_pii_text"/>
+
+                <Switch
+                    android:id="@+id/enablePII"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:layout_weight="3"
+                    android:textOn="on"
+                    android:textOff="off"/>
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
@@ -260,6 +263,29 @@
 
             <TextView
                 android:id="@+id/default_browser"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:layout_weight="6"/>
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="10">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:text="@string/public_application_mode" />
+
+            <TextView
+                android:id="@+id/public_application_mode"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:textSize="12sp"
