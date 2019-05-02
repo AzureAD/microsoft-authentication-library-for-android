@@ -36,28 +36,47 @@ import static com.microsoft.identity.common.internal.util.StringUtil.getTenantIn
 
 public class AccountAdapter {
 
-    // TODO Preferably have a function that returns these value sanely for AT/ATS/getAccts
-    // If getAccts, the homeTenantProfile should be first
-
-    //@SuppressWarnings("unchecked")
+    /**
+     * Given a List of ICacheRecords, adapt it into a List of IAccounts with corresponding
+     * TenantProfiles for each tenant against which a given account has authz'd.
+     *
+     * @param allCacheRecords The ICacheRecords to inspect.
+     * @return A List of IAccounts derived therefrom.
+     */
     public static List<IAccount> adapt(final List<ICacheRecord> allCacheRecords) {
-
+        // First, get all of the home accounts
         final List<ICacheRecord> homeCacheRecords = filterHomeCacheRecords(
                 allCacheRecords,
                 false
         );
 
+        // Then, get all of the guest accounts
         final List<ICacheRecord> guestCacheRecords = filterHomeCacheRecords(
                 allCacheRecords,
                 true
         );
 
+        // Create the top-level (the "root") IAccount object based on the home accounts
         final List<IAccount> accountList = createAccountRoots(homeCacheRecords);
+
+        // Iterate over the guest accounts, adding the guest profiles as children of their
+        // corresponding root. Root correspondence is determined based on home_account_id.
+        // home_account_id is a synthetic property derived from <uid>.<utid>
         appendChildEntries(accountList, guestCacheRecords);
 
+        // Finally, return our result as an immutable List
         return Collections.unmodifiableList(accountList);
     }
 
+    /**
+     * Given a List of IAccounts and an List of guest-account ICacheRecords, transform the
+     * ICacheRecords into TenantProfiles and append them to IAccount's List of TenantProfiles.
+     * By convention, the first TenantProfile in the IAccount's List should be the home profile.
+     *
+     * @param accountList       The List of IAccounts to which any corresponding TenantProfiles
+     *                          should be added.
+     * @param guestCacheRecords The guest-account ICacheRecords to inspect.
+     */
     private static void appendChildEntries(@NonNull final List<IAccount> accountList,
                                            @NonNull final List<ICacheRecord> guestCacheRecords) {
         for (final IAccount account : accountList) {
@@ -76,13 +95,13 @@ public class AccountAdapter {
                 final TenantProfile profile = new TenantProfile();
 
                 // If the oid component of the home_account_id matches the local_account_id
-                // then this is the home profile
+                // then this is the home profile.
                 profile.setIsHomeTenant(
                         homeTenantOid.equals(
                                 accountCacheRecord
                                         .getAccount()
                                         .getLocalAccountId()
-                        )
+                        ) // should always equal false, but showing work anyway...
                 );
 
                 final IdTokenRecord idToken = getIdTokenRecord(accountCacheRecord);
@@ -97,12 +116,27 @@ public class AccountAdapter {
         }
     }
 
+    /**
+     * Given an {@link ICacheRecord}, return its associated IdToken. Preference is for v2 IdToken.
+     *
+     * @param accountCacheRecord The ICacheRecord to inspect.
+     * @return The IdToken contained therein.
+     */
+    @NonNull
     private static IdTokenRecord getIdTokenRecord(@NonNull final ICacheRecord accountCacheRecord) {
         return null != accountCacheRecord.getIdToken()
                 ? accountCacheRecord.getIdToken() // Prefer the v2 idtoken since this is MSAL...
                 : accountCacheRecord.getV1IdToken();
     }
 
+    /**
+     * Given a home_account_id and List of {@link ICacheRecord}s, return those records which
+     * correspond to it.
+     *
+     * @param homeAccountId     The home_account_id to match.
+     * @param guestCacheRecords The ICacheRecords to inspect.
+     * @return A List of ICacheRecords filtered by home_account_id. List can be empty, but never null.
+     */
     @NonNull
     private static List<ICacheRecord> filterRecordsMatchingHomeAccountId(
             @NonNull final String homeAccountId,
@@ -118,6 +152,12 @@ public class AccountAdapter {
         return result;
     }
 
+    /**
+     * Given a List of home-account ICacheRecords, create the top-level IAccount objects.
+     *
+     * @param homeCacheRecords A List of home-account ICacheRecords.
+     * @return A List of IAccounts derived from the supplied ICacheRecords.
+     */
     private static List<IAccount> createAccountRoots(
             @NonNull final List<ICacheRecord> homeCacheRecords) {
         final List<IAccount> result = new ArrayList<>();
