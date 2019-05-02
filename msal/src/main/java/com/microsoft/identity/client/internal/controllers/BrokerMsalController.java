@@ -238,8 +238,9 @@ public class BrokerMsalController extends BaseController {
                                        @NonNull final MsalOAuth2TokenCache msalOAuth2TokenCache) throws ClientException {
         final String methodName = ":saveMsaAccountToCache";
 
-        final BrokerResult brokerResult = (BrokerResult) resultBundle.getSerializable(
-                AuthenticationConstants.Broker.BROKER_RESULT_V2
+        final BrokerResult brokerResult = new Gson().fromJson(
+                resultBundle.getString(AuthenticationConstants.Broker.BROKER_RESULT_V2),
+                BrokerResult.class
         );
 
         if (resultBundle.getBoolean(AuthenticationConstants.Broker.BROKER_REQUEST_V2_SUCCESS)
