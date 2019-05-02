@@ -290,7 +290,9 @@ public class MsalWrapper {
                     @Override
                     public void onAccountLoaded(IAccount activeAccount) {
                         mLoadedAccount = new ArrayList<>();
-                        mLoadedAccount.add(activeAccount);
+                        if (activeAccount != null) {
+                            mLoadedAccount.add(activeAccount);
+                        }
                         performPostAccountLoadedJobs();
                     }
 
