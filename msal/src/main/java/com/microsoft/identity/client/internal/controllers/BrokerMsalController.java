@@ -36,6 +36,7 @@ import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMicrosoftAuthService;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
+import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
@@ -43,6 +44,7 @@ import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.broker.BrokerRequest;
+import com.microsoft.identity.common.internal.broker.BrokerResult;
 import com.microsoft.identity.common.internal.broker.BrokerResultFuture;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthServiceFuture;
@@ -274,6 +276,61 @@ public class BrokerMsalController extends BaseController {
     }
 
     /**
+     * Get the currently signed-in account, if there's any.
+     * This only works when getBrokerAccountMode() is BROKER_ACCOUNT_MODE_SINGLE_ACCOUNT.
+     * */
+    public void getCurrentAccount(final PublicClientApplicationConfiguration configuration,
+                                  final ISingleAccountPublicClientApplication.SingleAccountLoadedCallback callback) {
+
+        final String methodName = ":getCurrentAccount";
+        final Handler handler = new Handler(Looper.getMainLooper());
+
+        sBackgroundExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                IMicrosoftAuthService service;
+                final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
+                try {
+                    final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
+
+                    service = authServiceFuture.get();
+
+                    final AccountRecord accountRecord =
+                        MsalBrokerResultAdapter
+                            .currentAccountFromBundle(
+                                service.getCurrentAccount()
+                            );
+
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onAccountLoaded(accountRecord);
+                        }
+                    });
+                } catch (final ClientException | InterruptedException | ExecutionException | RemoteException e) {
+                    com.microsoft.identity.common.internal.logging.Logger.error(
+                        TAG + methodName,
+                        "Exception is thrown when trying to get current account from Broker, returning nothing."
+                            + e.getMessage(),
+                        ErrorStrings.IO_ERROR,
+                        e);
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onAccountLoaded(null);
+                        }
+                    });
+                } finally {
+                    client.disconnect();
+                }
+            }
+        });
+    }
+
+    /**
+     * Returns list of accounts that has previously been used to acquire token with broker through the calling app.
+     * This only works when getBrokerAccountMode() is BROKER_ACCOUNT_MODE_MULTIPLE_ACCOUNT.
+     *
      * This method might be called on an UI thread, since we connect to broker,
      * this needs to be called on background thread.
      */
@@ -324,7 +381,6 @@ public class BrokerMsalController extends BaseController {
                 }
             }
         });
-
     }
 
     private Bundle getRequestBundleForGetAccounts(@NonNull PublicClientApplicationConfiguration configuration) {
@@ -335,9 +391,9 @@ public class BrokerMsalController extends BaseController {
         return requestBundle;
     }
 
-    public void removeBrokerAccount(@Nullable final IAccount account,
-                                    @NonNull final PublicClientApplicationConfiguration configuration,
-                                    @NonNull final IPublicClientApplication.AccountRemovedListener callback) {
+    public void removeAccountFromBrokerCache(@Nullable final IAccount account,
+                                             @NonNull final PublicClientApplicationConfiguration configuration,
+                                             @NonNull final IPublicClientApplication.AccountRemovedListener callback) {
         sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
@@ -382,6 +438,69 @@ public class BrokerMsalController extends BaseController {
             requestBundle.putString(ACCOUNT_LOGIN_HINT, account.getUsername());
         }
 
+        return requestBundle;
+    }
+
+    /**
+     * Given an account, perform a global sign-out from this shared device (End my shift capability).
+     * This will invoke Broker and
+     * 1. Remove account from token cache.
+     * 2. Remove account from AccountManager.
+     * 3. Clear WebView cookies.
+     * 4. Sign out from default browser.
+     * */
+    public void globalSignOut(@NonNull final IAccount account,
+                              @NonNull final PublicClientApplicationConfiguration configuration,
+                              @NonNull final IPublicClientApplication.AccountRemovedListener callback) {
+
+        sBackgroundExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                IMicrosoftAuthService service;
+                final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
+
+                try {
+                    final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
+                    service = authServiceFuture.get();
+                    final Bundle requestBundle = getRequestBundleForGlobalSignOut(account);
+                    final Bundle resultBundle = service.signOutFromSharedDevice(requestBundle);
+
+                    Handler handler = new Handler(Looper.getMainLooper());
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (resultBundle == null){
+                                callback.onAccountRemoved(true);
+                            } else {
+                                BrokerResult brokerResult = (BrokerResult) resultBundle.getSerializable(AuthenticationConstants.Broker.BROKER_RESULT_V2);
+                                com.microsoft.identity.common.internal.logging.Logger.error(
+                                    TAG,
+                                    "Failed to perform global sign-out."
+                                        + brokerResult.getErrorMessage(),
+                                    null);
+
+                                callback.onAccountRemoved(false);
+                            }
+                        }
+                    });
+                } catch (final BaseException | InterruptedException | ExecutionException | RemoteException e) {
+                    com.microsoft.identity.common.internal.logging.Logger.error(
+                        TAG,
+                        "Exception is thrown when trying to perform global sign-out."
+                            + e.getMessage(),
+                        ErrorStrings.IO_ERROR,
+                        e);
+                    callback.onAccountRemoved(false);
+                } finally {
+                    client.disconnect();
+                }
+            }
+        });
+    }
+
+    private Bundle getRequestBundleForGlobalSignOut(@NonNull final IAccount account) {
+        final Bundle requestBundle = new Bundle();
+        requestBundle.putString(ACCOUNT_LOGIN_HINT, account.getUsername());
         return requestBundle;
     }
 }

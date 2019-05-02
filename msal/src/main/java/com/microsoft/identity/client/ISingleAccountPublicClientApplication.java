@@ -23,7 +23,10 @@
 
 package com.microsoft.identity.client;
 
+import android.support.annotation.Nullable;
+
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.common.internal.dto.AccountRecord;
 
 /**
  * An interface that contains list of operations that are available when MSAL is in 'single account' mode.
@@ -53,7 +56,7 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
     void globalSignOut(final AccountRemovedListener callback) throws MsalClientException;
 
     /**
-     * Listener callback for asynchronous loading of the signed-in IAccount account.
+     * Callback for asynchronous loading of the msal IAccount account.
      */
     interface CurrentAccountListener {
         /**
@@ -72,6 +75,18 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
          * @param currentAccount the current signed-in account. This could be nil.
          * */
         void onAccountChanged(final IAccount priorAccount, final IAccount currentAccount);
-
     }
+
+    /**
+     * Callback for asynchronous loading of broker AccountRecord account (in Single account mode).
+     */
+    interface SingleAccountLoadedCallback {
+
+        /**
+         * Called once the signed-in account (if there is any), has been loaded from the broker.
+         * @param accountRecord The accountRecord in broker. This could be null.
+         */
+        void onAccountLoaded(@Nullable final AccountRecord accountRecord);
+    }
+
 }
