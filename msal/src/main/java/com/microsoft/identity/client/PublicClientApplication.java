@@ -467,7 +467,7 @@ public final class PublicClientApplication {
         ApiDispatcher.initializeDiagnosticContext();
         return com.microsoft.identity.client.profile.AccountAdapter.adapt(
                 getOAuth2TokenCache()
-                        .getAccountsWithIdTokens(
+                        .getAccountsWithAggregatedAccountData(
                                 null,
                                 mPublicClientConfiguration.getClientId()
                         )
