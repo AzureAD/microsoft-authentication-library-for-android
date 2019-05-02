@@ -281,7 +281,6 @@ public class LocalMSALController extends BaseController {
 
         final String realm = deleteAccountsInAllTenants ? null : AccountAdapter.getRealm(account);
 
-        // Step 1. clear msal local cache
         final boolean localRemoveAccountSuccess = !configuration
                 .getOAuth2TokenCache()
                 .removeAccount(
@@ -290,20 +289,6 @@ public class LocalMSALController extends BaseController {
                         account.getHomeAccountIdentifier().getIdentifier(),
                         realm
                 ).isEmpty();
-
-        // Step 2.
-        // Clear cookies from embedded webView.
-        final CookieManager cookieManager = CookieManager.getInstance();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
-            cookieManager.removeAllCookies(null);
-            cookieManager.flush();
-        } else {
-            final CookieSyncManager syncManager = CookieSyncManager.createInstance(configuration.getAppContext());
-            syncManager.startSync();
-            cookieManager.removeAllCookie();
-            syncManager.stopSync();
-            syncManager.sync();
-        }
 
         callback.onAccountsRemoved(localRemoveAccountSuccess);
     }
