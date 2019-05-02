@@ -116,46 +116,6 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     /**
-     * Verify correct exception is thrown if activity is not provided.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testActivityNull() {
-        new PublicClientApplication(null);
-    }
-
-    /**
-     * Verify correct exception is thrown if client id is not set in the manifest.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testClientIdNotInManifest() throws PackageManager.NameNotFoundException {
-        final ApplicationInfo applicationInfo = Mockito.mock(ApplicationInfo.class);
-        // meta data is empty, no client id there.
-        applicationInfo.metaData = new Bundle();
-
-        final Context context = new MockContext(mAppContext);
-        final PackageManager mockedPackageManager = context.getPackageManager();
-        Mockito.when(mockedPackageManager.getApplicationInfo(
-                Mockito.refEq(mAppContext.getPackageName()), Mockito.eq(
-                        PackageManager.GET_META_DATA))).thenReturn(applicationInfo);
-
-        new PublicClientApplication(context);
-    }
-
-    /**
-     * Verify correct exception is thrown if cannot retrieve package info.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testApplicationInfoIsNull() throws PackageManager.NameNotFoundException {
-        final Context context = new MockContext(mAppContext);
-        final PackageManager mockedPackageManager = context.getPackageManager();
-        Mockito.when(mockedPackageManager.getApplicationInfo(
-                Mockito.refEq(mAppContext.getPackageName()), Mockito.eq(
-                        PackageManager.GET_META_DATA))).thenReturn(null);
-
-        new PublicClientApplication(context);
-    }
-
-    /**
      * Verify correct exception is thrown if {@link BrowserTabActivity} does not have the correct intent-filer.
      */
     @Test(expected = IllegalStateException.class)
@@ -163,38 +123,19 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         final Context context = new MockContext(mAppContext);
         mockPackageManagerWithClientId(context, null, CLIENT_ID);
 
-        new PublicClientApplication(context);
-    }
-
-    /**
-     * Verify correct exception is thrown if meta-data is null.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testMetaDataIsNull() throws PackageManager.NameNotFoundException {
-        final ApplicationInfo applicationInfo = Mockito.mock(ApplicationInfo.class);
-        // null metadata
-        applicationInfo.metaData = null;
-
-        final Context context = new MockContext(mAppContext);
-        final PackageManager mockedPackageManager = context.getPackageManager();
-        Mockito.when(mockedPackageManager.getApplicationInfo(
-                Mockito.refEq(mAppContext.getPackageName()), Mockito.eq(
-                        PackageManager.GET_META_DATA))).thenReturn(applicationInfo);
-
-        new PublicClientApplication(context);
+        new PublicClientApplication(context, CLIENT_ID);
     }
 
     /**
      * Verify correct exception is thrown if callback is not provided.
      */
     @Test(expected = IllegalArgumentException.class)
-    @Ignore
     public void testCallBackEmpty() throws PackageManager.NameNotFoundException {
         final Context context = new MockContext(mAppContext);
         mockPackageManagerWithClientId(context, null, CLIENT_ID);
         mockHasCustomTabRedirect(context);
 
-        final PublicClientApplication application = new PublicClientApplication(context);
+        final PublicClientApplication application = new PublicClientApplication(context, CLIENT_ID);
         application.acquireToken(getActivity(context), SCOPE, null);
     }
 
@@ -207,7 +148,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         Mockito.when(packageManager.checkPermission(Mockito.refEq("android.permission.INTERNET"),
                 Mockito.refEq(mAppContext.getPackageName()))).thenReturn(PackageManager.PERMISSION_DENIED);
 
-        new PublicClientApplication(context);
+        new PublicClientApplication(context, CLIENT_ID);
     }
 
     @Test
@@ -597,7 +538,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     @Test
     public void testSecretKeysAreSet() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        final PublicClientApplication pca = new PublicClientApplication(mAppContext);
+        final PublicClientApplication pca = new PublicClientApplication(mAppContext, CLIENT_ID);
         final PublicClientApplicationConfiguration appConfig = pca.getConfiguration();
 
         SecretKeyFactory keyFactory = SecretKeyFactory
@@ -774,7 +715,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             final CountDownLatch resultLock = new CountDownLatch(1);
             final Activity testActivity = getActivity(context);
 
-            final PublicClientApplication application = new PublicClientApplication(context);
+            final PublicClientApplication application = new PublicClientApplication(context, CLIENT_ID);
             makeAcquireTokenCall(application, testActivity, resultLock);
 
 

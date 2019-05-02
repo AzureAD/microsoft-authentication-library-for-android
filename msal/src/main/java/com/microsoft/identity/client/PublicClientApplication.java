@@ -309,7 +309,7 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
     }
 
     protected PublicClientApplication(@NonNull final Context context,
-                                      @NonNull final PublicClientApplicationConfiguration developerConfig) {
+                                      @Nullable final PublicClientApplicationConfiguration developerConfig) {
         setupConfiguration(context, developerConfig);
         AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
@@ -317,10 +317,9 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
 
     protected PublicClientApplication(@NonNull final Context context,
                                       @NonNull final String clientId) {
-        setupConfiguration(context, null);
+        this(context, (PublicClientApplicationConfiguration)null);
         mPublicClientConfiguration.mClientId = clientId;
         initializeApplication();
-        Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
     }
 
     protected PublicClientApplication(@NonNull final Context context,
@@ -393,7 +392,7 @@ public class PublicClientApplication implements IPublicClientApplication, IMulti
      *
      * @return
      */
-    public PublicClientApplicationConfiguration getConfiguration() {
+    PublicClientApplicationConfiguration getConfiguration() {
         return mPublicClientConfiguration;
     }
 
