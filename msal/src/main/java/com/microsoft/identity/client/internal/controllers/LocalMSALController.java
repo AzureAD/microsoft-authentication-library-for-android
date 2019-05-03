@@ -26,11 +26,9 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
-import com.microsoft.identity.client.BrowserTabActivity;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.exception.ArgumentException;
 import com.microsoft.identity.common.exception.ClientException;
-import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.controllers.BaseController;
@@ -52,8 +50,6 @@ import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static com.microsoft.identity.common.adal.internal.net.HttpWebRequest.throwIfNetworkNotAvailable;
 
@@ -134,34 +130,21 @@ public class LocalMSALController extends BaseController {
     private AuthorizationResult performAuthorizationRequest(@NonNull final OAuth2Strategy strategy,
                                                             @NonNull final AcquireTokenOperationParameters parameters)
             throws ExecutionException, InterruptedException, ClientException {
+
         throwIfNetworkNotAvailable(parameters.getAppContext());
-        //Create pendingIntent to handle the authorization result intent back to the calling activity
-        final Intent resultIntent = new Intent(parameters.getActivity(), BrowserTabActivity.class);
-        mAuthorizationStrategy = AuthorizationStrategyFactory
-                .getInstance()
+
+        mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance()
                 .getAuthorizationStrategy(
-                        parameters,
-                        resultIntent
+                        parameters
                 );
         mAuthorizationRequest = getAuthorizationRequest(strategy, parameters);
 
-        Future<AuthorizationResult> future = strategy.requestAuthorization(
+        final Future<AuthorizationResult> future = strategy.requestAuthorization(
                 mAuthorizationRequest,
                 mAuthorizationStrategy
         );
 
-        //We could implement Timeout Here if we wish instead of blocking indefinitely
-        //future.get(10, TimeUnit.MINUTES);  // Need to handle timeout exception in the scenario it doesn't return within a reasonable amount of time
-        final AuthorizationResult result;
-        try {
-            result = future.get(BaseController.AUTH_REQUEST_TIMEOUT_IN_MINUTES, TimeUnit.MINUTES);
-        } catch (TimeoutException e) {
-            Logger.error(TAG,
-                    "Auth Request could not be completed in " +
-                            "" + BaseController.AUTH_REQUEST_TIMEOUT_IN_MINUTES,
-                    e);
-           throw new ClientException(ErrorStrings.AUTH_REQUEST_TIMED_OUT, e.getMessage(), e);
-        }
+        final AuthorizationResult result = future.get();
 
         return result;
     }
