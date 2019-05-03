@@ -27,7 +27,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
-import com.microsoft.identity.client.AccountAdapter;
+import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
@@ -258,15 +258,23 @@ public class LocalMSALController extends BaseController {
                                    @NonNull final PublicClientApplication.AccountsRemovedCallback callback) {
         // FEATURE SWITCH: Set to false to allow deleting Accounts in a tenant-specific way.
         final boolean deleteHomeAndGuestAccounts = true;
+        String realm = null;
 
-        final String realm = deleteHomeAndGuestAccounts ? null : AccountAdapter.getRealm(account);
+        if (deleteHomeAndGuestAccounts) {
+            if (account!= null
+                    && null != account.getAccountIdentifier() // This is an AAD account w/ tenant info
+                    && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier) {
+                final AzureActiveDirectoryAccountIdentifier identifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier();
+                realm = identifier.getTenantIdentifier();
+            }
+        }
 
         final boolean localRemoveAccountSuccess = !configuration
                 .getOAuth2TokenCache()
                 .removeAccount(
-                        account.getEnvironment(),
+                        account == null? null : account.getEnvironment(),
                         configuration.getClientId(),
-                        account.getHomeAccountIdentifier().getIdentifier(),
+                        account == null? null : account.getHomeAccountIdentifier().getIdentifier(),
                         realm
                 ).isEmpty();
 
