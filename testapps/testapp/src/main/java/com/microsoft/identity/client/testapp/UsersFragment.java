@@ -63,12 +63,12 @@ public class UsersFragment extends Fragment {
 
         mUserList = view.findViewById(R.id.user_list);
 
-        MsalWrapper.sharedInstance().registerPostAccountLoadedJob("UsersFragment.onCreateView",
+        MsalWrapper.getInstance().registerPostAccountLoadedJob("UsersFragment.onCreateView",
             new MsalWrapper.IPostAccountLoaded() {
             @Override
             public void onLoaded(List<IAccount> loadedAccount) {
                 createViewWithAccountList(loadedAccount);
-                MsalWrapper.sharedInstance().deregisterPostAccountLoadedJob("UsersFragment.onCreateView");
+                MsalWrapper.getInstance().deregisterPostAccountLoadedJob("UsersFragment.onCreateView");
             }
         });
 

@@ -170,12 +170,12 @@ public class AcquireTokenFragment extends Fragment {
     public void onResume() {
         super.onResume();
         if (mOnFragmentInteractionListener != null) {
-            MsalWrapper.sharedInstance().registerPostAccountLoadedJob("bindSelectAccountSpinner",
+            MsalWrapper.getInstance().registerPostAccountLoadedJob("bindSelectAccountSpinner",
                 new MsalWrapper.IPostAccountLoaded() {
                     @Override
                     public void onLoaded(List<IAccount> loadedAccount) {
                         mOnFragmentInteractionListener.bindSelectAccountSpinner(mSelectAccount, loadedAccount);
-                        mPublicApplicationMode.setText(MsalWrapper.sharedInstance().getPublicApplicationMode());
+                        mPublicApplicationMode.setText(MsalWrapper.getInstance().getPublicApplicationMode());
                     }
                 });
         }

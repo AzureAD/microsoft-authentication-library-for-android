@@ -175,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             onNavigationItemSelected(navigationView.getMenu().getItem(0));
         }
 
-        MsalWrapper.sharedInstance().loadMsalApplication(this.getApplicationContext(),
+        MsalWrapper.getInstance().loadMsalApplication(this.getApplicationContext(),
             R.raw.msal_config,
             operationResultCallback,
             null);
@@ -184,7 +184,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onResume() {
         super.onResume();
-        MsalWrapper.sharedInstance().onResume(operationResultCallback);
+        MsalWrapper.getInstance().onResume(operationResultCallback);
     }
 
     @Override
@@ -244,13 +244,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         loadMsalApplicationFromRequestParameters(requestOptions, new MsalWrapper.IMsalApplicationLoaded() {
             @Override
             public void onApplicationLoaded() {
-                MsalWrapper.sharedInstance().acquireToken(MainActivity.this, requestOptions, operationResultCallback);
+                MsalWrapper.getInstance().acquireToken(MainActivity.this, requestOptions, operationResultCallback);
             }
         });
     }
 
     public void onRemoveUserClicked(final String username) {
-        MsalWrapper.sharedInstance().removeAccount(username, operationResultCallback);
+        MsalWrapper.getInstance().removeAccount(username, operationResultCallback);
     }
 
     @Override
@@ -258,7 +258,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         loadMsalApplicationFromRequestParameters(requestOptions, new MsalWrapper.IMsalApplicationLoaded() {
             @Override
             public void onApplicationLoaded() {
-                MsalWrapper.sharedInstance().acquireTokenSilent(requestOptions, operationResultCallback);
+                MsalWrapper.getInstance().acquireTokenSilent(requestOptions, operationResultCallback);
             }
         });
     }
@@ -308,7 +308,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             configFileResourceId = R.raw.msal_ppe_config;
         }
 
-        MsalWrapper.sharedInstance().loadMsalApplication(this.getApplicationContext(),
+        MsalWrapper.getInstance().loadMsalApplication(this.getApplicationContext(),
             configFileResourceId,
             operationResultCallback,
             postApplicationLoaded);

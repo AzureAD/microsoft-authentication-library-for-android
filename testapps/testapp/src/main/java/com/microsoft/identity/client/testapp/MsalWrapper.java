@@ -31,7 +31,7 @@ public class MsalWrapper {
 
     private static MsalWrapper mSharedInstance;
 
-    public static MsalWrapper sharedInstance(){
+    public static MsalWrapper getInstance(){
         if (mSharedInstance == null){
             mSharedInstance = new MsalWrapper();
         }
