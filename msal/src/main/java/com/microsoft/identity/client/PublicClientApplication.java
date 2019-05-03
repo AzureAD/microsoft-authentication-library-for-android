@@ -385,23 +385,25 @@ public final class PublicClientApplication {
         void onAccountsLoaded(List<AccountRecord> accountRecords);
     }
 
+    private static Handler getPreferredLooper() {
+        if (null != Looper.myLooper() && Looper.getMainLooper() != Looper.myLooper()) {
+            return new Handler(Looper.myLooper());
+        } else {
+            return new Handler(Looper.getMainLooper());
+        }
+    }
+
     /**
      * Asynchronously returns a List of {@link IAccount} objects for which this application has RefreshTokens.
      *
      * @param callback The callback to notify once this action has finished.
      */
-    public void getAccounts(@NonNull final AccountsLoadedCallback callback) {
+    public void getAccounts(@NonNull final AccountsLoadedCallback<List<IAccount>> callback) {
         ApiDispatcher.initializeDiagnosticContext();
         final String methodName = ":getAccounts";
         final List<AccountRecord> accounts = getLocalAccounts();
 
-        final Handler handler;
-
-        if (null != Looper.myLooper() && Looper.getMainLooper() != Looper.myLooper()) {
-            handler = new Handler(Looper.myLooper());
-        } else {
-            handler = new Handler(Looper.getMainLooper());
-        }
+        final Handler handler = getPreferredLooper();
 
         if (accounts.isEmpty()) {
             // Create the SharedPreferencesFileManager for the legacy accounts/credentials
@@ -474,7 +476,7 @@ public final class PublicClientApplication {
      * @param handler : handler to post
      * @param callback: AccountsLoadedCallback
      */
-    private void postLocalAccountsResult(final Handler handler, final AccountsLoadedCallback callback) {
+    private void postLocalAccountsResult(final Handler handler, final AccountsLoadedCallback<List<IAccount>> callback) {
 
         handler.post(new Runnable() {
             @Override
@@ -494,7 +496,7 @@ public final class PublicClientApplication {
      * @param handler : handler to post
      * @param callback: AccountsLoadedCallback
      */
-    private void postBrokerAndLocalAccountsResult(final Handler handler, final AccountsLoadedCallback callback) {
+    private void postBrokerAndLocalAccountsResult(final Handler handler, final AccountsLoadedCallback<List<IAccount>> callback) {
 
         final String methodName = ":postBrokerAndLocalAccountsResult";
 
@@ -590,15 +592,10 @@ public final class PublicClientApplication {
     }
 
     private void getBrokerAndLocalAccount(@NonNull final String oid,
-                                          @NonNull final AccountsLoadedCallback callback) {
+                                          @NonNull final AccountsLoadedCallback<IAccount> callback) {
         final String methodName = ":getBrokerAndLocalAccount";
 
-        final Handler handler;
-        if (null != Looper.myLooper() && Looper.getMainLooper() != Looper.myLooper()) {
-            handler = new Handler(Looper.myLooper());
-        } else {
-            handler = new Handler(Looper.getMainLooper());
-        }
+        final Handler handler = getPreferredLooper();
 
         //Make a background call to get account from broker
         new BrokerMsalController().getBrokerAccounts(
@@ -622,6 +619,8 @@ public final class PublicClientApplication {
                                     callback.onAccountsLoaded(null);
                                 }
                             });
+
+                            return;
                         }
 
                         for (final AccountRecord accountRecord : cachedAccounts) {
@@ -638,6 +637,8 @@ public final class PublicClientApplication {
                                         callback.onAccountsLoaded(AccountAdapter.adapt(accountRecord));
                                     }
                                 });
+
+                                return;
                             }
                         }
                     }
@@ -646,7 +647,7 @@ public final class PublicClientApplication {
 
 
     private void getLocalAccount(@NonNull final String oid,
-                                 @NonNull final AccountsLoadedCallback callback) {
+                                 @NonNull final AccountsLoadedCallback<IAccount> callback) {
         final String methodName = ":getLocalAccount";
         List<AccountRecord> localAccountList = getLocalAccounts();
         if (localAccountList == null || localAccountList.isEmpty()) {
