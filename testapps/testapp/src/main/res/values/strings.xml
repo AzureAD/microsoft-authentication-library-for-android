@@ -40,6 +40,7 @@
     <string name="enable_pii_text">Enable PII logging</string>
     <string name="force_refresh">Force Refresh</string>
     <string name="default_browser">Default Browser</string>
+    <string name="public_application_mode">PublicApplication mode</string>
     <string name="auth_user_agent">User Agent</string>
     <string name="acquire_token_button">AcquireToken</string>
     <string name="acquire_token_silent_button">AcquireTokenSilent</string>

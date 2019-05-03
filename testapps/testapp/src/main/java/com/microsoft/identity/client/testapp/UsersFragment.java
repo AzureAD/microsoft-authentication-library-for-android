@@ -38,12 +38,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
 import com.microsoft.identity.client.IAccount;
-import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
-import com.microsoft.identity.client.IPublicClientApplication;
-import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
-import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
-import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
-import com.microsoft.identity.client.exception.MsalClientException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,41 +63,14 @@ public class UsersFragment extends Fragment {
 
         mUserList = view.findViewById(R.id.user_list);
 
-        final IPublicClientApplication pca = ((MainActivity) this.getActivity()).getPublicClientApplication();
-        if (pca instanceof IMultipleAccountPublicClientApplication) {
-            final IMultipleAccountPublicClientApplication application = (IMultipleAccountPublicClientApplication)(pca);
-
-            application.getAccounts(new IMultipleAccountPublicClientApplication.AccountsLoadedCallback() {
-                @Override
-                public void onAccountsLoaded(final List<IAccount> accounts) {
-                    createViewWithAccountList(accounts);
-                }
-            });
-        }
-        else if (pca instanceof ISingleAccountPublicClientApplication) {
-            final ISingleAccountPublicClientApplication application = (ISingleAccountPublicClientApplication)(pca);
-
-            try {
-                application.getCurrentAccount(new ISingleAccountPublicClientApplication.CurrentAccountListener() {
-                    @Override
-                    public void onAccountLoaded(final IAccount activeAccount) {
-                        ArrayList<IAccount> accountList = new ArrayList<>();
-                        if (activeAccount != null){
-                            accountList.add(activeAccount);
-                        }
-                        createViewWithAccountList(accountList);
-                    }
-
-                    @Override
-                    public void onAccountChanged(IAccount priorAccount, IAccount currentAccount) {
-                        // No op.
-                    }
-                });
+        MsalWrapper.getInstance().registerPostAccountLoadedJob("UsersFragment.onCreateView",
+            new MsalWrapper.IPostAccountLoaded() {
+            @Override
+            public void onLoaded(List<IAccount> loadedAccount) {
+                createViewWithAccountList(loadedAccount);
+                MsalWrapper.getInstance().deregisterPostAccountLoadedJob("UsersFragment.onCreateView");
             }
-            catch (MsalClientException e) {
-                // No op.
-            }
-        }
+        });
 
         return view;
     }
