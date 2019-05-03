@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -33,6 +34,8 @@ import android.support.annotation.Nullable;
 import com.google.gson.Gson;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMicrosoftAuthService;
+import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
+import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
@@ -199,6 +202,57 @@ public class BrokerMsalController extends BaseController {
         }
     }
 
+    /**
+     * Get MSAL PublicClientApplication mode from Broker.
+     * */
+    public void getBrokerAccountMode(final Context appContext,
+                                     final PublicClientApplication.BrokerAccountModeCallback callback) {
+
+        final String methodName = ":getBrokerAccountMode";
+        final Handler handler = new Handler(Looper.getMainLooper());
+
+        sBackgroundExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                IMicrosoftAuthService service;
+                final MicrosoftAuthClient client = new MicrosoftAuthClient(appContext);
+                try {
+                    final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
+
+                    service = authServiceFuture.get();
+
+                    final String mode =
+                        MsalBrokerResultAdapter
+                            .accountModeFromBundle(
+                                service.getAccountMode()
+                            );
+
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onGetMode(mode);
+                        }
+                    });
+                } catch (final ClientException | InterruptedException | ExecutionException | RemoteException e) {
+                    com.microsoft.identity.common.internal.logging.Logger.error(
+                        TAG + methodName,
+                        "Exception is thrown when trying to get current account from Broker, returning default mode."
+                            + e.getMessage(),
+                        ErrorStrings.IO_ERROR,
+                        e);
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onGetMode(AuthenticationConstants.Broker.BROKER_ACCOUNT_MODE_MULTIPLE_ACCOUNT);
+                        }
+                    });
+                } finally {
+                    client.disconnect();
+                }
+            }
+        });
+    }
+
     private AcquireTokenResult getAcquireTokenResult(final Bundle resultBundle) throws BaseException {
 
         final MsalBrokerResultAdapter resultAdapter = new MsalBrokerResultAdapter();
@@ -224,12 +278,12 @@ public class BrokerMsalController extends BaseController {
      * this needs to be called on background thread.
      */
     public void getBrokerAccounts(final PublicClientApplicationConfiguration configuration,
-                                  final PublicClientApplication.BrokerAccountsLoadedCallback callback) {
+                                  final IMultipleAccountPublicClientApplication.BrokerAccountsLoadedCallback callback) {
 
         final String methodName = ":getBrokerAccounts";
         final Handler handler = new Handler(Looper.getMainLooper());
 
-        new Thread(new Runnable() {
+        sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
                 IMicrosoftAuthService service;
@@ -245,7 +299,6 @@ public class BrokerMsalController extends BaseController {
                                     .getAccountRecordListFromBundle(
                                             service.getAccounts(requestBundle)
                                     );
-
 
                     handler.post(new Runnable() {
                         @Override
@@ -270,7 +323,7 @@ public class BrokerMsalController extends BaseController {
                     client.disconnect();
                 }
             }
-        }).start();
+        });
 
     }
 
@@ -284,7 +337,7 @@ public class BrokerMsalController extends BaseController {
 
     public void removeBrokerAccount(@Nullable final IAccount account,
                                     @NonNull final PublicClientApplicationConfiguration configuration,
-                                    @NonNull final PublicClientApplication.AccountsRemovedCallback callback) {
+                                    @NonNull final IPublicClientApplication.AccountRemovedListener callback) {
         sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
@@ -302,7 +355,7 @@ public class BrokerMsalController extends BaseController {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onAccountsRemoved(true);
+                            callback.onAccountRemoved(true);
                         }
                     });
                 } catch (final BaseException | InterruptedException | ExecutionException | RemoteException e) {

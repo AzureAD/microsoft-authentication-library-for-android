@@ -48,6 +48,9 @@ import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.ILoggerCallback;
+import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
+import com.microsoft.identity.client.IPublicClientApplication;
+import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.UiBehavior;
@@ -78,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private PublicClientApplication mApplication;
+    private IPublicClientApplication mApplication;
     private IAccount mSelectedAccount;
     private Handler mHandler;
 
@@ -169,9 +172,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         if (mApplication == null) {
-            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_arlington_config);
+            PublicClientApplication.create(this.getApplicationContext(),
+                R.raw.msal_config,
+                new PublicClientApplication.ApplicationCreatedListener() {
+                    @Override
+                    public void onCreated(IPublicClientApplication application) {
+                        mApplication = application;
+                    }
+                });
         }
-
     }
 
     @Override
@@ -238,16 +247,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void onRemoveUserClicked(final String username) {
-        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
-            @Override
-            public void onAccountsLoaded(List<IAccount> accountsToRemove) {
-                for (final IAccount accountToRemove : accountsToRemove) {
-                    if (TextUtils.isEmpty(username) || accountToRemove.getUsername().equalsIgnoreCase(username.trim())) {
-                        mApplication.removeAccount(
+        if (mApplication instanceof IMultipleAccountPublicClientApplication){
+            final IMultipleAccountPublicClientApplication application = (IMultipleAccountPublicClientApplication)(mApplication);
+
+            application.getAccounts(new IMultipleAccountPublicClientApplication.AccountsLoadedCallback() {
+                @Override
+                public void onAccountsLoaded(List<IAccount> accountsToRemove) {
+                    for (final IAccount accountToRemove : accountsToRemove) {
+                        if (TextUtils.isEmpty(username) || accountToRemove.getUsername().equalsIgnoreCase(username.trim())) {
+                            application.removeAccount(
                                 accountToRemove,
-                                new PublicClientApplication.AccountsRemovedCallback() {
+                                new IPublicClientApplication.AccountRemovedListener() {
                                     @Override
-                                    public void onAccountsRemoved(Boolean isSuccess) {
+                                    public void onAccountRemoved(Boolean isSuccess) {
                                         if (isSuccess) {
                                             showMessage("The account is successfully removed.");
                                         } else {
@@ -255,13 +267,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         }
                                     }
                                 });
+                        }
                     }
                 }
+            });
+        } else if (mApplication instanceof ISingleAccountPublicClientApplication) {
+            final ISingleAccountPublicClientApplication application = (ISingleAccountPublicClientApplication)(mApplication);
+
+            try {
+                application.globalSignOut(new IPublicClientApplication.AccountRemovedListener() {
+                    @Override
+                    public void onAccountRemoved(Boolean isSuccess) {
+                        if (isSuccess) {
+                            showMessage("The account is successfully removed.");
+                        } else {
+                            showMessage("Account is not removed.");
+                        }
+                    }
+                });
+            } catch (MsalClientException e) {
+                showMessage(e.getMessage());
             }
-        });
+
+        }
     }
 
-    public PublicClientApplication getPublicClientApplication() {
+    public IPublicClientApplication getPublicClientApplication() {
         return mApplication;
     }
 
@@ -269,44 +300,102 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
 
-        //final IAccount requestAccount = getAccount();
-        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
-            @Override
-            public void onAccountsLoaded(final List<IAccount> accounts) {
-                IAccount requestAccount = null;
+        if (mApplication instanceof IMultipleAccountPublicClientApplication){
+            final IMultipleAccountPublicClientApplication application = (IMultipleAccountPublicClientApplication)(mApplication);
 
-                for (final IAccount account : accounts) {
-                    if (account.getUsername().equalsIgnoreCase(requestOptions.getLoginHint().trim())) {
-                        requestAccount = account;
-                        break;
+            //final IAccount requestAccount = getAccount();
+            application.getAccounts(new IMultipleAccountPublicClientApplication.AccountsLoadedCallback() {
+                @Override
+                public void onAccountsLoaded(final List<IAccount> accounts) {
+                    IAccount requestAccount = null;
+
+                    for (final IAccount account : accounts) {
+                        if (account.getUsername().equalsIgnoreCase(requestOptions.getLoginHint().trim())) {
+                            requestAccount = account;
+                            break;
+                        }
+                    }
+
+                    if (null != requestAccount) {
+                        callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
+                    } else {
+                        showMessage("No account found matching loginHint");
                     }
                 }
+            });
+        } else if (mApplication instanceof ISingleAccountPublicClientApplication) {
+            final ISingleAccountPublicClientApplication application = (ISingleAccountPublicClientApplication)(mApplication);
 
-                if (null != requestAccount) {
-                    callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
-                } else {
-                    showMessage("No account found matching loginHint");
-                }
+            try {
+                application.getCurrentAccount(new ISingleAccountPublicClientApplication.CurrentAccountListener() {
+                    @Override
+                    public void onAccountLoaded(IAccount activeAccount) {
+                        if (activeAccount != null){
+                            callAcquireTokenSilent(mScopes, activeAccount, mForceRefresh);
+                        } else {
+                            showMessage("No account is being signed in.");
+                        }
+                    }
+
+                    @Override
+                    public void onAccountChanged(IAccount priorAccount, IAccount currentAccount) {
+                        // No op.
+                    }
+                });
+            } catch (MsalClientException e) {
+                showMessage(e.getMessage());
             }
-        });
+        }
     }
 
     @Override
     public void bindSelectAccountSpinner(final Spinner selectUser) {
-        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
-            @Override
-            public void onAccountsLoaded(final List<IAccount> accounts) {
-                final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
-                        getApplicationContext(), android.R.layout.simple_spinner_item,
-                        new ArrayList<String>() {{
-                            for (IAccount account : accounts)
-                                add(account.getUsername());
-                        }}
-                );
-                userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                selectUser.setAdapter(userAdapter);
+
+        if (mApplication instanceof IMultipleAccountPublicClientApplication){
+            final IMultipleAccountPublicClientApplication application = (IMultipleAccountPublicClientApplication)(mApplication);
+
+            application.getAccounts(new IMultipleAccountPublicClientApplication.AccountsLoadedCallback() {
+                @Override
+                public void onAccountsLoaded(final List<IAccount> accounts) {
+                    bindSelectAccountSpinnerForAccountList(selectUser, accounts);
+                }
+            });
+        } else if (mApplication instanceof ISingleAccountPublicClientApplication) {
+            final ISingleAccountPublicClientApplication application = (ISingleAccountPublicClientApplication)(mApplication);
+
+            try {
+                application.getCurrentAccount(new ISingleAccountPublicClientApplication.CurrentAccountListener() {
+                    @Override
+                    public void onAccountLoaded(final IAccount activeAccount) {
+                        ArrayList<IAccount> accountList = new ArrayList<>();
+                        if (activeAccount != null){
+                            accountList.add(activeAccount);
+                        }
+                        bindSelectAccountSpinnerForAccountList(selectUser, accountList);
+                    }
+
+                    @Override
+                    public void onAccountChanged(IAccount priorAccount, IAccount currentAccount) {
+                        // No op.
+                    }
+                });
+            } catch (MsalClientException e) {
+                showMessage(e.getMessage());
             }
-        });
+        }
+    }
+
+    private void bindSelectAccountSpinnerForAccountList(final Spinner selectUser,
+                                                        final List<IAccount> accounts) {
+        final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
+            getApplicationContext(), android.R.layout.simple_spinner_item,
+            new ArrayList<String>() {{
+                for (IAccount account : accounts)
+                    add(account.getUsername());
+            }}
+        );
+        userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        selectUser.setAdapter(userAdapter);
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
@@ -328,17 +417,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mScopes = scopes.toLowerCase().split(" ");
         mExtraScopesToConsent = requestOptions.getExtraScopesToConsent() == null ? null : requestOptions.getExtraScopesToConsent().toLowerCase().split(" ");
 
+        int configFileResourceId = R.raw.msal_config;
+
         if (userAgent.name().equalsIgnoreCase("BROWSER")) {
-            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config_browser);
+            configFileResourceId = R.raw.msal_config_browser;
         } else if (userAgent.name().equalsIgnoreCase("WEBVIEW")) {
-            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config_webview);
-        } else {
-            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_arlington_config);
+            configFileResourceId = R.raw.msal_config_webview;
         }
 
         if(environment == Constants.AzureActiveDirectoryEnvironment.PREPRODUCTION){
-            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_ppe_config);
+            configFileResourceId = R.raw.msal_ppe_config;
         }
+
+        PublicClientApplication.create(this.getApplicationContext(),
+            configFileResourceId,
+            new PublicClientApplication.ApplicationCreatedListener() {
+                @Override
+                public void onCreated(IPublicClientApplication application) {
+                    mApplication = application;
+                }
+            });
     }
 
     final String getAuthority(Constants.AuthorityType authorityTypeType) {

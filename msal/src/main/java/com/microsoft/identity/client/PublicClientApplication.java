@@ -26,7 +26,6 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
@@ -47,6 +46,7 @@ import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
 import com.microsoft.identity.client.internal.telemetry.Defaults;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.exception.BaseException;
@@ -145,53 +145,16 @@ import static com.microsoft.identity.common.internal.cache.SharedPreferencesAcco
  * </p>
  * </p>
  */
-public final class PublicClientApplication {
+public class PublicClientApplication implements IPublicClientApplication, IMultipleAccountPublicClientApplication {
     private static final String TAG = PublicClientApplication.class.getSimpleName();
 
-    private static final String CLIENT_ID_META_DATA = "com.microsoft.identity.client.ClientId";
-    private static final String AUTHORITY_META_DATA = "com.microsoft.identity.client.AuthorityMetadata";
     private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
 
     private PublicClientApplicationConfiguration mPublicClientConfiguration;
 
     /**
-     * @param context Application's {@link Context}. The sdk requires the application context to be passed in
-     *                {@link PublicClientApplication}. Cannot be null.
-     *                <p>
-     *                Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
-     *                strong reference to the activity, thus preventing correct garbage collection and causing bugs.
-     *                </p>
-     * @deprecated This constructor has been replaced with one that leverages a configuration file.
-     * <p> Use {@link PublicClientApplication#PublicClientApplication(Context, int)}</p> instead.
-     * <p>
-     * <p>
-     * {@link PublicClientApplication#PublicClientApplication(Context)} will read the client id (which must be set) from manifest, and if authority
-     * is not set, default authority(https://login.microsoftonline.com/common) will be used.
-     * <p>
-     * Client id <b>MUST</b> be set in the manifest as the meta data({@link IllegalArgumentException} will be thrown
-     * if client id is not provided), name for client id in the metadata is: "com.microsoft.identity.client.ClientId".
-     * <p>
-     * Redirect uri <b>MUST</b> be set in the manifest as the meta data({@link IllegalArgumentException} will be thrown
-     * if client id is not provided), name for redirect uri in metadata is: "com.microsoft.identity.client.RedirectUri".
-     * <p>
-     * AuthorityMetadata can be set in the meta data, if not provided, the sdk will use the default authority https://login.microsoftonline.com/common.
-     * </p>
-     */
-    @Deprecated
-    public PublicClientApplication(@NonNull final Context context) {
-        if (context == null) {
-            throw new IllegalArgumentException("context is null.");
-        }
-
-        setupConfiguration(context);
-        loadMetaDataFromManifest();
-        initializeApplication();
-        Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
-    }
-
-    /**
-     * {@link PublicClientApplication#PublicClientApplication(Context, int)} will read the client id and other configuration settings from the
+     * {@link PublicClientApplication#create(Context, int, ApplicationCreatedListener)} will read the client id and other configuration settings from the
      * file included in your applications resources.
      * <p>
      * For more information on adding configuration files to your applications resources please
@@ -207,20 +170,22 @@ public final class PublicClientApplication {
      * <p>
      * For more information on the schema of the MSAL config json please
      * @see <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     * @param listener a callback to be invoked when the object is successfully created.
      */
-    public PublicClientApplication(@NonNull final Context context, final int configFileResourceId) {
+    public static void create(@NonNull final Context context,
+                              final int configFileResourceId,
+                              @NonNull final ApplicationCreatedListener listener){
         if (context == null) {
             throw new IllegalArgumentException("context is null.");
         }
 
-        final PublicClientApplicationConfiguration developerConfig = loadConfiguration(context, configFileResourceId);
-        setupConfiguration(context, developerConfig);
-        AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
-        Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
+        create(context,
+            loadConfiguration(context, configFileResourceId),
+            listener);
     }
 
     /**
-     * {@link PublicClientApplication#PublicClientApplication(Context, File)} will read the client id and other configuration settings from the
+     * {@link PublicClientApplication#create(Context, File, ApplicationCreatedListener)} will read the client id and other configuration settings from the
      * specified file.
      *
      * @param context    Application's {@link Context}. The sdk requires the application context to be passed in
@@ -234,20 +199,18 @@ public final class PublicClientApplication {
      * <p>
      * For more information on the schema of the MSAL config json please
      * @see <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     * @param listener a callback to be invoked when the object is successfully created.
      */
-    public PublicClientApplication(@NonNull final Context context, final File configFile) {
-        if (context == null) {
-            throw new IllegalArgumentException("context is null.");
-        }
-
-        final PublicClientApplicationConfiguration developerConfig = loadConfiguration(configFile);
-        setupConfiguration(context, developerConfig);
-        AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
-        Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
+    public static void create(@NonNull final Context context,
+                              final File configFile,
+                              @NonNull final ApplicationCreatedListener listener){
+        create(context,
+            loadConfiguration(configFile),
+            listener);
     }
 
     /**
-     * {@link PublicClientApplication#PublicClientApplication(Context, String)} allows the client id to be passed instead of
+     * {@link PublicClientApplication#create(Context, String, ApplicationCreatedListener)} allows the client id to be passed instead of
      * providing through the AndroidManifest metadata. If this constructor is called, the default authority https://login.microsoftonline.com/common will be used.
      *
      * @param context  Application's {@link Context}. The sdk requires the application context to be passed in
@@ -257,24 +220,34 @@ public final class PublicClientApplication {
      *                 strong reference to the activity, thus preventing correct garbage collection and causing bugs.
      *                 </p>
      * @param clientId The application's client id.
+     * @param listener a callback to be invoked when the object is successfully created.
      */
-    public PublicClientApplication(@NonNull final Context context, @NonNull final String clientId) {
+    public static void create(@NonNull final Context context,
+                              @NonNull final String clientId,
+                              @NonNull final ApplicationCreatedListener listener) {
         if (context == null) {
-            throw new IllegalArgumentException("Context is null");
+            throw new IllegalArgumentException("Context is null.");
         }
 
         if (MsalUtils.isEmpty(clientId)) {
             throw new IllegalArgumentException("client id is empty or null");
         }
-
-        setupConfiguration(context);
-        mPublicClientConfiguration.mClientId = clientId;
-        initializeApplication();
-        Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
+        new BrokerMsalController().getBrokerAccountMode(context, new BrokerAccountModeCallback() {
+            @Override
+            public void onGetMode(String mode) {
+                if (AuthenticationConstants.Broker.BROKER_ACCOUNT_MODE_SINGLE_ACCOUNT.equalsIgnoreCase(mode)) {
+                    // TODO: return SingleAccountPublicClientApplication
+                    listener.onCreated(new PublicClientApplication(context, clientId));
+                } else {
+                    // TODO: return MultipleAccountPublicClientApplication
+                    listener.onCreated(new PublicClientApplication(context, clientId));
+                }
+            }
+        });
     }
 
     /**
-     * {@link PublicClientApplication#PublicClientApplication(Context, String, String)} allows the client id and authority to be passed instead of
+     * {@link PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)} allows the client id and authority to be passed instead of
      * providing them through metadata.
      *
      * @param context   Application's {@link Context}. The sdk requires the application context to be passed in
@@ -285,17 +258,78 @@ public final class PublicClientApplication {
      *                  </p>
      * @param clientId  The application client id.
      * @param authority The default authority to be used for the authority.
+     * @param listener  a callback to be invoked when the object is successfully created.
      */
-    public PublicClientApplication(@NonNull final Context context,
-                                   @NonNull final String clientId,
-                                   @NonNull final String authority) {
-        this(context, clientId);
+    public static void create(@NonNull final Context context,
+                              @NonNull final String clientId,
+                              @NonNull final String authority,
+                              @NonNull final ApplicationCreatedListener listener) {
 
-        if (MsalUtils.isEmpty(authority)) {
-            throw new IllegalArgumentException("authority is empty or null");
+        if (context == null) {
+            throw new IllegalArgumentException("Context is null.");
         }
 
+        if (MsalUtils.isEmpty(clientId)) {
+            throw new IllegalArgumentException("client id is empty or null");
+        }
+
+        if (authority == null) {
+            throw new IllegalArgumentException("authority is null");
+        }
+
+        new BrokerMsalController().getBrokerAccountMode(context, new BrokerAccountModeCallback() {
+            @Override
+            public void onGetMode(String mode) {
+                if (AuthenticationConstants.Broker.BROKER_ACCOUNT_MODE_SINGLE_ACCOUNT.equalsIgnoreCase(mode)) {
+                    // TODO: return SingleAccountPublicClientApplication
+                    listener.onCreated(new PublicClientApplication(context, clientId, authority));
+                } else {
+                    // TODO: return MultipleAccountPublicClientApplication
+                    listener.onCreated(new PublicClientApplication(context, clientId, authority));
+                }
+            }
+        });
+    }
+
+    private static void create(@NonNull final Context context,
+                               final PublicClientApplicationConfiguration developerConfig,
+                               @NonNull final ApplicationCreatedListener listener){
+        new BrokerMsalController().getBrokerAccountMode(context, new BrokerAccountModeCallback() {
+            @Override
+            public void onGetMode(String mode) {
+                if (AuthenticationConstants.Broker.BROKER_ACCOUNT_MODE_SINGLE_ACCOUNT.equalsIgnoreCase(mode)) {
+                    // TODO: return SingleAccountPublicClientApplication
+                    listener.onCreated(new PublicClientApplication(context, developerConfig));
+                } else {
+                    // TODO: return MultipleAccountPublicClientApplication
+                    listener.onCreated(new PublicClientApplication(context,  developerConfig));
+                }
+            }
+        });
+    }
+
+    protected PublicClientApplication(@NonNull final Context context,
+                                      @Nullable final PublicClientApplicationConfiguration developerConfig) {
+        setupConfiguration(context, developerConfig);
+        AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
+        Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
+    }
+
+    protected PublicClientApplication(@NonNull final Context context,
+                                      @NonNull final String clientId) {
+        this(context, (PublicClientApplicationConfiguration)null);
+        mPublicClientConfiguration.mClientId = clientId;
+        initializeApplication();
+    }
+
+    protected PublicClientApplication(@NonNull final Context context,
+                                      @NonNull final String clientId,
+                                      @NonNull final String authority) {
+
+        this(context, clientId);
+
         mPublicClientConfiguration.getAuthorities().clear();
+
         if (authority != null) {
             Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority);
             authorityObject.setDefault(true);
@@ -324,6 +358,27 @@ public final class PublicClientApplication {
     }
 
     /**
+     * Listener callback for asynchronous initialization of IPublicClientApplication object.
+     */
+    public interface ApplicationCreatedListener {
+        /**
+         * Called once an IPublicClientApplication is successfully created.
+         */
+        void onCreated(final IPublicClientApplication application);
+    }
+
+    /**
+     * Listener callback for asynchronous loading of MSAL mode retrieval.
+     */
+    public interface BrokerAccountModeCallback {
+        /**
+         * Called once MSAL mode is retrieved from Broker.
+         * If the value can't be retrieved, this will fall back to the BROKER_ACCOUNT_MODE_MULTIPLE_ACCOUNT mode.
+         */
+        void onGetMode(String mode);
+    }
+
+    /**
      * @return The current version for the sdk.
      */
     public static String getSdkVersion() {
@@ -333,56 +388,15 @@ public final class PublicClientApplication {
     /**
      * Returns the PublicClientConfiguration for this instance of PublicClientApplication
      * Configuration is based on the defaults established for MSAl and can be overridden by creating the
-     * PublicClientApplication using {@link PublicClientApplication#PublicClientApplication(Context, int)}
+     * PublicClientApplication using {@link PublicClientApplication#create(Context, int, ApplicationCreatedListener)}
      *
      * @return
      */
-    public PublicClientApplicationConfiguration getConfiguration() {
+    PublicClientApplicationConfiguration getConfiguration() {
         return mPublicClientConfiguration;
     }
 
-    /**
-     * Listener callback for asynchronous loading of msal IAccount accounts.
-     */
-    public interface AccountsLoadedCallback {
-
-        /**
-         * Called once Accounts have been loaded from the cache.
-         *
-         * @param accounts The accounts in the cache.
-         */
-        void onAccountsLoaded(List<IAccount> accounts);
-    }
-
-    /**
-     * Listener callback for asynchronous loading of msal IAccount accounts.
-     */
-    public interface AccountsRemovedCallback {
-
-        /**
-         * Called once Accounts have been removed from the cache.
-         *
-         * @param isSuccess true if the account is successfully removed.
-         */
-        void onAccountsRemoved(Boolean isSuccess);
-    }
-
-    /**
-     * Listener callback for asynchronous loading of broker AccountRecord accounts.
-     */
-    public interface BrokerAccountsLoadedCallback {
-        /**
-         * Called once Accounts have been loaded from the broker.
-         * @param accountRecords The accountRecords in broker.
-         */
-        void onAccountsLoaded(List<AccountRecord> accountRecords);
-    }
-
-    /**
-     * Asynchronously returns a List of {@link IAccount} objects for which this application has RefreshTokens.
-     *
-     * @param callback The callback to notify once this action has finished.
-     */
+    @Override
     public void getAccounts(@NonNull final AccountsLoadedCallback callback) {
         ApiDispatcher.initializeDiagnosticContext();
         final String methodName = ":getAccounts";
@@ -547,13 +561,7 @@ public final class PublicClientApplication {
         return accountsInCache;
     }
 
-    /**
-     * Returns the IAccount object matching the supplied home_account_id.
-     *
-     * @param homeAccountIdentifier The home_account_id of the sought IAccount.
-     * @param authority             The authority of the sought IAccount.
-     * @return The IAccount stored in the cache or null, if no such matching entry exists.
-     */
+    @Override
     @Nullable
     public IAccount getAccount(@NonNull final String homeAccountIdentifier,
                                @Nullable final String authority) {
@@ -595,13 +603,8 @@ public final class PublicClientApplication {
         return null == accountToReturn ? null : AccountAdapter.adapt(accountToReturn);
     }
 
-    /**
-     * Removes the Account and Credentials (tokens) for the supplied IAccount.
-     *
-     * @param account The IAccount whose entry and associated tokens should be removed.
-     * @return True, if the account was removed. False otherwise.
-     */
-    public void removeAccount(@Nullable final IAccount account, final AccountsRemovedCallback callback) {
+    @Override
+    public void removeAccount(@Nullable final IAccount account, final AccountRemovedListener callback) {
         ApiDispatcher.initializeDiagnosticContext();
         if (null == account
                 || null == account.getHomeAccountIdentifier()
@@ -611,7 +614,7 @@ public final class PublicClientApplication {
                     "Requisite IAccount or IAccount fields were null. Insufficient criteria to remove IAccount."
             );
 
-            callback.onAccountsRemoved(false);
+            callback.onAccountRemoved(false);
         }
 
         // FEATURE SWITCH: Set to false to allow deleting Accounts in a tenant-specific way.
@@ -640,7 +643,7 @@ public final class PublicClientApplication {
                     callback
             );
         } else {
-            callback.onAccountsRemoved(localRemoveAccountSuccess);
+            callback.onAccountRemoved(localRemoveAccountSuccess);
         }
     }
 
@@ -657,38 +660,14 @@ public final class PublicClientApplication {
         return realm;
     }
 
-    /**
-     * MSAL requires the calling app to pass an {@link Activity} which <b> MUST </b> call this method to get the auth
-     * code passed back correctly.
-     *
-     * @param requestCode The request code for interactive request.
-     * @param resultCode  The result code for the request to get auth code.
-     * @param data        {@link Intent} either contains the url with auth code as query string or the errors.
-     */
+    @Override
     public void handleInteractiveRequestRedirect(final int requestCode,
                                                  final int resultCode,
                                                  @NonNull final Intent data) {
         ApiDispatcher.completeInteractive(requestCode, resultCode, data);
     }
 
-    /**
-     * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
-     *
-     * @param activity Non-null {@link Activity} that is used as the parent activity for launching the {@link AuthenticationActivity}.
-     *                 All apps doing an interactive request are required to call the
-     *                 {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
-     *                 activity {@link Activity#onActivityResult(int, int, Intent)}.
-     * @param scopes   The non-null array of scopes to be requested for the access token.
-     *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param callback The {@link AuthenticationCallback} to receive the result back.
-     *                 1) If user cancels the flow by pressing the device back button, the result will be sent
-     *                 back via {@link AuthenticationCallback#onCancel()}.
-     *                 2) If the sdk successfully receives the token back, result will be sent back via
-     *                 {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
-     *                 3) All the other errors will be sent back via
-     *                 {@link AuthenticationCallback#onError(MsalException)}.
-     */
+    @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
@@ -706,26 +685,7 @@ public final class PublicClientApplication {
         );
     }
 
-    /**
-     * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
-     *
-     * @param activity  Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
-     *                  All the apps doing interactive request are required to call the
-     *                  {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
-     *                  activity {@link Activity#onActivityResult(int, int, Intent)}.
-     * @param scopes    The non-null array of scopes to be requested for the access token.
-     *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
-     *                  which will have the UPN pre-populated.
-     * @param callback  The Non-null {@link AuthenticationCallback} to receive the result back.
-     *                  1) If user cancels the flow by pressing the device back button, the result will be sent
-     *                  back via {@link AuthenticationCallback#onCancel()}.
-     *                  2) If the sdk successfully receives the token back, result will be sent back via
-     *                  {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
-     *                  3) All the other errors will be sent back via
-     *                  {@link AuthenticationCallback#onError(MsalException)}.
-     */
+    @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @Nullable final String loginHint,
@@ -744,28 +704,7 @@ public final class PublicClientApplication {
         );
     }
 
-    /**
-     * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
-     *
-     * @param activity             Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
-     *                             All the apps doing interactive request are required to call the
-     *                             {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
-     *                             activity {@link Activity#onActivityResult(int, int, Intent)}.
-     * @param scopes               The non-null array of scopes to be requested for the access token.
-     *                             MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param loginHint            Optional. If provided, will be used as the query parameter sent for authenticating the user,
-     *                             which will have the UPN pre-populated.
-     * @param uiBehavior           The {@link UiBehavior} for prompting behavior. By default, the sdk use {@link UiBehavior#SELECT_ACCOUNT}.
-     * @param extraQueryParameters Optional. The extra query parameters sent to authorize endpoint.
-     * @param callback             The Non-null {@link AuthenticationCallback} to receive the result back.
-     *                             1) If user cancels the flow by pressing the device back button, the result will be sent
-     *                             back via {@link AuthenticationCallback#onCancel()}.
-     *                             2) If the sdk successfully receives the token back, result will be sent back via
-     *                             {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
-     *                             3) All the other errors will be sent back via
-     *                             {@link AuthenticationCallback#onError(MsalException)}.
-     */
+    @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @Nullable final String loginHint,
@@ -786,28 +725,7 @@ public final class PublicClientApplication {
         );
     }
 
-    /**
-     * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
-     *
-     * @param activity             Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
-     *                             All the apps doing interactive request are required to call the
-     *                             {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
-     *                             activity {@link Activity#onActivityResult(int, int, Intent)}.
-     * @param scopes               The non-null array of scopes to be requested for the access token.
-     *                             MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param account              Optional. If provided, will be used to force the session continuation.  If user tries to sign in with a different user,
-     *                             error will be returned.
-     * @param uiBehavior           The {@link UiBehavior} for prompting behavior. By default, the sdk use {@link UiBehavior#SELECT_ACCOUNT}.
-     * @param extraQueryParameters Optional. The extra query parameter sent to authorize endpoint.
-     * @param callback             The Non-null {@link AuthenticationCallback} to receive the result back.
-     *                             1) If user cancels the flow by pressing the device back button, the result will be sent
-     *                             back via {@link AuthenticationCallback#onCancel()}.
-     *                             2) If the sdk successfully receives the token back, result will be sent back via
-     *                             {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
-     *                             3) All the other errors will be sent back via
-     *                             {@link AuthenticationCallback#onError(MsalException)}.
-     */
+    @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @Nullable final IAccount account,
@@ -828,30 +746,7 @@ public final class PublicClientApplication {
         );
     }
 
-    /**
-     * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
-     *
-     * @param activity             Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
-     *                             All the apps doing interactive request are required to call the
-     *                             {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
-     *                             activity {@link Activity#onActivityResult(int, int, Intent)}.
-     * @param scopes               The non-null array of scopes to be requested for the access token.
-     *                             MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param loginHint            Optional. If provided, will be used as the query parameter sent for authenticating the user,
-     *                             which will have the UPN pre-populated.
-     * @param uiBehavior           The {@link UiBehavior} for prompting behavior. By default, the sdk use {@link UiBehavior#SELECT_ACCOUNT}.
-     * @param extraQueryParameters Optional. The extra query parameter sent to authorize endpoint.
-     * @param extraScopesToConsent Optional. The extra scopes to request consent.
-     * @param authority            Optional. Can be passed to override the configured authority.
-     * @param callback             The Non-null {@link AuthenticationCallback} to receive the result back.
-     *                             1) If user cancels the flow by pressing the device back button, the result will be sent
-     *                             back via {@link AuthenticationCallback#onCancel()}.
-     *                             2) If the sdk successfully receives the token back, result will be sent back via
-     *                             {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
-     *                             3) All the other errors will be sent back via
-     *                             {@link AuthenticationCallback#onError(MsalException)}.
-     */
+    @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @Nullable final String loginHint,
@@ -874,30 +769,7 @@ public final class PublicClientApplication {
         );
     }
 
-    /**
-     * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
-     *
-     * @param activity             Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
-     *                             All the apps doing interactive request are required to call the
-     *                             {@link PublicClientApplication#handleInteractiveRequestRedirect(int, int, Intent)} within the calling
-     *                             activity {@link Activity#onActivityResult(int, int, Intent)}.
-     * @param scopes               The non-null array of scopes to be requested for the access token.
-     *                             MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param account              Optional. If provided, will be used to force the session continuation.  If user tries to sign in with a different user, error
-     *                             will be returned.
-     * @param uiBehavior           The {@link UiBehavior} for prompting behavior. By default, the sdk use {@link UiBehavior#SELECT_ACCOUNT}.
-     * @param extraQueryParameters Optional. The extra query parameter sent to authorize endpoint.
-     * @param extraScopesToConsent Optional. The extra scopes to request consent.
-     * @param authority            Optional. Can be passed to override the configured authority.
-     * @param callback             The Non-null {@link AuthenticationCallback} to receive the result back.
-     *                             1) If user cancels the flow by pressing the device back button, the result will be sent
-     *                             back via {@link AuthenticationCallback#onCancel()}.
-     *                             2) If the sdk successfully receives the token back, result will be sent back via
-     *                             {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
-     *                             3) All the other errors will be sent back via
-     *                             {@link AuthenticationCallback#onError(MsalException)}.
-     */
+    @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @Nullable final IAccount account,
@@ -965,14 +837,7 @@ public final class PublicClientApplication {
         }
     }
 
-    /**
-     * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
-     * <p>
-     * Convey parameters via the AquireTokenParameters object
-     *
-     * @param acquireTokenParameters
-     */
+    @Override
     public void acquireTokenAsync(@NonNull final AcquireTokenParameters acquireTokenParameters) {
         acquireTokenParameters.setAccountRecord(
                 getAccountRecord(acquireTokenParameters.getAccount())
@@ -1014,19 +879,7 @@ public final class PublicClientApplication {
         return null;
     }
 
-    /**
-     * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
-     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
-     * or it fails the refresh, exception will be sent back via callback.
-     *
-     * @param scopes   The non-null array of scopes to be requested for the access token.
-     *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param account  {@link IAccount} represents the account to silently request tokens.
-     * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
-     *                 sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
-     *                 Failure case will be sent back via {
-     * @link AuthenticationCallback#onError(MsalException)}.
-     */
+    @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final IAccount account,
                                         @NonNull final AuthenticationCallback callback) {
@@ -1040,21 +893,7 @@ public final class PublicClientApplication {
         );
     }
 
-    /**
-     * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
-     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
-     * or it fails the refresh, exception will be sent back via callback.
-     *
-     * @param scopes       The non-null array of scopes to be requested for the access token.
-     *                     MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param account      {@link IAccount} represents the account to silently request tokens.
-     * @param authority    Optional. Can be passed to override the configured authority.
-     * @param forceRefresh True if the request is forced to refresh, false otherwise.
-     * @param callback     {@link AuthenticationCallback} that is used to send the result back. The success result will be
-     *                     sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
-     *                     Failure case will be sent back via {
-     * @link AuthenticationCallback#onError(MsalException)}.
-     */
+    @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final IAccount account,
                                         @Nullable final String authority,
@@ -1092,13 +931,7 @@ public final class PublicClientApplication {
         acquireTokenSilentAsync(acquireTokenSilentParameters);
     }
 
-    /**
-     * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
-     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
-     * or it fails the refresh, exception will be sent back via callback.
-     *
-     * @param acquireTokenSilentParameters
-     */
+    @Override
     public void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
         acquireTokenSilentParameters.setAccountRecord(
                 getAccountRecord(
@@ -1127,35 +960,6 @@ public final class PublicClientApplication {
         ApiDispatcher.submitSilent(silentTokenCommand);
     }
 
-    private void loadMetaDataFromManifest() {
-        final String methodName = ":loadMetaDataFromManifest";
-        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                TAG + methodName,
-                "Loading metadata from manifest..."
-        );
-        final ApplicationInfo applicationInfo = MsalUtils.getApplicationInfo(mPublicClientConfiguration.getAppContext());
-        if (applicationInfo == null || applicationInfo.metaData == null) {
-            throw new IllegalArgumentException("No meta-data exists");
-        }
-
-        // read authority from manifest.
-        final String authority = applicationInfo.metaData.getString(AUTHORITY_META_DATA);
-
-        if (!MsalUtils.isEmpty(authority)) {
-            mPublicClientConfiguration.getAuthorities().clear();
-            mPublicClientConfiguration.getAuthorities().add(Authority.getAuthorityFromAuthorityUrl(authority));
-        }
-
-        // read client id from manifest
-        final String clientId = applicationInfo.metaData.getString(CLIENT_ID_META_DATA);
-
-        if (MsalUtils.isEmpty(clientId)) {
-            throw new IllegalArgumentException("client id missing from manifest");
-        }
-
-        mPublicClientConfiguration.mClientId = clientId;
-    }
-
     @VisibleForTesting
     static PublicClientApplicationConfiguration loadConfiguration(@NonNull final Context context,
                                                                   final int configResourceId) {
@@ -1171,12 +975,6 @@ public final class PublicClientApplication {
         } catch (FileNotFoundException e) {
             throw new IllegalArgumentException("Provided configuration file path=" + configFile.getPath() + " not found.");
         }
-    }
-
-    private void setupConfiguration(Context context) {
-        mPublicClientConfiguration = loadDefaultConfiguration(context);
-        mPublicClientConfiguration.setAppContext(context);
-        mPublicClientConfiguration.setOAuth2TokenCache(getOAuth2TokenCache());
     }
 
     private static PublicClientApplicationConfiguration loadConfiguration(InputStream configStream, boolean isDefaultConfiguration) {
@@ -1215,9 +1013,13 @@ public final class PublicClientApplication {
         return gson.fromJson(config, PublicClientApplicationConfiguration.class);
     }
 
-    private void setupConfiguration(@NonNull Context context, PublicClientApplicationConfiguration developerConfig) {
+    private void setupConfiguration(@NonNull Context context,
+                                    @Nullable PublicClientApplicationConfiguration developerConfig) {
         final PublicClientApplicationConfiguration defaultConfig = loadDefaultConfiguration(context);
-        defaultConfig.mergeConfiguration(developerConfig);
+        if (developerConfig != null) {
+            defaultConfig.mergeConfiguration(developerConfig);
+        }
+
         mPublicClientConfiguration = defaultConfig;
         mPublicClientConfiguration.setAppContext(context);
         mPublicClientConfiguration.setOAuth2TokenCache(getOAuth2TokenCache());
