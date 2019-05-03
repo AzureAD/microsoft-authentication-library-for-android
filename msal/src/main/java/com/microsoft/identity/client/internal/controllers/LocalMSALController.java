@@ -23,15 +23,11 @@
 package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Intent;
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
 
 import com.microsoft.identity.client.AccountAdapter;
-import com.microsoft.identity.client.BrowserTabActivity;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
