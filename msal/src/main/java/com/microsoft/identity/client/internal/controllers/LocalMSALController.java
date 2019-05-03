@@ -261,9 +261,9 @@ public class LocalMSALController extends BaseController {
                                    @NonNull final PublicClientApplicationConfiguration configuration,
                                    @NonNull final PublicClientApplication.AccountsRemovedCallback callback) {
         // FEATURE SWITCH: Set to false to allow deleting Accounts in a tenant-specific way.
-        final boolean deleteAccountsInAllTenants = true;
+        final boolean deleteHomeAndGuestAccounts = true;
 
-        final String realm = deleteAccountsInAllTenants ? null : AccountAdapter.getRealm(account);
+        final String realm = deleteHomeAndGuestAccounts ? null : AccountAdapter.getRealm(account);
 
         final boolean localRemoveAccountSuccess = !configuration
                 .getOAuth2TokenCache()

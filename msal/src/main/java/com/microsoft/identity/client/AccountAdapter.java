@@ -140,7 +140,7 @@ public class AccountAdapter {
     }
 
     @Nullable
-    public static String getRealm(@NonNull IAccount account) {
+    static String getRealm(@NonNull IAccount account) {
         String realm = null;
 
         if (null != account.getAccountIdentifier() // This is an AAD account w/ tenant info
