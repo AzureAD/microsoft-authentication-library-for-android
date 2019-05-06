@@ -42,7 +42,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 configuration.getAppContext(),
                 configuration.getDefaultAuthority(),
                 configuration)) {
-            final String errorMessage = "Broker app is not installed on the device.";
+            final String errorMessage = "This request is not eligible to use the broker.";
             com.microsoft.identity.common.internal.logging.Logger.error(TAG + methodName, errorMessage, null);
             throw new MsalClientException(MsalClientException.BROKER_NOT_INSTALLED, errorMessage);
         }
@@ -78,7 +78,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 configuration.getAppContext(),
                 configuration.getDefaultAuthority(),
                 configuration)) {
-            final String errorMessage = "Broker app is not installed on the device.";
+            final String errorMessage = "This request is not eligible to use the broker.";
             com.microsoft.identity.common.internal.logging.Logger.error(TAG + methodName, errorMessage, null);
             throw new MsalClientException(MsalClientException.BROKER_NOT_INSTALLED, errorMessage);
         }

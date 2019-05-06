@@ -39,6 +39,7 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
@@ -213,6 +214,13 @@ public class BrokerMsalController extends BaseController {
         final String methodName = ":getBrokerAccountMode";
         final Handler handler = new Handler(Looper.getMainLooper());
 
+        if (!MSALControllerFactory.brokerInstalled(appContext)) {
+            final String errorMessage = "Broker app is not installed on the device. Returning default mode.";
+            com.microsoft.identity.common.internal.logging.Logger.verbose(TAG + methodName, errorMessage, null);
+            callback.onGetMode(AuthenticationConstants.Broker.BROKER_ACCOUNT_MODE_MULTIPLE_ACCOUNT);
+            return;
+        }
+
         sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
@@ -236,16 +244,15 @@ public class BrokerMsalController extends BaseController {
                         }
                     });
                 } catch (final ClientException | InterruptedException | ExecutionException | RemoteException e) {
+                    final String errorMessage = "Exception is thrown when trying to get current mode from Broker";
                     com.microsoft.identity.common.internal.logging.Logger.error(
                         TAG + methodName,
-                        "Exception is thrown when trying to get current account from Broker, returning default mode."
-                            + e.getMessage(),
-                        ErrorStrings.IO_ERROR,
+                        errorMessage,
                         e);
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onGetMode(AuthenticationConstants.Broker.BROKER_ACCOUNT_MODE_MULTIPLE_ACCOUNT);
+                            callback.onError(new MsalClientException(MsalClientException.IO_ERROR, errorMessage, e));
                         }
                     });
                 } finally {
@@ -312,7 +319,6 @@ public class BrokerMsalController extends BaseController {
                         TAG + methodName,
                         "Exception is thrown when trying to get current account from Broker, returning nothing."
                             + e.getMessage(),
-                        ErrorStrings.IO_ERROR,
                         e);
                     handler.post(new Runnable() {
                         @Override
@@ -368,7 +374,6 @@ public class BrokerMsalController extends BaseController {
                             TAG + methodName,
                             "Exception is thrown when trying to get account from Broker, returning empty list."
                                     + e.getMessage(),
-                            ErrorStrings.IO_ERROR,
                             e);
                     handler.post(new Runnable() {
                         @Override
@@ -420,7 +425,6 @@ public class BrokerMsalController extends BaseController {
                             TAG,
                             "Exception is thrown when trying to get target account."
                                     + e.getMessage(),
-                            ErrorStrings.IO_ERROR,
                             e);
                 } finally {
                     client.disconnect();
@@ -488,7 +492,6 @@ public class BrokerMsalController extends BaseController {
                         TAG,
                         "Exception is thrown when trying to perform global sign-out."
                             + e.getMessage(),
-                        ErrorStrings.IO_ERROR,
                         e);
                     callback.onAccountRemoved(false);
                 } finally {

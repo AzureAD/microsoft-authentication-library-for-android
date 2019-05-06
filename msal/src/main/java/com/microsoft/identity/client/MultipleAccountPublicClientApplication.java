@@ -101,9 +101,9 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                         );
                         // Merge migrated accounts with broker or local accounts.
                         if (MSALControllerFactory.brokerEligible(
-                            mPublicClientConfiguration.getAppContext(),
-                            mPublicClientConfiguration.getDefaultAuthority(),
-                            mPublicClientConfiguration)) {
+                                mPublicClientConfiguration.getAppContext(),
+                                mPublicClientConfiguration.getDefaultAuthority(),
+                                mPublicClientConfiguration)) {
                             postBrokerAndLocalAccountsResult(handler, callback);
                         } else {
                             postLocalAccountsResult(handler, callback);
@@ -120,9 +120,9 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             ).setMigrationStatus(true);
 
             if (MSALControllerFactory.brokerEligible(
-                mPublicClientConfiguration.getAppContext(),
-                mPublicClientConfiguration.getDefaultAuthority(),
-                mPublicClientConfiguration)) {
+                    mPublicClientConfiguration.getAppContext(),
+                    mPublicClientConfiguration.getDefaultAuthority(),
+                    mPublicClientConfiguration)) {
                 postBrokerAndLocalAccountsResult(handler, callback);
             } else {
                 postLocalAccountsResult(handler, callback);
@@ -286,9 +286,9 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             ).isEmpty();
 
         if (MSALControllerFactory.brokerEligible(
-            mPublicClientConfiguration.getAppContext(),
-            mPublicClientConfiguration.getDefaultAuthority(),
-            mPublicClientConfiguration)) {
+                mPublicClientConfiguration.getAppContext(),
+                mPublicClientConfiguration.getDefaultAuthority(),
+                mPublicClientConfiguration)) {
 
             //Remove the account from Broker
             new BrokerMsalController().removeAccountFromBrokerCache(

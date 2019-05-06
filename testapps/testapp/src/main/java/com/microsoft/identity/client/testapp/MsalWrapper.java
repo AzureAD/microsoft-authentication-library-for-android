@@ -82,6 +82,11 @@ public class MsalWrapper {
 
                     loadAccountFromBroker(notifyCallback);
                 }
+
+                @Override
+                public void onError(MsalException exception) {
+                    notifyCallback.notify("Failed to load MSAL Application: " + exception.getMessage());
+                }
             });
     }
 

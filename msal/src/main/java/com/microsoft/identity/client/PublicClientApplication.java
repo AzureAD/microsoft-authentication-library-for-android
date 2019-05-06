@@ -234,6 +234,11 @@ public class PublicClientApplication implements IPublicClientApplication {
                     listener.onCreated(new MultipleAccountPublicClientApplication(context, clientId));
                 }
             }
+
+            @Override
+            public void onError(MsalException exception) {
+                listener.onError(exception);
+            }
         });
     }
 
@@ -277,6 +282,11 @@ public class PublicClientApplication implements IPublicClientApplication {
                     listener.onCreated(new MultipleAccountPublicClientApplication(context, clientId, authority));
                 }
             }
+
+            @Override
+            public void onError(MsalException exception) {
+                listener.onError(exception);
+            }
         });
     }
 
@@ -291,6 +301,11 @@ public class PublicClientApplication implements IPublicClientApplication {
                 } else {
                     listener.onCreated(new MultipleAccountPublicClientApplication(context,  developerConfig));
                 }
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                listener.onError(exception);
             }
         });
     }
@@ -352,6 +367,11 @@ public class PublicClientApplication implements IPublicClientApplication {
          * Called once an IPublicClientApplication is successfully created.
          */
         void onCreated(final IPublicClientApplication application);
+
+        /**
+         * Called once IPublicClientApplication can't be created.
+         */
+        void onError(final MsalException exception);
     }
 
     /**
@@ -360,9 +380,14 @@ public class PublicClientApplication implements IPublicClientApplication {
     public interface BrokerAccountModeCallback {
         /**
          * Called once MSAL mode is retrieved from Broker.
-         * If the value can't be retrieved, this will fall back to the BROKER_ACCOUNT_MODE_MULTIPLE_ACCOUNT mode.
+         * If Broker is not installed, this will fall back to the BROKER_ACCOUNT_MODE_MULTIPLE_ACCOUNT mode.
          */
-        void onGetMode(String mode);
+        void onGetMode(final String mode);
+
+        /**
+         * Called once MSAL mode can't be retrieved from Broker.
+         */
+        void onError(final MsalException exception);
     }
 
     /**
