@@ -410,7 +410,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 onNavigationItemSelected(getNavigationView().getMenu().getItem(1));
                 mSelectedAccount = null;
 
-                mApplication.getAccountsNew();
+                mApplication.getAccountsNew(new PublicClientApplication.AccountsLoadedCallback<List<com.microsoft.identity.client.profile.IAccount>>() {
+                    @Override
+                    public void onAccountsLoaded(List<com.microsoft.identity.client.profile.IAccount> accounts) {
+                        showMessage("New accounts loaded: " + accounts.size());
+                    }
+                });
             }
 
             @Override

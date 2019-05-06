@@ -463,7 +463,113 @@ public final class PublicClientApplication {
         }
     }
 
-    public List<com.microsoft.identity.client.profile.IAccount> getAccountsNew() {
+    public void getAccountsNew(@NonNull final AccountsLoadedCallback<List<com.microsoft.identity.client.profile.IAccount>> callback) {
+        ApiDispatcher.initializeDiagnosticContext();
+
+        final String methodName = ":getAccounts";
+        final List<com.microsoft.identity.client.profile.IAccount> localIAccounts = getLocalAccountsNew();
+
+        final Handler handler;
+
+        if (null != Looper.myLooper() && Looper.getMainLooper() != Looper.myLooper()) {
+            handler = new Handler(Looper.myLooper());
+        } else {
+            handler = new Handler(Looper.getMainLooper());
+        }
+
+        if (localIAccounts.isEmpty()) {
+            // Create the SharedPreferencesFileManager for the legacy accounts/creds
+            final IStorageHelper storageHelper = new StorageHelper(mPublicClientConfiguration.getAppContext());
+            final ISharedPreferencesFileManager sharedPreferencesFileManager
+                    = new SharedPreferencesFileManager(
+                    mPublicClientConfiguration.getAppContext(),
+                    "com.microsoft.aad.adal.cache",
+                    storageHelper
+            );
+
+            // Load the old TokenCacheItems as key/value JSON
+            final Map<String, String> credentials = sharedPreferencesFileManager.getAll();
+
+            final Map<String, String> redirects = new HashMap<>();
+            redirects.put(
+                    mPublicClientConfiguration.mClientId, // Our client id
+                    mPublicClientConfiguration.mRedirectUri // Our redirect uri
+            );
+
+            new TokenMigrationUtility<MicrosoftAccount, MicrosoftRefreshToken>()._import(
+                    new AdalMigrationAdapter(
+                            mPublicClientConfiguration.getAppContext(),
+                            redirects,
+                            false
+                    ),
+                    credentials,
+                    (IShareSingleSignOnState<MicrosoftAccount, MicrosoftRefreshToken>) mPublicClientConfiguration.getOAuth2TokenCache(),
+                    new TokenMigrationCallback() {
+                        @Override
+                        public void onMigrationFinished(int numberOfAccountsMigrated) {
+                            final String extendedMethodName = ":onMigrationFinished";
+                            com.microsoft.identity.common.internal.logging.Logger.info(
+                                    TAG + methodName + extendedMethodName,
+                                    "Migrated [" + numberOfAccountsMigrated + "] accounts"
+                            );
+                            // Merge migrated accounts with broker or local accounts.
+                            if (MSALControllerFactory.brokerEligible(
+                                    mPublicClientConfiguration.getAppContext(),
+                                    mPublicClientConfiguration.getDefaultAuthority(),
+                                    mPublicClientConfiguration)) {
+                                // TODO Post a result of both the local and the broker accounts...
+                                // TODO For now, just return the local results always....
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        callback.onAccountsLoaded(getLocalAccountsNew());
+                                    }
+                                });
+                            } else {
+                                // TODO refactor to remove duplication
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        callback.onAccountsLoaded(getLocalAccountsNew());
+                                    }
+                                });
+                            }
+                        }
+                    }
+            );
+        } else {
+            // The cache contains items - mark migration as complete...
+            new AdalMigrationAdapter(
+                    mPublicClientConfiguration.getAppContext(),
+                    null, // unused for this path
+                    false
+            ).setMigrationStatus(true);
+
+            if (MSALControllerFactory.brokerEligible(
+                    mPublicClientConfiguration.getAppContext(),
+                    mPublicClientConfiguration.getDefaultAuthority(),
+                    mPublicClientConfiguration)) {
+                // TODO Post a result of both the local and the broker accounts...
+                // TODO For now, just return the local results always....
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onAccountsLoaded(getLocalAccountsNew());
+                    }
+                });
+            } else {
+                // TODO refactor to remove duplication
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onAccountsLoaded(getLocalAccountsNew());
+                    }
+                });
+            }
+        }
+    }
+
+    private List<com.microsoft.identity.client.profile.IAccount> getLocalAccountsNew() {
         ApiDispatcher.initializeDiagnosticContext();
         return com.microsoft.identity.client.profile.AccountAdapter.adapt(
                 getOAuth2TokenCache()
