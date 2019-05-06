@@ -344,14 +344,14 @@ public final class PublicClientApplication {
     /**
      * Listener callback for asynchronous loading of msal IAccount accounts.
      */
-    public interface AccountsLoadedCallback {
+    public interface AccountsLoadedCallback<T> {
 
         /**
          * Called once Accounts have been loaded from the cache.
          *
          * @param accounts The accounts in the cache.
          */
-        void onAccountsLoaded(List<IAccount> accounts);
+        void onAccountsLoaded(T accounts);
     }
 
     /**
@@ -384,7 +384,7 @@ public final class PublicClientApplication {
      *
      * @param callback The callback to notify once this action has finished.
      */
-    public void getAccounts(@NonNull final AccountsLoadedCallback callback) {
+    public void getAccounts(@NonNull final AccountsLoadedCallback<List<IAccount>> callback) {
         ApiDispatcher.initializeDiagnosticContext();
         final String methodName = ":getAccounts";
         final List<AccountRecord> accounts = getLocalAccounts();
@@ -480,7 +480,8 @@ public final class PublicClientApplication {
      * @param handler   : handler to post
      * @param callback: AccountsLoadedCallback
      */
-    private void postLocalAccountsResult(final Handler handler, final AccountsLoadedCallback callback) {
+    private void postLocalAccountsResult(final Handler handler,
+                                         final AccountsLoadedCallback<List<IAccount>> callback) {
 
         handler.post(new Runnable() {
             @Override
@@ -501,7 +502,8 @@ public final class PublicClientApplication {
      * @param handler   : handler to post
      * @param callback: AccountsLoadedCallback
      */
-    private void postBrokerAndLocalAccountsResult(final Handler handler, final AccountsLoadedCallback callback) {
+    private void postBrokerAndLocalAccountsResult(final Handler handler,
+                                                  final AccountsLoadedCallback<List<IAccount>> callback) {
 
         final String methodName = ":postBrokerAndLocalAccountsResult";
 
