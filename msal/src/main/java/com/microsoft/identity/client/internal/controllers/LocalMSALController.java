@@ -48,6 +48,7 @@ import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -105,7 +106,8 @@ public class LocalMSALController extends BaseController {
 
             if (tokenResult != null && tokenResult.getSuccess()) {
                 //4) Save tokens in token cache
-                final ICacheRecord cacheRecord = saveTokens(
+                // TODO This is the result that will become the new TenantProfile result...
+                final List<ICacheRecord> cacheRecords = saveTokens(
                         oAuth2Strategy,
                         mAuthorizationRequest,
                         tokenResult.getTokenResponse(),
@@ -113,7 +115,7 @@ public class LocalMSALController extends BaseController {
                 );
 
                 acquireTokenResult.setLocalAuthenticationResult(
-                        new LocalAuthenticationResult(cacheRecord)
+                        new LocalAuthenticationResult(cacheRecords.get(0))
                 );
             }
         }
