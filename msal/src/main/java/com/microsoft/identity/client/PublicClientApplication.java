@@ -43,6 +43,7 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
 import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
+import com.microsoft.identity.client.internal.controllers.LocalMSALController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
@@ -699,20 +700,6 @@ public final class PublicClientApplication {
             callback.onAccountsRemoved(false);
         }
 
-        // FEATURE SWITCH: Set to false to allow deleting Accounts in a tenant-specific way.
-        final boolean deleteAccountsInAllTenants = true;
-
-        final String realm = deleteAccountsInAllTenants ? null : getRealm(account);
-
-        final boolean localRemoveAccountSuccess = !mPublicClientConfiguration
-                .getOAuth2TokenCache()
-                .removeAccount(
-                        account.getEnvironment(),
-                        mPublicClientConfiguration.getClientId(),
-                        account.getHomeAccountIdentifier().getIdentifier(),
-                        realm
-                ).isEmpty();
-
         if (MSALControllerFactory.brokerEligible(
                 mPublicClientConfiguration.getAppContext(),
                 mPublicClientConfiguration.getDefaultAuthority(),
@@ -725,21 +712,12 @@ public final class PublicClientApplication {
                     callback
             );
         } else {
-            callback.onAccountsRemoved(localRemoveAccountSuccess);
+            new LocalMSALController().removeLocalAccount(
+                    account,
+                    mPublicClientConfiguration,
+                    callback
+            );
         }
-    }
-
-    @Nullable
-    private static String getRealm(@NonNull IAccount account) {
-        String realm = null;
-
-        if (null != account.getAccountIdentifier() // This is an AAD account w/ tenant info
-                && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier) {
-            final AzureActiveDirectoryAccountIdentifier identifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier();
-            realm = identifier.getTenantIdentifier();
-        }
-
-        return realm;
     }
 
     /**
@@ -1092,7 +1070,7 @@ public final class PublicClientApplication {
                     mPublicClientConfiguration.getClientId(),
                     mPublicClientConfiguration.getOAuth2TokenCache(),
                     account.getHomeAccountIdentifier().getIdentifier(),
-                    getRealm(account)
+                    AccountAdapter.getRealm(account)
             );
         }
 

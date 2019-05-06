@@ -138,4 +138,17 @@ public class AccountAdapter {
 
         return accountToReturn;
     }
+
+    @Nullable
+    static String getRealm(@NonNull IAccount account) {
+        String realm = null;
+
+        if (null != account.getAccountIdentifier() // This is an AAD account w/ tenant info
+                && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier) {
+            final AzureActiveDirectoryAccountIdentifier identifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier();
+            realm = identifier.getTenantIdentifier();
+        }
+
+        return realm;
+    }
 }
