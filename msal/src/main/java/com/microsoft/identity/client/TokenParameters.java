@@ -25,7 +25,9 @@ package com.microsoft.identity.client;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -199,6 +201,18 @@ abstract class TokenParameters {
 
         public B callback(AuthenticationCallback callback) {
             mCallback = callback;
+            return self();
+        }
+
+        public B withResource(final String resource) {
+            if (!StringUtil.isEmpty(resource)) {
+                mScopes = new ArrayList<String>() {{
+                    add(resource.toLowerCase().trim() + "/.default");
+                }};
+            } else {
+                mScopes = new ArrayList<>();
+            }
+
             return self();
         }
 
