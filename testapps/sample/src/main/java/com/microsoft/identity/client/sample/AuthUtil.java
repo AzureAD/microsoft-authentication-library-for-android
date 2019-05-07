@@ -85,7 +85,12 @@ final class AuthUtil {
     void doSignout() {
         final int userCount = getUserCount();
         for (int i = 0; i < userCount; i++) {
-            mApplication.removeAccount(mAccounts.get(i));
+            mApplication.removeAccount(mAccounts.get(i), new PublicClientApplication.AccountsRemovedCallback() {
+                @Override
+                public void onAccountsRemoved(Boolean isSuccess) {
+                    //TODO
+                }
+            });
         }
     }
 

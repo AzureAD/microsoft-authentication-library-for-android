@@ -386,6 +386,7 @@ public final class PublicClientApplication {
         void onAccountsLoaded(List<AccountRecord> accountRecords);
     }
 
+    @NonNull
     private static Handler getPreferredLooper() {
         if (null != Looper.myLooper() && Looper.getMainLooper() != Looper.myLooper()) {
             return new Handler(Looper.myLooper());
@@ -477,7 +478,8 @@ public final class PublicClientApplication {
      * @param handler : handler to post
      * @param callback: AccountsLoadedCallback
      */
-    private void postLocalAccountsResult(final Handler handler, final AccountsLoadedCallback<List<IAccount>> callback) {
+    private void postLocalAccountsResult(@NonNull final Handler handler,
+                                         @NonNull final AccountsLoadedCallback<List<IAccount>> callback) {
 
         handler.post(new Runnable() {
             @Override
@@ -497,7 +499,8 @@ public final class PublicClientApplication {
      * @param handler : handler to post
      * @param callback: AccountsLoadedCallback
      */
-    private void postBrokerAndLocalAccountsResult(final Handler handler, final AccountsLoadedCallback<List<IAccount>> callback) {
+    private void postBrokerAndLocalAccountsResult(@NonNull final Handler handler,
+                                                  @NonNull final AccountsLoadedCallback<List<IAccount>> callback) {
 
         final String methodName = ":postBrokerAndLocalAccountsResult";
 
@@ -581,19 +584,19 @@ public final class PublicClientApplication {
                     TAG + methodName,
                     "Eligible to use broker. Try to get the account from local and broker cache."
             );
-            getBrokerAndLocalAccount(oid, callback);
+            getBrokerAndLocalAccountByOid(oid, callback);
         } else {
             // load local account and find the matching account
             com.microsoft.identity.common.internal.logging.Logger.info(
                     TAG + methodName,
                     "Not eligible to use broker. Try to get the account from local cache."
             );
-            getLocalAccount(oid, callback);
+            getLocalAccountByOid(oid, callback);
         }
     }
 
-    private void getBrokerAndLocalAccount(@NonNull final String oid,
-                                          @NonNull final AccountsLoadedCallback<IAccount> callback) {
+    private void getBrokerAndLocalAccountByOid(@NonNull final String oid,
+                                               @NonNull final AccountsLoadedCallback<IAccount> callback) {
         final String methodName = ":getBrokerAndLocalAccount";
 
         final Handler handler = getPreferredLooper();
@@ -608,77 +611,54 @@ public final class PublicClientApplication {
                         cachedAccounts.addAll(getLocalAccounts());
                         cachedAccounts.addAll(accountRecords);
 
-                        if (cachedAccounts.isEmpty()) {
-                            com.microsoft.identity.common.internal.logging.Logger.info(
-                                    TAG + methodName,
-                                    "No account stored in the broker cache."
-                            );
-                            handler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    //Return null if no account found.
-                                    callback.onAccountsLoaded(null);
-                                }
-                            });
-
-                            return;
-                        }
-
-                        for (final AccountRecord accountRecord : cachedAccounts) {
-                            if (!StringUtil.isEmpty(accountRecord.getLocalAccountId())
-                                    && accountRecord.getLocalAccountId().equalsIgnoreCase(oid)) {
-                                com.microsoft.identity.common.internal.logging.Logger.info(
-                                        TAG + methodName,
-                                        "Found the matched account from broker cache."
-                                );
-
-                                handler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        callback.onAccountsLoaded(AccountAdapter.adapt(accountRecord));
-                                    }
-                                });
-
-                                return;
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                getAccountByOid(oid, cachedAccounts);
                             }
-                        }
+                        });
                     }
                 });
     }
 
-
-    private void getLocalAccount(@NonNull final String oid,
-                                 @NonNull final AccountsLoadedCallback<IAccount> callback) {
+    private void getLocalAccountByOid(@NonNull final String oid,
+                                      @NonNull final AccountsLoadedCallback<IAccount> callback) {
         final String methodName = ":getLocalAccount";
-        List<AccountRecord> localAccountList = getLocalAccounts();
-        if (localAccountList == null || localAccountList.isEmpty()) {
-            com.microsoft.identity.common.internal.logging.Logger.info(
-                    TAG + methodName,
-                    "No account stored in the local cache."
-            );
-
-            callback.onAccountsLoaded(null);
-            return;
-        }
-
-        for (AccountRecord accountRecord : getLocalAccounts()) {
-            if (!StringUtil.isEmpty(accountRecord.getLocalAccountId())
-                    && accountRecord.getLocalAccountId().equalsIgnoreCase(oid)) {
-                com.microsoft.identity.common.internal.logging.Logger.info(
-                        TAG + methodName,
-                        "Found the matched account."
-                );
-
-                callback.onAccountsLoaded(AccountAdapter.adapt(accountRecord));
-                return;
-            }
-        }
-
         com.microsoft.identity.common.internal.logging.Logger.info(
                 TAG + methodName,
-                "No account found in the local cache."
+                "Start finding account from local cache."
         );
-        callback.onAccountsLoaded(null);
+        List<AccountRecord> localAccountList = getLocalAccounts();
+        callback.onAccountsLoaded(getAccountByOid(oid, localAccountList));
+    }
+
+    private IAccount getAccountByOid(@NonNull final String oid,
+                                     List<AccountRecord> accounts) {
+        final String methodName = ":getAccountByOid";
+        if (accounts == null || accounts.isEmpty()) {
+            com.microsoft.identity.common.internal.logging.Logger.info(
+                    TAG + methodName,
+                    "No account stored in the cache."
+            );
+            return null;
+        } else {
+            for (AccountRecord accountRecord : accounts) {
+                if (!StringUtil.isEmpty(accountRecord.getLocalAccountId())
+                        && accountRecord.getLocalAccountId().equalsIgnoreCase(oid)) {
+                    com.microsoft.identity.common.internal.logging.Logger.info(
+                            TAG + methodName,
+                            "Found the matched account from cache."
+                    );
+                    return AccountAdapter.adapt(accountRecord);
+                }
+            }
+
+            com.microsoft.identity.common.internal.logging.Logger.info(
+                    TAG + methodName,
+                    "No account with matching oid stored in the cache"
+            );
+            return null;
+        }
     }
 
     /**
