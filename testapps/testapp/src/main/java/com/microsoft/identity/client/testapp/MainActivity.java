@@ -289,8 +289,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
 
                 if (null != requestAccount) {
-                    callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
-
                     AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
                     AcquireTokenSilentParameters acquireTokenSilentParameters =
                             builder.withResource(mResource)
