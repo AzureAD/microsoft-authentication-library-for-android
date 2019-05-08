@@ -326,22 +326,8 @@ public class BrokerMsalController extends BaseController {
         }
     }
 
-    private Bundle getSilentBrokerRequestBundle(final AcquireTokenSilentOperationParameters parameters) {
-        final MsalBrokerRequestAdapter msalBrokerRequestAdapter = new MsalBrokerRequestAdapter();
-
-        final Bundle requestBundle = new Bundle();
-        final BrokerRequest brokerRequest = msalBrokerRequestAdapter.
-                brokerRequestFromSilentOperationParameters(parameters);
-
-        requestBundle.putString(
-                AuthenticationConstants.Broker.BROKER_REQUEST_V2,
-                new Gson().toJson(brokerRequest, BrokerRequest.class)
-        );
-
-        return requestBundle;
-    }
-
-    private AcquireTokenResult acquireTokenSilentWithAccountManager(AcquireTokenSilentOperationParameters parameters) throws BaseException {
+    private AcquireTokenResult acquireTokenSilentWithAccountManager(final AcquireTokenSilentOperationParameters parameters)
+            throws BaseException {
         // if there is not any user added to account, it returns empty
         final String methodName = ":acquireTokenSilentWithAccountManager";
         Bundle bundleResult = null;
@@ -356,48 +342,78 @@ public class BrokerMsalController extends BaseController {
                 // AuthenticatorService is handling the request at
                 // AccountManager.
                 final AccountManager accountManager = AccountManager.get(parameters.getAppContext());
-                final AccountManagerFuture<Bundle> result = accountManager.getAuthToken(
-                        getTargetAccount(parameters.getAppContext(), parameters.getAccount()),
-                        AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
-                        requestBundle,
-                        false,
-                        null, //set to null to avoid callback
-                        getPreferredHandler());
+                final AccountManagerFuture<Bundle> result =
+                        accountManager.getAuthToken(
+                                getTargetAccount(parameters.getAppContext(), parameters.getAccount()),
+                                AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
+                                requestBundle,
+                                false,
+                                null, //set to null to avoid callback
+                                getPreferredHandler()
+                        );
 
                 // Making blocking request here
                 Logger.verbose(TAG + methodName, "Received result from broker");
                 bundleResult = result.getResult();
             } catch (final OperationCanceledException e) {
-                // Error code AUTH_FAILED_CANCELLED will be thrown if the request was canceled for any reason.
                 Logger.error(
                         TAG + methodName,
                         ErrorStrings.BROKER_REQUEST_CANCELLED,
+                        "Exception thrown when talking to account manager. The broker request cancelled.",
                         e
                 );
-                throw new ClientException(ErrorStrings.BROKER_REQUEST_CANCELLED, e.getMessage(), e);
-            } catch (final AuthenticatorException e) {
-                // Error code BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN will be thrown if there was an error
-                // communicating with the authenticator or if the authenticator returned an invalid response.
-                                Logger.e(TAG + methodName, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN);
-                    throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN, e.getMessage());
-            } catch (final IOException e) {
-                //  Error code BROKER_AUTHENTICATOR_IO_EXCEPTION will be thrown
-                //  when Authenticator gets problem from webrequest or file read/write or network error
-                Logger.e(TAG + methodName, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION);
 
-                if (e.getMessage() != null && e.getMessage().contains(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription())) {
-                    throw new AuthenticationException(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
-                            "Received error from broker, errorCode: " + e.getMessage());
-                } else if (e.getMessage() != null && e.getMessage().contains(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION.getDescription())) {
-                    throw new AuthenticationException(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION,
-                            "Received error from broker, errorCode: " + e.getMessage());
-                } else {
-                    throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION, e.getMessage(), e);
-                }
+                throw new ClientException(
+                        ErrorStrings.BROKER_REQUEST_CANCELLED,
+                        "OperationCanceledException thrown when talking to account manager. The broker request cancelled.",
+                        e
+                );
+            } catch (final AuthenticatorException e) {
+                Logger.error(
+                        TAG + methodName,
+                        ErrorStrings.BROKER_REQUEST_CANCELLED,
+                        "AuthenticatorException thrown when talking to account manager. The broker request cancelled.",
+                        e
+                );
+
+                throw new ClientException(
+                        ErrorStrings.BROKER_REQUEST_CANCELLED,
+                        "AuthenticatorException thrown when talking to account manager. The broker request cancelled.",
+                        e
+                );
+            } catch (final IOException e) {
+                // Authenticator gets problem from webrequest or file read/write
+                Logger.error(
+                        TAG + methodName,
+                        ErrorStrings.BROKER_REQUEST_CANCELLED,
+                        "IOException thrown when talking to account manager. The broker request cancelled.",
+                        e
+                );
+
+                throw new ClientException(
+                        ErrorStrings.BROKER_REQUEST_CANCELLED,
+                        "IOException thrown when talking to account manager. The broker request cancelled.",
+                        e
+                );
             }
         }
 
         return getAcquireTokenResult(bundleResult);
+    }
+
+    private Bundle getSilentBrokerRequestBundle(final AcquireTokenSilentOperationParameters parameters) {
+        final MsalBrokerRequestAdapter msalBrokerRequestAdapter = new MsalBrokerRequestAdapter();
+
+        final Bundle requestBundle = new Bundle();
+        final BrokerRequest brokerRequest = msalBrokerRequestAdapter.
+                brokerRequestFromSilentOperationParameters(parameters);
+
+        requestBundle.putString(
+                AuthenticationConstants.Broker.BROKER_REQUEST_V2,
+                new Gson().toJson(brokerRequest, BrokerRequest.class)
+        );
+
+        return requestBundle;
     }
 
     private Account getTargetAccount(final Context context, final IAccountRecord accountRecord) {
