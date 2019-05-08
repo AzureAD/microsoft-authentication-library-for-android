@@ -51,6 +51,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ENVIRONMENT;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REQUIRED_BROKER_PROTOCOL_VERSION;
 
 public class PublicClientApplicationConfiguration {
 
@@ -64,6 +65,7 @@ public class PublicClientApplicationConfiguration {
         static final String MULTIPLE_CLOUDS_SUPPORTED = "multiple_clouds_supported";
         static final String USE_BROKER = "broker_redirect_uri_registered";
         static final String ENVIRONMENT = "environment";
+        static final String REQUIRED_BROKER_PROTOCOL_VERSION = "minimum_required_broker_protocol_version";
     }
 
     @SerializedName(CLIENT_ID)
@@ -92,6 +94,9 @@ public class PublicClientApplicationConfiguration {
 
     @SerializedName(ENVIRONMENT)
     Environment mEnvironment;
+
+    @SerializedName(REQUIRED_BROKER_PROTOCOL_VERSION)
+    String mRequiredBrokerProtocolVersion;
 
     @SerializedName("browser_safelist")
     List<BrowserDescriptor> mBrowserSafeList;
@@ -202,6 +207,14 @@ public class PublicClientApplicationConfiguration {
      */
     public Boolean getUseBroker() {
         return mUseBroker;
+    }
+
+    /**
+     * Indicates the minimum required broker protocol version number.
+     * @return String of broker protocol version
+     */
+    public String getRequiredBrokerProtocolVersion() {
+        return mRequiredBrokerProtocolVersion;
     }
 
     public Context getAppContext() {

@@ -25,15 +25,27 @@ package com.microsoft.identity.client.internal.controllers;
 import android.accounts.AccountManager;
 import android.accounts.AuthenticatorDescription;
 import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.RemoteException;
 import android.support.annotation.NonNull;
 
+import com.microsoft.identity.client.IMicrosoftAuthService;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.authorities.AnyPersonalAccount;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
+import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
+import com.microsoft.identity.common.internal.broker.MicrosoftAuthServiceFuture;
 import com.microsoft.identity.common.internal.controllers.BaseController;
+import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
+import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +77,6 @@ public class MSALControllerFactory {
         } else {
             return new LocalMSALController();
         }
-
     }
 
     /**
@@ -92,7 +103,6 @@ public class MSALControllerFactory {
         if (brokerEligible(applicationContext, authority, applicationConfiguration)) {
             controllers.add(new BrokerMsalController());
         }
-
 
         return controllers;
     }
@@ -128,6 +138,12 @@ public class MSALControllerFactory {
         // Use broker if installed and verified
         if (brokerInstalled(applicationContext)) {
             return true;
+//            try {
+//                sayHelloToBroker(applicationConfiguration);
+//                return true;
+//            } catch (final ClientException exception) {
+//                return false;
+//            }
         }
 
         return false;
@@ -150,6 +166,7 @@ public class MSALControllerFactory {
         BrokerValidator brokerValidator = new BrokerValidator(applicationContext);
         AccountManager accountManager = AccountManager.get(applicationContext);
 
+        //Verify the signature
         AuthenticatorDescription[] authenticators = accountManager.getAuthenticatorTypes();
         for (AuthenticatorDescription authenticator : authenticators) {
             if (authenticator.type.equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)
@@ -159,6 +176,55 @@ public class MSALControllerFactory {
         }
 
         return false;
+    }
+
+    //This should be a background call..
+    private static void sayHelloToBroker(@NonNull final PublicClientApplicationConfiguration configuration)
+            throws ClientException {
+
+        IMicrosoftAuthService service;
+
+        final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
+        final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
+
+        try {
+            service = authServiceFuture.get();
+            final Bundle requestBundle = new Bundle();
+            requestBundle.putString(
+                    AuthenticationConstants.Broker.CLIENT_ADVERTISED_MAXIMUM_BP_VERSION_KEY,
+                    AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION_CODE
+            );
+
+            if (!StringUtil.isEmpty(configuration.getRequiredBrokerProtocolVersion())) {
+                requestBundle.putString(
+                        AuthenticationConstants.Broker.CLIENT_CONFIGURED_MINIMUM_BP_VERSION_KEY,
+                        configuration.getRequiredBrokerProtocolVersion()
+                );
+            }
+
+            final Bundle resultBundle = service.hello(requestBundle);
+            if (null == resultBundle) {
+                throw new ClientException(
+                        ErrorStrings.BROKER_BIND_SERVICE_FAILED,
+                        "Unable to verify the broker app."
+                );
+            } else if (null != requestBundle.getString(AuthenticationConstants.OAuth2.ERROR)) {
+                throw new ClientException(
+                        requestBundle.getString(AuthenticationConstants.OAuth2.ERROR),
+                        resultBundle.getString(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION)
+                );
+            }
+        } catch (RemoteException e) {
+            throw new ClientException(ErrorStrings.BROKER_BIND_SERVICE_FAILED,
+                    "Exception occurred while attempting to invoke remote service",
+                    e);
+        } catch (Exception e) {
+            throw new ClientException(ErrorStrings.BROKER_BIND_SERVICE_FAILED,
+                    "Exception occurred while awaiting (get) return of MicrosoftAuthService",
+                    e);
+        } finally {
+            client.disconnect();
+        }
     }
 
 
