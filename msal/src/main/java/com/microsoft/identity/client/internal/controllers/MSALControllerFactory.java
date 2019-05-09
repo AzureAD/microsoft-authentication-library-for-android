@@ -136,14 +136,10 @@ public class MSALControllerFactory {
         }
 
         // Use broker if installed and verified
-        if (brokerInstalled(applicationContext)) {
+        if (brokerInstalled(applicationContext)
+                && (BrokerMsalController.isMicrosoftAuthServiceSupported(applicationContext)
+                || BrokerMsalController.isAccountManagerPermissionsGranted(applicationContext))) {
             return true;
-//            try {
-//                sayHelloToBroker(applicationConfiguration);
-//                return true;
-//            } catch (final ClientException exception) {
-//                return false;
-//            }
         }
 
         return false;
@@ -226,6 +222,4 @@ public class MSALControllerFactory {
             client.disconnect();
         }
     }
-
-
 }
