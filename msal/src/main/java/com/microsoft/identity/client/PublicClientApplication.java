@@ -439,14 +439,14 @@ public final class PublicClientApplication {
                                     "Migrated [" + numberOfAccountsMigrated + "] accounts"
                             );
                             // Merge migrated accounts with broker or local accounts.
-//                            if (MSALControllerFactory.brokerEligible(
-//                                    mPublicClientConfiguration.getAppContext(),
-//                                    mPublicClientConfiguration.getDefaultAuthority(),
-//                                    mPublicClientConfiguration)) {
-//                                postBrokerAndLocalAccountsResult(handler, callback);
-//                            } else {
+                            if (MSALControllerFactory.brokerEligible(
+                                    mPublicClientConfiguration.getAppContext(),
+                                    mPublicClientConfiguration.getDefaultAuthority(),
+                                    mPublicClientConfiguration)) {
+                                postBrokerAndLocalAccountsResult(handler, callback);
+                            } else {
                                 postLocalAccountsResult(handler, callback);
-                           // }
+                            }
                         }
                     }
             );
@@ -458,14 +458,14 @@ public final class PublicClientApplication {
                     false
             ).setMigrationStatus(true);
 
-//            if (MSALControllerFactory.brokerEligible(
-//                    mPublicClientConfiguration.getAppContext(),
-//                    mPublicClientConfiguration.getDefaultAuthority(),
-//                    mPublicClientConfiguration)) {
-//                postBrokerAndLocalAccountsResult(handler, callback);
-//            } else {
+            if (MSALControllerFactory.brokerEligible(
+                    mPublicClientConfiguration.getAppContext(),
+                    mPublicClientConfiguration.getDefaultAuthority(),
+                    mPublicClientConfiguration)) {
+                postBrokerAndLocalAccountsResult(handler, callback);
+            } else {
                 postLocalAccountsResult(handler, callback);
-//            }
+            }
         }
     }
 
