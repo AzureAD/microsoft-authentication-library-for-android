@@ -124,13 +124,13 @@ public class AcquireTokenFragment extends Fragment {
             }
         });
 
-        mAcquireTokenSilent.setOnClickListener(new View.OnClickListener() {
+        mAcquireTokenSilentWithResource.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mSelectAccount.getSelectedItem() != null) {
                     mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
                 }
-                mOnFragmentInteractionListener.onAcquireTokenSilentClicked(getCurrentRequestOptions());
+                mOnFragmentInteractionListener.onAcquireTokenSilentWithResourceClicked(getCurrentRequestOptions());
             }
         });
 
