@@ -396,9 +396,9 @@ public class BrokerMsalController extends BaseController {
         return requestBundle;
     }
 
-    public void removeAccountFromBrokerCache(@Nullable final IAccount account,
-                                             @NonNull final PublicClientApplicationConfiguration configuration,
-                                             @NonNull final IPublicClientApplication.AccountRemovedListener callback) {
+    public void removeAccount(@Nullable final IAccount account,
+                              @NonNull final PublicClientApplicationConfiguration configuration,
+                              @NonNull final IPublicClientApplication.AccountRemovedListener callback) {
         sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
@@ -453,9 +453,9 @@ public class BrokerMsalController extends BaseController {
      * 3. Clear WebView cookies.
      * 4. Sign out from default browser.
      * */
-    public void globalSignOut(@NonNull final IAccount account,
-                              @NonNull final PublicClientApplicationConfiguration configuration,
-                              @NonNull final IPublicClientApplication.AccountRemovedListener callback) {
+    public void removeAccountFromSharedDevice(@NonNull final IAccount account,
+                                              @NonNull final PublicClientApplicationConfiguration configuration,
+                                              @NonNull final IPublicClientApplication.AccountRemovedListener callback) {
 
         sBackgroundExecutor.submit(new Runnable() {
             @Override

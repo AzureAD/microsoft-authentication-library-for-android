@@ -291,7 +291,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                 mPublicClientConfiguration)) {
 
             //Remove the account from Broker
-            new BrokerMsalController().removeAccountFromBrokerCache(
+            new BrokerMsalController().removeAccount(
                 account,
                 mPublicClientConfiguration,
                 callback

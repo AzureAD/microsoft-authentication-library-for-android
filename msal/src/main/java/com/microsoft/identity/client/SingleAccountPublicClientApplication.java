@@ -83,7 +83,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             throw new MsalClientException(MsalClientException.BROKER_NOT_INSTALLED, errorMessage);
         }
 
-        new BrokerMsalController().globalSignOut(
+        new BrokerMsalController().removeAccountFromSharedDevice(
                 AccountAdapter.adapt(mLocalAccountRecord),
                 configuration,
                 new AccountRemovedListener() {
