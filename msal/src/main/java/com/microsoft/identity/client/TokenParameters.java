@@ -181,6 +181,8 @@ abstract class TokenParameters {
         public B withScopes(List<String> scopes) {
             if (null != mScopes) {
                 throw new IllegalArgumentException("Scopes is already set.");
+            } else if (null == scopes || scopes.isEmpty()) {
+                throw new IllegalArgumentException("Empty scopes list.");
             } else {
                 mScopes = scopes;
             }
@@ -214,12 +216,14 @@ abstract class TokenParameters {
                 throw new IllegalArgumentException(
                         "Scopes is already set. Scopes and resources cannot be combined in a single request."
                 );
-            } else if (!StringUtil.isEmpty(resource)) {
+            } else if (StringUtil.isEmpty(resource)) {
+                throw new IllegalArgumentException(
+                        "Empty resource string."
+                );
+            } else {
                 mScopes = new ArrayList<String>() {{
                     add(resource.toLowerCase().trim() + "/.default");
                 }};
-            } else {
-                mScopes = new ArrayList<>();
             }
 
             return self();
