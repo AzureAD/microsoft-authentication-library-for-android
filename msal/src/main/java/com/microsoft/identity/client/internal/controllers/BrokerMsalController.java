@@ -206,18 +206,18 @@ public class BrokerMsalController extends BaseController {
     }
 
     /**
-     * Get MSAL PublicClientApplication mode from Broker.
+     * Get device mode from Broker.
      * */
-    public void getBrokerAccountMode(final Context appContext,
-                                     final PublicClientApplication.BrokerAccountModeCallback callback) {
+    public void getBrokerDeviceMode(final Context appContext,
+                                    final PublicClientApplication.BrokerDeviceModeCallback callback) {
 
         final String methodName = ":getBrokerAccountMode";
         final Handler handler = new Handler(Looper.getMainLooper());
 
         if (!MSALControllerFactory.brokerInstalled(appContext)) {
-            final String errorMessage = "Broker app is not installed on the device. Returning default mode.";
+            final String errorMessage = "Broker app is not installed on the device. Returning default (multiple account) mode.";
             com.microsoft.identity.common.internal.logging.Logger.verbose(TAG + methodName, errorMessage, null);
-            callback.onGetMode(AuthenticationConstants.Broker.BROKER_ACCOUNT_MODE_MULTIPLE_ACCOUNT);
+            callback.onGetMode(false);
             return;
         }
 
@@ -231,10 +231,10 @@ public class BrokerMsalController extends BaseController {
 
                     service = authServiceFuture.get();
 
-                    final String mode =
+                    final boolean mode =
                         MsalBrokerResultAdapter
-                            .accountModeFromBundle(
-                                service.getAccountMode()
+                            .deviceModeFromBundle(
+                                service.getDeviceMode()
                             );
 
                     handler.post(new Runnable() {
@@ -467,7 +467,7 @@ public class BrokerMsalController extends BaseController {
                     final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
                     service = authServiceFuture.get();
                     final Bundle requestBundle = getRequestBundleForGlobalSignOut(account);
-                    final Bundle resultBundle = service.signOutFromSharedDevice(requestBundle);
+                    final Bundle resultBundle = service.removeAccountFromSharedDevice(requestBundle);
 
                     Handler handler = new Handler(Looper.getMainLooper());
                     handler.post(new Runnable() {

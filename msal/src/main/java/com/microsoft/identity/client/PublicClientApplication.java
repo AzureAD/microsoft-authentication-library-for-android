@@ -44,7 +44,6 @@ import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
 import com.microsoft.identity.client.internal.telemetry.Defaults;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.exception.BaseException;
@@ -225,10 +224,10 @@ public class PublicClientApplication implements IPublicClientApplication {
             throw new IllegalArgumentException("client id is empty or null");
         }
 
-        new BrokerMsalController().getBrokerAccountMode(context, new BrokerAccountModeCallback() {
+        new BrokerMsalController().getBrokerDeviceMode(context, new BrokerDeviceModeCallback() {
             @Override
-            public void onGetMode(String mode) {
-                if (AuthenticationConstants.Broker.BROKER_ACCOUNT_MODE_SINGLE_ACCOUNT.equalsIgnoreCase(mode)) {
+            public void onGetMode(boolean isSharedDevice) {
+                if (isSharedDevice) {
                     listener.onCreated(new SingleAccountPublicClientApplication(context, clientId));
                 } else {
                     listener.onCreated(new MultipleAccountPublicClientApplication(context, clientId));
@@ -273,10 +272,10 @@ public class PublicClientApplication implements IPublicClientApplication {
             throw new IllegalArgumentException("authority is null");
         }
 
-        new BrokerMsalController().getBrokerAccountMode(context, new BrokerAccountModeCallback() {
+        new BrokerMsalController().getBrokerDeviceMode(context, new BrokerDeviceModeCallback() {
             @Override
-            public void onGetMode(String mode) {
-                if (AuthenticationConstants.Broker.BROKER_ACCOUNT_MODE_SINGLE_ACCOUNT.equalsIgnoreCase(mode)) {
+            public void onGetMode(boolean isSharedDevice) {
+                if (isSharedDevice) {
                     listener.onCreated(new SingleAccountPublicClientApplication(context, clientId, authority));
                 } else {
                     listener.onCreated(new MultipleAccountPublicClientApplication(context, clientId, authority));
@@ -293,10 +292,10 @@ public class PublicClientApplication implements IPublicClientApplication {
     private static void create(@NonNull final Context context,
                                final PublicClientApplicationConfiguration developerConfig,
                                @NonNull final ApplicationCreatedListener listener){
-        new BrokerMsalController().getBrokerAccountMode(context, new BrokerAccountModeCallback() {
+        new BrokerMsalController().getBrokerDeviceMode(context, new BrokerDeviceModeCallback() {
             @Override
-            public void onGetMode(String mode) {
-                if (AuthenticationConstants.Broker.BROKER_ACCOUNT_MODE_SINGLE_ACCOUNT.equalsIgnoreCase(mode)) {
+            public void onGetMode(boolean isSharedDevice) {
+                if (isSharedDevice) {
                     listener.onCreated(new SingleAccountPublicClientApplication(context, developerConfig));
                 } else {
                     listener.onCreated(new MultipleAccountPublicClientApplication(context,  developerConfig));
@@ -377,12 +376,12 @@ public class PublicClientApplication implements IPublicClientApplication {
     /**
      * Listener callback for asynchronous loading of MSAL mode retrieval.
      */
-    public interface BrokerAccountModeCallback {
+    public interface BrokerDeviceModeCallback {
         /**
          * Called once MSAL mode is retrieved from Broker.
          * If Broker is not installed, this will fall back to the BROKER_ACCOUNT_MODE_MULTIPLE_ACCOUNT mode.
          */
-        void onGetMode(final String mode);
+        void onGetMode(final boolean isSharedDevice);
 
         /**
          * Called once MSAL mode can't be retrieved from Broker.
