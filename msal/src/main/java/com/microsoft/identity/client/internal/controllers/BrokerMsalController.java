@@ -625,9 +625,8 @@ public class BrokerMsalController extends BaseController {
         accountRecord.setFirstName(userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME));
         accountRecord.setFamilyName(userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME));
         accountRecord.setName(userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE));
-        //TODO double check the realm and enviroment
-        accountRecord.setRealm(userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER));
-        accountRecord.setEnvironment(userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID));
+        accountRecord.setEnvironment(userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER));
+        accountRecord.setRealm(userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID));
         return accountRecord;
     }
 
