@@ -179,7 +179,12 @@ abstract class TokenParameters {
         private AuthenticationCallback mCallback;
 
         public B withScopes(List<String> scopes) {
-            mScopes = scopes;
+            if (null != mScopes) {
+                throw new IllegalArgumentException("Scopes is already set.");
+            } else {
+                mScopes = scopes;
+            }
+
             return self();
         }
 
@@ -205,7 +210,11 @@ abstract class TokenParameters {
         }
 
         public B withResource(final String resource) {
-            if (!StringUtil.isEmpty(resource)) {
+            if (null != mScopes) {
+                throw new IllegalArgumentException(
+                        "Scopes is already set. Scopes and resources cannot be combined in a single request."
+                );
+            } else if (!StringUtil.isEmpty(resource)) {
                 mScopes = new ArrayList<String>() {{
                     add(resource.toLowerCase().trim() + "/.default");
                 }};
