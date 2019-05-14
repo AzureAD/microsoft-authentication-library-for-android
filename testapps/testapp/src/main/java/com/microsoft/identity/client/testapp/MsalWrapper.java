@@ -251,7 +251,7 @@ public class MsalWrapper {
         } else if (mApplication instanceof ISingleAccountPublicClientApplication) {
             final ISingleAccountPublicClientApplication application = (ISingleAccountPublicClientApplication)(mApplication);
             try {
-                application.globalSignOut(new IPublicClientApplication.AccountRemovedListener() {
+                application.removeCurrentAccount(new IPublicClientApplication.AccountRemovedListener() {
                     @Override
                     public void onAccountRemoved(Boolean isSuccess) {
                         if (isSuccess) {

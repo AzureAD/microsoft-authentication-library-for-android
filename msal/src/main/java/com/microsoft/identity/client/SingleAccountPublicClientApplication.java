@@ -70,8 +70,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     }
 
     @Override
-    public void globalSignOut(final AccountRemovedListener callback) throws MsalClientException {
-        final String methodName = ":globalSignOut";
+    public void removeCurrentAccount(final AccountRemovedListener callback) throws MsalClientException {
+        final String methodName = ":removeCurrentAccount";
         final PublicClientApplicationConfiguration configuration = getConfiguration();
 
         if (!MSALControllerFactory.brokerEligible(

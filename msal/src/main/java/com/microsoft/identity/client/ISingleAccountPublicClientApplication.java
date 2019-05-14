@@ -53,7 +53,7 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * @param callback a callback to be invoked when the operation finishes.
      * @throws MsalClientException if this function is invoked when the app is no longer in the single account mode.
      */
-    void globalSignOut(final AccountRemovedListener callback) throws MsalClientException;
+    void removeCurrentAccount(final AccountRemovedListener callback) throws MsalClientException;
 
     /**
      * Callback for asynchronous loading of the msal IAccount account.
