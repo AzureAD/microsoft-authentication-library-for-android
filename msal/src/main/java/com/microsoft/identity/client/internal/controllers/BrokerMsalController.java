@@ -31,6 +31,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -70,7 +71,6 @@ import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperatio
 import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
-import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -217,6 +217,10 @@ public class BrokerMsalController extends BaseController {
             // Authenticator should throw OperationCanceledException if
             // token is not available
             intent = bundleResult.getParcelable(AccountManager.KEY_INTENT);
+            intent.putExtra(
+                    AuthenticationConstants.Broker.CALLER_INFO_UID,
+                    Binder.getCallingUid()
+            );
         } catch (final OperationCanceledException e) {
             Logger.error(
                     TAG + methodName,
@@ -415,6 +419,11 @@ public class BrokerMsalController extends BaseController {
         requestBundle.putString(
                 AuthenticationConstants.Broker.BROKER_REQUEST_V2,
                 new Gson().toJson(brokerRequest, BrokerRequest.class)
+        );
+
+        requestBundle.putInt(
+                AuthenticationConstants.Broker.CALLER_INFO_UID,
+                Binder.getCallingUid()
         );
 
         return requestBundle;
