@@ -112,14 +112,6 @@ public class BrokerMsalController extends BaseController {
         //Get the broker interactive parameters intent
         final Intent interactiveRequestIntent = getBrokerAuthorizationIntent(parameters);
 
-        final MsalBrokerRequestAdapter msalBrokerRequestAdapter = new MsalBrokerRequestAdapter();
-        interactiveRequestIntent.putExtra(
-                AuthenticationConstants.Broker.BROKER_REQUEST_V2,
-                new Gson().toJson(
-                        msalBrokerRequestAdapter.brokerRequestFromAcquireTokenParameters(parameters),
-                        BrokerRequest.class)
-        );
-
         //Pass this intent to the BrokerActivity which will be used to start this activity
         final Intent brokerActivityIntent = new Intent(parameters.getAppContext(), BrokerActivity.class);
         brokerActivityIntent.putExtra(BrokerActivity.BROKER_INTENT, interactiveRequestIntent);
@@ -150,6 +142,13 @@ public class BrokerMsalController extends BaseController {
             Logger.verbose(TAG + methodName, "Is microsoft auth service supported? " + "[yes]");
             Logger.verbose(TAG + methodName, "Get the broker authorization intent from auth service.");
             interactiveRequestIntent = getBrokerAuthorizationIntentFromAuthService(parameters);
+            final MsalBrokerRequestAdapter msalBrokerRequestAdapter = new MsalBrokerRequestAdapter();
+            interactiveRequestIntent.putExtra(
+                    AuthenticationConstants.Broker.BROKER_REQUEST_V2,
+                    new Gson().toJson(
+                            msalBrokerRequestAdapter.brokerRequestFromAcquireTokenParameters(parameters),
+                            BrokerRequest.class)
+            );
         } else {
             Logger.verbose(TAG + methodName, "Is microsoft auth service supported? " + "[no]");
             Logger.verbose(TAG + methodName, "Get the broker authorization intent from Account Manager.");
@@ -743,9 +742,10 @@ public class BrokerMsalController extends BaseController {
     }
 
     static boolean isMicrosoftAuthServiceSupported(@NonNull final Context context) {
-        final MicrosoftAuthClient client = new MicrosoftAuthClient(context);
-        final Intent microsoftAuthServiceIntent = client.getIntentForAuthService(context);
-        return null != microsoftAuthServiceIntent;
+//        final MicrosoftAuthClient client = new MicrosoftAuthClient(context);
+//        final Intent microsoftAuthServiceIntent = client.getIntentForAuthService(context);
+//        return null != microsoftAuthServiceIntent;
+        return false;
     }
 
     /**
