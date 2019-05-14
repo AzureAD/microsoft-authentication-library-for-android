@@ -750,10 +750,9 @@ public class BrokerMsalController extends BaseController {
     }
 
     static boolean isMicrosoftAuthServiceSupported(@NonNull final Context context) {
-//        final MicrosoftAuthClient client = new MicrosoftAuthClient(context);
-//        final Intent microsoftAuthServiceIntent = client.getIntentForAuthService(context);
-//        return null != microsoftAuthServiceIntent;
-        return false;
+        final MicrosoftAuthClient client = new MicrosoftAuthClient(context);
+        final Intent microsoftAuthServiceIntent = client.getIntentForAuthService(context);
+        return null != microsoftAuthServiceIntent;
     }
 
     /**
