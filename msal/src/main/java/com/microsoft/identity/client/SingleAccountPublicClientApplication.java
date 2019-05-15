@@ -7,25 +7,11 @@ import android.support.annotation.Nullable;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
-import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 
 public class SingleAccountPublicClientApplication extends PublicClientApplication
     implements ISingleAccountPublicClientApplication {
     private static final String TAG = SingleAccountPublicClientApplication.class.getSimpleName();
-
-    /**
-     * Callback for asynchronous loading of broker AccountRecord account (in Single account mode).
-     */
-    public interface GetCurrentAccountRecordFromBrokerCallback {
-
-        /**
-         * Called once the signed-in account (if there is any), has been loaded from the broker.
-         * @param accountRecord The accountRecord in broker. This could be null.
-         */
-        void onAccountLoaded(@Nullable final AccountRecord accountRecord);
-    }
 
     private AccountRecord mLocalAccountRecord;
 
@@ -61,7 +47,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
         new BrokerMsalController().getCurrentAccount(
                 configuration,
-                new GetCurrentAccountRecordFromBrokerCallback() {
+                new BrokerMsalController.GetCurrentAccountRecordFromBrokerCallback() {
                     @Override
                     public void onAccountLoaded(@Nullable final AccountRecord accountRecordInBroker) {
                         IAccount localAccount = mLocalAccountRecord == null ? null : AccountAdapter.adapt(mLocalAccountRecord);

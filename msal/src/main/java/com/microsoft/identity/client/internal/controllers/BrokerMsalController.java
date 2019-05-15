@@ -35,10 +35,8 @@ import com.google.gson.Gson;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMicrosoftAuthService;
 import com.microsoft.identity.client.IPublicClientApplication;
-import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
-import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
@@ -82,6 +80,29 @@ public class BrokerMsalController extends BaseController {
      * ExecutorService to handle background computation.
      */
     private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
+
+    /**
+     * Callback for asynchronous loading of broker AccountRecords (in multiple account mode).
+     */
+    public interface GetAccountRecordsFromBrokerCallback {
+        /**
+         * Called once Accounts have been loaded from the broker.
+         * @param accountRecords The accountRecords in broker.
+         */
+        void onAccountsLoaded(List<AccountRecord> accountRecords);
+    }
+
+    /**
+     * Callback for asynchronous loading of broker AccountRecord of the current account (in single account mode).
+     */
+    public interface GetCurrentAccountRecordFromBrokerCallback {
+
+        /**
+         * Called once the signed-in account (if there is any), has been loaded from the broker.
+         * @param accountRecord The accountRecord in broker. This could be null.
+         */
+        void onAccountLoaded(@Nullable final AccountRecord accountRecord);
+    }
 
     @Override
     public AcquireTokenResult acquireToken(AcquireTokenOperationParameters parameters)
@@ -287,7 +308,7 @@ public class BrokerMsalController extends BaseController {
      * This only works when getBrokerAccountMode() is BROKER_ACCOUNT_MODE_SINGLE_ACCOUNT.
      * */
     public void getCurrentAccount(final PublicClientApplicationConfiguration configuration,
-                                  final SingleAccountPublicClientApplication.GetCurrentAccountRecordFromBrokerCallback callback) {
+                                  final GetCurrentAccountRecordFromBrokerCallback callback) {
 
         final String methodName = ":getCurrentAccount";
         final Handler handler = new Handler(Looper.getMainLooper());
@@ -341,7 +362,7 @@ public class BrokerMsalController extends BaseController {
      * this needs to be called on background thread.
      */
     public void getBrokerAccounts(final PublicClientApplicationConfiguration configuration,
-                                  final MultipleAccountPublicClientApplication.GetAccountRecordsFromBrokerCallback callback) {
+                                  final GetAccountRecordsFromBrokerCallback callback) {
 
         final String methodName = ":getBrokerAccounts";
         final Handler handler = new Handler(Looper.getMainLooper());
