@@ -74,15 +74,4 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
          */
         void onAccountsLoaded(List<IAccount> accounts);
     }
-
-    /**
-     * Callback for asynchronous loading of broker AccountRecord accounts (in Multiple account mode).
-     */
-    interface BrokerAccountsLoadedCallback {
-        /**
-         * Called once Accounts have been loaded from the broker.
-         * @param accountRecords The accountRecords in broker.
-         */
-        void onAccountsLoaded(List<AccountRecord> accountRecords);
-    }
 }

@@ -34,6 +34,17 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     implements IMultipleAccountPublicClientApplication {
     private static final String TAG = MultipleAccountPublicClientApplication.class.getSimpleName();
 
+    /**
+     * Callback for asynchronous loading of broker AccountRecord accounts (in Multiple account mode).
+     */
+    public interface GetAccountRecordsFromBrokerCallback {
+        /**
+         * Called once Accounts have been loaded from the broker.
+         * @param accountRecords The accountRecords in broker.
+         */
+        void onAccountsLoaded(List<AccountRecord> accountRecords);
+    }
+
     protected MultipleAccountPublicClientApplication(@NonNull final Context context,
                                                      @NonNull final PublicClientApplicationConfiguration developerConfig) {
         super(context, developerConfig);
@@ -161,7 +172,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
         new BrokerMsalController().getBrokerAccounts(
             mPublicClientConfiguration,
-            new BrokerAccountsLoadedCallback() {
+            new GetAccountRecordsFromBrokerCallback() {
                 @Override
                 public void onAccountsLoaded(final List<AccountRecord> accountRecords) {
                     com.microsoft.identity.common.internal.logging.Logger.verbose(

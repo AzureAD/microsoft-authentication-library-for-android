@@ -76,17 +76,4 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
          * */
         void onAccountChanged(final IAccount priorAccount, final IAccount currentAccount);
     }
-
-    /**
-     * Callback for asynchronous loading of broker AccountRecord account (in Single account mode).
-     */
-    interface SingleAccountLoadedCallback {
-
-        /**
-         * Called once the signed-in account (if there is any), has been loaded from the broker.
-         * @param accountRecord The accountRecord in broker. This could be null.
-         */
-        void onAccountLoaded(@Nullable final AccountRecord accountRecord);
-    }
-
 }
