@@ -35,7 +35,7 @@ import com.microsoft.identity.common.internal.util.StringUtil;
 /**
  * Adapter class for Account transformations.
  */
-public class AccountAdapter {
+class AccountAdapter {
 
     private static final String TAG = AccountAdapter.class.getSimpleName();
 
