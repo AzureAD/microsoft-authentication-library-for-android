@@ -43,6 +43,8 @@ import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.microsoft.identity.client.AcquireTokenParameters;
+import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.IAccount;
@@ -63,6 +65,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.crypto.SecretKey;
@@ -84,6 +87,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private String mAuthority;
     private String[] mScopes;
+    private String mResource;
     private UiBehavior mUiBehavior;
     private String mLoginHint;
     private List<Pair<String, String>> mExtraQp;
@@ -237,6 +241,70 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         callAcquireToken(mScopes, mUiBehavior, mLoginHint, mExtraQp, mExtraScopesToConsent);
     }
 
+    @Override
+    public void  onAcquireTokenWithResourceClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+        prepareRequestParameters(requestOptions);
+
+        if (mEnablePiiLogging) {
+            Logger.getInstance().setEnableLogcatLog(mEnablePiiLogging);
+        }
+
+        if (mEnablePiiLogging) {
+            Logger.getInstance().setEnablePII(true);
+        } else {
+            Logger.getInstance().setEnablePII(false);
+        }
+
+        try {
+            AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
+            AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(this)
+                    .withResource(mResource)
+                    .withUiBehavior(mUiBehavior)
+                    .withAuthorizationQueryStringParameters(mExtraQp)
+                    .callback(getAuthenticationCallback())
+                    .withLoginHint(mLoginHint)
+                    .build();
+
+            mApplication.acquireTokenAsync(acquireTokenParameters);
+        } catch (IllegalArgumentException e) {
+            showMessage(e.getMessage());
+        }
+    }
+
+    @Override
+    public void onAcquireTokenSilentWithResourceClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+        prepareRequestParameters(requestOptions);
+
+        //final IAccount requestAccount = getAccount();
+        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
+            @Override
+            public void onAccountsLoaded(final List<IAccount> accounts) {
+                IAccount requestAccount = null;
+
+                for (final IAccount account : accounts) {
+                    if (account.getUsername().equalsIgnoreCase(requestOptions.getLoginHint().trim())) {
+                        requestAccount = account;
+                        break;
+                    }
+                }
+
+                if (null != requestAccount) {
+                    AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
+                    AcquireTokenSilentParameters acquireTokenSilentParameters =
+                            builder.withResource(mResource)
+                                    .forAccount(requestAccount)
+                                    .forceRefresh(mForceRefresh)
+                                    .callback(getAuthenticationCallback())
+                                    .build();
+
+                    mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
+                } else {
+                    showMessage("No account found matching loginHint");
+                }
+            }
+        });
+    }
+
     public void onRemoveUserClicked(final String username) {
         mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
             @Override
@@ -326,6 +394,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         mScopes = scopes.toLowerCase().split(" ");
+        mResource = scopes.toLowerCase();
         mExtraScopesToConsent = requestOptions.getExtraScopesToConsent() == null ? null : requestOptions.getExtraScopesToConsent().toLowerCase().split(" ");
 
         if (userAgent.name().equalsIgnoreCase("BROWSER")) {

@@ -63,6 +63,8 @@ public class AcquireTokenFragment extends Fragment {
     private Button mClearCache;
     private Button mAcquireToken;
     private Button mAcquireTokenSilent;
+    private Button mAcquireTokenWithResource;
+    private Button mAcquireTokenSilentWithResource;
     private Spinner mSelectAccount;
     private Spinner mAADEnvironments;
 
@@ -89,6 +91,8 @@ public class AcquireTokenFragment extends Fragment {
         mClearCache = view.findViewById(R.id.btn_clearCache);
         mAcquireToken = view.findViewById(R.id.btn_acquiretoken);
         mAcquireTokenSilent = view.findViewById(R.id.btn_acquiretokensilent);
+        mAcquireTokenWithResource = view.findViewById(R.id.btn_acquiretokenWithResource);
+        mAcquireTokenSilentWithResource = view.findViewById(R.id.btn_acquiretokensilentWithResource);
         mAADEnvironments = view.findViewById(R.id.environment);
 
         bindSpinnerChoice(mAuthority, Constants.AuthorityType.class);
@@ -110,6 +114,23 @@ public class AcquireTokenFragment extends Fragment {
                     mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
                 }
                 mOnFragmentInteractionListener.onAcquireTokenSilentClicked(getCurrentRequestOptions());
+            }
+        });
+
+        mAcquireTokenWithResource.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mOnFragmentInteractionListener.onAcquireTokenWithResourceClicked(getCurrentRequestOptions());
+            }
+        });
+
+        mAcquireTokenSilentWithResource.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mSelectAccount.getSelectedItem() != null) {
+                    mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
+                }
+                mOnFragmentInteractionListener.onAcquireTokenSilentWithResourceClicked(getCurrentRequestOptions());
             }
         });
 
@@ -279,6 +300,10 @@ public class AcquireTokenFragment extends Fragment {
         void onAcquireTokenClicked(final RequestOptions requestOptions);
 
         void onAcquireTokenSilentClicked(final RequestOptions requestOptions);
+
+        void onAcquireTokenWithResourceClicked(final RequestOptions requestOptions);
+
+        void onAcquireTokenSilentWithResourceClicked(final RequestOptions requestOptions);
 
         void bindSelectAccountSpinner(Spinner selectAccount);
     }
