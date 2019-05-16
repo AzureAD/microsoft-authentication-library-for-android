@@ -51,6 +51,20 @@ public class OperationParametersAdapter {
 
     private static final String TAG = OperationParameters.class.getName();
 
+    public static OperationParameters createOperationParameters (
+            PublicClientApplicationConfiguration configuration) {
+        final OperationParameters parameters = new OperationParameters();
+        parameters.setAppContext(configuration.getAppContext());
+        parameters.setTokenCache(configuration.getOAuth2TokenCache());
+        parameters.setClientId(configuration.getClientId());
+        parameters.setRedirectUri(configuration.getRedirectUri());
+        parameters.setAuthority(configuration.getDefaultAuthority());
+        parameters.setApplicationName(configuration.getAppContext().getPackageName());
+        parameters.setApplicationVersion(getPackageVersion(configuration.getAppContext()));
+        parameters.setSdkVersion(PublicClientApplication.getSdkVersion());
+        return parameters;
+    }
+
     public static AcquireTokenOperationParameters createAcquireTokenOperationParameters(
             AcquireTokenParameters acquireTokenParameters,
             PublicClientApplicationConfiguration publicClientApplicationConfiguration) {

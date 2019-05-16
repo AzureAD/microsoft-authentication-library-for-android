@@ -25,6 +25,7 @@ package com.microsoft.identity.client.internal.controllers;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.WorkerThread;
 import android.text.TextUtils;
 
 import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
@@ -48,11 +49,13 @@ import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
+import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -253,31 +256,41 @@ public class LocalMSALController extends BaseController {
         return acquireTokenSilentResult;
     }
 
-    public void removeLocalAccount(@Nullable final IAccount account,
-                                   @NonNull final PublicClientApplicationConfiguration configuration,
-                                   @NonNull final PublicClientApplication.AccountsRemovedCallback callback) {
-        // FEATURE SWITCH: Set to false to allow deleting Accounts in a tenant-specific way.
+    @Override
+    @WorkerThread
+    public List<AccountRecord> getAccounts(@NonNull final OperationParameters parameters) {
+        final List<AccountRecord> accountsInCache =
+                parameters
+                        .getTokenCache()
+                        .getAccounts(
+                                null, // * wildcard
+                                parameters.getClientId()
+                        );
+
+        return accountsInCache;
+    }
+
+    @Override
+    @WorkerThread
+    public boolean removeAccount(@NonNull final OperationParameters parameters) {
         final boolean deleteHomeAndGuestAccounts = true;
         String realm = null;
 
         if (deleteHomeAndGuestAccounts) {
-            if (account!= null
-                    && null != account.getAccountIdentifier() // This is an AAD account w/ tenant info
-                    && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier) {
-                final AzureActiveDirectoryAccountIdentifier identifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier();
-                realm = identifier.getTenantIdentifier();
+            if (parameters.getAccount()!= null) {
+                realm = parameters.getAccount().getRealm();
             }
         }
 
-        final boolean localRemoveAccountSuccess = !configuration
-                .getOAuth2TokenCache()
+        final boolean localRemoveAccountSuccess = !parameters
+                .getTokenCache()
                 .removeAccount(
-                        account == null? null : account.getEnvironment(),
-                        configuration.getClientId(),
-                        account == null? null : account.getHomeAccountIdentifier().getIdentifier(),
+                        parameters.getAccount() == null? null : parameters.getAccount().getEnvironment(),
+                        parameters.getClientId(),
+                        parameters.getAccount() == null? null : parameters.getAccount().getHomeAccountId(),
                         realm
                 ).isEmpty();
 
-        callback.onAccountsRemoved(localRemoveAccountSuccess);
+        return localRemoveAccountSuccess;
     }
 }

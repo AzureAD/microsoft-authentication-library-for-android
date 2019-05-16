@@ -24,14 +24,19 @@ package com.microsoft.identity.client.internal.controllers;
 
 import android.accounts.AccountManager;
 import android.accounts.AuthenticatorDescription;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
 
 import com.microsoft.identity.client.IMicrosoftAuthService;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
+import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
@@ -55,6 +60,7 @@ import java.util.List;
  * app configuration, device state
  */
 public class MSALControllerFactory {
+    private static final String TAG = MSALControllerFactory.class.getName();
 
     /**
      * Returns the appropriate MSAL Controller depending on Authority, App and Device state
@@ -71,7 +77,8 @@ public class MSALControllerFactory {
 
     public static BaseController getAcquireTokenController(@NonNull final Context applicationContext,
                                                            @NonNull final Authority authority,
-                                                           @NonNull final PublicClientApplicationConfiguration applicationConfiguration) {
+                                                           @NonNull final PublicClientApplicationConfiguration applicationConfiguration)
+            throws MsalClientException {
         if (brokerEligible(applicationContext, authority, applicationConfiguration)) {
             return new BrokerMsalController();
         } else {
@@ -97,7 +104,8 @@ public class MSALControllerFactory {
      */
     public static List<BaseController> getAcquireTokenSilentControllers(@NonNull final Context applicationContext,
                                                                         @NonNull final Authority authority,
-                                                                        @NonNull final PublicClientApplicationConfiguration applicationConfiguration) {
+                                                                        @NonNull final PublicClientApplicationConfiguration applicationConfiguration)
+            throws MsalClientException {
         List<BaseController> controllers = new ArrayList<>();
         controllers.add(new LocalMSALController());
         if (brokerEligible(applicationContext, authority, applicationConfiguration)) {
@@ -122,7 +130,8 @@ public class MSALControllerFactory {
      */
     public static boolean brokerEligible(@NonNull final Context applicationContext,
                                          @NonNull Authority authority,
-                                         @NonNull PublicClientApplicationConfiguration applicationConfiguration) {
+                                         @NonNull PublicClientApplicationConfiguration applicationConfiguration)
+            throws MsalClientException {
         //If app has asked for Broker or if the authority is not AAD return false
         if (!applicationConfiguration.getUseBroker() || !(authority instanceof AzureActiveDirectoryAuthority)) {
             return false;
@@ -135,14 +144,42 @@ public class MSALControllerFactory {
             return false;
         }
 
-        // Use broker if installed and verified
-        if (brokerInstalled(applicationContext)
-                && (BrokerMsalController.isMicrosoftAuthServiceSupported(applicationContext)
-                || BrokerMsalController.isAccountManagerPermissionsGranted(applicationContext))) {
-            return true;
+        // Check if broker installed
+        if (!brokerInstalled(applicationContext)) {
+            return false;
         }
 
-        return false;
+        // Check if MicrosoftAuthService supported or AccountManager permission granted
+        if (BrokerMsalController.isMicrosoftAuthServiceSupported(applicationContext)
+                || BrokerMsalController.isAccountManagerPermissionsGranted(applicationContext)) {
+           return true;
+        } else if (!BrokerMsalController.isMicrosoftAuthServiceSupported(applicationContext)
+                && powerOptimizationEnabled(applicationContext)) {
+            // Unable to bind with broker and the power optimization enabled.
+            // Need to request for the power optimization whitelisted.
+            //TODO should we distinguish the error code here?
+            throw new MsalClientException(MsalClientException.BROKER_BIND_FAILURE, "Unable to connect to the broker.");
+        } else {
+            // Unable to bind with broker even the power optimization disabled.
+            // Need to fallback to the account manager, but the permission is missing.
+            //TODO should we distinguish the error code here?
+            throw new MsalClientException(MsalClientException.BROKER_BIND_FAILURE, "Unable to connect to the broker.");
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private static boolean powerOptimizationEnabled(@NonNull final Context applicationContext) {
+        final String methodName = ":powerOptimizationEnabled";
+        final String packageName = applicationContext.getPackageName();
+        PowerManager pm = (PowerManager) applicationContext.getSystemService(Context.POWER_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && null != pm) {
+            final boolean isPowerOptimizationOn = !pm.isIgnoringBatteryOptimizations(packageName);
+            Logger.verbose(TAG + methodName, "Is power optimization on? [" + isPowerOptimizationOn + "]");
+            return isPowerOptimizationOn;
+        } else {
+            Logger.verbose(TAG + methodName, "Is power optimization on? [" + false + "]");
+            return false;
+        }
     }
 
     /**
@@ -172,54 +209,5 @@ public class MSALControllerFactory {
         }
 
         return false;
-    }
-
-    //This should be a background call..
-    private static void sayHelloToBroker(@NonNull final PublicClientApplicationConfiguration configuration)
-            throws ClientException {
-
-        IMicrosoftAuthService service;
-
-        final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
-        final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
-
-        try {
-            service = authServiceFuture.get();
-            final Bundle requestBundle = new Bundle();
-            requestBundle.putString(
-                    AuthenticationConstants.Broker.CLIENT_ADVERTISED_MAXIMUM_BP_VERSION_KEY,
-                    AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION_CODE
-            );
-
-            if (!StringUtil.isEmpty(configuration.getRequiredBrokerProtocolVersion())) {
-                requestBundle.putString(
-                        AuthenticationConstants.Broker.CLIENT_CONFIGURED_MINIMUM_BP_VERSION_KEY,
-                        configuration.getRequiredBrokerProtocolVersion()
-                );
-            }
-
-            final Bundle resultBundle = service.hello(requestBundle);
-            if (null == resultBundle) {
-                throw new ClientException(
-                        ErrorStrings.BROKER_BIND_SERVICE_FAILED,
-                        "Unable to verify the broker app."
-                );
-            } else if (null != requestBundle.getString(AuthenticationConstants.OAuth2.ERROR)) {
-                throw new ClientException(
-                        requestBundle.getString(AuthenticationConstants.OAuth2.ERROR),
-                        resultBundle.getString(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION)
-                );
-            }
-        } catch (RemoteException e) {
-            throw new ClientException(ErrorStrings.BROKER_BIND_SERVICE_FAILED,
-                    "Exception occurred while attempting to invoke remote service",
-                    e);
-        } catch (Exception e) {
-            throw new ClientException(ErrorStrings.BROKER_BIND_SERVICE_FAILED,
-                    "Exception occurred while awaiting (get) return of MicrosoftAuthService",
-                    e);
-        } finally {
-            client.disconnect();
-        }
     }
 }
