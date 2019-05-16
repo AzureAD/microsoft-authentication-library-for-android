@@ -34,15 +34,16 @@ import android.support.annotation.Nullable;
 import com.google.gson.Gson;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMicrosoftAuthService;
-import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.broker.BrokerRequest;
+import com.microsoft.identity.common.internal.broker.BrokerResult;
 import com.microsoft.identity.common.internal.broker.BrokerResultFuture;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthServiceFuture;
@@ -79,6 +80,29 @@ public class BrokerMsalController extends BaseController {
      * ExecutorService to handle background computation.
      */
     private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
+
+    /**
+     * Callback for asynchronous loading of broker AccountRecords (in multiple account mode).
+     */
+    public interface GetAccountRecordsFromBrokerCallback {
+        /**
+         * Called once Accounts have been loaded from the broker.
+         * @param accountRecords The accountRecords in broker.
+         */
+        void onAccountsLoaded(List<AccountRecord> accountRecords);
+    }
+
+    /**
+     * Callback for asynchronous loading of broker AccountRecord of the current account (in single account mode).
+     */
+    public interface GetCurrentAccountRecordFromBrokerCallback {
+
+        /**
+         * Called once the signed-in account (if there is any), has been loaded from the broker.
+         * @param accountRecord The accountRecord in broker. This could be null.
+         */
+        void onAccountLoaded(@Nullable final AccountRecord accountRecord);
+    }
 
     @Override
     public AcquireTokenResult acquireToken(AcquireTokenOperationParameters parameters)
@@ -203,13 +227,20 @@ public class BrokerMsalController extends BaseController {
     }
 
     /**
-     * Get MSAL PublicClientApplication mode from Broker.
+     * Get device mode from Broker.
      * */
-    public void getBrokerAccountMode(final Context appContext,
-                                     final PublicClientApplication.BrokerAccountModeCallback callback) {
+    public void getBrokerDeviceMode(final Context appContext,
+                                    final PublicClientApplication.BrokerDeviceModeCallback callback) {
 
         final String methodName = ":getBrokerAccountMode";
         final Handler handler = new Handler(Looper.getMainLooper());
+
+        if (!MSALControllerFactory.brokerInstalled(appContext)) {
+            final String errorMessage = "Broker app is not installed on the device. Returning default (multiple account) mode.";
+            com.microsoft.identity.common.internal.logging.Logger.verbose(TAG + methodName, errorMessage, null);
+            callback.onGetMode(false);
+            return;
+        }
 
         sBackgroundExecutor.submit(new Runnable() {
             @Override
@@ -221,10 +252,10 @@ public class BrokerMsalController extends BaseController {
 
                     service = authServiceFuture.get();
 
-                    final String mode =
+                    final boolean mode =
                         MsalBrokerResultAdapter
-                            .accountModeFromBundle(
-                                service.getAccountMode()
+                            .deviceModeFromBundle(
+                                service.getDeviceMode()
                             );
 
                     handler.post(new Runnable() {
@@ -234,16 +265,15 @@ public class BrokerMsalController extends BaseController {
                         }
                     });
                 } catch (final ClientException | InterruptedException | ExecutionException | RemoteException e) {
+                    final String errorMessage = "Exception is thrown when trying to get current mode from Broker";
                     com.microsoft.identity.common.internal.logging.Logger.error(
                         TAG + methodName,
-                        "Exception is thrown when trying to get current account from Broker, returning default mode."
-                            + e.getMessage(),
-                        ErrorStrings.IO_ERROR,
+                        errorMessage,
                         e);
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onGetMode(AuthenticationConstants.Broker.BROKER_ACCOUNT_MODE_MULTIPLE_ACCOUNT);
+                            callback.onError(new MsalClientException(MsalClientException.IO_ERROR, errorMessage, e));
                         }
                     });
                 } finally {
@@ -274,11 +304,65 @@ public class BrokerMsalController extends BaseController {
     }
 
     /**
+     * Get the currently signed-in account, if there's any.
+     * This only works when getBrokerAccountMode() is BROKER_ACCOUNT_MODE_SINGLE_ACCOUNT.
+     * */
+    public void getCurrentAccount(final PublicClientApplicationConfiguration configuration,
+                                  final GetCurrentAccountRecordFromBrokerCallback callback) {
+
+        final String methodName = ":getCurrentAccount";
+        final Handler handler = new Handler(Looper.getMainLooper());
+
+        sBackgroundExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                IMicrosoftAuthService service;
+                final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
+                try {
+                    final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
+
+                    service = authServiceFuture.get();
+
+                    final AccountRecord accountRecord =
+                        MsalBrokerResultAdapter
+                            .currentAccountFromBundle(
+                                service.getCurrentAccount()
+                            );
+
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onAccountLoaded(accountRecord);
+                        }
+                    });
+                } catch (final ClientException | InterruptedException | ExecutionException | RemoteException e) {
+                    com.microsoft.identity.common.internal.logging.Logger.error(
+                        TAG + methodName,
+                        "Exception is thrown when trying to get current account from Broker, returning nothing."
+                            + e.getMessage(),
+                        e);
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onAccountLoaded(null);
+                        }
+                    });
+                } finally {
+                    client.disconnect();
+                }
+            }
+        });
+    }
+
+    /**
+     * Returns list of accounts that has previously been used to acquire token with broker through the calling app.
+     * This only works when getBrokerAccountMode() is BROKER_ACCOUNT_MODE_MULTIPLE_ACCOUNT.
+     *
      * This method might be called on an UI thread, since we connect to broker,
      * this needs to be called on background thread.
      */
     public void getBrokerAccounts(final PublicClientApplicationConfiguration configuration,
-                                  final IMultipleAccountPublicClientApplication.BrokerAccountsLoadedCallback callback) {
+                                  final GetAccountRecordsFromBrokerCallback callback) {
 
         final String methodName = ":getBrokerAccounts";
         final Handler handler = new Handler(Looper.getMainLooper());
@@ -311,7 +395,6 @@ public class BrokerMsalController extends BaseController {
                             TAG + methodName,
                             "Exception is thrown when trying to get account from Broker, returning empty list."
                                     + e.getMessage(),
-                            ErrorStrings.IO_ERROR,
                             e);
                     handler.post(new Runnable() {
                         @Override
@@ -324,7 +407,6 @@ public class BrokerMsalController extends BaseController {
                 }
             }
         });
-
     }
 
     private Bundle getRequestBundleForGetAccounts(@NonNull PublicClientApplicationConfiguration configuration) {
@@ -335,9 +417,9 @@ public class BrokerMsalController extends BaseController {
         return requestBundle;
     }
 
-    public void removeBrokerAccount(@Nullable final IAccount account,
-                                    @NonNull final PublicClientApplicationConfiguration configuration,
-                                    @NonNull final IPublicClientApplication.AccountRemovedListener callback) {
+    public void removeAccount(@Nullable final IAccount account,
+                              @NonNull final PublicClientApplicationConfiguration configuration,
+                              @NonNull final IPublicClientApplication.AccountRemovedListener callback) {
         sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
@@ -364,7 +446,6 @@ public class BrokerMsalController extends BaseController {
                             TAG,
                             "Exception is thrown when trying to get target account."
                                     + e.getMessage(),
-                            ErrorStrings.IO_ERROR,
                             e);
                 } finally {
                     client.disconnect();
@@ -382,6 +463,68 @@ public class BrokerMsalController extends BaseController {
             requestBundle.putString(ACCOUNT_LOGIN_HINT, account.getUsername());
         }
 
+        return requestBundle;
+    }
+
+    /**
+     * Given an account, perform a global sign-out from this shared device (End my shift capability).
+     * This will invoke Broker and
+     * 1. Remove account from token cache.
+     * 2. Remove account from AccountManager.
+     * 3. Clear WebView cookies.
+     * 4. Sign out from default browser.
+     * */
+    public void removeAccountFromSharedDevice(@NonNull final IAccount account,
+                                              @NonNull final PublicClientApplicationConfiguration configuration,
+                                              @NonNull final IPublicClientApplication.AccountRemovedListener callback) {
+
+        sBackgroundExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                IMicrosoftAuthService service;
+                final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
+
+                try {
+                    final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
+                    service = authServiceFuture.get();
+                    final Bundle requestBundle = getRequestBundleForGlobalSignOut(account);
+                    final Bundle resultBundle = service.removeAccountFromSharedDevice(requestBundle);
+
+                    Handler handler = new Handler(Looper.getMainLooper());
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (resultBundle == null){
+                                callback.onAccountRemoved(true);
+                            } else {
+                                BrokerResult brokerResult = (BrokerResult) resultBundle.getSerializable(AuthenticationConstants.Broker.BROKER_RESULT_V2);
+                                com.microsoft.identity.common.internal.logging.Logger.error(
+                                    TAG,
+                                    "Failed to perform global sign-out."
+                                        + brokerResult.getErrorMessage(),
+                                    null);
+
+                                callback.onAccountRemoved(false);
+                            }
+                        }
+                    });
+                } catch (final BaseException | InterruptedException | ExecutionException | RemoteException e) {
+                    com.microsoft.identity.common.internal.logging.Logger.error(
+                        TAG,
+                        "Exception is thrown when trying to perform global sign-out."
+                            + e.getMessage(),
+                        e);
+                    callback.onAccountRemoved(false);
+                } finally {
+                    client.disconnect();
+                }
+            }
+        });
+    }
+
+    private Bundle getRequestBundleForGlobalSignOut(@NonNull final IAccount account) {
+        final Bundle requestBundle = new Bundle();
+        requestBundle.putString(ACCOUNT_LOGIN_HINT, account.getUsername());
         return requestBundle;
     }
 }

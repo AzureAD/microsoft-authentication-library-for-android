@@ -64,7 +64,7 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
     void removeAccount(@Nullable final IAccount account, final AccountRemovedListener callback);
 
     /**
-     * Listener callback for asynchronous loading of msal IAccount accounts.
+     * Callback for asynchronous loading of msal IAccount accounts.
      */
     interface AccountsLoadedCallback {
         /**
@@ -73,16 +73,5 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
          * @param accounts The accounts in the cache.
          */
         void onAccountsLoaded(List<IAccount> accounts);
-    }
-
-    /**
-     * Listener callback for asynchronous loading of broker AccountRecord accounts.
-     */
-    interface BrokerAccountsLoadedCallback {
-        /**
-         * Called once Accounts have been loaded from the broker.
-         * @param accountRecords The accountRecords in broker.
-         */
-        void onAccountsLoaded(List<AccountRecord> accountRecords);
     }
 }
