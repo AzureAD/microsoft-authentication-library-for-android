@@ -46,7 +46,7 @@ class AccountAdapter {
      * @return A representation of the supplied Account, as an IAccount.
      */
     @NonNull
-    public static IAccount adapt(@NonNull final IAccountRecord accountIn) {
+    static IAccount adapt(@NonNull final IAccountRecord accountIn) {
         final String methodName = ":adapt";
         final com.microsoft.identity.client.Account accountOut
                 = new com.microsoft.identity.client.Account();
@@ -62,11 +62,6 @@ class AccountAdapter {
             );
 
             // This account came from AAD
-            accountId = new AzureActiveDirectoryAccountIdentifier() {{ // This is the local_account_id
-                setIdentifier(accountIn.getLocalAccountId());
-                setObjectIdentifier(accountIn.getLocalAccountId());
-                setTenantIdentifier(accountIn.getRealm());
-            }};
             homeAccountId = new AzureActiveDirectoryAccountIdentifier() {{ // This is the home_account_id
                 // Grab the homeAccountId
                 final String homeAccountIdStr = accountIn.getHomeAccountId();
@@ -83,13 +78,26 @@ class AccountAdapter {
                 // Set the utid as the tenantId
                 setTenantIdentifier(components[1]);
             }};
+
+            if (StringUtil.isEmpty(accountIn.getLocalAccountId())) {
+                accountId = homeAccountId;
+            } else {
+                accountId = new AzureActiveDirectoryAccountIdentifier() {{ // This is the local_account_id
+                    setIdentifier(accountIn.getLocalAccountId());
+                    setObjectIdentifier(accountIn.getLocalAccountId());
+                    setTenantIdentifier(accountIn.getRealm());
+                }};
+            }
+
         } else { // This Account came from IdP other than AAD.
             Logger.info(
                     TAG + methodName,
                     "Account is non-AAD"
             );
             accountId = new AccountIdentifier() {{
-                setIdentifier(accountIn.getLocalAccountId());
+                setIdentifier(StringUtil.isEmpty(accountIn.getLocalAccountId())?
+                        accountIn.getHomeAccountId() : accountIn.getLocalAccountId()
+                );
             }};
             homeAccountId = new AccountIdentifier() {{
                 setIdentifier(accountIn.getHomeAccountId());

@@ -512,30 +512,33 @@ public final class PublicClientApplication {
                 );
 
                 callback.onSuccess(false);
+            } else {
+                final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+                if (null == getAccountRecord(account)) {
+                    // If could not find the account record in local msal cache
+                    // Create the pass along account record object to broker
+                    final AccountRecord requestAccountRecord = new AccountRecord();
+                    //requestAccountRecord.setEnvironment(account.getEnvironment());
+                    requestAccountRecord.setUsername(account.getUsername());
+                    requestAccountRecord.setHomeAccountId(account.getHomeAccountIdentifier().getIdentifier());
+                    requestAccountRecord.setAlternativeAccountId(account.getAccountIdentifier().getIdentifier());
+                    params.setAccount(requestAccountRecord);
+                } else {
+                    params.setAccount(getAccountRecord(account));
+                }
+
+                final RemoveAccountCommand command = new RemoveAccountCommand(
+                        params,
+                        MSALControllerFactory.getAcquireTokenController(
+                                mPublicClientConfiguration.getAppContext(),
+                                params.getAuthority(),
+                                mPublicClientConfiguration
+                        ),
+                        callback
+                );
+
+                ApiDispatcher.removeAccount(command);
             }
-
-            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
-            params.setAccount(
-                    AccountAdapter.getAccountInternal(
-                            params.getClientId(),
-                            params.getTokenCache(),
-                            account.getHomeAccountIdentifier().getIdentifier(),
-                            AccountAdapter.getRealm(account)
-                            )
-            );
-
-            final RemoveAccountCommand command = new RemoveAccountCommand(
-                    params,
-                    MSALControllerFactory.getAcquireTokenController(
-                            mPublicClientConfiguration.getAppContext(),
-                            params.getAuthority(),
-                            mPublicClientConfiguration
-                    ),
-                    callback
-            );
-
-            ApiDispatcher.removeAccount(command);
-
         } catch (final MsalClientException e) {
             callback.onError(e);
         }
