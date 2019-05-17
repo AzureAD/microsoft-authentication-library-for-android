@@ -42,7 +42,8 @@ import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.microsoft.identity.client.AccountAdapter;
+import com.microsoft.identity.client.AcquireTokenParameters;
+import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.IAccount;
@@ -58,8 +59,6 @@ import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.internal.controllers.IAccountCallback;
-import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.dto.IAccountRecord;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.io.Serializable;
@@ -88,6 +87,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private String mAuthority;
     private String[] mScopes;
+    private String mResource;
     private UiBehavior mUiBehavior;
     private String mLoginHint;
     private List<Pair<String, String>> mExtraQp;
@@ -241,14 +241,83 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         callAcquireToken(mScopes, mUiBehavior, mLoginHint, mExtraQp, mExtraScopesToConsent);
     }
 
-    public void onRemoveUserClicked(final String username) {
-        mApplication.getAccounts(new IAccountCallback<List<AccountRecord>>() {
+    @Override
+    public void  onAcquireTokenWithResourceClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+        prepareRequestParameters(requestOptions);
+
+        if (mEnablePiiLogging) {
+            Logger.getInstance().setEnableLogcatLog(mEnablePiiLogging);
+        }
+
+        if (mEnablePiiLogging) {
+            Logger.getInstance().setEnablePII(true);
+        } else {
+            Logger.getInstance().setEnablePII(false);
+        }
+
+        try {
+            AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
+            AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(this)
+                    .withResource(mResource)
+                    .withUiBehavior(mUiBehavior)
+                    .withAuthorizationQueryStringParameters(mExtraQp)
+                    .callback(getAuthenticationCallback())
+                    .withLoginHint(mLoginHint)
+                    .build();
+
+            mApplication.acquireTokenAsync(acquireTokenParameters);
+        } catch (IllegalArgumentException e) {
+            showMessage(e.getMessage());
+        }
+    }
+
+    @Override
+    public void onAcquireTokenSilentWithResourceClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+        prepareRequestParameters(requestOptions);
+
+        //final IAccount requestAccount = getAccount();
+        mApplication.getAccounts(new IAccountCallback<List<IAccount>>() {
             @Override
-            public void onSuccess(List<AccountRecord> accountsToRemove) {
-                for (final AccountRecord accountToRemove : accountsToRemove) {
+            public void onSuccess(final List<IAccount> accounts) {
+                IAccount requestAccount = null;
+
+                for (final IAccount account : accounts) {
+                    if (account.getUsername().equalsIgnoreCase(requestOptions.getLoginHint().trim())) {
+                        requestAccount = account;
+                        break;
+                    }
+                }
+
+                if (null != requestAccount) {
+                    AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
+                    AcquireTokenSilentParameters acquireTokenSilentParameters =
+                            builder.withResource(mResource)
+                                    .forAccount(requestAccount)
+                                    .forceRefresh(mForceRefresh)
+                                    .callback(getAuthenticationCallback())
+                                    .build();
+
+                    mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
+                } else {
+                    showMessage("No account found matching loginHint");
+                }
+            }
+
+            @Override
+            public void onError(final Exception exception) {
+                showMessage("No account found matching loginHint");
+            }
+        });
+    }
+
+    public void onRemoveUserClicked(final String username) {
+        mApplication.getAccounts(new IAccountCallback<List<IAccount>>() {
+            @Override
+            public void onSuccess(List<IAccount> accountsToRemove) {
+                for (final IAccount accountToRemove : accountsToRemove) {
                     if (StringUtil.isEmpty(username) || accountToRemove.getUsername().equalsIgnoreCase(username.trim())) {
                         mApplication.removeAccount(
-                                AccountAdapter.adapt(accountToRemove),
+                                accountToRemove,
                                 new IAccountCallback<Boolean>() {
                                     @Override
                                     public void onSuccess(Boolean isSuccess) {
@@ -286,14 +355,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         prepareRequestParameters(requestOptions);
 
         //TODO need an adapt layer to adapt the AccountRecord to IAccount
-        mApplication.getAccounts(new IAccountCallback<List<AccountRecord>>() {
+        mApplication.getAccounts(new IAccountCallback<List<IAccount>>() {
             @Override
-            public void onSuccess(final List<AccountRecord> accounts) {
+            public void onSuccess(final List<IAccount> accounts) {
                 IAccount requestAccount = null;
 
-                for (final AccountRecord account : accounts) {
+                for (final IAccount account : accounts) {
                     if (account.getUsername().equalsIgnoreCase(requestOptions.getLoginHint().trim())) {
-                        requestAccount = AccountAdapter.adapt(account);
+                        requestAccount = account;
                         break;
                     }
                 }
@@ -315,13 +384,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void bindSelectAccountSpinner(final Spinner selectUser) {
-        mApplication.getAccounts(new IAccountCallback<List<AccountRecord>>() {
+        mApplication.getAccounts(new IAccountCallback<List<IAccount>>() {
             @Override
-            public void onSuccess(final List<AccountRecord> accounts) {
+            public void onSuccess(final List<IAccount> accounts) {
                 final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
                         getApplicationContext(), android.R.layout.simple_spinner_item,
                         new ArrayList<String>() {{
-                            for (AccountRecord account : accounts)
+                            for (IAccount account : accounts)
                                 add(account.getUsername());
                         }}
                 );
@@ -354,6 +423,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         mScopes = scopes.toLowerCase().split(" ");
+        mResource = scopes.toLowerCase();
         mExtraScopesToConsent = requestOptions.getExtraScopesToConsent() == null ? null : requestOptions.getExtraScopesToConsent().toLowerCase().split(" ");
 
         if (userAgent.name().equalsIgnoreCase("BROWSER")) {

@@ -27,7 +27,6 @@ import android.accounts.AccountManager;
 import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -38,15 +37,10 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 
 import com.google.gson.Gson;
-import com.microsoft.identity.client.AccountAdapter;
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMicrosoftAuthService;
-import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
@@ -151,6 +145,7 @@ public class BrokerMsalController extends BaseController {
                             msalBrokerRequestAdapter.brokerRequestFromAcquireTokenParameters(parameters),
                             BrokerRequest.class)
             );
+            interactiveRequestIntent.putExtra(AuthenticationConstants.Broker.ACCOUNT_NAME, parameters.getLoginHint());
         } else {
             Logger.verbose(TAG + methodName, "Is microsoft auth service supported? " + "[no]");
             Logger.verbose(TAG + methodName, "Get the broker authorization intent from Account Manager.");

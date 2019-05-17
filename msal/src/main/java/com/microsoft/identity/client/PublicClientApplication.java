@@ -43,8 +43,6 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
-import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
-import com.microsoft.identity.client.internal.controllers.LocalMSALController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
@@ -74,7 +72,6 @@ import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
 import com.microsoft.identity.common.internal.controllers.RemoveAccountCommand;
 import com.microsoft.identity.common.internal.controllers.TokenCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.dto.IAccountRecord;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
@@ -99,6 +96,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -358,7 +356,7 @@ public final class PublicClientApplication {
      *
      * @param callback The callback to notify once this action has finished.
      */
-    public void getAccounts(@NonNull final IAccountCallback callback) {
+    public void getAccounts(@NonNull final IAccountCallback<List<IAccount>> callback) {
         ApiDispatcher.initializeDiagnosticContext();
         final String methodName = ":getAccounts";
         final List<AccountRecord> accounts =
@@ -433,7 +431,7 @@ public final class PublicClientApplication {
                             params.getAuthority(),
                             mPublicClientConfiguration
                     ),
-                    callback
+                    getLoadAccountsCallback(callback)
             );
 
             ApiDispatcher.getAccounts(command);
@@ -1211,6 +1209,29 @@ public final class PublicClientApplication {
                 accountCredentialCache,
                 accountCredentialAdapter
         );
+    }
+
+    private static IAccountCallback<List<AccountRecord>> getLoadAccountsCallback (
+            final IAccountCallback<List<IAccount>> loadAccountsCallback) {
+        return new IAccountCallback<List<AccountRecord>>() {
+            @Override
+            public void onSuccess(final List<AccountRecord> result) {
+                if (null == result) {
+                    loadAccountsCallback.onSuccess(null);
+                } else {
+                    final List<IAccount> resultAccounts = new ArrayList<>();
+                    for (AccountRecord accountRecord : result) {
+                        resultAccounts.add(AccountAdapter.adapt(accountRecord));
+                    }
+                    loadAccountsCallback.onSuccess(resultAccounts);
+                }
+            }
+
+            @Override
+            public void onError(final Exception exception) {
+                loadAccountsCallback.onError(exception);
+            }
+        };
     }
 
     private static ILocalAuthenticationCallback getLocalAuthenticationCallback(final AuthenticationCallback authenticationCallback) {

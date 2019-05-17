@@ -24,14 +24,9 @@ package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Intent;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 import android.text.TextUtils;
 
-import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
-import com.microsoft.identity.client.IAccount;
-import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.exception.ArgumentException;
 import com.microsoft.identity.common.exception.ClientException;
