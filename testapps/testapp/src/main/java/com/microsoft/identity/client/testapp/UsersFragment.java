@@ -36,10 +36,8 @@ import android.widget.ListView;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.microsoft.identity.client.AccountAdapter;
 import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
 import com.microsoft.identity.client.IAccount;
-import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.common.internal.controllers.IAccountCallback;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
@@ -69,13 +67,13 @@ public class UsersFragment extends Fragment {
         mUserList = view.findViewById(R.id.user_list);
 
         final PublicClientApplication pca = ((MainActivity) this.getActivity()).getPublicClientApplication();
-        pca.getAccounts(new IAccountCallback<List<AccountRecord>>() {
+        pca.getAccounts(new IAccountCallback<List<IAccount>>() {
             @Override
-            public void onSuccess(final List<AccountRecord> accounts) {
+            public void onSuccess(final List<IAccount> accounts) {
                 mGson = new GsonBuilder().setPrettyPrinting().create();
                 final List<String> serializedUsers = new ArrayList<>(accounts.size());
-                for (final AccountRecord account : accounts) {
-                    JsonObject jsonAcct = transformToJson(AccountAdapter.adapt(account));
+                for (final IAccount account : accounts) {
+                    JsonObject jsonAcct = transformToJson(account);
                     serializedUsers.add(mGson.toJson(jsonAcct));
                 }
 
@@ -85,8 +83,8 @@ public class UsersFragment extends Fragment {
                 mUserList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        final AccountRecord selectedAccount = accounts.get(position);
-                        ((MainActivity) getActivity()).setUser(AccountAdapter.adapt(selectedAccount));
+                        final IAccount selectedAccount = accounts.get(position);
+                        ((MainActivity) getActivity()).setUser(selectedAccount);
                         getFragmentManager().popBackStack();
                     }
                 });

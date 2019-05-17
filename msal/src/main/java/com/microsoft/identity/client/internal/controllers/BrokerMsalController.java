@@ -91,11 +91,6 @@ public class BrokerMsalController extends BaseController {
 
     private BrokerResultFuture mBrokerResultFuture;
 
-    /**
-     * ExecutorService to handle background computation.
-     */
-    private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
-
     @Override
     public AcquireTokenResult acquireToken(AcquireTokenOperationParameters parameters)
             throws InterruptedException, BaseException {
