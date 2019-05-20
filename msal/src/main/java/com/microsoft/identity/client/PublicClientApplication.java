@@ -66,7 +66,7 @@ import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
-import com.microsoft.identity.common.internal.controllers.IAccountCallback;
+import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
 import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
 import com.microsoft.identity.common.internal.controllers.RemoveAccountCommand;
@@ -351,12 +351,44 @@ public final class PublicClientApplication {
         return mPublicClientConfiguration;
     }
 
+    public interface LoadAccountCallback extends TaskCompletedCallbackWithError<List<IAccount>, Exception> {
+        /**
+         * Called once succeed and pass the result object.
+         *
+         * @param result the success result.
+         */
+        void onTaskCompleted(List<IAccount> result);
+
+        /**
+         * Called once exception thrown.
+         *
+         * @param exception
+         */
+        void onError(Exception exception);
+    }
+
+    public interface RemoveAccountCallback extends TaskCompletedCallbackWithError<Boolean, Exception> {
+        /**
+         * Called once succeed and pass the result object.
+         *
+         * @param result the success result.
+         */
+        void onTaskCompleted(Boolean result);
+
+        /**
+         * Called once exception thrown.
+         *
+         * @param exception
+         */
+        void onError(Exception exception);
+    }
+
     /**
      * Asynchronously returns a List of {@link IAccount} objects for which this application has RefreshTokens.
      *
      * @param callback The callback to notify once this action has finished.
      */
-    public void getAccounts(@NonNull final IAccountCallback<List<IAccount>> callback) {
+    public void getAccounts(@NonNull final LoadAccountCallback callback) {
         ApiDispatcher.initializeDiagnosticContext();
         final String methodName = ":getAccounts";
         final List<AccountRecord> accounts =
@@ -499,7 +531,7 @@ public final class PublicClientApplication {
      * @param account The IAccount whose entry and associated tokens should be removed.
      * @return True, if the account was removed. False otherwise.
      */
-    public void removeAccount(@Nullable final IAccount account, final IAccountCallback<Boolean> callback) {
+    public void removeAccount(@Nullable final IAccount account, final RemoveAccountCallback callback) {
         ApiDispatcher.initializeDiagnosticContext();
         //create the parameter
         try {
@@ -511,7 +543,7 @@ public final class PublicClientApplication {
                         "Requisite IAccount or IAccount fields were null. Insufficient criteria to remove IAccount."
                 );
 
-                callback.onSuccess(false);
+                callback.onTaskCompleted(false);
             } else {
                 final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
                 if (null == getAccountRecord(account)) {
@@ -1214,19 +1246,19 @@ public final class PublicClientApplication {
         );
     }
 
-    private static IAccountCallback<List<AccountRecord>> getLoadAccountsCallback (
-            final IAccountCallback<List<IAccount>> loadAccountsCallback) {
-        return new IAccountCallback<List<AccountRecord>>() {
+    private static TaskCompletedCallbackWithError<List<AccountRecord>, Exception> getLoadAccountsCallback (
+            final LoadAccountCallback loadAccountsCallback) {
+        return new TaskCompletedCallbackWithError<List<AccountRecord>, Exception>() {
             @Override
-            public void onSuccess(final List<AccountRecord> result) {
+            public void onTaskCompleted(final List<AccountRecord> result) {
                 if (null == result) {
-                    loadAccountsCallback.onSuccess(null);
+                    loadAccountsCallback.onTaskCompleted(null);
                 } else {
                     final List<IAccount> resultAccounts = new ArrayList<>();
                     for (AccountRecord accountRecord : result) {
                         resultAccounts.add(AccountAdapter.adapt(accountRecord));
                     }
-                    loadAccountsCallback.onSuccess(resultAccounts);
+                    loadAccountsCallback.onTaskCompleted(resultAccounts);
                 }
             }
 
