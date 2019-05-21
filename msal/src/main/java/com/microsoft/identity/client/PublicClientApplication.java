@@ -75,6 +75,7 @@ import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
+import com.microsoft.identity.common.internal.net.cache.HttpCache;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
@@ -316,10 +317,12 @@ public final class PublicClientApplication {
     }
 
     private void initializeApplication() {
+        final Context context = mPublicClientConfiguration.getAppContext();
+
         // Init Events with defaults (application-wide)
         DefaultEvent.initializeDefaults(
                 Defaults.forApplication(
-                        mPublicClientConfiguration.getAppContext(),
+                        context,
                         mPublicClientConfiguration.getClientId()
                 )
         );
@@ -330,6 +333,10 @@ public final class PublicClientApplication {
         // Since network request is sent from the sdk, if calling app doesn't declare the internet permission in the
         // manifest, we cannot make the network call.
         checkInternetPermission();
+
+        // Init HTTP cache
+        HttpCache.initialize(context.getCacheDir());
+
         com.microsoft.identity.common.internal.logging.Logger.info(TAG, "Create new public client application.");
     }
 
