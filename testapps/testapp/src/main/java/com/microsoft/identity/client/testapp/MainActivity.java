@@ -354,7 +354,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
 
-        //TODO need an adapt layer to adapt the AccountRecord to IAccount
         mApplication.getAccounts(new PublicClientApplication.LoadAccountCallback() {
             @Override
             public void onTaskCompleted(final List<IAccount> accounts) {

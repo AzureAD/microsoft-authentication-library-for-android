@@ -69,13 +69,14 @@ import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_HOME_ACCOUNT_ID;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ENVIRONMENT;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_REDIRECT;
@@ -559,6 +560,7 @@ public class BrokerMsalController extends BaseController {
             throws OperationCanceledException, IOException, AuthenticatorException {
         final String methodName = ":getBrokerAccountsFromAccountManager";
         final Account[] accountList = AccountManager.get(parameters.getAppContext()).getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+        final List<AccountRecord> accountRecords = new ArrayList<>();
         Logger.verbose(
                 TAG + methodName,
                 "Retrieve all the accounts from account manager with broker account type, "
@@ -566,10 +568,8 @@ public class BrokerMsalController extends BaseController {
         );
 
         if (accountList == null || accountList.length == 0) {
-            return null;
+            return accountRecords;
         } else {
-            final List<AccountRecord> accountRecords = new ArrayList<>();
-
             final Bundle bundle = new Bundle();
             bundle.putBoolean(DATA_USER_INFO, true);
 
@@ -605,7 +605,14 @@ public class BrokerMsalController extends BaseController {
         accountRecord.setFirstName(userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME));
         accountRecord.setFamilyName(userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME));
         accountRecord.setName(userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE));
-        accountRecord.setEnvironment(userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER));
+        //TODO Bug. idp is different with environment
+        try {
+            URL idpUrl = new URL(userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER));
+            accountRecord.setEnvironment(idpUrl.getHost());
+        } catch (MalformedURLException exception) {
+            Logger.error(TAG, "The user info identity provider is malformed.", exception);
+        }
+
         accountRecord.setRealm(userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID));
         return accountRecord;
     }
@@ -681,7 +688,6 @@ public class BrokerMsalController extends BaseController {
             service.removeAccount(requestBundle);
             return true;
         } catch (final BaseException | InterruptedException | ExecutionException | RemoteException e) {
-            //TODO Need to discuss whether to this exception back to AuthenticationCallback
             com.microsoft.identity.common.internal.logging.Logger.error(
                     TAG + methodName,
                     "Exception is thrown when trying to get target account."
@@ -699,7 +705,7 @@ public class BrokerMsalController extends BaseController {
         requestBundle.putString(ACCOUNT_CLIENTID_KEY, parameters.getClientId());
         if (null != parameters.getAccount()) {
             requestBundle.putString(ENVIRONMENT, parameters.getAccount().getEnvironment());
-            requestBundle.putString(ACCOUNT_LOGIN_HINT, parameters.getAccount().getUsername());
+            requestBundle.putString(ACCOUNT_HOME_ACCOUNT_ID, parameters.getAccount().getHomeAccountId());
         }
 
         return requestBundle;

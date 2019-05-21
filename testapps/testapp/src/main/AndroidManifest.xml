@@ -63,10 +63,6 @@
                     android:path="/gwdiktUBDmQq+fbWiJoa+/YH070="/>
             </intent-filter>
         </activity>
-
-        <meta-data
-            android:name="com.microsoft.identity.client.ClientId"
-            android:value="2652503c-ba8e-4ed9-b2ea-6512b9f16c98"/>
     </application>
 
 </manifest>
