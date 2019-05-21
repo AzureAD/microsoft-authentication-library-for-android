@@ -89,6 +89,9 @@ public class BrokerMsalController extends BaseController {
     private static final String TAG = BrokerMsalController.class.getSimpleName();
 
     private static final String DATA_USER_INFO = "com.microsoft.workaccount.user.info";
+    private static final String MANIFEST_PERMISSION_GET_ACCOUNTS = "android.permission.GET_ACCOUNTS";
+    private static final String MANIFEST_PERMISSION_MANAGE_ACCOUNTS = "android.permission.MANAGE_ACCOUNTS";
+    private static final String MANIFEST_PERMISSION_USE_CREDENTIALS = "android.permission.USE_CREDENTIALS";
 
     private BrokerResultFuture mBrokerResultFuture;
 
@@ -730,11 +733,11 @@ public class BrokerMsalController extends BaseController {
      */
     static boolean isAccountManagerPermissionsGranted(@NonNull final Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return isPermissionGranted(context, "android.permission.GET_ACCOUNTS");
+            return isPermissionGranted(context, MANIFEST_PERMISSION_GET_ACCOUNTS);
         } else {
-            return isPermissionGranted(context, "android.permission.GET_ACCOUNTS")
-                    && isPermissionGranted(context, "android.permission.MANAGE_ACCOUNTS")
-                    && isPermissionGranted(context, "android.permission.USE_CREDENTIALS");
+            return isPermissionGranted(context, MANIFEST_PERMISSION_GET_ACCOUNTS)
+                    && isPermissionGranted(context, MANIFEST_PERMISSION_MANAGE_ACCOUNTS)
+                    && isPermissionGranted(context, MANIFEST_PERMISSION_USE_CREDENTIALS);
         }
     }
 
