@@ -4,7 +4,6 @@
   "redirect_uri" : "msauth://com.microsoft.identity.client.sample.local/gwdiktUBDmQq%2BfbWiJoa%2B%2FYH070%3D",
   "multiple_clouds_supported":true,
   "broker_redirect_uri_registered": true,
-  "minimum.required.broker.protocol.version":"2.0",
   "authorities" : [
     {
       "type": "AAD",
