@@ -34,7 +34,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 import android.view.MenuItem;
@@ -59,13 +58,14 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
+import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.crypto.SecretKey;
@@ -276,9 +276,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         prepareRequestParameters(requestOptions);
 
         //final IAccount requestAccount = getAccount();
-        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
+        mApplication.getAccounts(new PublicClientApplication.LoadAccountCallback() {
             @Override
-            public void onAccountsLoaded(final List<IAccount> accounts) {
+            public void onTaskCompleted(final List<IAccount> accounts) {
                 IAccount requestAccount = null;
 
                 for (final IAccount account : accounts) {
@@ -302,29 +302,46 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     showMessage("No account found matching loginHint");
                 }
             }
+
+            @Override
+            public void onError(final Exception exception) {
+                showMessage("No account found matching loginHint");
+            }
         });
     }
 
     public void onRemoveUserClicked(final String username) {
-        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
+        mApplication.getAccounts(new PublicClientApplication.LoadAccountCallback() {
             @Override
-            public void onAccountsLoaded(List<IAccount> accountsToRemove) {
+            public void onTaskCompleted(List<IAccount> accountsToRemove) {
                 for (final IAccount accountToRemove : accountsToRemove) {
-                    if (TextUtils.isEmpty(username) || accountToRemove.getUsername().equalsIgnoreCase(username.trim())) {
+                    if (StringUtil.isEmpty(username) || accountToRemove.getUsername().equalsIgnoreCase(username.trim())) {
                         mApplication.removeAccount(
                                 accountToRemove,
-                                new PublicClientApplication.AccountsRemovedCallback() {
+                                new PublicClientApplication.RemoveAccountCallback() {
                                     @Override
-                                    public void onAccountsRemoved(Boolean isSuccess) {
+                                    public void onTaskCompleted(Boolean isSuccess) {
                                         if (isSuccess) {
                                             showMessage("The account is successfully removed.");
                                         } else {
                                             showMessage("Failed to remove the account.");
                                         }
                                     }
+
+                                    @Override
+                                    public void onError(Exception e) {
+                                        showMessage(e.getClass().getSimpleName()
+                                                + " Exception thrown during removing account.");
+                                    }
                                 });
                     }
                 }
+            }
+
+            @Override
+            public void onError(Exception exception) {
+                showMessage(exception.getClass().getSimpleName()
+                        + " Exception thrown during getting accounts.");
             }
         });
     }
@@ -337,10 +354,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
 
-        //final IAccount requestAccount = getAccount();
-        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
+        mApplication.getAccounts(new PublicClientApplication.LoadAccountCallback() {
             @Override
-            public void onAccountsLoaded(final List<IAccount> accounts) {
+            public void onTaskCompleted(final List<IAccount> accounts) {
                 IAccount requestAccount = null;
 
                 for (final IAccount account : accounts) {
@@ -356,14 +372,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     showMessage("No account found matching loginHint");
                 }
             }
+
+            @Override
+            public void onError(final Exception e) {
+                showMessage(e.getClass().getSimpleName()
+                        + " Exception thrown during getting account.");
+            }
         });
     }
 
     @Override
     public void bindSelectAccountSpinner(final Spinner selectUser) {
-        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
+        mApplication.getAccounts(new PublicClientApplication.LoadAccountCallback() {
             @Override
-            public void onAccountsLoaded(final List<IAccount> accounts) {
+            public void onTaskCompleted(final List<IAccount> accounts) {
                 final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
                         getApplicationContext(), android.R.layout.simple_spinner_item,
                         new ArrayList<String>() {{
@@ -373,6 +395,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 );
                 userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 selectUser.setAdapter(userAdapter);
+            }
+
+            @Override
+            public void onError(final Exception e) {
+                showMessage(e.getClass().getSimpleName()
+                        + " Exception thrown during getting account.");
             }
         });
     }

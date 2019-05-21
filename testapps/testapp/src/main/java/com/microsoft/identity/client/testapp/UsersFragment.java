@@ -39,6 +39,7 @@ import com.google.gson.JsonObject;
 import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,9 +66,9 @@ public class UsersFragment extends Fragment {
         mUserList = view.findViewById(R.id.user_list);
 
         final PublicClientApplication pca = ((MainActivity) this.getActivity()).getPublicClientApplication();
-        pca.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
+        pca.getAccounts(new PublicClientApplication.LoadAccountCallback() {
             @Override
-            public void onAccountsLoaded(final List<IAccount> accounts) {
+            public void onTaskCompleted(final List<IAccount> accounts) {
                 mGson = new GsonBuilder().setPrettyPrinting().create();
                 final List<String> serializedUsers = new ArrayList<>(accounts.size());
                 for (final IAccount account : accounts) {
@@ -86,6 +87,11 @@ public class UsersFragment extends Fragment {
                         getFragmentManager().popBackStack();
                     }
                 });
+            }
+
+            @Override
+            public void onError(final Exception e) {
+                //TODO
             }
         });
 
