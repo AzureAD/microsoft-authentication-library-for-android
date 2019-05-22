@@ -49,6 +49,7 @@
     <string name="select_user"> Select User</string>
     <string name="btn_getUser">Get Users</string>
     <string name="btn_removeUser">Remove User</string>
+    <string name="environment_text">Environment</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

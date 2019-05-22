@@ -42,9 +42,11 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.internal.MsalUtils;
-import com.microsoft.identity.client.internal.controllers.MSALApiDispatcher;
 import com.microsoft.identity.client.internal.controllers.RequestCodes;
+import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
+import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
 import com.microsoft.identity.common.internal.net.HttpUrlConnectionFactory;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -60,6 +62,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -68,6 +72,11 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
+
 import static com.microsoft.identity.client.AndroidTestUtil.MOCK_UID;
 import static com.microsoft.identity.client.AndroidTestUtil.MOCK_UTID;
 
@@ -75,7 +84,6 @@ import static com.microsoft.identity.client.AndroidTestUtil.MOCK_UTID;
  * Tests for {@link PublicClientApplication}.
  */
 @RunWith(AndroidJUnit4.class)
-@Ignore
 public final class PublicClientApplicationTest extends AndroidTestCase {
     private Context mAppContext;
     private String mRedirectUri;
@@ -180,6 +188,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
      * Verify correct exception is thrown if callback is not provided.
      */
     @Test(expected = IllegalArgumentException.class)
+    @Ignore
     public void testCallBackEmpty() throws PackageManager.NameNotFoundException {
         final Context context = new MockContext(mAppContext);
         mockPackageManagerWithClientId(context, null, CLIENT_ID);
@@ -202,6 +211,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     @Test
+    @Ignore
     public void testUnknownAuthorityException() throws PackageManager.NameNotFoundException, IOException,
             InterruptedException {
         new GetTokenBaseTestCase() {
@@ -217,7 +227,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                                       final CountDownLatch releaseLock) {
                 publicClientApplication.acquireToken(activity, SCOPE, "loginhint", null, null, null, "https://someauthority", new AuthenticationCallback() {
                     @Override
-                    public void onSuccess(AuthenticationResult authenticationResult) {
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
                         fail("Unexpected success");
                     }
 
@@ -244,6 +254,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     @Test(expected = IllegalArgumentException.class)
+    @Ignore
     public void testAcquireTokenInteractiveScopeWithEmptyString() throws PackageManager.NameNotFoundException, IOException,
             InterruptedException {
         new GetTokenBaseTestCase() {
@@ -262,7 +273,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                                       final CountDownLatch releaseLock) {
                 publicClientApplication.acquireToken(activity, new String[]{" "}, new AuthenticationCallback() {
                     @Override
-                    public void onSuccess(AuthenticationResult authenticationResult) {
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
                         Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
                         final IAccount account = authenticationResult.getAccount();
                         Assert.assertTrue(account.getHomeAccountIdentifier().getIdentifier().equals(""));
@@ -292,6 +303,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     @Test
+    @Ignore
     public void testClientInfoNotReturned() throws PackageManager.NameNotFoundException, IOException,
             InterruptedException {
         new GetTokenBaseTestCase() {
@@ -311,7 +323,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                                       final CountDownLatch releaseLock) {
                 publicClientApplication.acquireToken(activity, SCOPE, new AuthenticationCallback() {
                     @Override
-                    public void onSuccess(AuthenticationResult authenticationResult) {
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
                         Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
                         final IAccount account = authenticationResult.getAccount();
                         Assert.assertEquals(account.getHomeAccountIdentifier().getIdentifier(), MOCK_UID + "." + MOCK_UTID);
@@ -374,7 +386,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
                 publicClientApplication.acquireToken(activity, SCOPE, "somehint", new AuthenticationCallback() {
                     @Override
-                    public void onSuccess(AuthenticationResult authenticationResult) {
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
                         fail();
                     }
 
@@ -442,7 +454,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                         }},
                         null, null, new AuthenticationCallback() {
                             @Override
-                            public void onSuccess(AuthenticationResult authenticationResult) {
+                            public void onSuccess(IAuthenticationResult authenticationResult) {
                                 fail("unexpected success result");
                             }
 
@@ -480,6 +492,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     @Test
+    @Ignore
     public void testB2cAuthorityNotInTrustedList() throws PackageManager.NameNotFoundException, IOException, InterruptedException {
         final String unsupportedB2cAuthority = "https://somehost/tfp/sometenant/somepolicy";
 
@@ -505,7 +518,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                         }},
                         null, null, new AuthenticationCallback() {
                             @Override
-                            public void onSuccess(AuthenticationResult authenticationResult) {
+                            public void onSuccess(IAuthenticationResult authenticationResult) {
                                 fail("unexpected success result");
                             }
 
@@ -554,7 +567,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                                       final CountDownLatch releaseLock) {
                 publicClientApplication.acquireToken(activity, SCOPE, mUser, UiBehavior.SELECT_ACCOUNT, null, null, null, new AuthenticationCallback() {
                     @Override
-                    public void onSuccess(AuthenticationResult authenticationResult) {
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
                         fail();
                     }
 
@@ -580,6 +593,33 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
         }.performTest();
 
         */
+    }
+
+    @Test
+    public void testSecretKeysAreSet() throws NoSuchAlgorithmException, InvalidKeySpecException {
+        final PublicClientApplication pca = new PublicClientApplication(mAppContext);
+        final PublicClientApplicationConfiguration appConfig = pca.getConfiguration();
+
+        SecretKeyFactory keyFactory = SecretKeyFactory
+                .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
+        SecretKey generatedSecretKey = keyFactory.generateSecret(
+                new PBEKeySpec(
+                        "test_password".toCharArray(),
+                        "byte-code-for-your-salt".getBytes(),
+                        100,
+                        256
+                )
+        );
+        SecretKey secretKey = new SecretKeySpec(generatedSecretKey.getEncoded(), "AES");
+        final byte[] encodedSecretKey = secretKey.getEncoded();
+
+        appConfig.setTokenCacheSecretKeys(encodedSecretKey);
+
+        // Check that the AuthenticationSettings.INSTANCE.secretKey matches the value configured
+        assertEquals(
+                encodedSecretKey,
+                AuthenticationSettings.INSTANCE.getSecretKeyData()
+        );
     }
 
     static String getIdToken(final String displayable, final String uniqueId, final String homeOid) {
@@ -655,7 +695,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
     private String convertScopesArrayToString(final String[] scopes) {
         final Set<String> scopesInSet = new HashSet<>(Arrays.asList(scopes));
-        return MsalUtils.convertSetToString(scopesInSet, " ");
+        return StringUtil.convertSetToString(scopesInSet, " ");
     }
 
     private Context getMockedContext(final String clientId) throws PackageManager.NameNotFoundException {
@@ -744,7 +784,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
 
             final Intent resultIntent = new Intent();
             resultIntent.putExtra(Constants.AUTHORIZATION_FINAL_URL, getFinalAuthUrl());
-            MSALApiDispatcher.completeInteractive(RequestCodes.LOCAL_AUTHORIZATION_REQUEST,
+            ApiDispatcher.completeInteractive(RequestCodes.LOCAL_AUTHORIZATION_REQUEST,
                     Constants.UIResponse.AUTH_CODE_COMPLETE, resultIntent);
 
             resultLock.await();

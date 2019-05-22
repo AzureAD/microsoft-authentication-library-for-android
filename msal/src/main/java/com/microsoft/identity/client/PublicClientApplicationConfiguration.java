@@ -22,25 +22,34 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
-import com.microsoft.identity.client.internal.authorities.Authority;
-import com.microsoft.identity.client.internal.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.client.internal.authorities.UnknownAudience;
-import com.microsoft.identity.client.internal.authorities.UnknownAuthority;
+import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
+import com.microsoft.identity.common.internal.authorities.Authority;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.common.internal.authorities.Environment;
+import com.microsoft.identity.common.internal.authorities.UnknownAudience;
+import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 
 import java.util.List;
+
+import javax.crypto.SecretKey;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORITIES;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_USER_AGENT;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CLIENT_ID;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.HTTP;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.LOGGING;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.MULTIPLE_CLOUDS_SUPPORTED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ENVIRONMENT;
 
 public class PublicClientApplicationConfiguration {
 
@@ -51,6 +60,9 @@ public class PublicClientApplicationConfiguration {
         static final String AUTHORIZATION_USER_AGENT = "authorization_user_agent";
         static final String HTTP = "http";
         static final String LOGGING = "logging";
+        static final String MULTIPLE_CLOUDS_SUPPORTED = "multiple_clouds_supported";
+        static final String USE_BROKER = "broker_redirect_uri_registered";
+        static final String ENVIRONMENT = "environment";
     }
 
     @SerializedName(CLIENT_ID)
@@ -71,6 +83,30 @@ public class PublicClientApplicationConfiguration {
     @SerializedName(LOGGING)
     LoggerConfiguration mLoggerConfiguration;
 
+    @SerializedName(MULTIPLE_CLOUDS_SUPPORTED)
+    Boolean mMultipleCloudsSupported;
+
+    @SerializedName(USE_BROKER)
+    Boolean mUseBroker;
+
+    @SerializedName(ENVIRONMENT)
+    Environment mEnvironment;
+
+    transient OAuth2TokenCache mOAuth2TokenCache;
+
+    transient Context mAppContext;
+
+    /**
+     * Sets the secret key bytes to use when encrypting/decrypting cache entries.
+     * {@link java.security.spec.KeySpec} algorithm is AES.
+     *
+     * @param rawKey The SecretKey to use in its primary encoding format.
+     * @see SecretKey#getEncoded()
+     */
+    public void setTokenCacheSecretKeys(@NonNull final byte[] rawKey) {
+        AuthenticationSettings.INSTANCE.setSecretKey(rawKey);
+    }
+
     /**
      * Gets the currently configured client id for the PublicClientApplication.
      *
@@ -88,6 +124,15 @@ public class PublicClientApplicationConfiguration {
      */
     public List<Authority> getAuthorities() {
         return mAuthorities;
+    }
+
+    /**
+     * Gets the environment (Production, PPE) that the public client application is registered in
+     *
+     * @return The environment
+     */
+    public Environment getEnvironment() {
+        return mEnvironment;
     }
 
     /**
@@ -124,6 +169,43 @@ public class PublicClientApplicationConfiguration {
      */
     public AuthorizationAgent getAuthorizationAgent() {
         return this.mAuthorizationAgent;
+    }
+
+    /**
+     * Indicates whether the PublicClientApplication supports multiple clouds.  Automatic redirection to the cloud
+     * associated with the authenticated user
+     *
+     * @return The boolean indicator of whether multiple clouds are supported by this application.
+     */
+    public Boolean getMultipleCloudsSupported() {
+        return mMultipleCloudsSupported;
+    }
+
+    /**
+     * Indicates whether the PublicClientApplication would like to leverage the broker if available.
+     * <p>
+     * The client must have registered
+     *
+     * @return The boolean indicator of whether multiple clouds are supported by this application.
+     */
+    public Boolean getUseBroker() {
+        return mUseBroker;
+    }
+
+    public Context getAppContext() {
+        return mAppContext;
+    }
+
+    void setAppContext(Context applicationContext) {
+        mAppContext = applicationContext;
+    }
+
+    public OAuth2TokenCache getOAuth2TokenCache() {
+        return mOAuth2TokenCache;
+    }
+
+    void setOAuth2TokenCache(OAuth2TokenCache tokenCache) {
+        mOAuth2TokenCache = tokenCache;
     }
 
     public Authority getDefaultAuthority() {
@@ -163,7 +245,7 @@ public class PublicClientApplicationConfiguration {
         }
     }
 
-    boolean isDefaultAuthorityConfigured() {
+    public boolean isDefaultAuthorityConfigured() {
         Authority authority = getDefaultAuthority();
 
         if (authority != null) {
@@ -178,7 +260,10 @@ public class PublicClientApplicationConfiguration {
         this.mRedirectUri = config.mRedirectUri == null ? this.mRedirectUri : config.mRedirectUri;
         this.mAuthorities = config.mAuthorities == null ? this.mAuthorities : config.mAuthorities;
         this.mAuthorizationAgent = config.mAuthorizationAgent == null ? this.mAuthorizationAgent : config.mAuthorizationAgent;
+        this.mEnvironment = config.mEnvironment == null ? this.mEnvironment : config.mEnvironment;
         this.mHttpConfiguration = config.mHttpConfiguration == null ? this.mHttpConfiguration : config.mHttpConfiguration;
+        this.mMultipleCloudsSupported = config.mMultipleCloudsSupported == null ? this.mMultipleCloudsSupported : config.mMultipleCloudsSupported;
+        this.mUseBroker = config.mUseBroker == null ? this.mUseBroker : config.mUseBroker;
     }
 
     void validateConfiguration() {
@@ -209,7 +294,7 @@ public class PublicClientApplicationConfiguration {
         }
     }
 
-    void nullConfigurationCheck(String configKey, String configValue) {
+    private void nullConfigurationCheck(String configKey, String configValue) {
         if (configValue == null) {
             throw new IllegalArgumentException(configKey + " cannot be null.  Invalid configuration.");
         }

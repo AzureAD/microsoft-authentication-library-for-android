@@ -20,20 +20,19 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.internal.controllers;
+package com.microsoft.identity.client;
 
-import android.content.Intent;
+import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 
-import com.microsoft.identity.client.exception.MsalArgumentException;
-import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.client.exception.MsalUiRequiredException;
-import com.microsoft.identity.common.exception.ClientException;
+public class AuthenticationResultAdapter {
 
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
+    static IAuthenticationResult adapt(ILocalAuthenticationResult localAuthenticationResult) {
 
-public interface MSALTokenOperation {
-    AcquireTokenResult execute() throws InterruptedException, ExecutionException, IOException, ClientException, MsalClientException, MsalArgumentException, MsalUiRequiredException;
-
-    void notify(int requestCode, int resultCode, final Intent data);
+        IAuthenticationResult authenticationResult = new AuthenticationResult(
+                localAuthenticationResult.getAccessTokenRecord(),
+                localAuthenticationResult.getIdToken(),
+                localAuthenticationResult.getAccountRecord()
+        );
+        return authenticationResult;
+    }
 }

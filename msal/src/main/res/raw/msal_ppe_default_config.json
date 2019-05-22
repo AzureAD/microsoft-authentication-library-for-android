@@ -1,0 +1,20 @@
+{
+  "client_id": "7cc2dd84-bb0f-4711-8fca-4c7d01249f56",
+  "authorities": [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADandPersonalMicrosoftAccount"
+      },
+
+      "default": true
+    }
+  ],
+  "authorization_user_agent": "DEFAULT",
+  "multiple_clouds_supported": false,
+  "broker_redirect_uri_registered": false,
+  "http": {
+    "connect_timeout": 10000,
+    "read_timeout": 30000
+  }
+}

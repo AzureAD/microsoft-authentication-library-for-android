@@ -78,6 +78,7 @@ android {
 
 // Task to generate javadoc
 task javadoc(type: Javadoc) {
+    failOnError false
     source = android.sourceSets.main.java.srcDirs
     classpath += configurations.compile
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
@@ -87,7 +88,6 @@ task javadoc(type: Javadoc) {
 
     exclude '**/BuildConfig.Java'
     exclude '**/R.java'
-    classpath = configurations.compile
     destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
 }
 
@@ -125,9 +125,9 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '0.0.8', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '0.0.10-alpha', changing: true)
 
-    distApi("com.microsoft.identity:common:0.0.8") {
+    distApi("com.microsoft.identity:common:0.0.10-alpha") {
         transitive = false
     }
 }

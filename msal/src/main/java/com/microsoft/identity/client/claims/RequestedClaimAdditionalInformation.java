@@ -20,24 +20,52 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.internal.authorities;
+package com.microsoft.identity.client.claims;
 
 import com.google.gson.annotations.SerializedName;
 
-public class AzureActiveDirectorySlice {
+import java.util.ArrayList;
+import java.util.List;
 
-    @SerializedName("slice")
-    private String mSlice;
+/**
+ * Represents the additional information that can be sent to an authorization server for a request claim in the claim request parameter
+ *
+ * @see <a href="https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter">https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter</a>
+ */
+public class RequestedClaimAdditionalInformation {
 
-    @SerializedName("dc")
-    private String mDataCenter;
-
-    public String getSlice() {
-        return mSlice;
+    public static final class SerializedNames {
+        static final String ESSENTIAL = "essential";
+        static final String VALUES = "values";
+        static final String VALUE = "value";
     }
 
-    public String getDC() {
-        return mDataCenter;
+    @SerializedName(SerializedNames.ESSENTIAL)
+    private Boolean mEssential = false;
+
+    @SerializedName(SerializedNames.VALUES)
+    private List<Object> mValues = new ArrayList<>();
+
+    @SerializedName(SerializedNames.VALUE)
+    private Object mValue = null;
+
+    public void setEssential(Boolean essential) {
+        mEssential = essential;
     }
 
+    public Boolean getEssential() {
+        return mEssential;
+    }
+
+    public List<Object> getValues() {
+        return mValues;
+    }
+
+    public Object getValue() {
+        return mValue;
+    }
+
+    public void setValue(Object value) {
+        mValue = value;
+    }
 }

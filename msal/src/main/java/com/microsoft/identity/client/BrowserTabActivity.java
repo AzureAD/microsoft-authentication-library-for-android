@@ -26,14 +26,17 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 import android.os.Bundle;
 
+import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity;
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 /**
  * MSAL activity class (needs to be public in order to be discoverable by the os) to get the browser redirect with auth code from authorize
  * endpoint. This activity has to be exposed by "android:exported=true", and intent filter has to be declared in the
  * manifest for the activity.
  * <p>
- * When chrome custom tab is launched, and we're redirected back with the redirect
+ * When the AuthorizationAgent is launched, and we're redirected back with the redirect
  * uri (the redirect must be unique across apps on a device), the os will fire an intent with the redirect,
  * and the BrowserTabActivity will be launched.
  * <pre>
@@ -57,7 +60,24 @@ public final class BrowserTabActivity extends Activity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        startActivity(AuthorizationActivity.createCustomTabResponseIntent(this, getIntent().getDataString()));
+        if (savedInstanceState == null
+                && getIntent() != null
+                && !StringUtil.isEmpty(getIntent().getDataString())) {
+            startActivity(AuthorizationActivity.createCustomTabResponseIntent(this, getIntent().getDataString()));
+            finish();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (getIntent() != null
+                && getIntent().hasExtra(AuthorizationStrategy.RESULT_CODE)) {
+            ApiDispatcher.completeInteractive(
+                    getIntent().getIntExtra(AuthorizationStrategy.REQUEST_CODE, 0),
+                    getIntent().getIntExtra(AuthorizationStrategy.RESULT_CODE, 0),
+                    getIntent());
+        }
         finish();
     }
 }

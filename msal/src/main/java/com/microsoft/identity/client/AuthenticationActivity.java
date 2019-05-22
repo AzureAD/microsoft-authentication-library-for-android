@@ -42,12 +42,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Custom tab requires the device to have a browser with custom tab support, chrome with version >= 45 comes with the
- * support and is available on all devices with API version >= 16 . The sdk use chrome custom tab, and before launching
- * chrome custom tab, we need to check if chrome package is in the device. If it is, it's safe to launch the chrome
- * custom tab; Otherwise the sdk will launch chrome.
- * AuthenticationActivity will be responsible for checking if it's safe to launch chrome custom tab, if not, will
- * go with chrome browser, if chrome is not installed, we throw error back.
+ * Invoking CustomTabs requires a browser on the device that also supports the CustomTabs API, chrome with version >= 45 comes with the
+ * support and is available on all devices with API version >= 16. MSAL is capable of using CustomTabs or device browser.
+ * MSAL prefers the user's default browser and will check for CustomTabs support before falling back to launching the full browser.
+ * AuthenticationActivity checks if CustomTabs is accessible for a given browser, if not, will
+ * go with full browser, if chrome is not installed, we generate an error.
  */
 public final class AuthenticationActivity extends Activity {
 
@@ -72,7 +71,10 @@ public final class AuthenticationActivity extends Activity {
 
         // If activity is killed by the os, savedInstance will be the saved bundle.
         if (savedInstanceState != null) {
-            Logger.verbose(TAG, null, "AuthenticationActivity is re-created after killed by the os.");
+            com.microsoft.identity.common.internal.logging.Logger.verbose(
+                    TAG,
+                    "AuthenticationActivity is re-created after killed by the os."
+            );
             mRestarted = true;
             mTelemetryRequestId = savedInstanceState.getString(Constants.TELEMETRY_REQUEST_ID);
             mUiEventBuilder = new UiEvent.Builder();
@@ -92,10 +94,11 @@ public final class AuthenticationActivity extends Activity {
             return;
         }
 
-        // We'll use custom tab if the chrome installed on the device comes with custom tab support(on 45 and above it
-        // does). If the chrome package doesn't contain the support, we'll use chrome to launch the UI.
         if (MsalUtils.getChromePackage(this.getApplicationContext()) == null) {
-            Logger.info(TAG, null, "Chrome is not installed on the device, cannot continue with auth.");
+            com.microsoft.identity.common.internal.logging.Logger.info(
+                    TAG,
+                    "Chrome is not installed on the device, cannot continue with auth."
+            );
             sendError(MsalClientException.CHROME_NOT_INSTALLED, "Chrome is not installed on the device, cannot proceed with auth");
             return;
         }
@@ -143,10 +146,17 @@ public final class AuthenticationActivity extends Activity {
                 // to be safe, we'll skip warmup and rely on mCustomTabsServiceIsBound
                 // to unbind the Service when onStop() is called.
                 initCustomTabsWithSession = false;
-                Logger.warning(TAG, null, "Connection to CustomTabs timed out. Skipping warmup.");
+                com.microsoft.identity.common.internal.logging.Logger.warn(
+                        TAG,
+                        "Connection to CustomTabs timed out. Skipping warmup."
+                );
             }
         } catch (InterruptedException e) {
-            Logger.error(TAG, null, "Failed to connect to CustomTabs. Skipping warmup.", e);
+            com.microsoft.identity.common.internal.logging.Logger.error(
+                    TAG,
+                    "Failed to connect to CustomTabs. Skipping warmup.",
+                    e
+            );
             initCustomTabsWithSession = false;
         }
 
@@ -227,7 +237,10 @@ public final class AuthenticationActivity extends Activity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        Logger.info(TAG, null, "onNewIntent is called, received redirect from system webview.");
+        com.microsoft.identity.common.internal.logging.Logger.info(
+                TAG,
+                "onNewIntent is called, received redirect from system webview."
+        );
         final String url = intent.getStringExtra(Constants.CUSTOM_TAB_REDIRECT);
 
         final Intent resultIntent = new Intent();
@@ -249,12 +262,21 @@ public final class AuthenticationActivity extends Activity {
 
         mRequestUrl = this.getIntent().getStringExtra(Constants.REQUEST_URL_KEY);
 
-        Logger.infoPII(TAG, null, "Request to launch is: " + mRequestUrl);
+        com.microsoft.identity.common.internal.logging.Logger.infoPII(
+                TAG,
+                "Request to launch is: " + mRequestUrl
+        );
         if (mChromePackageWithCustomTabSupport != null) {
-            Logger.info(TAG, null, "ChromeCustomTab support is available, launching chrome tab.");
+            com.microsoft.identity.common.internal.logging.Logger.info(
+                    TAG,
+                    "ChromeCustomTab support is available, launching chrome tab."
+            );
             mCustomTabsIntent.launchUrl(this, Uri.parse(mRequestUrl));
         } else {
-            Logger.info(TAG, null, "Chrome tab support is not available, launching chrome browser.");
+            com.microsoft.identity.common.internal.logging.Logger.info(
+                    TAG,
+                    "Chrome tab support is not available, launching chrome browser."
+            );
             final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mRequestUrl));
             browserIntent.setPackage(MsalUtils.getChromePackage(this.getApplicationContext()));
             browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
@@ -274,7 +296,10 @@ public final class AuthenticationActivity extends Activity {
      * Cancels the auth request.
      */
     void cancelRequest() {
-        Logger.verbose(TAG, null, "Cancel the authentication request.");
+        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                TAG,
+                "Cancel the authentication request."
+        );
         mUiEventBuilder.setUserDidCancel();
         returnToCaller(Constants.UIResponse.CANCEL, new Intent());
     }
@@ -286,7 +311,13 @@ public final class AuthenticationActivity extends Activity {
      * @param data       {@link Intent} contains the detailed result.
      */
     private void returnToCaller(final int resultCode, final Intent data) {
-        Logger.info(TAG, null, "Return to caller with resultCode: " + resultCode + "; requestId: " + mRequestId);
+        com.microsoft.identity.common.internal.logging.Logger.info(
+                TAG,
+                "Return to caller with resultCode: "
+                        + resultCode
+                        + "; requestId: "
+                        + mRequestId
+        );
         data.putExtra(Constants.REQUEST_ID, mRequestId);
 
         if (null != mUiEventBuilder) {
@@ -304,8 +335,13 @@ public final class AuthenticationActivity extends Activity {
      * @param errorDescription The error description to send back.
      */
     private void sendError(final String errorCode, final String errorDescription) {
-        Logger.info(TAG, null, "Sending error back to the caller, errorCode: " + errorCode + "; errorDescription"
-                + errorDescription);
+        com.microsoft.identity.common.internal.logging.Logger.info(
+                TAG,
+                "Sending error back to the caller, errorCode: "
+                        + errorCode
+                        + "; errorDescription"
+                        + errorDescription
+        );
         final Intent errorIntent = new Intent();
         errorIntent.putExtra(Constants.UIResponse.ERROR_CODE, errorCode);
         errorIntent.putExtra(Constants.UIResponse.ERROR_DESCRIPTION, errorDescription);
