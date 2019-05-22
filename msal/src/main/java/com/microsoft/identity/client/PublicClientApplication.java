@@ -500,7 +500,8 @@ public final class PublicClientApplication {
     }
 
     /**
-     * Retrieve the IAccount object matching the supplied query string.
+     * Retrieve the IAccount object matching the identifier.
+     * The identifier could be homeAccountIdentifier, localAccountIdentifier or username.
      */
     public void getAccount(@NonNull final String identifier,
                            @NonNull final GetAccountCallback callback) {
@@ -532,19 +533,19 @@ public final class PublicClientApplication {
                                 callback.onTaskCompleted(null);
                             } else {
                                 for (AccountRecord accountRecord : result) {
-                                    if (accountRecord.getHomeAccountId().equalsIgnoreCase(identifier)) {
+                                    if (accountRecord.getHomeAccountId().equalsIgnoreCase(identifier.trim())) {
                                         com.microsoft.identity.common.internal.logging.Logger.verbose(
                                                 TAG + methodName,
                                                 "One account found matching the homeAccountIdentifier provided.");
                                         callback.onTaskCompleted(AccountAdapter.adapt(accountRecord));
                                         return;
-                                    } else if (accountRecord.getLocalAccountId().equalsIgnoreCase(identifier)) {
+                                    } else if (accountRecord.getLocalAccountId().equalsIgnoreCase(identifier.trim())) {
                                         com.microsoft.identity.common.internal.logging.Logger.verbose(
                                                 TAG + methodName,
                                                 "One account found matching the localAccountIdentifier provided.");
                                         callback.onTaskCompleted(AccountAdapter.adapt(accountRecord));
                                         return;
-                                    } else if (accountRecord.getUsername().equalsIgnoreCase(identifier)) {
+                                    } else if (accountRecord.getUsername().equalsIgnoreCase(identifier.trim())) {
                                         com.microsoft.identity.common.internal.logging.Logger.verbose(
                                                 TAG + methodName,
                                                 "One account found matching the username provided.");
