@@ -353,32 +353,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
-
-        mApplication.getAccounts(new PublicClientApplication.LoadAccountCallback() {
-            @Override
-            public void onTaskCompleted(final List<IAccount> accounts) {
-                IAccount requestAccount = null;
-
-                for (final IAccount account : accounts) {
-                    if (account.getUsername().equalsIgnoreCase(requestOptions.getLoginHint().trim())) {
-                        requestAccount = account;
-                        break;
+        mApplication.getAccount(
+                requestOptions.getAccountQueryType(),
+                requestOptions.getLoginHint().trim(),
+                new PublicClientApplication.GetAccountCallback() {
+                    @Override
+                    public void onTaskCompleted(final IAccount account) {
+                        if(null != account) {
+                            callAcquireTokenSilent(mScopes, account, mForceRefresh);
+                        } else {
+                            showMessage("No account found matching loginHint");
+                        }
                     }
-                }
 
-                if (null != requestAccount) {
-                    callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
-                } else {
-                    showMessage("No account found matching loginHint");
-                }
-            }
-
-            @Override
-            public void onError(final Exception e) {
-                showMessage(e.getClass().getSimpleName()
-                        + " Exception thrown during getting account.");
-            }
-        });
+                    @Override
+                    public void onError(final Exception e) {
+                        showMessage(e.getClass().getSimpleName()
+                                + " Exception thrown during getting account.");
+                    }
+                });
     }
 
     @Override

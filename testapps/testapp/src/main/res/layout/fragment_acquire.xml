@@ -44,10 +44,10 @@
             android:orientation="horizontal"
             android:weightSum="10">
             <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="3"
-                android:text="@string/authority_text"/>
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:text="@string/authority_text"/>
 
             <Spinner
                 android:id="@+id/authorityType"
@@ -94,11 +94,32 @@
                 android:text="@string/ui_behavior_text" />
 
             <Spinner
-                android:id="@+id/uiBehavior"
+            android:id="@+id/uiBehavior"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="7" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="10">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:text="@string/account_query_type_text"/>
+
+            <Spinner
+                android:id="@+id/accountQueryType"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="7" />
-
         </LinearLayout>
 
         <LinearLayout

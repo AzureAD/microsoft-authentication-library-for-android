@@ -55,7 +55,6 @@ import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AuthorityDeserializer;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.ICacheKeyValueDelegate;
@@ -374,6 +373,22 @@ public final class PublicClientApplication {
         void onError(Exception exception);
     }
 
+    public interface GetAccountCallback extends TaskCompletedCallbackWithError<IAccount, Exception> {
+        /**
+         * Called once succeed and pass the result object.
+         *
+         * @param result the success result.
+         */
+        void onTaskCompleted(IAccount result);
+
+        /**
+         * Called once exception thrown.
+         *
+         * @param exception
+         */
+        void onError(Exception exception);
+    }
+
     public interface RemoveAccountCallback extends TaskCompletedCallbackWithError<Boolean, Exception> {
         /**
          * Called once succeed and pass the result object.
@@ -485,51 +500,103 @@ public final class PublicClientApplication {
     }
 
     /**
-     * Returns the IAccount object matching the supplied home_account_id.
+     * Enum for the getAccount query types,
+     * which enable the user to getAccount with homeAccountIdentifier,
+     * localAccountIdentifier or username.
      *
-     * @param homeAccountIdentifier The home_account_id of the sought IAccount.
-     * @param authority             The authority of the sought IAccount.
-     * @return The IAccount stored in the cache or null, if no such matching entry exists.
      */
-    @Nullable
-    public IAccount getAccount(@NonNull final String homeAccountIdentifier,
-                               @Nullable final String authority) {
+    public enum AccountQueryType {
+        HOME_ACCOUNT_IDENTIFIER,
+        LOCAL_ACCOUNT_IDENTIFIER,
+        USERNAME
+    }
+
+    /**
+     * Retrieve the IAccount object matching the supplied query string.
+     */
+    public void getAccount(@NonNull final AccountQueryType queryType,
+                           @NonNull final String queryString,
+                           @NonNull final GetAccountCallback callback) {
         final String methodName = ":getAccount";
 
         ApiDispatcher.initializeDiagnosticContext();
 
-        String realm = StringUtil.getTenantInfo(homeAccountIdentifier).second;
+        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                TAG + methodName,
+                "Get account with " + queryType.name()
+        );
 
-        Authority authorityObj = Authority.getAuthorityFromAuthorityUrl(authority);
+        try {
+            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+            final LoadAccountCommand command = new LoadAccountCommand(
+                    params,
+                    MSALControllerFactory.getAcquireTokenController(
+                            mPublicClientConfiguration.getAppContext(),
+                            params.getAuthority(),
+                            mPublicClientConfiguration
+                    ),
+                    new TaskCompletedCallbackWithError<List<AccountRecord>, Exception>() {
+                        @Override
+                        public void onTaskCompleted(final List<AccountRecord> result) {
+                            if (null == result) {
+                                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                                        TAG + methodName,
+                                        "No account found.");
+                                callback.onTaskCompleted(null);
+                            } else {
+                                for (AccountRecord accountRecord : result) {
+                                    if (queryType.equals(AccountQueryType.HOME_ACCOUNT_IDENTIFIER)
+                                            && accountRecord.getHomeAccountId().equalsIgnoreCase(queryString)) {
+                                        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                                                TAG + methodName,
+                                                "One account found matching the homeAccountIdentifier provided.");
+                                        callback.onTaskCompleted(AccountAdapter.adapt(accountRecord));
+                                        return;
+                                    } else if (queryType.equals(AccountQueryType.LOCAL_ACCOUNT_IDENTIFIER)
+                                            && accountRecord.getLocalAccountId().equalsIgnoreCase(queryString)) {
+                                        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                                                TAG + methodName,
+                                                "One account found matching the localAccountIdentifier provided.");
+                                        callback.onTaskCompleted(AccountAdapter.adapt(accountRecord));
+                                        return;
+                                    } else if (queryType.equals(AccountQueryType.USERNAME)
+                                            && accountRecord.getUsername().equalsIgnoreCase(queryString)) {
+                                        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                                                TAG + methodName,
+                                                "One account found matching the username provided.");
+                                        callback.onTaskCompleted(AccountAdapter.adapt(accountRecord));
+                                        return;
+                                    } else {
+                                        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                                                TAG + methodName,
+                                                "No account found.");
+                                        callback.onTaskCompleted(null);
+                                    }
+                                }
+                            }
+                        }
 
-        if (authorityObj instanceof AzureActiveDirectoryAuthority) {
-            final AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) authorityObj;
-            final AzureActiveDirectoryAudience audience = aadAuthority.getAudience();
-            realm = audience.getTenantId();
-        } else {
-            com.microsoft.identity.common.internal.logging.Logger.warn(
+                        @Override
+                        public void onError(final Exception exception) {
+                            com.microsoft.identity.common.internal.logging.Logger.error(
+                                    TAG + methodName,
+                                    exception.getMessage(),
+                                    exception
+                            );
+                            callback.onError(exception);
+                        }
+                    }
+            );
+
+            ApiDispatcher.getAccounts(command);
+        } catch (final MsalClientException e) {
+            com.microsoft.identity.common.internal.logging.Logger.error(
                     TAG + methodName,
-                    "Provided authority was not AAD - defaulting to parsed home_account_id"
+                    e.getMessage(),
+                    e
             );
+            callback.onError(e);
         }
-
-        AccountRecord accountToReturn = null;
-
-        if (null != realm) {
-            accountToReturn = AccountAdapter.getAccountInternal(
-                    mPublicClientConfiguration.getClientId(),
-                    mPublicClientConfiguration.getOAuth2TokenCache(),
-                    homeAccountIdentifier,
-                    realm
-            );
-        } else {
-            com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG + methodName,
-                    "Realm could not be resolved. Returning null."
-            );
-        }
-
-        return null == accountToReturn ? null : AccountAdapter.adapt(accountToReturn);
     }
 
     /**

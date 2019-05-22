@@ -35,12 +35,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Switch;
-import android.widget.TextView;
 
+import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.UiBehavior;
-import com.microsoft.identity.common.exception.ClientException;
-import com.microsoft.identity.common.internal.ui.browser.Browser;
-import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 
 import java.util.ArrayList;
 
@@ -54,6 +51,7 @@ public class AcquireTokenFragment extends Fragment {
     private Spinner mAuthority;
     private EditText mLoginhint;
     private Spinner mUiBehavior;
+    private Spinner mAccountQueryType;
     private Spinner mUserAgent;
     private EditText mScope;
     private EditText mExtraScope;
@@ -81,6 +79,7 @@ public class AcquireTokenFragment extends Fragment {
         mAuthority = view.findViewById(R.id.authorityType);
         mLoginhint = view.findViewById(R.id.loginHint);
         mUiBehavior = view.findViewById(R.id.uiBehavior);
+        mAccountQueryType = view.findViewById(R.id.accountQueryType);
         mUserAgent = view.findViewById(R.id.auth_user_agent);
         mScope = view.findViewById(R.id.scope);
         mExtraScope = view.findViewById(R.id.extraScope);
@@ -97,6 +96,7 @@ public class AcquireTokenFragment extends Fragment {
 
         bindSpinnerChoice(mAuthority, Constants.AuthorityType.class);
         bindSpinnerChoice(mUiBehavior, UiBehavior.class);
+        bindSpinnerChoice(mAccountQueryType, PublicClientApplication.AccountQueryType.class);
         bindSpinnerChoice(mUserAgent, Constants.UserAgent.class);
         bindSpinnerChoice(mAADEnvironments, Constants.AzureActiveDirectoryEnvironment.class);
 
@@ -110,9 +110,9 @@ public class AcquireTokenFragment extends Fragment {
         mAcquireTokenSilent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mSelectAccount.getSelectedItem() != null) {
-                    mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
-                }
+//                if (mSelectAccount.getSelectedItem() != null) {
+//                    mLoginhint.setText(((IAccount)mSelectAccount.getSelectedItem()).getAccountIdentifier().getIdentifier());
+//                }
                 mOnFragmentInteractionListener.onAcquireTokenSilentClicked(getCurrentRequestOptions());
             }
         });
@@ -215,13 +215,25 @@ public class AcquireTokenFragment extends Fragment {
         final Constants.AuthorityType authorityType = Constants.AuthorityType.valueOf(mAuthority.getSelectedItem().toString());
         final Constants.AzureActiveDirectoryEnvironment environment = Constants.AzureActiveDirectoryEnvironment.valueOf(mAADEnvironments.getSelectedItem().toString());
         final String loginHint = mLoginhint.getText().toString();
+        final PublicClientApplication.AccountQueryType accountQueryType = PublicClientApplication.AccountQueryType.valueOf(mAccountQueryType.getSelectedItem().toString());
         final UiBehavior uiBehavior = UiBehavior.valueOf(mUiBehavior.getSelectedItem().toString());
         final Constants.UserAgent userAgent = Constants.UserAgent.valueOf(mUserAgent.getSelectedItem().toString());
         final String scopes = mScope.getText().toString();
         final String extraScopesToConsent = mExtraScope.getText().toString();
         final boolean enablePII = mEnablePII.isChecked();
         final boolean forceRefresh = mForceRefresh.isChecked();
-        return RequestOptions.create(authorityType, environment, loginHint, uiBehavior, userAgent, scopes, extraScopesToConsent, enablePII, forceRefresh);
+        return RequestOptions.create(
+                authorityType,
+                environment,
+                loginHint,
+                uiBehavior,
+                accountQueryType,
+                userAgent,
+                scopes,
+                extraScopesToConsent,
+                enablePII,
+                forceRefresh
+        );
     }
 
     static class RequestOptions {
@@ -229,21 +241,24 @@ public class AcquireTokenFragment extends Fragment {
         final Constants.AzureActiveDirectoryEnvironment mEnvironment;
         final String mLoginHint;
         final UiBehavior mUiBehavior;
+        final PublicClientApplication.AccountQueryType mAccountQueryType;
         final Constants.UserAgent mUserAgent;
         final String mScope;
         final String mExtraScope;
         final boolean mEnablePII;
         final boolean mForceRefresh;
 
+
         RequestOptions(final Constants.AuthorityType authorityType,
                        final Constants.AzureActiveDirectoryEnvironment environment,
-                       final String loginHint, final UiBehavior uiBehavior,
+                       final String loginHint, final UiBehavior uiBehavior, final PublicClientApplication.AccountQueryType getAccountType,
                        final Constants.UserAgent userAgent, final String scope,
                        final String extraScope, final boolean enablePII, final boolean forceRefresh) {
             mAuthorityType = authorityType;
             mEnvironment = environment;
             mLoginHint = loginHint;
             mUiBehavior = uiBehavior;
+            mAccountQueryType = getAccountType;
             mUserAgent = userAgent;
             mScope = scope;
             mExtraScope = extraScope;
@@ -251,10 +266,28 @@ public class AcquireTokenFragment extends Fragment {
             mForceRefresh = forceRefresh;
         }
 
-        static RequestOptions create(final Constants.AuthorityType authority, final Constants.AzureActiveDirectoryEnvironment environment, final String loginHint,
+        static RequestOptions create(final Constants.AuthorityType authority,
+                                     final Constants.AzureActiveDirectoryEnvironment environment,
+                                     final String loginHint,
                                      final UiBehavior uiBehavior,
-                                     final Constants.UserAgent userAgent, final String scope, final String extraScope, final boolean enablePII, final boolean forceRefresh) {
-            return new RequestOptions(authority, environment, loginHint, uiBehavior, userAgent, scope, extraScope, enablePII, forceRefresh);
+                                     final PublicClientApplication.AccountQueryType accountQueryType,
+                                     final Constants.UserAgent userAgent,
+                                     final String scope,
+                                     final String extraScope,
+                                     final boolean enablePII,
+                                     final boolean forceRefresh) {
+            return new RequestOptions(
+                    authority,
+                    environment,
+                    loginHint,
+                    uiBehavior,
+                    accountQueryType,
+                    userAgent,
+                    scope,
+                    extraScope,
+                    enablePII,
+                    forceRefresh
+            );
         }
 
         Constants.AuthorityType getAuthorityType() {
@@ -285,6 +318,10 @@ public class AcquireTokenFragment extends Fragment {
 
         boolean forceRefresh() {
             return mForceRefresh;
+        }
+
+        PublicClientApplication.AccountQueryType getAccountQueryType() {
+            return mAccountQueryType;
         }
 
         Constants.UserAgent getUserAgent() {
