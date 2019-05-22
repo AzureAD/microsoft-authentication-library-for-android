@@ -208,7 +208,7 @@
                 android:gravity="center_vertical"
                 android:layout_weight="5"
                 android:text="@string/enable_pii_text"/>
-
+        
             <Switch
                 android:id="@+id/enablePII"
                 android:layout_width="0dp"
