@@ -275,39 +275,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onAcquireTokenSilentWithResourceClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
 
-        //final IAccount requestAccount = getAccount();
-        mApplication.getAccounts(new PublicClientApplication.LoadAccountCallback() {
-            @Override
-            public void onTaskCompleted(final List<IAccount> accounts) {
-                IAccount requestAccount = null;
+        mApplication.getAccount(
+                requestOptions.getLoginHint().trim(),
+                new PublicClientApplication.GetAccountCallback() {
+                    @Override
+                    public void onTaskCompleted(final IAccount account) {
+                        if (null != account) {
+                            AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
+                            AcquireTokenSilentParameters acquireTokenSilentParameters =
+                                    builder.withResource(mResource)
+                                            .forAccount(account)
+                                            .forceRefresh(mForceRefresh)
+                                            .callback(getAuthenticationCallback())
+                                            .build();
 
-                for (final IAccount account : accounts) {
-                    if (account.getUsername().equalsIgnoreCase(requestOptions.getLoginHint().trim())) {
-                        requestAccount = account;
-                        break;
+                            mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
+
+                        } else {
+                            showMessage("No account found matching loginHint");
+                        }
                     }
-                }
 
-                if (null != requestAccount) {
-                    AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
-                    AcquireTokenSilentParameters acquireTokenSilentParameters =
-                            builder.withResource(mResource)
-                                    .forAccount(requestAccount)
-                                    .forceRefresh(mForceRefresh)
-                                    .callback(getAuthenticationCallback())
-                                    .build();
-
-                    mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
-                } else {
-                    showMessage("No account found matching loginHint");
-                }
-            }
-
-            @Override
-            public void onError(final Exception exception) {
-                showMessage("No account found matching loginHint");
-            }
-        });
+                    @Override
+                    public void onError(final Exception exception) {
+                        showMessage("No account found matching loginHint");
+                    }
+                });
     }
 
     public void onRemoveUserClicked(final String username) {
@@ -353,32 +346,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
-
-        mApplication.getAccounts(new PublicClientApplication.LoadAccountCallback() {
-            @Override
-            public void onTaskCompleted(final List<IAccount> accounts) {
-                IAccount requestAccount = null;
-
-                for (final IAccount account : accounts) {
-                    if (account.getUsername().equalsIgnoreCase(requestOptions.getLoginHint().trim())) {
-                        requestAccount = account;
-                        break;
+        mApplication.getAccount(
+                requestOptions.getLoginHint().trim(),
+                new PublicClientApplication.GetAccountCallback() {
+                    @Override
+                    public void onTaskCompleted(final IAccount account) {
+                        if (null != account) {
+                            callAcquireTokenSilent(mScopes, account, mForceRefresh);
+                        } else {
+                            showMessage("No account found matching loginHint");
+                        }
                     }
-                }
 
-                if (null != requestAccount) {
-                    callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
-                } else {
-                    showMessage("No account found matching loginHint");
-                }
-            }
-
-            @Override
-            public void onError(final Exception e) {
-                showMessage(e.getClass().getSimpleName()
-                        + " Exception thrown during getting account.");
-            }
-        });
+                    @Override
+                    public void onError(final Exception e) {
+                        showMessage(e.getClass().getSimpleName()
+                                + " Exception thrown during getting account.");
+                    }
+                });
     }
 
     @Override

@@ -192,7 +192,7 @@
                 android:textSize="12sp"
                 android:hint="@string/scope_text_hint"/>
         </LinearLayout>
-    
+
         <LinearLayout
             android:paddingTop="5dp"
             android:paddingBottom="5dp"
@@ -208,7 +208,7 @@
                 android:gravity="center_vertical"
                 android:layout_weight="5"
                 android:text="@string/enable_pii_text"/>
-        
+
             <Switch
                 android:id="@+id/enablePII"
                 android:layout_width="0dp"
