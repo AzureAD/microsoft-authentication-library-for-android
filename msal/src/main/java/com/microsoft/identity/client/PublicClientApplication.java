@@ -39,10 +39,10 @@ import android.util.Pair;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.microsoft.identity.client.claims.ClaimsRequest;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
-import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
@@ -55,7 +55,6 @@ import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AuthorityDeserializer;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.ICacheKeyValueDelegate;
@@ -66,12 +65,16 @@ import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
+import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
+import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
+import com.microsoft.identity.common.internal.controllers.RemoveAccountCommand;
 import com.microsoft.identity.common.internal.controllers.TokenCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
+import com.microsoft.identity.common.internal.net.cache.HttpCache;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
@@ -82,6 +85,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.ILocalAuthenticationCallback;
+import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.msal.BuildConfig;
@@ -312,10 +316,12 @@ public final class PublicClientApplication {
     }
 
     private void initializeApplication() {
+        final Context context = mPublicClientConfiguration.getAppContext();
+
         // Init Events with defaults (application-wide)
         DefaultEvent.initializeDefaults(
                 Defaults.forApplication(
-                        mPublicClientConfiguration.getAppContext(),
+                        context,
                         mPublicClientConfiguration.getClientId()
                 )
         );
@@ -326,6 +332,10 @@ public final class PublicClientApplication {
         // Since network request is sent from the sdk, if calling app doesn't declare the internet permission in the
         // manifest, we cannot make the network call.
         checkInternetPermission();
+
+        // Init HTTP cache
+        HttpCache.initialize(context.getCacheDir());
+
         com.microsoft.identity.common.internal.logging.Logger.info(TAG, "Create new public client application.");
     }
 
@@ -347,41 +357,52 @@ public final class PublicClientApplication {
         return mPublicClientConfiguration;
     }
 
-    /**
-     * Listener callback for asynchronous loading of msal IAccount accounts.
-     */
-    public interface AccountsLoadedCallback {
+    public interface LoadAccountCallback extends TaskCompletedCallbackWithError<List<IAccount>, Exception> {
+        /**
+         * Called once succeed and pass the result object.
+         *
+         * @param result the success result.
+         */
+        void onTaskCompleted(List<IAccount> result);
 
         /**
-         * Called once Accounts have been loaded from the cache.
+         * Called once exception thrown.
          *
-         * @param accounts The accounts in the cache.
+         * @param exception
          */
-        void onAccountsLoaded(List<IAccount> accounts);
+        void onError(Exception exception);
     }
 
-    /**
-     * Listener callback for asynchronous loading of msal IAccount accounts.
-     */
-    public interface AccountsRemovedCallback {
+    public interface GetAccountCallback extends TaskCompletedCallbackWithError<IAccount, Exception> {
+        /**
+         * Called once succeed and pass the result object.
+         *
+         * @param result the success result.
+         */
+        void onTaskCompleted(IAccount result);
 
         /**
-         * Called once Accounts have been removed from the cache.
+         * Called once exception thrown.
          *
-         * @param isSuccess true if the account is successfully removed.
+         * @param exception
          */
-        void onAccountsRemoved(Boolean isSuccess);
+        void onError(Exception exception);
     }
 
-    /**
-     * Listener callback for asynchronous loading of broker AccountRecord accounts.
-     */
-    public interface BrokerAccountsLoadedCallback {
+    public interface RemoveAccountCallback extends TaskCompletedCallbackWithError<Boolean, Exception> {
         /**
-         * Called once Accounts have been loaded from the broker.
-         * @param accountRecords The accountRecords in broker.
+         * Called once succeed and pass the result object.
+         *
+         * @param result the success result.
          */
-        void onAccountsLoaded(List<AccountRecord> accountRecords);
+        void onTaskCompleted(Boolean result);
+
+        /**
+         * Called once exception thrown.
+         *
+         * @param exception
+         */
+        void onError(Exception exception);
     }
 
     /**
@@ -389,10 +410,16 @@ public final class PublicClientApplication {
      *
      * @param callback The callback to notify once this action has finished.
      */
-    public void getAccounts(@NonNull final AccountsLoadedCallback callback) {
+    public void getAccounts(@NonNull final LoadAccountCallback callback) {
         ApiDispatcher.initializeDiagnosticContext();
         final String methodName = ":getAccounts";
-        final List<AccountRecord> accounts = getLocalAccounts();
+        final List<AccountRecord> accounts =
+                mPublicClientConfiguration
+                        .getOAuth2TokenCache()
+                        .getAccounts(
+                                null, // * wildcard
+                                mPublicClientConfiguration.getClientId()
+                        );
 
         final Handler handler;
 
@@ -437,15 +464,6 @@ public final class PublicClientApplication {
                                     TAG + methodName + extendedMethodName,
                                     "Migrated [" + numberOfAccountsMigrated + "] accounts"
                             );
-                            // Merge migrated accounts with broker or local accounts.
-                            if (MSALControllerFactory.brokerEligible(
-                                    mPublicClientConfiguration.getAppContext(),
-                                    mPublicClientConfiguration.getDefaultAuthority(),
-                                    mPublicClientConfiguration)) {
-                                postBrokerAndLocalAccountsResult(handler, callback);
-                            } else {
-                                postLocalAccountsResult(handler, callback);
-                            }
                         }
                     }
             );
@@ -456,149 +474,117 @@ public final class PublicClientApplication {
                     null, // unused for this path
                     false
             ).setMigrationStatus(true);
+        }
 
-            if (MSALControllerFactory.brokerEligible(
-                    mPublicClientConfiguration.getAppContext(),
-                    mPublicClientConfiguration.getDefaultAuthority(),
-                    mPublicClientConfiguration)) {
-                postBrokerAndLocalAccountsResult(handler, callback);
-            } else {
-                postLocalAccountsResult(handler, callback);
-            }
+        try {
+            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+            final LoadAccountCommand command = new LoadAccountCommand(
+                    params,
+                    MSALControllerFactory.getAcquireTokenController(
+                            mPublicClientConfiguration.getAppContext(),
+                            params.getAuthority(),
+                            mPublicClientConfiguration
+                    ),
+                    getLoadAccountsCallback(callback)
+            );
+
+            ApiDispatcher.getAccounts(command);
+        } catch (final MsalClientException e) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    callback.onError(e);
+                }
+            });
         }
     }
 
     /**
-     * Helper method which returns all the local accounts using {@link AccountsLoadedCallback}
-     * @param handler : handler to post
-     * @param callback: AccountsLoadedCallback
-     */
-    private void postLocalAccountsResult(final Handler handler, final AccountsLoadedCallback callback) {
-
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                List<IAccount> accountsToReturn = new ArrayList<>();
-                for (AccountRecord accountRecord : getLocalAccounts()) {
-                    accountsToReturn.add(AccountAdapter.adapt(accountRecord));
-                }
-
-                callback.onAccountsLoaded(accountsToReturn);
-            }
-        });
-    }
-
-    /**
-     * Helper method which returns both broker and local accounts using {@link AccountsLoadedCallback}
-     * @param handler : handler to post
-     * @param callback: AccountsLoadedCallback
-     */
-    private void postBrokerAndLocalAccountsResult(final Handler handler, final AccountsLoadedCallback callback) {
-
-        final String methodName = ":postBrokerAndLocalAccountsResult";
-
-        new BrokerMsalController().getBrokerAccounts(
-                mPublicClientConfiguration,
-                new BrokerAccountsLoadedCallback() {
-                    @Override
-                    public void onAccountsLoaded(final List<AccountRecord> accountRecords) {
-                        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                                TAG + methodName,
-                                "Accounts loaded from broker "
-                                        + (accountRecords == null ? 0 : accountRecords.size())
-                        );
-
-                        // merge account
-                        final List<IAccount> accountList = new ArrayList<>();
-                        final List<AccountRecord> accountRecordList = new ArrayList<>();
-
-                        if (accountRecords != null) {
-                            //Add broker accounts
-                            accountRecordList.addAll(accountRecords);
-                        }
-
-                        //Add local accounts
-                        accountRecordList.addAll(getLocalAccounts());
-
-                        if (accountRecordList.size() > 0) {
-                            for (AccountRecord accountRecord : accountRecordList) {
-                                accountList.add(AccountAdapter.adapt(accountRecord));
-                            }
-                        }
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                callback.onAccountsLoaded(accountList);
-                            }
-                        });
-                    }
-                });
-    }
-
-    /**
-     * Returns a List of {@link IAccount} objects for which this application has RefreshTokens.
+     * Retrieve the IAccount object matching the identifier.
+     * The identifier could be homeAccountIdentifier, localAccountIdentifier or username.
      *
-     * @return An immutable List of IAccount objects - empty if no IAccounts exist.
+     * @param identifier String of the identifier
+     * @param callback   The callback to notify once this action has finished.
      */
-    private List<AccountRecord> getLocalAccounts() {
-        // Grab the Accounts from the common cache
-        final List<AccountRecord> accountsInCache =
-                mPublicClientConfiguration
-                        .getOAuth2TokenCache()
-                        .getAccounts(
-                                null, // * wildcard
-                                mPublicClientConfiguration.getClientId()
-                        );
-
-        return accountsInCache;
-    }
-
-    /**
-     * Returns the IAccount object matching the supplied home_account_id.
-     *
-     * @param homeAccountIdentifier The home_account_id of the sought IAccount.
-     * @param authority             The authority of the sought IAccount.
-     * @return The IAccount stored in the cache or null, if no such matching entry exists.
-     */
-    @Nullable
-    public IAccount getAccount(@NonNull final String homeAccountIdentifier,
-                               @Nullable final String authority) {
+    public void getAccount(@NonNull final String identifier,
+                           @NonNull final GetAccountCallback callback) {
         final String methodName = ":getAccount";
 
         ApiDispatcher.initializeDiagnosticContext();
 
-        String realm = StringUtil.getTenantInfo(homeAccountIdentifier).second;
+        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                TAG + methodName,
+                "Get account with the identifier."
+        );
 
-        Authority authorityObj = Authority.getAuthorityFromAuthorityUrl(authority);
+        try {
+            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+            final LoadAccountCommand command = new LoadAccountCommand(
+                    params,
+                    MSALControllerFactory.getAcquireTokenController(
+                            mPublicClientConfiguration.getAppContext(),
+                            params.getAuthority(),
+                            mPublicClientConfiguration
+                    ),
+                    new TaskCompletedCallbackWithError<List<AccountRecord>, Exception>() {
+                        @Override
+                        public void onTaskCompleted(final List<AccountRecord> result) {
+                            if (null == result) {
+                                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                                        TAG + methodName,
+                                        "No account found.");
+                                callback.onTaskCompleted(null);
+                            } else {
+                                for (AccountRecord accountRecord : result) {
+                                    if (accountRecord.getHomeAccountId().equalsIgnoreCase(identifier.trim())) {
+                                        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                                                TAG + methodName,
+                                                "One account found matching the homeAccountIdentifier provided.");
+                                        callback.onTaskCompleted(AccountAdapter.adapt(accountRecord));
+                                        return;
+                                    } else if (accountRecord.getLocalAccountId().equalsIgnoreCase(identifier.trim())) {
+                                        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                                                TAG + methodName,
+                                                "One account found matching the localAccountIdentifier provided.");
+                                        callback.onTaskCompleted(AccountAdapter.adapt(accountRecord));
+                                        return;
+                                    } else if (accountRecord.getUsername().equalsIgnoreCase(identifier.trim())) {
+                                        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                                                TAG + methodName,
+                                                "One account found matching the username provided.");
+                                        callback.onTaskCompleted(AccountAdapter.adapt(accountRecord));
+                                        return;
+                                    } else {
+                                        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                                                TAG + methodName,
+                                                "No account found.");
+                                        callback.onTaskCompleted(null);
+                                    }
+                                }
+                            }
+                        }
 
-        if (authorityObj instanceof AzureActiveDirectoryAuthority) {
-            final AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) authorityObj;
-            final AzureActiveDirectoryAudience audience = aadAuthority.getAudience();
-            realm = audience.getTenantId();
-        } else {
-            com.microsoft.identity.common.internal.logging.Logger.warn(
+                        @Override
+                        public void onError(final Exception exception) {
+                            com.microsoft.identity.common.internal.logging.Logger.error(
+                                    TAG + methodName,
+                                    exception.getMessage(),
+                                    exception
+                            );
+                            callback.onError(exception);
+                        }
+                    }
+            );
+
+            ApiDispatcher.getAccounts(command);
+        } catch (final MsalClientException e) {
+            com.microsoft.identity.common.internal.logging.Logger.error(
                     TAG + methodName,
-                    "Provided authority was not AAD - defaulting to parsed home_account_id"
+                    e.getMessage(),
+                    e
             );
+            callback.onError(e);
         }
-
-        AccountRecord accountToReturn = null;
-
-        if (null != realm) {
-            accountToReturn = AccountAdapter.getAccountInternal(
-                    mPublicClientConfiguration.getClientId(),
-                    mPublicClientConfiguration.getOAuth2TokenCache(),
-                    homeAccountIdentifier,
-                    realm
-            );
-        } else {
-            com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG + methodName,
-                    "Realm could not be resolved. Returning null."
-            );
-        }
-
-        return null == accountToReturn ? null : AccountAdapter.adapt(accountToReturn);
     }
 
     /**
@@ -607,60 +593,49 @@ public final class PublicClientApplication {
      * @param account The IAccount whose entry and associated tokens should be removed.
      * @return True, if the account was removed. False otherwise.
      */
-    public void removeAccount(@Nullable final IAccount account, final AccountsRemovedCallback callback) {
+    public void removeAccount(@Nullable final IAccount account, final RemoveAccountCallback callback) {
         ApiDispatcher.initializeDiagnosticContext();
-        if (null == account
-                || null == account.getHomeAccountIdentifier()
-                || StringUtil.isEmpty(account.getHomeAccountIdentifier().getIdentifier())) {
-            com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG,
-                    "Requisite IAccount or IAccount fields were null. Insufficient criteria to remove IAccount."
-            );
+        //create the parameter
+        try {
+            if (null == account
+                    || null == account.getHomeAccountIdentifier()
+                    || StringUtil.isEmpty(account.getHomeAccountIdentifier().getIdentifier())) {
+                com.microsoft.identity.common.internal.logging.Logger.warn(
+                        TAG,
+                        "Requisite IAccount or IAccount fields were null. Insufficient criteria to remove IAccount."
+                );
 
-            callback.onAccountsRemoved(false);
+                callback.onTaskCompleted(false);
+            } else {
+                final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+                if (null == getAccountRecord(account)) {
+                    // If could not find the account record in local msal cache
+                    // Create the pass along account record object to broker
+                    final AccountRecord requestAccountRecord = new AccountRecord();
+                    //requestAccountRecord.setEnvironment(account.getEnvironment());
+                    requestAccountRecord.setUsername(account.getUsername());
+                    requestAccountRecord.setHomeAccountId(account.getHomeAccountIdentifier().getIdentifier());
+                    requestAccountRecord.setAlternativeAccountId(account.getAccountIdentifier().getIdentifier());
+                    params.setAccount(requestAccountRecord);
+                } else {
+                    params.setAccount(getAccountRecord(account));
+                }
+
+                final RemoveAccountCommand command = new RemoveAccountCommand(
+                        params,
+                        MSALControllerFactory.getAcquireTokenController(
+                                mPublicClientConfiguration.getAppContext(),
+                                params.getAuthority(),
+                                mPublicClientConfiguration
+                        ),
+                        callback
+                );
+
+                ApiDispatcher.removeAccount(command);
+            }
+        } catch (final MsalClientException e) {
+            callback.onError(e);
         }
-
-        // FEATURE SWITCH: Set to false to allow deleting Accounts in a tenant-specific way.
-        final boolean deleteAccountsInAllTenants = true;
-
-        final String realm = deleteAccountsInAllTenants ? null : getRealm(account);
-
-        final boolean localRemoveAccountSuccess = !mPublicClientConfiguration
-                .getOAuth2TokenCache()
-                .removeAccount(
-                        account.getEnvironment(),
-                        mPublicClientConfiguration.getClientId(),
-                        account.getHomeAccountIdentifier().getIdentifier(),
-                        realm
-                ).isEmpty();
-
-        if (MSALControllerFactory.brokerEligible(
-                mPublicClientConfiguration.getAppContext(),
-                mPublicClientConfiguration.getDefaultAuthority(),
-                mPublicClientConfiguration)) {
-
-            //Remove the account from Broker
-            new BrokerMsalController().removeBrokerAccount(
-                    account,
-                    mPublicClientConfiguration,
-                    callback
-            );
-        } else {
-            callback.onAccountsRemoved(localRemoveAccountSuccess);
-        }
-    }
-
-    @Nullable
-    private static String getRealm(@NonNull IAccount account) {
-        String realm = null;
-
-        if (null != account.getAccountIdentifier() // This is an AAD account w/ tenant info
-                && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier) {
-            final AzureActiveDirectoryAccountIdentifier identifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier();
-            realm = identifier.getTenantIdentifier();
-        }
-
-        return realm;
     }
 
     /**
@@ -995,16 +970,20 @@ public final class PublicClientApplication {
                         acquireTokenParameters.getCallback()
                 );
 
-        final InteractiveTokenCommand command = new InteractiveTokenCommand(
-                params,
-                MSALControllerFactory.getAcquireTokenController(
-                        mPublicClientConfiguration.getAppContext(),
-                        params.getAuthority(),
-                        mPublicClientConfiguration
-                ),
-                localAuthenticationCallback
-        );
-        ApiDispatcher.beginInteractive(command);
+        try {
+            final InteractiveTokenCommand command = new InteractiveTokenCommand(
+                    params,
+                    MSALControllerFactory.getAcquireTokenController(
+                            mPublicClientConfiguration.getAppContext(),
+                            params.getAuthority(),
+                            mPublicClientConfiguration
+                    ),
+                    localAuthenticationCallback
+            );
+            ApiDispatcher.beginInteractive(command);
+        } catch (final BaseException exception) {
+            localAuthenticationCallback.onError(exception);
+        }
     }
 
     private AccountRecord getAccountRecord(@Nullable final IAccount account) {
@@ -1013,7 +992,7 @@ public final class PublicClientApplication {
                     mPublicClientConfiguration.getClientId(),
                     mPublicClientConfiguration.getOAuth2TokenCache(),
                     account.getHomeAccountIdentifier().getIdentifier(),
-                    getRealm(account)
+                    AccountAdapter.getRealm(account)
             );
         }
 
@@ -1120,17 +1099,20 @@ public final class PublicClientApplication {
 
         ILocalAuthenticationCallback callback = getLocalAuthenticationCallback(acquireTokenSilentParameters.getCallback());
 
-        final TokenCommand silentTokenCommand = new TokenCommand(
-                params,
-                MSALControllerFactory.getAcquireTokenSilentControllers(
-                        mPublicClientConfiguration.getAppContext(),
-                        params.getAuthority(),
-                        mPublicClientConfiguration
-                ),
-                callback
-        );
-
-        ApiDispatcher.submitSilent(silentTokenCommand);
+        try {
+            final TokenCommand silentTokenCommand = new TokenCommand(
+                    params,
+                    MSALControllerFactory.getAcquireTokenSilentControllers(
+                            mPublicClientConfiguration.getAppContext(),
+                            params.getAuthority(),
+                            mPublicClientConfiguration
+                    ),
+                    callback
+            );
+            ApiDispatcher.submitSilent(silentTokenCommand);
+        } catch (final BaseException exception) {
+            callback.onError(exception);
+        }
     }
 
     private void loadMetaDataFromManifest() {
@@ -1324,6 +1306,29 @@ public final class PublicClientApplication {
                 accountCredentialCache,
                 accountCredentialAdapter
         );
+    }
+
+    private static TaskCompletedCallbackWithError<List<AccountRecord>, Exception> getLoadAccountsCallback (
+            final LoadAccountCallback loadAccountsCallback) {
+        return new TaskCompletedCallbackWithError<List<AccountRecord>, Exception>() {
+            @Override
+            public void onTaskCompleted(final List<AccountRecord> result) {
+                if (null == result) {
+                    loadAccountsCallback.onTaskCompleted(null);
+                } else {
+                    final List<IAccount> resultAccounts = new ArrayList<>();
+                    for (AccountRecord accountRecord : result) {
+                        resultAccounts.add(AccountAdapter.adapt(accountRecord));
+                    }
+                    loadAccountsCallback.onTaskCompleted(resultAccounts);
+                }
+            }
+
+            @Override
+            public void onError(final Exception exception) {
+                loadAccountsCallback.onError(exception);
+            }
+        };
     }
 
     private static ILocalAuthenticationCallback getLocalAuthenticationCallback(final AuthenticationCallback authenticationCallback) {

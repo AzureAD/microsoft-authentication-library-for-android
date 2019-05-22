@@ -25,7 +25,9 @@ package com.microsoft.identity.client;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -177,7 +179,14 @@ abstract class TokenParameters {
         private AuthenticationCallback mCallback;
 
         public B withScopes(List<String> scopes) {
-            mScopes = scopes;
+            if (null != mScopes) {
+                throw new IllegalArgumentException("Scopes is already set.");
+            } else if (null == scopes || scopes.isEmpty()) {
+                throw new IllegalArgumentException("Empty scopes list.");
+            } else {
+                mScopes = scopes;
+            }
+
             return self();
         }
 
@@ -199,6 +208,24 @@ abstract class TokenParameters {
 
         public B callback(AuthenticationCallback callback) {
             mCallback = callback;
+            return self();
+        }
+
+        public B withResource(final String resource) {
+            if (null != mScopes) {
+                throw new IllegalArgumentException(
+                        "Scopes is already set. Scopes and resources cannot be combined in a single request."
+                );
+            } else if (StringUtil.isEmpty(resource)) {
+                throw new IllegalArgumentException(
+                        "Empty resource string."
+                );
+            } else {
+                mScopes = new ArrayList<String>() {{
+                    add(resource.toLowerCase().trim() + "/.default");
+                }};
+            }
+
             return self();
         }
 

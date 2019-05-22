@@ -24,6 +24,7 @@
   ~ //  THE SOFTWARE.
   -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
     <LinearLayout
@@ -191,7 +192,7 @@
                 android:textSize="12sp"
                 android:hint="@string/scope_text_hint"/>
         </LinearLayout>
-    
+
         <LinearLayout
             android:paddingTop="5dp"
             android:paddingBottom="5dp"
@@ -207,7 +208,7 @@
                 android:gravity="center_vertical"
                 android:layout_weight="5"
                 android:text="@string/enable_pii_text"/>
-        
+
             <Switch
                 android:id="@+id/enablePII"
                 android:layout_width="0dp"
@@ -346,6 +347,51 @@
                 android:id="@+id/txt_output"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
+
+            <TextView
+                android:id="@+id/txt_output2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:paddingTop="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btn_acquiretokenWithResource"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/acquire_token_with_resource_button" />
+
+                <Button
+                    android:id="@+id/btn_acquiretokensilentWithResource"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/acquire_token_silent_with_resource_button" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/txt_output3"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <TextView
+                android:id="@+id/txt_output4"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
         </RelativeLayout>
 
     </LinearLayout>

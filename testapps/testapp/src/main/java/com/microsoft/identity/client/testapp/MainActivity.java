@@ -34,7 +34,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 import android.view.MenuItem;
@@ -43,6 +42,8 @@ import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.microsoft.identity.client.AcquireTokenParameters;
+import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.IAccount;
@@ -57,6 +58,8 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
+import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -84,6 +87,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private String mAuthority;
     private String[] mScopes;
+    private String mResource;
     private UiBehavior mUiBehavior;
     private String mLoginHint;
     private List<Pair<String, String>> mExtraQp;
@@ -237,26 +241,100 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         callAcquireToken(mScopes, mUiBehavior, mLoginHint, mExtraQp, mExtraScopesToConsent);
     }
 
+    @Override
+    public void  onAcquireTokenWithResourceClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+        prepareRequestParameters(requestOptions);
+
+        if (mEnablePiiLogging) {
+            Logger.getInstance().setEnableLogcatLog(mEnablePiiLogging);
+        }
+
+        if (mEnablePiiLogging) {
+            Logger.getInstance().setEnablePII(true);
+        } else {
+            Logger.getInstance().setEnablePII(false);
+        }
+
+        try {
+            AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
+            AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(this)
+                    .withResource(mResource)
+                    .withUiBehavior(mUiBehavior)
+                    .withAuthorizationQueryStringParameters(mExtraQp)
+                    .callback(getAuthenticationCallback())
+                    .withLoginHint(mLoginHint)
+                    .build();
+
+            mApplication.acquireTokenAsync(acquireTokenParameters);
+        } catch (IllegalArgumentException e) {
+            showMessage(e.getMessage());
+        }
+    }
+
+    @Override
+    public void onAcquireTokenSilentWithResourceClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+        prepareRequestParameters(requestOptions);
+
+        mApplication.getAccount(
+                requestOptions.getLoginHint().trim(),
+                new PublicClientApplication.GetAccountCallback() {
+                    @Override
+                    public void onTaskCompleted(final IAccount account) {
+                        if (null != account) {
+                            AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
+                            AcquireTokenSilentParameters acquireTokenSilentParameters =
+                                    builder.withResource(mResource)
+                                            .forAccount(account)
+                                            .forceRefresh(mForceRefresh)
+                                            .callback(getAuthenticationCallback())
+                                            .build();
+
+                            mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
+
+                        } else {
+                            showMessage("No account found matching loginHint");
+                        }
+                    }
+
+                    @Override
+                    public void onError(final Exception exception) {
+                        showMessage("No account found matching loginHint");
+                    }
+                });
+    }
+
     public void onRemoveUserClicked(final String username) {
-        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
+        mApplication.getAccounts(new PublicClientApplication.LoadAccountCallback() {
             @Override
-            public void onAccountsLoaded(List<IAccount> accountsToRemove) {
+            public void onTaskCompleted(List<IAccount> accountsToRemove) {
                 for (final IAccount accountToRemove : accountsToRemove) {
-                    if (TextUtils.isEmpty(username) || accountToRemove.getUsername().equalsIgnoreCase(username.trim())) {
+                    if (StringUtil.isEmpty(username) || accountToRemove.getUsername().equalsIgnoreCase(username.trim())) {
                         mApplication.removeAccount(
                                 accountToRemove,
-                                new PublicClientApplication.AccountsRemovedCallback() {
+                                new PublicClientApplication.RemoveAccountCallback() {
                                     @Override
-                                    public void onAccountsRemoved(Boolean isSuccess) {
+                                    public void onTaskCompleted(Boolean isSuccess) {
                                         if (isSuccess) {
                                             showMessage("The account is successfully removed.");
                                         } else {
                                             showMessage("Failed to remove the account.");
                                         }
                                     }
+
+                                    @Override
+                                    public void onError(Exception e) {
+                                        showMessage(e.getClass().getSimpleName()
+                                                + " Exception thrown during removing account.");
+                                    }
                                 });
                     }
                 }
+            }
+
+            @Override
+            public void onError(Exception exception) {
+                showMessage(exception.getClass().getSimpleName()
+                        + " Exception thrown during getting accounts.");
             }
         });
     }
@@ -268,34 +346,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
-
-        //final IAccount requestAccount = getAccount();
-        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
-            @Override
-            public void onAccountsLoaded(final List<IAccount> accounts) {
-                IAccount requestAccount = null;
-
-                for (final IAccount account : accounts) {
-                    if (account.getUsername().equalsIgnoreCase(requestOptions.getLoginHint().trim())) {
-                        requestAccount = account;
-                        break;
+        mApplication.getAccount(
+                requestOptions.getLoginHint().trim(),
+                new PublicClientApplication.GetAccountCallback() {
+                    @Override
+                    public void onTaskCompleted(final IAccount account) {
+                        if (null != account) {
+                            callAcquireTokenSilent(mScopes, account, mForceRefresh);
+                        } else {
+                            showMessage("No account found matching loginHint");
+                        }
                     }
-                }
 
-                if (null != requestAccount) {
-                    callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
-                } else {
-                    showMessage("No account found matching loginHint");
-                }
-            }
-        });
+                    @Override
+                    public void onError(final Exception e) {
+                        showMessage(e.getClass().getSimpleName()
+                                + " Exception thrown during getting account.");
+                    }
+                });
     }
 
     @Override
     public void bindSelectAccountSpinner(final Spinner selectUser) {
-        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
+        mApplication.getAccounts(new PublicClientApplication.LoadAccountCallback() {
             @Override
-            public void onAccountsLoaded(final List<IAccount> accounts) {
+            public void onTaskCompleted(final List<IAccount> accounts) {
                 final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
                         getApplicationContext(), android.R.layout.simple_spinner_item,
                         new ArrayList<String>() {{
@@ -305,6 +380,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 );
                 userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 selectUser.setAdapter(userAdapter);
+            }
+
+            @Override
+            public void onError(final Exception e) {
+                showMessage(e.getClass().getSimpleName()
+                        + " Exception thrown during getting account.");
             }
         });
     }
@@ -326,6 +407,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         mScopes = scopes.toLowerCase().split(" ");
+        mResource = scopes.toLowerCase();
         mExtraScopesToConsent = requestOptions.getExtraScopesToConsent() == null ? null : requestOptions.getExtraScopesToConsent().toLowerCase().split(" ");
 
         if (userAgent.name().equalsIgnoreCase("BROWSER")) {
