@@ -502,6 +502,9 @@ public final class PublicClientApplication {
     /**
      * Retrieve the IAccount object matching the identifier.
      * The identifier could be homeAccountIdentifier, localAccountIdentifier or username.
+     *
+     * @param identifier String of the identifier
+     * @param callback   The callback to notify once this action has finished.
      */
     public void getAccount(@NonNull final String identifier,
                            @NonNull final GetAccountCallback callback) {
@@ -511,7 +514,7 @@ public final class PublicClientApplication {
 
         com.microsoft.identity.common.internal.logging.Logger.verbose(
                 TAG + methodName,
-                "Get account with provided identifier."
+                "Get account with the identifier."
         );
 
         try {
