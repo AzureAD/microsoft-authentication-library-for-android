@@ -1,8 +1,11 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
-Version 0.3.1
+Version 0.3.1-alpha
 ----------------------------
-To Be Updated.
+- Adds support for declared non-tfp B2C authorities
+- Fix setting correct id token for B2C if v1 id token is returned
+- Fix incorrect parsing of not_before as Date
+- V2 Broker Support (Alpha)
 
 Version 0.3.1-alpha
 ----------------------------
