@@ -47,7 +47,6 @@
     <string name="acquire_token_silent_with_resource_button">ATS w/ Resource</string>
     <string name="result_hint_text">Acquire token interactive/silent flow result data goes here...</string>
     <string name="log_hint_text">Log data goes here...</string>
-    <string name="account_query_type_text">Account Query Type</string>
     <string name="clear_log_button">clear logs</string>
     <string name="select_user"> Select User</string>
     <string name="btn_getUser">Get Users</string>

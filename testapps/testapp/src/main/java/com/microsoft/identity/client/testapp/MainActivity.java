@@ -354,7 +354,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
         prepareRequestParameters(requestOptions);
         mApplication.getAccount(
-                requestOptions.getAccountQueryType(),
                 requestOptions.getLoginHint().trim(),
                 new PublicClientApplication.GetAccountCallback() {
                     @Override
