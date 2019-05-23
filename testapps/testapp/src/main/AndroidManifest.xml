@@ -29,6 +29,9 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
 
     <application
         android:name="com.microsoft.identity.client.testapp.MsalSampleApp"
@@ -55,14 +58,11 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <!-- To Test PPE:  msal7cc2dd84-bb0f-4711-8fca-4c7d01249f56 -->
                 <!-- To Test Sovereign: msalcb7faed4-b8c0-49ee-b421-f5ed16894c83 -->
-                <data android:scheme="msal9851987a-55e5-46e2-8d70-75f8dc060f21"
-                    android:host="auth" />
+                <data android:scheme="msauth"
+                    android:host="com.microsoft.identity.client.sample.local"
+                    android:path="/gwdiktUBDmQq+fbWiJoa+/YH070="/>
             </intent-filter>
         </activity>
-
-        <meta-data
-            android:name="com.microsoft.identity.client.ClientId"
-            android:value="9851987a-55e5-46e2-8d70-75f8dc060f21"/>
     </application>
 
 </manifest>

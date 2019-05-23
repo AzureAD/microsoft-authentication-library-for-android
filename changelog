@@ -2,10 +2,24 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 Version 0.3.1-alpha
 ----------------------------
-- Adds support for declared non-tfp B2C authorities
-- Fix setting correct id token for B2C if v1 id token is returned
-- Fix incorrect parsing of not_before as Date
-- V2 Broker Support (Alpha)
+- Picks up common@0.0.10-alpha
+- Adds additional validation to PublicClientApplicationConfiguration
+- Adds support for non-tfp B2C authority URIs when declared via configuration
+- Improved logging around network requests
+- getAccounts() is now asynchronous
+- Improved tooltips via nullability annotations
+- Introduced 10 minute request timeout to unlock threading resources if a user is inactive
+- Improved caching of IdTokens
+    * Support for ver: 1 IdTokens added, supports B2C & ADAL backwards compatibility
+- Improved argument validation
+    * Fixed an issue where a null callback could be provided to acquireToken, triggering an NPE
+- Caching improvements
+    * Guest-account migration support added
+    * Network I/O for performing cache migrations has been parallelized
+    * Adds support for setting cache encryption keys
+
+Known issues:
+- Property `authority` of `IAuthenticationResult` is always `null` for AAD authorities
 
 Version 0.2.2
 ----------------------------

@@ -5,17 +5,16 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import android.util.Pair;
 
+import com.microsoft.identity.client.AcquireTokenParameters;
+import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
-import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
@@ -150,6 +149,93 @@ public class MsalWrapper {
             getAuthenticationCallback(notifyCallback));
     }
 
+    public void acquireTokenWithResourceId(final Activity activity,
+                             final AcquireTokenFragment.RequestOptions requestOptions,
+                             @NonNull final INotifyOperationResultCallback notifyCallback) {
+        if (mApplication == null){
+            notifyCallback.notify("Application is not yet loaded");
+            return;
+        }
+        if (mLoadedAccount == null){
+            notifyCallback.notify("account is not yet loaded");
+            return;
+        }
+
+        AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
+        AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(activity)
+                .withResource(requestOptions.getScopes().toLowerCase().trim())
+                .withUiBehavior(requestOptions.getUiBehavior())
+                .withAuthorizationQueryStringParameters(null)
+                .callback(getAuthenticationCallback(notifyCallback))
+                .withLoginHint(requestOptions.getLoginHint())
+                .build();
+
+        mApplication.acquireTokenAsync(acquireTokenParameters);
+    }
+
+    public void acquireTokenSilentWithResource(final AcquireTokenFragment.RequestOptions requestOptions,
+                                               @NonNull final INotifyOperationResultCallback notifyCallback) {
+        if (mApplication == null) {
+            notifyCallback.notify("Application is not yet loaded");
+            return;
+        }
+        if (mLoadedAccount == null) {
+            notifyCallback.notify("account is not yet loaded");
+            return;
+        }
+
+        IAccount requestAccount = null;
+        for (final IAccount account : mLoadedAccount) {
+            if (account.getUsername().equalsIgnoreCase(requestOptions.getLoginHint().trim())) {
+                requestAccount = account;
+                break;
+            }
+        }
+
+        if (null != requestAccount) {
+            AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
+            AcquireTokenSilentParameters acquireTokenSilentParameters =
+                    builder.withResource(requestOptions.getScopes().toLowerCase().trim())
+                            .forAccount(requestAccount)
+                            .forceRefresh(requestOptions.forceRefresh())
+                            .callback(getAuthenticationCallback(notifyCallback))
+                            .build();
+
+            mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
+        } else {
+            notifyCallback.notify("No account found matching loginHint");
+        }
+
+        // TODO: add support for IMultipleAccountPublicClientApplication.getAccount().
+//
+//        ((IMultipleAccountPublicClientApplication)mApplication).getAccount(
+//                requestOptions.getLoginHint().trim(),
+//                new PublicClientApplication.GetAccountCallback() {
+//                    @Override
+//                    public void onTaskCompleted(final IAccount account) {
+//                        if (null != account) {
+//                            AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
+//                            AcquireTokenSilentParameters acquireTokenSilentParameters =
+//                                    builder.withResource(requestOptions.getScopes().toLowerCase().trim())
+//                                            .forAccount(account)
+//                                            .forceRefresh(requestOptions.forceRefresh())
+//                                            .callback(getAuthenticationCallback(notifyCallback))
+//                                            .build();
+//
+//                            mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
+//
+//                        } else {
+//                            notifyCallback.notify("No account found matching loginHint");
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void onError(final Exception exception) {
+//                        notifyCallback.notify("No account found matching loginHint");
+//                    }
+//                });
+    }
+
     public void acquireTokenSilent(final AcquireTokenFragment.RequestOptions requestOptions,
                                    @NonNull final INotifyOperationResultCallback notifyCallback){
         if (mApplication == null){
@@ -233,9 +319,9 @@ public class MsalWrapper {
                 if (TextUtils.isEmpty(username) || accountToRemove.getUsername().equalsIgnoreCase(username.trim())) {
                     application.removeAccount(
                         accountToRemove,
-                        new IPublicClientApplication.AccountRemovedListener() {
+                        new PublicClientApplication.RemoveAccountCallback() {
                             @Override
-                            public void onAccountRemoved(Boolean isSuccess) {
+                            public void onTaskCompleted(Boolean isSuccess) {
                                 if (isSuccess) {
                                     notifyCallback.notify("The account is successfully removed.");
 
@@ -245,16 +331,22 @@ public class MsalWrapper {
                                     notifyCallback.notify("Failed to remove the account.");
                                 }
                             }
+
+                            @Override
+                            public void onError(Exception exception) {
+                                exception.printStackTrace();
+                                notifyCallback.notify("Failed to remove the account.");
+                            }
                         });
                 }
             }
         } else if (mApplication instanceof ISingleAccountPublicClientApplication) {
             final ISingleAccountPublicClientApplication application = (ISingleAccountPublicClientApplication)(mApplication);
             try {
-                application.removeCurrentAccount(new IPublicClientApplication.AccountRemovedListener() {
+                application.removeCurrentAccount(new PublicClientApplication.RemoveAccountCallback() {
                     @Override
-                    public void onAccountRemoved(Boolean isSuccess) {
-                        if (isSuccess) {
+                    public void onTaskCompleted(Boolean result) {
+                        if (result) {
                             notifyCallback.notify("The account is successfully removed.");
 
                             // Reload account list.
@@ -262,6 +354,12 @@ public class MsalWrapper {
                         } else {
                             notifyCallback.notify("Account is not removed.");
                         }
+                    }
+
+                    @Override
+                    public void onError(Exception exception) {
+                        exception.printStackTrace();
+                        notifyCallback.notify("Failed to remove the account.");
                     }
                 });
             } catch (MsalClientException e) {
@@ -281,12 +379,19 @@ public class MsalWrapper {
 
         if (mApplication instanceof IMultipleAccountPublicClientApplication) {
             IMultipleAccountPublicClientApplication multipleAcctApp = (IMultipleAccountPublicClientApplication) mApplication;
-            multipleAcctApp.getAccounts(new IMultipleAccountPublicClientApplication.AccountsLoadedCallback() {
+            multipleAcctApp.getAccounts(new PublicClientApplication.LoadAccountCallback() {
                 @Override
-                public void onAccountsLoaded(List<IAccount> accounts) {
-                    mLoadedAccount = accounts;
+                public void onTaskCompleted(List<IAccount> result) {
+                    mLoadedAccount = result;
                     performPostAccountLoadedJobs();
                 }
+
+                @Override
+                public void onError(Exception exception) {
+                    exception.printStackTrace();
+                    notifyCallback.notify("Failed to load account from broker");
+                }
+
             });
         } else if (mApplication instanceof ISingleAccountPublicClientApplication) {
             ISingleAccountPublicClientApplication singleAcctApp = (ISingleAccountPublicClientApplication)mApplication;

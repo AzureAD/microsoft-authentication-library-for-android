@@ -25,6 +25,7 @@ package com.microsoft.identity.client.exception;
 
 import com.microsoft.identity.client.AuthenticationActivity;
 import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.exception.ErrorStrings;
 
 /**
  * This exception class represents general errors that are local to the library. Below is the table of proposed codes and a short description of each.
@@ -145,6 +146,11 @@ public final class MsalClientException extends MsalException {
      * Extra query parameters set by the client app is already sent by the sdk.
      */
     public static final String DUPLICATE_QUERY_PARAMETER = ClientException.DUPLICATE_QUERY_PARAMETER;
+
+    /**
+     * Failed to bind the service in broker app.
+     */
+    public static final String BROKER_BIND_FAILURE = ErrorStrings.BROKER_BIND_SERVICE_FAILED;
 
     /**
      * Extra query parameters set by the client app is already sent by the sdk.

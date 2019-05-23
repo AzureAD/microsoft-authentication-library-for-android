@@ -44,6 +44,8 @@
     <string name="auth_user_agent">User Agent</string>
     <string name="acquire_token_button">AcquireToken</string>
     <string name="acquire_token_silent_button">AcquireTokenSilent</string>
+    <string name="acquire_token_with_resource_button">AT w/ Resource</string>
+    <string name="acquire_token_silent_with_resource_button">ATS w/ Resource</string>
     <string name="result_hint_text">Acquire token interactive/silent flow result data goes here...</string>
     <string name="log_hint_text">Log data goes here...</string>
     <string name="clear_log_button">clear logs</string>

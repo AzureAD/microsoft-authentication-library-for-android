@@ -26,34 +26,31 @@ package com.microsoft.identity.client;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.microsoft.identity.common.internal.dto.AccountRecord;
-
-import java.util.List;
-
 /**
  * An interface that contains list of operations that are available when MSAL is in 'multiple account' mode.
  * - This mode allows an application to make API calls with more than one accounts.
  * - The application will only be able to retrieve/remove accounts that have been used to acquire token interactively in this application
  * - API calls' scope is limited to 'the calling app'. (i.e. removeAccount() will not remove credentials of the same account in other apps).
- *
+ * <p>
  * This is MSAL's default mode.
- * */
-public interface IMultipleAccountPublicClientApplication extends IPublicClientApplication{
+ */
+public interface IMultipleAccountPublicClientApplication extends IPublicClientApplication {
     /**
      * Asynchronously returns a List of {@link IAccount} objects for which this application has RefreshTokens.
      *
      * @param callback The callback to notify once this action has finished.
      */
-    void getAccounts(@NonNull final AccountsLoadedCallback callback);
+    void getAccounts(@NonNull final PublicClientApplication.LoadAccountCallback callback);
 
     /**
-     * Returns the IAccount object matching the supplied home_account_id.
+     * Retrieve the IAccount object matching the identifier.
+     * The identifier could be homeAccountIdentifier, localAccountIdentifier or username.
      *
-     * @param homeAccountIdentifier The home_account_id of the sought IAccount.
-     * @param authority             The authority of the sought IAccount.
-     * @return The IAccount stored in the cache or null, if no such matching entry exists.
+     * @param identifier String of the identifier
+     * @param callback   The callback to notify once this action has finished.
      */
-    IAccount getAccount(@NonNull final String homeAccountIdentifier, @Nullable final String authority);
+    void getAccount(@NonNull final String identifier,
+                    @NonNull final PublicClientApplication.GetAccountCallback callback);
 
     /**
      * Removes the Account and Credentials (tokens) for the supplied IAccount.
@@ -61,17 +58,5 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * @param account The IAccount whose entry and associated tokens should be removed.
      * @return True, if the account was removed. False otherwise.
      */
-    void removeAccount(@Nullable final IAccount account, final AccountRemovedListener callback);
-
-    /**
-     * Callback for asynchronous loading of msal IAccount accounts.
-     */
-    interface AccountsLoadedCallback {
-        /**
-         * Called once Accounts have been loaded from the cache.
-         *
-         * @param accounts The accounts in the cache.
-         */
-        void onAccountsLoaded(List<IAccount> accounts);
-    }
+    void removeAccount(@Nullable final IAccount account, final PublicClientApplication.RemoveAccountCallback callback);
 }
