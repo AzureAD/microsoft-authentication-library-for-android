@@ -146,7 +146,7 @@ public class MSALControllerFactory {
      * @param applicationContext
      * @return
      */
-    private static boolean brokerInstalled(@NonNull final Context applicationContext) {
+    protected static boolean brokerInstalled(@NonNull final Context applicationContext) {
         BrokerValidator brokerValidator = new BrokerValidator(applicationContext);
         AccountManager accountManager = AccountManager.get(applicationContext);
 

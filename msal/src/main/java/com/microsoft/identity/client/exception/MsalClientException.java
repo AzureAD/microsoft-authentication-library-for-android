@@ -152,6 +152,11 @@ public final class MsalClientException extends MsalException {
     public static final String UNKNOWN_ERROR = ClientException.UNKNOWN_ERROR;
 
     /**
+     * Broker app is not installed.
+     */
+    public static final String BROKER_NOT_INSTALLED = "broker_not_installed";
+
+    /**
      * Temporary non-exposed error code to indicate that ADFS authority validation fails. ADFS as authority is not supported
      * for preview.
      */

@@ -37,12 +37,14 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.UiBehavior;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.ui.browser.Browser;
 import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.microsoft.identity.client.testapp.R.id.enablePII;
 
@@ -66,6 +68,7 @@ public class AcquireTokenFragment extends Fragment {
     private TextView mDefaultBrowser;
     private Spinner mSelectAccount;
     private Spinner mAADEnvironments;
+    private TextView mPublicApplicationMode;
 
     private OnFragmentInteractionListener mOnFragmentInteractionListener;
 
@@ -92,6 +95,7 @@ public class AcquireTokenFragment extends Fragment {
         mAcquireToken = view.findViewById(R.id.btn_acquiretoken);
         mAcquireTokenSilent = view.findViewById(R.id.btn_acquiretokensilent);
         mAADEnvironments = view.findViewById(R.id.environment);
+        mPublicApplicationMode = view.findViewById(R.id.public_application_mode);
 
         bindSpinnerChoice(mAuthority, Constants.AuthorityType.class);
         bindSpinnerChoice(mUiBehavior, UiBehavior.class);
@@ -166,7 +170,14 @@ public class AcquireTokenFragment extends Fragment {
     public void onResume() {
         super.onResume();
         if (mOnFragmentInteractionListener != null) {
-            mOnFragmentInteractionListener.bindSelectAccountSpinner(mSelectAccount);
+            MsalWrapper.getInstance().registerPostAccountLoadedJob("bindSelectAccountSpinner",
+                new MsalWrapper.IPostAccountLoaded() {
+                    @Override
+                    public void onLoaded(List<IAccount> loadedAccount) {
+                        mOnFragmentInteractionListener.bindSelectAccountSpinner(mSelectAccount, loadedAccount);
+                        mPublicApplicationMode.setText(MsalWrapper.getInstance().getPublicApplicationMode());
+                    }
+                });
         }
         if (mSelectAccount.getSelectedItem() != null) {
             mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
@@ -294,6 +305,6 @@ public class AcquireTokenFragment extends Fragment {
 
         void onAcquireTokenSilentClicked(final RequestOptions requestOptions);
 
-        void bindSelectAccountSpinner(Spinner selectAccount);
+        void bindSelectAccountSpinner(Spinner selectAccount, List<IAccount> accounts);
     }
 }
