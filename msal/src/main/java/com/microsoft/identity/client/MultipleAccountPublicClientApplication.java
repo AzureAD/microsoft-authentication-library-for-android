@@ -11,9 +11,6 @@ import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
-import com.microsoft.identity.common.internal.authorities.Authority;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
@@ -149,8 +146,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         }
     }
 
-    @Override
-    @Nullable
     /**
      * Retrieve the IAccount object matching the identifier.
      * The identifier could be homeAccountIdentifier, localAccountIdentifier or username.
@@ -158,6 +153,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
      * @param identifier String of the identifier
      * @param callback   The callback to notify once this action has finished.
      */
+    @Override
     public void getAccount(@NonNull final String identifier,
                            @NonNull final GetAccountCallback callback) {
         final String methodName = ":getAccount";
@@ -239,7 +235,9 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         }
     }
 
-    public void removeAccount(@Nullable final IAccount account, final RemoveAccountCallback callback) {
+    @Override
+    public void removeAccount(@Nullable final IAccount account,
+                              @NonNull final RemoveAccountCallback callback) {
         ApiDispatcher.initializeDiagnosticContext();
         //create the parameter
         try {

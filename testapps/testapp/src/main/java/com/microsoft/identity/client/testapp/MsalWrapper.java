@@ -179,61 +179,51 @@ public class MsalWrapper {
             notifyCallback.notify("Application is not yet loaded");
             return;
         }
-        if (mLoadedAccount == null) {
-            notifyCallback.notify("account is not yet loaded");
-            return;
-        }
 
-        IAccount requestAccount = null;
-        for (final IAccount account : mLoadedAccount) {
-            if (account.getUsername().equalsIgnoreCase(requestOptions.getLoginHint().trim())) {
-                requestAccount = account;
-                break;
+        if (mApplication instanceof IMultipleAccountPublicClientApplication) {
+            IMultipleAccountPublicClientApplication multipleAcctApp = (IMultipleAccountPublicClientApplication) mApplication;
+            multipleAcctApp.getAccount(
+                requestOptions.getLoginHint().trim(),
+                new PublicClientApplication.GetAccountCallback() {
+                    @Override
+                    public void onTaskCompleted(final IAccount account) {
+                        if (null != account) {
+                            AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
+                            AcquireTokenSilentParameters acquireTokenSilentParameters =
+                                builder.withResource(requestOptions.getScopes().toLowerCase().trim())
+                                    .forAccount(account)
+                                    .forceRefresh(requestOptions.forceRefresh())
+                                    .callback(getAuthenticationCallback(notifyCallback))
+                                    .build();
+
+                            mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
+
+                        } else {
+                            notifyCallback.notify("No account found matching loginHint");
+                        }
+                    }
+
+                    @Override
+                    public void onError(final Exception exception) {
+                        notifyCallback.notify("No account found matching loginHint");
+                    }
+                });
+        } else {
+            if (mLoadedAccount == null || mLoadedAccount.size() != 1) {
+                notifyCallback.notify("account is not yet loaded");
+                return;
             }
-        }
 
-        if (null != requestAccount) {
             AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
             AcquireTokenSilentParameters acquireTokenSilentParameters =
-                    builder.withResource(requestOptions.getScopes().toLowerCase().trim())
-                            .forAccount(requestAccount)
-                            .forceRefresh(requestOptions.forceRefresh())
-                            .callback(getAuthenticationCallback(notifyCallback))
-                            .build();
+                builder.withResource(requestOptions.getScopes().toLowerCase().trim())
+                    .forAccount(mLoadedAccount.get(0))
+                    .forceRefresh(requestOptions.forceRefresh())
+                    .callback(getAuthenticationCallback(notifyCallback))
+                    .build();
 
             mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
-        } else {
-            notifyCallback.notify("No account found matching loginHint");
         }
-
-        // TODO: add support for IMultipleAccountPublicClientApplication.getAccount().
-//
-//        ((IMultipleAccountPublicClientApplication)mApplication).getAccount(
-//                requestOptions.getLoginHint().trim(),
-//                new PublicClientApplication.GetAccountCallback() {
-//                    @Override
-//                    public void onTaskCompleted(final IAccount account) {
-//                        if (null != account) {
-//                            AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
-//                            AcquireTokenSilentParameters acquireTokenSilentParameters =
-//                                    builder.withResource(requestOptions.getScopes().toLowerCase().trim())
-//                                            .forAccount(account)
-//                                            .forceRefresh(requestOptions.forceRefresh())
-//                                            .callback(getAuthenticationCallback(notifyCallback))
-//                                            .build();
-//
-//                            mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
-//
-//                        } else {
-//                            notifyCallback.notify("No account found matching loginHint");
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void onError(final Exception exception) {
-//                        notifyCallback.notify("No account found matching loginHint");
-//                    }
-//                });
     }
 
     public void acquireTokenSilent(final AcquireTokenFragment.RequestOptions requestOptions,
@@ -242,28 +232,45 @@ public class MsalWrapper {
             notifyCallback.notify("Application is not yet loaded");
             return;
         }
-        if (mLoadedAccount == null){
-            notifyCallback.notify("account is not yet loaded");
-            return;
-        }
 
-        IAccount requestAccount = null;
-        for (final IAccount account : mLoadedAccount) {
-            if (account.getUsername().equalsIgnoreCase(requestOptions.getLoginHint().trim())) {
-                requestAccount = account;
-                break;
+        if (mApplication instanceof IMultipleAccountPublicClientApplication) {
+            IMultipleAccountPublicClientApplication multipleAcctApp = (IMultipleAccountPublicClientApplication)mApplication;
+            multipleAcctApp.getAccount(
+                requestOptions.getLoginHint().trim(),
+                new PublicClientApplication.GetAccountCallback() {
+                    @Override
+                    public void onTaskCompleted(final IAccount account) {
+                        if (null != account) {
+                            mApplication.acquireTokenSilentAsync(
+                                requestOptions.getScopes().toLowerCase().split(" "),
+                                account,
+                                null,
+                                requestOptions.forceRefresh(),
+                                getAuthenticationCallback(notifyCallback));
+
+
+                        } else {
+                            notifyCallback.notify("No account found matching loginHint");
+                        }
+                    }
+
+                    @Override
+                    public void onError(final Exception exception) {
+                        notifyCallback.notify("No account found matching loginHint");
+                    }
+                });
+        } else {
+            if (mLoadedAccount == null || mLoadedAccount.size() != 1) {
+                notifyCallback.notify("account is not yet loaded");
+                return;
             }
-        }
 
-        if (null != requestAccount) {
             mApplication.acquireTokenSilentAsync(
                 requestOptions.getScopes().toLowerCase().split(" "),
-                requestAccount,
+                mLoadedAccount.get(0),
                 null,
                 requestOptions.forceRefresh(),
                 getAuthenticationCallback(notifyCallback));
-        } else {
-            notifyCallback.notify("No account found matching loginHint");
         }
     }
 
