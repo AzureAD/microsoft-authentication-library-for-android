@@ -815,6 +815,7 @@ public class BrokerMsalController extends BaseController {
                     Bundle brokerOptions = new Bundle();
                     brokerOptions.putString(ACCOUNT_CLIENTID_KEY, parameters.getClientId());
                     brokerOptions.putString(ENVIRONMENT, parameters.getAccount().getEnvironment());
+                    brokerOptions.putString(ACCOUNT_HOME_ACCOUNT_ID, parameters.getAccount().getHomeAccountId());
                     brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS,
                             AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS_VALUE);
                     AccountManager.get(parameters.getAppContext()).getAuthToken(

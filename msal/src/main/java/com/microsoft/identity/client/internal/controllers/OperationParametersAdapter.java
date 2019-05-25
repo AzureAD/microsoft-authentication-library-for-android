@@ -222,7 +222,7 @@ public class OperationParametersAdapter {
             requestAccountRecord.setEnvironment(account.getEnvironment());
             requestAccountRecord.setUsername(account.getUsername());
             requestAccountRecord.setHomeAccountId(account.getHomeAccountIdentifier().getIdentifier());
-            requestAccountRecord.setAlternativeAccountId(account.getAccountIdentifier().getIdentifier());
+            requestAccountRecord.setLocalAccountId(account.getAccountIdentifier().getIdentifier());
             acquireTokenSilentOperationParameters.setAccount(requestAccountRecord);
         }
 
