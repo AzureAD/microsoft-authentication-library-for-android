@@ -10,7 +10,7 @@ import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 
 public class SingleAccountPublicClientApplication extends PublicClientApplication
-    implements ISingleAccountPublicClientApplication {
+        implements ISingleAccountPublicClientApplication {
     private static final String TAG = SingleAccountPublicClientApplication.class.getSimpleName();
 
     private AccountRecord mLocalAccountRecord;
@@ -53,7 +53,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                         IAccount localAccount = mLocalAccountRecord == null ? null : AccountAdapter.adapt(mLocalAccountRecord);
                         IAccount accountInBroker = accountRecordInBroker == null ? null : AccountAdapter.adapt(accountRecordInBroker);
 
-                        if (mLocalAccountRecord == null){
+                        if (mLocalAccountRecord == null) {
                             if (accountRecordInBroker != null) {
                                 listener.onAccountChanged(null, accountInBroker);
                             }
@@ -68,7 +68,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     }
 
     @Override
-    public void removeCurrentAccount(final AccountRemovedListener callback) throws MsalClientException {
+    public void removeCurrentAccount(final RemoveAccountCallback callback) throws MsalClientException {
         final String methodName = ":removeCurrentAccount";
         final PublicClientApplicationConfiguration configuration = getConfiguration();
 
@@ -84,14 +84,19 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         new BrokerMsalController().removeAccountFromSharedDevice(
                 AccountAdapter.adapt(mLocalAccountRecord),
                 configuration,
-                new AccountRemovedListener() {
+                new RemoveAccountCallback() {
                     @Override
-                    public void onAccountRemoved(Boolean isSuccess) {
-                        if (isSuccess) {
+                    public void onTaskCompleted(Boolean success) {
+                        if (success) {
                             mLocalAccountRecord = null;
                         }
 
-                        callback.onAccountRemoved(isSuccess);
+                        callback.onTaskCompleted(success);
+                    }
+
+                    @Override
+                    public void onError(Exception exception) {
+                        callback.onError(exception);
                     }
                 });
     }

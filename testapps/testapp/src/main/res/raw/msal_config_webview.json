@@ -1,7 +1,10 @@
 {
-  "client_id" : "9851987a-55e5-46e2-8d70-75f8dc060f21",
+  "client_id" : "2652503c-ba8e-4ed9-b2ea-6512b9f16c98",
   "authorization_user_agent" : "WEBVIEW",
-  "redirect_uri" : "msal9851987a-55e5-46e2-8d70-75f8dc060f21://auth",
+  "redirect_uri" : "msauth://com.microsoft.identity.client.sample.local/gwdiktUBDmQq%2BfbWiJoa%2B%2FYH070%3D",
+  "multiple_clouds_supported":true,
+  "broker_redirect_uri_registered": true,
+  "minimum.required.broker.protocol.version":"2.0",
   "authorities" : [
     {
       "type": "AAD",

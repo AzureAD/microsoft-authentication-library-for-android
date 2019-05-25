@@ -27,7 +27,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 
-import com.microsoft.identity.client.AccountAdapter;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
@@ -51,6 +50,20 @@ import java.util.HashSet;
 public class OperationParametersAdapter {
 
     private static final String TAG = OperationParameters.class.getName();
+
+    public static OperationParameters createOperationParameters (
+            PublicClientApplicationConfiguration configuration) {
+        final OperationParameters parameters = new OperationParameters();
+        parameters.setAppContext(configuration.getAppContext());
+        parameters.setTokenCache(configuration.getOAuth2TokenCache());
+        parameters.setClientId(configuration.getClientId());
+        parameters.setRedirectUri(configuration.getRedirectUri());
+        parameters.setAuthority(configuration.getDefaultAuthority());
+        parameters.setApplicationName(configuration.getAppContext().getPackageName());
+        parameters.setApplicationVersion(getPackageVersion(configuration.getAppContext()));
+        parameters.setSdkVersion(PublicClientApplication.getSdkVersion());
+        return parameters;
+    }
 
     public static AcquireTokenOperationParameters createAcquireTokenOperationParameters(
             AcquireTokenParameters acquireTokenParameters,
@@ -81,6 +94,10 @@ public class OperationParametersAdapter {
                     )
             );
         }
+
+        acquireTokenOperationParameters.setBrowserSafeList(
+                publicClientApplicationConfiguration.getBrowserSafeList()
+        );
 
         if (acquireTokenOperationParameters.getAuthority() instanceof AzureActiveDirectoryAuthority) {
             AzureActiveDirectoryAuthority aadAuthority =

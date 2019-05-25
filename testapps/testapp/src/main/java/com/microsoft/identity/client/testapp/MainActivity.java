@@ -41,6 +41,8 @@ import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.microsoft.identity.client.AcquireTokenParameters;
+import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.IAccount;
@@ -53,6 +55,8 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
+import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -178,7 +182,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         MsalWrapper.getInstance().loadMsalApplication(this.getApplicationContext(),
             R.raw.msal_config,
             operationResultCallback,
-            null);
+            null
+        );
     }
 
     @Override
@@ -249,6 +254,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
     }
 
+    @Override
+    public void onAcquireTokenWithResourceClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+        loadMsalApplicationFromRequestParameters(requestOptions, new MsalWrapper.IMsalApplicationLoaded() {
+            @Override
+            public void onApplicationLoaded() {
+                MsalWrapper.getInstance().acquireTokenWithResourceId(MainActivity.this, requestOptions, operationResultCallback);
+            }
+        });
+    }
+
+    @Override
+    public void onAcquireTokenSilentWithResourceClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+        loadMsalApplicationFromRequestParameters(requestOptions, new MsalWrapper.IMsalApplicationLoaded() {
+            @Override
+            public void onApplicationLoaded() {
+                MsalWrapper.getInstance().acquireTokenSilentWithResource(requestOptions, operationResultCallback);
+            }
+        });
+    }
+
     public void onRemoveUserClicked(final String username) {
         MsalWrapper.getInstance().removeAccount(username, operationResultCallback);
     }
@@ -311,7 +336,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         MsalWrapper.getInstance().loadMsalApplication(this.getApplicationContext(),
             configFileResourceId,
             operationResultCallback,
-            postApplicationLoaded);
+            postApplicationLoaded
+        );
     }
 
     final String getAuthority(Constants.AuthorityType authorityTypeType) {

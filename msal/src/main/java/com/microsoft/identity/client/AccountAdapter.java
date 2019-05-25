@@ -35,7 +35,7 @@ import com.microsoft.identity.common.internal.util.StringUtil;
 /**
  * Adapter class for Account transformations.
  */
-public class AccountAdapter {
+class AccountAdapter {
 
     private static final String TAG = AccountAdapter.class.getSimpleName();
 
@@ -62,11 +62,6 @@ public class AccountAdapter {
             );
 
             // This account came from AAD
-            accountId = new AzureActiveDirectoryAccountIdentifier() {{ // This is the local_account_id
-                setIdentifier(accountIn.getLocalAccountId());
-                setObjectIdentifier(accountIn.getLocalAccountId());
-                setTenantIdentifier(accountIn.getRealm());
-            }};
             homeAccountId = new AzureActiveDirectoryAccountIdentifier() {{ // This is the home_account_id
                 // Grab the homeAccountId
                 final String homeAccountIdStr = accountIn.getHomeAccountId();
@@ -83,13 +78,26 @@ public class AccountAdapter {
                 // Set the utid as the tenantId
                 setTenantIdentifier(components[1]);
             }};
+
+            if (StringUtil.isEmpty(accountIn.getLocalAccountId())) {
+                accountId = homeAccountId;
+            } else {
+                accountId = new AzureActiveDirectoryAccountIdentifier() {{ // This is the local_account_id
+                    setIdentifier(accountIn.getLocalAccountId());
+                    setObjectIdentifier(accountIn.getLocalAccountId());
+                    setTenantIdentifier(accountIn.getRealm());
+                }};
+            }
+
         } else { // This Account came from IdP other than AAD.
             Logger.info(
                     TAG + methodName,
                     "Account is non-AAD"
             );
             accountId = new AccountIdentifier() {{
-                setIdentifier(accountIn.getLocalAccountId());
+                setIdentifier(StringUtil.isEmpty(accountIn.getLocalAccountId())?
+                        accountIn.getHomeAccountId() : accountIn.getLocalAccountId()
+                );
             }};
             homeAccountId = new AccountIdentifier() {{
                 setIdentifier(accountIn.getHomeAccountId());
@@ -137,5 +145,18 @@ public class AccountAdapter {
         }
 
         return accountToReturn;
+    }
+
+    @Nullable
+    static String getRealm(@NonNull IAccount account) {
+        String realm = null;
+
+        if (null != account.getAccountIdentifier() // This is an AAD account w/ tenant info
+                && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier) {
+            final AzureActiveDirectoryAccountIdentifier identifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier();
+            realm = identifier.getTenantIdentifier();
+        }
+
+        return realm;
     }
 }
