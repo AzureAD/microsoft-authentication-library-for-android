@@ -65,7 +65,8 @@ public class AcquireTokenFragment extends Fragment {
     private Button mClearCache;
     private Button mAcquireToken;
     private Button mAcquireTokenSilent;
-    private TextView mDefaultBrowser;
+    private Button mAcquireTokenWithResource;
+    private Button mAcquireTokenSilentWithResource;
     private Spinner mSelectAccount;
     private Spinner mAADEnvironments;
     private TextView mPublicApplicationMode;
@@ -88,12 +89,13 @@ public class AcquireTokenFragment extends Fragment {
         mExtraScope = view.findViewById(R.id.extraScope);
         mEnablePII = view.findViewById(enablePII);
         mForceRefresh = view.findViewById(R.id.forceRefresh);
-        mDefaultBrowser = view.findViewById(R.id.default_browser);
         mSelectAccount = view.findViewById(R.id.select_user);
         mGetUsers = view.findViewById(R.id.btn_getUsers);
         mClearCache = view.findViewById(R.id.btn_clearCache);
         mAcquireToken = view.findViewById(R.id.btn_acquiretoken);
         mAcquireTokenSilent = view.findViewById(R.id.btn_acquiretokensilent);
+        mAcquireTokenWithResource = view.findViewById(R.id.btn_acquiretokenWithResource);
+        mAcquireTokenSilentWithResource = view.findViewById(R.id.btn_acquiretokensilentWithResource);
         mAADEnvironments = view.findViewById(R.id.environment);
         mPublicApplicationMode = view.findViewById(R.id.public_application_mode);
 
@@ -116,6 +118,23 @@ public class AcquireTokenFragment extends Fragment {
                     mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
                 }
                 mOnFragmentInteractionListener.onAcquireTokenSilentClicked(getCurrentRequestOptions());
+            }
+        });
+
+        mAcquireTokenWithResource.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mOnFragmentInteractionListener.onAcquireTokenWithResourceClicked(getCurrentRequestOptions());
+            }
+        });
+
+        mAcquireTokenSilentWithResource.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mSelectAccount.getSelectedItem() != null) {
+                    mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
+                }
+                mOnFragmentInteractionListener.onAcquireTokenSilentWithResourceClicked(getCurrentRequestOptions());
             }
         });
 
@@ -155,17 +174,6 @@ public class AcquireTokenFragment extends Fragment {
         return view;
     }
 
-    private void setCurrentDefaultBrowserValue() {
-        try {
-            if (getActivity() != null) {
-                Browser browser = BrowserSelector.select(getActivity().getApplicationContext());
-                mDefaultBrowser.setText(browser.getPackageName());
-            }
-        } catch (ClientException e) {
-            e.printStackTrace();
-        }
-    }
-
     @Override
     public void onResume() {
         super.onResume();
@@ -182,7 +190,6 @@ public class AcquireTokenFragment extends Fragment {
         if (mSelectAccount.getSelectedItem() != null) {
             mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
         }
-        setCurrentDefaultBrowserValue();
     }
 
     @Override
@@ -306,5 +313,9 @@ public class AcquireTokenFragment extends Fragment {
         void onAcquireTokenSilentClicked(final RequestOptions requestOptions);
 
         void bindSelectAccountSpinner(Spinner selectAccount, List<IAccount> accounts);
+
+        void onAcquireTokenWithResourceClicked(final RequestOptions requestOptions);
+
+        void onAcquireTokenSilentWithResourceClicked(final RequestOptions requestOptions);
     }
 }

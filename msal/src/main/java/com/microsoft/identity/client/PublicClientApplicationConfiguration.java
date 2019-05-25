@@ -36,6 +36,7 @@ import com.microsoft.identity.common.internal.authorities.UnknownAudience;
 import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
+import com.microsoft.identity.common.internal.ui.browser.BrowserDescriptor;
 
 import java.util.List;
 
@@ -50,6 +51,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ENVIRONMENT;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REQUIRED_BROKER_PROTOCOL_VERSION;
 
 public class PublicClientApplicationConfiguration {
 
@@ -63,6 +65,7 @@ public class PublicClientApplicationConfiguration {
         static final String MULTIPLE_CLOUDS_SUPPORTED = "multiple_clouds_supported";
         static final String USE_BROKER = "broker_redirect_uri_registered";
         static final String ENVIRONMENT = "environment";
+        static final String REQUIRED_BROKER_PROTOCOL_VERSION = "minimum_required_broker_protocol_version";
     }
 
     @SerializedName(CLIENT_ID)
@@ -92,6 +95,12 @@ public class PublicClientApplicationConfiguration {
     @SerializedName(ENVIRONMENT)
     Environment mEnvironment;
 
+    @SerializedName(REQUIRED_BROKER_PROTOCOL_VERSION)
+    String mRequiredBrokerProtocolVersion;
+
+    @SerializedName("browser_safelist")
+    List<BrowserDescriptor> mBrowserSafeList;
+
     transient OAuth2TokenCache mOAuth2TokenCache;
 
     transient Context mAppContext;
@@ -105,6 +114,14 @@ public class PublicClientApplicationConfiguration {
      */
     public void setTokenCacheSecretKeys(@NonNull final byte[] rawKey) {
         AuthenticationSettings.INSTANCE.setSecretKey(rawKey);
+    }
+
+    /**
+     * Gets the list of browser safe list.
+     * @return The list of browser which are allowed to use for auth flow.
+     */
+    public List<BrowserDescriptor> getBrowserSafeList() {
+        return mBrowserSafeList;
     }
 
     /**
@@ -192,6 +209,14 @@ public class PublicClientApplicationConfiguration {
         return mUseBroker;
     }
 
+    /**
+     * Indicates the minimum required broker protocol version number.
+     * @return String of broker protocol version
+     */
+    public String getRequiredBrokerProtocolVersion() {
+        return mRequiredBrokerProtocolVersion;
+    }
+
     public Context getAppContext() {
         return mAppContext;
     }
@@ -264,12 +289,26 @@ public class PublicClientApplicationConfiguration {
         this.mHttpConfiguration = config.mHttpConfiguration == null ? this.mHttpConfiguration : config.mHttpConfiguration;
         this.mMultipleCloudsSupported = config.mMultipleCloudsSupported == null ? this.mMultipleCloudsSupported : config.mMultipleCloudsSupported;
         this.mUseBroker = config.mUseBroker == null ? this.mUseBroker : config.mUseBroker;
+        if (this.mBrowserSafeList == null) {
+            this.mBrowserSafeList = config.mBrowserSafeList;
+        } else if (config.mBrowserSafeList != null){
+            this.mBrowserSafeList.addAll(config.mBrowserSafeList);
+        }
     }
 
     void validateConfiguration() {
         nullConfigurationCheck(REDIRECT_URI, mRedirectUri);
         nullConfigurationCheck(CLIENT_ID, mClientId);
         checkDefaultAuthoritySpecified();
+
+        // Only validate the browser safe list configuration
+        // when the authorization agent is set either DEFAULT or BROWSER.
+        if ( !mAuthorizationAgent.equals(AuthorizationAgent.WEBVIEW)
+                && (mBrowserSafeList == null || mBrowserSafeList.isEmpty())) {
+            throw new IllegalArgumentException(
+                    "Null browser safe list configured."
+            );
+        }
 
         for (final Authority authority : mAuthorities) {
             if (authority instanceof UnknownAuthority) {

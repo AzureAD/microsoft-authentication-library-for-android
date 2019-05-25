@@ -23,9 +23,10 @@
 package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Intent;
+import android.support.annotation.NonNull;
+import android.support.annotation.WorkerThread;
 import android.text.TextUtils;
 
-import com.microsoft.identity.client.BrowserTabActivity;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.exception.ArgumentException;
 import com.microsoft.identity.common.exception.ClientException;
@@ -43,11 +44,13 @@ import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
+import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -61,13 +64,15 @@ public class LocalMSALController extends BaseController {
     private AuthorizationRequest mAuthorizationRequest = null;
 
     @Override
-    public AcquireTokenResult acquireToken(final AcquireTokenOperationParameters parameters)
+    public AcquireTokenResult acquireToken(@NonNull final AcquireTokenOperationParameters parameters)
             throws ExecutionException, InterruptedException, ClientException, IOException, ArgumentException {
         final String methodName = ":acquireToken";
+
         Logger.verbose(
                 TAG + methodName,
                 "Acquiring token..."
         );
+
         final AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
 
         //00) Validate MSAL Parameters
@@ -75,6 +80,8 @@ public class LocalMSALController extends BaseController {
 
         // Add default scopes
         addDefaultScopes(parameters);
+
+        logParameters(TAG, parameters);
 
         //0) Get known authority result
         throwIfNetworkNotAvailable(parameters.getAppContext());
@@ -91,6 +98,8 @@ public class LocalMSALController extends BaseController {
         //2) Request authorization interactively
         final AuthorizationResult result = performAuthorizationRequest(oAuth2Strategy, parameters);
         acquireTokenResult.setAuthorizationResult(result);
+
+        logResult(TAG, result);
 
         if (result.getAuthorizationStatus().equals(AuthorizationStatus.SUCCESS)) {
             //3) Exchange authorization code for token
@@ -117,32 +126,28 @@ public class LocalMSALController extends BaseController {
                 );
             }
         }
+
         return acquireTokenResult;
     }
 
-    private AuthorizationResult performAuthorizationRequest(final OAuth2Strategy strategy,
-                                                            final AcquireTokenOperationParameters parameters)
+    private AuthorizationResult performAuthorizationRequest(@NonNull final OAuth2Strategy strategy,
+                                                            @NonNull final AcquireTokenOperationParameters parameters)
             throws ExecutionException, InterruptedException, ClientException {
+
         throwIfNetworkNotAvailable(parameters.getAppContext());
-        //Create pendingIntent to handle the authorization result intent back to the calling activity
-        final Intent resultIntent = new Intent(parameters.getActivity(), BrowserTabActivity.class);
-        mAuthorizationStrategy = AuthorizationStrategyFactory
-                .getInstance()
+
+        mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance()
                 .getAuthorizationStrategy(
-                        parameters.getActivity(),
-                        parameters.getAuthorizationAgent(),
-                        resultIntent
+                        parameters
                 );
         mAuthorizationRequest = getAuthorizationRequest(strategy, parameters);
 
-        Future<AuthorizationResult> future = strategy.requestAuthorization(
+        final Future<AuthorizationResult> future = strategy.requestAuthorization(
                 mAuthorizationRequest,
                 mAuthorizationStrategy
         );
 
-        //We could implement Timeout Here if we wish instead of blocking indefinitely
-        //future.get(10, TimeUnit.MINUTES);  // Need to handle timeout exception in the scenario it doesn't return within a reasonable amount of time
-        AuthorizationResult result = future.get();
+        final AuthorizationResult result = future.get();
 
         return result;
     }
@@ -161,7 +166,7 @@ public class LocalMSALController extends BaseController {
 
     @Override
     public AcquireTokenResult acquireTokenSilent(
-            final AcquireTokenSilentOperationParameters parameters)
+            @NonNull final AcquireTokenSilentOperationParameters parameters)
             throws IOException, ClientException, ArgumentException {
         final String methodName = ":acquireTokenSilent";
         Logger.verbose(
@@ -244,5 +249,43 @@ public class LocalMSALController extends BaseController {
         }
 
         return acquireTokenSilentResult;
+    }
+
+    @Override
+    @WorkerThread
+    public List<AccountRecord> getAccounts(@NonNull final OperationParameters parameters) {
+        final List<AccountRecord> accountsInCache =
+                parameters
+                        .getTokenCache()
+                        .getAccounts(
+                                null, // * wildcard
+                                parameters.getClientId()
+                        );
+
+        return accountsInCache;
+    }
+
+    @Override
+    @WorkerThread
+    public boolean removeAccount(@NonNull final OperationParameters parameters) {
+        final boolean deleteHomeAndGuestAccounts = true;
+        String realm = null;
+
+        if (deleteHomeAndGuestAccounts) {
+            if (parameters.getAccount()!= null) {
+                realm = parameters.getAccount().getRealm();
+            }
+        }
+
+        final boolean localRemoveAccountSuccess = !parameters
+                .getTokenCache()
+                .removeAccount(
+                        parameters.getAccount() == null? null : parameters.getAccount().getEnvironment(),
+                        parameters.getClientId(),
+                        parameters.getAccount() == null? null : parameters.getAccount().getHomeAccountId(),
+                        realm
+                ).isEmpty();
+
+        return localRemoveAccountSuccess;
     }
 }

@@ -38,6 +38,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
 import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 
 import java.util.ArrayList;
 import java.util.List;
