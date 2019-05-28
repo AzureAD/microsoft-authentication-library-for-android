@@ -55,6 +55,7 @@ import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AuthorityDeserializer;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
+import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.ICacheKeyValueDelegate;
@@ -367,7 +368,11 @@ public class PublicClientApplication implements IPublicClientApplication {
                 )
         );
 
-        mPublicClientConfiguration.mRedirectUri = createRedirectUri(mPublicClientConfiguration.getClientId());
+        mPublicClientConfiguration.mRedirectUri
+                = BrokerValidator.getBrokerRedirectUri(
+                mPublicClientConfiguration.getAppContext(),
+                mPublicClientConfiguration.getAppContext().getPackageName());
+
         checkIntentFilterAddedToAppManifest();
 
         // Since network request is sent from the sdk, if calling app doesn't declare the internet permission in the
@@ -905,23 +910,6 @@ public class PublicClientApplication implements IPublicClientApplication {
                 || packageManager.checkPermission(ACCESS_NETWORK_STATE_PERMISSION, mPublicClientConfiguration.getAppContext().getPackageName())
                 != PackageManager.PERMISSION_GRANTED) {
             throw new IllegalStateException("android.permission.Internet or android.permission.ACCESS_NETWORK_STATE is missing");
-        }
-    }
-
-    /**
-     * By default redirect uri will the in the format of msauth-clientid://appPackageName.
-     * Otherwise the library will use the configured redirect URI.
-     */
-    private String createRedirectUri(final String clientId) {
-        final String methodName = ":createRedirectUri";
-        if (!StringUtil.isEmpty(mPublicClientConfiguration.getRedirectUri())) {
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "Returning redirectUri from configuration"
-            );
-            return mPublicClientConfiguration.getRedirectUri();
-        } else {
-            return "msal" + clientId + "://auth";
         }
     }
 
