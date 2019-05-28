@@ -177,7 +177,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                     new TaskCompletedCallbackWithError<List<AccountRecord>, Exception>() {
                         @Override
                         public void onTaskCompleted(final List<AccountRecord> result) {
-                            if (null == result) {
+                            if (null == result || result.size() == 0) {
                                 com.microsoft.identity.common.internal.logging.Logger.verbose(
                                         TAG + methodName,
                                         "No account found.");
@@ -256,10 +256,10 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                     // If could not find the account record in local msal cache
                     // Create the pass along account record object to broker
                     final AccountRecord requestAccountRecord = new AccountRecord();
-                    //requestAccountRecord.setEnvironment(account.getEnvironment());
+                    requestAccountRecord.setEnvironment(account.getEnvironment());
                     requestAccountRecord.setUsername(account.getUsername());
                     requestAccountRecord.setHomeAccountId(account.getHomeAccountIdentifier().getIdentifier());
-                    requestAccountRecord.setAlternativeAccountId(account.getAccountIdentifier().getIdentifier());
+                    requestAccountRecord.setLocalAccountId(account.getAccountIdentifier().getIdentifier());
                     params.setAccount(requestAccountRecord);
                 } else {
                     params.setAccount(getAccountRecord(account));
