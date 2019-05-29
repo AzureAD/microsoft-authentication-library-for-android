@@ -50,7 +50,8 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * @param callback   The callback to notify once this action has finished.
      */
     void getAccount(@NonNull final String identifier,
-                    @NonNull final PublicClientApplication.GetAccountCallback callback);
+                    @NonNull final PublicClientApplication.GetAccountCallback callback
+    );
 
     /**
      * Removes the Account and Credentials (tokens) for the supplied IAccount.
@@ -58,5 +59,7 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * @param account The IAccount whose entry and associated tokens should be removed.
      * @return True, if the account was removed. False otherwise.
      */
-    void removeAccount(@Nullable final IAccount account, final PublicClientApplication.RemoveAccountCallback callback);
+    void removeAccount(@Nullable final IAccount account,
+                       final PublicClientApplication.RemoveAccountCallback callback
+    );
 }
