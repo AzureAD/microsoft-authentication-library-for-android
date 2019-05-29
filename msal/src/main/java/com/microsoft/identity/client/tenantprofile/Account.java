@@ -23,6 +23,7 @@
 package com.microsoft.identity.client.tenantprofile;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
@@ -40,20 +41,32 @@ public class Account implements IAccount {
 
     private final String mRawIdToken;
 
-    public Account(@NonNull final String rawIdToken) {
+    public Account(@Nullable final String rawIdToken) {
         mRawIdToken = rawIdToken;
     }
 
-    @NonNull
+    @Nullable
     @Override
     public String getId() {
-        return (String) getClaims().get(MicrosoftIdToken.OBJECT_ID);
+        String id = null;
+
+        if (null != mRawIdToken) {
+            id = (String) getClaims().get(MicrosoftIdToken.OBJECT_ID);
+        }
+
+        return id;
     }
 
-    @NonNull
+    @Nullable
     @Override
     public Map<String, ?> getClaims() {
-        return getClaims(mRawIdToken);
+        Map<String, ?> claims = null;
+
+        if (null != mRawIdToken) {
+            claims = getClaims(mRawIdToken);
+        }
+
+        return claims;
     }
 
     protected static Map<String, ?> getClaims(@NonNull final String rawIdToken) {

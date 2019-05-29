@@ -272,7 +272,7 @@ public class LocalMSALController extends BaseController {
         String realm = null;
 
         if (deleteHomeAndGuestAccounts) {
-            if (parameters.getAccount()!= null) {
+            if (parameters.getAccount() != null) {
                 realm = parameters.getAccount().getRealm();
             }
         }
@@ -280,9 +280,9 @@ public class LocalMSALController extends BaseController {
         final boolean localRemoveAccountSuccess = !parameters
                 .getTokenCache()
                 .removeAccount(
-                        parameters.getAccount() == null? null : parameters.getAccount().getEnvironment(),
+                        parameters.getAccount() == null ? null : parameters.getAccount().getEnvironment(),
                         parameters.getClientId(),
-                        parameters.getAccount() == null? null : parameters.getAccount().getHomeAccountId(),
+                        parameters.getAccount() == null ? null : parameters.getAccount().getHomeAccountId(),
                         realm
                 ).isEmpty();
 

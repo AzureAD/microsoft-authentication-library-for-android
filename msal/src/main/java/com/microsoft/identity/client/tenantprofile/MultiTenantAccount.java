@@ -23,23 +23,38 @@
 package com.microsoft.identity.client.tenantprofile;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.util.Collections;
 import java.util.Map;
 
 public class MultiTenantAccount extends Account implements IMultiTenantAccount {
 
-    private final Map<String, ITenantProfile> mTenantProfiles;
+    private Map<String, ITenantProfile> mTenantProfiles;
 
-    public MultiTenantAccount(@NonNull final String homeTenantRawIdToken,
+    public MultiTenantAccount(@Nullable final String tenantRawIdToken) {
+        super(tenantRawIdToken);
+    }
+
+    public MultiTenantAccount(@Nullable final String homeTenantRawIdToken,
                               @NonNull final Map<String, ITenantProfile> tenantProfiles) {
         super(homeTenantRawIdToken);
         mTenantProfiles = tenantProfiles;
     }
 
-    @NonNull
+    void setTenantProfiles(@NonNull final Map<String, ITenantProfile> profiles) {
+        mTenantProfiles = profiles;
+    }
+
+    @Nullable
     @Override
     public Map<String, ITenantProfile> getTenantProfiles() {
-        return Collections.unmodifiableMap(mTenantProfiles);
+        Map<String, ITenantProfile> tenantProfiles = null;
+
+        if (null != mTenantProfiles) {
+            tenantProfiles = Collections.unmodifiableMap(mTenantProfiles);
+        }
+
+        return tenantProfiles;
     }
 }
