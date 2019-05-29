@@ -114,7 +114,7 @@ public class LocalMSALController extends BaseController {
 
             if (tokenResult != null && tokenResult.getSuccess()) {
                 //4) Save tokens in token cache
-                final ICacheRecord cacheRecord = saveTokens(
+                final List<ICacheRecord> cacheRecord = saveTokens(
                         oAuth2Strategy,
                         mAuthorizationRequest,
                         tokenResult.getTokenResponse(),
@@ -122,7 +122,7 @@ public class LocalMSALController extends BaseController {
                 );
 
                 acquireTokenResult.setLocalAuthenticationResult(
-                        new LocalAuthenticationResult(cacheRecord)
+                        new LocalAuthenticationResult(cacheRecord.get(0))
                 );
             }
         }
