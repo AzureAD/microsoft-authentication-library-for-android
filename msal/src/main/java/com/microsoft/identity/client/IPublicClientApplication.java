@@ -44,7 +44,8 @@ public interface IPublicClientApplication {
      */
     void handleInteractiveRequestRedirect(final int requestCode,
                                           final int resultCode,
-                                          @NonNull final Intent data);
+                                          @NonNull final Intent data
+    );
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
@@ -66,7 +67,8 @@ public interface IPublicClientApplication {
      */
     void acquireToken(@NonNull final Activity activity,
                       @NonNull final String[] scopes,
-                      @NonNull final AuthenticationCallback callback);
+                      @NonNull final AuthenticationCallback callback
+    );
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
@@ -91,7 +93,8 @@ public interface IPublicClientApplication {
     void acquireToken(@NonNull final Activity activity,
                       @NonNull final String[] scopes,
                       @Nullable final String loginHint,
-                      @NonNull final AuthenticationCallback callback);
+                      @NonNull final AuthenticationCallback callback
+    );
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
@@ -120,7 +123,8 @@ public interface IPublicClientApplication {
                       @Nullable final String loginHint,
                       @NonNull final UiBehavior uiBehavior,
                       @Nullable final List<Pair<String, String>> extraQueryParameters,
-                      @NonNull final AuthenticationCallback callback);
+                      @NonNull final AuthenticationCallback callback
+    );
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
@@ -149,7 +153,8 @@ public interface IPublicClientApplication {
                       @Nullable final IAccount account,
                       @NonNull final UiBehavior uiBehavior,
                       @Nullable final List<Pair<String, String>> extraQueryParameters,
-                      @NonNull final AuthenticationCallback callback);
+                      @NonNull final AuthenticationCallback callback
+    );
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
@@ -182,7 +187,8 @@ public interface IPublicClientApplication {
                       @Nullable final List<Pair<String, String>> extraQueryParameters,
                       @Nullable final String[] extraScopesToConsent,
                       @Nullable final String authority,
-                      @NonNull final AuthenticationCallback callback);
+                      @NonNull final AuthenticationCallback callback
+    );
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
@@ -215,7 +221,8 @@ public interface IPublicClientApplication {
                       @Nullable final List<Pair<String, String>> extraQueryParameters,
                       @Nullable final String[] extraScopesToConsent,
                       @Nullable final String authority,
-                      @NonNull final AuthenticationCallback callback);
+                      @NonNull final AuthenticationCallback callback
+    );
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
@@ -242,7 +249,8 @@ public interface IPublicClientApplication {
      */
     void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                  @NonNull final IAccount account,
-                                 @NonNull final AuthenticationCallback callback);
+                                 @NonNull final AuthenticationCallback callback
+    );
 
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
@@ -263,7 +271,8 @@ public interface IPublicClientApplication {
                                  @NonNull final IAccount account,
                                  @Nullable final String authority,
                                  final boolean forceRefresh,
-                                 @NonNull final AuthenticationCallback callback);
+                                 @NonNull final AuthenticationCallback callback
+    );
 
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
