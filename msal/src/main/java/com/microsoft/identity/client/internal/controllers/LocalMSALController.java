@@ -122,7 +122,7 @@ public class LocalMSALController extends BaseController {
                 );
 
                 acquireTokenResult.setLocalAuthenticationResult(
-                        new LocalAuthenticationResult(cacheRecord.get(0))
+                        new LocalAuthenticationResult(cacheRecord.get(0), cacheRecord)
                 );
             }
         }
@@ -187,16 +187,17 @@ public class LocalMSALController extends BaseController {
         final AccountRecord targetAccount = getCachedAccountRecord(parameters);
 
         final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy();
-        final ICacheRecord cacheRecord = tokenCache.load(
+
+        final List<ICacheRecord> cacheRecords = tokenCache.loadWithAggregatedAccountData(
                 parameters.getClientId(),
                 TextUtils.join(" ", parameters.getScopes()),
                 targetAccount
         );
 
-        if (accessTokenIsNull(cacheRecord)
-                || refreshTokenIsNull(cacheRecord)
+        if (accessTokenIsNull(cacheRecords.get(0))
+                || refreshTokenIsNull(cacheRecords.get(0))
                 || parameters.getForceRefresh()) {
-            if (!refreshTokenIsNull(cacheRecord)) {
+            if (!refreshTokenIsNull(cacheRecords.get(0))) {
                 // No AT found, but the RT checks out, so we'll use it
                 Logger.verbose(
                         TAG + methodName,
@@ -207,7 +208,7 @@ public class LocalMSALController extends BaseController {
                         acquireTokenSilentResult,
                         tokenCache,
                         strategy,
-                        cacheRecord
+                        cacheRecords.get(0)
                 );
             } else {
                 //TODO need the refactor, should just throw the ui required exception, rather than
@@ -217,13 +218,13 @@ public class LocalMSALController extends BaseController {
                         "No refresh token was found. "
                 );
             }
-        } else if (cacheRecord.getAccessToken().isExpired()) {
+        } else if (cacheRecords.get(0).getAccessToken().isExpired()) {
             Logger.warn(
                     TAG + methodName,
                     "Access token is expired. Removing from cache..."
             );
             // Remove the expired token
-            tokenCache.removeCredential(cacheRecord.getAccessToken());
+            tokenCache.removeCredential(cacheRecords.get(0).getAccessToken());
 
             Logger.verbose(
                     TAG + methodName,
@@ -235,7 +236,7 @@ public class LocalMSALController extends BaseController {
                     acquireTokenSilentResult,
                     tokenCache,
                     strategy,
-                    cacheRecord
+                    cacheRecords.get(0)
             );
         } else {
             Logger.verbose(
@@ -244,7 +245,7 @@ public class LocalMSALController extends BaseController {
             );
             // the result checks out, return that....
             acquireTokenSilentResult.setLocalAuthenticationResult(
-                    new LocalAuthenticationResult(cacheRecord)
+                    new LocalAuthenticationResult(cacheRecords.get(0), cacheRecords)
             );
         }
 

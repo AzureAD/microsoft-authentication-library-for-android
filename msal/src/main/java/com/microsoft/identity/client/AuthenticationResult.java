@@ -27,9 +27,9 @@ import android.support.annotation.Nullable;
 
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccessTokenRecord;
-import com.microsoft.identity.common.internal.dto.IAccountRecord;
 
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,30 +39,28 @@ import java.util.concurrent.TimeUnit;
 public final class AuthenticationResult implements IAuthenticationResult {
     //Fields for Legacy Cache
     private final String mTenantId;
-    private final String mRawIdToken;
     private final String mUniqueId;
 
     private final AccessTokenRecord mAccessToken;
-    private final IAccount mAccount;
+    private final com.microsoft.identity.client.tenantprofile.IAccount mAccount;
 
-    public AuthenticationResult(@NonNull final ICacheRecord cacheRecord) {
-        mAccessToken = cacheRecord.getAccessToken();
-        mTenantId = cacheRecord.getAccount().getRealm();
-        mUniqueId = cacheRecord.getAccount().getHomeAccountId();
-        mRawIdToken = cacheRecord.getIdToken().getSecret();
-        mAccount = AccountAdapter.adapt(cacheRecord.getAccount());
+    public AuthenticationResult(@NonNull final List<ICacheRecord> cacheRecords) {
+        final ICacheRecord mostRecentlyAuthorized = cacheRecords.get(0);
+        mAccessToken = mostRecentlyAuthorized.getAccessToken();
+        mTenantId = mostRecentlyAuthorized.getAccount().getRealm();
+        mUniqueId = mostRecentlyAuthorized.getAccount().getHomeAccountId();
+        mAccount = com.microsoft.identity.client.tenantprofile.AccountAdapter.adapt(cacheRecords).get(0);
     }
 
-    public AuthenticationResult(@NonNull AccessTokenRecord accessToken,
-                                @Nullable String rawIdToken,
-                                @NonNull IAccountRecord accountRecord) {
-        mAccessToken = accessToken;
-        mTenantId = accessToken.getRealm();
-        mUniqueId = accessToken.getHomeAccountId();
-        mRawIdToken = rawIdToken;
-        mAccount = AccountAdapter.adapt(accountRecord);
-
-    }
+//    public AuthenticationResult(@NonNull AccessTokenRecord accessToken,
+//                                @Nullable String rawIdToken,
+//                                @NonNull IAccountRecord accountRecord) {
+//        mAccessToken = accessToken;
+//        mTenantId = accessToken.getRealm();
+//        mUniqueId = accessToken.getHomeAccountId();
+//        mRawIdToken = rawIdToken;
+//        mAccount = AccountAdapter.adapt(accountRecord);
+//    }
 
     @Override
     @NonNull
@@ -99,14 +97,8 @@ public final class AuthenticationResult implements IAuthenticationResult {
     }
 
     @Override
-    @Nullable
-    public String getIdToken() {
-        return mRawIdToken;
-    }
-
-    @Override
     @NonNull
-    public IAccount getAccount() {
+    public com.microsoft.identity.client.tenantprofile.IAccount getAccount() {
         return mAccount;
     }
 

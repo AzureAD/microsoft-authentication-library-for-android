@@ -25,6 +25,8 @@ package com.microsoft.identity.client;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.microsoft.identity.client.tenantprofile.IAccount;
+
 import java.util.Date;
 
 public interface IAuthenticationResult {
@@ -44,7 +46,7 @@ public interface IAuthenticationResult {
     Date getExpiresOn();
 
     /**
-     * @return A unique tenant identifier that was used in token acquisiton. Could be null if tenant information is not
+     * @return A unique tenant identifier that was used in token acquisition. Could be null if tenant information is not
      * returned by the service.
      */
     @Nullable
@@ -55,12 +57,6 @@ public interface IAuthenticationResult {
      */
     @NonNull
     String getUniqueId();
-
-    /**
-     * @return The id token returned by the service or null if no id token is returned.
-     */
-    @Nullable
-    String getIdToken();
 
     /**
      * Gets the Account.

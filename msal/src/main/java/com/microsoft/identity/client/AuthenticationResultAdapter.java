@@ -29,9 +29,7 @@ public class AuthenticationResultAdapter {
     static IAuthenticationResult adapt(ILocalAuthenticationResult localAuthenticationResult) {
 
         IAuthenticationResult authenticationResult = new AuthenticationResult(
-                localAuthenticationResult.getAccessTokenRecord(),
-                localAuthenticationResult.getIdToken(),
-                localAuthenticationResult.getAccountRecord()
+                localAuthenticationResult.getCacheRecordWithTenantProfileData()
         );
         return authenticationResult;
     }
