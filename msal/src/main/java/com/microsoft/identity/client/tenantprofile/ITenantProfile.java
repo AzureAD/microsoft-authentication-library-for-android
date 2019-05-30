@@ -24,7 +24,7 @@ package com.microsoft.identity.client.tenantprofile;
 
 import android.support.annotation.NonNull;
 
-interface ITenantProfile extends IAccount {
+public interface ITenantProfile extends IAccount {
 
     @NonNull
     String getTenantId();

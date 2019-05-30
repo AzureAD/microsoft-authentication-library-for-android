@@ -189,6 +189,9 @@ public class AccountAdapter {
                     null // home tenant IdToken.... doesn't exist!
             );
 
+            // Set the home_account_id of the root, even though we don't have the IdToken...
+            emptyRoot.setId(entry.getKey());
+
             // Create the Map of TenantProfiles to set...
             final Map<String, ITenantProfile> tenantProfileMap = new HashMap<>();
 

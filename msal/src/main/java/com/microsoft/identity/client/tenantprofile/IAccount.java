@@ -23,6 +23,7 @@
 package com.microsoft.identity.client.tenantprofile;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -44,6 +45,6 @@ public interface IAccount extends Serializable {
      *
      * @return A Map of claims.
      */
-    @NonNull
+    @Nullable
     Map<String, ?> getClaims();
 }

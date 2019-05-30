@@ -56,6 +56,7 @@ import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.ICacheKeyValueDelegate;
+import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
@@ -86,7 +87,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -421,13 +421,13 @@ public class PublicClientApplication implements IPublicClientApplication {
         return mPublicClientConfiguration;
     }
 
-    public interface LoadAccountCallback extends TaskCompletedCallbackWithError<List<IAccount>, Exception> {
+    public interface LoadAccountCallback extends TaskCompletedCallbackWithError<List<com.microsoft.identity.client.tenantprofile.IAccount>, Exception> {
         /**
          * Called once succeed and pass the result object.
          *
          * @param result the success result.
          */
-        void onTaskCompleted(List<IAccount> result);
+        void onTaskCompleted(List<com.microsoft.identity.client.tenantprofile.IAccount> result);
 
         /**
          * Called once exception thrown.
@@ -437,13 +437,13 @@ public class PublicClientApplication implements IPublicClientApplication {
         void onError(Exception exception);
     }
 
-    public interface GetAccountCallback extends TaskCompletedCallbackWithError<IAccount, Exception> {
+    public interface GetAccountCallback extends TaskCompletedCallbackWithError<com.microsoft.identity.client.tenantprofile.IAccount, Exception> {
         /**
          * Called once succeed and pass the result object.
          *
          * @param result the success result.
          */
-        void onTaskCompleted(IAccount result);
+        void onTaskCompleted(com.microsoft.identity.client.tenantprofile.IAccount result);
 
         /**
          * Called once exception thrown.
@@ -935,19 +935,17 @@ public class PublicClientApplication implements IPublicClientApplication {
         );
     }
 
-    static TaskCompletedCallbackWithError<List<AccountRecord>, Exception> getLoadAccountsCallback(
+    static TaskCompletedCallbackWithError<List<ICacheRecord>, Exception> getLoadAccountsCallback(
             final LoadAccountCallback loadAccountsCallback) {
-        return new TaskCompletedCallbackWithError<List<AccountRecord>, Exception>() {
+        return new TaskCompletedCallbackWithError<List<ICacheRecord>, Exception>() {
             @Override
-            public void onTaskCompleted(final List<AccountRecord> result) {
+            public void onTaskCompleted(final List<ICacheRecord> result) {
                 if (null == result) {
                     loadAccountsCallback.onTaskCompleted(null);
                 } else {
-                    final List<IAccount> resultAccounts = new ArrayList<>();
-                    for (AccountRecord accountRecord : result) {
-                        resultAccounts.add(AccountAdapter.adapt(accountRecord));
-                    }
-                    loadAccountsCallback.onTaskCompleted(resultAccounts);
+                    loadAccountsCallback.onTaskCompleted(
+                            com.microsoft.identity.client.tenantprofile.AccountAdapter.adapt(result)
+                    );
                 }
             }
 

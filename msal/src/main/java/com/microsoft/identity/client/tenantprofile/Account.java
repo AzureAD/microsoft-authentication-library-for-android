@@ -40,18 +40,25 @@ public class Account implements IAccount {
     private static final String TAG = Account.class.getSimpleName();
 
     private final String mRawIdToken;
+    private String mHomeAccountId;
 
     public Account(@Nullable final String rawIdToken) {
         mRawIdToken = rawIdToken;
     }
 
-    @Nullable
+    void setId(@Nullable final String id) {
+        mHomeAccountId = id;
+    }
+
+    @NonNull
     @Override
     public String getId() {
         String id = null;
 
         if (null != mRawIdToken) {
             id = (String) getClaims().get(MicrosoftIdToken.OBJECT_ID);
+        } else if (null != mHomeAccountId) {
+            id = mHomeAccountId;
         }
 
         return id;
