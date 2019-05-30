@@ -374,6 +374,10 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
             for (final AccountMatcher matcher : mDelegateMatchers) {
                 matches = matches && matcher.matches(identifier, account);
+
+                if (matches) {
+                    break;
+                }
             }
 
             return matches;
