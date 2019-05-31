@@ -36,7 +36,7 @@ import java.util.List;
 abstract class TokenParameters {
 
     private List<String> mScopes;
-    private IAccount mAccount;
+    private com.microsoft.identity.client.tenantprofile.IAccount mAccount;
     private String mAuthority;
     private ClaimsRequest mClaimsRequest;
     private AuthenticationCallback mCallback;
@@ -77,7 +77,7 @@ abstract class TokenParameters {
      *
      * @return
      */
-    public IAccount getAccount() {
+    public com.microsoft.identity.client.tenantprofile.IAccount getAccount() {
         return mAccount;
     }
 
@@ -87,7 +87,7 @@ abstract class TokenParameters {
      *
      * @param account
      */
-    public void setAccount(IAccount account) {
+    public void setAccount(com.microsoft.identity.client.tenantprofile.IAccount account) {
         this.mAccount = account;
     }
 
@@ -173,7 +173,7 @@ abstract class TokenParameters {
     public static abstract class Builder<B extends TokenParameters.Builder<B>> {
 
         private List<String> mScopes;
-        private IAccount mAccount;
+        private com.microsoft.identity.client.tenantprofile.IAccount mAccount;
         private String mAuthority;
         private ClaimsRequest mClaimsRequest;
         private AuthenticationCallback mCallback;
@@ -190,7 +190,7 @@ abstract class TokenParameters {
             return self();
         }
 
-        public B forAccount(IAccount account) {
+        public B forAccount(com.microsoft.identity.client.tenantprofile.IAccount account) {
             mAccount = account;
             return self();
         }

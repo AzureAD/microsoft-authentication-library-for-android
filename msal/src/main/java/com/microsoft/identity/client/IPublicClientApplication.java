@@ -150,7 +150,7 @@ public interface IPublicClientApplication {
      */
     void acquireToken(@NonNull final Activity activity,
                       @NonNull final String[] scopes,
-                      @Nullable final IAccount account,
+                      @Nullable final com.microsoft.identity.client.tenantprofile.IAccount account,
                       @NonNull final UiBehavior uiBehavior,
                       @Nullable final List<Pair<String, String>> extraQueryParameters,
                       @NonNull final AuthenticationCallback callback
@@ -216,7 +216,7 @@ public interface IPublicClientApplication {
      */
     void acquireToken(@NonNull final Activity activity,
                       @NonNull final String[] scopes,
-                      @Nullable final IAccount account,
+                      @Nullable final com.microsoft.identity.client.tenantprofile.IAccount account,
                       @NonNull final UiBehavior uiBehavior,
                       @Nullable final List<Pair<String, String>> extraQueryParameters,
                       @Nullable final String[] extraScopesToConsent,
@@ -248,7 +248,7 @@ public interface IPublicClientApplication {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
     void acquireTokenSilentAsync(@NonNull final String[] scopes,
-                                 @NonNull final IAccount account,
+                                 @NonNull final com.microsoft.identity.client.tenantprofile.IAccount account,
                                  @NonNull final AuthenticationCallback callback
     );
 
@@ -268,7 +268,7 @@ public interface IPublicClientApplication {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
     void acquireTokenSilentAsync(@NonNull final String[] scopes,
-                                 @NonNull final IAccount account,
+                                 @NonNull final com.microsoft.identity.client.tenantprofile.IAccount account,
                                  @Nullable final String authority,
                                  final boolean forceRefresh,
                                  @NonNull final AuthenticationCallback callback

@@ -254,11 +254,11 @@ public class LocalMSALController extends BaseController {
 
     @Override
     @WorkerThread
-    public List<AccountRecord> getAccounts(@NonNull final OperationParameters parameters) {
-        final List<AccountRecord> accountsInCache =
+    public List<ICacheRecord> getAccounts(@NonNull final OperationParameters parameters) {
+        final List<ICacheRecord> accountsInCache =
                 parameters
                         .getTokenCache()
-                        .getAccounts(
+                        .getAccountsWithAggregatedAccountData(
                                 null, // * wildcard
                                 parameters.getClientId()
                         );

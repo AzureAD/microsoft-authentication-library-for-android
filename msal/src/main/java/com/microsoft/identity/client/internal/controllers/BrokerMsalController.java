@@ -58,6 +58,7 @@ import com.microsoft.identity.common.internal.broker.BrokerResult;
 import com.microsoft.identity.common.internal.broker.BrokerResultFuture;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthServiceFuture;
+import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
@@ -109,28 +110,16 @@ public class BrokerMsalController extends BaseController {
     private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
 
     /**
-     * Callback for asynchronous loading of broker AccountRecords (in multiple account mode).
-     */
-    public interface GetAccountRecordsFromBrokerCallback {
-        /**
-         * Called once Accounts have been loaded from the broker.
-         *
-         * @param accountRecords The accountRecords in broker.
-         */
-        void onAccountsLoaded(List<AccountRecord> accountRecords);
-    }
-
-    /**
      * Callback for asynchronous loading of broker AccountRecord of the current account (in single account mode).
      */
-    public interface GetCurrentAccountRecordFromBrokerCallback {
+    public interface GetCurrentAccountRecordFromBrokerCallback { // TODO this interface needs to be renamed
 
         /**
          * Called once the signed-in account (if there is any), has been loaded from the broker.
          *
          * @param accountRecord The accountRecord in broker. This could be null.
          */
-        void onAccountLoaded(@Nullable final AccountRecord accountRecord);
+        void onAccountLoaded(@Nullable List<ICacheRecord> cacheRecords);
     }
 
     @Override
@@ -628,7 +617,7 @@ public class BrokerMsalController extends BaseController {
 
                     service = authServiceFuture.get();
 
-                    final AccountRecord accountRecord =
+                    final List<ICacheRecord> accountRecordList =
                             MsalBrokerResultAdapter
                                     .currentAccountFromBundle(
                                             service.getCurrentAccount()
@@ -637,7 +626,7 @@ public class BrokerMsalController extends BaseController {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onAccountLoaded(accountRecord);
+                            callback.onAccountLoaded(accountRecordList);
                         }
                     });
                 } catch (final ClientException | InterruptedException | ExecutionException | RemoteException e) {
@@ -667,18 +656,19 @@ public class BrokerMsalController extends BaseController {
      * this needs to be called on background thread.
      */
     @Override
-    public List<AccountRecord> getAccounts(@NonNull final OperationParameters parameters)
+    public List<ICacheRecord> getAccounts(@NonNull final OperationParameters parameters)
             throws ClientException, InterruptedException, ExecutionException, RemoteException, OperationCanceledException, IOException, AuthenticatorException {
         final String methodName = ":getBrokerAccounts";
         if (isMicrosoftAuthServiceSupported(parameters.getAppContext())) {
             Logger.verbose(TAG + methodName, "Is microsoft auth service supported? " + "[yes]");
             Logger.verbose(TAG + methodName, "Get the broker accounts from auth service.");
-            return getBrokerAccountsWithAuthService(parameters);
+            //return getBrokerAccountsWithAuthService(parameters);
         } else {
             Logger.verbose(TAG + methodName, "Is microsoft auth service supported? " + "[no]");
             Logger.verbose(TAG + methodName, "Get the broker accounts from Account Manager.");
-            return getBrokerAccountsFromAccountManager(parameters);
+            //return getBrokerAccountsFromAccountManager(parameters);
         }
+        return new ArrayList<>(); // TODO remove after implementation
     }
 
     @WorkerThread

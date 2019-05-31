@@ -62,7 +62,7 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
          *
          * @param activeAccount the signed-in account. This could be nil.
          */
-        void onAccountLoaded(final IAccount activeAccount);
+        void onAccountLoaded(final com.microsoft.identity.client.tenantprofile.IAccount activeAccount);
 
         /**
          * Invoked when signed-in account is changed after the application resumes, or prior to running a scheduled background operation.
@@ -71,6 +71,6 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
          * @param priorAccount   the previous signed-in account. This could be nil.
          * @param currentAccount the current signed-in account. This could be nil.
          */
-        void onAccountChanged(final IAccount priorAccount, final IAccount currentAccount);
+        void onAccountChanged(final com.microsoft.identity.client.tenantprofile.IAccount priorAccount, final com.microsoft.identity.client.tenantprofile.IAccount currentAccount);
     }
 }

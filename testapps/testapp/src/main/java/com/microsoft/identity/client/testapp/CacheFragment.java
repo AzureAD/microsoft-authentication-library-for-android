@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-
 public class CacheFragment extends Fragment {
 
     static final String ARG_LIST_CONTENTS = "list_contents";

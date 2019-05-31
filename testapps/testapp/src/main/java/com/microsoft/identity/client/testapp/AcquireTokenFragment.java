@@ -39,15 +39,11 @@ import android.widget.TextView;
 
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.UiBehavior;
-import com.microsoft.identity.common.exception.ClientException;
-import com.microsoft.identity.common.internal.ui.browser.Browser;
-import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.microsoft.identity.client.testapp.R.id.enablePII;
-
 
 /**
  * acquireToken Fragment, contains the flow for acquireToken interactively, acquireTokenSilent, getUsers, removeUser.

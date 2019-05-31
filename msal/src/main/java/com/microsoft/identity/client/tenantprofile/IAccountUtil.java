@@ -20,49 +20,19 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client;
+package com.microsoft.identity.client.tenantprofile;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
-import com.microsoft.identity.client.tenantprofile.IAccount;
-
-import java.util.Date;
-
-public interface IAuthenticationResult {
+public class IAccountUtil {
 
     /**
-     * @return The access token requested.
+     * Returns the
+     * @param account
+     * @return
      */
-    @NonNull
-    String getAccessToken();
+    public static String getEnvironment(@NonNull final IAccount account) {
+        return null;
+    }
 
-    /**
-     * @return The expiration time of the access token returned in the Token property.
-     * This value is calculated based on current UTC time measured locally and the value expiresIn returned from the
-     * service.
-     */
-    @NonNull
-    Date getExpiresOn();
-
-    /**
-     * @return A unique tenant identifier that was used in token acquisition. Could be null if tenant information is not
-     * returned by the service.
-     */
-    @Nullable
-    String getTenantId();
-
-    /**
-     * Gets the Account.
-     *
-     * @return The Account to get.
-     */
-    @NonNull
-    IAccount getAccount();
-
-    /**
-     * @return The scopes returned from the service.
-     */
-    @NonNull
-    String[] getScope();
 }

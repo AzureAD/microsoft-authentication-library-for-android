@@ -25,6 +25,7 @@ package com.microsoft.identity.client.tenantprofile;
 import android.support.annotation.NonNull;
 
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -189,8 +190,17 @@ public class AccountAdapter {
                     null // home tenant IdToken.... doesn't exist!
             );
 
-            // Set the home_account_id of the root, even though we don't have the IdToken...
-            emptyRoot.setId(entry.getKey());
+            // Set the home oid & home tid of the root, even though we don't have the IdToken...
+            // hooray for client_info
+            emptyRoot.setId(StringUtil.getTenantInfo(entry.getKey()).first);
+            emptyRoot.setTenantId(StringUtil.getTenantInfo(entry.getKey()).second);
+            emptyRoot.setEnvironment( // Look ahead into our CacheRecords to determine the environment
+                    entry
+                            .getValue()
+                            .get(0)
+                            .getAccount()
+                            .getEnvironment()
+            );
 
             // Create the Map of TenantProfiles to set...
             final Map<String, ITenantProfile> tenantProfileMap = new HashMap<>();
@@ -240,6 +250,23 @@ public class AccountAdapter {
             // Each IAccount will be initialized as a MultiTenantAccount whether it really is or not...
             // This allows us to cast the results however the caller sees fit...
             final IAccount rootAccount = new MultiTenantAccount(getIdToken(homeCacheRecord));
+
+            // Set the tenant_id
+            ((MultiTenantAccount) rootAccount).setTenantId(
+                    StringUtil.getTenantInfo(
+                            homeCacheRecord
+                                    .getAccount()
+                                    .getHomeAccountId()
+                    ).second
+            );
+
+            // Set the environment...
+            ((MultiTenantAccount) rootAccount).setEnvironment(
+                    homeCacheRecord
+                            .getAccount()
+                            .getEnvironment()
+            );
+
             result.add(rootAccount);
         }
 

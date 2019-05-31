@@ -45,6 +45,7 @@ import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
 import com.microsoft.identity.client.internal.telemetry.Defaults;
+import com.microsoft.identity.client.tenantprofile.MultiTenantAccount;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.exception.BaseException;
@@ -469,19 +470,6 @@ public class PublicClientApplication implements IPublicClientApplication {
         void onError(Exception exception);
     }
 
-    @Nullable
-    protected static String getRealm(@NonNull IAccount account) {
-        String realm = null;
-
-        if (null != account.getAccountIdentifier() // This is an AAD account w/ tenant info
-                && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier) {
-            final AzureActiveDirectoryAccountIdentifier identifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier();
-            realm = identifier.getTenantIdentifier();
-        }
-
-        return realm;
-    }
-
     @Override
     public void handleInteractiveRequestRedirect(final int requestCode,
                                                  final int resultCode,
@@ -550,7 +538,7 @@ public class PublicClientApplication implements IPublicClientApplication {
     @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
-                             @Nullable final IAccount account,
+                             @Nullable final com.microsoft.identity.client.tenantprofile.IAccount account,
                              @NonNull final UiBehavior uiBehavior,
                              @Nullable final List<Pair<String, String>> extraQueryParameters,
                              @NonNull final AuthenticationCallback callback) {
@@ -594,7 +582,7 @@ public class PublicClientApplication implements IPublicClientApplication {
     @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
-                             @Nullable final IAccount account,
+                             @Nullable final com.microsoft.identity.client.tenantprofile.IAccount account,
                              @NonNull final UiBehavior uiBehavior,
                              @Nullable final List<Pair<String, String>> extraQueryParameters,
                              @Nullable final String[] extraScopesToConsent,
@@ -616,7 +604,7 @@ public class PublicClientApplication implements IPublicClientApplication {
 
     private void acquireToken(@NonNull final Activity activity,
                               @NonNull final String[] scopes,
-                              @Nullable final IAccount account,
+                              @Nullable final com.microsoft.identity.client.tenantprofile.IAccount account,
                               @Nullable final UiBehavior uiBehavior,
                               @Nullable final List<Pair<String, String>> extraQueryParameters,
                               @Nullable final String[] extraScopesToConsent,
@@ -692,13 +680,15 @@ public class PublicClientApplication implements IPublicClientApplication {
         }
     }
 
-    protected AccountRecord getAccountRecord(@Nullable final IAccount account) {
+    protected AccountRecord getAccountRecord(@Nullable final com.microsoft.identity.client.tenantprofile.IAccount account) {
         if (account != null) {
+            final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
+
             return AccountAdapter.getAccountInternal(
                     mPublicClientConfiguration.getClientId(),
                     mPublicClientConfiguration.getOAuth2TokenCache(),
-                    account.getHomeAccountIdentifier().getIdentifier(),
-                    AccountAdapter.getRealm(account)
+                    multiTenantAccount.getHomeAccountId(),
+                    multiTenantAccount.getTenantId()
             );
         }
 
@@ -707,7 +697,7 @@ public class PublicClientApplication implements IPublicClientApplication {
 
     @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
-                                        @NonNull final IAccount account,
+                                        @NonNull final com.microsoft.identity.client.tenantprofile.IAccount account,
                                         @NonNull final AuthenticationCallback callback) {
         acquireTokenSilent(
                 scopes,
@@ -721,7 +711,7 @@ public class PublicClientApplication implements IPublicClientApplication {
 
     @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
-                                        @NonNull final IAccount account,
+                                        @NonNull final com.microsoft.identity.client.tenantprofile.IAccount account,
                                         @Nullable final String authority,
                                         final boolean forceRefresh,
                                         @NonNull final AuthenticationCallback callback) {
@@ -736,7 +726,7 @@ public class PublicClientApplication implements IPublicClientApplication {
     }
 
     private void acquireTokenSilent(@NonNull final String[] scopes,
-                                    @NonNull final IAccount account,
+                                    @NonNull final com.microsoft.identity.client.tenantprofile.IAccount account,
                                     @Nullable final String authority,
                                     final boolean forceRefresh,
                                     @Nullable final ClaimsRequest claimsRequest,

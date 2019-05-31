@@ -30,7 +30,6 @@ import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccou
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.request.OperationParameters;
-import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -242,14 +241,17 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     }
 
     @Override
-    public void removeAccount(@Nullable final IAccount account,
+    public void removeAccount(@Nullable final com.microsoft.identity.client.tenantprofile.IAccount account,
                               @NonNull final RemoveAccountCallback callback) {
         ApiDispatcher.initializeDiagnosticContext();
+
+        // First, cast the input IAccount to a MultiTenantAccount
+        final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
+
         //create the parameter
         try {
-            if (null == account
-                    || null == account.getHomeAccountIdentifier()
-                    || StringUtil.isEmpty(account.getHomeAccountIdentifier().getIdentifier())) {
+            if (null == multiTenantAccount
+                    || null == multiTenantAccount.getHomeAccountId()) {
                 com.microsoft.identity.common.internal.logging.Logger.warn(
                         TAG,
                         "Requisite IAccount or IAccount fields were null. Insufficient criteria to remove IAccount."
@@ -262,10 +264,8 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                     // If could not find the account record in local msal cache
                     // Create the pass along account record object to broker
                     final AccountRecord requestAccountRecord = new AccountRecord();
-                    requestAccountRecord.setEnvironment(account.getEnvironment());
-                    requestAccountRecord.setUsername(account.getUsername());
-                    requestAccountRecord.setHomeAccountId(account.getHomeAccountIdentifier().getIdentifier());
-                    requestAccountRecord.setLocalAccountId(account.getAccountIdentifier().getIdentifier());
+                    requestAccountRecord.setEnvironment(multiTenantAccount.getEnvironment());
+                    requestAccountRecord.setHomeAccountId(multiTenantAccount.getHomeAccountId());
                     params.setAccount(requestAccountRecord);
                 } else {
                     params.setAccount(getAccountRecord(account));

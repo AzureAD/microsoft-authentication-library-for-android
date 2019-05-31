@@ -24,6 +24,7 @@ package com.microsoft.identity.client.tenantprofile;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
@@ -40,14 +41,16 @@ public class Account implements IAccount {
     private static final String TAG = Account.class.getSimpleName();
 
     private final String mRawIdToken;
-    private String mHomeAccountId;
+    private String mHomeOid;
+    private String mHomeTenantId;
+    private String mEnvironment;
 
     public Account(@Nullable final String rawIdToken) {
         mRawIdToken = rawIdToken;
     }
 
     void setId(@Nullable final String id) {
-        mHomeAccountId = id;
+        mHomeOid = id;
     }
 
     @NonNull
@@ -57,11 +60,45 @@ public class Account implements IAccount {
 
         if (null != mRawIdToken) {
             id = (String) getClaims().get(MicrosoftIdToken.OBJECT_ID);
-        } else if (null != mHomeAccountId) {
-            id = mHomeAccountId;
+        } else if (null != mHomeOid) {
+            id = mHomeOid;
         }
 
         return id;
+    }
+
+    void setTenantId(@Nullable final String tenantId) {
+        mHomeTenantId = tenantId;
+    }
+
+    @Nullable
+    public String getTenantId() { // TODO make this package private
+        return mHomeTenantId;
+    }
+
+    @Nullable
+    public String getHomeAccountId() { // TODO make this package private
+        final String methodName = ":getHomeAccountId";
+
+        if (TextUtils.isEmpty(mHomeOid) || TextUtils.isEmpty(mHomeTenantId)) {
+            Logger.warn(
+                    TAG + methodName,
+                    "Incomplete home_account_id"
+            );
+
+            return null;
+        }
+
+        return mHomeOid + "." + mHomeTenantId;
+    }
+
+    void setEnvironment(@NonNull final String environment) {
+        mEnvironment = environment;
+    }
+
+    @Nullable
+    public String getEnvironment() { // TODO Make this package private
+        return mEnvironment;
     }
 
     @Nullable

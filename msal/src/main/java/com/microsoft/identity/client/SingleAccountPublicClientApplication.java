@@ -7,7 +7,11 @@ import android.support.annotation.Nullable;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
+import com.microsoft.identity.client.tenantprofile.IAccount;
+import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
+
+import java.util.List;
 
 public class SingleAccountPublicClientApplication extends PublicClientApplication
         implements ISingleAccountPublicClientApplication {
@@ -49,20 +53,25 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 configuration,
                 new BrokerMsalController.GetCurrentAccountRecordFromBrokerCallback() {
                     @Override
-                    public void onAccountLoaded(@Nullable final AccountRecord accountRecordInBroker) {
-                        IAccount localAccount = mLocalAccountRecord == null ? null : AccountAdapter.adapt(mLocalAccountRecord);
-                        IAccount accountInBroker = accountRecordInBroker == null ? null : AccountAdapter.adapt(accountRecordInBroker);
-
-                        if (mLocalAccountRecord == null) {
-                            if (accountRecordInBroker != null) {
-                                listener.onAccountChanged(null, accountInBroker);
-                            }
-                        } else if (!mLocalAccountRecord.equals(accountRecordInBroker)) {
-                            listener.onAccountChanged(localAccount, accountInBroker);
-                        }
-
-                        mLocalAccountRecord = accountRecordInBroker;
-                        listener.onAccountLoaded(accountInBroker);
+                    public void onAccountLoaded(@Nullable final List<ICacheRecord> cacheRecords) {
+                        // TODO implement...
+                        // TODO check if the cache records are null before trying to adapt...
+                        // TODO the List that is returned should adapt into a single IAccount
+                        // TODO Dome... you can use this return type to support FLW
+                        final List<IAccount> account = com.microsoft.identity.client.tenantprofile.AccountAdapter.adapt(cacheRecords);
+//                        IAccount localAccount = mLocalAccountRecord == null ? null : AccountAdapter.adapt(mLocalAccountRecord);
+//                        IAccount accountInBroker = accountRecordInBroker == null ? null : AccountAdapter.adapt(accountRecordInBroker);
+//
+//                        if (mLocalAccountRecord == null) {
+//                            if (accountRecordInBroker != null) {
+//                                listener.onAccountChanged(null, accountInBroker);
+//                            }
+//                        } else if (!mLocalAccountRecord.equals(accountRecordInBroker)) {
+//                            listener.onAccountChanged(localAccount, accountInBroker);
+//                        }
+//
+//                        mLocalAccountRecord = accountRecordInBroker;
+//                        listener.onAccountLoaded(accountInBroker);
                     }
                 });
     }
