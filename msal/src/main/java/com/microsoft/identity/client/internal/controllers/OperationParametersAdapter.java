@@ -29,14 +29,16 @@ import android.support.annotation.NonNull;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.claims.ClaimsRequest;
+import com.microsoft.identity.client.tenantprofile.IAccount;
+import com.microsoft.identity.client.tenantprofile.ITenantProfile;
+import com.microsoft.identity.client.tenantprofile.MultiTenantAccount;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
+import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.providers.oauth2.OpenIdConnectPromptParameter;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
@@ -46,13 +48,14 @@ import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.util.HashSet;
+import java.util.Map;
 
 public class OperationParametersAdapter {
 
     private static final String TAG = OperationParameters.class.getName();
 
-    public static OperationParameters createOperationParameters (
-            PublicClientApplicationConfiguration configuration) {
+    public static OperationParameters createOperationParameters(
+            @NonNull final PublicClientApplicationConfiguration configuration) {
         final OperationParameters parameters = new OperationParameters();
         parameters.setAppContext(configuration.getAppContext());
         parameters.setTokenCache(configuration.getOAuth2TokenCache());
@@ -66,8 +69,8 @@ public class OperationParametersAdapter {
     }
 
     public static AcquireTokenOperationParameters createAcquireTokenOperationParameters(
-            AcquireTokenParameters acquireTokenParameters,
-            PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
+            @NonNull final AcquireTokenParameters acquireTokenParameters,
+            @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
 
         final String methodName = ":createAcquireTokenOperationParameters";
         final AcquireTokenOperationParameters acquireTokenOperationParameters =
@@ -78,7 +81,8 @@ public class OperationParametersAdapter {
                 acquireTokenOperationParameters.setAuthority(
                         getRequestAuthority(
                                 acquireTokenParameters.getAccount(),
-                                publicClientApplicationConfiguration)
+                                publicClientApplicationConfiguration
+                        )
                 );
             } else {
                 acquireTokenOperationParameters.
@@ -128,9 +132,11 @@ public class OperationParametersAdapter {
         );
 
         if (acquireTokenParameters.getAccount() != null) {
-            acquireTokenOperationParameters.setLoginHint(
-                    acquireTokenParameters.getAccount().getUsername()
-            );
+            final IAccount account = acquireTokenParameters.getAccount();
+
+            final String username = getUsername(account);
+
+            acquireTokenOperationParameters.setLoginHint(username);
             acquireTokenOperationParameters.setAccount(
                     acquireTokenParameters.getAccountRecord()
             );
@@ -188,9 +194,37 @@ public class OperationParametersAdapter {
         return acquireTokenOperationParameters;
     }
 
+    private static String getUsername(@NonNull final IAccount account) {
+        // We need to get the username for the account...
+        // Since the home account may be null (in the case of guest only), we need to look
+        // both at the home and any tenant profiles
+        String username = null;
+
+        if (null != account.getClaims()) {
+            username = SchemaUtil.getDisplayableId(account.getClaims());
+        } else {
+            // The home account was null, therefore this must be a multi-tenant account
+            final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
+            // Any arbitrary tenant profile should work...
+            final Map<String, ITenantProfile> tenantProfiles = multiTenantAccount.getTenantProfiles();
+
+            for (final Map.Entry<String, ITenantProfile> profileEntry : tenantProfiles.entrySet()) {
+                if (null != profileEntry.getValue().getClaims()) {
+                    final String displayableId = SchemaUtil.getDisplayableId(profileEntry.getValue().getClaims());
+                    if (!SchemaUtil.MISSING_FROM_THE_TOKEN_RESPONSE.equalsIgnoreCase(displayableId)) {
+                        username = displayableId;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return username;
+    }
+
     public static AcquireTokenSilentOperationParameters createAcquireTokenSilentOperationParameters(
-            AcquireTokenSilentParameters acquireTokenSilentParameters,
-            PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
+            @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters,
+            @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
 
         final AcquireTokenSilentOperationParameters acquireTokenSilentOperationParameters
                 = new AcquireTokenSilentOperationParameters();
@@ -213,16 +247,22 @@ public class OperationParametersAdapter {
             acquireTokenSilentOperationParameters.setAccount(
                     acquireTokenSilentParameters.getAccountRecord()
             );
-        } else if (null != acquireTokenSilentParameters.getAccount()){
+        } else if (null != acquireTokenSilentParameters.getAccount()) {
             // This will happen when the account exists in broker.
             // We need to construct the AccountRecord object with IAccount.
             // for broker acquireToken request only.
-            final IAccount account = acquireTokenSilentParameters.getAccount();
+            final com.microsoft.identity.client.tenantprofile.IAccount account = acquireTokenSilentParameters.getAccount();
+            final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
+
             final AccountRecord requestAccountRecord = new AccountRecord();
-            requestAccountRecord.setEnvironment(account.getEnvironment());
-            requestAccountRecord.setUsername(account.getUsername());
-            requestAccountRecord.setHomeAccountId(account.getHomeAccountIdentifier().getIdentifier());
-            requestAccountRecord.setLocalAccountId(account.getAccountIdentifier().getIdentifier());
+            requestAccountRecord.setEnvironment(multiTenantAccount.getEnvironment());
+            requestAccountRecord.setHomeAccountId(multiTenantAccount.getHomeAccountId());
+
+            // TODO do you mean the home account? The guest account? Where do I look??
+            requestAccountRecord.setUsername(SchemaUtil.getDisplayableId(multiTenantAccount.getClaims()));
+            // TODO which tenant do you want?????? Using home for now...
+            requestAccountRecord.setLocalAccountId(multiTenantAccount.getId());
+
             acquireTokenSilentOperationParameters.setAccount(requestAccountRecord);
         }
 
@@ -271,8 +311,8 @@ public class OperationParametersAdapter {
     }
 
     private static Authority getRequestAuthority(
-            final IAccount account,
-            final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
+            final com.microsoft.identity.client.tenantprofile.IAccount account,
+            @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
 
         String requestAuthority = null;
         Authority authority;
@@ -301,8 +341,8 @@ public class OperationParametersAdapter {
     }
 
     private static String getSilentRequestAuthority(
-            final IAccount account,
-            final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
+            final com.microsoft.identity.client.tenantprofile.IAccount account,
+            @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
 
         String requestAuthority = null;
 
@@ -330,28 +370,25 @@ public class OperationParametersAdapter {
         return requestAuthority;
     }
 
-    public static String getAuthorityFromAccount(final IAccount account) {
+    public static String getAuthorityFromAccount(final com.microsoft.identity.client.tenantprofile.IAccount account) {
         final String methodName = ":getAuthorityFromAccount";
         com.microsoft.identity.common.internal.logging.Logger.verbose(
                 TAG + methodName,
                 "Getting authority from account..."
         );
 
-        final AzureActiveDirectoryAccountIdentifier aadIdentifier;
-        if (null != account
-                && null != account.getAccountIdentifier()
-                && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier
-                && null != (aadIdentifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier()).getTenantIdentifier()
-                && !StringUtil.isEmpty(aadIdentifier.getTenantIdentifier())) {
+        if (account instanceof MultiTenantAccount) {
+            MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
+
             return "https://"
-                    + account.getEnvironment()
+                    + multiTenantAccount.getEnvironment()
                     + "/"
-                    + aadIdentifier.getTenantIdentifier()
+                    + multiTenantAccount.getTenantId() // TODO this assumes home account, but should the default authority be used instead??
                     + "/";
         } else {
             com.microsoft.identity.common.internal.logging.Logger.warn(
                     TAG + methodName,
-                    "Account was null..."
+                    "Account was null or not an instance of MultiTenantAccount..."
             );
         }
 

@@ -681,14 +681,14 @@ public class PublicClientApplication implements IPublicClientApplication {
     }
 
     protected AccountRecord getAccountRecord(@Nullable final com.microsoft.identity.client.tenantprofile.IAccount account) {
-        if (account != null) {
-            final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
+        final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
 
+        if (null != multiTenantAccount && null != multiTenantAccount.getHomeAccountId()) {
             return AccountAdapter.getAccountInternal(
                     mPublicClientConfiguration.getClientId(),
                     mPublicClientConfiguration.getOAuth2TokenCache(),
                     multiTenantAccount.getHomeAccountId(),
-                    multiTenantAccount.getTenantId()
+                    multiTenantAccount.getTenantId() // TODO This assumes the home account, but what about guests??
             );
         }
 

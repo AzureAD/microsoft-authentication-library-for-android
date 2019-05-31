@@ -24,7 +24,6 @@ package com.microsoft.identity.client.tenantprofile;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
@@ -53,7 +52,7 @@ public class Account implements IAccount {
         mHomeOid = id;
     }
 
-    @NonNull
+    @Nullable
     @Override
     public String getId() {
         String id = null;
@@ -78,18 +77,7 @@ public class Account implements IAccount {
 
     @Nullable
     public String getHomeAccountId() { // TODO make this package private
-        final String methodName = ":getHomeAccountId";
-
-        if (TextUtils.isEmpty(mHomeOid) || TextUtils.isEmpty(mHomeTenantId)) {
-            Logger.warn(
-                    TAG + methodName,
-                    "Incomplete home_account_id"
-            );
-
-            return null;
-        }
-
-        return mHomeOid + "." + mHomeTenantId;
+        return getId() + "." + mHomeTenantId;
     }
 
     void setEnvironment(@NonNull final String environment) {

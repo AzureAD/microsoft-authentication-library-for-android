@@ -17,6 +17,7 @@ import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
 import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
@@ -27,7 +28,6 @@ import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
-import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 
@@ -305,10 +305,10 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                 return true;
             } else if (account instanceof MultiTenantAccount) {
                 // We need to look at the profiles...
-                MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
+                final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
                 final Map<String, ITenantProfile> tenantProfiles = multiTenantAccount.getTenantProfiles();
 
-                if (!tenantProfiles.isEmpty()) {
+                if (null != tenantProfiles && !tenantProfiles.isEmpty()) {
                     for (final Map.Entry<String, ITenantProfile> profileEntry : tenantProfiles.entrySet()) {
                         if (localAccountId.contains(profileEntry.getValue().getId())) {
                             return true;
@@ -334,19 +334,25 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             }
 
             if (account instanceof MultiTenantAccount) {
-                MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
+                final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
                 final Map<String, ITenantProfile> profiles = multiTenantAccount.getTenantProfiles();
 
-                for (final Map.Entry<String, ITenantProfile> profileEntry : profiles.entrySet()) {
-                    if (null != profileEntry.getValue().getClaims()) {
-                        thingsWithClaims.add(profileEntry.getValue());
+                if (null != profiles) {
+                    for (final Map.Entry<String, ITenantProfile> profileEntry : profiles.entrySet()) {
+                        if (null != profileEntry.getValue().getClaims()) {
+                            thingsWithClaims.add(profileEntry.getValue());
+                        }
                     }
                 }
             }
 
             for (final com.microsoft.identity.client.tenantprofile.IAccount thingWithClaims : thingsWithClaims) {
-                if (username.equalsIgnoreCase((String) thingWithClaims.getClaims().get(MicrosoftIdToken.PREFERRED_USERNAME))
-                        || username.equalsIgnoreCase((String) thingWithClaims.getClaims().get(MicrosoftIdToken.SUBJECT))) {
+                if (null != thingWithClaims.getClaims()
+                        && username.equalsIgnoreCase(
+                        SchemaUtil.getDisplayableId(
+                                thingWithClaims.getClaims()
+                        )
+                )) {
                     return true;
                 }
             }
@@ -370,10 +376,10 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
         boolean matches(@NonNull final String identifier,
                         @NonNull final com.microsoft.identity.client.tenantprofile.IAccount account) {
-            boolean matches = true;
+            boolean matches = false;
 
             for (final AccountMatcher matcher : mDelegateMatchers) {
-                matches = matches && matcher.matches(identifier, account);
+                matches = matcher.matches(identifier, account);
 
                 if (matches) {
                     break;

@@ -92,12 +92,6 @@ public final class AuthenticationResult implements IAuthenticationResult {
 
     @Override
     @NonNull
-    public String getUniqueId() {
-        return mUniqueId;
-    }
-
-    @Override
-    @NonNull
     public com.microsoft.identity.client.tenantprofile.IAccount getAccount() {
         return mAccount;
     }
