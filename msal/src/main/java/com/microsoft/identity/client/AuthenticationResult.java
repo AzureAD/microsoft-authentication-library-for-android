@@ -52,16 +52,6 @@ public final class AuthenticationResult implements IAuthenticationResult {
         mAccount = AccountAdapter.adapt(cacheRecords).get(0);
     }
 
-//    public AuthenticationResult(@NonNull AccessTokenRecord accessToken,
-//                                @Nullable String rawIdToken,
-//                                @NonNull IAccountRecord accountRecord) {
-//        mAccessToken = accessToken;
-//        mTenantId = accessToken.getRealm();
-//        mUniqueId = accessToken.getHomeAccountId();
-//        mRawIdToken = rawIdToken;
-//        mAccount = AccountAdapter.adapt(accountRecord);
-//    }
-
     @Override
     @NonNull
     public String getAccessToken() {
