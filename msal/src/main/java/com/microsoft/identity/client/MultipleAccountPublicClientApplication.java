@@ -9,9 +9,6 @@ import android.support.annotation.Nullable;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
-import com.microsoft.identity.client.tenantprofile.AccountAdapter;
-import com.microsoft.identity.client.tenantprofile.ITenantProfile;
-import com.microsoft.identity.client.tenantprofile.MultiTenantAccount;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
@@ -189,7 +186,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                                 callback.onTaskCompleted(null);
                             } else {
                                 // First, transform the result into IAccount + TenantProfile form
-                                final List<com.microsoft.identity.client.tenantprofile.IAccount>
+                                final List<IAccount>
                                         accounts = AccountAdapter.adapt(result);
 
                                 final String trimmedIdentifier = identifier.trim();
@@ -206,7 +203,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                                         usernameMatcher
                                 );
 
-                                for (final com.microsoft.identity.client.tenantprofile.IAccount account : accounts) {
+                                for (final IAccount account : accounts) {
                                     if (accountMatcher.matches(trimmedIdentifier, account)) {
                                         callback.onTaskCompleted(account);
                                         return;
@@ -241,7 +238,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     }
 
     @Override
-    public void removeAccount(@Nullable final com.microsoft.identity.client.tenantprofile.IAccount account,
+    public void removeAccount(@Nullable final IAccount account,
                               @NonNull final RemoveAccountCallback callback) {
         ApiDispatcher.initializeDiagnosticContext();
 
@@ -291,7 +288,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     private AccountMatcher homeAccountMatcher = new AccountMatcher() {
         @Override
         boolean matches(@NonNull final String homeAccountId,
-                        @NonNull final com.microsoft.identity.client.tenantprofile.IAccount account) {
+                        @NonNull final IAccount account) {
             return homeAccountId.contains(account.getId());
         }
     };
@@ -299,7 +296,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     private AccountMatcher localAccountMatcher = new AccountMatcher() {
         @Override
         boolean matches(@NonNull final String localAccountId,
-                        @NonNull final com.microsoft.identity.client.tenantprofile.IAccount account) {
+                        @NonNull final IAccount account) {
             // First, inspect the root account...
             if (localAccountId.contains(account.getId())) {
                 return true;
@@ -324,9 +321,9 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     private AccountMatcher usernameMatcher = new AccountMatcher() {
         @Override
         boolean matches(@NonNull final String username,
-                        @NonNull final com.microsoft.identity.client.tenantprofile.IAccount account) {
+                        @NonNull final IAccount account) {
             // Put all of the IdToken we can inspect in a List...
-            final List<com.microsoft.identity.client.tenantprofile.IAccount> thingsWithClaims
+            final List<IAccount> thingsWithClaims
                     = new ArrayList<>();
 
             if (null != account.getClaims()) {
@@ -346,7 +343,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                 }
             }
 
-            for (final com.microsoft.identity.client.tenantprofile.IAccount thingWithClaims : thingsWithClaims) {
+            for (final IAccount thingWithClaims : thingsWithClaims) {
                 if (null != thingWithClaims.getClaims()
                         && username.equalsIgnoreCase(
                         SchemaUtil.getDisplayableId(
@@ -375,7 +372,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         }
 
         boolean matches(@NonNull final String identifier,
-                        @NonNull final com.microsoft.identity.client.tenantprofile.IAccount account) {
+                        @NonNull final IAccount account) {
             boolean matches = false;
 
             for (final AccountMatcher matcher : mDelegateMatchers) {

@@ -22,24 +22,19 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-/**
- * AccountIds expose identifiers used by MSAL to uniquely identify Accounts.
- */
-abstract class AccountIdentifier implements IAccountIdentifier {
+import android.support.annotation.NonNull;
 
-    private String mIdentifier;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
 
-    /**
-     * Sets the identifier.
-     *
-     * @param identifier The identifier to set.
-     */
-    void setIdentifier(final String identifier) {
-        mIdentifier = identifier;
+public class TenantProfile extends Account implements ITenantProfile {
+
+    public TenantProfile(@NonNull final String rawIdToken) {
+        super(rawIdToken);
     }
 
+    @NonNull
     @Override
-    public String getIdentifier() {
-        return mIdentifier;
+    public String getTenantId() {
+        return (String) getClaims().get(MicrosoftIdToken.TENANT_ID);
     }
 }

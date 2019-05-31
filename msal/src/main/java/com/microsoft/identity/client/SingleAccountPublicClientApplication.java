@@ -7,7 +7,6 @@ import android.support.annotation.Nullable;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
-import com.microsoft.identity.client.tenantprofile.IAccount;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 
@@ -58,7 +57,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                         // TODO check if the cache records are null before trying to adapt...
                         // TODO the List that is returned should adapt into a single IAccount
                         // TODO Dome... you can use this return type to support FLW
-                        final List<IAccount> account = com.microsoft.identity.client.tenantprofile.AccountAdapter.adapt(cacheRecords);
+                        final List<IAccount> account = AccountAdapter.adapt(cacheRecords);
 //                        IAccount localAccount = mLocalAccountRecord == null ? null : AccountAdapter.adapt(mLocalAccountRecord);
 //                        IAccount accountInBroker = accountRecordInBroker == null ? null : AccountAdapter.adapt(accountRecordInBroker);
 //
@@ -91,7 +90,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         }
 
         new BrokerMsalController().removeAccountFromSharedDevice(
-                AccountAdapter.adapt(mLocalAccountRecord),
+                null, // TODO for Dome... this should be the IAccount
                 configuration,
                 new RemoveAccountCallback() {
                     @Override

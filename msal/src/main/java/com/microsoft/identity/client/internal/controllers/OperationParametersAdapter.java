@@ -32,9 +32,9 @@ import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.claims.ClaimsRequest;
-import com.microsoft.identity.client.tenantprofile.IAccount;
-import com.microsoft.identity.client.tenantprofile.ITenantProfile;
-import com.microsoft.identity.client.tenantprofile.MultiTenantAccount;
+import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.ITenantProfile;
+import com.microsoft.identity.client.MultiTenantAccount;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
@@ -251,7 +251,7 @@ public class OperationParametersAdapter {
             // This will happen when the account exists in broker.
             // We need to construct the AccountRecord object with IAccount.
             // for broker acquireToken request only.
-            final com.microsoft.identity.client.tenantprofile.IAccount account = acquireTokenSilentParameters.getAccount();
+            final IAccount account = acquireTokenSilentParameters.getAccount();
             final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
 
             final AccountRecord requestAccountRecord = new AccountRecord();
@@ -311,7 +311,7 @@ public class OperationParametersAdapter {
     }
 
     private static Authority getRequestAuthority(
-            final com.microsoft.identity.client.tenantprofile.IAccount account,
+            final IAccount account,
             @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
 
         String requestAuthority = null;
@@ -341,7 +341,7 @@ public class OperationParametersAdapter {
     }
 
     private static String getSilentRequestAuthority(
-            final com.microsoft.identity.client.tenantprofile.IAccount account,
+            final IAccount account,
             @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
 
         String requestAuthority = null;
@@ -370,7 +370,7 @@ public class OperationParametersAdapter {
         return requestAuthority;
     }
 
-    public static String getAuthorityFromAccount(final com.microsoft.identity.client.tenantprofile.IAccount account) {
+    public static String getAuthorityFromAccount(final IAccount account) {
         final String methodName = ":getAuthorityFromAccount";
         com.microsoft.identity.common.internal.logging.Logger.verbose(
                 TAG + methodName,

@@ -37,6 +37,7 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.UiBehavior;
 
 import java.util.ArrayList;
@@ -176,7 +177,7 @@ public class AcquireTokenFragment extends Fragment {
             MsalWrapper.getInstance().registerPostAccountLoadedJob("bindSelectAccountSpinner",
                     new MsalWrapper.IPostAccountLoaded() {
                         @Override
-                        public void onLoaded(List<com.microsoft.identity.client.tenantprofile.IAccount> loadedAccount) {
+                        public void onLoaded(List<IAccount> loadedAccount) {
                             mOnFragmentInteractionListener.bindSelectAccountSpinner(mSelectAccount, loadedAccount);
                             mPublicApplicationMode.setText(MsalWrapper.getInstance().getPublicApplicationMode());
                         }
@@ -309,7 +310,7 @@ public class AcquireTokenFragment extends Fragment {
 
         void onAcquireTokenSilentClicked(final RequestOptions requestOptions);
 
-        void bindSelectAccountSpinner(Spinner selectAccount, List<com.microsoft.identity.client.tenantprofile.IAccount> accounts);
+        void bindSelectAccountSpinner(Spinner selectAccount, List<IAccount> accounts);
 
         void onAcquireTokenWithResourceClicked(final RequestOptions requestOptions);
 

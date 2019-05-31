@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
@@ -39,7 +40,7 @@ public class MsalWrapper {
 
     /// Interface of an object to be invoked once the account is successfully loaded. ie. Update UI.
     interface IPostAccountLoaded {
-        void onLoaded(List<com.microsoft.identity.client.tenantprofile.IAccount> loadedAccount);
+        void onLoaded(List<IAccount> loadedAccount);
     }
 
     /// Interface of an object to be invoked once MSAL application is successfully initialized.
@@ -56,7 +57,7 @@ public class MsalWrapper {
 
     private IPublicClientApplication mApplication;
     private HashMap<String, IPostAccountLoaded> postAccountLoadedJobs = new HashMap<>();
-    private List<com.microsoft.identity.client.tenantprofile.IAccount> mLoadedAccount;
+    private List<IAccount> mLoadedAccount;
 
     public void loadMsalApplication(@NonNull final Context context,
                                     @NonNull final int configFileResourceId,
@@ -72,7 +73,7 @@ public class MsalWrapper {
                         if (msalApplicationLoaded != null) {
                             registerPostAccountLoadedJob(PostMsalApplicationLoadedKey, new IPostAccountLoaded() {
                                 @Override
-                                public void onLoaded(List<com.microsoft.identity.client.tenantprofile.IAccount> loadedAccount) {
+                                public void onLoaded(List<IAccount> loadedAccount) {
                                     msalApplicationLoaded.onApplicationLoaded();
                                     deregisterPostAccountLoadedJob(PostMsalApplicationLoadedKey);
                                 }
@@ -186,7 +187,7 @@ public class MsalWrapper {
                     requestOptions.getLoginHint().trim(),
                     new PublicClientApplication.GetAccountCallback() {
                         @Override
-                        public void onTaskCompleted(final com.microsoft.identity.client.tenantprofile.IAccount account) {
+                        public void onTaskCompleted(final IAccount account) {
                             if (null != account) {
                                 AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
                                 AcquireTokenSilentParameters acquireTokenSilentParameters =
@@ -239,7 +240,7 @@ public class MsalWrapper {
                     requestOptions.getLoginHint().trim(),
                     new PublicClientApplication.GetAccountCallback() {
                         @Override
-                        public void onTaskCompleted(final com.microsoft.identity.client.tenantprofile.IAccount account) {
+                        public void onTaskCompleted(final IAccount account) {
                             if (account != null) {
                                 mApplication.acquireTokenSilentAsync(
                                         requestOptions.getScopes().toLowerCase().split(" "),
@@ -322,7 +323,7 @@ public class MsalWrapper {
             final IMultipleAccountPublicClientApplication application = (IMultipleAccountPublicClientApplication) (mApplication);
             application.getAccount(username, new PublicClientApplication.GetAccountCallback() {
                 @Override
-                public void onTaskCompleted(com.microsoft.identity.client.tenantprofile.IAccount accountToRemove) {
+                public void onTaskCompleted(IAccount accountToRemove) {
                     application.removeAccount(
                             accountToRemove,
                             new PublicClientApplication.RemoveAccountCallback() {
@@ -393,7 +394,7 @@ public class MsalWrapper {
             IMultipleAccountPublicClientApplication multipleAcctApp = (IMultipleAccountPublicClientApplication) mApplication;
             multipleAcctApp.getAccounts(new PublicClientApplication.LoadAccountCallback() {
                 @Override
-                public void onTaskCompleted(List<com.microsoft.identity.client.tenantprofile.IAccount> result) {
+                public void onTaskCompleted(List<IAccount> result) {
                     mLoadedAccount = result;
                     performPostAccountLoadedJobs();
                 }
@@ -410,7 +411,7 @@ public class MsalWrapper {
             try {
                 singleAcctApp.getCurrentAccount(new ISingleAccountPublicClientApplication.CurrentAccountListener() {
                     @Override
-                    public void onAccountLoaded(com.microsoft.identity.client.tenantprofile.IAccount activeAccount) {
+                    public void onAccountLoaded(IAccount activeAccount) {
                         mLoadedAccount = new ArrayList<>();
                         if (activeAccount != null) {
                             mLoadedAccount.add(activeAccount);
@@ -419,7 +420,7 @@ public class MsalWrapper {
                     }
 
                     @Override
-                    public void onAccountChanged(com.microsoft.identity.client.tenantprofile.IAccount priorAccount, com.microsoft.identity.client.tenantprofile.IAccount currentAccount) {
+                    public void onAccountChanged(IAccount priorAccount, IAccount currentAccount) {
                         notifyCallback.notify("single account is changed from "
                                 + (priorAccount == null ? "null" : priorAccount.getClaims().get(MicrosoftIdToken.PREFERRED_USERNAME))
                                 + " to "

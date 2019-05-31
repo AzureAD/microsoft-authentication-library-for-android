@@ -25,8 +25,6 @@ package com.microsoft.identity.client;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.microsoft.identity.client.tenantprofile.IAccount;
-
 import java.util.Date;
 
 public interface IAuthenticationResult {

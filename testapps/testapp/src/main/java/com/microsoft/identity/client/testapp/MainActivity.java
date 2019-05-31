@@ -43,6 +43,7 @@ import android.widget.Toast;
 
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.ILoggerCallback;
 import com.microsoft.identity.client.Logger;
@@ -73,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private com.microsoft.identity.client.tenantprofile.IAccount mSelectedAccount;
+    private IAccount mSelectedAccount;
     private Handler mHandler;
 
     private IAuthenticationResult mAuthResult;
@@ -284,12 +285,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void bindSelectAccountSpinner(final Spinner selectUser,
-                                         final List<com.microsoft.identity.client.tenantprofile.IAccount> accounts) {
+                                         final List<IAccount> accounts) {
         final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
                 getApplicationContext(), android.R.layout.simple_spinner_item,
                 new ArrayList<String>() {{
                     if (accounts != null) {
-                        for (com.microsoft.identity.client.tenantprofile.IAccount account : accounts)
+                        for (IAccount account : accounts)
                             add((String) account.getClaims().get("preferred_username")); // TODO this will break for guest accounts with no home...
                     }
                 }}
@@ -349,7 +350,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         throw new IllegalArgumentException("Not supported authority type");
     }
 
-    void setUser(final com.microsoft.identity.client.tenantprofile.IAccount user) {
+    void setUser(final IAccount user) {
         mSelectedAccount = user;
     }
 

@@ -42,11 +42,11 @@ import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 
 import com.google.gson.Gson;
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMicrosoftAuthService;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
@@ -117,7 +117,7 @@ public class BrokerMsalController extends BaseController {
         /**
          * Called once the signed-in account (if there is any), has been loaded from the broker.
          *
-         * @param accountRecord The accountRecord in broker. This could be null.
+         * @param cacheRecords The ICacheRecords making up the account in broker. This could be null.
          */
         void onAccountLoaded(@Nullable List<ICacheRecord> cacheRecords);
     }
@@ -921,7 +921,11 @@ public class BrokerMsalController extends BaseController {
 
     private Bundle getRequestBundleForGlobalSignOut(@NonNull final IAccount account) {
         final Bundle requestBundle = new Bundle();
-        requestBundle.putString(ACCOUNT_LOGIN_HINT, account.getUsername());
+        // TODO I think a home_account_id might be better here...
+        // TODO If we really want to use a login_hint consider that you may need to dig around
+        // TODO inside of the IAccount to find it... If there is no home tenant, you'll need to inspect
+        // TODO the claims of one of the ITenantProfiles to find what you're looking for
+        requestBundle.putString(ACCOUNT_LOGIN_HINT, "");
         return requestBundle;
     }
 

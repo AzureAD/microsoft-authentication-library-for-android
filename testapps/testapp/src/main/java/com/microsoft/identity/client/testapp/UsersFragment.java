@@ -39,8 +39,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.microsoft.identity.client.tenantprofile.ITenantProfile;
-import com.microsoft.identity.client.tenantprofile.MultiTenantAccount;
+import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.ITenantProfile;
+import com.microsoft.identity.client.MultiTenantAccount;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +71,7 @@ public class UsersFragment extends Fragment {
         MsalWrapper.getInstance().registerPostAccountLoadedJob("UsersFragment.onCreateView",
                 new MsalWrapper.IPostAccountLoaded() {
                     @Override
-                    public void onLoaded(List<com.microsoft.identity.client.tenantprofile.IAccount> loadedAccount) {
+                    public void onLoaded(List<IAccount> loadedAccount) {
                         createViewWithAccountList(loadedAccount);
                         MsalWrapper.getInstance().deregisterPostAccountLoadedJob("UsersFragment.onCreateView");
                     }
@@ -79,10 +80,10 @@ public class UsersFragment extends Fragment {
         return view;
     }
 
-    private void createViewWithAccountList(final List<com.microsoft.identity.client.tenantprofile.IAccount> accounts) {
+    private void createViewWithAccountList(final List<IAccount> accounts) {
         mGson = new GsonBuilder().setPrettyPrinting().create();
         final List<String> serializedUsers = new ArrayList<>(accounts.size());
-        for (final com.microsoft.identity.client.tenantprofile.IAccount account : accounts) {
+        for (final IAccount account : accounts) {
             JsonObject jsonAcct = transformToJson(account);
             serializedUsers.add(mGson.toJson(jsonAcct));
         }
@@ -93,7 +94,7 @@ public class UsersFragment extends Fragment {
         mUserList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                final com.microsoft.identity.client.tenantprofile.IAccount selectedAccount = accounts.get(position);
+                final IAccount selectedAccount = accounts.get(position);
                 ((MainActivity) getActivity()).setUser(selectedAccount);
                 getFragmentManager().popBackStack();
             }
@@ -101,7 +102,7 @@ public class UsersFragment extends Fragment {
     }
 
     @NonNull
-    private JsonObject transformToJson(com.microsoft.identity.client.tenantprofile.IAccount account) {
+    private JsonObject transformToJson(IAccount account) {
         JsonObject jsonAcct = new JsonObject();
 
         jsonAcct.addProperty("id", account.getId());

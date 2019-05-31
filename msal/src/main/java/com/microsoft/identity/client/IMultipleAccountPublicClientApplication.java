@@ -59,7 +59,7 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * @param account The IAccount whose entry and associated tokens should be removed.
      * @return True, if the account was removed. False otherwise.
      */
-    void removeAccount(@Nullable final com.microsoft.identity.client.tenantprofile.IAccount account,
+    void removeAccount(@Nullable final IAccount account,
                        final PublicClientApplication.RemoveAccountCallback callback
     );
 }

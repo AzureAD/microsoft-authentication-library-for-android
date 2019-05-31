@@ -45,7 +45,6 @@ import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
 import com.microsoft.identity.client.internal.telemetry.Defaults;
-import com.microsoft.identity.client.tenantprofile.MultiTenantAccount;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.exception.BaseException;
@@ -422,13 +421,13 @@ public class PublicClientApplication implements IPublicClientApplication {
         return mPublicClientConfiguration;
     }
 
-    public interface LoadAccountCallback extends TaskCompletedCallbackWithError<List<com.microsoft.identity.client.tenantprofile.IAccount>, Exception> {
+    public interface LoadAccountCallback extends TaskCompletedCallbackWithError<List<IAccount>, Exception> {
         /**
          * Called once succeed and pass the result object.
          *
          * @param result the success result.
          */
-        void onTaskCompleted(List<com.microsoft.identity.client.tenantprofile.IAccount> result);
+        void onTaskCompleted(List<IAccount> result);
 
         /**
          * Called once exception thrown.
@@ -438,13 +437,13 @@ public class PublicClientApplication implements IPublicClientApplication {
         void onError(Exception exception);
     }
 
-    public interface GetAccountCallback extends TaskCompletedCallbackWithError<com.microsoft.identity.client.tenantprofile.IAccount, Exception> {
+    public interface GetAccountCallback extends TaskCompletedCallbackWithError<IAccount, Exception> {
         /**
          * Called once succeed and pass the result object.
          *
          * @param result the success result.
          */
-        void onTaskCompleted(com.microsoft.identity.client.tenantprofile.IAccount result);
+        void onTaskCompleted(IAccount result);
 
         /**
          * Called once exception thrown.
@@ -538,7 +537,7 @@ public class PublicClientApplication implements IPublicClientApplication {
     @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
-                             @Nullable final com.microsoft.identity.client.tenantprofile.IAccount account,
+                             @Nullable final IAccount account,
                              @NonNull final UiBehavior uiBehavior,
                              @Nullable final List<Pair<String, String>> extraQueryParameters,
                              @NonNull final AuthenticationCallback callback) {
@@ -582,7 +581,7 @@ public class PublicClientApplication implements IPublicClientApplication {
     @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
-                             @Nullable final com.microsoft.identity.client.tenantprofile.IAccount account,
+                             @Nullable final IAccount account,
                              @NonNull final UiBehavior uiBehavior,
                              @Nullable final List<Pair<String, String>> extraQueryParameters,
                              @Nullable final String[] extraScopesToConsent,
@@ -604,7 +603,7 @@ public class PublicClientApplication implements IPublicClientApplication {
 
     private void acquireToken(@NonNull final Activity activity,
                               @NonNull final String[] scopes,
-                              @Nullable final com.microsoft.identity.client.tenantprofile.IAccount account,
+                              @Nullable final IAccount account,
                               @Nullable final UiBehavior uiBehavior,
                               @Nullable final List<Pair<String, String>> extraQueryParameters,
                               @Nullable final String[] extraScopesToConsent,
@@ -680,7 +679,7 @@ public class PublicClientApplication implements IPublicClientApplication {
         }
     }
 
-    protected AccountRecord getAccountRecord(@Nullable final com.microsoft.identity.client.tenantprofile.IAccount account) {
+    protected AccountRecord getAccountRecord(@Nullable final IAccount account) {
         final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
 
         if (null != multiTenantAccount && null != multiTenantAccount.getHomeAccountId()) {
@@ -697,7 +696,7 @@ public class PublicClientApplication implements IPublicClientApplication {
 
     @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
-                                        @NonNull final com.microsoft.identity.client.tenantprofile.IAccount account,
+                                        @NonNull final IAccount account,
                                         @NonNull final AuthenticationCallback callback) {
         acquireTokenSilent(
                 scopes,
@@ -711,7 +710,7 @@ public class PublicClientApplication implements IPublicClientApplication {
 
     @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
-                                        @NonNull final com.microsoft.identity.client.tenantprofile.IAccount account,
+                                        @NonNull final IAccount account,
                                         @Nullable final String authority,
                                         final boolean forceRefresh,
                                         @NonNull final AuthenticationCallback callback) {
@@ -726,7 +725,7 @@ public class PublicClientApplication implements IPublicClientApplication {
     }
 
     private void acquireTokenSilent(@NonNull final String[] scopes,
-                                    @NonNull final com.microsoft.identity.client.tenantprofile.IAccount account,
+                                    @NonNull final IAccount account,
                                     @Nullable final String authority,
                                     final boolean forceRefresh,
                                     @Nullable final ClaimsRequest claimsRequest,
@@ -934,7 +933,7 @@ public class PublicClientApplication implements IPublicClientApplication {
                     loadAccountsCallback.onTaskCompleted(null);
                 } else {
                     loadAccountsCallback.onTaskCompleted(
-                            com.microsoft.identity.client.tenantprofile.AccountAdapter.adapt(result)
+                            AccountAdapter.adapt(result)
                     );
                 }
             }

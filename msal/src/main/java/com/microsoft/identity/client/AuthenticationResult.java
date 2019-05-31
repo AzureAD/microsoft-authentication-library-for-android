@@ -42,14 +42,14 @@ public final class AuthenticationResult implements IAuthenticationResult {
     private final String mUniqueId;
 
     private final AccessTokenRecord mAccessToken;
-    private final com.microsoft.identity.client.tenantprofile.IAccount mAccount;
+    private final IAccount mAccount;
 
     public AuthenticationResult(@NonNull final List<ICacheRecord> cacheRecords) {
         final ICacheRecord mostRecentlyAuthorized = cacheRecords.get(0);
         mAccessToken = mostRecentlyAuthorized.getAccessToken();
         mTenantId = mostRecentlyAuthorized.getAccount().getRealm();
         mUniqueId = mostRecentlyAuthorized.getAccount().getHomeAccountId();
-        mAccount = com.microsoft.identity.client.tenantprofile.AccountAdapter.adapt(cacheRecords).get(0);
+        mAccount = AccountAdapter.adapt(cacheRecords).get(0);
     }
 
 //    public AuthenticationResult(@NonNull AccessTokenRecord accessToken,
@@ -92,7 +92,7 @@ public final class AuthenticationResult implements IAuthenticationResult {
 
     @Override
     @NonNull
-    public com.microsoft.identity.client.tenantprofile.IAccount getAccount() {
+    public IAccount getAccount() {
         return mAccount;
     }
 

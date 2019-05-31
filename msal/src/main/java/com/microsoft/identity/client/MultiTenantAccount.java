@@ -20,12 +20,36 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.tenantprofile;
+package com.microsoft.identity.client;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
-public interface ITenantProfile extends IAccount {
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+public class MultiTenantAccount extends Account implements IMultiTenantAccount {
+
+    private Map<String, ITenantProfile> mTenantProfiles = new HashMap<>();
+
+    public MultiTenantAccount(@Nullable final String tenantRawIdToken) {
+        super(tenantRawIdToken);
+    }
+
+    public MultiTenantAccount(@Nullable final String homeTenantRawIdToken,
+                              @NonNull final Map<String, ITenantProfile> tenantProfiles) {
+        super(homeTenantRawIdToken);
+        mTenantProfiles = tenantProfiles;
+    }
+
+    void setTenantProfiles(@NonNull final Map<String, ITenantProfile> profiles) {
+        mTenantProfiles = profiles;
+    }
 
     @NonNull
-    String getTenantId();
+    @Override
+    public Map<String, ITenantProfile> getTenantProfiles() {
+        return Collections.unmodifiableMap(mTenantProfiles);
+    }
 }

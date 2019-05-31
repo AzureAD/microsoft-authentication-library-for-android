@@ -20,31 +20,12 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.tenantprofile;
+package com.microsoft.identity.client;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
-import java.io.Serializable;
-import java.util.Map;
+public interface ITenantProfile extends IAccount {
 
-public interface IAccount extends Serializable {
-
-    /**
-     * Gets the id of the account.
-     * <p>
-     * For the Microsoft Identity Platform: the OID of the account in its home tenant.
-     *
-     * @return The id.
-     */
     @NonNull
-    String getId();
-
-    /**
-     * Gets the claims associated with this account's IdToken.
-     *
-     * @return A Map of claims.
-     */
-    @Nullable
-    Map<String, ?> getClaims();
+    String getTenantId();
 }

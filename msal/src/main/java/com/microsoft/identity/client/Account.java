@@ -22,73 +22,102 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-/**
- * MSAL API surface implementation of an account.
- */
-class Account implements IAccount {
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
-    private IAccountIdentifier mAccountIdentifier;
-    private IAccountIdentifier mHomeAccountIdentifier;
-    private String mUsername;
+import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.JWTParser;
+
+import java.text.ParseException;
+import java.util.HashMap;
+import java.util.Map;
+
+public class Account implements IAccount {
+
+    private static final String TAG = Account.class.getSimpleName();
+
+    private final String mRawIdToken;
+    private String mHomeOid;
+    private String mHomeTenantId;
     private String mEnvironment;
 
-    Account() {
-        // Empty constructor
+    public Account(@Nullable final String rawIdToken) {
+        mRawIdToken = rawIdToken;
     }
 
-    /**
-     * Sets the account id.
-     *
-     * @param accountId The IAccountIdentifier to set.
-     */
-    void setAccountIdentifier(final IAccountIdentifier accountId) {
-        mAccountIdentifier = accountId;
+    void setId(@Nullable final String id) {
+        mHomeOid = id;
     }
 
+    @NonNull
     @Override
-    public IAccountIdentifier getAccountIdentifier() {
-        return mAccountIdentifier;
+    public String getId() {
+        String id;
+
+        if (null != mRawIdToken && null != getClaims()) {
+            id = (String) getClaims().get(MicrosoftIdToken.OBJECT_ID);
+        } else {
+            id = mHomeOid;
+        }
+
+        return id;
     }
 
-    /**
-     * Sets the home account id.
-     *
-     * @param homeAccountId The IAccountIdentifier to set.
-     */
-    void setHomeAccountIdentifier(final IAccountIdentifier homeAccountId) {
-        mHomeAccountIdentifier = homeAccountId;
+    void setTenantId(@Nullable final String tenantId) {
+        mHomeTenantId = tenantId;
     }
 
-    @Override
-    public IAccountIdentifier getHomeAccountIdentifier() {
-        return mHomeAccountIdentifier;
+    @Nullable
+    public String getTenantId() { // TODO make this package private...
+        return mHomeTenantId;
     }
 
-    /**
-     * Sets the username.
-     *
-     * @param username The username to set.
-     */
-    void setUsername(final String username) {
-        mUsername = username;
+    @Nullable
+    public String getHomeAccountId() { // TODO make this package private
+        return getId() + "." + mHomeTenantId;
     }
 
-    @Override
-    public String getUsername() {
-        return mUsername;
-    }
-
-    /**
-     * Sets the environment.
-     *
-     * @param environment The environment to set.
-     */
-    void setEnvironment(final String environment) {
+    void setEnvironment(@NonNull final String environment) {
         mEnvironment = environment;
     }
 
-    @Override
-    public String getEnvironment() {
+    @Nullable
+    public String getEnvironment() { // TODO make this package private
         return mEnvironment;
+    }
+
+    @Nullable
+    @Override
+    public Map<String, ?> getClaims() {
+        Map<String, ?> claims = null;
+
+        if (null != mRawIdToken) {
+            claims = getClaims(mRawIdToken);
+        }
+
+        return claims;
+    }
+
+    private static Map<String, ?> getClaims(@NonNull final String rawIdToken) {
+        final String methodName = ":getClaims(String)";
+
+        final Map<String, Object> result = new HashMap<>();
+
+        try {
+            final JWT jwt = JWTParser.parse(rawIdToken);
+            final JWTClaimsSet claimsSet = jwt.getJWTClaimsSet();
+            result.putAll(claimsSet.getClaims());
+        } catch (ParseException e) {
+            Logger.error(
+                    TAG + methodName,
+                    "Failed to parse IdToken",
+                    e
+            );
+        }
+
+        return result;
     }
 }
