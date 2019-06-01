@@ -45,6 +45,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.OperationParameters;
+import com.microsoft.identity.common.internal.request.SdkType;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
@@ -122,7 +123,11 @@ public class LocalMSALController extends BaseController {
                 );
 
                 acquireTokenResult.setLocalAuthenticationResult(
-                        new LocalAuthenticationResult(cacheRecord.get(0), cacheRecord)
+                        new LocalAuthenticationResult(
+                                cacheRecord.get(0),
+                                cacheRecord,
+                                SdkType.MSAL
+                        )
                 );
             }
         }
@@ -245,7 +250,11 @@ public class LocalMSALController extends BaseController {
             );
             // the result checks out, return that....
             acquireTokenSilentResult.setLocalAuthenticationResult(
-                    new LocalAuthenticationResult(cacheRecords.get(0), cacheRecords)
+                    new LocalAuthenticationResult(
+                            cacheRecords.get(0),
+                            cacheRecords,
+                            SdkType.MSAL
+                    )
             );
         }
 
