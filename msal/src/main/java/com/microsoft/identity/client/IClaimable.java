@@ -22,19 +22,18 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
-import java.io.Serializable;
+import java.util.Map;
 
-public interface IAccount extends Serializable, IClaimable {
+public interface IClaimable {
 
     /**
-     * Gets the id of the account.
-     * <p>
-     * For the Microsoft Identity Platform: the OID of the account in its home tenant.
+     * Gets the claims associated with this account's IdToken.
      *
-     * @return The id.
+     * @return A Map of claims.
      */
-    @NonNull
-    String getId();
+    @Nullable
+    Map<String, ?> getClaims();
+
 }

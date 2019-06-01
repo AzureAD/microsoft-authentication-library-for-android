@@ -323,7 +323,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         boolean matches(@NonNull final String username,
                         @NonNull final IAccount account) {
             // Put all of the IdToken we can inspect in a List...
-            final List<IAccount> thingsWithClaims
+            final List<IClaimable> thingsWithClaims
                     = new ArrayList<>();
 
             if (null != account.getClaims()) {
@@ -334,16 +334,14 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                 final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
                 final Map<String, ITenantProfile> profiles = multiTenantAccount.getTenantProfiles();
 
-                if (null != profiles) {
-                    for (final Map.Entry<String, ITenantProfile> profileEntry : profiles.entrySet()) {
-                        if (null != profileEntry.getValue().getClaims()) {
-                            thingsWithClaims.add(profileEntry.getValue());
-                        }
+                for (final Map.Entry<String, ITenantProfile> profileEntry : profiles.entrySet()) {
+                    if (null != profileEntry.getValue().getClaims()) {
+                        thingsWithClaims.add(profileEntry.getValue());
                     }
                 }
             }
 
-            for (final IAccount thingWithClaims : thingsWithClaims) {
+            for (final IClaimable thingWithClaims : thingsWithClaims) {
                 if (null != thingWithClaims.getClaims()
                         && username.equalsIgnoreCase(
                         SchemaUtil.getDisplayableId(
