@@ -82,7 +82,10 @@ class AccountAdapter {
         }
     }
 
-    private static final CacheRecordFilter orphanAccountFilter = new CacheRecordFilter() {
+    /**
+     * A filter which finds guest accounts which have no corresponding home tenant account.
+     */
+    private static final CacheRecordFilter guestAccountsWithNoHomeTenantAccountFilter = new CacheRecordFilter() {
 
         private boolean hasNoCorrespondingHomeAccount(@NonNull final ICacheRecord guestRecord,
                                                       @NonNull final List<ICacheRecord> homeRecords) {
@@ -102,9 +105,6 @@ class AccountAdapter {
         @Override
         public List<ICacheRecord> filter(@NonNull final List<ICacheRecord> records) {
             final List<ICacheRecord> result = new ArrayList<>();
-
-            // An account is orphaned if:
-            // 1. There is no home account which exists which has the same home_account_id
 
             // First, get the home accounts....
             final List<ICacheRecord> homeRecords =
@@ -152,27 +152,30 @@ class AccountAdapter {
                 new HomeAccountFilter(true)
         );
 
-        final List<ICacheRecord> orphanCacheRecords = filterCacheRecords(
+        final List<ICacheRecord> guestCacheRecordsWithNoHomeAccount = filterCacheRecords(
                 allCacheRecords,
-                orphanAccountFilter
+                guestAccountsWithNoHomeTenantAccountFilter
         );
 
-        // Remove the orphan records from the guest records...
-        guestCacheRecords.removeAll(orphanCacheRecords);
+        // Remove the guest records that have no corresponding home account from the complete list of
+        // guest records...
+        guestCacheRecords.removeAll(guestCacheRecordsWithNoHomeAccount);
 
         final List<IAccount> rootAccounts = createRootAccounts(homeCacheRecords);
         appendChildren(rootAccounts, guestCacheRecords);
-        rootAccounts.addAll(createOrphanRoots(orphanCacheRecords));
+        rootAccounts.addAll(
+                createIAccountsForGuestsNotSignedIntoHomeTenant(guestCacheRecordsWithNoHomeAccount)
+        );
 
         return rootAccounts;
     }
 
-    private static List<IAccount> createOrphanRoots(
-            @NonNull final List<ICacheRecord> orphanCacheRecords) {
+    private static List<IAccount> createIAccountsForGuestsNotSignedIntoHomeTenant(
+            @NonNull final List<ICacheRecord> guestCacheRecords) {
         // First, bucket the records by homeAccountId to create affinities
         final Map<String, List<ICacheRecord>> bucketedRecords = new HashMap<>();
 
-        for (final ICacheRecord cacheRecord : orphanCacheRecords) {
+        for (final ICacheRecord cacheRecord : guestCacheRecords) {
             final String cacheRecordHomeAccountId = cacheRecord.getAccount().getHomeAccountId();
 
             // Initialize the multi-map
