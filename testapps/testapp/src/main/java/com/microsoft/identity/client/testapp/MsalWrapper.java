@@ -443,7 +443,7 @@ public class MsalWrapper {
     }
 
     @NonNull
-    private static String getPreferredUsername(@NonNull final IAccount account) {
+    static String getPreferredUsername(@NonNull final IAccount account) {
         Map<String, ?> claims = null;
 
         // First inspect the root (the home account) - if there are claims, source the username from here

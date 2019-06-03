@@ -291,7 +291,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 new ArrayList<String>() {{
                     if (accounts != null) {
                         for (IAccount account : accounts)
-                            add((String) account.getClaims().get("preferred_username")); // TODO this will break for guest accounts with no home...
+                            add(MsalWrapper.getPreferredUsername(account));
                     }
                 }}
         );
