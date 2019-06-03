@@ -41,6 +41,7 @@ import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAu
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.OpenIdConnectPromptParameter;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
@@ -51,7 +52,14 @@ import com.microsoft.identity.common.internal.util.StringUtil;
 import java.util.HashSet;
 import java.util.Map;
 
+import static com.microsoft.identity.common.internal.authorities.AllAccounts.ALL_ACCOUNTS_TENANT_ID;
+import static com.microsoft.identity.common.internal.authorities.AnyPersonalAccount.ANY_PERSONAL_ACCOUNT_TENANT_ID;
+import static com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience.ORGANIZATIONS;
+import static com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken.TENANT_ID;
+
 public class OperationParametersAdapter {
+
+    private static final String TAG = OperationParametersAdapter.class.getSimpleName();
 
     public static OperationParameters createOperationParameters(
             @NonNull final PublicClientApplicationConfiguration configuration) {
@@ -225,7 +233,6 @@ public class OperationParametersAdapter {
             @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration,
             @Nullable final String requestEnvironment,
             @Nullable final String requestHomeAccountId) {
-
         final AcquireTokenSilentOperationParameters acquireTokenSilentOperationParameters
                 = new AcquireTokenSilentOperationParameters();
 
@@ -243,6 +250,12 @@ public class OperationParametersAdapter {
                 publicClientApplicationConfiguration.getOAuth2TokenCache()
         );
 
+        acquireTokenSilentOperationParameters.setAuthority(
+                Authority.getAuthorityFromAuthorityUrl(
+                        acquireTokenSilentParameters.getAuthority()
+                )
+        );
+
         if (null != acquireTokenSilentParameters.getAccountRecord()) {
             acquireTokenSilentOperationParameters.setAccount(
                     acquireTokenSilentParameters.getAccountRecord()
@@ -258,24 +271,45 @@ public class OperationParametersAdapter {
             requestAccountRecord.setEnvironment(requestEnvironment);
             requestAccountRecord.setHomeAccountId(requestHomeAccountId);
 
-            // TODO do you mean the home account? The guest account? Where do I look??
-            requestAccountRecord.setUsername(SchemaUtil.getDisplayableId(multiTenantAccount.getClaims()));
-            // TODO which tenant do you want?????? Using home for now...
-            requestAccountRecord.setLocalAccountId(multiTenantAccount.getId());
+            if (acquireTokenSilentOperationParameters.getAuthority() instanceof AzureActiveDirectoryAuthority) {
+                AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) acquireTokenSilentOperationParameters.getAuthority();
+                final String tenantId = aadAuthority.getAudience().getTenantId();
+
+                if (isHomeTenantEquivalent(tenantId)
+                        || isAccountHomeTenant(multiTenantAccount.getClaims(), tenantId)) {
+                    // use home...
+                    validateClaimsExistForTenant(tenantId, multiTenantAccount.getClaims());
+
+                    requestAccountRecord.setUsername(
+                            SchemaUtil.getDisplayableId(multiTenantAccount.getClaims())
+                    );
+                    requestAccountRecord.setLocalAccountId(multiTenantAccount.getId());
+                } else {
+                    // Use that tenant's profile...
+                    final ITenantProfile tenantProfile = multiTenantAccount.getTenantProfiles().get(tenantId);
+
+                    validateClaimsExistForTenant(tenantId, tenantProfile.getClaims());
+
+                    requestAccountRecord.setUsername(
+                            SchemaUtil.getDisplayableId(tenantProfile.getClaims())
+                    );
+                    requestAccountRecord.setLocalAccountId(tenantProfile.getId());
+                }
+            } else if (acquireTokenSilentOperationParameters.getAuthority() instanceof AzureActiveDirectoryB2CAuthority) {
+                // Use home
+                validateClaimsExistForTenant("B2C (home tenant)", multiTenantAccount.getClaims());
+
+                requestAccountRecord.setUsername(
+                        SchemaUtil.getDisplayableId(multiTenantAccount.getClaims())
+                );
+                requestAccountRecord.setLocalAccountId(multiTenantAccount.getId());
+            } else {
+                throw new UnsupportedOperationException("Unsupported authority type.");
+            }
 
             acquireTokenSilentOperationParameters.setAccount(requestAccountRecord);
         }
 
-        if (StringUtil.isEmpty(acquireTokenSilentParameters.getAuthority())) {
-            acquireTokenSilentParameters.setAuthority(
-                    getSilentRequestAuthority(
-                            publicClientApplicationConfiguration
-                    )
-            );
-        }
-        acquireTokenSilentOperationParameters.setAuthority(
-                Authority.getAuthorityFromAuthorityUrl(acquireTokenSilentParameters.getAuthority())
-        );
         acquireTokenSilentOperationParameters.setRedirectUri(
                 publicClientApplicationConfiguration.getRedirectUri()
         );
@@ -309,6 +343,49 @@ public class OperationParametersAdapter {
         return acquireTokenSilentOperationParameters;
     }
 
+    /**
+     * For a tenant, assert that claims exist for it. This is a convenience function for throwing
+     * exceptions & logging.
+     *
+     * @param tenantId The tenantId for which claims are sought.
+     * @param claims   The claims, which may be null - if they are, an {@link IllegalStateException}
+     *                 is thrown.
+     */
+    private static void validateClaimsExistForTenant(@NonNull final String tenantId,
+                                                     @Nullable final Map<String, ?> claims) {
+        final String methodName = ":validateClaimsExistForTenant";
+
+        if (null == claims) {
+            final String errMsg = "Attempting to authorize for tenant: "
+                    + tenantId
+                    + " but no matching account was found.";
+
+            Logger.warn(
+                    TAG + methodName,
+                    errMsg
+            );
+
+            throw new IllegalStateException(errMsg);
+        }
+    }
+
+    private static boolean isAccountHomeTenant(@Nullable final Map<String, ?> claims,
+                                               @NonNull final String tenantId) {
+        boolean isAccountHomeTenant = false;
+
+        if (null != claims && !claims.isEmpty()) {
+            isAccountHomeTenant = claims.get(TENANT_ID).equals(tenantId);
+        }
+
+        return isAccountHomeTenant;
+    }
+
+    private static boolean isHomeTenantEquivalent(@NonNull final String tenantId) {
+        return tenantId.equalsIgnoreCase(ALL_ACCOUNTS_TENANT_ID)
+                || tenantId.equalsIgnoreCase(ANY_PERSONAL_ACCOUNT_TENANT_ID)
+                || tenantId.equalsIgnoreCase(ORGANIZATIONS);
+    }
+
     private static Authority getRequestAuthority(
             @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
 
@@ -330,29 +407,6 @@ public class OperationParametersAdapter {
         }
 
         return authority;
-    }
-
-    private static String getSilentRequestAuthority(
-            @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
-
-        String requestAuthority = null;
-
-        // For a B2C request, the silent request will use the passed-in authority string from client app.
-        if (publicClientApplicationConfiguration.getDefaultAuthority() instanceof AzureActiveDirectoryB2CAuthority) {
-            requestAuthority = publicClientApplicationConfiguration
-                    .getDefaultAuthority()
-                    .getAuthorityURL()
-                    .toString();
-        }
-
-        if (requestAuthority == null) {
-            requestAuthority = publicClientApplicationConfiguration
-                    .getDefaultAuthority()
-                    .getAuthorityURL()
-                    .toString();
-        }
-
-        return requestAuthority;
     }
 
     private static String getPackageVersion(@NonNull final Context context) {

@@ -410,13 +410,7 @@ public class PublicClientApplication implements IPublicClientApplication {
         return BuildConfig.VERSION_NAME;
     }
 
-    /**
-     * Returns the PublicClientConfiguration for this instance of PublicClientApplication
-     * Configuration is based on the defaults established for MSAl and can be overridden by creating the
-     * PublicClientApplication using {@link PublicClientApplication#PublicClientApplication(Context, PublicClientApplicationConfiguration)}
-     *
-     * @return
-     */
+    @Override
     public PublicClientApplicationConfiguration getConfiguration() {
         return mPublicClientConfiguration;
     }
@@ -743,11 +737,25 @@ public class PublicClientApplication implements IPublicClientApplication {
                         .callback(callback)
                         .build();
 
+        validateSilentParameters(acquireTokenSilentParameters);
+
         acquireTokenSilentAsync(acquireTokenSilentParameters);
     }
 
+    private void validateSilentParameters(
+            @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
+        if (TextUtils.isEmpty(acquireTokenSilentParameters.getAuthority())) {
+            throw new IllegalArgumentException(
+                    "Authority must be specified for acquireTokenSilent"
+            );
+        }
+    }
+
     @Override
-    public void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
+    public void acquireTokenSilentAsync(
+            @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
+        validateSilentParameters(acquireTokenSilentParameters);
+
         acquireTokenSilentParameters.setAccountRecord(
                 getAccountRecord(
                         acquireTokenSilentParameters.getAccount()

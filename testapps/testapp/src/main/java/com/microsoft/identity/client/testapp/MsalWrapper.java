@@ -245,7 +245,11 @@ public class MsalWrapper {
                                 mApplication.acquireTokenSilentAsync(
                                         requestOptions.getScopes().toLowerCase().split(" "),
                                         account,
-                                        null,
+                                        mApplication
+                                                .getConfiguration()
+                                                .getDefaultAuthority()
+                                                .getAuthorityUri()
+                                                .toString(),
                                         requestOptions.forceRefresh(),
                                         getAuthenticationCallback(notifyCallback));
                             } else {

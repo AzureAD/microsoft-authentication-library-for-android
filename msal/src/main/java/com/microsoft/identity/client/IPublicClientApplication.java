@@ -24,6 +24,7 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -282,4 +283,13 @@ public interface IPublicClientApplication {
      * @param acquireTokenSilentParameters
      */
     void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters);
+
+    /**
+     * Returns the PublicClientConfiguration for this instance of PublicClientApplication
+     * Configuration is based on the defaults established for MSAl and can be overridden by creating the
+     * PublicClientApplication using {@link PublicClientApplication#PublicClientApplication(Context, PublicClientApplicationConfiguration)}
+     *
+     * @return
+     */
+    PublicClientApplicationConfiguration getConfiguration();
 }
