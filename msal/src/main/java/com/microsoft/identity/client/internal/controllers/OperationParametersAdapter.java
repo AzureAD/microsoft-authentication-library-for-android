@@ -53,8 +53,6 @@ import java.util.Map;
 
 public class OperationParametersAdapter {
 
-    private static final String TAG = OperationParameters.class.getName();
-
     public static OperationParameters createOperationParameters(
             @NonNull final PublicClientApplicationConfiguration configuration) {
         final OperationParameters parameters = new OperationParameters();
@@ -271,7 +269,6 @@ public class OperationParametersAdapter {
         if (StringUtil.isEmpty(acquireTokenSilentParameters.getAuthority())) {
             acquireTokenSilentParameters.setAuthority(
                     getSilentRequestAuthority(
-                            acquireTokenSilentParameters.getAccount(),
                             publicClientApplicationConfiguration
                     )
             );
@@ -336,7 +333,6 @@ public class OperationParametersAdapter {
     }
 
     private static String getSilentRequestAuthority(
-            final IAccount account,
             @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
 
         String requestAuthority = null;
