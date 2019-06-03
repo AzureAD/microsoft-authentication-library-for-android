@@ -115,17 +115,21 @@ public class LocalMSALController extends BaseController {
 
             if (tokenResult != null && tokenResult.getSuccess()) {
                 //4) Save tokens in token cache
-                final List<ICacheRecord> cacheRecord = saveTokens(
+                final List<ICacheRecord> records = saveTokens(
                         oAuth2Strategy,
                         mAuthorizationRequest,
                         tokenResult.getTokenResponse(),
                         parameters.getTokenCache()
                 );
 
+                // The first element in the returned list is the item we *just* saved, the rest of
+                // the elements are necessary to construct the full IAccount + TenantProfile
+                final ICacheRecord newestRecord = records.get(0);
+
                 acquireTokenResult.setLocalAuthenticationResult(
                         new LocalAuthenticationResult(
-                                cacheRecord.get(0),
-                                cacheRecord,
+                                newestRecord,
+                                records,
                                 SdkType.MSAL
                         )
                 );
@@ -199,10 +203,16 @@ public class LocalMSALController extends BaseController {
                 targetAccount
         );
 
-        if (accessTokenIsNull(cacheRecords.get(0))
-                || refreshTokenIsNull(cacheRecords.get(0))
+        // The first element is the 'fully-loaded' CacheRecord which may contain the AccountRecord,
+        // AccessTokenRecord, RefreshTokenRecord, and IdTokenRecord... (if all of those artifacts exist)
+        // subsequent CacheRecords represent other profiles (projections) of this principal in
+        // other tenants. Those tokens will be 'sparse', meaning that their AT/RT will not be loaded
+        final ICacheRecord fullCacheRecord = cacheRecords.get(0);
+
+        if (accessTokenIsNull(fullCacheRecord)
+                || refreshTokenIsNull(fullCacheRecord)
                 || parameters.getForceRefresh()) {
-            if (!refreshTokenIsNull(cacheRecords.get(0))) {
+            if (!refreshTokenIsNull(fullCacheRecord)) {
                 // No AT found, but the RT checks out, so we'll use it
                 Logger.verbose(
                         TAG + methodName,
@@ -213,7 +223,7 @@ public class LocalMSALController extends BaseController {
                         acquireTokenSilentResult,
                         tokenCache,
                         strategy,
-                        cacheRecords.get(0)
+                        fullCacheRecord
                 );
             } else {
                 //TODO need the refactor, should just throw the ui required exception, rather than
@@ -223,13 +233,13 @@ public class LocalMSALController extends BaseController {
                         "No refresh token was found. "
                 );
             }
-        } else if (cacheRecords.get(0).getAccessToken().isExpired()) {
+        } else if (fullCacheRecord.getAccessToken().isExpired()) {
             Logger.warn(
                     TAG + methodName,
                     "Access token is expired. Removing from cache..."
             );
             // Remove the expired token
-            tokenCache.removeCredential(cacheRecords.get(0).getAccessToken());
+            tokenCache.removeCredential(fullCacheRecord.getAccessToken());
 
             Logger.verbose(
                     TAG + methodName,
@@ -241,7 +251,7 @@ public class LocalMSALController extends BaseController {
                     acquireTokenSilentResult,
                     tokenCache,
                     strategy,
-                    cacheRecords.get(0)
+                    fullCacheRecord
             );
         } else {
             Logger.verbose(
@@ -251,7 +261,7 @@ public class LocalMSALController extends BaseController {
             // the result checks out, return that....
             acquireTokenSilentResult.setLocalAuthenticationResult(
                     new LocalAuthenticationResult(
-                            cacheRecords.get(0),
+                            fullCacheRecord,
                             cacheRecords,
                             SdkType.MSAL
                     )
