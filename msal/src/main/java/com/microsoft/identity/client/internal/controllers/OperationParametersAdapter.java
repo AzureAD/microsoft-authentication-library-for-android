@@ -26,15 +26,16 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.PublicClientApplicationConfiguration;
-import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
+import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.PublicClientApplicationConfiguration;
+import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
@@ -80,7 +81,6 @@ public class OperationParametersAdapter {
             if (acquireTokenParameters.getAccount() != null) {
                 acquireTokenOperationParameters.setAuthority(
                         getRequestAuthority(
-                                acquireTokenParameters.getAccount(),
                                 publicClientApplicationConfiguration
                         )
                 );
@@ -224,7 +224,9 @@ public class OperationParametersAdapter {
 
     public static AcquireTokenSilentOperationParameters createAcquireTokenSilentOperationParameters(
             @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters,
-            @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
+            @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration,
+            @Nullable final String requestEnvironment,
+            @Nullable final String requestHomeAccountId) {
 
         final AcquireTokenSilentOperationParameters acquireTokenSilentOperationParameters
                 = new AcquireTokenSilentOperationParameters();
@@ -255,8 +257,8 @@ public class OperationParametersAdapter {
             final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
 
             final AccountRecord requestAccountRecord = new AccountRecord();
-            requestAccountRecord.setEnvironment(multiTenantAccount.getEnvironment());
-            requestAccountRecord.setHomeAccountId(multiTenantAccount.getHomeAccountId());
+            requestAccountRecord.setEnvironment(requestEnvironment);
+            requestAccountRecord.setHomeAccountId(requestHomeAccountId);
 
             // TODO do you mean the home account? The guest account? Where do I look??
             requestAccountRecord.setUsername(SchemaUtil.getDisplayableId(multiTenantAccount.getClaims()));
@@ -311,7 +313,6 @@ public class OperationParametersAdapter {
     }
 
     private static Authority getRequestAuthority(
-            final IAccount account,
             @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
 
         String requestAuthority = null;
@@ -323,12 +324,6 @@ public class OperationParametersAdapter {
                     .getDefaultAuthority()
                     .getAuthorityURL()
                     .toString();
-        }
-
-        // If the request is not a B2C request or the passed-in authority is not a valid URL.
-        // MSAL will construct the request authority based on the account info.
-        if (requestAuthority == null) {
-            requestAuthority = getAuthorityFromAccount(account);
         }
 
         if (requestAuthority == null) {
@@ -354,12 +349,6 @@ public class OperationParametersAdapter {
                     .toString();
         }
 
-        // If the request is not a B2C request or the passed-in authority is not a valid URL.
-        // MSAL will construct the request authority based on the account info.
-        if (requestAuthority == null) {
-            requestAuthority = getAuthorityFromAccount(account);
-        }
-
         if (requestAuthority == null) {
             requestAuthority = publicClientApplicationConfiguration
                     .getDefaultAuthority()
@@ -368,31 +357,6 @@ public class OperationParametersAdapter {
         }
 
         return requestAuthority;
-    }
-
-    public static String getAuthorityFromAccount(final IAccount account) {
-        final String methodName = ":getAuthorityFromAccount";
-        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                TAG + methodName,
-                "Getting authority from account..."
-        );
-
-        if (account instanceof MultiTenantAccount) {
-            MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
-
-            return "https://"
-                    + multiTenantAccount.getEnvironment()
-                    + "/"
-                    + multiTenantAccount.getTenantId() // TODO this assumes home account, but should the default authority be used instead??
-                    + "/";
-        } else {
-            com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG + methodName,
-                    "Account was null or not an instance of MultiTenantAccount..."
-            );
-        }
-
-        return null;
     }
 
     private static String getPackageVersion(@NonNull final Context context) {

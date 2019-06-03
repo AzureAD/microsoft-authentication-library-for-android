@@ -71,12 +71,12 @@ public class Account implements IAccount {
     }
 
     @Nullable
-    public String getTenantId() { // TODO make this package private...
+    String getTenantId() {
         return mHomeTenantId;
     }
 
     @Nullable
-    public String getHomeAccountId() { // TODO make this package private
+    String getHomeAccountId() {
         return getId() + "." + mHomeTenantId;
     }
 
@@ -85,7 +85,7 @@ public class Account implements IAccount {
     }
 
     @Nullable
-    public String getEnvironment() { // TODO make this package private
+    String getEnvironment() {
         return mEnvironment;
     }
 

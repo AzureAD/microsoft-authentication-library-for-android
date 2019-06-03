@@ -754,10 +754,21 @@ public class PublicClientApplication implements IPublicClientApplication {
                 )
         );
 
+        String requestEnvironment = null;
+        String requestHomeAccountId = null;
+
+        if (null != acquireTokenSilentParameters.getAccountRecord()) {
+            final AccountRecord requestAccount = acquireTokenSilentParameters.getAccountRecord();
+            requestEnvironment = requestAccount.getEnvironment();
+            requestHomeAccountId = requestAccount.getHomeAccountId();
+        }
+
         final AcquireTokenSilentOperationParameters params =
                 OperationParametersAdapter.createAcquireTokenSilentOperationParameters(
                         acquireTokenSilentParameters,
-                        mPublicClientConfiguration
+                        mPublicClientConfiguration,
+                        requestEnvironment,
+                        requestHomeAccountId
                 );
 
         ILocalAuthenticationCallback callback = getLocalAuthenticationCallback(acquireTokenSilentParameters.getCallback());
