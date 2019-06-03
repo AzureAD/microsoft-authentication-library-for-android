@@ -291,6 +291,15 @@ class AccountAdapter {
                 : cacheRecord.getV1IdToken().getSecret();
     }
 
+    /**
+     * Filters ICacheRecords based on the criteria specified by the {@link CacheRecordFilter}.
+     * Results may be empty, but never null.
+     *
+     * @param allCacheRecords The ICacheRecords to inspect.
+     * @param filter          The CacheRecordFilter to consult.
+     * @return A List of ICacheRecords matching the supplied filter criteria.
+     */
+    @NonNull
     private static List<ICacheRecord> filterCacheRecords(
             @NonNull final List<ICacheRecord> allCacheRecords,
             @NonNull final CacheRecordFilter filter) {
