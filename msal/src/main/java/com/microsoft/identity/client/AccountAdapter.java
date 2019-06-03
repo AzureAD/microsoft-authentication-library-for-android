@@ -147,11 +147,14 @@ class AccountAdapter {
         );
 
         // Then, get all of the guest accounts...
+        // Note that the guestCacheRecordsWithNoHomeAccount (see below) will be *removed* from this
+        // List.
         final List<ICacheRecord> guestCacheRecords = filterCacheRecords(
                 allCacheRecords,
                 new HomeAccountFilter(true)
         );
 
+        // Get the guest cache records which have no homeAccount
         final List<ICacheRecord> guestCacheRecordsWithNoHomeAccount = filterCacheRecords(
                 allCacheRecords,
                 guestAccountsWithNoHomeTenantAccountFilter
