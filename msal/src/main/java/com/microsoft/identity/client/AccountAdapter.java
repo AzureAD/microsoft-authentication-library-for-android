@@ -173,6 +173,7 @@ class AccountAdapter {
         return rootAccounts;
     }
 
+    @NonNull
     private static List<IAccount> createIAccountsForGuestsNotSignedIntoHomeTenant(
             @NonNull final List<ICacheRecord> guestCacheRecords) {
         // First, bucket the records by homeAccountId to create affinities
@@ -253,6 +254,7 @@ class AccountAdapter {
         }
     }
 
+    @NonNull
     private static List<IAccount> createRootAccounts(
             @NonNull final List<ICacheRecord> homeCacheRecords) {
         final List<IAccount> result = new ArrayList<>();
