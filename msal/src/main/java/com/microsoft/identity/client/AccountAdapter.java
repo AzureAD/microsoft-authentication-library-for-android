@@ -284,6 +284,7 @@ class AccountAdapter {
         return result;
     }
 
+    @NonNull
     private static String getIdToken(@NonNull final ICacheRecord cacheRecord) {
         return null != cacheRecord.getIdToken()
                 ? cacheRecord.getIdToken().getSecret()
