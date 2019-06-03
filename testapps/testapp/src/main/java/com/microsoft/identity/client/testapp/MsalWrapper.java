@@ -13,6 +13,8 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
+import com.microsoft.identity.client.ITenantProfile;
+import com.microsoft.identity.client.MultiTenantAccount;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
@@ -24,6 +26,7 @@ import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdTok
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MsalWrapper {
     private static String PostMsalApplicationLoadedKey = "MsalWrapper_PostMsalApplicationLoaded";
@@ -425,16 +428,39 @@ public class MsalWrapper {
 
                     @Override
                     public void onAccountChanged(IAccount priorAccount, IAccount currentAccount) {
-                        notifyCallback.notify("single account is changed from "
-                                + (priorAccount == null ? "null" : priorAccount.getClaims().get(MicrosoftIdToken.PREFERRED_USERNAME))
-                                + " to "
-                                + (currentAccount == null ? "null" : priorAccount.getClaims().get(MicrosoftIdToken.PREFERRED_USERNAME)));
+                        notifyCallback.notify(
+                                "single account is changed from "
+                                        + (null == priorAccount ? "null" : getPreferredUsername(priorAccount))
+                                        + " to "
+                                        + (null == currentAccount ? "null" : getPreferredUsername(currentAccount))
+                        );
                     }
                 });
             } catch (MsalClientException e) {
                 notifyCallback.notify(e.getMessage());
             }
         }
+    }
+
+    @NonNull
+    private static String getPreferredUsername(@NonNull final IAccount account) {
+        Map<String, ?> claims = null;
+
+        // First inspect the root (the home account) - if there are claims, source the username from here
+        if (null != account.getClaims()) {
+            claims = account.getClaims();
+        } else { // We did not have a home account... fallback on iterating over the guests profiles...
+            final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
+
+            for (final ITenantProfile profile : multiTenantAccount.getTenantProfiles().values()) {
+                if (null != profile.getClaims()) {
+                    claims = profile.getClaims();
+                    break;
+                }
+            }
+        }
+
+        return (String) claims.get(MicrosoftIdToken.PREFERRED_USERNAME);
     }
 
     private void performPostAccountLoadedJobs() {
