@@ -37,10 +37,8 @@ import java.util.concurrent.TimeUnit;
  * {@link AuthenticationResult} and passed back through the {@link AuthenticationCallback}.
  */
 public final class AuthenticationResult implements IAuthenticationResult {
-    //Fields for Legacy Cache
-    private final String mTenantId;
-    private final String mUniqueId;
 
+    private final String mTenantId;
     private final AccessTokenRecord mAccessToken;
     private final IAccount mAccount;
 
@@ -48,7 +46,6 @@ public final class AuthenticationResult implements IAuthenticationResult {
         final ICacheRecord mostRecentlyAuthorized = cacheRecords.get(0);
         mAccessToken = mostRecentlyAuthorized.getAccessToken();
         mTenantId = mostRecentlyAuthorized.getAccount().getRealm();
-        mUniqueId = mostRecentlyAuthorized.getAccount().getHomeAccountId();
         mAccount = AccountAdapter.adapt(cacheRecords).get(0);
     }
 
