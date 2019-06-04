@@ -98,6 +98,7 @@ public class BrokerMsalController extends BaseController {
     private static final String TAG = BrokerMsalController.class.getSimpleName();
 
     private static final String DATA_USER_INFO = "com.microsoft.workaccount.user.info";
+    private static final String DATA_CACHE_RECORD = "com.microsoft.workaccount.cache.record";
     private static final String MANIFEST_PERMISSION_GET_ACCOUNTS = "android.permission.GET_ACCOUNTS";
     private static final String MANIFEST_PERMISSION_MANAGE_ACCOUNTS = "android.permission.MANAGE_ACCOUNTS";
     private static final String MANIFEST_PERMISSION_USE_CREDENTIALS = "android.permission.USE_CREDENTIALS";
@@ -662,17 +663,16 @@ public class BrokerMsalController extends BaseController {
         if (isMicrosoftAuthServiceSupported(parameters.getAppContext())) {
             Logger.verbose(TAG + methodName, "Is microsoft auth service supported? " + "[yes]");
             Logger.verbose(TAG + methodName, "Get the broker accounts from auth service.");
-            //return getBrokerAccountsWithAuthService(parameters);
+            return getBrokerAccountsWithAuthService(parameters);
         } else {
             Logger.verbose(TAG + methodName, "Is microsoft auth service supported? " + "[no]");
             Logger.verbose(TAG + methodName, "Get the broker accounts from Account Manager.");
-            //return getBrokerAccountsFromAccountManager(parameters);
+            return getBrokerAccountsFromAccountManager(parameters);
         }
-        return new ArrayList<>(); // TODO remove after implementation
     }
 
     @WorkerThread
-    private List<AccountRecord> getBrokerAccountsWithAuthService(@NonNull final OperationParameters parameters)
+    private List<ICacheRecord> getBrokerAccountsWithAuthService(@NonNull final OperationParameters parameters)
             throws ClientException, InterruptedException, ExecutionException, RemoteException {
         final String methodName = ":getBrokerAccountsWithAuthService";
         IMicrosoftAuthService service;
@@ -682,13 +682,13 @@ public class BrokerMsalController extends BaseController {
             service = authServiceFuture.get();
             final Bundle requestBundle = getRequestBundleForGetAccounts(parameters);
 
-            final List<AccountRecord> accountRecords =
+            final List<ICacheRecord> cacheRecords =
                     MsalBrokerResultAdapter
-                            .getAccountRecordListFromBundle(
+                            .getCacheRecordListFromBundle(
                                     service.getAccounts(requestBundle)
                             );
 
-            return accountRecords;
+            return cacheRecords;
         } catch (final ClientException | InterruptedException | ExecutionException | RemoteException e) {
             com.microsoft.identity.common.internal.logging.Logger.error(
                     TAG + methodName,
@@ -704,11 +704,11 @@ public class BrokerMsalController extends BaseController {
 
     @WorkerThread
     @SuppressLint("MissingPermission")
-    private List<AccountRecord> getBrokerAccountsFromAccountManager(@NonNull final OperationParameters parameters)
+    private List<ICacheRecord> getBrokerAccountsFromAccountManager(@NonNull final OperationParameters parameters)
             throws OperationCanceledException, IOException, AuthenticatorException {
         final String methodName = ":getBrokerAccountsFromAccountManager";
         final Account[] accountList = AccountManager.get(parameters.getAppContext()).getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-        final List<AccountRecord> accountRecords = new ArrayList<>();
+        final List<ICacheRecord> cacheRecords = new ArrayList<>();
         Logger.verbose(
                 TAG + methodName,
                 "Retrieve all the accounts from account manager with broker account type, "
@@ -716,10 +716,11 @@ public class BrokerMsalController extends BaseController {
         );
 
         if (accountList == null || accountList.length == 0) {
-            return accountRecords;
+            return cacheRecords;
         } else {
             final Bundle bundle = new Bundle();
-            bundle.putBoolean(DATA_USER_INFO, true);
+            bundle.putBoolean(DATA_CACHE_RECORD, true);
+            bundle.putString(ACCOUNT_CLIENTID_KEY, parameters.getClientId());;
 
             for (final Account eachAccount : accountList) {
                 // Use AccountManager Api method to get extended user info
@@ -735,10 +736,11 @@ public class BrokerMsalController extends BaseController {
                         );
 
                 final Bundle userInfoBundle = result.getResult();
-                accountRecords.add(getAccountRecordFromUserInfo(userInfoBundle));
+                cacheRecords.addAll(MsalBrokerResultAdapter
+                        .getCacheRecordListFromBundle(userInfoBundle));
             }
 
-            return accountRecords;
+            return cacheRecords;
         }
     }
 
