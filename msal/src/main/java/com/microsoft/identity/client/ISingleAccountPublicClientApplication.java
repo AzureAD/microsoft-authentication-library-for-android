@@ -23,10 +23,11 @@
 
 package com.microsoft.identity.client;
 
-import android.support.annotation.Nullable;
+import android.app.Activity;
+import android.content.Context;
+import android.support.annotation.NonNull;
 
 import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.common.internal.dto.AccountRecord;
 
 /**
  * An interface that contains list of operations that are available when MSAL is in 'single account' mode.
@@ -45,15 +46,18 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * @param listener a callback to be invoked when the operation finishes.
      * @throws MsalClientException if this function is invoked when the app is no longer in the single account mode.
      */
-    void getCurrentAccount(final CurrentAccountListener listener) throws MsalClientException;
+    void getCurrentAccount(@NonNull final CurrentAccountListener listener) throws MsalClientException;
 
     /**
      * Removes the Account and Credentials (tokens) of the account that is currently signed into the device.
+     * As this operation is device-wide, it will prompt a user to make sure if the user wants to perform such operation.
      *
      * @param callback a callback to be invoked when the operation finishes.
+     * @param uiActivity the parent activity that the dialog will be hooked up to.
      * @throws MsalClientException if this function is invoked when the app is no longer in the single account mode.
      */
-    void removeCurrentAccount(final PublicClientApplication.RemoveAccountCallback callback) throws MsalClientException;
+    void removeCurrentAccount(@NonNull final PublicClientApplication.RemoveAccountCallback callback,
+                              @NonNull final Activity uiActivity) throws MsalClientException;
 
     /**
      * Callback for asynchronous loading of the msal IAccount account.

@@ -275,7 +275,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void onRemoveUserClicked(final String username) {
-        MsalWrapper.getInstance().removeAccount(username, operationResultCallback);
+        MsalWrapper.getInstance().removeAccount(this, username, operationResultCallback);
     }
 
     @Override

@@ -1,6 +1,9 @@
 package com.microsoft.identity.client;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -8,6 +11,7 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.msal.R;
 
 public class SingleAccountPublicClientApplication extends PublicClientApplication
         implements ISingleAccountPublicClientApplication {
@@ -68,7 +72,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     }
 
     @Override
-    public void removeCurrentAccount(final RemoveAccountCallback callback) throws MsalClientException {
+    public void removeCurrentAccount(@NonNull final RemoveAccountCallback callback,
+                                     @NonNull final Activity uiActivity) throws MsalClientException {
         final String methodName = ":removeCurrentAccount";
         final PublicClientApplicationConfiguration configuration = getConfiguration();
 
@@ -81,23 +86,42 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             throw new MsalClientException(MsalClientException.BROKER_NOT_INSTALLED, errorMessage);
         }
 
-        new BrokerMsalController().removeAccountFromSharedDevice(
-                AccountAdapter.adapt(mLocalAccountRecord),
-                configuration,
-                new RemoveAccountCallback() {
-                    @Override
-                    public void onTaskCompleted(Boolean success) {
-                        if (success) {
-                            mLocalAccountRecord = null;
-                        }
+        DialogInterface.OnClickListener onClick = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (which == DialogInterface.BUTTON_POSITIVE) {
+                    new BrokerMsalController().removeAccountFromSharedDevice(
+                        AccountAdapter.adapt(mLocalAccountRecord),
+                        configuration,
+                        new RemoveAccountCallback() {
+                            @Override
+                            public void onTaskCompleted(Boolean success) {
+                                if (success) {
+                                    mLocalAccountRecord = null;
+                                }
 
-                        callback.onTaskCompleted(success);
-                    }
+                                callback.onTaskCompleted(success);
+                            }
 
-                    @Override
-                    public void onError(Exception exception) {
-                        callback.onError(exception);
-                    }
-                });
+                            @Override
+                            public void onError(Exception exception) {
+                                callback.onError(exception);
+                            }
+                        });
+
+                    return;
+                }
+
+                callback.onTaskCompleted(false);
+            }
+        };
+
+        new AlertDialog.Builder(uiActivity)
+            .setTitle(R.string.end_my_shift_device_signout_dialog_header)
+            .setMessage(R.string.end_my_shift_device_signout_dialog_message)
+            .setPositiveButton(R.string.end_my_shift_device_signout_dialog_OK, onClick)
+            .setNegativeButton(R.string.end_my_shift_device_signout_dialog_cancel, onClick)
+            .setCancelable(false)
+            .show();
     }
 }

@@ -9,4 +9,8 @@
     <string name="http_auth_dialog_login">Login</string>
     <string name="http_auth_dialog_cancel">Cancel</string>
 
+    <string name="end_my_shift_device_signout_dialog_header">End my shift</string>
+    <string name="end_my_shift_device_signout_dialog_message">This will sign you out of all your work apps and websites on this device.</string>
+    <string name="end_my_shift_device_signout_dialog_OK">OK</string>
+    <string name="end_my_shift_device_signout_dialog_cancel">cancel</string>
 </resources>

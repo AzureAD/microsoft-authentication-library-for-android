@@ -308,7 +308,8 @@ public class MsalWrapper {
         };
     }
 
-    public void removeAccount(@NonNull final String username,
+    public void removeAccount(@NonNull Activity uiActivity,
+                              @NonNull final String username,
                               @NonNull final INotifyOperationResultCallback notifyCallback) {
         if (mApplication == null) {
             notifyCallback.notify("Application is not yet loaded.");
@@ -374,7 +375,7 @@ public class MsalWrapper {
                         exception.printStackTrace();
                         notifyCallback.notify("Failed to remove the account.");
                     }
-                });
+                }, uiActivity);
             } catch (MsalClientException e) {
                 notifyCallback.notify(e.getMessage());
             }
