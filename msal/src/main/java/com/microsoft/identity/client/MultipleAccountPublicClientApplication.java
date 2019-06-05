@@ -261,7 +261,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                 // TODO Clean this up, only the cache should make these records...
                 // The broker strips these properties out of this object to hit the cache
                 // Refactor this out...
-                // https://en.wikipedia.org/wiki/Poltergeist_(computer_programming)
                 final AccountRecord requestAccountRecord = new AccountRecord();
                 requestAccountRecord.setEnvironment(multiTenantAccount.getEnvironment());
                 requestAccountRecord.setHomeAccountId(multiTenantAccount.getHomeAccountId());
