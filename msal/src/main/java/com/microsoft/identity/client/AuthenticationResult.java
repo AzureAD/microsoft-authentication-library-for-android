@@ -25,14 +25,9 @@ package com.microsoft.identity.client;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.microsoft.identity.common.internal.cache.CacheRecord;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccessTokenRecord;
-import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.dto.IAccountRecord;
-import com.microsoft.identity.common.internal.dto.IdTokenRecord;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -55,23 +50,6 @@ public final class AuthenticationResult implements IAuthenticationResult {
         mTenantId = mostRecentlyAuthorized.getAccount().getRealm();
         mUniqueId = mostRecentlyAuthorized.getAccount().getHomeAccountId();
         mAccount = AccountAdapter.adapt(cacheRecords).get(0);
-    }
-
-    //TODO this is a temporary fix for the AuthenticationResultAdapter.adapt bug to unblock me from debugging.
-    AuthenticationResult(@NonNull AccessTokenRecord accessToken,
-                         @Nullable String rawIdToken,
-                         @NonNull IAccountRecord accountRecord) {
-        mAccessToken = accessToken;
-        mTenantId = accessToken.getRealm();
-        mUniqueId = accessToken.getHomeAccountId();
-        CacheRecord cacheRecord = new CacheRecord();
-        cacheRecord.setAccount((AccountRecord) accountRecord);
-        IdTokenRecord idTokenRecord = new IdTokenRecord();
-        idTokenRecord.setSecret(rawIdToken);
-        cacheRecord.setIdToken(idTokenRecord);
-        List<ICacheRecord> cacheRecordList = new ArrayList<>();
-        cacheRecordList.add(cacheRecord);
-        mAccount = AccountAdapter.adapt(cacheRecordList).get(0);
     }
 
     @Override

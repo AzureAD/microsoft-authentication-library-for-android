@@ -28,20 +28,9 @@ public class AuthenticationResultAdapter {
 
     static IAuthenticationResult adapt(ILocalAuthenticationResult localAuthenticationResult) {
 
-        //TODO Brian ILocalAuthenticatorResult.mCompleteResultFromCache is null in com.microsoft.identity.client.BrokerLocalController.setAcquireTokenResult
-        // which will result a bug here.
-        IAuthenticationResult authenticationResult;
-        if (localAuthenticationResult.getCacheRecordWithTenantProfileData() != null) {
-            authenticationResult = new AuthenticationResult(
-                    localAuthenticationResult.getCacheRecordWithTenantProfileData()
-            );
-        } else {
-            authenticationResult = new AuthenticationResult(
-                    localAuthenticationResult.getAccessTokenRecord(),
-                    localAuthenticationResult.getIdToken(),
-                    localAuthenticationResult.getAccountRecord()
-            );
-        }
+        IAuthenticationResult authenticationResult = new AuthenticationResult(
+                localAuthenticationResult.getCacheRecordWithTenantProfileData()
+        );
 
         return authenticationResult;
     }
