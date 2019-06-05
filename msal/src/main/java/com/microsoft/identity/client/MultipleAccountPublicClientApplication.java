@@ -257,16 +257,15 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                 callback.onTaskCompleted(false);
             } else {
                 final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
-                if (null == getAccountRecord(account)) {
-                    // If could not find the account record in local msal cache
-                    // Create the pass along account record object to broker
-                    final AccountRecord requestAccountRecord = new AccountRecord();
-                    requestAccountRecord.setEnvironment(multiTenantAccount.getEnvironment());
-                    requestAccountRecord.setHomeAccountId(multiTenantAccount.getHomeAccountId());
-                    params.setAccount(requestAccountRecord);
-                } else {
-                    params.setAccount(getAccountRecord(account));
-                }
+
+                // TODO Clean this up, only the cache should make these records...
+                // The broker strips these properties out of this object to hit the cache
+                // Refactor this out...
+                // https://en.wikipedia.org/wiki/Poltergeist_(computer_programming)
+                final AccountRecord requestAccountRecord = new AccountRecord();
+                requestAccountRecord.setEnvironment(multiTenantAccount.getEnvironment());
+                requestAccountRecord.setHomeAccountId(multiTenantAccount.getHomeAccountId());
+                params.setAccount(requestAccountRecord);
 
                 final RemoveAccountCommand command = new RemoveAccountCommand(
                         params,
