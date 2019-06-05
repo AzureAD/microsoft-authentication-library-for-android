@@ -31,7 +31,6 @@ public class AuthenticationResultAdapter {
         IAuthenticationResult authenticationResult = new AuthenticationResult(
                 localAuthenticationResult.getCacheRecordWithTenantProfileData()
         );
-
         return authenticationResult;
     }
 }
