@@ -913,41 +913,6 @@ public class PublicClientApplication implements IPublicClientApplication {
         }
     }
 
-    private MsalOAuth2TokenCache<
-            MicrosoftStsOAuth2Strategy,
-            MicrosoftStsAuthorizationRequest,
-            MicrosoftStsTokenResponse,
-            MicrosoftAccount,
-            MicrosoftRefreshToken> initCommonCache(@NonNull final Context context) {
-        final String methodName = ":initCommonCache";
-        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                TAG + methodName,
-                "Initializing common cache"
-        );
-        // Init the new-schema cache
-        final ICacheKeyValueDelegate cacheKeyValueDelegate = new CacheKeyValueDelegate();
-        final IStorageHelper storageHelper = new StorageHelper(context);
-        final ISharedPreferencesFileManager sharedPreferencesFileManager =
-                new SharedPreferencesFileManager(
-                        context,
-                        DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                        storageHelper
-                );
-        final IAccountCredentialCache accountCredentialCache =
-                new SharedPreferencesAccountCredentialCache(
-                        cacheKeyValueDelegate,
-                        sharedPreferencesFileManager
-                );
-        final MicrosoftStsAccountCredentialAdapter accountCredentialAdapter =
-                new MicrosoftStsAccountCredentialAdapter();
-
-        return new MsalOAuth2TokenCache<>(
-                context,
-                accountCredentialCache,
-                accountCredentialAdapter
-        );
-    }
-
     static TaskCompletedCallbackWithError<List<AccountRecord>, Exception> getLoadAccountsCallback(
             final LoadAccountCallback loadAccountsCallback) {
         return new TaskCompletedCallbackWithError<List<AccountRecord>, Exception>() {
@@ -995,6 +960,6 @@ public class PublicClientApplication implements IPublicClientApplication {
     }
 
     private OAuth2TokenCache<?, ?, ?> getOAuth2TokenCache() {
-        return initCommonCache(mPublicClientConfiguration.getAppContext());
+        return MsalOAuth2TokenCache.create(mPublicClientConfiguration.getAppContext());
     }
 }
