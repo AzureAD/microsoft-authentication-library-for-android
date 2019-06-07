@@ -199,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             final Bundle bundle = new Bundle();
             if (mAuthResult != null) {
                 bundle.putString(ResultFragment.ACCESS_TOKEN, mAuthResult.getAccessToken());
-                bundle.putString(ResultFragment.DISPLAYABLE, (String) mAuthResult.getAccount().getClaims().get("preferred_username")); // TODO this doesn't work for guests with no home
+                bundle.putString(ResultFragment.DISPLAYABLE, MsalWrapper.getPreferredUsername(mAuthResult.getAccount()));
             }
 
             fragment.setArguments(bundle);
