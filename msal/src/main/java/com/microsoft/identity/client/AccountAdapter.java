@@ -47,22 +47,30 @@ class AccountAdapter {
         List<ICacheRecord> filter(@NonNull final List<ICacheRecord> records);
     }
 
+    private static class GuestAccountFilter implements CacheRecordFilter {
+
+        @Override
+        public List<ICacheRecord> filter(@NonNull List<ICacheRecord> records) {
+            final List<ICacheRecord> result = new ArrayList<>();
+
+            for (final ICacheRecord cacheRecord : records) {
+                final String acctHomeAccountId = cacheRecord.getAccount().getHomeAccountId();
+                final String acctLocalAccountId = cacheRecord.getAccount().getLocalAccountId();
+
+                if (!acctHomeAccountId.contains(acctLocalAccountId)) {
+                    result.add(cacheRecord);
+                }
+            }
+
+            return result;
+        }
+    }
+
     /**
      * A filter for ICacheRecords that filters out home or guest accounts, based on its
      * constructor initialization.
      */
     private static class HomeAccountFilter implements CacheRecordFilter {
-
-        private final boolean mInverseMatch;
-
-        /**
-         * Creates a new HomeAccountFilter.
-         *
-         * @param inverseMatch If true, only guest accounts will be returned. If false, only home.
-         */
-        HomeAccountFilter(final boolean inverseMatch) {
-            mInverseMatch = inverseMatch;
-        }
 
         @Override
         public List<ICacheRecord> filter(@NonNull final List<ICacheRecord> records) {
@@ -72,8 +80,7 @@ class AccountAdapter {
                 final String acctHomeAccountId = cacheRecord.getAccount().getHomeAccountId();
                 final String acctLocalAccountId = cacheRecord.getAccount().getLocalAccountId();
 
-                if ((!mInverseMatch && acctHomeAccountId.contains(acctLocalAccountId))
-                        || (mInverseMatch && !acctHomeAccountId.contains(acctLocalAccountId))) {
+                if (acctHomeAccountId.contains(acctLocalAccountId)) {
                     result.add(cacheRecord);
                 }
             }
@@ -110,14 +117,14 @@ class AccountAdapter {
             final List<ICacheRecord> homeRecords =
                     filterCacheRecords(
                             records,
-                            new HomeAccountFilter(false)
+                            new HomeAccountFilter()
                     );
 
             // Then, get the guest accounts...
             final List<ICacheRecord> guestRecords =
                     filterCacheRecords(
                             records,
-                            new HomeAccountFilter(true)
+                            new GuestAccountFilter()
                     );
 
             // Iterate over the guest accounts and find those which have no associated home account
@@ -143,7 +150,7 @@ class AccountAdapter {
         // First, get all of the ICacheRecords for home accounts...
         final List<ICacheRecord> homeCacheRecords = filterCacheRecords(
                 allCacheRecords,
-                new HomeAccountFilter(false)
+                new HomeAccountFilter()
         );
 
         // Then, get all of the guest accounts...
@@ -151,7 +158,7 @@ class AccountAdapter {
         // List.
         final List<ICacheRecord> guestCacheRecords = filterCacheRecords(
                 allCacheRecords,
-                new HomeAccountFilter(true)
+                new GuestAccountFilter()
         );
 
         // Get the guest cache records which have no homeAccount
