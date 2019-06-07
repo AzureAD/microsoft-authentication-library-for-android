@@ -25,8 +25,10 @@ package com.microsoft.identity.client;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
@@ -226,8 +228,7 @@ class AccountAdapter {
 
             for (final ICacheRecord cacheRecord : entry.getValue()) {
                 final String tenantId = cacheRecord.getAccount().getRealm();
-                final String rawIdToken = getIdToken(cacheRecord);
-                final TenantProfile profile = new TenantProfile(rawIdToken);
+                final TenantProfile profile = new TenantProfile(getIdToken(cacheRecord));
 
                 tenantProfileMap.put(tenantId, profile);
             }
@@ -269,7 +270,8 @@ class AccountAdapter {
         for (ICacheRecord homeCacheRecord : homeCacheRecords) {
             // Each IAccount will be initialized as a MultiTenantAccount whether it really is or not...
             // This allows us to cast the results however the caller sees fit...
-            final IAccount rootAccount = new MultiTenantAccount(getIdToken(homeCacheRecord));
+            final IAccount rootAccount;
+            rootAccount = new MultiTenantAccount(getIdToken(homeCacheRecord));
 
             // Set the tenant_id
             ((MultiTenantAccount) rootAccount).setTenantId(
@@ -294,10 +296,17 @@ class AccountAdapter {
     }
 
     @NonNull
-    private static String getIdToken(@NonNull final ICacheRecord cacheRecord) {
-        return null != cacheRecord.getIdToken()
+    private static IDToken getIdToken(@NonNull final ICacheRecord cacheRecord) {
+        final String rawIdToken = null != cacheRecord.getIdToken()
                 ? cacheRecord.getIdToken().getSecret()
                 : cacheRecord.getV1IdToken().getSecret();
+        try {
+            return new IDToken(rawIdToken);
+        } catch (ServiceException e) {
+            // This should never happen - the IDToken was verified when it was originally
+            // returned from the service and saved.
+            throw new IllegalStateException("Failed to restore IdToken");
+        }
     }
 
     /**

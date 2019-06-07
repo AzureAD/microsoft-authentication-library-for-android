@@ -25,6 +25,8 @@ package com.microsoft.identity.client;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,14 +35,8 @@ public class MultiTenantAccount extends Account implements IMultiTenantAccount {
 
     private Map<String, ITenantProfile> mTenantProfiles = new HashMap<>();
 
-    public MultiTenantAccount(@Nullable final String homeTenantRawIdToken) {
-        super(homeTenantRawIdToken);
-    }
-
-    public MultiTenantAccount(@Nullable final String homeTenantRawIdToken,
-                              @NonNull final Map<String, ITenantProfile> tenantProfiles) {
-        super(homeTenantRawIdToken);
-        mTenantProfiles = tenantProfiles;
+    MultiTenantAccount(@Nullable final IDToken homeTenantIdToken) {
+        super(homeTenantIdToken);
     }
 
     void setTenantProfiles(@NonNull final Map<String, ITenantProfile> profiles) {
