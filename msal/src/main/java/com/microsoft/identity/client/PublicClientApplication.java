@@ -152,7 +152,7 @@ public class PublicClientApplication implements IPublicClientApplication {
      * Constant used to signal a home account's tenant id should be used when performing cache lookups
      * relative to creating OperationParams.
      */
-    private static final String FORCE_HOME_LOOKUP = "force_home";
+    private static final String FORCE_HOME_LOOKUP = "force_home_lookup";
 
     protected PublicClientApplicationConfiguration mPublicClientConfiguration;
 
