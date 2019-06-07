@@ -63,16 +63,16 @@ public class Account implements IAccount {
         return id;
     }
 
-    void setTenantId(@Nullable final String tenantId) {
+    void setTenantId(@NonNull final String tenantId) {
         mHomeTenantId = tenantId;
     }
 
-    @Nullable
+    @NonNull
     String getTenantId() {
         return mHomeTenantId;
     }
 
-    @Nullable
+    @NonNull
     String getHomeAccountId() {
         return getId() + "." + mHomeTenantId;
     }
@@ -81,11 +81,17 @@ public class Account implements IAccount {
         mEnvironment = environment;
     }
 
-    @Nullable
+    @NonNull
     String getEnvironment() {
         return mEnvironment;
     }
 
+    /**
+     * Gets the claims associated to this Account's IdToken. In the case of the Microsoft Identity
+     * Platform, this value can be null if the home tenant has not been authorized.
+     *
+     * @return The claims for this Account's IdToken or null, if no IdToken exists.
+     */
     @Nullable
     @Override
     public Map<String, ?> getClaims() {
