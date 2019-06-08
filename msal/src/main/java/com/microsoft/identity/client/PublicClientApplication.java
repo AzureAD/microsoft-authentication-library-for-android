@@ -92,7 +92,6 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isAccountHomeTenant;
 import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isHomeTenantEquivalent;
 import static com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
 
@@ -679,15 +678,7 @@ public class PublicClientApplication implements IPublicClientApplication {
             final AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) authority;
             final String tenantId = aadAuthority.getAudience().getTenantId();
 
-            if (isHomeTenantEquivalent(tenantId) // something like /consumers, /orgs, /common
-                    ||
-                    (null != requestParams.getAccount() // a tid is specified and its home
-                            && isAccountHomeTenant(
-                            requestParams
-                                    .getAccount()
-                                    .getClaims(),
-                            tenantId)
-                    )) {
+            if (isHomeTenantEquivalent(tenantId)) { // something like /consumers, /orgs, /common
                 result = FORCE_HOME_LOOKUP;
             } else {
                 // Use the specific tenant
@@ -751,7 +742,8 @@ public class PublicClientApplication implements IPublicClientApplication {
                                              @NonNull String tenantId) {
         final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
 
-        if (null != multiTenantAccount && null != multiTenantAccount.getHomeAccountId()) {
+        if (null != multiTenantAccount) {
+
             if (FORCE_HOME_LOOKUP.equals(tenantId)) {
                 tenantId = ((MultiTenantAccount) account).getTenantId();
             }

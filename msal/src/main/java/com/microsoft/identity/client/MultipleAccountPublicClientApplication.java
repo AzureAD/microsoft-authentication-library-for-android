@@ -247,8 +247,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
         //create the parameter
         try {
-            if (null == multiTenantAccount
-                    || null == multiTenantAccount.getHomeAccountId()) {
+            if (null == multiTenantAccount) {
                 com.microsoft.identity.common.internal.logging.Logger.warn(
                         TAG,
                         "Requisite IAccount or IAccount fields were null. Insufficient criteria to remove IAccount."
