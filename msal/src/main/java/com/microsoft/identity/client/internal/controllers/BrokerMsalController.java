@@ -705,7 +705,7 @@ public class BrokerMsalController extends BaseController {
     @WorkerThread
     @SuppressLint("MissingPermission")
     private List<ICacheRecord> getBrokerAccountsFromAccountManager(@NonNull final OperationParameters parameters)
-            throws OperationCanceledException, IOException, AuthenticatorException {
+            throws OperationCanceledException, IOException, AuthenticatorException, ClientException {
         final String methodName = ":getBrokerAccountsFromAccountManager";
         final Account[] accountList = AccountManager.get(parameters.getAppContext()).getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
         final List<ICacheRecord> cacheRecords = new ArrayList<>();
