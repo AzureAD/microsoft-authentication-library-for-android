@@ -1,5 +1,10 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 0.3.2-alpha
+---------------------------
+Bug Fix : Throw UiRequiredException When RT Cannot be found.
+Bug Fix : Fix an issue where BrokerResult is retrieved as serializable instead of string.
+
 Version 0.3.1-alpha
 ----------------------------
 - Adds support for declared non-tfp B2C authorities
