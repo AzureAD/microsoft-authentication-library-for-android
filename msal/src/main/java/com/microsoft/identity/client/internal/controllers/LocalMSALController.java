@@ -27,9 +27,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.WorkerThread;
 import android.text.TextUtils;
 
-import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.exception.ArgumentException;
+import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.exception.UiRequiredException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.controllers.BaseController;
@@ -167,7 +169,7 @@ public class LocalMSALController extends BaseController {
     @Override
     public AcquireTokenResult acquireTokenSilent(
             @NonNull final AcquireTokenSilentOperationParameters parameters)
-            throws IOException, ClientException, ArgumentException {
+            throws IOException, BaseException {
         final String methodName = ":acquireTokenSilent";
         Logger.verbose(
                 TAG + methodName,
@@ -210,11 +212,9 @@ public class LocalMSALController extends BaseController {
                         cacheRecord
                 );
             } else {
-                //TODO need the refactor, should just throw the ui required exception, rather than
-                // wrap the exception later in the exception wrapper.
-                throw new ClientException(
-                        MsalUiRequiredException.NO_TOKENS_FOUND,
-                        "No refresh token was found. "
+                throw new UiRequiredException(
+                        ErrorStrings.NO_TOKENS_FOUND,
+                        "No refresh token was found."
                 );
             }
         } else if (cacheRecord.getAccessToken().isExpired()) {
@@ -272,7 +272,7 @@ public class LocalMSALController extends BaseController {
         String realm = null;
 
         if (deleteHomeAndGuestAccounts) {
-            if (parameters.getAccount()!= null) {
+            if (parameters.getAccount() != null) {
                 realm = parameters.getAccount().getRealm();
             }
         }
@@ -280,9 +280,9 @@ public class LocalMSALController extends BaseController {
         final boolean localRemoveAccountSuccess = !parameters
                 .getTokenCache()
                 .removeAccount(
-                        parameters.getAccount() == null? null : parameters.getAccount().getEnvironment(),
+                        parameters.getAccount() == null ? null : parameters.getAccount().getEnvironment(),
                         parameters.getClientId(),
-                        parameters.getAccount() == null? null : parameters.getAccount().getHomeAccountId(),
+                        parameters.getAccount() == null ? null : parameters.getAccount().getHomeAccountId(),
                         realm
                 ).isEmpty();
 
