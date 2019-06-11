@@ -62,6 +62,8 @@ import com.microsoft.identity.common.internal.broker.MicrosoftAuthServiceFuture;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.controllers.BaseController;
+import com.microsoft.identity.common.internal.controllers.ExceptionAdapter;
+import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.dto.IAccountRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
@@ -110,19 +112,6 @@ public class BrokerMsalController extends BaseController {
      * ExecutorService to handle background computation.
      */
     private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
-
-    /**
-     * Callback for asynchronous loading of broker AccountRecord of the current account (in single account mode).
-     */
-    public interface GetCurrentAccountRecordFromBrokerCallback { // TODO this interface needs to be renamed
-
-        /**
-         * Called once the signed-in account (if there is any), has been loaded from the broker.
-         *
-         * @param cacheRecords The ICacheRecords making up the account in broker. This could be null.
-         */
-        void onAccountLoaded(@Nullable List<ICacheRecord> cacheRecords);
-    }
 
     @Override
     public AcquireTokenResult acquireToken(AcquireTokenOperationParameters parameters)
@@ -607,13 +596,45 @@ public class BrokerMsalController extends BaseController {
     }
 
     /**
-     * Get the currently signed-in account, if there's any.
-     * This only works when getBrokerAccountMode() is BROKER_ACCOUNT_MODE_SINGLE_ACCOUNT.
-     */
-    public void getCurrentAccount(final PublicClientApplicationConfiguration configuration,
-                                  final GetCurrentAccountRecordFromBrokerCallback callback) {
+     * A broker task to be performed. Use in conjunction with performBrokerTask()
+     * */
+    public interface BrokerTask<T> {
 
-        final String methodName = ":getCurrentAccount";
+        /**
+         * Performs a task in this function with the given IMicrosoftAuthService.
+         * */
+        T perform(IMicrosoftAuthService service) throws BaseException, RemoteException;
+
+        /**
+         * Name of the task (for logging purposes).
+         * */
+        String getOperationName();
+    }
+
+    /**
+     * Perform an operation with Broker's MicrosoftAuthService on a background thread.
+     *
+     * @param configuration a PublicClientApplicationConfiguration file.
+     * @param callback a callback function to be invoked to return result/error of the performed task.
+     * @param brokerTask the task to be performed.
+     * */
+    private <T> void performBrokerTask(@NonNull final PublicClientApplicationConfiguration configuration,
+                                       @NonNull final TaskCompletedCallbackWithError<T, Exception> callback,
+                                       @NonNull final BrokerTask<T> brokerTask) {
+
+        try {
+            if (!MSALControllerFactory.brokerEligible(
+                    configuration.getAppContext(),
+                    configuration.getDefaultAuthority(),
+                    configuration)) {
+                final String errorMessage = "This request is not eligible to use the broker.";
+                Logger.error(TAG + brokerTask.getOperationName(), errorMessage, null);
+                callback.onError(new MsalClientException(MsalClientException.NOT_ELIGIBLE_TO_USE_BROKER, errorMessage));
+            }
+        } catch (MsalClientException e) {
+            callback.onError(ExceptionAdapter.baseExceptionFromException(e));
+        }
+
         final Handler handler = new Handler(Looper.getMainLooper());
 
         sBackgroundExecutor.submit(new Runnable() {
@@ -623,31 +644,25 @@ public class BrokerMsalController extends BaseController {
                 final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
                 try {
                     final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
-
                     service = authServiceFuture.get();
-
-                    final List<ICacheRecord> accountRecordList =
-                            MsalBrokerResultAdapter
-                                    .currentAccountFromBundle(
-                                            service.getCurrentAccount()
-                                    );
+                    final T result = brokerTask.perform(service);
 
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onAccountLoaded(accountRecordList);
+                            callback.onTaskCompleted(result);
                         }
                     });
-                } catch (final ClientException | InterruptedException | ExecutionException | RemoteException e) {
+                } catch (final BaseException | InterruptedException | ExecutionException | RemoteException e) {
                     com.microsoft.identity.common.internal.logging.Logger.error(
-                            TAG + methodName,
-                            "Exception is thrown when trying to get current account from Broker, returning nothing."
+                            TAG + brokerTask.getOperationName(),
+                            "Exception is thrown when trying to perform a broker operation:"
                                     + e.getMessage(),
                             e);
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onAccountLoaded(null);
+                            callback.onError(ExceptionAdapter.baseExceptionFromException(e));
                         }
                     });
                 } finally {
@@ -655,6 +670,34 @@ public class BrokerMsalController extends BaseController {
                 }
             }
         });
+    }
+
+    /**
+     * Get the currently signed-in account, if there's any.
+     * This only works when getBrokerAccountMode() is BROKER_ACCOUNT_MODE_SINGLE_ACCOUNT.
+     */
+    public void getCurrentAccount(@NonNull final PublicClientApplicationConfiguration configuration,
+                                  @NonNull final TaskCompletedCallbackWithError<List<ICacheRecord>, Exception> callback) {
+        final String methodName = ":getCurrentAccount";
+
+        performBrokerTask(
+                configuration,
+                callback,
+                new BrokerTask<List<ICacheRecord>>() {
+                    @Override
+                    public List<ICacheRecord> perform(IMicrosoftAuthService service) throws RemoteException {
+                        // TODO also pass clientID and redirectURL so that it gets ICacheRecord specific to this particular app.
+                        return MsalBrokerResultAdapter
+                                .currentAccountFromBundle(
+                                        service.getCurrentAccount()
+                                );
+                    }
+
+                    @Override
+                    public String getOperationName() {
+                        return methodName;
+                    }
+                });
     }
 
     /**
@@ -878,64 +921,40 @@ public class BrokerMsalController extends BaseController {
      * 3. Clear WebView cookies.
      * 4. Sign out from default browser.
      */
-    public void removeAccountFromSharedDevice(@NonNull final IAccount account,
-                                              @NonNull final PublicClientApplicationConfiguration configuration,
-                                              @NonNull final PublicClientApplication.RemoveAccountCallback callback) {
+    public void removeAccountFromSharedDevice(@NonNull final PublicClientApplicationConfiguration configuration,
+                                              @NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback) {
+        final String methodName = ":removeAccountFromSharedDevice";
 
-        sBackgroundExecutor.submit(new Runnable() {
-            @Override
-            public void run() {
-                IMicrosoftAuthService service;
-                final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
+        performBrokerTask(
+                configuration,
+                callback,
+                new BrokerTask<Boolean>() {
+                    @Override
+                    public Boolean perform(IMicrosoftAuthService service) throws BaseException, RemoteException {
+                        // TODO remove Bundle(). We do not need this anymore.
+                        final Bundle resultBundle = service.removeAccountFromSharedDevice(new Bundle());
 
-                try {
-                    final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
-                    service = authServiceFuture.get();
-                    final Bundle requestBundle = getRequestBundleForGlobalSignOut(account);
-                    final Bundle resultBundle = service.removeAccountFromSharedDevice(requestBundle);
+                        if (resultBundle == null) {
+                            return true;
+                        } else {
+                            BrokerResult brokerResult = (BrokerResult) resultBundle.getSerializable(AuthenticationConstants.Broker.BROKER_RESULT_V2);
+                            com.microsoft.identity.common.internal.logging.Logger.error(
+                                    TAG,
+                                    "Failed to perform global sign-out."
+                                            + brokerResult.getErrorMessage(),
+                                    null);
 
-                    Handler handler = new Handler(Looper.getMainLooper());
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (resultBundle == null) {
-                                callback.onTaskCompleted(true);
-                            } else {
-                                BrokerResult brokerResult = (BrokerResult) resultBundle.getSerializable(AuthenticationConstants.Broker.BROKER_RESULT_V2);
-                                com.microsoft.identity.common.internal.logging.Logger.error(
-                                        TAG,
-                                        "Failed to perform global sign-out."
-                                                + brokerResult.getErrorMessage(),
-                                        null);
-
-                                callback.onError(
-                                        new Exception("Dome what should this be?") // TODO
-                                );
-                            }
+                            throw new ClientException(
+                                    ClientException.UNKNOWN_ERROR,
+                                    brokerResult.getErrorMessage());
                         }
-                    });
-                } catch (final BaseException | InterruptedException | ExecutionException | RemoteException e) {
-                    com.microsoft.identity.common.internal.logging.Logger.error(
-                            TAG,
-                            "Exception is thrown when trying to perform global sign-out."
-                                    + e.getMessage(),
-                            e);
-                    callback.onError(e); // TODO this should thorw a _specific_ exception class
-                } finally {
-                    client.disconnect();
-                }
-            }
-        });
-    }
+                    }
 
-    private Bundle getRequestBundleForGlobalSignOut(@NonNull final IAccount account) {
-        final Bundle requestBundle = new Bundle();
-        // TODO I think a home_account_id might be better here...
-        // TODO If we really want to use a login_hint consider that you may need to dig around
-        // TODO inside of the IAccount to find it... If there is no home tenant, you'll need to inspect
-        // TODO the claims of one of the ITenantProfiles to find what you're looking for
-        requestBundle.putString(ACCOUNT_LOGIN_HINT, "");
-        return requestBundle;
+                    @Override
+                    public String getOperationName() {
+                        return methodName;
+                    }
+                });
     }
 
     static boolean isMicrosoftAuthServiceSupported(@NonNull final Context context) {

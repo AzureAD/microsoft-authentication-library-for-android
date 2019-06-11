@@ -239,7 +239,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
     @Override
     public void removeAccount(@Nullable final IAccount account,
-                              @NonNull final RemoveAccountCallback callback) {
+                              @NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback) {
         ApiDispatcher.initializeDiagnosticContext();
 
         // First, cast the input IAccount to a MultiTenantAccount

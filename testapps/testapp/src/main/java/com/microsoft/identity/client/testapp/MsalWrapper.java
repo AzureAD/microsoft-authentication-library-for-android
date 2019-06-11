@@ -21,6 +21,7 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
+import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
 
 import java.util.ArrayList;
@@ -334,7 +335,7 @@ public class MsalWrapper {
                 public void onTaskCompleted(IAccount accountToRemove) {
                     application.removeAccount(
                             accountToRemove,
-                            new PublicClientApplication.RemoveAccountCallback() {
+                            new TaskCompletedCallbackWithError<Boolean, Exception>() {
                                 @Override
                                 public void onTaskCompleted(Boolean isSuccess) {
                                     if (isSuccess) {
@@ -363,29 +364,24 @@ public class MsalWrapper {
             });
         } else if (mApplication instanceof ISingleAccountPublicClientApplication) {
             final ISingleAccountPublicClientApplication application = (ISingleAccountPublicClientApplication) (mApplication);
-            try {
-                application.removeCurrentAccount(new PublicClientApplication.RemoveAccountCallback() {
-                    @Override
-                    public void onTaskCompleted(Boolean result) {
-                        if (result) {
-                            notifyCallback.notify("The account is successfully removed.");
+            application.removeCurrentAccount(new TaskCompletedCallbackWithError<Boolean, Exception>() {
+                @Override
+                public void onTaskCompleted(Boolean result) {
+                    if (result) {
+                        notifyCallback.notify("The account is successfully removed.");
 
-                            // Reload account list.
-                            loadAccountFromBroker(notifyCallback);
-                        } else {
-                            notifyCallback.notify("Account is not removed.");
-                        }
+                        // Reload account list.
+                        loadAccountFromBroker(notifyCallback);
+                    } else {
+                        notifyCallback.notify("Account is not removed.");
                     }
+                }
 
-                    @Override
-                    public void onError(Exception exception) {
-                        exception.printStackTrace();
-                        notifyCallback.notify("Failed to remove the account.");
-                    }
-                });
-            } catch (MsalClientException e) {
-                notifyCallback.notify(e.getMessage());
-            }
+                @Override
+                public void onError(Exception exception) {
+                    notifyCallback.notify("Failed to remove the account: " + exception.getMessage());
+                }
+            });
 
         }
     }
@@ -416,30 +412,32 @@ public class MsalWrapper {
             });
         } else if (mApplication instanceof ISingleAccountPublicClientApplication) {
             ISingleAccountPublicClientApplication singleAcctApp = (ISingleAccountPublicClientApplication) mApplication;
-            try {
-                singleAcctApp.getCurrentAccount(new ISingleAccountPublicClientApplication.CurrentAccountListener() {
-                    @Override
-                    public void onAccountLoaded(IAccount activeAccount) {
-                        mLoadedAccount = new ArrayList<>();
-                        if (activeAccount != null) {
-                            mLoadedAccount.add(activeAccount);
-                        }
-                        performPostAccountLoadedJobs();
+            singleAcctApp.getCurrentAccount(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
+                @Override
+                public void onAccountLoaded(@Nullable IAccount activeAccount) {
+                    mLoadedAccount = new ArrayList<>();
+                    if (activeAccount != null) {
+                        mLoadedAccount.add(activeAccount);
                     }
 
-                    @Override
-                    public void onAccountChanged(IAccount priorAccount, IAccount currentAccount) {
-                        notifyCallback.notify(
-                                "single account is changed from "
-                                        + (null == priorAccount ? "null" : getPreferredUsername(priorAccount))
-                                        + " to "
-                                        + (null == currentAccount ? "null" : getPreferredUsername(currentAccount))
-                        );
-                    }
-                });
-            } catch (MsalClientException e) {
-                notifyCallback.notify(e.getMessage());
-            }
+                    performPostAccountLoadedJobs();
+                }
+
+                @Override
+                public void onAccountChanged(IAccount priorAccount, IAccount currentAccount) {
+                    notifyCallback.notify(
+                            "signed-in account is changed from "
+                                    + (null == priorAccount ? "null" : getPreferredUsername(priorAccount))
+                                    + " to "
+                                    + (null == currentAccount ? "null" : getPreferredUsername(currentAccount))
+                    );
+                }
+
+                @Override
+                public void onError(Exception exception) {
+                    notifyCallback.notify(exception.getMessage());
+                }
+            });
         }
     }
 
