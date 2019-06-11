@@ -132,28 +132,25 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         final IAccountCredentialCache accountCredentialCache = getCurrentAccountCredentialCache(appContext);
         final MsalOAuth2TokenCache msalOAuth2TokenCache = getTokenCache(appContext, accountCredentialCache);
 
-        List<AccountRecord> accountRecords = accountCredentialCache.getAccounts();
-        if (accountRecords.size() == 0) {
-            return null;
-        } else if (accountRecords.size() > 1) {
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "Returned accountRecords are larger than 1. " +
-                            "This is unexpected in Single account mode." +
-                            "Clear the cache and return null.");
-
-            accountCredentialCache.clearAll();
+        List<AccountRecord> accountRecordList = accountCredentialCache.getAccounts();
+        if (accountRecordList.size() == 0) {
             return null;
         }
 
-        AccountRecord accountRecord = accountRecords.get(0);
-        List<IdTokenRecord> idTokenRecordList = msalOAuth2TokenCache.getIdTokensForAccountRecord(null, accountRecord);
-
         List<ICacheRecord> cacheRecordList = new ArrayList<>();
-        for (final IdTokenRecord idTokenRecord : idTokenRecordList) {
+        for (final AccountRecord accountRecord : accountRecordList) {
+            List<IdTokenRecord> idTokenRecordList = msalOAuth2TokenCache.getIdTokensForAccountRecord(null, accountRecord);
+
+            if (idTokenRecordList.size() != 1) {
+                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                        TAG + methodName,
+                        "Find " + idTokenRecordList.size() + " associated IdTokenRecord. Skip this accountRecord.");
+                continue;
+            }
+
             CacheRecord cacheRecord = new CacheRecord();
             cacheRecord.setAccount(accountRecord);
-            cacheRecord.setIdToken(idTokenRecord);
+            cacheRecord.setIdToken(idTokenRecordList.get(0));
             cacheRecordList.add(cacheRecord);
         }
 
