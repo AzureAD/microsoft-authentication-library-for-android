@@ -42,6 +42,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMicrosoftAuthService;
 import com.microsoft.identity.client.PublicClientApplication;
@@ -74,6 +75,7 @@ import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
+import com.microsoft.identity.common.internal.util.ICacheRecordGsonAdapter;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -558,10 +560,17 @@ public class BrokerMsalController extends BaseController {
                                        @NonNull final MsalOAuth2TokenCache msalOAuth2TokenCache) throws ClientException {
         final String methodName = ":saveMsaAccountToCache";
 
-        final BrokerResult brokerResult = new Gson().fromJson(
-                resultBundle.getString(AuthenticationConstants.Broker.BROKER_RESULT_V2),
-                BrokerResult.class
-        );
+        final BrokerResult brokerResult =
+                new GsonBuilder()
+                        .registerTypeAdapter(
+                                ICacheRecord.class,
+                                new ICacheRecordGsonAdapter()
+                        )
+                        .create()
+                        .fromJson(
+                                resultBundle.getString(AuthenticationConstants.Broker.BROKER_RESULT_V2),
+                                BrokerResult.class
+                        );
 
         if (resultBundle.getBoolean(AuthenticationConstants.Broker.BROKER_REQUEST_V2_SUCCESS)
                 && brokerResult != null &&
