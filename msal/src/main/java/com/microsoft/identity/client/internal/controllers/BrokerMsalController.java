@@ -937,7 +937,7 @@ public class BrokerMsalController extends BaseController {
                         if (resultBundle == null) {
                             return true;
                         } else {
-                            BrokerResult brokerResult = (BrokerResult) resultBundle.getSerializable(AuthenticationConstants.Broker.BROKER_RESULT_V2);
+                            final BrokerResult brokerResult = MsalBrokerResultAdapter.brokerResultFromBundle(resultBundle);
                             com.microsoft.identity.common.internal.logging.Logger.error(
                                     TAG,
                                     "Failed to perform global sign-out."
