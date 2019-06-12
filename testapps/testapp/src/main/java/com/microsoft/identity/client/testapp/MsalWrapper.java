@@ -150,7 +150,8 @@ public class MsalWrapper {
                 null,
                 requestOptions.getExtraScopesToConsent() == null ? null : requestOptions.getExtraScopesToConsent().toLowerCase().split(" "),
                 null,
-                getAuthenticationCallback(notifyCallback));
+                getAuthenticationCallback(notifyCallback)
+        );
     }
 
     public void acquireTokenWithResourceId(final Activity activity,

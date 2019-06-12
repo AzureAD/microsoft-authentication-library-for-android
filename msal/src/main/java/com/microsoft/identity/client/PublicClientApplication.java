@@ -52,6 +52,8 @@ import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AuthorityDeserializer;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
@@ -90,6 +92,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isHomeTenantEquivalent;
 import static com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
 
 /**
@@ -144,6 +147,12 @@ public class PublicClientApplication implements IPublicClientApplication {
     private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
 
+    /**
+     * Constant used to signal a home account's tenant id should be used when performing cache lookups
+     * relative to creating OperationParams.
+     */
+    private static final String FORCE_HOME_LOOKUP = "force_home_lookup";
+
     protected PublicClientApplicationConfiguration mPublicClientConfiguration;
 
     /**
@@ -177,6 +186,58 @@ public class PublicClientApplication implements IPublicClientApplication {
                 loadConfiguration(context, configFileResourceId),
                 listener
         );
+    }
+
+    /**
+     * {@link PublicClientApplication#create(Context, int, ApplicationCreatedListener)} will read the client id and other configuration settings from the
+     * file included in your applications resources.
+     * <p>
+     * For more information on adding configuration files to your applications resources please
+     *
+     * @param context              Application's {@link Context}. The sdk requires the application context to be passed in
+     *                             {@link PublicClientApplication}. Cannot be null.
+     *                             <p>
+     *                             Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
+     *                             strong reference to the activity, thus preventing correct garbage collection and causing bugs.
+     *                             </p>
+     * @param configFileResourceId The resource ID of the raw file containing the JSON configuration for the PublicClientApplication
+     * @return An instance of MultiAccountPublicClientApplication
+     * @see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     * @see <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     */
+    public static IMultipleAccountPublicClientApplication createMultipleAccountPublicClientApplication(@NonNull final Context context,
+                                                                                                       final int configFileResourceId) {
+        if (context == null) {
+            throw new IllegalArgumentException("context is null.");
+        }
+
+        return new MultipleAccountPublicClientApplication(context, loadConfiguration(context, configFileResourceId));
+    }
+
+    /**
+     * {@link PublicClientApplication#create(Context, int, ApplicationCreatedListener)} will read the client id and other configuration settings from the
+     * file included in your applications resources.
+     * <p>
+     * For more information on adding configuration files to your applications resources please
+     *
+     * @param context    Application's {@link Context}. The sdk requires the application context to be passed in
+     *                   {@link PublicClientApplication}. Cannot be null.
+     *                   <p>
+     *                   Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
+     *                   strong reference to the activity, thus preventing correct garbage collection and causing bugs.
+     *                   </p>
+     * @param configFile The file containing the JSON configuration for the PublicClientApplication
+     * @return An instance of MultiAccountPublicClientApplication
+     * @see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     * @see <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     */
+    public static IMultipleAccountPublicClientApplication createMultipleAccountPublicClientApplication(@NonNull final Context context,
+                                                                                                       final File configFile) {
+        if (context == null) {
+            throw new IllegalArgumentException("context is null.");
+        }
+
+        return new MultipleAccountPublicClientApplication(context, loadConfiguration(configFile));
     }
 
     /**
@@ -640,10 +701,66 @@ public class PublicClientApplication implements IPublicClientApplication {
         }
     }
 
+    /**
+     * For the provided configuration and TokenParameters, determine the tenant id that should be
+     * used to lookup the proper AccountRecord.
+     *
+     * @param config        The application configuration to inspect if no request authority is provided.
+     * @param requestParams The request parameters to inspect for an authority.
+     * @return The tenantId **OR** a magic constant signalling that home should be used.
+     */
+    private String getRequestTenantId(@NonNull final PublicClientApplicationConfiguration config,
+                                      @NonNull final TokenParameters requestParams) {
+        final String result;
+
+        // First look at the request
+        if (TextUtils.isEmpty(requestParams.getAuthority())) {
+            // Authority was not provided in the request - fallback to the default authority
+            requestParams.setAuthority(
+                    config
+                            .getDefaultAuthority()
+                            .getAuthorityUri()
+                            .toString()
+            );
+        }
+
+        final Authority authority = Authority.getAuthorityFromAuthorityUrl(requestParams.getAuthority());
+
+        if (authority instanceof AzureActiveDirectoryAuthority) {
+            final AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) authority;
+            final String tenantId = aadAuthority.getAudience().getTenantId();
+
+            if (isHomeTenantEquivalent(tenantId)) { // something like /consumers, /orgs, /common
+                result = FORCE_HOME_LOOKUP;
+            } else {
+                // Use the specific tenant
+                result = tenantId;
+            }
+        } else if (authority instanceof AzureActiveDirectoryB2CAuthority) {
+            result = FORCE_HOME_LOOKUP;
+        } else {
+            // Unrecognized authority type
+            throw new UnsupportedOperationException(
+                    "Unsupported Authority type: "
+                            + authority
+                            .getClass()
+                            .getSimpleName()
+            );
+        }
+
+        return result;
+    }
+
     @Override
     public void acquireTokenAsync(@NonNull final AcquireTokenParameters acquireTokenParameters) {
         acquireTokenParameters.setAccountRecord(
-                getAccountRecord(acquireTokenParameters.getAccount())
+                getAccountRecord(
+                        acquireTokenParameters.getAccount(),
+                        getRequestTenantId(
+                                mPublicClientConfiguration,
+                                acquireTokenParameters
+                        )
+                )
         );
 
         final AcquireTokenOperationParameters params = OperationParametersAdapter.
@@ -673,15 +790,21 @@ public class PublicClientApplication implements IPublicClientApplication {
         }
     }
 
-    protected AccountRecord getAccountRecord(@Nullable final IAccount account) {
+    protected AccountRecord getAccountRecord(@Nullable final IAccount account,
+                                             @NonNull String tenantId) {
         final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
 
-        if (null != multiTenantAccount && null != multiTenantAccount.getHomeAccountId()) {
+        if (null != multiTenantAccount) {
+
+            if (FORCE_HOME_LOOKUP.equals(tenantId)) {
+                tenantId = ((MultiTenantAccount) account).getTenantId();
+            }
+
             return AccountAdapter.getAccountInternal(
                     mPublicClientConfiguration.getClientId(),
                     mPublicClientConfiguration.getOAuth2TokenCache(),
                     multiTenantAccount.getHomeAccountId(),
-                    multiTenantAccount.getTenantId() // TODO This assumes the home account, but what about guests??
+                    tenantId
             );
         }
 
@@ -758,7 +881,11 @@ public class PublicClientApplication implements IPublicClientApplication {
 
         acquireTokenSilentParameters.setAccountRecord(
                 getAccountRecord(
-                        acquireTokenSilentParameters.getAccount()
+                        acquireTokenSilentParameters.getAccount(),
+                        getRequestTenantId(
+                                mPublicClientConfiguration,
+                                acquireTokenSilentParameters
+                        )
                 )
         );
 

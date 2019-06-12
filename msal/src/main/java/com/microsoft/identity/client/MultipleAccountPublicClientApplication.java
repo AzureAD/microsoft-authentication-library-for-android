@@ -247,8 +247,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
         //create the parameter
         try {
-            if (null == multiTenantAccount
-                    || null == multiTenantAccount.getHomeAccountId()) {
+            if (null == multiTenantAccount) {
                 com.microsoft.identity.common.internal.logging.Logger.warn(
                         TAG,
                         "Requisite IAccount or IAccount fields were null. Insufficient criteria to remove IAccount."
@@ -257,16 +256,14 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                 callback.onTaskCompleted(false);
             } else {
                 final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
-                if (null == getAccountRecord(account)) {
-                    // If could not find the account record in local msal cache
-                    // Create the pass along account record object to broker
-                    final AccountRecord requestAccountRecord = new AccountRecord();
-                    requestAccountRecord.setEnvironment(multiTenantAccount.getEnvironment());
-                    requestAccountRecord.setHomeAccountId(multiTenantAccount.getHomeAccountId());
-                    params.setAccount(requestAccountRecord);
-                } else {
-                    params.setAccount(getAccountRecord(account));
-                }
+
+                // TODO Clean this up, only the cache should make these records...
+                // The broker strips these properties out of this object to hit the cache
+                // Refactor this out...
+                final AccountRecord requestAccountRecord = new AccountRecord();
+                requestAccountRecord.setEnvironment(multiTenantAccount.getEnvironment());
+                requestAccountRecord.setHomeAccountId(multiTenantAccount.getHomeAccountId());
+                params.setAccount(requestAccountRecord);
 
                 final RemoveAccountCommand command = new RemoveAccountCommand(
                         params,

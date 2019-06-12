@@ -58,19 +58,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                         // TODO the List that is returned should adapt into a single IAccount
                         // TODO Dome... you can use this return type to support FLW
                         final List<IAccount> account = AccountAdapter.adapt(cacheRecords);
-//                        IAccount localAccount = mLocalAccountRecord == null ? null : AccountAdapter.adapt(mLocalAccountRecord);
-//                        IAccount accountInBroker = accountRecordInBroker == null ? null : AccountAdapter.adapt(accountRecordInBroker);
-//
-//                        if (mLocalAccountRecord == null) {
-//                            if (accountRecordInBroker != null) {
-//                                listener.onAccountChanged(null, accountInBroker);
-//                            }
-//                        } else if (!mLocalAccountRecord.equals(accountRecordInBroker)) {
-//                            listener.onAccountChanged(localAccount, accountInBroker);
-//                        }
-//
-//                        mLocalAccountRecord = accountRecordInBroker;
-//                        listener.onAccountLoaded(accountInBroker);
                     }
                 });
     }

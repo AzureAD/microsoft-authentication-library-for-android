@@ -96,7 +96,6 @@ public class OperationParametersAdapter {
                                 publicClientApplicationConfiguration.getDefaultAuthority()
                         );
             }
-
         } else {
             acquireTokenOperationParameters.setAuthority(
                     Authority.getAuthorityFromAuthorityUrl(
@@ -117,6 +116,7 @@ public class OperationParametersAdapter {
                     publicClientApplicationConfiguration.getMultipleCloudsSupported()
             );
         }
+
         com.microsoft.identity.common.internal.logging.Logger.verbosePII(
                 methodName,
                 "Using authority: [" + acquireTokenOperationParameters
@@ -369,8 +369,8 @@ public class OperationParametersAdapter {
         }
     }
 
-    private static boolean isAccountHomeTenant(@Nullable final Map<String, ?> claims,
-                                               @NonNull final String tenantId) {
+    public static boolean isAccountHomeTenant(@Nullable final Map<String, ?> claims,
+                                              @NonNull final String tenantId) {
         boolean isAccountHomeTenant = false;
 
         if (null != claims && !claims.isEmpty()) {
@@ -380,7 +380,7 @@ public class OperationParametersAdapter {
         return isAccountHomeTenant;
     }
 
-    private static boolean isHomeTenantEquivalent(@NonNull final String tenantId) {
+    public static boolean isHomeTenantEquivalent(@NonNull final String tenantId) {
         return tenantId.equalsIgnoreCase(ALL_ACCOUNTS_TENANT_ID)
                 || tenantId.equalsIgnoreCase(ANY_PERSONAL_ACCOUNT_TENANT_ID)
                 || tenantId.equalsIgnoreCase(ORGANIZATIONS);
