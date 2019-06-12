@@ -23,9 +23,12 @@
 
 package com.microsoft.identity.client;
 
+import android.app.Activity;
+
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 
 /**
@@ -38,20 +41,36 @@ import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackW
  * Currently, this mode is only set when the device is registered as 'shared'.
  */
 public interface ISingleAccountPublicClientApplication extends IPublicClientApplication {
+
     /**
      * Gets the current account and notify if the current account changes.
      * This method must be called whenever the application is resumed or prior to running a scheduled background operation.
      *
      * @param listener a callback to be invoked when the operation finishes.
      */
-    void getCurrentAccount(@NonNull final CurrentAccountCallback listener);
+
+    void getCurrentAccount(final CurrentAccountCallback listener) throws MsalClientException;
+
 
     /**
-     * Removes the Account and Credentials (tokens) of the account that is currently signed into the device.
+     * Signs in a user
+     * @param activity
+     * @param scopes
+     * @param callback
+     */
+    void signIn(@NonNull final Activity activity,
+                @NonNull final String[] scopes,
+                @NonNull final AuthenticationCallback callback);
+
+    /**
+     * Signs out the current the Account and Credentials (tokens).
+     * NOTE: If a device is marked as a shared device within broker signout will be device wide.
      *
      * @param callback a callback to be invoked when the operation finishes.
      */
-    void removeCurrentAccount(@NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback);
+
+    void signOut(@NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback) throws MsalClientException;
+
 
     /**
      * Callback for asynchronous loading of the msal IAccount account.

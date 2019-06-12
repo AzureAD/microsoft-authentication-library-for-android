@@ -360,7 +360,7 @@ public class BrokerMsalController extends BaseController {
         final Handler handler = new Handler(Looper.getMainLooper());
 
         if (!MSALControllerFactory.brokerInstalled(appContext)) {
-            final String errorMessage = "Broker app is not installed on the device. Returning default (multiple account) mode.";
+            final String errorMessage = "Broker app is not installed on the device. Shared device mode requires the broker.";
             com.microsoft.identity.common.internal.logging.Logger.verbose(TAG + methodName, errorMessage, null);
             callback.onGetMode(false);
             return;

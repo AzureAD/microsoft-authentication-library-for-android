@@ -62,6 +62,7 @@ import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
@@ -89,8 +90,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isHomeTenantEquivalent;
 import static com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
@@ -293,7 +296,7 @@ public class PublicClientApplication implements IPublicClientApplication {
             @Override
             public void onGetMode(boolean isSharedDevice) {
                 if (isSharedDevice) {
-                    listener.onCreated(new SingleAccountPublicClientApplication(context, clientId));
+                    listener.onCreated(new SingleAccountPublicClientApplication(context, clientId, isSharedDevice));
                 } else {
                     listener.onCreated(new MultipleAccountPublicClientApplication(context, clientId));
                 }
@@ -341,7 +344,7 @@ public class PublicClientApplication implements IPublicClientApplication {
             @Override
             public void onGetMode(boolean isSharedDevice) {
                 if (isSharedDevice) {
-                    listener.onCreated(new SingleAccountPublicClientApplication(context, clientId, authority));
+                    listener.onCreated(new SingleAccountPublicClientApplication(context, clientId, authority, isSharedDevice));
                 } else {
                     listener.onCreated(new MultipleAccountPublicClientApplication(context, clientId, authority));
                 }
@@ -361,7 +364,7 @@ public class PublicClientApplication implements IPublicClientApplication {
             @Override
             public void onGetMode(boolean isSharedDevice) {
                 if (isSharedDevice) {
-                    listener.onCreated(new SingleAccountPublicClientApplication(context, developerConfig));
+                    listener.onCreated(new SingleAccountPublicClientApplication(context, developerConfig, isSharedDevice));
                 } else {
                     listener.onCreated(new MultipleAccountPublicClientApplication(context, developerConfig));
                 }
@@ -1102,4 +1105,104 @@ public class PublicClientApplication implements IPublicClientApplication {
     private OAuth2TokenCache<?, ?, ?> getOAuth2TokenCache() {
         return initCommonCache(mPublicClientConfiguration.getAppContext());
     }
+
+    protected class AccountMatcher {
+
+        private final AccountMatcher[] mDelegateMatchers;
+
+        AccountMatcher() {
+            // Intentionally blank...
+            mDelegateMatchers = new AccountMatcher[]{};
+        }
+
+        AccountMatcher(@NonNull final AccountMatcher... delegateMatchers) {
+            mDelegateMatchers = delegateMatchers;
+        }
+
+        boolean matches(@NonNull final String identifier,
+                        @NonNull final IAccount account) {
+            boolean matches = false;
+
+            for (final AccountMatcher matcher : mDelegateMatchers) {
+                matches = matcher.matches(identifier, account);
+
+                if (matches) {
+                    break;
+                }
+            }
+
+            return matches;
+        }
+    }
+
+    protected AccountMatcher homeAccountMatcher = new AccountMatcher() {
+        @Override
+        boolean matches(@NonNull final String homeAccountId,
+                        @NonNull final IAccount account) {
+            return homeAccountId.contains(account.getId());
+        }
+    };
+
+    protected AccountMatcher localAccountMatcher = new AccountMatcher() {
+        @Override
+        boolean matches(@NonNull final String localAccountId,
+                        @NonNull final IAccount account) {
+            // First, inspect the root account...
+            if (localAccountId.contains(account.getId())) {
+                return true;
+            } else if (account instanceof MultiTenantAccount) {
+                // We need to look at the profiles...
+                final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
+                final Map<String, ITenantProfile> tenantProfiles = multiTenantAccount.getTenantProfiles();
+
+                if (null != tenantProfiles && !tenantProfiles.isEmpty()) {
+                    for (final Map.Entry<String, ITenantProfile> profileEntry : tenantProfiles.entrySet()) {
+                        if (localAccountId.contains(profileEntry.getValue().getId())) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+    };
+
+    protected AccountMatcher usernameMatcher = new AccountMatcher() {
+        @Override
+        boolean matches(@NonNull final String username,
+                        @NonNull final IAccount account) {
+            // Put all of the IdToken we can inspect in a List...
+            final List<IClaimable> thingsWithClaims
+                    = new ArrayList<>();
+
+            if (null != account.getClaims()) {
+                thingsWithClaims.add(account);
+            }
+
+            if (account instanceof MultiTenantAccount) {
+                final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
+                final Map<String, ITenantProfile> profiles = multiTenantAccount.getTenantProfiles();
+
+                for (final Map.Entry<String, ITenantProfile> profileEntry : profiles.entrySet()) {
+                    if (null != profileEntry.getValue().getClaims()) {
+                        thingsWithClaims.add(profileEntry.getValue());
+                    }
+                }
+            }
+
+            for (final IClaimable thingWithClaims : thingsWithClaims) {
+                if (null != thingWithClaims.getClaims()
+                        && username.equalsIgnoreCase(
+                        SchemaUtil.getDisplayableId(
+                                thingWithClaims.getClaims()
+                        )
+                )) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    };
 }
