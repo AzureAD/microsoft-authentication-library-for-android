@@ -684,7 +684,7 @@ public class BrokerMsalController extends BaseController {
 
             final List<ICacheRecord> cacheRecords =
                     MsalBrokerResultAdapter
-                            .getCacheRecordListFromBundle(
+                            .currentAccountFromBundle(
                                     service.getAccounts(requestBundle)
                             );
 
@@ -737,7 +737,7 @@ public class BrokerMsalController extends BaseController {
 
                 final Bundle userInfoBundle = result.getResult();
                 cacheRecords.addAll(MsalBrokerResultAdapter
-                        .getCacheRecordListFromBundle(userInfoBundle));
+                        .currentAccountFromBundle(userInfoBundle));
             }
 
             return cacheRecords;
