@@ -6,19 +6,30 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
+import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
+
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+
+import com.microsoft.identity.common.exception.BaseException;
+
 import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
 import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
 import com.microsoft.identity.common.internal.controllers.RemoveAccountCommand;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.request.ILocalAuthenticationCallback;
 import com.microsoft.identity.common.internal.request.OperationParameters;
+
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
+
+import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
+
 
 import java.util.List;
 
@@ -215,9 +226,64 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public void signIn(@NonNull Activity activity,
+
                 @NonNull String[] scopes,
                 @NonNull AuthenticationCallback callback) {
-        throw new UnsupportedOperationException();
+        acquireToken(
+                activity,
+                scopes,
+                null, // account
+                null, // uiBehavior
+                null, // extraQueryParams
+                null, // extraScopes
+                null, // authority
+                callback,
+                null, // loginHint
+                null // claimsRequest
+        );
+    }
+
+    @Override
+    protected ILocalAuthenticationCallback getLocalAuthenticationCallback(final AuthenticationCallback authenticationCallback) {
+
+        return new ILocalAuthenticationCallback() {
+
+            @Override
+            public void onSuccess(ILocalAuthenticationResult localAuthenticationResult) {
+
+                //Get Local Authentication Result then check if the current account is set or not
+
+                MultiTenantAccount newAccount =  getAccountFromICacheRecordList(localAuthenticationResult.getCacheRecordWithTenantProfileData());
+
+                if(didExistingCurrentAccountChange(newAccount)){
+                    //Throw on Error with UserMismatchException
+                    authenticationCallback.onError(new MsalClientException(MsalClientException.CURRENT_ACCOUNT_MISMATCH));
+                    return;
+                }else{
+                    persistCurrentAccount(localAuthenticationResult.getCacheRecordWithTenantProfileData());
+                }
+
+                IAuthenticationResult authenticationResult = AuthenticationResultAdapter.adapt(localAuthenticationResult);
+                authenticationCallback.onSuccess(authenticationResult);
+            }
+
+            @Override
+            public void onError(BaseException exception) {
+                MsalException msalException = MsalExceptionAdapter.msalExceptionFromBaseException(exception);
+                authenticationCallback.onError(msalException);
+            }
+
+            @Override
+            public void onCancel() {
+                authenticationCallback.onCancel();
+            }
+        };
+    }
+
+    private boolean didExistingCurrentAccountChange(MultiTenantAccount newAccount){
+        MultiTenantAccount persistedAccount = getPersistedCurrentAccount();
+        return (persistedAccount != null || newAccount.getId() != persistedAccount.getId()) ? true : false;
+
     }
 
     @Override
@@ -345,5 +411,34 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
         return (MultiTenantAccount) account.get(0);
     }
+
+    @Override
+    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
+                                        @NonNull final AuthenticationCallback callback) {
+        acquireTokenSilent(
+                scopes,
+                mCurrentLocalAccount,
+                null, // authority
+                false, // forceRefresh
+                null, // claimsRequest
+                callback
+        );
+    }
+
+    @Override
+    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
+                                        @Nullable final String authority,
+                                        final boolean forceRefresh,
+                                        @NonNull final AuthenticationCallback callback) {
+        acquireTokenSilent(
+                scopes,
+                mCurrentLocalAccount,
+                authority,
+                forceRefresh,
+                null, // claimsRequest
+                callback
+        );
+    }
+
 
 }

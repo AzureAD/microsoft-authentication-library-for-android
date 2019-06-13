@@ -14,7 +14,6 @@ import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
-import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
 import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
@@ -28,7 +27,6 @@ import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccou
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +50,38 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                                                      @NonNull final String authority) {
         super(context, clientId, authority);
     }
+
+    @Override
+    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
+                                        @NonNull final IAccount account,
+                                        @NonNull final AuthenticationCallback callback) {
+        acquireTokenSilent(
+                scopes,
+                account,
+                null, // authority
+                false, // forceRefresh
+                null, // claimsRequest
+                callback
+        );
+    }
+
+    @Override
+    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
+                                        @NonNull final IAccount account,
+                                        @Nullable final String authority,
+                                        final boolean forceRefresh,
+                                        @NonNull final AuthenticationCallback callback) {
+        acquireTokenSilent(
+                scopes,
+                account,
+                authority,
+                forceRefresh,
+                null, // claimsRequest
+                callback
+        );
+    }
+
+
 
     /**
      * Asynchronously returns a List of {@link IAccount} objects for which this application has RefreshTokens.

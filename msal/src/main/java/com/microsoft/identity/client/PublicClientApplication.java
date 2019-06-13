@@ -512,13 +512,6 @@ public class PublicClientApplication implements IPublicClientApplication {
     }
 
     @Override
-    public void handleInteractiveRequestRedirect(final int requestCode,
-                                                 final int resultCode,
-                                                 @NonNull final Intent data) {
-        ApiDispatcher.completeInteractive(requestCode, resultCode, data);
-    }
-
-    @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
@@ -555,95 +548,7 @@ public class PublicClientApplication implements IPublicClientApplication {
         );
     }
 
-    @Override
-    public void acquireToken(@NonNull final Activity activity,
-                             @NonNull final String[] scopes,
-                             @Nullable final String loginHint,
-                             @NonNull final UiBehavior uiBehavior,
-                             @Nullable final List<Pair<String, String>> extraQueryParameters,
-                             @NonNull final AuthenticationCallback callback) {
-        acquireToken(
-                activity,
-                scopes,
-                null, // account
-                uiBehavior,
-                extraQueryParameters,
-                null, // extraScopes
-                null, // authority
-                callback,
-                loginHint,
-                null // claimsRequest
-        );
-    }
-
-    @Override
-    public void acquireToken(@NonNull final Activity activity,
-                             @NonNull final String[] scopes,
-                             @Nullable final IAccount account,
-                             @NonNull final UiBehavior uiBehavior,
-                             @Nullable final List<Pair<String, String>> extraQueryParameters,
-                             @NonNull final AuthenticationCallback callback) {
-        acquireToken(
-                activity,
-                scopes,
-                account,
-                uiBehavior,
-                extraQueryParameters,
-                null, // extraScopes
-                null, // authority
-                callback,
-                null, // loginHint
-                null // claimsRequest
-        );
-    }
-
-    @Override
-    public void acquireToken(@NonNull final Activity activity,
-                             @NonNull final String[] scopes,
-                             @Nullable final String loginHint,
-                             @Nullable final UiBehavior uiBehavior,
-                             @Nullable final List<Pair<String, String>> extraQueryParameters,
-                             @Nullable final String[] extraScopesToConsent,
-                             @Nullable final String authority,
-                             @NonNull final AuthenticationCallback callback) {
-        acquireToken(
-                activity,
-                scopes,
-                null, // account
-                uiBehavior,
-                extraQueryParameters,
-                extraScopesToConsent,
-                authority,
-                callback,
-                loginHint,
-                null // claimsRequest
-        );
-    }
-
-    @Override
-    public void acquireToken(@NonNull final Activity activity,
-                             @NonNull final String[] scopes,
-                             @Nullable final IAccount account,
-                             @NonNull final UiBehavior uiBehavior,
-                             @Nullable final List<Pair<String, String>> extraQueryParameters,
-                             @Nullable final String[] extraScopesToConsent,
-                             @Nullable final String authority,
-                             @NonNull final AuthenticationCallback callback) {
-        acquireToken(
-                activity,
-                scopes,
-                account,
-                uiBehavior,
-                extraQueryParameters,
-                extraScopesToConsent,
-                authority,
-                callback,
-                null, // loginHint
-                null //claimsRequest
-        );
-    }
-
-    private void acquireToken(@NonNull final Activity activity,
+    protected void acquireToken(@NonNull final Activity activity,
                               @NonNull final String[] scopes,
                               @Nullable final IAccount account,
                               @Nullable final UiBehavior uiBehavior,
@@ -675,10 +580,12 @@ public class PublicClientApplication implements IPublicClientApplication {
                 .withClaims(claimsRequest)
                 .build();
 
+
+
         acquireTokenAsync(acquireTokenParameters);
     }
 
-    private static void validateNonNullArgument(@Nullable Object o,
+      protected static void validateNonNullArgument(@Nullable Object o,
                                                 @NonNull String argName) {
         if (null == o) {
             throw new IllegalArgumentException(
@@ -736,6 +643,15 @@ public class PublicClientApplication implements IPublicClientApplication {
         }
 
         return result;
+
+    }
+
+    protected void validateAcquireTokenParameters(AcquireTokenParameters parameters){
+        return;
+    }
+
+    protected void validateAcquireTokenSilentParameters(AcquireTokenSilentParameters parameters){
+        return;
     }
 
     @Override
@@ -749,6 +665,8 @@ public class PublicClientApplication implements IPublicClientApplication {
                         )
                 )
         );
+
+        validateAcquireTokenParameters(acquireTokenParameters);
 
         final AcquireTokenOperationParameters params = OperationParametersAdapter.
                 createAcquireTokenOperationParameters(
@@ -798,37 +716,7 @@ public class PublicClientApplication implements IPublicClientApplication {
         return null;
     }
 
-    @Override
-    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
-                                        @NonNull final IAccount account,
-                                        @NonNull final AuthenticationCallback callback) {
-        acquireTokenSilent(
-                scopes,
-                account,
-                null, // authority
-                false, // forceRefresh
-                null, // claimsRequest
-                callback
-        );
-    }
-
-    @Override
-    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
-                                        @NonNull final IAccount account,
-                                        @Nullable final String authority,
-                                        final boolean forceRefresh,
-                                        @NonNull final AuthenticationCallback callback) {
-        acquireTokenSilent(
-                scopes,
-                account,
-                authority,
-                forceRefresh,
-                null, // claimsRequest
-                callback
-        );
-    }
-
-    private void acquireTokenSilent(@NonNull final String[] scopes,
+    protected void acquireTokenSilent(@NonNull final String[] scopes,
                                     @NonNull final IAccount account,
                                     @Nullable final String authority,
                                     final boolean forceRefresh,
@@ -884,6 +772,8 @@ public class PublicClientApplication implements IPublicClientApplication {
             requestEnvironment = requestAccount.getEnvironment();
             requestHomeAccountId = requestAccount.getHomeAccountId();
         }
+
+        validateAcquireTokenSilentParameters(acquireTokenSilentParameters);
 
         final AcquireTokenSilentOperationParameters params =
                 OperationParametersAdapter.createAcquireTokenSilentOperationParameters(
@@ -1079,7 +969,7 @@ public class PublicClientApplication implements IPublicClientApplication {
         };
     }
 
-    private static ILocalAuthenticationCallback getLocalAuthenticationCallback(final AuthenticationCallback authenticationCallback) {
+    protected ILocalAuthenticationCallback getLocalAuthenticationCallback(final AuthenticationCallback authenticationCallback) {
 
         return new ILocalAuthenticationCallback() {
 
