@@ -17,6 +17,7 @@ import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.dto.IdTokenRecord;
+import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,25 +27,43 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     private static final String TAG = SingleAccountPublicClientApplication.class.getSimpleName();
 
     /**
-     * Name of the shared preference cache for storing current account.
-     * */
+     * Name of the shared preference cache for storing SingleAccountPublicClientApplication data.
+     */
     public static final String SINGLE_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES =
             "com.microsoft.identity.client.single_account_credential_cache";
+
+    /**
+     * SharedPreference key for storing current account.
+     */
+    public static final String CURRENT_ACCOUNT_SHARED_PREFERENCE_KEY =
+            "com.microsoft.identity.client.single_account_credential_cache.current_account";
+
+    private SharedPreferencesFileManager sharedPreferencesFileManager;
 
     protected SingleAccountPublicClientApplication(@NonNull final Context context,
                                                    @NonNull final PublicClientApplicationConfiguration developerConfig) {
         super(context, developerConfig);
+        initializeSharedPreferenceFileManager(context);
     }
 
     protected SingleAccountPublicClientApplication(@NonNull final Context context,
                                                    @NonNull final String clientId) {
         super(context, clientId);
+        initializeSharedPreferenceFileManager(context);
     }
 
     protected SingleAccountPublicClientApplication(@NonNull final Context context,
                                                    @NonNull final String clientId,
                                                    @NonNull final String authority) {
         super(context, clientId, authority);
+        initializeSharedPreferenceFileManager(context);
+    }
+
+    private void initializeSharedPreferenceFileManager(@NonNull final Context context) {
+        sharedPreferencesFileManager = new SharedPreferencesFileManager(
+                context,
+                SINGLE_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
+                new StorageHelper(context));
     }
 
     @Override
@@ -56,18 +75,18 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 new TaskCompletedCallbackWithError<List<ICacheRecord>, Exception>() {
                     @Override
                     public void onTaskCompleted(List<ICacheRecord> cacheRecords) {
-                        MultiTenantAccount currentAccount = getPersistedCurrentAccount(configuration.getAppContext());
+                        MultiTenantAccount currentAccount = getPersistedCurrentAccount();
                         MultiTenantAccount newAccount = getAccountFromICacheRecordList(cacheRecords);
 
                         String currentAccountHomeAccountId = currentAccount == null ? "" : currentAccount.getHomeAccountId();
-                        String newAccountHomeAccountId = newAccount == null ? "" :  newAccount.getHomeAccountId();
+                        String newAccountHomeAccountId = newAccount == null ? "" : newAccount.getHomeAccountId();
 
                         boolean isCurrentAccountChanged = !currentAccountHomeAccountId.equalsIgnoreCase(newAccountHomeAccountId);
-                        if (isCurrentAccountChanged){
-                            persistCurrentAccount(configuration.getAppContext(), cacheRecords);
+                        if (isCurrentAccountChanged) {
                             callback.onAccountChanged(currentAccount, newAccount);
                         }
 
+                        persistCurrentAccount(cacheRecords);
                         callback.onAccountLoaded(newAccount);
                     }
 
@@ -88,7 +107,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                     @Override
                     public void onTaskCompleted(Boolean success) {
                         if (success) {
-                            persistCurrentAccount(configuration.getAppContext(), null);
+                            persistCurrentAccount(null);
                         }
 
                         callback.onTaskCompleted(success);
@@ -101,85 +120,39 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 });
     }
 
-    private MsalOAuth2TokenCache getTokenCache(@NonNull final Context appContext,
-                                               @NonNull final IAccountCredentialCache accountCredentialCache) {
-        return new MsalOAuth2TokenCache(
-                appContext,
-                accountCredentialCache,
-                new MicrosoftStsAccountCredentialAdapter());
-    }
-
-    private IAccountCredentialCache getCurrentAccountCredentialCache(final Context appContext){
-        return new SharedPreferencesAccountCredentialCache(
-                new CacheKeyValueDelegate(),
-                new SharedPreferencesFileManager(
-                        appContext,
-                        SINGLE_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                        new StorageHelper(appContext)
-                )
-        );
-    }
-
     /**
      * Get current account that is persisted in shared preference.
      *
-     * @param appContext
      * @return a persisted MultiTenantAccount. This could be null.
-     * */
+     */
     @Nullable
-    private MultiTenantAccount getPersistedCurrentAccount(@NonNull final Context appContext) {
-        final String methodName = ":getPersistedCurrentAccount";
-        final IAccountCredentialCache accountCredentialCache = getCurrentAccountCredentialCache(appContext);
-        final MsalOAuth2TokenCache msalOAuth2TokenCache = getTokenCache(appContext, accountCredentialCache);
-
-        List<AccountRecord> accountRecordList = accountCredentialCache.getAccounts();
-        if (accountRecordList.size() == 0) {
+    private MultiTenantAccount getPersistedCurrentAccount() {
+        String currentAccountJsonString = sharedPreferencesFileManager.getString(CURRENT_ACCOUNT_SHARED_PREFERENCE_KEY);
+        if (currentAccountJsonString == null) {
             return null;
         }
 
-        List<ICacheRecord> cacheRecordList = new ArrayList<>();
-        for (final AccountRecord accountRecord : accountRecordList) {
-            List<IdTokenRecord> idTokenRecordList = msalOAuth2TokenCache.getIdTokensForAccountRecord(null, accountRecord);
-
-            if (idTokenRecordList.size() != 1) {
-                com.microsoft.identity.common.internal.logging.Logger.verbose(
-                        TAG + methodName,
-                        "Find " + idTokenRecordList.size() + " associated IdTokenRecord. Skip this accountRecord.");
-                continue;
-            }
-
-            CacheRecord cacheRecord = new CacheRecord();
-            cacheRecord.setAccount(accountRecord);
-            cacheRecord.setIdToken(idTokenRecordList.get(0));
-            cacheRecordList.add(cacheRecord);
-        }
-
+        List<ICacheRecord> cacheRecordList = MsalBrokerResultAdapter.getICacheRecordListFromJsonString(currentAccountJsonString);
         return getAccountFromICacheRecordList(cacheRecordList);
     }
 
     /**
      * Persists current account to shared preference.
      *
-     * @param appContext
      * @param cacheRecords list of cache record that belongs to an account.
-     *                     Please note that this layer will not verify if the list belongs to a single account or not.
-     * */
-    private void persistCurrentAccount(@NonNull final Context appContext,
-                                       @Nullable List<ICacheRecord> cacheRecords) {
-        final IAccountCredentialCache accountCredentialCache = getCurrentAccountCredentialCache(appContext);
-        final MsalOAuth2TokenCache msalOAuth2TokenCache = getTokenCache(appContext, accountCredentialCache);
+     *                     Please note that this layer will not verify if the list ubelongs to a single account or not.
+     */
+    private void persistCurrentAccount(@Nullable List<ICacheRecord> cacheRecords) {
 
-        // clear the current entry.
-        accountCredentialCache.clearAll();
+        sharedPreferencesFileManager.clear();
 
         if (cacheRecords == null || cacheRecords.size() == 0) {
             // Do nothing.
             return;
         }
 
-        for(ICacheRecord record : cacheRecords){
-            msalOAuth2TokenCache.save(record.getAccount(), record.getIdToken());
-        }
+        String currentAccountJsonString = MsalBrokerResultAdapter.getJsonStringFromICacheRecordList(cacheRecords);
+        sharedPreferencesFileManager.putString(CURRENT_ACCOUNT_SHARED_PREFERENCE_KEY, currentAccountJsonString);
     }
 
     /**
@@ -187,7 +160,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
      *
      * @param cacheRecords list of cache record that belongs to an account.
      *                     If the list can be converted to multiple accounts, only the first one will be returned.
-     * */
+     */
     @Nullable
     private MultiTenantAccount getAccountFromICacheRecordList(@NonNull List<ICacheRecord> cacheRecords) {
         final String methodName = ":getAccountFromICacheRecords";

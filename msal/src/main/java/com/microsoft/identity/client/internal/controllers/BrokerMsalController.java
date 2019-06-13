@@ -686,7 +686,7 @@ public class BrokerMsalController extends BaseController {
                 callback,
                 new BrokerTask<List<ICacheRecord>>() {
                     @Override
-                    public List<ICacheRecord> perform(IMicrosoftAuthService service) throws RemoteException {
+                    public List<ICacheRecord> perform(IMicrosoftAuthService service) throws ClientException, RemoteException {
                         // TODO also pass clientID and redirectURL so that it gets ICacheRecord specific to this particular app.
                         return MsalBrokerResultAdapter
                                 .currentAccountFromBundle(
