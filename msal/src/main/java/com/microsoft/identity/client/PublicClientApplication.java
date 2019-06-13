@@ -918,6 +918,7 @@ public class PublicClientApplication implements IPublicClientApplication {
                     ),
                     callback
             );
+
             ApiDispatcher.submitSilent(silentTokenCommand);
         } catch (final BaseException exception) {
             callback.onError(exception);
