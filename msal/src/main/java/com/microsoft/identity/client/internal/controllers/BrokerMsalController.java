@@ -38,12 +38,10 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMicrosoftAuthService;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
@@ -64,7 +62,6 @@ import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.controllers.ExceptionAdapter;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
-import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.dto.IAccountRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
@@ -80,8 +77,6 @@ import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 import com.microsoft.identity.common.internal.util.ICacheRecordGsonAdapter;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -310,6 +305,7 @@ public class BrokerMsalController extends BaseController {
     public AcquireTokenResult acquireTokenSilent(AcquireTokenSilentOperationParameters parameters) throws BaseException {
         final String methodName = ":acquireTokenSilent";
         AcquireTokenResult acquireTokenResult;
+
         if (isMicrosoftAuthServiceSupported(parameters.getAppContext())) {
             Logger.verbose(TAG + methodName, "Is microsoft auth service supported? " + "[yes]");
             Logger.verbose(TAG + methodName, "Get the broker authorization intent from auth service.");
@@ -339,6 +335,7 @@ public class BrokerMsalController extends BaseController {
         try {
             final Bundle requestBundle = getSilentBrokerRequestBundle(parameters);
             final Bundle resultBundle = service.acquireTokenSilently(requestBundle);
+
             return getAcquireTokenResult(resultBundle);
         } catch (RemoteException e) {
             throw new ClientException(
@@ -585,7 +582,6 @@ public class BrokerMsalController extends BaseController {
                 );
 
                 msalOAuth2TokenCache.setSingleSignOnState(microsoftStsAccount, microsoftRefreshToken);
-
             } catch (ServiceException e) {
                 Logger.errorPII(TAG + methodName, "Exception while creating Idtoken or ClientInfo," +
                         " cannot save MSA account tokens", e
@@ -772,7 +768,7 @@ public class BrokerMsalController extends BaseController {
         } else {
             final Bundle bundle = new Bundle();
             bundle.putBoolean(DATA_CACHE_RECORD, true);
-            bundle.putString(ACCOUNT_CLIENTID_KEY, parameters.getClientId());;
+            bundle.putString(ACCOUNT_CLIENTID_KEY, parameters.getClientId());
 
             for (final Account eachAccount : accountList) {
                 // Use AccountManager Api method to get extended user info
@@ -788,35 +784,13 @@ public class BrokerMsalController extends BaseController {
                         );
 
                 final Bundle userInfoBundle = result.getResult();
-                cacheRecords.addAll(MsalBrokerResultAdapter
-                        .currentAccountFromBundle(userInfoBundle));
+                cacheRecords.addAll(
+                        MsalBrokerResultAdapter.currentAccountFromBundle(userInfoBundle)
+                );
             }
 
             return cacheRecords;
         }
-    }
-
-    private AccountRecord getAccountRecordFromUserInfo(@NonNull final Bundle userInfoBundle) {
-        if (userInfoBundle == null) {
-            return null;
-        }
-
-        final AccountRecord accountRecord = new AccountRecord();
-        accountRecord.setHomeAccountId(userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID));
-        accountRecord.setUsername(userInfoBundle.getString(AccountManager.KEY_ACCOUNT_NAME));
-        accountRecord.setFirstName(userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME));
-        accountRecord.setFamilyName(userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME));
-        accountRecord.setName(userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE));
-        //TODO Bug. idp is different with environment
-        try {
-            URL idpUrl = new URL(userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER));
-            accountRecord.setEnvironment(idpUrl.getHost());
-        } catch (MalformedURLException exception) {
-            Logger.error(TAG, "The user info identity provider is malformed.", exception);
-        }
-
-        accountRecord.setRealm(userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID));
-        return accountRecord;
     }
 
     private Bundle getRequestBundleForGetAccounts(@NonNull final OperationParameters parameters) {
