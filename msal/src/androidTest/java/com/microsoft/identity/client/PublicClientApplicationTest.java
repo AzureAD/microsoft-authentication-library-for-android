@@ -217,8 +217,6 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     public void onSuccess(IAuthenticationResult authenticationResult) {
                         Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
                         final IAccount account = authenticationResult.getAccount();
-                        Assert.assertTrue(account.getHomeAccountIdentifier().getIdentifier().equals(""));
-                        Assert.assertTrue(account.getUsername().equals(AndroidTestUtil.DISPLAYABLE));
 
                         releaseLock.countDown();
                     }
@@ -267,8 +265,6 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                     public void onSuccess(IAuthenticationResult authenticationResult) {
                         Assert.assertTrue(AndroidTestUtil.ACCESS_TOKEN.equals(authenticationResult.getAccessToken()));
                         final IAccount account = authenticationResult.getAccount();
-                        Assert.assertEquals(account.getHomeAccountIdentifier().getIdentifier(), MOCK_UID + "." + MOCK_UTID);
-                        Assert.assertEquals(account.getUsername(), AndroidTestUtil.DISPLAYABLE);
 
                         releaseLock.countDown();
                     }
