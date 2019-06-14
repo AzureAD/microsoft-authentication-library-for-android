@@ -41,8 +41,6 @@ import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.microsoft.identity.client.AcquireTokenParameters;
-import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.IAccount;
@@ -55,8 +53,6 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
-import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
-import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -180,9 +176,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         MsalWrapper.getInstance().loadMsalApplication(this.getApplicationContext(),
-            R.raw.msal_config,
-            operationResultCallback,
-            null
+                R.raw.msal_config,
+                operationResultCallback,
+                null
         );
     }
 
@@ -203,8 +199,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             final Bundle bundle = new Bundle();
             if (mAuthResult != null) {
                 bundle.putString(ResultFragment.ACCESS_TOKEN, mAuthResult.getAccessToken());
-                bundle.putString(ResultFragment.ID_TOKEN, mAuthResult.getIdToken());
-                bundle.putString(ResultFragment.DISPLAYABLE, mAuthResult.getAccount().getUsername());
+                bundle.putString(ResultFragment.DISPLAYABLE, MsalWrapper.getPreferredUsername(mAuthResult.getAccount()));
             }
 
             fragment.setArguments(bundle);
@@ -292,20 +287,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void bindSelectAccountSpinner(final Spinner selectUser,
                                          final List<IAccount> accounts) {
         final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
-            getApplicationContext(), android.R.layout.simple_spinner_item,
-            new ArrayList<String>() {{
-                if (accounts != null) {
-                    for (IAccount account : accounts)
-                        add(account.getUsername());
-                }
-            }}
+                getApplicationContext(), android.R.layout.simple_spinner_item,
+                new ArrayList<String>() {{
+                    if (accounts != null) {
+                        for (IAccount account : accounts)
+                            add(MsalWrapper.getPreferredUsername(account));
+                    }
+                }}
         );
         userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         selectUser.setAdapter(userAdapter);
     }
 
     void loadMsalApplicationFromRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions,
-                                                  final MsalWrapper.IMsalApplicationLoaded postApplicationLoaded){
+                                                  final MsalWrapper.IMsalApplicationLoaded postApplicationLoaded) {
 
         boolean enablePiiLogging = requestOptions.mEnablePII;
         // The sample app is having the PII enable setting on the MainActivity. Ideally, app should decide to enable Pii or not,
@@ -329,30 +324,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             configFileResourceId = R.raw.msal_config_webview;
         }
 
-        if(environment == Constants.AzureActiveDirectoryEnvironment.PREPRODUCTION){
+        if (environment == Constants.AzureActiveDirectoryEnvironment.PREPRODUCTION) {
             configFileResourceId = R.raw.msal_ppe_config;
         }
 
         MsalWrapper.getInstance().loadMsalApplication(this.getApplicationContext(),
-            configFileResourceId,
-            operationResultCallback,
-            postApplicationLoaded
+                configFileResourceId,
+                operationResultCallback,
+                postApplicationLoaded
         );
-    }
-
-    final String getAuthority(Constants.AuthorityType authorityTypeType) {
-        switch (authorityTypeType) {
-            case AAD_COMMON:
-                return Constants.AAD_AUTHORITY;
-            case B2C:
-                return "B2c is not configured yet";
-            case AAD_MSDEVEX:
-                return Constants.AAD_MSDEVEX;
-            case AAD_GUEST:
-                return Constants.AAD_GUEST;
-        }
-
-        throw new IllegalArgumentException("Not supported authority type");
     }
 
     void setUser(final IAccount user) {

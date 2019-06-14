@@ -1,125 +1,327 @@
-// Copyright (c) Microsoft Corporation.
-// All rights reserved.
+//  Copyright (c) Microsoft Corporation.
+//  All rights reserved.
 //
-// This code is licensed under the MIT License.
+//  This code is licensed under the MIT License.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files(the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions :
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files(the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions :
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
 package com.microsoft.identity.client;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.microsoft.identity.common.exception.ServiceException;
+import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.dto.IAccountRecord;
-import com.microsoft.identity.common.internal.logging.Logger;
-import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
+import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
-/**
- * Adapter class for Account transformations.
- */
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 class AccountAdapter {
 
     private static final String TAG = AccountAdapter.class.getSimpleName();
 
     /**
-     * Adapts the {@link AccountRecord} type to the MSAL-exposed {@link IAccount}.
-     *
-     * @param accountIn The Account to transform.
-     * @return A representation of the supplied Account, as an IAccount.
+     * Abstract class representing a filter for ICacheRecords.
      */
-    @NonNull
-    static IAccount adapt(@NonNull final IAccountRecord accountIn) {
-        final String methodName = ":adapt";
-        final com.microsoft.identity.client.Account accountOut
-                = new com.microsoft.identity.client.Account();
+    private interface CacheRecordFilter {
 
-        // Populate fields...
-        final IAccountIdentifier accountId;
-        final IAccountIdentifier homeAccountId;
+        List<ICacheRecord> filter(@NonNull final List<ICacheRecord> records);
+    }
 
-        if (MicrosoftAccount.AUTHORITY_TYPE_V1_V2.equals(accountIn.getAuthorityType())) {
-            Logger.info(
-                    TAG + methodName,
-                    "Account type is AAD"
-            );
+    private static class GuestAccountFilter implements CacheRecordFilter {
 
-            // This account came from AAD
-            homeAccountId = new AzureActiveDirectoryAccountIdentifier() {{ // This is the home_account_id
-                // Grab the homeAccountId
-                final String homeAccountIdStr = accountIn.getHomeAccountId();
+        @Override
+        public List<ICacheRecord> filter(@NonNull List<ICacheRecord> records) {
+            final List<ICacheRecord> result = new ArrayList<>();
 
-                // Split it into its constituent pieces <uid>.<utid>
-                final String[] components = homeAccountIdStr.split("\\.");
+            for (final ICacheRecord cacheRecord : records) {
+                final String acctHomeAccountId = cacheRecord.getAccount().getHomeAccountId();
+                final String acctLocalAccountId = cacheRecord.getAccount().getLocalAccountId();
 
-                // Set the full string value as the identifier
-                setIdentifier(homeAccountIdStr);
-
-                // Set the uid as the objectId
-                setObjectIdentifier(components[0]);
-
-                // Set the utid as the tenantId
-                setTenantIdentifier(components[1]);
-            }};
-
-            if (StringUtil.isEmpty(accountIn.getLocalAccountId())) {
-                accountId = homeAccountId;
-            } else {
-                accountId = new AzureActiveDirectoryAccountIdentifier() {{ // This is the local_account_id
-                    setIdentifier(accountIn.getLocalAccountId());
-                    setObjectIdentifier(accountIn.getLocalAccountId());
-                    setTenantIdentifier(accountIn.getRealm());
-                }};
+                if (!acctHomeAccountId.contains(acctLocalAccountId)) {
+                    result.add(cacheRecord);
+                }
             }
 
-        } else { // This Account came from IdP other than AAD.
-            Logger.info(
-                    TAG + methodName,
-                    "Account is non-AAD"
-            );
-            accountId = new AccountIdentifier() {{
-                setIdentifier(StringUtil.isEmpty(accountIn.getLocalAccountId())?
-                        accountIn.getHomeAccountId() : accountIn.getLocalAccountId()
-                );
+            return result;
+        }
+    }
+
+    /**
+     * A filter for ICacheRecords that filters out home or guest accounts, based on its
+     * constructor initialization.
+     */
+    private static class HomeAccountFilter implements CacheRecordFilter {
+
+        @Override
+        public List<ICacheRecord> filter(@NonNull final List<ICacheRecord> records) {
+            final List<ICacheRecord> result = new ArrayList<>();
+
+            for (final ICacheRecord cacheRecord : records) {
+                final String acctHomeAccountId = cacheRecord.getAccount().getHomeAccountId();
+                final String acctLocalAccountId = cacheRecord.getAccount().getLocalAccountId();
+
+                if (acctHomeAccountId.contains(acctLocalAccountId)) {
+                    result.add(cacheRecord);
+                }
+            }
+
+            return result;
+        }
+    }
+
+    /**
+     * A filter which finds guest accounts which have no corresponding home tenant account.
+     */
+    private static final CacheRecordFilter guestAccountsWithNoHomeTenantAccountFilter = new CacheRecordFilter() {
+
+        private boolean hasNoCorrespondingHomeAccount(@NonNull final ICacheRecord guestRecord,
+                                                      @NonNull final List<ICacheRecord> homeRecords) {
+            // Init our sought value
+            final String guestAccountHomeAccountId = guestRecord.getAccount().getHomeAccountId();
+
+            // Create a List of home_account_ids from the homeRecords...
+            final List<String> homeAccountIds = new ArrayList<String>() {{
+                for (final ICacheRecord cacheRecord : homeRecords) {
+                    add(cacheRecord.getAccount().getHomeAccountId());
+                }
             }};
-            homeAccountId = new AccountIdentifier() {{
-                setIdentifier(accountIn.getHomeAccountId());
-            }};
+
+            return homeAccountIds.contains(guestAccountHomeAccountId);
         }
 
-        accountOut.setAccountIdentifier(accountId);
-        accountOut.setHomeAccountIdentifier(homeAccountId);
-        accountOut.setUsername(accountIn.getUsername());
-        accountOut.setEnvironment(accountIn.getEnvironment());
+        @Override
+        public List<ICacheRecord> filter(@NonNull final List<ICacheRecord> records) {
+            final List<ICacheRecord> result = new ArrayList<>();
 
-        Logger.verbosePII(
-                TAG + methodName,
-                "Username: [" + accountIn.getUsername() + "]"
+            // First, get the home accounts....
+            final List<ICacheRecord> homeRecords =
+                    filterCacheRecords(
+                            records,
+                            new HomeAccountFilter()
+                    );
+
+            // Then, get the guest accounts...
+            final List<ICacheRecord> guestRecords =
+                    filterCacheRecords(
+                            records,
+                            new GuestAccountFilter()
+                    );
+
+            // Iterate over the guest accounts and find those which have no associated home account
+            for (final ICacheRecord guestRecord : guestRecords) {
+                if (hasNoCorrespondingHomeAccount(guestRecord, homeRecords)) {
+                    result.add(guestRecord);
+                }
+            }
+
+            return result;
+        }
+    };
+
+    /**
+     * For a supplied List of ICacheRecords, create each root IAccount based on the home
+     * account and then add child-nodes based on any authorized tenants.
+     *
+     * @param allCacheRecords
+     * @return
+     */
+    @NonNull
+    static List<IAccount> adapt(@NonNull final List<ICacheRecord> allCacheRecords) {
+        // First, get all of the ICacheRecords for home accounts...
+        final List<ICacheRecord> homeCacheRecords = filterCacheRecords(
+                allCacheRecords,
+                new HomeAccountFilter()
         );
 
-        Logger.verbosePII(
-                TAG + methodName,
-                "Environment: [" + accountIn.getEnvironment() + "]"
+        // Then, get all of the guest accounts...
+        // Note that the guestCacheRecordsWithNoHomeAccount (see below) will be *removed* from this
+        // List.
+        final List<ICacheRecord> guestCacheRecords = filterCacheRecords(
+                allCacheRecords,
+                new GuestAccountFilter()
         );
 
-        return accountOut;
+        // Get the guest cache records which have no homeAccount
+        final List<ICacheRecord> guestCacheRecordsWithNoHomeAccount = filterCacheRecords(
+                allCacheRecords,
+                guestAccountsWithNoHomeTenantAccountFilter
+        );
+
+        // Remove the guest records that have no corresponding home account from the complete list of
+        // guest records...
+        guestCacheRecords.removeAll(guestCacheRecordsWithNoHomeAccount);
+
+        final List<IAccount> rootAccounts = createRootAccounts(homeCacheRecords);
+        appendChildren(rootAccounts, guestCacheRecords);
+        rootAccounts.addAll(
+                createIAccountsForGuestsNotSignedIntoHomeTenant(guestCacheRecordsWithNoHomeAccount)
+        );
+
+        return rootAccounts;
+    }
+
+    @NonNull
+    private static List<IAccount> createIAccountsForGuestsNotSignedIntoHomeTenant(
+            @NonNull final List<ICacheRecord> guestCacheRecords) {
+        // First, bucket the records by homeAccountId to create affinities
+        final Map<String, List<ICacheRecord>> bucketedRecords = new HashMap<>();
+
+        for (final ICacheRecord cacheRecord : guestCacheRecords) {
+            final String cacheRecordHomeAccountId = cacheRecord.getAccount().getHomeAccountId();
+
+            // Initialize the multi-map
+            if (null == bucketedRecords.get(cacheRecordHomeAccountId)) {
+                bucketedRecords.put(cacheRecordHomeAccountId, new ArrayList<ICacheRecord>());
+            }
+
+            // Add the record to the multi-map
+            bucketedRecords.get(cacheRecordHomeAccountId).add(cacheRecord);
+        }
+
+        // Declare our result holder...
+        final List<IAccount> result = new ArrayList<>();
+
+        // Now that all of the tokens have been bucketed by an account affinity
+        // box those into a 'rootless' IAccount
+        for (final Map.Entry<String, List<ICacheRecord>> entry : bucketedRecords.entrySet()) {
+            // Create our empty root...
+            final MultiTenantAccount emptyRoot = new MultiTenantAccount(
+                    null // home tenant IdToken.... doesn't exist!
+            );
+
+            // Set the home oid & home tid of the root, even though we don't have the IdToken...
+            // hooray for client_info
+            emptyRoot.setId(StringUtil.getTenantInfo(entry.getKey()).first);
+            emptyRoot.setTenantId(StringUtil.getTenantInfo(entry.getKey()).second);
+            emptyRoot.setEnvironment( // Look ahead into our CacheRecords to determine the environment
+                    entry
+                            .getValue()
+                            .get(0)
+                            .getAccount()
+                            .getEnvironment()
+            );
+
+            // Create the Map of TenantProfiles to set...
+            final Map<String, ITenantProfile> tenantProfileMap = new HashMap<>();
+
+            for (final ICacheRecord cacheRecord : entry.getValue()) {
+                final String tenantId = cacheRecord.getAccount().getRealm();
+                final TenantProfile profile = new TenantProfile(getIdToken(cacheRecord));
+
+                tenantProfileMap.put(tenantId, profile);
+            }
+
+            emptyRoot.setTenantProfiles(tenantProfileMap);
+            result.add(emptyRoot);
+        }
+
+        return result;
+    }
+
+    private static void appendChildren(@NonNull final List<IAccount> rootAccounts,
+                                       @NonNull final List<ICacheRecord> guestCacheRecords) {
+        // Iterate over the roots, adding the children as we go...
+        for (final IAccount account : rootAccounts) {
+            // Iterate over the potential children, adding them if they match
+            final Map<String, ITenantProfile> tenantProfiles = new HashMap<>();
+
+            for (final ICacheRecord guestRecord : guestCacheRecords) {
+                final String guestRecordHomeAccountId = guestRecord.getAccount().getHomeAccountId();
+
+                if (guestRecordHomeAccountId.contains(account.getId())) {
+                    final TenantProfile profile = new TenantProfile(getIdToken(guestRecord));
+                    tenantProfiles.put(guestRecord.getAccount().getRealm(), profile);
+                }
+            }
+
+            // Cast the root account for initialization...
+            final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
+            multiTenantAccount.setTenantProfiles(tenantProfiles);
+        }
+    }
+
+    @NonNull
+    private static List<IAccount> createRootAccounts(
+            @NonNull final List<ICacheRecord> homeCacheRecords) {
+        final List<IAccount> result = new ArrayList<>();
+
+        for (ICacheRecord homeCacheRecord : homeCacheRecords) {
+            // Each IAccount will be initialized as a MultiTenantAccount whether it really is or not...
+            // This allows us to cast the results however the caller sees fit...
+            final IAccount rootAccount;
+            rootAccount = new MultiTenantAccount(getIdToken(homeCacheRecord));
+
+            // Set the tenant_id
+            ((MultiTenantAccount) rootAccount).setTenantId(
+                    StringUtil.getTenantInfo(
+                            homeCacheRecord
+                                    .getAccount()
+                                    .getHomeAccountId()
+                    ).second
+            );
+
+            // Set the environment...
+            ((MultiTenantAccount) rootAccount).setEnvironment(
+                    homeCacheRecord
+                            .getAccount()
+                            .getEnvironment()
+            );
+
+            result.add(rootAccount);
+        }
+
+        return result;
+    }
+
+    @NonNull
+    private static IDToken getIdToken(@NonNull final ICacheRecord cacheRecord) {
+        final String rawIdToken = null != cacheRecord.getIdToken()
+                ? cacheRecord.getIdToken().getSecret()
+                : cacheRecord.getV1IdToken().getSecret();
+        try {
+            return new IDToken(rawIdToken);
+        } catch (ServiceException e) {
+            // This should never happen - the IDToken was verified when it was originally
+            // returned from the service and saved.
+            throw new IllegalStateException("Failed to restore IdToken");
+        }
+    }
+
+    /**
+     * Filters ICacheRecords based on the criteria specified by the {@link CacheRecordFilter}.
+     * Results may be empty, but never null.
+     *
+     * @param allCacheRecords The ICacheRecords to inspect.
+     * @param filter          The CacheRecordFilter to consult.
+     * @return A List of ICacheRecords matching the supplied filter criteria.
+     */
+    @NonNull
+    private static List<ICacheRecord> filterCacheRecords(
+            @NonNull final List<ICacheRecord> allCacheRecords,
+            @NonNull final CacheRecordFilter filter) {
+        return filter.filter(allCacheRecords);
     }
 
     @Nullable
@@ -147,16 +349,4 @@ class AccountAdapter {
         return accountToReturn;
     }
 
-    @Nullable
-    static String getRealm(@NonNull IAccount account) {
-        String realm = null;
-
-        if (null != account.getAccountIdentifier() // This is an AAD account w/ tenant info
-                && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier) {
-            final AzureActiveDirectoryAccountIdentifier identifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier();
-            realm = identifier.getTenantIdentifier();
-        }
-
-        return realm;
-    }
 }

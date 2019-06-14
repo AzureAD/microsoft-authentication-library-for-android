@@ -24,17 +24,8 @@ package com.microsoft.identity.client;
 
 import android.support.annotation.NonNull;
 
-import java.io.Serializable;
+public interface ITenantProfile extends IAccount {
 
-public interface IAccount extends Serializable, IClaimable {
-
-    /**
-     * Gets the id of the account.
-     * <p>
-     * For the Microsoft Identity Platform: the OID of the account in its home tenant.
-     *
-     * @return The id.
-     */
     @NonNull
-    String getId();
+    String getTenantId();
 }

@@ -22,24 +22,18 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-/**
- * AccountIds expose identifiers used by MSAL to uniquely identify Accounts.
- */
-abstract class AccountIdentifier implements IAccountIdentifier {
+import android.support.annotation.Nullable;
 
-    private String mIdentifier;
+import java.util.Map;
+
+public interface IClaimable {
 
     /**
-     * Sets the identifier.
+     * Gets the claims associated with this account's IdToken.
      *
-     * @param identifier The identifier to set.
+     * @return A Map of claims.
      */
-    void setIdentifier(final String identifier) {
-        mIdentifier = identifier;
-    }
+    @Nullable
+    Map<String, ?> getClaims();
 
-    @Override
-    public String getIdentifier() {
-        return mIdentifier;
-    }
 }

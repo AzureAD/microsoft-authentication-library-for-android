@@ -23,57 +23,61 @@
 
 package com.microsoft.identity.client;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 
 /**
  * An interface that contains list of operations that are available when MSAL is in 'single account' mode.
  * - In this mode, the user can 'sign-in' an account to the device.
  * - Once an account is 'signed-in', every app on the device will be able to retrieve this account, and use them to silently perform API calls.
  * - If the user wants to acquire a token for another account, the previous account must be removed from the device first through globalSignOut().
- *   Otherwise, the operation will fail.
- *
+ * Otherwise, the operation will fail.
+ * <p>
  * Currently, this mode is only set when the device is registered as 'shared'.
- * */
+ */
 public interface ISingleAccountPublicClientApplication extends IPublicClientApplication {
     /**
      * Gets the current account and notify if the current account changes.
      * This method must be called whenever the application is resumed or prior to running a scheduled background operation.
      *
      * @param listener a callback to be invoked when the operation finishes.
-     * @throws MsalClientException if this function is invoked when the app is no longer in the single account mode.
      */
-    void getCurrentAccount(final CurrentAccountListener listener) throws MsalClientException;
+    void getCurrentAccount(@NonNull final CurrentAccountCallback listener);
 
     /**
      * Removes the Account and Credentials (tokens) of the account that is currently signed into the device.
      *
      * @param callback a callback to be invoked when the operation finishes.
-     * @throws MsalClientException if this function is invoked when the app is no longer in the single account mode.
      */
-    void removeCurrentAccount(final PublicClientApplication.RemoveAccountCallback callback) throws MsalClientException;
+    void removeCurrentAccount(@NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback);
 
     /**
      * Callback for asynchronous loading of the msal IAccount account.
      */
-    interface CurrentAccountListener {
+    interface CurrentAccountCallback {
         /**
          * Invoked when the account is loaded.
-         * The calling app is responsible for keeping track of this account and cleaning its states if the account changes.
          *
          * @param activeAccount the signed-in account. This could be nil.
          */
-        void onAccountLoaded(final IAccount activeAccount);
+        void onAccountLoaded(@Nullable final IAccount activeAccount);
 
         /**
          * Invoked when signed-in account is changed after the application resumes, or prior to running a scheduled background operation.
          * The calling app is responsible for keeping track of this account and cleaning its states if the account changes.
          *
-         * @param priorAccount the previous signed-in account. This could be nil.
+         * @param priorAccount   the previous signed-in account. This could be nil.
          * @param currentAccount the current signed-in account. This could be nil.
-         * */
-        void onAccountChanged(final IAccount priorAccount, final IAccount currentAccount);
+         */
+        void onAccountChanged(@Nullable final IAccount priorAccount, @Nullable final IAccount currentAccount);
+
+        /**
+         * Invoked when the account failed to load.
+         *
+         * @param exception the exception object.
+         */
+        void onError(@NonNull final Exception exception);
     }
 }

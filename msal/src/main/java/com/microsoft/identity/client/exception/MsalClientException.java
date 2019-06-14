@@ -163,6 +163,11 @@ public final class MsalClientException extends MsalException {
     public static final String BROKER_NOT_INSTALLED = "broker_not_installed";
 
     /**
+     * Not eligible to use Broker.
+     */
+    public static final String NOT_ELIGIBLE_TO_USE_BROKER = "not_eligible_to_use_broker";
+
+    /**
      * Temporary non-exposed error code to indicate that ADFS authority validation fails. ADFS as authority is not supported
      * for preview.
      */

@@ -101,7 +101,8 @@ abstract class TokenParameters {
     }
 
     /**
-     * Optional. Can be passed to override the default authority.
+     * Optional for interactive requests; can be passed to override the default authority.
+     * Required for silent requests.
      *
      * @param authority
      */
@@ -164,7 +165,7 @@ abstract class TokenParameters {
     public AccountRecord getAccountRecord() {
         return mAccountRecord;
     }
-    
+
     /**
      * TokenParameters builder
      *

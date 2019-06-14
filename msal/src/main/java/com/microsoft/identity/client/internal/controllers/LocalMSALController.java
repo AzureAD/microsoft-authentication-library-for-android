@@ -45,6 +45,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.OperationParameters;
+import com.microsoft.identity.common.internal.request.SdkType;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
@@ -114,15 +115,23 @@ public class LocalMSALController extends BaseController {
 
             if (tokenResult != null && tokenResult.getSuccess()) {
                 //4) Save tokens in token cache
-                final ICacheRecord cacheRecord = saveTokens(
+                final List<ICacheRecord> records = saveTokens(
                         oAuth2Strategy,
                         mAuthorizationRequest,
                         tokenResult.getTokenResponse(),
                         parameters.getTokenCache()
                 );
 
+                // The first element in the returned list is the item we *just* saved, the rest of
+                // the elements are necessary to construct the full IAccount + TenantProfile
+                final ICacheRecord newestRecord = records.get(0);
+
                 acquireTokenResult.setLocalAuthenticationResult(
-                        new LocalAuthenticationResult(cacheRecord)
+                        new LocalAuthenticationResult(
+                                newestRecord,
+                                records,
+                                SdkType.MSAL
+                        )
                 );
             }
         }
@@ -187,16 +196,23 @@ public class LocalMSALController extends BaseController {
         final AccountRecord targetAccount = getCachedAccountRecord(parameters);
 
         final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy();
-        final ICacheRecord cacheRecord = tokenCache.load(
+
+        final List<ICacheRecord> cacheRecords = tokenCache.loadWithAggregatedAccountData(
                 parameters.getClientId(),
                 TextUtils.join(" ", parameters.getScopes()),
                 targetAccount
         );
 
-        if (accessTokenIsNull(cacheRecord)
-                || refreshTokenIsNull(cacheRecord)
+        // The first element is the 'fully-loaded' CacheRecord which may contain the AccountRecord,
+        // AccessTokenRecord, RefreshTokenRecord, and IdTokenRecord... (if all of those artifacts exist)
+        // subsequent CacheRecords represent other profiles (projections) of this principal in
+        // other tenants. Those tokens will be 'sparse', meaning that their AT/RT will not be loaded
+        final ICacheRecord fullCacheRecord = cacheRecords.get(0);
+
+        if (accessTokenIsNull(fullCacheRecord)
+                || refreshTokenIsNull(fullCacheRecord)
                 || parameters.getForceRefresh()) {
-            if (!refreshTokenIsNull(cacheRecord)) {
+            if (!refreshTokenIsNull(fullCacheRecord)) {
                 // No AT found, but the RT checks out, so we'll use it
                 Logger.verbose(
                         TAG + methodName,
@@ -207,7 +223,7 @@ public class LocalMSALController extends BaseController {
                         acquireTokenSilentResult,
                         tokenCache,
                         strategy,
-                        cacheRecord
+                        fullCacheRecord
                 );
             } else {
                 //TODO need the refactor, should just throw the ui required exception, rather than
@@ -217,13 +233,13 @@ public class LocalMSALController extends BaseController {
                         "No refresh token was found. "
                 );
             }
-        } else if (cacheRecord.getAccessToken().isExpired()) {
+        } else if (fullCacheRecord.getAccessToken().isExpired()) {
             Logger.warn(
                     TAG + methodName,
                     "Access token is expired. Removing from cache..."
             );
             // Remove the expired token
-            tokenCache.removeCredential(cacheRecord.getAccessToken());
+            tokenCache.removeCredential(fullCacheRecord.getAccessToken());
 
             Logger.verbose(
                     TAG + methodName,
@@ -235,7 +251,7 @@ public class LocalMSALController extends BaseController {
                     acquireTokenSilentResult,
                     tokenCache,
                     strategy,
-                    cacheRecord
+                    fullCacheRecord
             );
         } else {
             Logger.verbose(
@@ -244,7 +260,11 @@ public class LocalMSALController extends BaseController {
             );
             // the result checks out, return that....
             acquireTokenSilentResult.setLocalAuthenticationResult(
-                    new LocalAuthenticationResult(cacheRecord)
+                    new LocalAuthenticationResult(
+                            fullCacheRecord,
+                            cacheRecords,
+                            SdkType.MSAL
+                    )
             );
         }
 
@@ -253,11 +273,11 @@ public class LocalMSALController extends BaseController {
 
     @Override
     @WorkerThread
-    public List<AccountRecord> getAccounts(@NonNull final OperationParameters parameters) {
-        final List<AccountRecord> accountsInCache =
+    public List<ICacheRecord> getAccounts(@NonNull final OperationParameters parameters) {
+        final List<ICacheRecord> accountsInCache =
                 parameters
                         .getTokenCache()
-                        .getAccounts(
+                        .getAccountsWithAggregatedAccountData(
                                 null, // * wildcard
                                 parameters.getClientId()
                         );
@@ -272,7 +292,7 @@ public class LocalMSALController extends BaseController {
         String realm = null;
 
         if (deleteHomeAndGuestAccounts) {
-            if (parameters.getAccount()!= null) {
+            if (parameters.getAccount() != null) {
                 realm = parameters.getAccount().getRealm();
             }
         }
@@ -280,9 +300,9 @@ public class LocalMSALController extends BaseController {
         final boolean localRemoveAccountSuccess = !parameters
                 .getTokenCache()
                 .removeAccount(
-                        parameters.getAccount() == null? null : parameters.getAccount().getEnvironment(),
+                        parameters.getAccount() == null ? null : parameters.getAccount().getEnvironment(),
                         parameters.getClientId(),
-                        parameters.getAccount() == null? null : parameters.getAccount().getHomeAccountId(),
+                        parameters.getAccount() == null ? null : parameters.getAccount().getHomeAccountId(),
                         realm
                 ).isEmpty();
 

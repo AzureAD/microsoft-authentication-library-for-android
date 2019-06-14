@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-
 public class CacheFragment extends Fragment {
 
     static final String ARG_LIST_CONTENTS = "list_contents";
@@ -69,12 +68,12 @@ public class CacheFragment extends Fragment {
         // Inflate the layout for this fragment
         final View view = inflater.inflate(R.layout.fragment_cache, container, false);
 
-        mLvCacheItems = (ListView) view.findViewById(R.id.lv_cache);
+        mLvCacheItems = view.findViewById(R.id.lv_cache);
         final Bundle args = getArguments();
         final List<TokenListElement> elements = (List<TokenListElement>) args.getSerializable(ARG_LIST_CONTENTS);
         mLvCacheItems.setAdapter(createAdapter(elements));
 
-        mProgressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
+        mProgressBar = view.findViewById(R.id.progress_bar);
 
         return view;
     }
@@ -120,23 +119,23 @@ public class CacheFragment extends Fragment {
 
                 // Client id
                 final View clientIdLayout = convertView.findViewById(R.id.ll_row_clientid);
-                final TextView valueClientId = (TextView) clientIdLayout.findViewById(R.id.value_clientid);
+                final TextView valueClientId = clientIdLayout.findViewById(R.id.value_clientid);
                 valueClientId.setText(element.getClientId());
 
                 // User identifier
                 final View userIdentifierLayout = convertView.findViewById(R.id.ll_row_user_identifier);
-                final TextView valueUserIdentifier = (TextView) userIdentifierLayout.findViewById(R.id.value_user_identifier);
+                final TextView valueUserIdentifier = userIdentifierLayout.findViewById(R.id.value_user_identifier);
                 valueUserIdentifier.setText(element.getUserIdentifier());
 
                 // Displayable id
                 final View displayableIdLayout = convertView.findViewById(R.id.ll_row_displayable_id);
-                final TextView valueDisplayableId = (TextView) displayableIdLayout.findViewById(R.id.value_displayable_id);
+                final TextView valueDisplayableId = displayableIdLayout.findViewById(R.id.value_displayable_id);
                 valueDisplayableId.setText(element.getDisplayableId());
 
                 // Scopes
                 final View scopesLayout = convertView.findViewById(R.id.ll_row_scopes);
                 scopesLayout.setVisibility(isRt ? View.GONE : View.VISIBLE);
-                final TextView valueScopes = (TextView) convertView.findViewById(R.id.values_scopes);
+                final TextView valueScopes = convertView.findViewById(R.id.values_scopes);
                 if (!isRt) {
                     valueScopes.setText(element.getScopes());
                 }
@@ -144,7 +143,7 @@ public class CacheFragment extends Fragment {
                 // Expires on
                 final View expiresOnLayout = convertView.findViewById(R.id.ll_row_expires_on);
                 expiresOnLayout.setVisibility(isRt ? View.GONE : View.VISIBLE);
-                final TextView valueExpiresOn = (TextView) convertView.findViewById(R.id.value_expires_on);
+                final TextView valueExpiresOn = convertView.findViewById(R.id.value_expires_on);
                 if (!isRt) {
                     valueExpiresOn.setText(element.getExpiresOn());
                 }
@@ -152,18 +151,18 @@ public class CacheFragment extends Fragment {
                 // Host
                 final View hostLayout = convertView.findViewById(R.id.ll_row_host);
                 hostLayout.setVisibility(isRt ? View.VISIBLE : View.GONE);
-                final TextView valueHost = (TextView) convertView.findViewById(R.id.value_host);
+                final TextView valueHost = convertView.findViewById(R.id.value_host);
                 if (isRt) {
                     // set it
                     valueHost.setText(element.getHost());
                 }
 
                 // Designation
-                final TextView tokenDesignation = (TextView) convertView.findViewById(R.id.tv_atrt);
+                final TextView tokenDesignation = convertView.findViewById(R.id.tv_atrt);
                 tokenDesignation.setText(element.getElementType().mDisplayValue);
 
                 // Delete
-                final Button deleteBtn = (Button) convertView.findViewById(R.id.btn_delete);
+                final Button deleteBtn = convertView.findViewById(R.id.btn_delete);
                 deleteBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(final View view) {
