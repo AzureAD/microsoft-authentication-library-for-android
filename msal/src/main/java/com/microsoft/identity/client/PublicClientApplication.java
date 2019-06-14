@@ -508,22 +508,6 @@ public class PublicClientApplication implements IPublicClientApplication {
         void onError(Exception exception);
     }
 
-    public interface RemoveAccountCallback extends TaskCompletedCallbackWithError<Boolean, Exception> {
-        /**
-         * Called once succeed and pass the result object.
-         *
-         * @param result the success result.
-         */
-        void onTaskCompleted(Boolean result);
-
-        /**
-         * Called once exception thrown.
-         *
-         * @param exception
-         */
-        void onError(Exception exception);
-    }
-
     @Override
     public void handleInteractiveRequestRedirect(final int requestCode,
                                                  final int resultCode,
