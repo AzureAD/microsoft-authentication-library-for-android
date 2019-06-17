@@ -36,6 +36,7 @@ import android.util.Pair;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.microsoft.identity.client.claims.ClaimsRequest;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
@@ -45,6 +46,7 @@ import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
 import com.microsoft.identity.client.internal.telemetry.Defaults;
+import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AuthorityDeserializer;
@@ -79,6 +81,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isHomeTenantEquivalent;
+import static com.microsoft.identity.common.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
+import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
 
 /**
  * <p>
@@ -126,7 +130,7 @@ import static com.microsoft.identity.client.internal.controllers.OperationParame
  * </p>
  * </p>
  */
-public class PublicClientApplication implements IPublicClientApplication {
+public class PublicClientApplication implements IPublicClientApplication, ITokenShare {
     private static final String TAG = PublicClientApplication.class.getSimpleName();
 
     private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
@@ -139,6 +143,7 @@ public class PublicClientApplication implements IPublicClientApplication {
     private static final String FORCE_HOME_LOOKUP = "force_home_lookup";
 
     protected PublicClientApplicationConfiguration mPublicClientConfiguration;
+    protected TokenShareUtility mTokenShareUtility;
 
     /**
      * {@link PublicClientApplication#create(Context, int, ApplicationCreatedListener)} will read the client id and other configuration settings from the
@@ -364,6 +369,13 @@ public class PublicClientApplication implements IPublicClientApplication {
         setupConfiguration(context, developerConfig);
         AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
+        if (mPublicClientConfiguration.getOAuth2TokenCache() instanceof MsalOAuth2TokenCache) {
+            mTokenShareUtility = new TokenShareUtility(
+                    (MsalOAuth2TokenCache) mPublicClientConfiguration.getOAuth2TokenCache()
+            );
+        } else {
+            throw new IllegalStateException("TSL support mandates use of the MsalOAuth2TokenCache");
+        }
     }
 
     protected PublicClientApplication(@NonNull final Context context,
@@ -416,6 +428,50 @@ public class PublicClientApplication implements IPublicClientApplication {
         HttpCache.initialize(context.getCacheDir());
 
         com.microsoft.identity.common.internal.logging.Logger.info(TAG, "Create new public client application.");
+    }
+
+    @Override
+    public String getFamilyRefreshToken(@NonNull final String oid) throws MsalClientException {
+        validateNonNullArgument(oid, "oid");
+        validateBrokerNotInUse();
+
+        try {
+            return mTokenShareUtility.getFamilyRefreshToken(oid);
+        } catch (BaseException e) {
+            throw new MsalClientException(
+                    TOKEN_CACHE_ITEM_NOT_FOUND,
+                    "Failed to retrieve FRT - see getCause() for additional Exception info",
+                    e
+            );
+        }
+    }
+
+    @Override
+    public void saveFamilyRefreshToken(@NonNull final String tokenCacheItemJson) throws MsalClientException {
+        validateNonNullArgument(tokenCacheItemJson, "TokenCacheItemJson");
+        validateBrokerNotInUse();
+
+        try {
+            mTokenShareUtility.saveFamilyRefreshToken(tokenCacheItemJson);
+        } catch (BaseException e) {
+            throw new MsalClientException(
+                    TOKEN_SHARING_DESERIALIZATION_ERROR,
+                    "Failed to save FRT - see getCause() for additional Exception info",
+                    e
+            );
+        }
+    }
+
+    private void validateBrokerNotInUse() throws MsalClientException {
+        if (MSALControllerFactory.brokerEligible(
+                mPublicClientConfiguration.getAppContext(),
+                mPublicClientConfiguration.getDefaultAuthority(),
+                mPublicClientConfiguration
+        )) {
+            throw new MsalClientException(
+                    "Cannot perform this action - broker is enabled."
+            );
+        }
     }
 
     /**
@@ -662,7 +718,8 @@ public class PublicClientApplication implements IPublicClientApplication {
 
     private static void validateNonNullArgument(@Nullable Object o,
                                                 @NonNull String argName) {
-        if (null == o) {
+        if (null == o
+                || (o instanceof CharSequence) && TextUtils.isEmpty((CharSequence) o)) {
             throw new IllegalArgumentException(
                     argName
                             + " cannot be null or empty"
