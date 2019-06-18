@@ -60,7 +60,7 @@
                 <!-- To Test Sovereign: msalcb7faed4-b8c0-49ee-b421-f5ed16894c83 -->
                 <data android:scheme="msauth"
                     android:host="com.microsoft.identity.client.sample.local"
-                    android:path="/gwdiktUBDmQq+fbWiJoa+/YH070="/>
+                    android:path="/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D"/>
             </intent-filter>
         </activity>
     </application>
