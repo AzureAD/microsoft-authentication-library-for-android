@@ -437,7 +437,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         try {
             return mTokenShareUtility.getFamilyRefreshToken(oid);
-        } catch (BaseException e) {
+        } catch (Exception e) {
             throw new MsalClientException(
                     TOKEN_CACHE_ITEM_NOT_FOUND,
                     "Failed to retrieve FRT - see getCause() for additional Exception info",
@@ -453,7 +453,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         try {
             mTokenShareUtility.saveFamilyRefreshToken(tokenCacheItemJson);
-        } catch (BaseException e) {
+        } catch (Exception e) {
             throw new MsalClientException(
                     TOKEN_SHARING_DESERIALIZATION_ERROR,
                     "Failed to save FRT - see getCause() for additional Exception info",
