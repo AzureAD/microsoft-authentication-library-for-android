@@ -371,6 +371,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
         if (mPublicClientConfiguration.getOAuth2TokenCache() instanceof MsalOAuth2TokenCache) {
             mTokenShareUtility = new TokenShareUtility(
+                    mPublicClientConfiguration.getClientId(),
+                    mPublicClientConfiguration.getRedirectUri(),
                     (MsalOAuth2TokenCache) mPublicClientConfiguration.getOAuth2TokenCache()
             );
         } else {
