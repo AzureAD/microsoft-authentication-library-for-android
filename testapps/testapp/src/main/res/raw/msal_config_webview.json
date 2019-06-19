@@ -1,7 +1,7 @@
 {
   "client_id" : "2652503c-ba8e-4ed9-b2ea-6512b9f16c98",
   "authorization_user_agent" : "WEBVIEW",
-  "redirect_uri" : "msauth://com.microsoft.identity.client.sample.local/gwdiktUBDmQq%2BfbWiJoa%2B%2FYH070%3D",
+  "redirect_uri" : "msauth://com.microsoft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D",
   "multiple_clouds_supported":true,
   "broker_redirect_uri_registered": true,
   "minimum.required.broker.protocol.version":"2.0",

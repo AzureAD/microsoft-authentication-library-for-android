@@ -74,6 +74,8 @@ import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
+import com.microsoft.identity.common.internal.ui.browser.Browser;
+import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 import com.microsoft.identity.common.internal.util.ICacheRecordGsonAdapter;
 
 import java.io.IOException;
@@ -85,8 +87,8 @@ import java.util.concurrent.Executors;
 
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_HOME_ACCOUNT_ID;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_REDIRECT;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.DEFAULT_BROWSER_PACKAGE_NAME;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ENVIRONMENT;
 
 /**
@@ -594,17 +596,17 @@ public class BrokerMsalController extends BaseController {
 
     /**
      * A broker task to be performed. Use in conjunction with performBrokerTask()
-     * */
+     */
     public interface BrokerTask<T> {
 
         /**
          * Performs a task in this function with the given IMicrosoftAuthService.
-         * */
+         */
         T perform(IMicrosoftAuthService service) throws BaseException, RemoteException;
 
         /**
          * Name of the task (for logging purposes).
-         * */
+         */
         String getOperationName();
     }
 
@@ -612,9 +614,9 @@ public class BrokerMsalController extends BaseController {
      * Perform an operation with Broker's MicrosoftAuthService on a background thread.
      *
      * @param configuration a PublicClientApplicationConfiguration file.
-     * @param callback a callback function to be invoked to return result/error of the performed task.
-     * @param brokerTask the task to be performed.
-     * */
+     * @param callback      a callback function to be invoked to return result/error of the performed task.
+     * @param brokerTask    the task to be performed.
+     */
     private <T> void performBrokerTask(@NonNull final PublicClientApplicationConfiguration configuration,
                                        @NonNull final TaskCompletedCallbackWithError<T, Exception> callback,
                                        @NonNull final BrokerTask<T> brokerTask) {
@@ -683,10 +685,9 @@ public class BrokerMsalController extends BaseController {
                 new BrokerTask<List<ICacheRecord>>() {
                     @Override
                     public List<ICacheRecord> perform(IMicrosoftAuthService service) throws ClientException, RemoteException {
-                        // TODO also pass clientID and redirectURL so that it gets ICacheRecord specific to this particular app.
                         return MsalBrokerResultAdapter
-                                .currentAccountFromBundle(
-                                        service.getCurrentAccount()
+                                .accountsFromBundle(
+                                        service.getCurrentAccount(getRequestBundleForGetAccounts(OperationParametersAdapter.createOperationParameters(configuration)))
                                 );
                     }
 
@@ -732,7 +733,7 @@ public class BrokerMsalController extends BaseController {
 
             final List<ICacheRecord> cacheRecords =
                     MsalBrokerResultAdapter
-                            .currentAccountFromBundle(
+                            .accountsFromBundle(
                                     service.getAccounts(requestBundle)
                             );
 
@@ -785,7 +786,7 @@ public class BrokerMsalController extends BaseController {
 
                 final Bundle userInfoBundle = result.getResult();
                 cacheRecords.addAll(
-                        MsalBrokerResultAdapter.currentAccountFromBundle(userInfoBundle)
+                        MsalBrokerResultAdapter.accountsFromBundle(userInfoBundle)
                 );
             }
 
@@ -907,8 +908,9 @@ public class BrokerMsalController extends BaseController {
                 new BrokerTask<Boolean>() {
                     @Override
                     public Boolean perform(IMicrosoftAuthService service) throws BaseException, RemoteException {
-                        // TODO remove Bundle(). We do not need this anymore.
-                        final Bundle resultBundle = service.removeAccountFromSharedDevice(new Bundle());
+                        final Bundle resultBundle = service.removeAccountFromSharedDevice(
+                                getRequestBundleForRemoveAccountFromSharedDevice(configuration)
+                        );
 
                         if (resultBundle == null) {
                             return true;
@@ -932,6 +934,21 @@ public class BrokerMsalController extends BaseController {
                     }
                 });
     }
+
+    private Bundle getRequestBundleForRemoveAccountFromSharedDevice(PublicClientApplicationConfiguration configuration) {
+        final Bundle requestBundle = new Bundle();
+
+        try {
+            Browser browser = BrowserSelector.select(configuration.getAppContext(), configuration.getBrowserSafeList());
+            requestBundle.putString(DEFAULT_BROWSER_PACKAGE_NAME, browser.getPackageName());
+        } catch (ClientException e) {
+            // Best effort. If none is passed to broker, then it will let the OS decide.
+            Logger.error(TAG, e.getErrorCode(), e);
+        }
+
+        return requestBundle;
+    }
+
 
     static boolean isMicrosoftAuthServiceSupported(@NonNull final Context context) {
         final MicrosoftAuthClient client = new MicrosoftAuthClient(context);

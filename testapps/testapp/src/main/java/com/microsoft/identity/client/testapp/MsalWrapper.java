@@ -21,6 +21,7 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
+import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
 
@@ -463,7 +464,7 @@ public class MsalWrapper {
             }
         }
 
-        return (String) claims.get(MicrosoftIdToken.PREFERRED_USERNAME);
+        return SchemaUtil.getDisplayableId(claims);
     }
 
     private void performPostAccountLoadedJobs() {
