@@ -433,12 +433,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     @Override
-    public String getFamilyRefreshToken(@NonNull final String oid) throws MsalClientException {
+    public String getWrappedFamilyRefreshToken(@NonNull final String oid) throws MsalClientException {
         validateNonNullArgument(oid, "oid");
         validateBrokerNotInUse();
 
         try {
-            return mTokenShareUtility.getFamilyRefreshToken(oid);
+            return mTokenShareUtility.getWrappedFamilyRefreshToken(oid);
         } catch (Exception e) {
             throw new MsalClientException(
                     TOKEN_CACHE_ITEM_NOT_FOUND,
