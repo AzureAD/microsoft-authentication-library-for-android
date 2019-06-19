@@ -151,9 +151,26 @@ public class MsalWrapper {
                 requestOptions.getUiBehavior(),
                 null,
                 requestOptions.getExtraScopesToConsent() == null ? null : requestOptions.getExtraScopesToConsent().toLowerCase().split(" "),
-                null,
+                getAuthority(requestOptions.getAuthorityType()),
                 getAuthenticationCallback(notifyCallback)
         );
+    }
+
+    final String getAuthority(Constants.AuthorityType authorityTypeType) {
+        switch (authorityTypeType) {
+            case AAD_COMMON:
+                return Constants.AAD_AUTHORITY;
+            case B2C:
+                return "B2c is not configured yet";
+            case AAD_MSDEVEX:
+                return Constants.AAD_MSDEVEX;
+            case AAD_GUEST:
+                return Constants.AAD_GUEST;
+            case CONSUMERS:
+                return Constants.CONSUMERS;
+        }
+
+        throw new IllegalArgumentException("Not supported authority type");
     }
 
     public void acquireTokenWithResourceId(final Activity activity,

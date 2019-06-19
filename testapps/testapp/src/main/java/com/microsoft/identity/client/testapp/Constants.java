@@ -31,7 +31,8 @@ public class Constants {
         AAD_COMMON,
         B2C,
         AAD_MSDEVEX,
-        AAD_GUEST
+        AAD_GUEST,
+        CONSUMERS
     }
 
     enum UserAgent {
@@ -48,4 +49,5 @@ public class Constants {
     final static String AAD_AUTHORITY = "https://login.microsoftonline.com/common";
     final static String AAD_MSDEVEX = "https://login.microsoftonline.com/msdevex.onmicrosoft.com";
     final static String AAD_GUEST = "https://login.microsoftonline.com/nomfaad.onmicrosoft.com";
+    final static String CONSUMERS = "https://login.microsoftonline.com/consumers";
 }

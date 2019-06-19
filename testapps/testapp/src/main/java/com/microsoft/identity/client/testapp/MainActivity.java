@@ -335,6 +335,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         );
     }
 
+    final String getAuthority(Constants.AuthorityType authorityTypeType) {
+        switch (authorityTypeType) {
+            case AAD_COMMON:
+                return Constants.AAD_AUTHORITY;
+            case B2C:
+                return "B2c is not configured yet";
+            case AAD_MSDEVEX:
+                return Constants.AAD_MSDEVEX;
+            case AAD_GUEST:
+                return Constants.AAD_GUEST;
+            case CONSUMERS:
+                return Constants.CONSUMERS;
+        }
+
+        throw new IllegalArgumentException("Not supported authority type");
+    }
+
     void setUser(final IAccount user) {
         mSelectedAccount = user;
     }
