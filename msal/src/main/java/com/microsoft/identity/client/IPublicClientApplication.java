@@ -84,7 +84,7 @@ public interface IPublicClientApplication {
      *
      * @param acquireTokenParameters
      */
-    void acquireTokenAsync(@NonNull final AcquireTokenParameters acquireTokenParameters);
+    void acquireToken(@NonNull final AcquireTokenParameters acquireTokenParameters);
 
 
     /**
@@ -94,7 +94,7 @@ public interface IPublicClientApplication {
      *
      * @param acquireTokenSilentParameters
      */
-    void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters);
+    void acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters);
 
     /**
      * Returns the PublicClientConfiguration for this instance of PublicClientApplication

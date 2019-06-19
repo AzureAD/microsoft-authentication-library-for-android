@@ -582,7 +582,7 @@ public class PublicClientApplication implements IPublicClientApplication {
 
 
 
-        acquireTokenAsync(acquireTokenParameters);
+        acquireToken(acquireTokenParameters);
     }
 
       protected static void validateNonNullArgument(@Nullable Object o,
@@ -655,7 +655,7 @@ public class PublicClientApplication implements IPublicClientApplication {
     }
 
     @Override
-    public void acquireTokenAsync(@NonNull final AcquireTokenParameters acquireTokenParameters) {
+    public void acquireToken(@NonNull final AcquireTokenParameters acquireTokenParameters) {
         acquireTokenParameters.setAccountRecord(
                 getAccountRecord(
                         acquireTokenParameters.getAccount(),
@@ -737,7 +737,7 @@ public class PublicClientApplication implements IPublicClientApplication {
 
         validateSilentParameters(acquireTokenSilentParameters);
 
-        acquireTokenSilentAsync(acquireTokenSilentParameters);
+        acquireTokenSilent(acquireTokenSilentParameters);
     }
 
     private void validateSilentParameters(
@@ -750,7 +750,7 @@ public class PublicClientApplication implements IPublicClientApplication {
     }
 
     @Override
-    public void acquireTokenSilentAsync(
+    public void acquireTokenSilent(
             @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
         validateSilentParameters(acquireTokenSilentParameters);
 

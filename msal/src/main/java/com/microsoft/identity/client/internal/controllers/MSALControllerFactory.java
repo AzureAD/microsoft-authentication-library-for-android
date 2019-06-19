@@ -118,8 +118,7 @@ public class MSALControllerFactory {
      */
     public static boolean brokerEligible(@NonNull final Context applicationContext,
                                          @NonNull Authority authority,
-                                         @NonNull PublicClientApplicationConfiguration applicationConfiguration)
-            throws MsalClientException {
+                                         @NonNull PublicClientApplicationConfiguration applicationConfiguration) throws MsalClientException {
         final String methodName = ":brokerEligible";
         //If app has asked for Broker or if the authority is not AAD return false
         if (!applicationConfiguration.getUseBroker() || !(authority instanceof AzureActiveDirectoryAuthority)) {

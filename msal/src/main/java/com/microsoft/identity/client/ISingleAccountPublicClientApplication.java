@@ -24,11 +24,9 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
-
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 
 /**
@@ -49,7 +47,7 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * @param listener a callback to be invoked when the operation finishes.
      */
 
-    void getCurrentAccount(final CurrentAccountCallback listener) throws MsalClientException;
+    void getCurrentAccount(final CurrentAccountCallback listener);
 
 
     /**
@@ -78,7 +76,7 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * @param callback a callback to be invoked when the operation finishes.
      */
 
-    void signOut(@NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback) throws MsalClientException;
+    void signOut(@NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback);
 
 
 

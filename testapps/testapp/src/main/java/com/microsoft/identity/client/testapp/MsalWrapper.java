@@ -26,6 +26,7 @@ import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackW
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,8 @@ public class MsalWrapper {
     }
 
     private IPublicClientApplication mApplication;
+    private IMultipleAccountPublicClientApplication mMultiAccountPublicClientApplication;
+    private ISingleAccountPublicClientApplication mSingleAccountPublicClientApplication;
     private HashMap<String, IPostAccountLoaded> postAccountLoadedJobs = new HashMap<>();
     private List<IAccount> mLoadedAccount;
 
@@ -144,16 +147,16 @@ public class MsalWrapper {
             return;
         }
 
-        mApplication.acquireToken(
-                activity,
-                requestOptions.getScopes().toLowerCase().split(" "),
-                requestOptions.getLoginHint(),
-                requestOptions.getUiBehavior(),
-                null,
-                requestOptions.getExtraScopesToConsent() == null ? null : requestOptions.getExtraScopesToConsent().toLowerCase().split(" "),
-                null,
-                getAuthenticationCallback(notifyCallback)
-        );
+        AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(activity)
+                .withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")))
+                .withLoginHint(requestOptions.getLoginHint())
+                .withUiBehavior(requestOptions.getUiBehavior())
+                .withOtherScopesToAuthorize(Arrays.asList(requestOptions.getExtraScopesToConsent().toLowerCase().split(" ")))
+                .callback(getAuthenticationCallback(notifyCallback))
+                .build();
+
+        mApplication.acquireToken(parameters);
     }
 
     public void acquireTokenWithResourceId(final Activity activity,
@@ -177,7 +180,7 @@ public class MsalWrapper {
                 .withLoginHint(requestOptions.getLoginHint())
                 .build();
 
-        mApplication.acquireTokenAsync(acquireTokenParameters);
+        mApplication.acquireToken(acquireTokenParameters);
     }
 
     public void acquireTokenSilentWithResource(final AcquireTokenFragment.RequestOptions requestOptions,
@@ -203,7 +206,7 @@ public class MsalWrapper {
                                                 .callback(getAuthenticationCallback(notifyCallback))
                                                 .build();
 
-                                mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
+                                mApplication.acquireTokenSilent(acquireTokenSilentParameters);
 
                             } else {
                                 notifyCallback.notify("No account found matching loginHint");
@@ -229,7 +232,7 @@ public class MsalWrapper {
                             .callback(getAuthenticationCallback(notifyCallback))
                             .build();
 
-            mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
+            mApplication.acquireTokenSilent(acquireTokenSilentParameters);
         }
     }
 
@@ -248,16 +251,13 @@ public class MsalWrapper {
                         @Override
                         public void onTaskCompleted(final IAccount account) {
                             if (account != null) {
-                                mApplication.acquireTokenSilentAsync(
-                                        requestOptions.getScopes().toLowerCase().split(" "),
-                                        account,
-                                        mApplication
-                                                .getConfiguration()
-                                                .getDefaultAuthority()
-                                                .getAuthorityUri()
-                                                .toString(),
-                                        requestOptions.forceRefresh(),
-                                        getAuthenticationCallback(notifyCallback));
+                                AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
+                                        .withScopes(Arrays.asList( requestOptions.getScopes().toLowerCase().split(" ")))
+                                        .forAccount(account)
+                                        .forceRefresh(requestOptions.forceRefresh())
+                                        .callback(getAuthenticationCallback(notifyCallback))
+                                        .build();
+                                mApplication.acquireTokenSilent(parameters);
                             } else {
                                 notifyCallback.notify("No account found matching identifier");
                             }
@@ -273,17 +273,14 @@ public class MsalWrapper {
                 notifyCallback.notify("account is not yet loaded");
                 return;
             }
+            AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
+                    .withScopes(Arrays.asList( requestOptions.getScopes().toLowerCase().split(" ")))
+                    .forAccount(mLoadedAccount.get(0))
+                    .forceRefresh(requestOptions.forceRefresh())
+                    .callback(getAuthenticationCallback(notifyCallback))
+                    .build();
 
-            mApplication.acquireTokenSilentAsync(
-                    requestOptions.getScopes().toLowerCase().split(" "),
-                    mLoadedAccount.get(0),
-                    mApplication
-                            .getConfiguration()
-                            .getDefaultAuthority()
-                            .getAuthorityUri()
-                            .toString(),
-                    requestOptions.forceRefresh(),
-                    getAuthenticationCallback(notifyCallback));
+            mApplication.acquireTokenSilent(parameters);
         }
     }
 
@@ -369,7 +366,7 @@ public class MsalWrapper {
             });
         } else if (mApplication instanceof ISingleAccountPublicClientApplication) {
             final ISingleAccountPublicClientApplication application = (ISingleAccountPublicClientApplication) (mApplication);
-            application.removeCurrentAccount(new TaskCompletedCallbackWithError<Boolean, Exception>() {
+            application.signOut(new TaskCompletedCallbackWithError<Boolean, Exception>() {
                 @Override
                 public void onTaskCompleted(Boolean result) {
                     if (result) {
