@@ -34,7 +34,7 @@ public interface ITokenShare extends ITokenShareInternal {
      * {@inheritDoc}
      */
     @Override
-    String getWrappedFamilyRefreshToken(String oid) throws MsalClientException;
+    String getWrappedFamilyRefreshToken(String identifier) throws MsalClientException;
 
     /**
      * {@inheritDoc}
