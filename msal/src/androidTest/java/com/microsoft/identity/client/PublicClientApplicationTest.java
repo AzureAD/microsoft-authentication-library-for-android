@@ -166,23 +166,31 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
                                       final Activity activity,
                                       final CountDownLatch releaseLock) {
-                publicClientApplication.acquireToken(activity, SCOPE, "loginhint", null, null, null, "https://someauthority", new AuthenticationCallback() {
-                    @Override
-                    public void onSuccess(IAuthenticationResult authenticationResult) {
-                        fail("Unexpected success");
-                    }
 
-                    @Override
-                    public void onError(MsalException exception) {
-                        Assert.assertTrue(exception instanceof MsalClientException);
-                        Assert.assertEquals(exception.getErrorCode(), MsalClientException.UNKNOWN_AUTHORITY);
-                    }
+                AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(activity)
+                        .withScopes(Arrays.asList(SCOPE))
+                        .withLoginHint("loginhint")
+                        .fromAuthority("https://someauthority")
+                        .callback(new AuthenticationCallback() {
+                            @Override
+                            public void onSuccess(IAuthenticationResult authenticationResult) {
+                                fail("Unexpected success");
+                            }
 
-                    @Override
-                    public void onCancel() {
-                        fail("Unexpected Cancel");
-                    }
-                });
+                            @Override
+                            public void onError(MsalException exception) {
+                                Assert.assertTrue(exception instanceof MsalClientException);
+                                Assert.assertEquals(exception.getErrorCode(), MsalClientException.UNKNOWN_AUTHORITY);
+                            }
+
+                            @Override
+                            public void onCancel() {
+                                fail("Unexpected Cancel");
+                            }
+                        })
+                        .build();
+                publicClientApplication.acquireToken(parameters);
             }
 
             @Override
@@ -385,11 +393,15 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
                                       final Activity activity,
                                       final CountDownLatch releaseLock) {
-                publicClientApplication.acquireToken(activity, SCOPE, "somehint", UiBehavior.FORCE_LOGIN,
-                        new ArrayList<Pair<String, String>>() {{
+                AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(activity)
+                        .withScopes(Arrays.asList(SCOPE))
+                        .withLoginHint("somehint")
+                        .withUiBehavior(UiBehavior.FORCE_LOGIN)
+                        .withAuthorizationQueryStringParameters(new ArrayList<Pair<String, String>>() {{
                             add(new Pair<>("extra", "param"));
-                        }},
-                        null, null, new AuthenticationCallback() {
+                        }})
+                        .callback(new AuthenticationCallback() {
                             @Override
                             public void onSuccess(IAuthenticationResult authenticationResult) {
                                 fail("unexpected success result");
@@ -404,7 +416,9 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                             public void onCancel() {
                                 releaseLock.countDown();
                             }
-                        });
+                        })
+                        .build();
+                publicClientApplication.acquireToken(parameters);
             }
 
             @Override
@@ -449,11 +463,15 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
             void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
                                       final Activity activity,
                                       final CountDownLatch releaseLock) {
-                publicClientApplication.acquireToken(activity, SCOPE, "somehint", UiBehavior.FORCE_LOGIN,
-                        new ArrayList<Pair<String, String>>() {{
+                AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(activity)
+                        .withScopes(Arrays.asList(SCOPE))
+                        .withLoginHint("somehint")
+                        .withUiBehavior(UiBehavior.FORCE_LOGIN)
+                        .withAuthorizationQueryStringParameters(new ArrayList<Pair<String, String>>() {{
                             add(new Pair<>("extra", "param"));
-                        }},
-                        null, null, new AuthenticationCallback() {
+                        }})
+                        .callback(new AuthenticationCallback() {
                             @Override
                             public void onSuccess(IAuthenticationResult authenticationResult) {
                                 fail("unexpected success result");
@@ -473,7 +491,9 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
                             public void onCancel() {
                                 fail("unexpected cancel");
                             }
-                        });
+                        })
+                        .build();
+                publicClientApplication.acquireToken(parameters);
             }
 
             @Override
