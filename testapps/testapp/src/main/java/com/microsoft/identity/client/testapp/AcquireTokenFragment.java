@@ -25,7 +25,6 @@ package com.microsoft.identity.client.testapp;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +41,8 @@ import com.microsoft.identity.client.UiBehavior;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import androidx.fragment.app.Fragment;
 
 import static com.microsoft.identity.client.testapp.R.id.enablePII;
 

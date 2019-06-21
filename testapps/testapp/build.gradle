@@ -61,8 +61,8 @@ android {
 dependencies {
     // Compile Dependency
     implementation project(':msal')
-    implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
-    implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
-    implementation "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
-    implementation "com.android.support:design:$rootProject.ext.supportLibraryVersion"
+    implementation "com.google.code.gson:gson:2.8.5"
+    implementation "androidx.appcompat:appcompat:1.0.2"
+    implementation "androidx.legacy:legacy-support-v4:1.0.0"
+    implementation "com.google.android.material:material:1.0.0"
 }

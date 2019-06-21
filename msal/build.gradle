@@ -17,7 +17,7 @@ android {
         versionName getAppVersionName()
         project.archivesBaseName = "msal"
         project.version = android.defaultConfig.versionName
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -105,21 +105,21 @@ task sourcesJar(type: Jar) {
 }
 
 dependencies {
-    implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibraryVersion"
-    implementation "com.android.support:customtabs:$rootProject.ext.supportLibraryVersion"
-    implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
+    implementation "androidx.appcompat:appcompat:1.0.2"
+    implementation "androidx.browser:browser:1.0.0"
+    implementation "com.google.code.gson:gson:2.8.5"
     implementation 'com.nimbusds:nimbus-jose-jwt:5.7'
 
     // test dependencies
-    testImplementation "junit:junit:$rootProject.ext.junitVersion"
+    testImplementation "junit:junit:4.12"
     // TODO the below dependency should be mockito-core but the MockMaker isn't working...
-    testImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
+    testImplementation "org.mockito:mockito-android:2.18.3"
 
     // instrumentation test dependencies
-    androidTestImplementation "com.android.support.test:runner:$rootProject.ext.runnerVersion"
+    androidTestImplementation "androidx.test:runner:1.2.0"
     // Set this dependency to use JUnit 4 rules
-    androidTestImplementation "com.android.support.test:rules:$rootProject.ext.rulesVersion"
-    androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
+    androidTestImplementation "androidx.test:rules:1.2.0"
+    androidTestImplementation "org.mockito:mockito-android:2.18.3"
     // 'local' flavor dependencies
     localApi(project(":common")) {
         transitive = false

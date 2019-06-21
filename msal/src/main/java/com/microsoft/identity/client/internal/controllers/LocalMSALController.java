@@ -23,8 +23,8 @@
 package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Intent;
-import android.support.annotation.NonNull;
-import android.support.annotation.WorkerThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.WorkerThread;
 import android.text.TextUtils;
 
 import com.microsoft.identity.client.exception.MsalUiRequiredException;

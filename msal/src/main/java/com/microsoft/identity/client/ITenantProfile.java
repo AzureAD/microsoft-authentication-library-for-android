@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 public interface ITenantProfile extends IAccount {
 

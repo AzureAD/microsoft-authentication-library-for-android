@@ -2,8 +2,8 @@ package com.microsoft.identity.client.testapp;
 
 import android.app.Activity;
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
@@ -23,7 +23,6 @@ import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
-import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
 
 import java.util.ArrayList;
 import java.util.HashMap;
