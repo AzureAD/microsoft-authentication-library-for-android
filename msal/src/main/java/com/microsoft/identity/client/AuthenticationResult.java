@@ -27,9 +27,9 @@ import android.support.annotation.Nullable;
 
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccessTokenRecord;
-import com.microsoft.identity.common.internal.dto.IAccountRecord;
 
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -37,31 +37,16 @@ import java.util.concurrent.TimeUnit;
  * {@link AuthenticationResult} and passed back through the {@link AuthenticationCallback}.
  */
 public final class AuthenticationResult implements IAuthenticationResult {
-    //Fields for Legacy Cache
-    private final String mTenantId;
-    private final String mRawIdToken;
-    private final String mUniqueId;
 
+    private final String mTenantId;
     private final AccessTokenRecord mAccessToken;
     private final IAccount mAccount;
 
-    public AuthenticationResult(@NonNull final ICacheRecord cacheRecord) {
-        mAccessToken = cacheRecord.getAccessToken();
-        mTenantId = cacheRecord.getAccount().getRealm();
-        mUniqueId = cacheRecord.getAccount().getHomeAccountId();
-        mRawIdToken = cacheRecord.getIdToken().getSecret();
-        mAccount = AccountAdapter.adapt(cacheRecord.getAccount());
-    }
-
-    public AuthenticationResult(@NonNull AccessTokenRecord accessToken,
-                                @Nullable String rawIdToken,
-                                @NonNull IAccountRecord accountRecord) {
-        mAccessToken = accessToken;
-        mTenantId = accessToken.getRealm();
-        mUniqueId = accessToken.getHomeAccountId();
-        mRawIdToken = rawIdToken;
-        mAccount = AccountAdapter.adapt(accountRecord);
-
+    public AuthenticationResult(@NonNull final List<ICacheRecord> cacheRecords) {
+        final ICacheRecord mostRecentlyAuthorized = cacheRecords.get(0);
+        mAccessToken = mostRecentlyAuthorized.getAccessToken();
+        mTenantId = mostRecentlyAuthorized.getAccount().getRealm();
+        mAccount = AccountAdapter.adapt(cacheRecords).get(0);
     }
 
     @Override
@@ -90,18 +75,6 @@ public final class AuthenticationResult implements IAuthenticationResult {
     @Nullable
     public String getTenantId() {
         return mTenantId;
-    }
-
-    @Override
-    @NonNull
-    public String getUniqueId() {
-        return mUniqueId;
-    }
-
-    @Override
-    @Nullable
-    public String getIdToken() {
-        return mRawIdToken;
     }
 
     @Override

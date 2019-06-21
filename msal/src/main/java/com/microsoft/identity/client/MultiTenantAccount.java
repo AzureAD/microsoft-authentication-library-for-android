@@ -22,18 +22,30 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import java.io.Serializable;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
-/**
- * Interface describing an identifier with a {@link String} representation.
- */
-public interface IAccountIdentifier extends Serializable {
+import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 
-    /**
-     * Gets the identifier.
-     *
-     * @return The identifier to get.
-     */
-    String getIdentifier();
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
+public class MultiTenantAccount extends Account implements IMultiTenantAccount {
+
+    private Map<String, ITenantProfile> mTenantProfiles = new HashMap<>();
+
+    MultiTenantAccount(@Nullable final IDToken homeTenantIdToken) {
+        super(homeTenantIdToken);
+    }
+
+    void setTenantProfiles(@NonNull final Map<String, ITenantProfile> profiles) {
+        mTenantProfiles = profiles;
+    }
+
+    @NonNull
+    @Override
+    public Map<String, ITenantProfile> getTenantProfiles() {
+        return Collections.unmodifiableMap(mTenantProfiles);
+    }
 }

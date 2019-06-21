@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
@@ -14,16 +13,22 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
+import com.microsoft.identity.client.ITenantProfile;
+import com.microsoft.identity.client.MultiTenantAccount;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
+import com.microsoft.identity.common.internal.cache.SchemaUtil;
+import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MsalWrapper {
     private static String PostMsalApplicationLoadedKey = "MsalWrapper_PostMsalApplicationLoaded";
@@ -147,7 +152,8 @@ public class MsalWrapper {
                 null,
                 requestOptions.getExtraScopesToConsent() == null ? null : requestOptions.getExtraScopesToConsent().toLowerCase().split(" "),
                 null,
-                getAuthenticationCallback(notifyCallback));
+                getAuthenticationCallback(notifyCallback)
+        );
     }
 
     public void acquireTokenWithResourceId(final Activity activity,
@@ -245,7 +251,11 @@ public class MsalWrapper {
                                 mApplication.acquireTokenSilentAsync(
                                         requestOptions.getScopes().toLowerCase().split(" "),
                                         account,
-                                        null,
+                                        mApplication
+                                                .getConfiguration()
+                                                .getDefaultAuthority()
+                                                .getAuthorityUri()
+                                                .toString(),
                                         requestOptions.forceRefresh(),
                                         getAuthenticationCallback(notifyCallback));
                             } else {
@@ -267,7 +277,11 @@ public class MsalWrapper {
             mApplication.acquireTokenSilentAsync(
                     requestOptions.getScopes().toLowerCase().split(" "),
                     mLoadedAccount.get(0),
-                    null,
+                    mApplication
+                            .getConfiguration()
+                            .getDefaultAuthority()
+                            .getAuthorityUri()
+                            .toString(),
                     requestOptions.forceRefresh(),
                     getAuthenticationCallback(notifyCallback));
         }
@@ -326,7 +340,7 @@ public class MsalWrapper {
                 public void onTaskCompleted(IAccount accountToRemove) {
                     application.removeAccount(
                             accountToRemove,
-                            new PublicClientApplication.RemoveAccountCallback() {
+                            new TaskCompletedCallbackWithError<Boolean, Exception>() {
                                 @Override
                                 public void onTaskCompleted(Boolean isSuccess) {
                                     if (isSuccess) {
@@ -355,29 +369,24 @@ public class MsalWrapper {
             });
         } else if (mApplication instanceof ISingleAccountPublicClientApplication) {
             final ISingleAccountPublicClientApplication application = (ISingleAccountPublicClientApplication) (mApplication);
-            try {
-                application.removeCurrentAccount(new PublicClientApplication.RemoveAccountCallback() {
-                    @Override
-                    public void onTaskCompleted(Boolean result) {
-                        if (result) {
-                            notifyCallback.notify("The account is successfully removed.");
+            application.removeCurrentAccount(new TaskCompletedCallbackWithError<Boolean, Exception>() {
+                @Override
+                public void onTaskCompleted(Boolean result) {
+                    if (result) {
+                        notifyCallback.notify("The account is successfully removed.");
 
-                            // Reload account list.
-                            loadAccountFromBroker(notifyCallback);
-                        } else {
-                            notifyCallback.notify("Account is not removed.");
-                        }
+                        // Reload account list.
+                        loadAccountFromBroker(notifyCallback);
+                    } else {
+                        notifyCallback.notify("Account is not removed.");
                     }
+                }
 
-                    @Override
-                    public void onError(Exception exception) {
-                        exception.printStackTrace();
-                        notifyCallback.notify("Failed to remove the account.");
-                    }
-                });
-            } catch (MsalClientException e) {
-                notifyCallback.notify(e.getMessage());
-            }
+                @Override
+                public void onError(Exception exception) {
+                    notifyCallback.notify("Failed to remove the account: " + exception.getMessage());
+                }
+            });
 
         }
     }
@@ -408,29 +417,54 @@ public class MsalWrapper {
             });
         } else if (mApplication instanceof ISingleAccountPublicClientApplication) {
             ISingleAccountPublicClientApplication singleAcctApp = (ISingleAccountPublicClientApplication) mApplication;
-            try {
-                singleAcctApp.getCurrentAccount(new ISingleAccountPublicClientApplication.CurrentAccountListener() {
-                    @Override
-                    public void onAccountLoaded(IAccount activeAccount) {
-                        mLoadedAccount = new ArrayList<>();
-                        if (activeAccount != null) {
-                            mLoadedAccount.add(activeAccount);
-                        }
-                        performPostAccountLoadedJobs();
+            singleAcctApp.getCurrentAccount(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
+                @Override
+                public void onAccountLoaded(@Nullable IAccount activeAccount) {
+                    mLoadedAccount = new ArrayList<>();
+                    if (activeAccount != null) {
+                        mLoadedAccount.add(activeAccount);
                     }
 
-                    @Override
-                    public void onAccountChanged(IAccount priorAccount, IAccount currentAccount) {
-                        notifyCallback.notify("single account is changed from " +
-                                (priorAccount == null ? "null" : priorAccount.getUsername()) +
-                                " to " +
-                                (currentAccount == null ? "null" : currentAccount.getUsername()));
-                    }
-                });
-            } catch (MsalClientException e) {
-                notifyCallback.notify(e.getMessage());
+                    performPostAccountLoadedJobs();
+                }
+
+                @Override
+                public void onAccountChanged(IAccount priorAccount, IAccount currentAccount) {
+                    notifyCallback.notify(
+                            "signed-in account is changed from "
+                                    + (null == priorAccount ? "null" : getPreferredUsername(priorAccount))
+                                    + " to "
+                                    + (null == currentAccount ? "null" : getPreferredUsername(currentAccount))
+                    );
+                }
+
+                @Override
+                public void onError(Exception exception) {
+                    notifyCallback.notify(exception.getMessage());
+                }
+            });
+        }
+    }
+
+    @NonNull
+    static String getPreferredUsername(@NonNull final IAccount account) {
+        Map<String, ?> claims = null;
+
+        // First inspect the root (the home account) - if there are claims, source the username from here
+        if (null != account.getClaims()) {
+            claims = account.getClaims();
+        } else { // We did not have a home account... fallback on iterating over the guests profiles...
+            final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
+
+            for (final ITenantProfile profile : multiTenantAccount.getTenantProfiles().values()) {
+                if (null != profile.getClaims()) {
+                    claims = profile.getClaims();
+                    break;
+                }
             }
         }
+
+        return SchemaUtil.getDisplayableId(claims);
     }
 
     private void performPostAccountLoadedJobs() {

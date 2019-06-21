@@ -22,54 +22,13 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-/**
- * AccountIdentifier implementation for Accounts retrieved from AzureActiveDirectory.
- */
-public class AzureActiveDirectoryAccountIdentifier extends AccountIdentifier {
+import android.support.annotation.NonNull;
 
-    /**
-     * The object identifier for the associated Account in AAD.
-     */
-    private String mObjectIdentifier;
+import java.util.Map;
 
-    /**
-     * The tenant identifier for the associated Account.
-     */
-    private String mTenantIdentifier;
+public interface IMultiTenantAccount extends IAccount {
 
-    /**
-     * Sets the object identifier.
-     *
-     * @param objectIdentifier The object identifier to set.
-     */
-    void setObjectIdentifier(final String objectIdentifier) {
-        mObjectIdentifier = objectIdentifier;
-    }
+    @NonNull
+    Map<String, ITenantProfile> getTenantProfiles();
 
-    /**
-     * Gets the object identifier.
-     *
-     * @return The object identifier to get.
-     */
-    public String getObjectIdentifier() {
-        return mObjectIdentifier;
-    }
-
-    /**
-     * Sets the tenantIdentifier.
-     *
-     * @param tenantIdentifier The tenantIdentifier to set.
-     */
-    void setTenantIdentifier(final String tenantIdentifier) {
-        mTenantIdentifier = tenantIdentifier;
-    }
-
-    /**
-     * Gets the tenantId.
-     *
-     * @return The tenantId to get.
-     */
-    public String getTenantIdentifier() {
-        return mTenantIdentifier;
-    }
 }

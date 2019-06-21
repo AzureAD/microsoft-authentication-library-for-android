@@ -26,6 +26,8 @@ package com.microsoft.identity.client;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
+
 /**
  * An interface that contains list of operations that are available when MSAL is in 'multiple account' mode.
  * - This mode allows an application to make API calls with more than one accounts.
@@ -50,7 +52,8 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * @param callback   The callback to notify once this action has finished.
      */
     void getAccount(@NonNull final String identifier,
-                    @NonNull final PublicClientApplication.GetAccountCallback callback);
+                    @NonNull final PublicClientApplication.GetAccountCallback callback
+    );
 
     /**
      * Removes the Account and Credentials (tokens) for the supplied IAccount.
@@ -58,5 +61,7 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * @param account The IAccount whose entry and associated tokens should be removed.
      * @return True, if the account was removed. False otherwise.
      */
-    void removeAccount(@Nullable final IAccount account, final PublicClientApplication.RemoveAccountCallback callback);
+    void removeAccount(@Nullable final IAccount account,
+                       @NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback
+    );
 }

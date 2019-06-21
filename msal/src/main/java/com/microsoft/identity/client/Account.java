@@ -22,73 +22,79 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-/**
- * MSAL API surface implementation of an account.
- */
-class Account implements IAccount {
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
-    private IAccountIdentifier mAccountIdentifier;
-    private IAccountIdentifier mHomeAccountIdentifier;
-    private String mUsername;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
+import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
+
+import java.util.Map;
+
+public class Account implements IAccount {
+
+    private final Map<String, ?> mIdTokenClaims;
+    private String mHomeOid;
+    private String mHomeTenantId;
     private String mEnvironment;
 
-    Account() {
-        // Empty constructor
+    public Account(@Nullable final IDToken homeTenantIdToken) {
+        if (null != homeTenantIdToken) {
+            mIdTokenClaims = homeTenantIdToken.getTokenClaims();
+        } else {
+            mIdTokenClaims = null;
+        }
     }
 
-    /**
-     * Sets the account id.
-     *
-     * @param accountId The IAccountIdentifier to set.
-     */
-    void setAccountIdentifier(final IAccountIdentifier accountId) {
-        mAccountIdentifier = accountId;
+    void setId(@Nullable final String id) {
+        mHomeOid = id;
     }
 
+    @NonNull
     @Override
-    public IAccountIdentifier getAccountIdentifier() {
-        return mAccountIdentifier;
+    public String getId() {
+        String id;
+
+        if (null != mIdTokenClaims) {
+            id = (String) mIdTokenClaims.get(MicrosoftIdToken.OBJECT_ID);
+        } else {
+            id = mHomeOid;
+        }
+
+        return id;
     }
 
-    /**
-     * Sets the home account id.
-     *
-     * @param homeAccountId The IAccountIdentifier to set.
-     */
-    void setHomeAccountIdentifier(final IAccountIdentifier homeAccountId) {
-        mHomeAccountIdentifier = homeAccountId;
+    void setTenantId(@NonNull final String tenantId) {
+        mHomeTenantId = tenantId;
     }
 
-    @Override
-    public IAccountIdentifier getHomeAccountIdentifier() {
-        return mHomeAccountIdentifier;
+    @NonNull
+    String getTenantId() {
+        return mHomeTenantId;
     }
 
-    /**
-     * Sets the username.
-     *
-     * @param username The username to set.
-     */
-    void setUsername(final String username) {
-        mUsername = username;
+    @NonNull
+    String getHomeAccountId() {
+        return getId() + "." + mHomeTenantId;
     }
 
-    @Override
-    public String getUsername() {
-        return mUsername;
-    }
-
-    /**
-     * Sets the environment.
-     *
-     * @param environment The environment to set.
-     */
-    void setEnvironment(final String environment) {
+    void setEnvironment(@NonNull final String environment) {
         mEnvironment = environment;
     }
 
-    @Override
-    public String getEnvironment() {
+    @NonNull
+    String getEnvironment() {
         return mEnvironment;
+    }
+
+    /**
+     * Gets the claims associated to this Account's IdToken. In the case of the Microsoft Identity
+     * Platform, this value can be null if the home tenant has not been authorized.
+     *
+     * @return The claims for this Account's IdToken or null, if no IdToken exists.
+     */
+    @Nullable
+    @Override
+    public Map<String, ?> getClaims() {
+        return mIdTokenClaims;
     }
 }

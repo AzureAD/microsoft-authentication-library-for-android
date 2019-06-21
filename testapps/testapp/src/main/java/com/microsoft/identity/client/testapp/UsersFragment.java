@@ -25,6 +25,7 @@ package com.microsoft.identity.client.testapp;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,14 +36,16 @@ import android.widget.ListView;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
 import com.microsoft.identity.client.IAccount;
-import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
+import com.microsoft.identity.client.ITenantProfile;
+import com.microsoft.identity.client.MultiTenantAccount;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The Fragment used to display the current list of users.
@@ -66,13 +69,13 @@ public class UsersFragment extends Fragment {
         mUserList = view.findViewById(R.id.user_list);
 
         MsalWrapper.getInstance().registerPostAccountLoadedJob("UsersFragment.onCreateView",
-            new MsalWrapper.IPostAccountLoaded() {
-            @Override
-            public void onLoaded(List<IAccount> loadedAccount) {
-                createViewWithAccountList(loadedAccount);
-                MsalWrapper.getInstance().deregisterPostAccountLoadedJob("UsersFragment.onCreateView");
-            }
-        });
+                new MsalWrapper.IPostAccountLoaded() {
+                    @Override
+                    public void onLoaded(List<IAccount> loadedAccount) {
+                        createViewWithAccountList(loadedAccount);
+                        MsalWrapper.getInstance().deregisterPostAccountLoadedJob("UsersFragment.onCreateView");
+                    }
+                });
 
         return view;
     }
@@ -101,30 +104,54 @@ public class UsersFragment extends Fragment {
     @NonNull
     private JsonObject transformToJson(IAccount account) {
         JsonObject jsonAcct = new JsonObject();
-        jsonAcct.addProperty(USERNAME, account.getUsername());
 
-        JsonObject accountId = new JsonObject();
-        accountId.addProperty(IDENTIFIER, account.getAccountIdentifier().getIdentifier());
+        jsonAcct.addProperty("id", account.getId());
+        jsonAcct.add("claims", claimsToJson(account.getClaims()));
 
-        if (account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier) {
-            final AzureActiveDirectoryAccountIdentifier acctId = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier();
-            accountId.addProperty(OBJECT_ID, acctId.getObjectIdentifier());
-            accountId.addProperty(TENANT_ID, acctId.getTenantIdentifier());
+        if (account instanceof MultiTenantAccount) {
+            jsonAcct.add(
+                    "tenant_profiles",
+                    tenantProfilesToJson(
+                            ((MultiTenantAccount) account).getTenantProfiles()
+                    )
+            );
         }
-
-
-        JsonObject homeAccountId = new JsonObject();
-        homeAccountId.addProperty(IDENTIFIER, account.getHomeAccountIdentifier().getIdentifier());
-
-        if (account.getHomeAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier) {
-            final AzureActiveDirectoryAccountIdentifier acctId = (AzureActiveDirectoryAccountIdentifier) account.getHomeAccountIdentifier();
-            homeAccountId.addProperty(OBJECT_ID, acctId.getObjectIdentifier());
-            homeAccountId.addProperty(TENANT_ID, acctId.getTenantIdentifier());
-        }
-
-        jsonAcct.add(ACCOUNT_ID, accountId);
-        jsonAcct.add(HOME_ACCOUNT_ID, homeAccountId);
 
         return jsonAcct;
+    }
+
+    @Nullable
+    private JsonElement tenantProfilesToJson(@Nullable final Map<String, ITenantProfile> tenantProfiles) {
+        if (null != tenantProfiles) {
+            final JsonArray jsonArray = new JsonArray();
+
+            for (final Map.Entry<String, ITenantProfile> profileEntry : tenantProfiles.entrySet()) {
+                final JsonObject object = new JsonObject();
+
+                object.addProperty("id", profileEntry.getValue().getId());
+                object.add("claims", claimsToJson(profileEntry.getValue().getClaims()));
+
+                jsonArray.add(object);
+            }
+
+            return jsonArray;
+        }
+
+        return null;
+    }
+
+    @Nullable
+    private JsonElement claimsToJson(@Nullable final Map<String, ?> claims) {
+        if (null != claims) {
+            JsonObject element = new JsonObject();
+
+            for (final Map.Entry<String, ?> claim : claims.entrySet()) {
+                element.addProperty(claim.getKey(), claim.getValue().toString());
+            }
+
+            return element;
+        }
+
+        return null;
     }
 }
