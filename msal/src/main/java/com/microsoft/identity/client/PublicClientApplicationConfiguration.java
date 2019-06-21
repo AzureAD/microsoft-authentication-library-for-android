@@ -35,6 +35,7 @@ import com.microsoft.identity.common.internal.authorities.Environment;
 import com.microsoft.identity.common.internal.authorities.UnknownAudience;
 import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.ui.browser.BrowserDescriptor;
 
@@ -49,6 +50,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.LOGGING;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.MULTIPLE_CLOUDS_SUPPORTED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.TELEMETRY;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ENVIRONMENT;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REQUIRED_BROKER_PROTOCOL_VERSION;
@@ -66,6 +68,7 @@ public class PublicClientApplicationConfiguration {
         static final String USE_BROKER = "broker_redirect_uri_registered";
         static final String ENVIRONMENT = "environment";
         static final String REQUIRED_BROKER_PROTOCOL_VERSION = "minimum_required_broker_protocol_version";
+        static final String TELEMETRY = "telemetry";
     }
 
     @SerializedName(CLIENT_ID)
@@ -100,6 +103,9 @@ public class PublicClientApplicationConfiguration {
 
     @SerializedName("browser_safelist")
     List<BrowserDescriptor> mBrowserSafeList;
+
+    @SerializedName(TELEMETRY)
+    TelemetryConfiguration mTelemetryConfiguration;
 
     transient OAuth2TokenCache mOAuth2TokenCache;
 
@@ -168,6 +174,15 @@ public class PublicClientApplicationConfiguration {
      */
     public LoggerConfiguration getLoggerConfiguration() {
         return mLoggerConfiguration;
+    }
+
+    /**
+     * Gets the currently configured {@link TelemetryConfiguration} for the PublicClientApplication.
+     *
+     * @return The TelemetryConfiguration to use.
+     */
+    public TelemetryConfiguration getTelemetryConfiguration() {
+        return mTelemetryConfiguration;
     }
 
     /**
@@ -289,6 +304,7 @@ public class PublicClientApplicationConfiguration {
         this.mHttpConfiguration = config.mHttpConfiguration == null ? this.mHttpConfiguration : config.mHttpConfiguration;
         this.mMultipleCloudsSupported = config.mMultipleCloudsSupported == null ? this.mMultipleCloudsSupported : config.mMultipleCloudsSupported;
         this.mUseBroker = config.mUseBroker == null ? this.mUseBroker : config.mUseBroker;
+        this.mTelemetryConfiguration = config.mTelemetryConfiguration == null ? this.mTelemetryConfiguration : config.mTelemetryConfiguration;
         if (this.mBrowserSafeList == null) {
             this.mBrowserSafeList = config.mBrowserSafeList;
         } else if (config.mBrowserSafeList != null){
