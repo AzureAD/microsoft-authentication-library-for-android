@@ -129,7 +129,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
             final LoadAccountCommand command = new LoadAccountCommand(
                     params,
-                    MSALControllerFactory.getAcquireTokenController(
+                    MSALControllerFactory.getAcquireTokenSilentControllers(
                             mPublicClientConfiguration.getAppContext(),
                             params.getAuthority(),
                             mPublicClientConfiguration
@@ -171,7 +171,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
             final LoadAccountCommand command = new LoadAccountCommand(
                     params,
-                    MSALControllerFactory.getAcquireTokenController(
+                    MSALControllerFactory.getAcquireTokenSilentControllers(
                             mPublicClientConfiguration.getAppContext(),
                             params.getAuthority(),
                             mPublicClientConfiguration
@@ -267,7 +267,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
                 final RemoveAccountCommand command = new RemoveAccountCommand(
                         params,
-                        MSALControllerFactory.getAcquireTokenController(
+                        MSALControllerFactory.getAcquireTokenSilentControllers(
                                 mPublicClientConfiguration.getAppContext(),
                                 params.getAuthority(),
                                 mPublicClientConfiguration
