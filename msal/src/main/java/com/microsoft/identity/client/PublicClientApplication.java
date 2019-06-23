@@ -256,6 +256,57 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     /**
+     * {@link PublicClientApplication#create(Context, int, ApplicationCreatedListener)} will read the client id and other configuration settings from the
+     * file included in your applications resources.
+     * <p>
+     * For more information on adding configuration files to your applications resources please
+     *
+     * @param context    Application's {@link Context}. The sdk requires the application context to be passed in
+     *                   {@link PublicClientApplication}. Cannot be null.
+     *                   <p>
+     *                   Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
+     *                   strong reference to the activity, thus preventing correct garbage collection and causing bugs.
+     *                   </p>
+     * @param configData The stream containing the JSON configuration for the PublicClientApplication
+     * @return An instance of MultiAccountPublicClientApplication
+     * @see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     * @see <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     */
+    public static IMultipleAccountPublicClientApplication createMultipleAccountPublicClientApplication(@NonNull final Context context,
+                                                                                                       final InputStream configData) {
+        if (context == null) {
+            throw new IllegalArgumentException("context is null.");
+        }
+
+        return new MultipleAccountPublicClientApplication(context, loadConfiguration(configData, false));
+    }
+
+    /**
+     * {@link PublicClientApplication#create(Context, File, ApplicationCreatedListener)} will read the client id and other configuration settings from the
+     * specified file.
+     *
+     * @param context    Application's {@link Context}. The sdk requires the application context to be passed in
+     *                   {@link PublicClientApplication}. Cannot be null.
+     *                   <p>
+     *                   Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
+     *                   strong reference to the activity, thus preventing correct garbage collection and causing bugs.
+     *                   </p>
+     * @param configData The stream containing the JSON configuration for the PublicClientApplication
+     * @param listener   a callback to be invoked when the object is successfully created.
+     * @see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     * <p>
+     * For more information on the schema of the MSAL config json please
+     * @see <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     */
+    public static void create(@NonNull final Context context,
+                              final InputStream configData,
+                              @NonNull final ApplicationCreatedListener listener) {
+        create(context,
+                loadConfiguration(configData, false),
+                listener);
+    }
+
+    /**
      * {@link PublicClientApplication#create(Context, String, ApplicationCreatedListener)} allows the client id to be passed instead of
      * providing through the AndroidManifest metadata. If this constructor is called, the default authority https://login.microsoftonline.com/common will be used.
      *
