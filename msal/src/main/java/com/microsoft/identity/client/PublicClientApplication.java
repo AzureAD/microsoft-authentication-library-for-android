@@ -88,7 +88,10 @@ import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperatio
 import com.microsoft.identity.common.internal.request.ILocalAuthenticationCallback;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
+import com.microsoft.identity.common.internal.telemetry.Telemetry;
 import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
+import com.microsoft.identity.common.internal.telemetry.observers.AggregatedTelemetryObserver;
+import com.microsoft.identity.common.internal.telemetry.observers.TestTelemetryObserver;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.msal.BuildConfig;
 import com.microsoft.identity.msal.R;
@@ -339,23 +342,22 @@ public class PublicClientApplication implements IPublicClientApplication {
 
     private void setupTelemetry(@NonNull final Context context,
                                 @Nullable final PublicClientApplicationConfiguration developerConfig) {
-        //initialize the telemetry singleton when the telemetry configuration is not null
         if (null != developerConfig.getTelemetryConfiguration()) {
             com.microsoft.identity.common.internal.logging.Logger.verbose(
                     TAG,
                     "Telemetry configuration is set. Telemetry is enabled."
             );
-
-            new com.microsoft.identity.common.internal.telemetry.Telemetry.Builder()
-                    .withContext(context)
-                    .defaultConfiguration(developerConfig.getTelemetryConfiguration())
-                    .build();
         } else {
             com.microsoft.identity.common.internal.logging.Logger.verbose(
                     TAG,
                     "Telemetry configuration is null. Telemetry is disabled."
             );
         }
+
+        new com.microsoft.identity.common.internal.telemetry.Telemetry.Builder()
+                .withContext(context)
+                .defaultConfiguration(developerConfig.getTelemetryConfiguration())
+                .build();
     }
 
     protected PublicClientApplication(@NonNull final Context context,
