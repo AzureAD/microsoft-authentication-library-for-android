@@ -44,23 +44,11 @@ public interface IAuthenticationResult {
     Date getExpiresOn();
 
     /**
-     * @return A unique tenant identifier that was used in token acquisiton. Could be null if tenant information is not
+     * @return A unique tenant identifier that was used in token acquisition. Could be null if tenant information is not
      * returned by the service.
      */
     @Nullable
     String getTenantId();
-
-    /**
-     * @return The unique identifier of the user.
-     */
-    @NonNull
-    String getUniqueId();
-
-    /**
-     * @return The id token returned by the service or null if no id token is returned.
-     */
-    @Nullable
-    String getIdToken();
 
     /**
      * Gets the Account.

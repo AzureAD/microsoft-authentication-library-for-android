@@ -39,15 +39,11 @@ import android.widget.TextView;
 
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.UiBehavior;
-import com.microsoft.identity.common.exception.ClientException;
-import com.microsoft.identity.common.internal.ui.browser.Browser;
-import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.microsoft.identity.client.testapp.R.id.enablePII;
-
 
 /**
  * acquireToken Fragment, contains the flow for acquireToken interactively, acquireTokenSilent, getUsers, removeUser.
@@ -179,13 +175,13 @@ public class AcquireTokenFragment extends Fragment {
         super.onResume();
         if (mOnFragmentInteractionListener != null) {
             MsalWrapper.getInstance().registerPostAccountLoadedJob("bindSelectAccountSpinner",
-                new MsalWrapper.IPostAccountLoaded() {
-                    @Override
-                    public void onLoaded(List<IAccount> loadedAccount) {
-                        mOnFragmentInteractionListener.bindSelectAccountSpinner(mSelectAccount, loadedAccount);
-                        mPublicApplicationMode.setText(MsalWrapper.getInstance().getPublicApplicationMode());
-                    }
-                });
+                    new MsalWrapper.IPostAccountLoaded() {
+                        @Override
+                        public void onLoaded(List<IAccount> loadedAccount) {
+                            mOnFragmentInteractionListener.bindSelectAccountSpinner(mSelectAccount, loadedAccount);
+                            mPublicApplicationMode.setText(MsalWrapper.getInstance().getPublicApplicationMode());
+                        }
+                    });
         }
         if (mSelectAccount.getSelectedItem() != null) {
             mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
@@ -272,7 +268,9 @@ public class AcquireTokenFragment extends Fragment {
             return mAuthorityType;
         }
 
-        Constants.AzureActiveDirectoryEnvironment getEnvironment() { return mEnvironment;}
+        Constants.AzureActiveDirectoryEnvironment getEnvironment() {
+            return mEnvironment;
+        }
 
         String getLoginHint() {
             return mLoginHint;

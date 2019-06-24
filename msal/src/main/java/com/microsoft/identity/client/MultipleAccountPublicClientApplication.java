@@ -11,8 +11,10 @@ import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
 import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
@@ -25,8 +27,8 @@ import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.request.OperationParameters;
-import com.microsoft.identity.common.internal.util.StringUtil;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,10 +62,10 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     public void getAccounts(@NonNull final LoadAccountCallback callback) {
         ApiDispatcher.initializeDiagnosticContext();
         final String methodName = ":getAccounts";
-        final List<AccountRecord> accounts =
+        final List<ICacheRecord> accounts =
                 mPublicClientConfiguration
                         .getOAuth2TokenCache()
-                        .getAccounts(
+                        .getAccountsWithAggregatedAccountData(
                                 null, // * wildcard
                                 mPublicClientConfiguration.getClientId()
                         );
@@ -127,7 +129,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
             final LoadAccountCommand command = new LoadAccountCommand(
                     params,
-                    MSALControllerFactory.getAcquireTokenController(
+                    MSALControllerFactory.getAcquireTokenSilentControllers(
                             mPublicClientConfiguration.getAppContext(),
                             params.getAuthority(),
                             mPublicClientConfiguration
@@ -169,46 +171,46 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
             final LoadAccountCommand command = new LoadAccountCommand(
                     params,
-                    MSALControllerFactory.getAcquireTokenController(
+                    MSALControllerFactory.getAcquireTokenSilentControllers(
                             mPublicClientConfiguration.getAppContext(),
                             params.getAuthority(),
                             mPublicClientConfiguration
                     ),
-                    new TaskCompletedCallbackWithError<List<AccountRecord>, Exception>() {
+                    new TaskCompletedCallbackWithError<List<ICacheRecord>, Exception>() {
                         @Override
-                        public void onTaskCompleted(final List<AccountRecord> result) {
+                        public void onTaskCompleted(final List<ICacheRecord> result) {
                             if (null == result || result.size() == 0) {
                                 com.microsoft.identity.common.internal.logging.Logger.verbose(
                                         TAG + methodName,
                                         "No account found.");
                                 callback.onTaskCompleted(null);
                             } else {
-                                for (AccountRecord accountRecord : result) {
-                                    if (accountRecord.getHomeAccountId().equalsIgnoreCase(identifier.trim())) {
-                                        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                                                TAG + methodName,
-                                                "One account found matching the homeAccountIdentifier provided.");
-                                        callback.onTaskCompleted(AccountAdapter.adapt(accountRecord));
+                                // First, transform the result into IAccount + TenantProfile form
+                                final List<IAccount>
+                                        accounts = AccountAdapter.adapt(result);
+
+                                final String trimmedIdentifier = identifier.trim();
+
+                                // Evaluation precedence...
+                                //     1. home_account_id
+                                //     2. local_account_id
+                                //     3. username
+                                //     4. Give up.
+
+                                final AccountMatcher accountMatcher = new AccountMatcher(
+                                        homeAccountMatcher,
+                                        localAccountMatcher,
+                                        usernameMatcher
+                                );
+
+                                for (final IAccount account : accounts) {
+                                    if (accountMatcher.matches(trimmedIdentifier, account)) {
+                                        callback.onTaskCompleted(account);
                                         return;
-                                    } else if (accountRecord.getLocalAccountId().equalsIgnoreCase(identifier.trim())) {
-                                        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                                                TAG + methodName,
-                                                "One account found matching the localAccountIdentifier provided.");
-                                        callback.onTaskCompleted(AccountAdapter.adapt(accountRecord));
-                                        return;
-                                    } else if (accountRecord.getUsername().equalsIgnoreCase(identifier.trim())) {
-                                        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                                                TAG + methodName,
-                                                "One account found matching the username provided.");
-                                        callback.onTaskCompleted(AccountAdapter.adapt(accountRecord));
-                                        return;
-                                    } else {
-                                        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                                                TAG + methodName,
-                                                "No account found.");
-                                        callback.onTaskCompleted(null);
                                     }
                                 }
+
+                                callback.onTaskCompleted(null);
                             }
                         }
 
@@ -237,13 +239,15 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
     @Override
     public void removeAccount(@Nullable final IAccount account,
-                              @NonNull final RemoveAccountCallback callback) {
+                              @NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback) {
         ApiDispatcher.initializeDiagnosticContext();
+
+        // First, cast the input IAccount to a MultiTenantAccount
+        final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
+
         //create the parameter
         try {
-            if (null == account
-                    || null == account.getHomeAccountIdentifier()
-                    || StringUtil.isEmpty(account.getHomeAccountIdentifier().getIdentifier())) {
+            if (null == multiTenantAccount) {
                 com.microsoft.identity.common.internal.logging.Logger.warn(
                         TAG,
                         "Requisite IAccount or IAccount fields were null. Insufficient criteria to remove IAccount."
@@ -252,22 +256,18 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                 callback.onTaskCompleted(false);
             } else {
                 final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
-                if (null == getAccountRecord(account)) {
-                    // If could not find the account record in local msal cache
-                    // Create the pass along account record object to broker
-                    final AccountRecord requestAccountRecord = new AccountRecord();
-                    requestAccountRecord.setEnvironment(account.getEnvironment());
-                    requestAccountRecord.setUsername(account.getUsername());
-                    requestAccountRecord.setHomeAccountId(account.getHomeAccountIdentifier().getIdentifier());
-                    requestAccountRecord.setLocalAccountId(account.getAccountIdentifier().getIdentifier());
-                    params.setAccount(requestAccountRecord);
-                } else {
-                    params.setAccount(getAccountRecord(account));
-                }
+
+                // TODO Clean this up, only the cache should make these records...
+                // The broker strips these properties out of this object to hit the cache
+                // Refactor this out...
+                final AccountRecord requestAccountRecord = new AccountRecord();
+                requestAccountRecord.setEnvironment(multiTenantAccount.getEnvironment());
+                requestAccountRecord.setHomeAccountId(multiTenantAccount.getHomeAccountId());
+                params.setAccount(requestAccountRecord);
 
                 final RemoveAccountCommand command = new RemoveAccountCommand(
                         params,
-                        MSALControllerFactory.getAcquireTokenController(
+                        MSALControllerFactory.getAcquireTokenSilentControllers(
                                 mPublicClientConfiguration.getAppContext(),
                                 params.getAuthority(),
                                 mPublicClientConfiguration
@@ -279,6 +279,106 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             }
         } catch (final MsalClientException e) {
             callback.onError(e);
+        }
+    }
+
+    private AccountMatcher homeAccountMatcher = new AccountMatcher() {
+        @Override
+        boolean matches(@NonNull final String homeAccountId,
+                        @NonNull final IAccount account) {
+            return homeAccountId.contains(account.getId());
+        }
+    };
+
+    private AccountMatcher localAccountMatcher = new AccountMatcher() {
+        @Override
+        boolean matches(@NonNull final String localAccountId,
+                        @NonNull final IAccount account) {
+            // First, inspect the root account...
+            if (localAccountId.contains(account.getId())) {
+                return true;
+            } else if (account instanceof MultiTenantAccount) {
+                // We need to look at the profiles...
+                final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
+                final Map<String, ITenantProfile> tenantProfiles = multiTenantAccount.getTenantProfiles();
+
+                if (null != tenantProfiles && !tenantProfiles.isEmpty()) {
+                    for (final Map.Entry<String, ITenantProfile> profileEntry : tenantProfiles.entrySet()) {
+                        if (localAccountId.contains(profileEntry.getValue().getId())) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+    };
+
+    private AccountMatcher usernameMatcher = new AccountMatcher() {
+        @Override
+        boolean matches(@NonNull final String username,
+                        @NonNull final IAccount account) {
+            // Put all of the IdToken we can inspect in a List...
+            final List<IClaimable> thingsWithClaims
+                    = new ArrayList<>();
+
+            if (null != account.getClaims()) {
+                thingsWithClaims.add(account);
+            }
+
+            if (account instanceof MultiTenantAccount) {
+                final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
+                final Map<String, ITenantProfile> profiles = multiTenantAccount.getTenantProfiles();
+
+                for (final Map.Entry<String, ITenantProfile> profileEntry : profiles.entrySet()) {
+                    if (null != profileEntry.getValue().getClaims()) {
+                        thingsWithClaims.add(profileEntry.getValue());
+                    }
+                }
+            }
+
+            for (final IClaimable thingWithClaims : thingsWithClaims) {
+                if (null != thingWithClaims.getClaims()
+                        && username.equalsIgnoreCase(
+                        SchemaUtil.getDisplayableId(
+                                thingWithClaims.getClaims()
+                        )
+                )) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    };
+
+    private class AccountMatcher {
+
+        private final AccountMatcher[] mDelegateMatchers;
+
+        AccountMatcher() {
+            // Intentionally blank...
+            mDelegateMatchers = new AccountMatcher[]{};
+        }
+
+        AccountMatcher(@NonNull final AccountMatcher... delegateMatchers) {
+            mDelegateMatchers = delegateMatchers;
+        }
+
+        boolean matches(@NonNull final String identifier,
+                        @NonNull final IAccount account) {
+            boolean matches = false;
+
+            for (final AccountMatcher matcher : mDelegateMatchers) {
+                matches = matcher.matches(identifier, account);
+
+                if (matches) {
+                    break;
+                }
+            }
+
+            return matches;
         }
     }
 }

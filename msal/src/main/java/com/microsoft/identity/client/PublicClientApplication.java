@@ -27,8 +27,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
@@ -48,51 +46,29 @@ import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
 import com.microsoft.identity.client.internal.telemetry.Defaults;
-import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
-import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AuthorityDeserializer;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
-import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
-import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
-import com.microsoft.identity.common.internal.cache.ICacheKeyValueDelegate;
-import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
-import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
-import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
+import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
-import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
-import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
 import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
-import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
-import com.microsoft.identity.common.internal.controllers.RemoveAccountCommand;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.controllers.TokenCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
-import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
-import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
 import com.microsoft.identity.common.internal.net.cache.HttpCache;
-import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
-import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
-import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
-import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
-import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsTokenResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.ILocalAuthenticationCallback;
-import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
-import com.microsoft.identity.common.internal.telemetry.Telemetry;
-import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
-import com.microsoft.identity.common.internal.telemetry.observers.AggregatedTelemetryObserver;
-import com.microsoft.identity.common.internal.telemetry.observers.TestTelemetryObserver;
-import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.msal.BuildConfig;
 import com.microsoft.identity.msal.R;
 
@@ -101,13 +77,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
+import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isHomeTenantEquivalent;
+import static com.microsoft.identity.common.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
+import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
 
 /**
  * <p>
@@ -155,13 +130,20 @@ import static com.microsoft.identity.common.internal.cache.SharedPreferencesAcco
  * </p>
  * </p>
  */
-public class PublicClientApplication implements IPublicClientApplication {
+public class PublicClientApplication implements IPublicClientApplication, ITokenShare {
     private static final String TAG = PublicClientApplication.class.getSimpleName();
 
     private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
 
+    /**
+     * Constant used to signal a home account's tenant id should be used when performing cache lookups
+     * relative to creating OperationParams.
+     */
+    private static final String FORCE_HOME_LOOKUP = "force_home_lookup";
+
     protected PublicClientApplicationConfiguration mPublicClientConfiguration;
+    protected TokenShareUtility mTokenShareUtility;
 
     /**
      * {@link PublicClientApplication#create(Context, int, ApplicationCreatedListener)} will read the client id and other configuration settings from the
@@ -194,6 +176,58 @@ public class PublicClientApplication implements IPublicClientApplication {
                 loadConfiguration(context, configFileResourceId),
                 listener
         );
+    }
+
+    /**
+     * {@link PublicClientApplication#create(Context, int, ApplicationCreatedListener)} will read the client id and other configuration settings from the
+     * file included in your applications resources.
+     * <p>
+     * For more information on adding configuration files to your applications resources please
+     *
+     * @param context              Application's {@link Context}. The sdk requires the application context to be passed in
+     *                             {@link PublicClientApplication}. Cannot be null.
+     *                             <p>
+     *                             Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
+     *                             strong reference to the activity, thus preventing correct garbage collection and causing bugs.
+     *                             </p>
+     * @param configFileResourceId The resource ID of the raw file containing the JSON configuration for the PublicClientApplication
+     * @return An instance of MultiAccountPublicClientApplication
+     * @see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     * @see <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     */
+    public static IMultipleAccountPublicClientApplication createMultipleAccountPublicClientApplication(@NonNull final Context context,
+                                                                                                       final int configFileResourceId) {
+        if (context == null) {
+            throw new IllegalArgumentException("context is null.");
+        }
+
+        return new MultipleAccountPublicClientApplication(context, loadConfiguration(context, configFileResourceId));
+    }
+
+    /**
+     * {@link PublicClientApplication#create(Context, int, ApplicationCreatedListener)} will read the client id and other configuration settings from the
+     * file included in your applications resources.
+     * <p>
+     * For more information on adding configuration files to your applications resources please
+     *
+     * @param context    Application's {@link Context}. The sdk requires the application context to be passed in
+     *                   {@link PublicClientApplication}. Cannot be null.
+     *                   <p>
+     *                   Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
+     *                   strong reference to the activity, thus preventing correct garbage collection and causing bugs.
+     *                   </p>
+     * @param configFile The file containing the JSON configuration for the PublicClientApplication
+     * @return An instance of MultiAccountPublicClientApplication
+     * @see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     * @see <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     */
+    public static IMultipleAccountPublicClientApplication createMultipleAccountPublicClientApplication(@NonNull final Context context,
+                                                                                                       final File configFile) {
+        if (context == null) {
+            throw new IllegalArgumentException("context is null.");
+        }
+
+        return new MultipleAccountPublicClientApplication(context, loadConfiguration(configFile));
     }
 
     /**
@@ -338,6 +372,15 @@ public class PublicClientApplication implements IPublicClientApplication {
 
         AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
+        if (mPublicClientConfiguration.getOAuth2TokenCache() instanceof MsalOAuth2TokenCache) {
+            mTokenShareUtility = new TokenShareUtility(
+                    mPublicClientConfiguration.getClientId(),
+                    mPublicClientConfiguration.getRedirectUri(),
+                    (MsalOAuth2TokenCache) mPublicClientConfiguration.getOAuth2TokenCache()
+            );
+        } else {
+            throw new IllegalStateException("TSL support mandates use of the MsalOAuth2TokenCache");
+        }
     }
 
     private void setupTelemetry(@NonNull final Context context,
@@ -412,6 +455,50 @@ public class PublicClientApplication implements IPublicClientApplication {
         com.microsoft.identity.common.internal.logging.Logger.info(TAG, "Create new public client application.");
     }
 
+    @Override
+    public String getWrappedFamilyRefreshToken(@NonNull final String identifier) throws MsalClientException {
+        validateNonNullArgument(identifier, "identifier");
+        validateBrokerNotInUse();
+
+        try {
+            return mTokenShareUtility.getWrappedFamilyRefreshToken(identifier);
+        } catch (final Exception e) {
+            throw new MsalClientException(
+                    TOKEN_CACHE_ITEM_NOT_FOUND,
+                    "Failed to retrieve FRT - see getCause() for additional Exception info",
+                    e
+            );
+        }
+    }
+
+    @Override
+    public void saveFamilyRefreshToken(@NonNull final String tokenCacheItemJson) throws MsalClientException {
+        validateNonNullArgument(tokenCacheItemJson, "TokenCacheItemJson");
+        validateBrokerNotInUse();
+
+        try {
+            mTokenShareUtility.saveFamilyRefreshToken(tokenCacheItemJson);
+        } catch (final Exception e) {
+            throw new MsalClientException(
+                    TOKEN_SHARING_DESERIALIZATION_ERROR,
+                    "Failed to save FRT - see getCause() for additional Exception info",
+                    e
+            );
+        }
+    }
+
+    private void validateBrokerNotInUse() throws MsalClientException {
+        if (MSALControllerFactory.brokerEligible(
+                mPublicClientConfiguration.getAppContext(),
+                mPublicClientConfiguration.getDefaultAuthority(),
+                mPublicClientConfiguration
+        )) {
+            throw new MsalClientException(
+                    "Cannot perform this action - broker is enabled."
+            );
+        }
+    }
+
     /**
      * Listener callback for asynchronous initialization of IPublicClientApplication object.
      */
@@ -450,13 +537,7 @@ public class PublicClientApplication implements IPublicClientApplication {
         return BuildConfig.VERSION_NAME;
     }
 
-    /**
-     * Returns the PublicClientConfiguration for this instance of PublicClientApplication
-     * Configuration is based on the defaults established for MSAl and can be overridden by creating the
-     * PublicClientApplication using {@link PublicClientApplication#PublicClientApplication(Context, PublicClientApplicationConfiguration)}
-     *
-     * @return
-     */
+    @Override
     public PublicClientApplicationConfiguration getConfiguration() {
         return mPublicClientConfiguration;
     }
@@ -491,35 +572,6 @@ public class PublicClientApplication implements IPublicClientApplication {
          * @param exception
          */
         void onError(Exception exception);
-    }
-
-    public interface RemoveAccountCallback extends TaskCompletedCallbackWithError<Boolean, Exception> {
-        /**
-         * Called once succeed and pass the result object.
-         *
-         * @param result the success result.
-         */
-        void onTaskCompleted(Boolean result);
-
-        /**
-         * Called once exception thrown.
-         *
-         * @param exception
-         */
-        void onError(Exception exception);
-    }
-
-    @Nullable
-    protected static String getRealm(@NonNull IAccount account) {
-        String realm = null;
-
-        if (null != account.getAccountIdentifier() // This is an AAD account w/ tenant info
-                && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier) {
-            final AzureActiveDirectoryAccountIdentifier identifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier();
-            realm = identifier.getTenantIdentifier();
-        }
-
-        return realm;
     }
 
     @Override
@@ -691,7 +743,8 @@ public class PublicClientApplication implements IPublicClientApplication {
 
     private static void validateNonNullArgument(@Nullable Object o,
                                                 @NonNull String argName) {
-        if (null == o) {
+        if (null == o
+                || (o instanceof CharSequence) && TextUtils.isEmpty((CharSequence) o)) {
             throw new IllegalArgumentException(
                     argName
                             + " cannot be null or empty"
@@ -699,10 +752,66 @@ public class PublicClientApplication implements IPublicClientApplication {
         }
     }
 
+    /**
+     * For the provided configuration and TokenParameters, determine the tenant id that should be
+     * used to lookup the proper AccountRecord.
+     *
+     * @param config        The application configuration to inspect if no request authority is provided.
+     * @param requestParams The request parameters to inspect for an authority.
+     * @return The tenantId **OR** a magic constant signalling that home should be used.
+     */
+    private String getRequestTenantId(@NonNull final PublicClientApplicationConfiguration config,
+                                      @NonNull final TokenParameters requestParams) {
+        final String result;
+
+        // First look at the request
+        if (TextUtils.isEmpty(requestParams.getAuthority())) {
+            // Authority was not provided in the request - fallback to the default authority
+            requestParams.setAuthority(
+                    config
+                            .getDefaultAuthority()
+                            .getAuthorityUri()
+                            .toString()
+            );
+        }
+
+        final Authority authority = Authority.getAuthorityFromAuthorityUrl(requestParams.getAuthority());
+
+        if (authority instanceof AzureActiveDirectoryAuthority) {
+            final AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) authority;
+            final String tenantId = aadAuthority.getAudience().getTenantId();
+
+            if (isHomeTenantEquivalent(tenantId)) { // something like /consumers, /orgs, /common
+                result = FORCE_HOME_LOOKUP;
+            } else {
+                // Use the specific tenant
+                result = tenantId;
+            }
+        } else if (authority instanceof AzureActiveDirectoryB2CAuthority) {
+            result = FORCE_HOME_LOOKUP;
+        } else {
+            // Unrecognized authority type
+            throw new UnsupportedOperationException(
+                    "Unsupported Authority type: "
+                            + authority
+                            .getClass()
+                            .getSimpleName()
+            );
+        }
+
+        return result;
+    }
+
     @Override
     public void acquireTokenAsync(@NonNull final AcquireTokenParameters acquireTokenParameters) {
         acquireTokenParameters.setAccountRecord(
-                getAccountRecord(acquireTokenParameters.getAccount())
+                getAccountRecord(
+                        acquireTokenParameters.getAccount(),
+                        getRequestTenantId(
+                                mPublicClientConfiguration,
+                                acquireTokenParameters
+                        )
+                )
         );
 
         final AcquireTokenOperationParameters params = OperationParametersAdapter.
@@ -732,13 +841,21 @@ public class PublicClientApplication implements IPublicClientApplication {
         }
     }
 
-    protected AccountRecord getAccountRecord(@Nullable final IAccount account) {
-        if (account != null) {
+    protected AccountRecord getAccountRecord(@Nullable final IAccount account,
+                                             @NonNull String tenantId) {
+        final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
+
+        if (null != multiTenantAccount) {
+
+            if (FORCE_HOME_LOOKUP.equals(tenantId)) {
+                tenantId = ((MultiTenantAccount) account).getTenantId();
+            }
+
             return AccountAdapter.getAccountInternal(
                     mPublicClientConfiguration.getClientId(),
                     mPublicClientConfiguration.getOAuth2TokenCache(),
-                    account.getHomeAccountIdentifier().getIdentifier(),
-                    AccountAdapter.getRealm(account)
+                    multiTenantAccount.getHomeAccountId(),
+                    tenantId
             );
         }
 
@@ -794,21 +911,50 @@ public class PublicClientApplication implements IPublicClientApplication {
                         .callback(callback)
                         .build();
 
+        validateSilentParameters(acquireTokenSilentParameters);
+
         acquireTokenSilentAsync(acquireTokenSilentParameters);
     }
 
+    private void validateSilentParameters(
+            @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
+        if (TextUtils.isEmpty(acquireTokenSilentParameters.getAuthority())) {
+            throw new IllegalArgumentException(
+                    "Authority must be specified for acquireTokenSilent"
+            );
+        }
+    }
+
     @Override
-    public void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
+    public void acquireTokenSilentAsync(
+            @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
+        validateSilentParameters(acquireTokenSilentParameters);
+
         acquireTokenSilentParameters.setAccountRecord(
                 getAccountRecord(
-                        acquireTokenSilentParameters.getAccount()
+                        acquireTokenSilentParameters.getAccount(),
+                        getRequestTenantId(
+                                mPublicClientConfiguration,
+                                acquireTokenSilentParameters
+                        )
                 )
         );
+
+        String requestEnvironment = null;
+        String requestHomeAccountId = null;
+
+        if (null != acquireTokenSilentParameters.getAccountRecord()) {
+            final AccountRecord requestAccount = acquireTokenSilentParameters.getAccountRecord();
+            requestEnvironment = requestAccount.getEnvironment();
+            requestHomeAccountId = requestAccount.getHomeAccountId();
+        }
 
         final AcquireTokenSilentOperationParameters params =
                 OperationParametersAdapter.createAcquireTokenSilentOperationParameters(
                         acquireTokenSilentParameters,
-                        mPublicClientConfiguration
+                        mPublicClientConfiguration,
+                        requestEnvironment,
+                        requestHomeAccountId
                 );
 
         ILocalAuthenticationCallback callback = getLocalAuthenticationCallback(acquireTokenSilentParameters.getCallback());
@@ -823,6 +969,7 @@ public class PublicClientApplication implements IPublicClientApplication {
                     ),
                     callback
             );
+
             ApiDispatcher.submitSilent(silentTokenCommand);
         } catch (final BaseException exception) {
             callback.onError(exception);
@@ -940,54 +1087,17 @@ public class PublicClientApplication implements IPublicClientApplication {
         }
     }
 
-    private MsalOAuth2TokenCache<
-            MicrosoftStsOAuth2Strategy,
-            MicrosoftStsAuthorizationRequest,
-            MicrosoftStsTokenResponse,
-            MicrosoftAccount,
-            MicrosoftRefreshToken> initCommonCache(@NonNull final Context context) {
-        final String methodName = ":initCommonCache";
-        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                TAG + methodName,
-                "Initializing common cache"
-        );
-        // Init the new-schema cache
-        final ICacheKeyValueDelegate cacheKeyValueDelegate = new CacheKeyValueDelegate();
-        final IStorageHelper storageHelper = new StorageHelper(context);
-        final ISharedPreferencesFileManager sharedPreferencesFileManager =
-                new SharedPreferencesFileManager(
-                        context,
-                        DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                        storageHelper
-                );
-        final IAccountCredentialCache accountCredentialCache =
-                new SharedPreferencesAccountCredentialCache(
-                        cacheKeyValueDelegate,
-                        sharedPreferencesFileManager
-                );
-        final MicrosoftStsAccountCredentialAdapter accountCredentialAdapter =
-                new MicrosoftStsAccountCredentialAdapter();
-
-        return new MsalOAuth2TokenCache<>(
-                context,
-                accountCredentialCache,
-                accountCredentialAdapter
-        );
-    }
-
-    static TaskCompletedCallbackWithError<List<AccountRecord>, Exception> getLoadAccountsCallback(
+    static TaskCompletedCallbackWithError<List<ICacheRecord>, Exception> getLoadAccountsCallback(
             final LoadAccountCallback loadAccountsCallback) {
-        return new TaskCompletedCallbackWithError<List<AccountRecord>, Exception>() {
+        return new TaskCompletedCallbackWithError<List<ICacheRecord>, Exception>() {
             @Override
-            public void onTaskCompleted(final List<AccountRecord> result) {
+            public void onTaskCompleted(final List<ICacheRecord> result) {
                 if (null == result) {
                     loadAccountsCallback.onTaskCompleted(null);
                 } else {
-                    final List<IAccount> resultAccounts = new ArrayList<>();
-                    for (AccountRecord accountRecord : result) {
-                        resultAccounts.add(AccountAdapter.adapt(accountRecord));
-                    }
-                    loadAccountsCallback.onTaskCompleted(resultAccounts);
+                    loadAccountsCallback.onTaskCompleted(
+                            AccountAdapter.adapt(result)
+                    );
                 }
             }
 
@@ -1022,6 +1132,6 @@ public class PublicClientApplication implements IPublicClientApplication {
     }
 
     private OAuth2TokenCache<?, ?, ?> getOAuth2TokenCache() {
-        return initCommonCache(mPublicClientConfiguration.getAppContext());
+        return MsalOAuth2TokenCache.create(mPublicClientConfiguration.getAppContext());
     }
 }
