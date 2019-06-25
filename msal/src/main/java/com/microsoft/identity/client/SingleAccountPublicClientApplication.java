@@ -120,8 +120,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 return;
             }
 
-            ApiDispatcher.initializeDiagnosticContext();
-
             com.microsoft.identity.common.internal.logging.Logger.verbose(
                     TAG + methodName,
                     "Getting the current account"
@@ -210,15 +208,12 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     }
 
     private void checkCurrentAccountNotifyCallback(final CurrentAccountCallback callback, List<ICacheRecord> newAccountRecords){
-        IAccount localAccount = getPersistedCurrentAccount();
-        IAccount newAccount = newAccountRecords == null ? null : getAccountFromICacheRecordList(newAccountRecords);
+        MultiTenantAccount localAccount = getPersistedCurrentAccount();
+        MultiTenantAccount newAccount = newAccountRecords == null ? null : getAccountFromICacheRecordList(newAccountRecords);
 
-        if (localAccount == null) {
-            if (newAccount != null) {
-                callback.onAccountChanged(null, newAccount);
-            }
-        } else if (localAccount.getId() != newAccount.getId()) {
+        if(didCurrentAccountChange(newAccount)){
             callback.onAccountChanged(localAccount, newAccount);
+            return;
         }
 
         persistCurrentAccount(newAccountRecords);
@@ -256,7 +251,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 //Get Local Authentication Result then check if the current account is set or not
                 MultiTenantAccount newAccount =  getAccountFromICacheRecordList(localAuthenticationResult.getCacheRecordWithTenantProfileData());
 
-                if(didExistingCurrentAccountChange(newAccount)){
+                if(didCurrentAccountChange(newAccount)){
                     //Throw on Error with UserMismatchException
                     authenticationCallback.onError(new MsalClientException(MsalClientException.CURRENT_ACCOUNT_MISMATCH));
                     return;
@@ -281,10 +276,22 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         };
     }
 
-    private boolean didExistingCurrentAccountChange(MultiTenantAccount newAccount){
+    private boolean didCurrentAccountChange(@Nullable MultiTenantAccount newAccount){
         MultiTenantAccount persistedAccount = getPersistedCurrentAccount();
-        return (persistedAccount != null || newAccount.getId() != persistedAccount.getId()) ? true : false;
 
+        if(persistedAccount == null){
+            if(newAccount == null){
+                return false;
+            }else{
+                return true;
+            }
+        }else{
+            if(persistedAccount.getId().equals(newAccount.getId())){
+                return false;
+            }else{
+                return true;
+            }
+        }
     }
 
     @Override
@@ -298,9 +305,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 removeAccountFromSharedDevice(callback, configuration);
                 return;
             }
-
-
-            ApiDispatcher.initializeDiagnosticContext();
 
             final MultiTenantAccount persistedCurrentAccount = getPersistedCurrentAccount();
 

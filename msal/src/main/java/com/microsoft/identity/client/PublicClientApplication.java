@@ -285,7 +285,12 @@ public class PublicClientApplication implements IPublicClientApplication {
         if (context == null) {
             throw new IllegalArgumentException("context is null.");
         }
+
         final PublicClientApplicationConfiguration configuration = loadConfiguration(context, configFileResourceId);
+
+        if(configuration.mAccountMode != AccountMode.MULTIPLE){
+            throw new MsalClientException("AccountMode in configuration is not set to multiple");
+        }
 
         IPublicClientApplication application = createPublicClientApplication(context, configuration);
         if(application instanceof IMultipleAccountPublicClientApplication){
@@ -294,10 +299,7 @@ public class PublicClientApplication implements IPublicClientApplication {
             if(configuration.mAccountMode == AccountMode.MULTIPLE && application.getIsSharedDevice())  {
                 throw new MsalClientException("AccountMode in configuration is set to multiple; however the device is marked as shared");
             }
-            if(configuration.mAccountMode != AccountMode.MULTIPLE){
-                throw new MsalClientException("AccountMode in configuration is not set to multiple");
-            }
-            return null;
+            throw new MsalClientException("A multiple account public client application could not be created for unknown reasons");
         }
     }
 
@@ -323,17 +325,20 @@ public class PublicClientApplication implements IPublicClientApplication {
                                                                                                        @NonNull final File configFile) throws InterruptedException, MsalException {
 
         PublicClientApplicationConfiguration configuration = loadConfiguration(configFile);
+
+        if(configuration.mAccountMode != AccountMode.MULTIPLE){
+            throw new MsalClientException("AccountMode in configuration is not set to multiple");
+        }
+
         IPublicClientApplication application = createPublicClientApplication(context, configuration);
+
         if(application instanceof IMultipleAccountPublicClientApplication){
             return (IMultipleAccountPublicClientApplication)application;
         }else{
             if(configuration.mAccountMode == AccountMode.MULTIPLE && application.getIsSharedDevice())  {
                 throw new MsalClientException("AccountMode in configuration is set to multiple; however the device is marked as shared");
             }
-            if(configuration.mAccountMode != AccountMode.MULTIPLE){
-                throw new MsalClientException("AccountMode in configuration is not set to multiple");
-            }
-            return null;
+            throw new MsalClientException("A multiple account public client application could not be created for unknown reasons");
         }
     }
 
@@ -440,7 +445,7 @@ public class PublicClientApplication implements IPublicClientApplication {
             if(configuration.mAccountMode != AccountMode.SINGLE){
                 throw new MsalClientException("AccountMode in configuration is not set to single");
             }
-            return null;
+            throw new MsalClientException("A multiple single public client application could not be created for unknown reasons");
         }
     }
 
@@ -474,7 +479,7 @@ public class PublicClientApplication implements IPublicClientApplication {
             if(configuration.mAccountMode != AccountMode.SINGLE){
                 throw new MsalClientException("AccountMode in configuration is not set to single");
             }
-            return null;
+            throw new MsalClientException("A single account public client application could not be created for unknown reasons");
         }
     }
 
@@ -1004,13 +1009,12 @@ public class PublicClientApplication implements IPublicClientApplication {
 
     private void validateSilentParameters(
             @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
-        /*
+
         if (TextUtils.isEmpty(acquireTokenSilentParameters.getAuthority())) {
             throw new IllegalArgumentException(
                     "Authority must be specified for acquireTokenSilent"
             );
         }
-        */
     }
 
     @Override
