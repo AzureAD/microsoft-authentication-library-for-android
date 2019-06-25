@@ -424,13 +424,14 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         final PublicClientApplicationConfiguration configuration = loadConfiguration(context, configFileResourceId);
 
+        if(configuration.mAccountMode != AccountMode.SINGLE){
+            throw new MsalClientException("AccountMode in configuration is not set to single");
+        }
+
         IPublicClientApplication application = createPublicClientApplication(context, configuration);
         if(application instanceof ISingleAccountPublicClientApplication){
             return (ISingleAccountPublicClientApplication) application;
         }else{
-            if(configuration.mAccountMode != AccountMode.SINGLE){
-                throw new MsalClientException("AccountMode in configuration is not set to single");
-            }
             throw new MsalClientException("A multiple single public client application could not be created for unknown reasons");
         }
     }

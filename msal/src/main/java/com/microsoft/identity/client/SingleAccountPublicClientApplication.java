@@ -285,7 +285,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 return true;
             }
         }else{
-            if(persistedAccount.getId().equals(newAccount.getId())){
+            if(persistedAccount.getId().equalsIgnoreCase(newAccount.getId())){
                 return false;
             }else{
                 return true;
