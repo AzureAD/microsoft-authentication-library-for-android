@@ -115,10 +115,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
 
         try {
-            if (MSALControllerFactory.brokerEligible(
-                    configuration.getAppContext(),
-                    configuration.getDefaultAuthority(),
-                    configuration) && mIsSharedDevice) {
+            if (mIsSharedDevice) {
                 getCurrentAccountFromSharedDevice(callback, configuration);
                 return;
             }
@@ -154,16 +151,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
                                 final String trimmedIdentifier = getPersistedCurrentAccount().getHomeAccountId();
 
-                                // Evaluation precedence...
-                                //     1. home_account_id
-                                //     2. local_account_id
-                                //     3. username
-                                //     4. Give up.
-
                                 final AccountMatcher accountMatcher = new AccountMatcher(
-                                        homeAccountMatcher,
-                                        localAccountMatcher,
-                                        usernameMatcher
+                                        homeAccountMatcher
                                 );
 
                                 for (final IAccount account : accounts) {
@@ -276,7 +265,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             public void onSuccess(ILocalAuthenticationResult localAuthenticationResult) {
 
                 //Get Local Authentication Result then check if the current account is set or not
-
                 MultiTenantAccount newAccount =  getAccountFromICacheRecordList(localAuthenticationResult.getCacheRecordWithTenantProfileData());
 
                 if(didExistingCurrentAccountChange(newAccount)){
@@ -317,10 +305,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
 
         try{
-            if (MSALControllerFactory.brokerEligible(
-                    configuration.getAppContext(),
-                    configuration.getDefaultAuthority(),
-                    configuration) && mIsSharedDevice) {
+            if (mIsSharedDevice) {
                 removeAccountFromSharedDevice(callback, configuration);
                 return;
             }
@@ -328,7 +313,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
             ApiDispatcher.initializeDiagnosticContext();
 
-            MultiTenantAccount persistedCurrentAccount = getPersistedCurrentAccount();
+            final MultiTenantAccount persistedCurrentAccount = getPersistedCurrentAccount();
 
             if (persistedCurrentAccount != null) {
                 final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
@@ -344,7 +329,18 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                                 params.getAuthority(),
                                 mPublicClientConfiguration
                         ),
-                        callback
+                        new TaskCompletedCallbackWithError<Boolean, Exception>() {
+                            @Override
+                            public void onError(Exception error) {
+                                callback.onError(error);
+                            }
+
+                            @Override
+                            public void onTaskCompleted(Boolean result) {
+                                persistCurrentAccount(null);
+                                callback.onTaskCompleted(result);
+                            }
+                        }
                 );
 
                 ApiDispatcher.removeAccount(command);
