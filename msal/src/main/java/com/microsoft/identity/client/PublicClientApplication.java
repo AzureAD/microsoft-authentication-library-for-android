@@ -224,35 +224,8 @@ public class PublicClientApplication implements IPublicClientApplication {
             throw new IllegalArgumentException("context is null.");
         }
 
-        throwOnMainThread("create");
-
-        final ResultFuture<CreateApplicationResult> future = new ResultFuture<>();
         final PublicClientApplicationConfiguration configuration = loadConfiguration(context, configFileResourceId);
-
-        create(context,
-                configuration,
-                new ApplicationCreatedListener() {
-                    @Override
-                    public void onCreated(IPublicClientApplication application) {
-                        future.setResult(new CreateApplicationResult(application, null));
-                    }
-
-                    @Override
-                    public void onError(MsalException exception) {
-                        future.setResult(new CreateApplicationResult(null, exception));
-                    }
-                }
-        );
-
-        //Blocking Call
-        CreateApplicationResult result = future.get();
-
-        if(!result.getSuccess()){
-            //Exception thrown
-            MsalException ex = result.getException();
-            throw ex;
-        }
-        return result.getPublicClientApplication();
+        return createPublicClientApplication(context, configuration);
     }
 
 
@@ -312,37 +285,9 @@ public class PublicClientApplication implements IPublicClientApplication {
         if (context == null) {
             throw new IllegalArgumentException("context is null.");
         }
-
-        throwOnMainThread("createMultipleAccountPublicClientApplication");
-
-        final ResultFuture<CreateApplicationResult> future = new ResultFuture<>();
         final PublicClientApplicationConfiguration configuration = loadConfiguration(context, configFileResourceId);
 
-        create(context,
-                configuration,
-                new ApplicationCreatedListener() {
-                    @Override
-                    public void onCreated(IPublicClientApplication application) {
-                        future.setResult(new CreateApplicationResult(application, null));
-                    }
-
-                    @Override
-                    public void onError(MsalException exception) {
-                        future.setResult(new CreateApplicationResult(null, exception));
-                    }
-                }
-        );
-
-        //Blocking Call
-        CreateApplicationResult result = future.get();
-
-        if(!result.getSuccess()){
-            //Exception thrown
-            MsalException ex = result.getException();
-            throw ex;
-        }
-
-        IPublicClientApplication application = result.getPublicClientApplication();
+        IPublicClientApplication application = createPublicClientApplication(context, configuration);
         if(application instanceof IMultipleAccountPublicClientApplication){
             return (IMultipleAccountPublicClientApplication)application;
         }else{
@@ -375,7 +320,25 @@ public class PublicClientApplication implements IPublicClientApplication {
      */
     @WorkerThread
     public static IMultipleAccountPublicClientApplication createMultipleAccountPublicClientApplication(@NonNull final Context context,
-                                                                                                       final File configFile) throws InterruptedException, MsalException {
+                                                                                                       @NonNull final File configFile) throws InterruptedException, MsalException {
+
+        PublicClientApplicationConfiguration configuration = loadConfiguration(configFile);
+        IPublicClientApplication application = createPublicClientApplication(context, configuration);
+        if(application instanceof IMultipleAccountPublicClientApplication){
+            return (IMultipleAccountPublicClientApplication)application;
+        }else{
+            if(configuration.mAccountMode == AccountMode.MULTIPLE && application.getIsSharedDevice())  {
+                throw new MsalClientException("AccountMode in configuration is set to multiple; however the device is marked as shared");
+            }
+            if(configuration.mAccountMode != AccountMode.MULTIPLE){
+                throw new MsalClientException("AccountMode in configuration is not set to multiple");
+            }
+            return null;
+        }
+    }
+
+    private static IPublicClientApplication createPublicClientApplication(@NonNull final Context context,
+                                                 final PublicClientApplicationConfiguration configuration) throws MsalException, InterruptedException {
         if (context == null) {
             throw new IllegalArgumentException("context is null.");
         }
@@ -383,8 +346,6 @@ public class PublicClientApplication implements IPublicClientApplication {
         throwOnMainThread("createMultipleAccountPublicClientApplication");
 
         final ResultFuture<CreateApplicationResult> future = new ResultFuture<>();
-        final PublicClientApplicationConfiguration configuration = loadConfiguration(configFile);
-
         create(context,
                 configuration,
                 new ApplicationCreatedListener() {
@@ -409,18 +370,8 @@ public class PublicClientApplication implements IPublicClientApplication {
             throw ex;
         }
 
-        IPublicClientApplication application = result.getPublicClientApplication();
-        if(application instanceof IMultipleAccountPublicClientApplication){
-            return (IMultipleAccountPublicClientApplication)application;
-        }else{
-            if(configuration.mAccountMode == AccountMode.MULTIPLE && application.getIsSharedDevice())  {
-                throw new MsalClientException("AccountMode in configuration is set to multiple; however the device is marked as shared");
-            }
-            if(configuration.mAccountMode != AccountMode.MULTIPLE){
-                throw new MsalClientException("AccountMode in configuration is not set to multiple");
-            }
-            return null;
-        }
+        return result.getPublicClientApplication();
+
     }
 
     /**
@@ -480,36 +431,9 @@ public class PublicClientApplication implements IPublicClientApplication {
             throw new IllegalArgumentException("context is null.");
         }
 
-        throwOnMainThread("createMultipleAccountPublicClientApplication");
-
-        final ResultFuture<CreateApplicationResult> future = new ResultFuture<>();
         final PublicClientApplicationConfiguration configuration = loadConfiguration(context, configFileResourceId);
 
-        create(context,
-                configuration,
-                new ApplicationCreatedListener() {
-                    @Override
-                    public void onCreated(IPublicClientApplication application) {
-                        future.setResult(new CreateApplicationResult(application, null));
-                    }
-
-                    @Override
-                    public void onError(MsalException exception) {
-                        future.setResult(new CreateApplicationResult(null, exception));
-                    }
-                }
-        );
-
-        //Blocking Call
-        CreateApplicationResult result = future.get();
-
-        if(!result.getSuccess()){
-            //Exception thrown
-            MsalException ex = result.getException();
-            throw ex;
-        }
-
-        IPublicClientApplication application = result.getPublicClientApplication();
+        IPublicClientApplication application = createPublicClientApplication(context, configuration);
         if(application instanceof ISingleAccountPublicClientApplication){
             return (ISingleAccountPublicClientApplication) application;
         }else{
@@ -540,41 +464,10 @@ public class PublicClientApplication implements IPublicClientApplication {
     @WorkerThread
     public static ISingleAccountPublicClientApplication createSingleAccountPublicClientApplication(@NonNull final Context context,
                                                                                                    final File configFile) throws InterruptedException, MsalException {
-        if (context == null) {
-            throw new IllegalArgumentException("context is null.");
-        }
 
-        throwOnMainThread("createMultipleAccountPublicClientApplication");
-
-        final ResultFuture<CreateApplicationResult> future = new ResultFuture<>();
         final PublicClientApplicationConfiguration configuration = loadConfiguration(configFile);
+        IPublicClientApplication application = createPublicClientApplication(context, configuration);
 
-
-        create(context,
-                configuration,
-                new ApplicationCreatedListener() {
-                    @Override
-                    public void onCreated(IPublicClientApplication application) {
-                        future.setResult(new CreateApplicationResult(application, null));
-                    }
-
-                    @Override
-                    public void onError(MsalException exception) {
-                        future.setResult(new CreateApplicationResult(null, exception));
-                    }
-                }
-        );
-
-        //Blocking Call
-        CreateApplicationResult result = future.get();
-
-        if(!result.getSuccess()){
-            //Exception thrown
-            MsalException ex = result.getException();
-            throw ex;
-        }
-
-        IPublicClientApplication application = result.getPublicClientApplication();
         if(application instanceof ISingleAccountPublicClientApplication){
             return (ISingleAccountPublicClientApplication) application;
         }else{

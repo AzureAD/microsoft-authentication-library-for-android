@@ -149,17 +149,20 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                                 final List<IAccount>
                                         accounts = AccountAdapter.adapt(result);
 
-                                final String trimmedIdentifier = getPersistedCurrentAccount().getHomeAccountId();
+                                MultiTenantAccount currentAccount = getPersistedCurrentAccount();
+                                if(currentAccount != null) {
+                                    final String trimmedIdentifier = currentAccount.getHomeAccountId();
 
-                                final AccountMatcher accountMatcher = new AccountMatcher(
-                                        homeAccountMatcher
-                                );
+                                    final AccountMatcher accountMatcher = new AccountMatcher(
+                                            homeAccountMatcher
+                                    );
 
-                                for (final IAccount account : accounts) {
-                                    if (accountMatcher.matches(trimmedIdentifier, account)) {
-                                        //callback.onTaskCompleted(account);
-                                        checkCurrentAccountNotifyCallback(callback, result);
-                                        return;
+                                    for (final IAccount account : accounts) {
+                                        if (accountMatcher.matches(trimmedIdentifier, account)) {
+                                            //callback.onTaskCompleted(account);
+                                            checkCurrentAccountNotifyCallback(callback, result);
+                                            return;
+                                        }
                                     }
                                 }
 
@@ -220,8 +223,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
         persistCurrentAccount(newAccountRecords);
         callback.onAccountLoaded(newAccount);
-
-
     }
 
 
