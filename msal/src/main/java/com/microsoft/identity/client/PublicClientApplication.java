@@ -25,7 +25,6 @@ package com.microsoft.identity.client;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -50,8 +49,7 @@ import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
 import com.microsoft.identity.client.internal.telemetry.Defaults;
-import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
-import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AuthorityDeserializer;
@@ -60,28 +58,16 @@ import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAu
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
-import com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate;
-import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
-import com.microsoft.identity.common.internal.cache.ICacheKeyValueDelegate;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
-import com.microsoft.identity.common.internal.cache.MicrosoftStsAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
-import com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache;
-import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
 import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.controllers.TokenCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.net.cache.HttpCache;
-import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
-import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
-import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
-import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
-import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsTokenResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
@@ -102,7 +88,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isHomeTenantEquivalent;
-import static com.microsoft.identity.common.internal.cache.SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES;
+import static com.microsoft.identity.common.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
+import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
 
 /**
  * <p>
@@ -150,7 +137,7 @@ import static com.microsoft.identity.common.internal.cache.SharedPreferencesAcco
  * </p>
  * </p>
  */
-public class PublicClientApplication implements IPublicClientApplication {
+public class PublicClientApplication implements IPublicClientApplication, ITokenShare {
     private static final String TAG = PublicClientApplication.class.getSimpleName();
 
     private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
@@ -165,6 +152,7 @@ public class PublicClientApplication implements IPublicClientApplication {
     protected boolean mIsSharedDevice;
 
     protected PublicClientApplicationConfiguration mPublicClientConfiguration;
+    protected TokenShareUtility mTokenShareUtility;
 
     /**
      * {@link PublicClientApplication#create(Context, int, ApplicationCreatedListener)} will read the client id and other configuration settings from the
@@ -641,6 +629,15 @@ public class PublicClientApplication implements IPublicClientApplication {
         setupConfiguration(context, developerConfig);
         AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
+        if (mPublicClientConfiguration.getOAuth2TokenCache() instanceof MsalOAuth2TokenCache) {
+            mTokenShareUtility = new TokenShareUtility(
+                    mPublicClientConfiguration.getClientId(),
+                    mPublicClientConfiguration.getRedirectUri(),
+                    (MsalOAuth2TokenCache) mPublicClientConfiguration.getOAuth2TokenCache()
+            );
+        } else {
+            throw new IllegalStateException("TSL support mandates use of the MsalOAuth2TokenCache");
+        }
     }
 
     protected PublicClientApplication(@NonNull final Context context,
@@ -693,6 +690,50 @@ public class PublicClientApplication implements IPublicClientApplication {
         HttpCache.initialize(context.getCacheDir());
 
         com.microsoft.identity.common.internal.logging.Logger.info(TAG, "Create new public client application.");
+    }
+
+    @Override
+    public String getWrappedFamilyRefreshToken(@NonNull final String identifier) throws MsalClientException {
+        validateNonNullArgument(identifier, "identifier");
+        validateBrokerNotInUse();
+
+        try {
+            return mTokenShareUtility.getWrappedFamilyRefreshToken(identifier);
+        } catch (final Exception e) {
+            throw new MsalClientException(
+                    TOKEN_CACHE_ITEM_NOT_FOUND,
+                    "Failed to retrieve FRT - see getCause() for additional Exception info",
+                    e
+            );
+        }
+    }
+
+    @Override
+    public void saveFamilyRefreshToken(@NonNull final String tokenCacheItemJson) throws MsalClientException {
+        validateNonNullArgument(tokenCacheItemJson, "TokenCacheItemJson");
+        validateBrokerNotInUse();
+
+        try {
+            mTokenShareUtility.saveFamilyRefreshToken(tokenCacheItemJson);
+        } catch (final Exception e) {
+            throw new MsalClientException(
+                    TOKEN_SHARING_DESERIALIZATION_ERROR,
+                    "Failed to save FRT - see getCause() for additional Exception info",
+                    e
+            );
+        }
+    }
+
+    private void validateBrokerNotInUse() throws MsalClientException {
+        if (MSALControllerFactory.brokerEligible(
+                mPublicClientConfiguration.getAppContext(),
+                mPublicClientConfiguration.getDefaultAuthority(),
+                mPublicClientConfiguration
+        )) {
+            throw new MsalClientException(
+                    "Cannot perform this action - broker is enabled."
+            );
+        }
     }
 
     /**
@@ -851,7 +892,8 @@ public class PublicClientApplication implements IPublicClientApplication {
 
       protected static void validateNonNullArgument(@Nullable Object o,
                                                 @NonNull String argName) {
-        if (null == o) {
+        if (null == o
+                || (o instanceof CharSequence) && TextUtils.isEmpty((CharSequence) o)) {
             throw new IllegalArgumentException(
                     argName
                             + " cannot be null or empty"
@@ -1178,41 +1220,6 @@ public class PublicClientApplication implements IPublicClientApplication {
         }
     }
 
-    private MsalOAuth2TokenCache<
-            MicrosoftStsOAuth2Strategy,
-            MicrosoftStsAuthorizationRequest,
-            MicrosoftStsTokenResponse,
-            MicrosoftAccount,
-            MicrosoftRefreshToken> initCommonCache(@NonNull final Context context) {
-        final String methodName = ":initCommonCache";
-        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                TAG + methodName,
-                "Initializing common cache"
-        );
-        // Init the new-schema cache
-        final ICacheKeyValueDelegate cacheKeyValueDelegate = new CacheKeyValueDelegate();
-        final IStorageHelper storageHelper = new StorageHelper(context);
-        final ISharedPreferencesFileManager sharedPreferencesFileManager =
-                new SharedPreferencesFileManager(
-                        context,
-                        DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                        storageHelper
-                );
-        final IAccountCredentialCache accountCredentialCache =
-                new SharedPreferencesAccountCredentialCache(
-                        cacheKeyValueDelegate,
-                        sharedPreferencesFileManager
-                );
-        final MicrosoftStsAccountCredentialAdapter accountCredentialAdapter =
-                new MicrosoftStsAccountCredentialAdapter();
-
-        return new MsalOAuth2TokenCache<>(
-                context,
-                accountCredentialCache,
-                accountCredentialAdapter
-        );
-    }
-
     static TaskCompletedCallbackWithError<List<ICacheRecord>, Exception> getLoadAccountsCallback(
             final LoadAccountCallback loadAccountsCallback) {
         return new TaskCompletedCallbackWithError<List<ICacheRecord>, Exception>() {
@@ -1258,7 +1265,7 @@ public class PublicClientApplication implements IPublicClientApplication {
     }
 
     private OAuth2TokenCache<?, ?, ?> getOAuth2TokenCache() {
-        return initCommonCache(mPublicClientConfiguration.getAppContext());
+        return MsalOAuth2TokenCache.create(mPublicClientConfiguration.getAppContext());
     }
 
     protected class AccountMatcher {
