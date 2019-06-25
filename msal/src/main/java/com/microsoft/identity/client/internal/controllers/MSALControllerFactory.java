@@ -26,31 +26,19 @@ import android.accounts.AccountManager;
 import android.accounts.AuthenticatorDescription;
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.PowerManager;
-import android.os.RemoteException;
 import android.support.annotation.NonNull;
 
-import com.microsoft.identity.client.IMicrosoftAuthService;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.exception.ClientException;
-import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.authorities.AnyPersonalAccount;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
-import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
-import com.microsoft.identity.common.internal.broker.MicrosoftAuthServiceFuture;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.logging.Logger;
-import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
-import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
-import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -130,8 +118,7 @@ public class MSALControllerFactory {
      */
     public static boolean brokerEligible(@NonNull final Context applicationContext,
                                          @NonNull Authority authority,
-                                         @NonNull PublicClientApplicationConfiguration applicationConfiguration)
-            throws MsalClientException {
+                                         @NonNull PublicClientApplicationConfiguration applicationConfiguration) throws MsalClientException {
         final String methodName = ":brokerEligible";
         //If app has asked for Broker or if the authority is not AAD return false
         if (!applicationConfiguration.getUseBroker() || !(authority instanceof AzureActiveDirectoryAuthority)) {

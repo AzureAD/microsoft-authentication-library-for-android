@@ -23,6 +23,7 @@
 
 package com.microsoft.identity.client;
 
+import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -38,20 +39,80 @@ import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackW
  * Currently, this mode is only set when the device is registered as 'shared'.
  */
 public interface ISingleAccountPublicClientApplication extends IPublicClientApplication {
+
     /**
      * Gets the current account and notify if the current account changes.
      * This method must be called whenever the application is resumed or prior to running a scheduled background operation.
      *
      * @param listener a callback to be invoked when the operation finishes.
      */
-    void getCurrentAccount(@NonNull final CurrentAccountCallback listener);
+
+    void getCurrentAccount(final CurrentAccountCallback listener);
+
 
     /**
-     * Removes the Account and Credentials (tokens) of the account that is currently signed into the device.
+     * Allows a user to sign in to your application with one of their accounts.
+     *
+     * Note: The authority used to make the sign in request will be either the MSAL default: https://login.microsoftonline.com/common
+     * or the default authority specified by you in your configuration
+     *
+     * @param activity Non-null {@link Activity} that is used as the parent activity for launching the {@link AuthenticationActivity}.
+     * @param scopes   The non-null array of scopes to be consented to during sign in.
+     *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     *                 The access token returned is for MS Graph and will allow you to query for additional information about the signed in account.
+     * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                 sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     *                 Failure case will be sent back via {
+     * @link AuthenticationCallback#onError(MsalException)}.
+     */
+    void signIn(@NonNull final Activity activity,
+                @NonNull final String[] scopes,
+                @NonNull final AuthenticationCallback callback);
+
+    /**
+     * Signs out the current the Account and Credentials (tokens).
+     * NOTE: If a device is marked as a shared device within broker signout will be device wide.
      *
      * @param callback a callback to be invoked when the operation finishes.
      */
-    void removeCurrentAccount(@NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback);
+
+    void signOut(@NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback);
+
+
+
+    /**
+     * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
+     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
+     * or it fails the refresh, exception will be sent back via callback.
+     *
+     * @param scopes   The non-null array of scopes to be requested for the access token.
+     *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                 sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     *                 Failure case will be sent back via {
+     * @link AuthenticationCallback#onError(MsalException)}.
+     */
+    void acquireTokenSilentAsync(@NonNull final String[] scopes,
+                                 @NonNull final AuthenticationCallback callback);
+
+    /**
+     * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
+     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
+     * or it fails the refresh, exception will be sent back via callback.
+     *
+     * @param scopes       The non-null array of scopes to be requested for the access token.
+     *                     MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param authority    Optional. Can be passed to override the configured authority.
+     * @param forceRefresh True if the request is forced to refresh, false otherwise.
+     * @param callback     {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                     sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     *                     Failure case will be sent back via {
+     * @link AuthenticationCallback#onError(MsalException)}.
+     */
+    void acquireTokenSilentAsync(@NonNull final String[] scopes,
+                                 @Nullable final String authority,
+                                 final boolean forceRefresh,
+                                 @NonNull final AuthenticationCallback callback);
 
     /**
      * Callback for asynchronous loading of the msal IAccount account.

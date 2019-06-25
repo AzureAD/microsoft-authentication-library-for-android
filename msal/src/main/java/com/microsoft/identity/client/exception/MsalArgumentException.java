@@ -9,6 +9,7 @@ public class MsalArgumentException extends MsalException {
 
     public final static String SCOPE_ARGUMENT_NAME = ArgumentException.SCOPE_ARGUMENT_NAME;
     public final static String IACCOUNT_ARGUMENT_NAME = ArgumentException.IACCOUNT_ARGUMENT_NAME;
+    public final static String AUTHORITY_REQUIRED_FOR_SILENT = "Authority must be specified for acquireTokenSilent";
 
     private final static String ILLEGAL_ARGUMENT_ERROR_CODE = "illegal_argument_exception";
 

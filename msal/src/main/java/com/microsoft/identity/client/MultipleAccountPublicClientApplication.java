@@ -1,3 +1,25 @@
+//  Copyright (c) Microsoft Corporation.
+//  All rights reserved.
+//
+//  This code is licensed under the MIT License.
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files(the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions :
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
 package com.microsoft.identity.client;
 
 import android.content.Context;
@@ -14,7 +36,6 @@ import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
-import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
 import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
@@ -28,7 +49,6 @@ import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccou
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +72,38 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                                                      @NonNull final String authority) {
         super(context, clientId, authority);
     }
+
+    @Override
+    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
+                                        @NonNull final IAccount account,
+                                        @NonNull final AuthenticationCallback callback) {
+        acquireTokenSilent(
+                scopes,
+                account,
+                null, // authority
+                false, // forceRefresh
+                null, // claimsRequest
+                callback
+        );
+    }
+
+    @Override
+    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
+                                        @NonNull final IAccount account,
+                                        @Nullable final String authority,
+                                        final boolean forceRefresh,
+                                        @NonNull final AuthenticationCallback callback) {
+        acquireTokenSilent(
+                scopes,
+                account,
+                authority,
+                forceRefresh,
+                null, // claimsRequest
+                callback
+        );
+    }
+
+
 
     /**
      * Asynchronously returns a List of {@link IAccount} objects for which this application has RefreshTokens.
@@ -282,103 +334,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         }
     }
 
-    private AccountMatcher homeAccountMatcher = new AccountMatcher() {
-        @Override
-        boolean matches(@NonNull final String homeAccountId,
-                        @NonNull final IAccount account) {
-            return homeAccountId.contains(account.getId());
-        }
-    };
 
-    private AccountMatcher localAccountMatcher = new AccountMatcher() {
-        @Override
-        boolean matches(@NonNull final String localAccountId,
-                        @NonNull final IAccount account) {
-            // First, inspect the root account...
-            if (localAccountId.contains(account.getId())) {
-                return true;
-            } else if (account instanceof MultiTenantAccount) {
-                // We need to look at the profiles...
-                final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
-                final Map<String, ITenantProfile> tenantProfiles = multiTenantAccount.getTenantProfiles();
 
-                if (null != tenantProfiles && !tenantProfiles.isEmpty()) {
-                    for (final Map.Entry<String, ITenantProfile> profileEntry : tenantProfiles.entrySet()) {
-                        if (localAccountId.contains(profileEntry.getValue().getId())) {
-                            return true;
-                        }
-                    }
-                }
-            }
 
-            return false;
-        }
-    };
-
-    private AccountMatcher usernameMatcher = new AccountMatcher() {
-        @Override
-        boolean matches(@NonNull final String username,
-                        @NonNull final IAccount account) {
-            // Put all of the IdToken we can inspect in a List...
-            final List<IClaimable> thingsWithClaims
-                    = new ArrayList<>();
-
-            if (null != account.getClaims()) {
-                thingsWithClaims.add(account);
-            }
-
-            if (account instanceof MultiTenantAccount) {
-                final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
-                final Map<String, ITenantProfile> profiles = multiTenantAccount.getTenantProfiles();
-
-                for (final Map.Entry<String, ITenantProfile> profileEntry : profiles.entrySet()) {
-                    if (null != profileEntry.getValue().getClaims()) {
-                        thingsWithClaims.add(profileEntry.getValue());
-                    }
-                }
-            }
-
-            for (final IClaimable thingWithClaims : thingsWithClaims) {
-                if (null != thingWithClaims.getClaims()
-                        && username.equalsIgnoreCase(
-                        SchemaUtil.getDisplayableId(
-                                thingWithClaims.getClaims()
-                        )
-                )) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-    };
-
-    private class AccountMatcher {
-
-        private final AccountMatcher[] mDelegateMatchers;
-
-        AccountMatcher() {
-            // Intentionally blank...
-            mDelegateMatchers = new AccountMatcher[]{};
-        }
-
-        AccountMatcher(@NonNull final AccountMatcher... delegateMatchers) {
-            mDelegateMatchers = delegateMatchers;
-        }
-
-        boolean matches(@NonNull final String identifier,
-                        @NonNull final IAccount account) {
-            boolean matches = false;
-
-            for (final AccountMatcher matcher : mDelegateMatchers) {
-                matches = matcher.matches(identifier, account);
-
-                if (matches) {
-                    break;
-                }
-            }
-
-            return matches;
-        }
-    }
 }
