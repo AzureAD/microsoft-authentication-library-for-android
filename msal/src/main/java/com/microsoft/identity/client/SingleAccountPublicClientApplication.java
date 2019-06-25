@@ -276,7 +276,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         };
     }
 
-    private boolean didCurrentAccountChange(@Nullable MultiTenantAccount newAccount){
+    private boolean didCurrentAccountChange(final @Nullable MultiTenantAccount newAccount){
         MultiTenantAccount persistedAccount = getPersistedCurrentAccount();
 
         if(persistedAccount == null){

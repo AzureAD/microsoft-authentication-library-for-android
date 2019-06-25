@@ -25,26 +25,12 @@ package com.microsoft.identity.client;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.microsoft.identity.client.exception.MsalException;
 
 public interface IPublicClientApplication {
-
-    /**
-     * MSAL requires the calling app to pass an {@link Activity} which <b> MUST </b> call this method to get the auth
-     * code passed back correctly.
-     *
-     * @param requestCode The request code for interactive request.
-     * @param resultCode  The result code for the request to get auth code.
-     * @param data        {@link Intent} either contains the url with auth code as query string or the errors.
-     */
-    void handleInteractiveRequestRedirect(final int requestCode,
-                                          final int resultCode,
-                                          @NonNull final Intent data
-    );
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
@@ -124,5 +110,5 @@ public interface IPublicClientApplication {
      * Only SingleAccountPublicClientApplications may be used on shared devices
      * @return
      */
-    Boolean getIsSharedDevice();
+    boolean isSharedDevice();
 }

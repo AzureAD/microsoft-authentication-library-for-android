@@ -162,7 +162,7 @@ public class PublicClientApplication implements IPublicClientApplication {
      */
     private static final String FORCE_HOME_LOOKUP = "force_home_lookup";
 
-    protected Boolean mIsSharedDevice;
+    protected boolean mIsSharedDevice;
 
     protected PublicClientApplicationConfiguration mPublicClientConfiguration;
 
@@ -189,9 +189,8 @@ public class PublicClientApplication implements IPublicClientApplication {
     public static void create(@NonNull final Context context,
                               final int configFileResourceId,
                               @NonNull final ApplicationCreatedListener listener) {
-        if (context == null) {
-            throw new IllegalArgumentException("context is null.");
-        }
+        validateNonNullArgument(context, "context");
+        validateNonNullArgument(listener, "listener");
 
         create(context,
                 loadConfiguration(context, configFileResourceId),
@@ -220,9 +219,7 @@ public class PublicClientApplication implements IPublicClientApplication {
     @WorkerThread
     public static IPublicClientApplication create(@NonNull final Context context,
                               final int configFileResourceId) throws InterruptedException, MsalException {
-        if (context == null) {
-            throw new IllegalArgumentException("context is null.");
-        }
+        validateNonNullArgument(context, "context");
 
         final PublicClientApplicationConfiguration configuration = loadConfiguration(context, configFileResourceId);
         return createPublicClientApplication(context, configuration);
@@ -252,9 +249,8 @@ public class PublicClientApplication implements IPublicClientApplication {
     public static void createMultipleAccountPublicClientApplication(@NonNull final Context context,
                               final int configFileResourceId,
                               @NonNull final ApplicationCreatedListener listener) {
-        if (context == null) {
-            throw new IllegalArgumentException("context is null.");
-        }
+
+        validateNonNullArgument(context, "context");
 
         create(context,
                 loadConfiguration(context, configFileResourceId),
@@ -282,9 +278,7 @@ public class PublicClientApplication implements IPublicClientApplication {
     @WorkerThread
     public static IMultipleAccountPublicClientApplication createMultipleAccountPublicClientApplication(@NonNull final Context context,
                                                                                                        final int configFileResourceId) throws MsalException, InterruptedException {
-        if (context == null) {
-            throw new IllegalArgumentException("context is null.");
-        }
+        validateNonNullArgument(context, "context");
 
         final PublicClientApplicationConfiguration configuration = loadConfiguration(context, configFileResourceId);
 
@@ -296,7 +290,7 @@ public class PublicClientApplication implements IPublicClientApplication {
         if(application instanceof IMultipleAccountPublicClientApplication){
             return (IMultipleAccountPublicClientApplication)application;
         }else{
-            if(configuration.mAccountMode == AccountMode.MULTIPLE && application.getIsSharedDevice())  {
+            if(configuration.mAccountMode == AccountMode.MULTIPLE && application.isSharedDevice())  {
                 throw new MsalClientException("AccountMode in configuration is set to multiple; however the device is marked as shared");
             }
             throw new MsalClientException("A multiple account public client application could not be created for unknown reasons");
@@ -324,6 +318,9 @@ public class PublicClientApplication implements IPublicClientApplication {
     public static IMultipleAccountPublicClientApplication createMultipleAccountPublicClientApplication(@NonNull final Context context,
                                                                                                        @NonNull final File configFile) throws InterruptedException, MsalException {
 
+        validateNonNullArgument(context, "context");
+        validateNonNullArgument(configFile, "configFile");
+
         PublicClientApplicationConfiguration configuration = loadConfiguration(configFile);
 
         if(configuration.mAccountMode != AccountMode.MULTIPLE){
@@ -344,9 +341,9 @@ public class PublicClientApplication implements IPublicClientApplication {
 
     private static IPublicClientApplication createPublicClientApplication(@NonNull final Context context,
                                                  final PublicClientApplicationConfiguration configuration) throws MsalException, InterruptedException {
-        if (context == null) {
-            throw new IllegalArgumentException("context is null.");
-        }
+
+        validateNonNullArgument(context, "context");
+        validateNonNullArgument(configuration, "configuration");
 
         throwOnMainThread("createMultipleAccountPublicClientApplication");
 
@@ -402,6 +399,9 @@ public class PublicClientApplication implements IPublicClientApplication {
     public static void createSingleAccountPublicClientApplication(@NonNull final Context context,
                                                                     final int configFileResourceId,
                                                                     @NonNull final ApplicationCreatedListener listener) {
+
+        validateNonNullArgument(context, "context");
+        validateNonNullArgument(listener, "listener");
         if (context == null) {
             throw new IllegalArgumentException("context is null.");
         }
@@ -432,9 +432,7 @@ public class PublicClientApplication implements IPublicClientApplication {
     @WorkerThread
     public static ISingleAccountPublicClientApplication createSingleAccountPublicClientApplication(@NonNull final Context context,
                                                                                                        final int configFileResourceId) throws InterruptedException, MsalException {
-        if (context == null) {
-            throw new IllegalArgumentException("context is null.");
-        }
+        validateNonNullArgument(context, "context");
 
         final PublicClientApplicationConfiguration configuration = loadConfiguration(context, configFileResourceId);
 
@@ -469,6 +467,8 @@ public class PublicClientApplication implements IPublicClientApplication {
     @WorkerThread
     public static ISingleAccountPublicClientApplication createSingleAccountPublicClientApplication(@NonNull final Context context,
                                                                                                    final File configFile) throws InterruptedException, MsalException {
+
+        validateNonNullArgument(context, "context");
 
         final PublicClientApplicationConfiguration configuration = loadConfiguration(configFile);
         IPublicClientApplication application = createPublicClientApplication(context, configuration);
@@ -506,9 +506,7 @@ public class PublicClientApplication implements IPublicClientApplication {
                               final File configFile,
                               @NonNull final ApplicationCreatedListener listener) {
 
-        if (context == null) {
-            throw new IllegalArgumentException("context is null.");
-        }
+        validateNonNullArgument(context, "context");
 
         create(context,
                 loadConfiguration(configFile),
@@ -541,10 +539,11 @@ public class PublicClientApplication implements IPublicClientApplication {
      */
     public static void create(@NonNull final Context context,
                               @NonNull final String clientId,
-                              @NonNull final ApplicationCreatedListener listener) {
-        if (context == null) {
-            throw new IllegalArgumentException("Context is null.");
-        }
+                              @NonNull final ApplicationCreatedListener listener){
+
+        validateNonNullArgument(context, "context");
+        validateNonNullArgument(context, "listener");
+
 
         if (MsalUtils.isEmpty(clientId)) {
             throw new IllegalArgumentException("client id is empty or null");
@@ -586,9 +585,7 @@ public class PublicClientApplication implements IPublicClientApplication {
                               @NonNull final String authority,
                               @NonNull final ApplicationCreatedListener listener) {
 
-        if (context == null) {
-            throw new IllegalArgumentException("Context is null.");
-        }
+        validateNonNullArgument(context, "context");
 
         if (MsalUtils.isEmpty(clientId)) {
             throw new IllegalArgumentException("client id is empty or null");
@@ -742,7 +739,7 @@ public class PublicClientApplication implements IPublicClientApplication {
     }
 
     @Override
-    public Boolean getIsSharedDevice() {
+    public boolean isSharedDevice() {
         return mIsSharedDevice;
     }
 
@@ -1363,11 +1360,4 @@ public class PublicClientApplication implements IPublicClientApplication {
             return false;
         }
     };
-
-    @Override
-    public void handleInteractiveRequestRedirect(final int requestCode,
-                                                 final int resultCode,
-                                                 @NonNull final Intent data) {
-        ApiDispatcher.completeInteractive(requestCode, resultCode, data);
-    }
 }
