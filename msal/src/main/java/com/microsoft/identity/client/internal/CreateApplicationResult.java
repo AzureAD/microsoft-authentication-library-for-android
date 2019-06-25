@@ -31,7 +31,7 @@ public class CreateApplicationResult  {
 
     private MsalException mMsalException;
     private IPublicClientApplication mIPublicClientApplication;
-    private Boolean mSuccess = false;
+    private boolean mSuccess = false;
 
     public CreateApplicationResult(@Nullable IPublicClientApplication application, @Nullable MsalException exception){
         mMsalException = exception;
@@ -49,7 +49,7 @@ public class CreateApplicationResult  {
         return mMsalException;
     }
 
-    public Boolean getSuccess(){
+    public boolean getSuccess(){
         return mSuccess;
     }
 
