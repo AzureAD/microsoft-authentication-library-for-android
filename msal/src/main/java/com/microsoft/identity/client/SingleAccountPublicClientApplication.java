@@ -157,7 +157,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
                                     for (final IAccount account : accounts) {
                                         if (accountMatcher.matches(trimmedIdentifier, account)) {
-                                            //callback.onTaskCompleted(account);
                                             checkCurrentAccountNotifyCallback(callback, result);
                                             return;
                                         }
