@@ -332,7 +332,7 @@ public class PublicClientApplication implements IPublicClientApplication {
         if(application instanceof IMultipleAccountPublicClientApplication){
             return (IMultipleAccountPublicClientApplication)application;
         }else{
-            if(configuration.mAccountMode == AccountMode.MULTIPLE && application.getIsSharedDevice())  {
+            if(configuration.mAccountMode == AccountMode.MULTIPLE && application.isSharedDevice())  {
                 throw new MsalClientException("AccountMode in configuration is set to multiple; however the device is marked as shared");
             }
             throw new MsalClientException("A multiple account public client application could not be created for unknown reasons");
