@@ -21,3 +21,4 @@ integration_tests.properties
 *.iws
 .idea/
 /**/*.pom
+.settings
