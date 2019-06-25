@@ -195,19 +195,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 new TaskCompletedCallbackWithError<List<ICacheRecord>, Exception>() {
                     @Override
                     public void onTaskCompleted(List<ICacheRecord> cacheRecords) {
-                        MultiTenantAccount currentAccount = getPersistedCurrentAccount();
-                        MultiTenantAccount newAccount = getAccountFromICacheRecordList(cacheRecords);
-
-                        String currentAccountHomeAccountId = currentAccount == null ? "" : currentAccount.getHomeAccountId();
-                        String newAccountHomeAccountId = newAccount == null ? "" : newAccount.getHomeAccountId();
-
-                        boolean isCurrentAccountChanged = !currentAccountHomeAccountId.equalsIgnoreCase(newAccountHomeAccountId);
-                        if (isCurrentAccountChanged) {
-                            callback.onAccountChanged(currentAccount, newAccount);
-                        }
-
-                        persistCurrentAccount(cacheRecords);
-                        callback.onAccountLoaded(newAccount);
+                        checkCurrentAccountNotifyCallback(callback, cacheRecords);
                     }
 
                     @Override
