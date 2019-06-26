@@ -254,7 +254,8 @@ public class MsalWrapper {
                                 AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
                                         .withScopes(Arrays.asList( requestOptions.getScopes().toLowerCase().split(" ")))
                                         .forAccount(account)
-                                        .fromAuthority(mApplication.getConfiguration().getDefaultAuthority().toString())
+                                        //TODO Issue#669
+                                        // .fromAuthority(mApplication.getConfiguration().getDefaultAuthority().toString())
                                         .forceRefresh(requestOptions.forceRefresh())
                                         .callback(getAuthenticationCallback(notifyCallback))
                                         .build();

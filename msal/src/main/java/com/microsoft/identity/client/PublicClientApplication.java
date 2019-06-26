@@ -1083,7 +1083,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     @Override
     public void acquireTokenSilent(
             @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
-        validateSilentParameters(acquireTokenSilentParameters);
+        //TODO Issue#669
+        // validateSilentParameters(acquireTokenSilentParameters);
 
         acquireTokenSilentParameters.setAccountRecord(
                 getAccountRecord(
