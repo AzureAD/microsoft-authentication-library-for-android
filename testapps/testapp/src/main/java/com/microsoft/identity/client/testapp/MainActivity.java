@@ -53,13 +53,18 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
+import com.microsoft.identity.common.internal.telemetry.Telemetry;
+import com.microsoft.identity.common.internal.telemetry.observers.ITelemetryAggregatedObserver;
+import com.microsoft.identity.common.internal.telemetry.observers.ITelemetryDefaultObserver;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -180,6 +185,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 operationResultCallback,
                 null
         );
+
+        Telemetry.getInstance().addObserver(new TelemetryAggregatedObserver());
+        Telemetry.getInstance().addObserver(new TelemetryDefaultObserver());
+    }
+
+    class TelemetryDefaultObserver implements ITelemetryDefaultObserver {
+        public void upload(List<Map<String, String>> telemetryData) {
+            for (Map properties : telemetryData) {
+                final Iterator iterator = properties.entrySet().iterator();
+                while (iterator.hasNext()) {
+                    final Map.Entry pair = (Map.Entry) iterator.next();
+                    Log.e(TAG, pair.getKey() + ":" + pair.getValue());
+                }
+                Log.e(TAG, "====================================" + '\n');
+            }
+        }
+    }
+
+    class TelemetryAggregatedObserver implements ITelemetryAggregatedObserver {
+        public void upload(Map<String, String> telemetryData) {
+            final Iterator iterator = telemetryData.entrySet().iterator();
+            while (iterator.hasNext()) {
+                final Map.Entry pair = (Map.Entry) iterator.next();
+                Log.e(TAG, pair.getKey() + ":" + pair.getValue());
+            }
+            Log.e(TAG, "====================================" + '\n');
+        }
     }
 
     @Override
