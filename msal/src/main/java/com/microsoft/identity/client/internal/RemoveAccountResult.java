@@ -20,38 +20,29 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
+package com.microsoft.identity.client.internal;
 
-package com.microsoft.identity.client;
+import android.support.annotation.Nullable;
 
-import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.exception.MsalServiceException;
-import com.microsoft.identity.client.exception.MsalUiRequiredException;
-import com.microsoft.identity.client.exception.MsalUserCancelException;
 
-/**
- * Callback passed with token acquisition. {@link IAuthenticationResult} or {@link MsalException} will be returned back via callback.
- */
-public interface AuthenticationCallback {
+public class RemoveAccountResult {
+    private MsalException mMsalException;
+    private boolean mSuccess = false;
 
-    /**
-     * Authentication finishes successfully.
-     *
-     * @param authenticationResult {@link IAuthenticationResult} that contains the success response.
-     */
-    void onSuccess(final IAuthenticationResult authenticationResult);
+    public RemoveAccountResult(@Nullable MsalException exception){
+        mMsalException = exception;
 
-    /**
-     * Error occurs during the authentication.
-     *
-     * @param exception The {@link MsalException} contains the error code, error message and cause if applicable. The exception
-     *                  returned in the callback could be {@link MsalClientException}, {@link MsalServiceException} or
-     *                  {@link MsalUiRequiredException}.
-     */
-    void onError(final MsalException exception);
+        if(exception == null){
+            mSuccess = true;
+        }
+    }
 
-    /**
-     * Will be called if user cancels the flow.
-     */
-    void onCancel();
+    public MsalException getException(){
+        return mMsalException;
+    }
+
+    public boolean getSuccess(){
+        return mSuccess;
+    }
 }

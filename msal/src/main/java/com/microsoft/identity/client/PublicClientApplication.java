@@ -40,6 +40,8 @@ import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.exception.MsalUserCancelException;
+import com.microsoft.identity.client.internal.AcquireTokenResult;
 import com.microsoft.identity.client.internal.CreateApplicationResult;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
@@ -1368,4 +1370,46 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             return false;
         }
     };
+
+    protected IAuthenticationResult acquireTokenSilentSync(@NonNull final String[] scopes,
+                                                           @Nullable final String authority,
+                                                           @NonNull final IAccount account,
+                                                           final boolean forceRefresh) throws MsalException, InterruptedException {
+
+        throwOnMainThread("acquireTokenSilent");
+
+        final ResultFuture<AcquireTokenResult> future = new ResultFuture<>();
+
+        acquireTokenSilent(
+                scopes,
+                account,
+                authority, // authority
+                forceRefresh, // forceRefresh
+                null, // claimsRequest
+                new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
+                        future.setResult(new AcquireTokenResult(authenticationResult, null));
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        future.setResult(new AcquireTokenResult(null, exception));
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        future.setResult(new AcquireTokenResult(null, new MsalUserCancelException()));
+                    }
+                }
+        );
+
+        AcquireTokenResult result = future.get();
+
+        if(result.getSuccess()){
+            return result.getAuthenticationResult();
+        }else{
+            throw result.getException();
+        }
+    }
 }

@@ -29,6 +29,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.internal.RemoveAccountResult;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
@@ -48,10 +50,12 @@ import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.request.OperationParameters;
+import com.microsoft.identity.common.internal.result.ResultFuture;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 public class MultipleAccountPublicClientApplication extends PublicClientApplication
         implements IMultipleAccountPublicClientApplication {
@@ -85,6 +89,16 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                 null, // claimsRequest
                 callback
         );
+    }
+
+    @Override
+    public IAuthenticationResult acquireTokenSilent(@NonNull String[] scopes, @NonNull IAccount account) throws MsalException, InterruptedException {
+        return acquireTokenSilentSync(scopes, null, account, false);
+    }
+
+    @Override
+    public IAuthenticationResult acquireTokenSilent(@NonNull String[] scopes, @NonNull IAccount account, @Nullable String authority, boolean forceRefresh) throws MsalException, InterruptedException {
+        return acquireTokenSilentSync(scopes, authority, account, forceRefresh);
     }
 
     @Override
@@ -291,7 +305,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
     @Override
     public void removeAccount(@Nullable final IAccount account,
-                              @NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback) {
+                              @NonNull final RemoveAccountCallback callback) {
         ApiDispatcher.initializeDiagnosticContext();
 
         // First, cast the input IAccount to a MultiTenantAccount
@@ -305,7 +319,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                         "Requisite IAccount or IAccount fields were null. Insufficient criteria to remove IAccount."
                 );
 
-                callback.onTaskCompleted(false);
+                callback.onRemoved();
             } else {
                 final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
 
@@ -324,7 +338,17 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                                 params.getAuthority(),
                                 mPublicClientConfiguration
                         ),
-                        callback
+                        new TaskCompletedCallbackWithError<Boolean, MsalException>() {
+                            @Override
+                            public void onError(MsalException error) {
+                                callback.onError(error);
+                            }
+
+                            @Override
+                            public void onTaskCompleted(Boolean success) {
+                                callback.onRemoved();
+                            }
+                        }
                 );
 
                 ApiDispatcher.removeAccount(command);
@@ -334,7 +358,32 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         }
     }
 
+    @Override
+    public boolean removeAccount(@Nullable IAccount account) throws MsalException, InterruptedException {
 
+        final ResultFuture<RemoveAccountResult> future = new ResultFuture();
+        removeAccount(account,
+                new RemoveAccountCallback() {
+                    @Override
+                    public void onRemoved() {
+                        future.setResult(new RemoveAccountResult(null));
+                    }
+
+                    @Override
+                    public void onError(@NonNull MsalException exception) {
+                        future.setResult(new RemoveAccountResult(exception));
+                    }
+                });
+
+        RemoveAccountResult result = future.get();
+
+        if(result.getSuccess()){
+            return true;
+        }else{
+            throw result.getException();
+        }
+
+    }
 
 
 }

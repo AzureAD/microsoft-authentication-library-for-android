@@ -26,7 +26,9 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.WorkerThread;
 
+import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 
 /**
@@ -44,10 +46,10 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * Gets the current account and notify if the current account changes.
      * This method must be called whenever the application is resumed or prior to running a scheduled background operation.
      *
-     * @param listener a callback to be invoked when the operation finishes.
+     * @param callback a callback to be invoked when the operation finishes.
      */
 
-    void getCurrentAccount(final CurrentAccountCallback listener);
+    void getCurrentAccount(final CurrentAccountCallback callback);
 
 
     /**
@@ -75,8 +77,15 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      *
      * @param callback a callback to be invoked when the operation finishes.
      */
+    void signOut(@NonNull final SignOutCallback callback);
 
-    void signOut(@NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback);
+    /**
+     * Signs out the current the Account and Credentials (tokens).
+     * NOTE: If a device is marked as a shared device within broker signout will be device wide.
+     *
+     * @return boolean indicating whether the account was removed successfully
+     */
+    boolean signOut() throws MsalException, InterruptedException;
 
 
 
@@ -100,6 +109,18 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
      * or it fails the refresh, exception will be sent back via callback.
      *
+     * @param scopes   The non-null array of scopes to be requested for the access token.
+     *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     *
+     */
+    @WorkerThread
+    IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes) throws MsalException, InterruptedException;
+
+    /**
+     * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
+     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
+     * or it fails the refresh, exception will be sent back via callback.
+     *
      * @param scopes       The non-null array of scopes to be requested for the access token.
      *                     MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
      * @param authority    Optional. Can be passed to override the configured authority.
@@ -113,6 +134,22 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
                                  @Nullable final String authority,
                                  final boolean forceRefresh,
                                  @NonNull final AuthenticationCallback callback);
+
+    /**
+     * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
+     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
+     * or it fails the refresh, exception will be sent back via callback.
+     *
+     * @param scopes       The non-null array of scopes to be requested for the access token.
+     *                     MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param authority    Optional. Can be passed to override the configured authority.
+     * @param forceRefresh True if the request is forced to refresh, false otherwise.
+     *
+     */
+    @WorkerThread
+    IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
+                                 @Nullable final String authority,
+                                 final boolean forceRefresh) throws MsalException, InterruptedException;
 
     /**
      * Callback for asynchronous loading of the msal IAccount account.
@@ -140,5 +177,19 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
          * @param exception the exception object.
          */
         void onError(@NonNull final Exception exception);
+    }
+
+
+    interface SignOutCallback {
+        /**
+         * Invoked when account successfully signed out
+         */
+        void onSignOut();
+        /**
+         * Invoked when the account failed to load.
+         *
+         * @param exception the exception object.
+         */
+        void onError(@NonNull final MsalException exception);
     }
 }

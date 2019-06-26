@@ -26,20 +26,19 @@ import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.internal.RemoveAccountResult;
 import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
-
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
-
-import com.microsoft.identity.common.exception.BaseException;
-
 import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
 import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
 import com.microsoft.identity.common.internal.controllers.RemoveAccountCommand;
@@ -47,11 +46,9 @@ import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackW
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.request.ILocalAuthenticationCallback;
 import com.microsoft.identity.common.internal.request.OperationParameters;
-
-import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
-
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
-
+import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
+import com.microsoft.identity.common.internal.result.ResultFuture;
 
 import java.util.List;
 
@@ -294,7 +291,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     }
 
     @Override
-    public void signOut(@NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback){
+    public void signOut(@NonNull final SignOutCallback callback){
         final String methodName = ":signOut";
         final PublicClientApplicationConfiguration configuration = getConfiguration();
 
@@ -321,16 +318,16 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                                 params.getAuthority(),
                                 mPublicClientConfiguration
                         ),
-                        new TaskCompletedCallbackWithError<Boolean, Exception>() {
+                        new TaskCompletedCallbackWithError<Boolean, MsalException>() {
                             @Override
-                            public void onError(Exception error) {
+                            public void onError(MsalException error) {
                                 callback.onError(error);
                             }
 
                             @Override
                             public void onTaskCompleted(Boolean result) {
                                 persistCurrentAccount(null);
-                                callback.onTaskCompleted(result);
+                                callback.onSignOut();
                             }
                         }
                 );
@@ -347,7 +344,32 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     }
 
-    private void removeAccountFromSharedDevice(@NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback,
+    @Override
+    public boolean signOut() throws MsalException, InterruptedException {
+        final ResultFuture<RemoveAccountResult> future = new ResultFuture<>();
+
+        signOut(new SignOutCallback() {
+            @Override
+            public void onSignOut() {
+                future.setResult(new RemoveAccountResult(null));
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                future.setResult(new RemoveAccountResult(exception));
+            }
+        });
+
+        RemoveAccountResult result = future.get();
+
+        if(result.getSuccess()){
+            return true;
+        }else{
+            throw result.getException();
+        }
+    }
+
+    private void removeAccountFromSharedDevice(@NonNull final SignOutCallback callback,
                                                PublicClientApplicationConfiguration configuration){
 
             new BrokerMsalController().removeAccountFromSharedDevice(
@@ -359,12 +381,13 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                                 persistCurrentAccount(null);
                             }
 
-                            callback.onTaskCompleted(success);
+                            callback.onSignOut();
                         }
 
                         @Override
                         public void onError(Exception exception) {
-                            callback.onError(exception);
+                            //TODO: Need instanceof check prior to cast
+                            callback.onError((MsalException)exception);
                         }
                     });
     }
@@ -432,6 +455,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final AuthenticationCallback callback) {
+
+        //TODO: Add null check for getPeristedAccount and throw exception if account not found
         acquireTokenSilent(
                 scopes,
                 getPersistedCurrentAccount(),
@@ -441,6 +466,12 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 callback
         );
     }
+
+    @WorkerThread
+    public IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes) throws MsalException, InterruptedException {
+        return acquireTokenSilentSync(scopes, null, getPersistedCurrentAccount(), false);
+    }
+
 
     @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
@@ -456,6 +487,17 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 callback
         );
     }
+
+    @WorkerThread
+    public IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
+                                   @Nullable final String authority,
+                                   final boolean forceRefresh) throws MsalException, InterruptedException {
+        return acquireTokenSilentSync(scopes, authority, getPersistedCurrentAccount(), forceRefresh);
+    }
+
+
+
+
 
 
 }
