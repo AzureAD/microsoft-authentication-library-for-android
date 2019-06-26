@@ -112,7 +112,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
      */
     @Override
     public void getAccounts(@NonNull final LoadAccountCallback callback) {
-        ApiDispatcher.initializeDiagnosticContext();
         final String methodName = ":getAccounts";
         final List<ICacheRecord> accounts =
                 mPublicClientConfiguration
@@ -212,8 +211,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                            @NonNull final GetAccountCallback callback) {
         final String methodName = ":getAccount";
 
-        ApiDispatcher.initializeDiagnosticContext();
-
         com.microsoft.identity.common.internal.logging.Logger.verbose(
                 TAG + methodName,
                 "Get account with the identifier."
@@ -292,8 +289,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     @Override
     public void removeAccount(@Nullable final IAccount account,
                               @NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback) {
-        ApiDispatcher.initializeDiagnosticContext();
-
         // First, cast the input IAccount to a MultiTenantAccount
         final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
 
