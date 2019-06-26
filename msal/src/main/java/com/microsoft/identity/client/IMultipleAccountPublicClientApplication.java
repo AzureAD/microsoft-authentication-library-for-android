@@ -20,11 +20,11 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
 package com.microsoft.identity.client;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.WorkerThread;
 
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 
@@ -64,4 +64,43 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
     void removeAccount(@Nullable final IAccount account,
                        @NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback
     );
+
+    /**
+     * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
+     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
+     * or it fails the refresh, exception will be sent back via callback.
+     *
+     * @param scopes   The non-null array of scopes to be requested for the access token.
+     *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param account  {@link IAccount} represents the account to silently request tokens for.
+     * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                 sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     *                 Failure case will be sent back via {
+     * @link AuthenticationCallback#onError(MsalException)}.
+     */
+    void acquireTokenSilentAsync(@NonNull final String[] scopes,
+                                 @NonNull final IAccount account,
+                                 @NonNull final AuthenticationCallback callback);
+
+    /**
+     * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
+     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
+     * or it fails the refresh, exception will be sent back via callback.
+     *
+     * @param scopes       The non-null array of scopes to be requested for the access token.
+     *                     MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param account      {@link IAccount} represents the account to silently request tokens for.
+     * @param authority    Optional. Can be passed to override the configured authority.
+     * @param forceRefresh True if the request is forced to refresh, false otherwise.
+     * @param callback     {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                     sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     *                     Failure case will be sent back via {
+     * @link AuthenticationCallback#onError(MsalException)}.
+     */
+    void acquireTokenSilentAsync(@NonNull final String[] scopes,
+                                 @NonNull final IAccount account,
+                                 @Nullable final String authority,
+                                 final boolean forceRefresh,
+                                 @NonNull final AuthenticationCallback callback);
+
 }

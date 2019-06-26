@@ -168,6 +168,16 @@ public final class MsalClientException extends MsalException {
     public static final String NOT_ELIGIBLE_TO_USE_BROKER = "not_eligible_to_use_broker";
 
     /**
+     * No account currently signed in to SingleAccountPublicClientApplication
+     */
+    public static final String NO_ACCOUNT_TO_SIGN_OUT = "no_account_to_sign_out";
+
+    /**
+     * Returned account does not match new account
+     */
+    public static final String CURRENT_ACCOUNT_MISMATCH = "returned_account_does_not_match_current_account";
+
+    /**
      * Temporary non-exposed error code to indicate that ADFS authority validation fails. ADFS as authority is not supported
      * for preview.
      */

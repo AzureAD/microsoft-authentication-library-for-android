@@ -26,6 +26,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
+import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
@@ -43,14 +44,17 @@ import java.util.List;
 
 import javax.crypto.SecretKey;
 
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ACCOUNT_MODE;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORITIES;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_USER_AGENT;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.BROWSER_SAFE_LIST;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CLIENT_ID;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.HTTP;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.LOGGING;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.MULTIPLE_CLOUDS_SUPPORTED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.TELEMETRY;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.SHARED_DEVICE_MODE_SUPPORTED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ENVIRONMENT;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REQUIRED_BROKER_PROTOCOL_VERSION;
@@ -69,6 +73,9 @@ public class PublicClientApplicationConfiguration {
         static final String ENVIRONMENT = "environment";
         static final String REQUIRED_BROKER_PROTOCOL_VERSION = "minimum_required_broker_protocol_version";
         static final String TELEMETRY = "telemetry";
+        static final String BROWSER_SAFE_LIST = "browser_safelist";
+        static final String SHARED_DEVICE_MODE_SUPPORTED = "shared_device_mode_supported";
+        static final String ACCOUNT_MODE = "account_mode";
     }
 
     @SerializedName(CLIENT_ID)
@@ -101,11 +108,17 @@ public class PublicClientApplicationConfiguration {
     @SerializedName(REQUIRED_BROKER_PROTOCOL_VERSION)
     String mRequiredBrokerProtocolVersion;
 
-    @SerializedName("browser_safelist")
+    @SerializedName(BROWSER_SAFE_LIST)
     List<BrowserDescriptor> mBrowserSafeList;
 
     @SerializedName(TELEMETRY)
     TelemetryConfiguration mTelemetryConfiguration;
+
+    @SerializedName(SHARED_DEVICE_MODE_SUPPORTED)
+    Boolean mSharedDeviceModeSupported;
+
+    @SerializedName(ACCOUNT_MODE)
+    AccountMode mAccountMode;
 
     transient OAuth2TokenCache mOAuth2TokenCache;
 
@@ -218,10 +231,31 @@ public class PublicClientApplicationConfiguration {
      * <p>
      * The client must have registered
      *
-     * @return The boolean indicator of whether multiple clouds are supported by this application.
+     * @return The boolean indicator of whether or not to use the broker.
      */
     public Boolean getUseBroker() {
         return mUseBroker;
+    }
+
+    /**
+     * Indicates whether or not the public client application supports shared device mode
+     * <p>
+     * Shared device mode is enabled by the Administrators of devices using the Microsoft Authenticator app or via
+     * provisioning via a mobile device management solution.
+     *
+     * @return The boolean indicator of whether shared device mode is supported by this app.
+     */
+    public Boolean getSharedDeviceModeSupported() {
+        return mSharedDeviceModeSupported;
+    }
+
+    /**
+     * Gets the currently configured {@link AccountMode} for the PublicClientApplication.
+     *
+     * @return The AccountMode supported by this application.
+     */
+    public AccountMode getAccountMode() {
+        return this.mAccountMode;
     }
 
     /**
