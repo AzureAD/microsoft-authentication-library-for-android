@@ -129,7 +129,12 @@ public class MsalWrapper {
         }
 
         if (mApplication instanceof ISingleAccountPublicClientApplication) {
-            return "Single Account (Shared device)";
+            ISingleAccountPublicClientApplication app = (ISingleAccountPublicClientApplication) mApplication;
+            if (app.isSharedDevice()) {
+                return "Single Account - Shared device";
+            } else {
+                return "Single Account - Non-shared device";
+            }
         }
 
         return "Multiple Account";

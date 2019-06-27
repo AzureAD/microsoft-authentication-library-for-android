@@ -217,7 +217,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                     @Override
                     public void onError(MsalException exception) {
                         callback.onError(exception);
-
                     }
                 });
     }
@@ -228,7 +227,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
         if (didCurrentAccountChange(newAccount)) {
             callback.onAccountChanged(localAccount, newAccount);
-            return;
         }
 
         persistCurrentAccount(newAccountRecords);
@@ -294,19 +292,10 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     private boolean didCurrentAccountChange(final @Nullable MultiTenantAccount newAccount) {
         MultiTenantAccount persistedAccount = getPersistedCurrentAccount();
 
-        if (persistedAccount == null) {
-            if (newAccount == null) {
-                return false;
-            } else {
-                return true;
-            }
-        } else {
-            if (persistedAccount.getId().equalsIgnoreCase(newAccount.getId())) {
-                return false;
-            } else {
-                return true;
-            }
-        }
+        String persistedAccountId = persistedAccount == null ? "" : persistedAccount.getHomeAccountId();
+        String newAccountId = newAccount == null ? "" : newAccount.getHomeAccountId();
+
+        return !persistedAccountId.equalsIgnoreCase(newAccountId);
     }
 
     @Override
