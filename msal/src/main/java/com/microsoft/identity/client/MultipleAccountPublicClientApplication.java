@@ -32,9 +32,11 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.RemoveAccountResult;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
+import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
@@ -118,14 +120,13 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     }
 
 
-
     /**
      * Asynchronously returns a List of {@link IAccount} objects for which this application has RefreshTokens.
      *
      * @param callback The callback to notify once this action has finished.
      */
     @Override
-    public void getAccounts(@NonNull final LoadAccountCallback callback) {
+    public void getAccounts(@NonNull final LoadAccountsCallback callback) {
         ApiDispatcher.initializeDiagnosticContext();
         final String methodName = ":getAccounts";
         final List<ICacheRecord> accounts =
@@ -242,7 +243,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                             params.getAuthority(),
                             mPublicClientConfiguration
                     ),
-                    new TaskCompletedCallbackWithError<List<ICacheRecord>, Exception>() {
+                    new TaskCompletedCallbackWithError<List<ICacheRecord>, BaseException>() {
                         @Override
                         public void onTaskCompleted(final List<ICacheRecord> result) {
                             if (null == result || result.size() == 0) {
@@ -281,13 +282,13 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                         }
 
                         @Override
-                        public void onError(final Exception exception) {
+                        public void onError(final BaseException exception) {
                             com.microsoft.identity.common.internal.logging.Logger.error(
                                     TAG + methodName,
                                     exception.getMessage(),
                                     exception
                             );
-                            callback.onError(exception);
+                            callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
                         }
                     }
             );
@@ -312,47 +313,49 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
 
         //create the parameter
+        if (null == multiTenantAccount) {
+            com.microsoft.identity.common.internal.logging.Logger.warn(
+                    TAG,
+                    "Requisite IAccount or IAccount fields were null. Insufficient criteria to remove IAccount."
+            );
+
+            callback.onError(new MsalClientException(MsalClientException.INVALID_PARAMETER));
+            return;
+        }
+
+        final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+
+        // TODO Clean this up, only the cache should make these records...
+        // The broker strips these properties out of this object to hit the cache
+        // Refactor this out...
+        final AccountRecord requestAccountRecord = new AccountRecord();
+        requestAccountRecord.setEnvironment(multiTenantAccount.getEnvironment());
+        requestAccountRecord.setHomeAccountId(multiTenantAccount.getHomeAccountId());
+        params.setAccount(requestAccountRecord);
+
         try {
-            if (null == multiTenantAccount) {
-                com.microsoft.identity.common.internal.logging.Logger.warn(
-                        TAG,
-                        "Requisite IAccount or IAccount fields were null. Insufficient criteria to remove IAccount."
-                );
-
-                callback.onRemoved();
-            } else {
-                final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
-
-                // TODO Clean this up, only the cache should make these records...
-                // The broker strips these properties out of this object to hit the cache
-                // Refactor this out...
-                final AccountRecord requestAccountRecord = new AccountRecord();
-                requestAccountRecord.setEnvironment(multiTenantAccount.getEnvironment());
-                requestAccountRecord.setHomeAccountId(multiTenantAccount.getHomeAccountId());
-                params.setAccount(requestAccountRecord);
-
-                final RemoveAccountCommand command = new RemoveAccountCommand(
-                        params,
-                        MSALControllerFactory.getAcquireTokenSilentControllers(
-                                mPublicClientConfiguration.getAppContext(),
-                                params.getAuthority(),
-                                mPublicClientConfiguration
-                        ),
-                        new TaskCompletedCallbackWithError<Boolean, MsalException>() {
-                            @Override
-                            public void onError(MsalException error) {
-                                callback.onError(error);
-                            }
-
-                            @Override
-                            public void onTaskCompleted(Boolean success) {
-                                callback.onRemoved();
-                            }
+            final RemoveAccountCommand command = new RemoveAccountCommand(
+                    params,
+                    MSALControllerFactory.getAcquireTokenSilentControllers(
+                            mPublicClientConfiguration.getAppContext(),
+                            params.getAuthority(),
+                            mPublicClientConfiguration
+                    ),
+                    new TaskCompletedCallbackWithError<Boolean, BaseException>() {
+                        @Override
+                        public void onError(BaseException error) {
+                            callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(error));
                         }
-                );
 
-                ApiDispatcher.removeAccount(command);
-            }
+                        @Override
+                        public void onTaskCompleted(Boolean success) {
+                            callback.onRemoved();
+                        }
+                    }
+            );
+
+            ApiDispatcher.removeAccount(command);
+
         } catch (final MsalClientException e) {
             callback.onError(e);
         }
@@ -384,6 +387,4 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         }
 
     }
-
-
 }

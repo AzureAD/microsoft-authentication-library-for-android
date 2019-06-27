@@ -145,7 +145,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                                         accounts = AccountAdapter.adapt(result);
 
                                 MultiTenantAccount currentAccount = getPersistedCurrentAccount();
-                                if(currentAccount != null) {
+                                if (currentAccount != null) {
                                     final String trimmedIdentifier = currentAccount.getHomeAccountId();
 
                                     final AccountMatcher accountMatcher = new AccountMatcher(
@@ -180,36 +180,53 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
             ApiDispatcher.getAccounts(command);
 
-        }catch(MsalClientException clientException){
+        } catch (MsalClientException clientException) {
             callback.onError(clientException);
         }
     }
 
 
-    private void getCurrentAccountFromSharedDevice(final CurrentAccountCallback callback, final PublicClientApplicationConfiguration configuration){
+    private void getCurrentAccountFromSharedDevice(final CurrentAccountCallback callback,
+                                                   final PublicClientApplicationConfiguration configuration) {
+        final String methodName = ":getCurrentAccountFromSharedDevice";
+
+        //TODO: migrate to Command.
+        try {
+            if (!MSALControllerFactory.brokerEligible(
+                    configuration.getAppContext(),
+                    configuration.getDefaultAuthority(),
+                    configuration)) {
+
+                final String errorMessage = "This request is not eligible to use the broker.";
+                com.microsoft.identity.common.internal.logging.Logger.error(TAG + methodName, errorMessage, null);
+                throw new MsalClientException(MsalClientException.NOT_ELIGIBLE_TO_USE_BROKER, errorMessage);
+            }
+        } catch (MsalClientException e) {
+            callback.onError(e);
+            return;
+        }
+
         new BrokerMsalController().getCurrentAccount(
                 configuration,
-                new TaskCompletedCallbackWithError<List<ICacheRecord>, Exception>() {
+                new TaskCompletedCallbackWithError<List<ICacheRecord>, MsalException>() {
                     @Override
                     public void onTaskCompleted(List<ICacheRecord> cacheRecords) {
                         checkCurrentAccountNotifyCallback(callback, cacheRecords);
                     }
 
                     @Override
-                    public void onError(Exception exception) {
+                    public void onError(MsalException exception) {
                         callback.onError(exception);
-
                     }
                 });
     }
 
-    private void checkCurrentAccountNotifyCallback(final CurrentAccountCallback callback, List<ICacheRecord> newAccountRecords){
+    private void checkCurrentAccountNotifyCallback(final CurrentAccountCallback callback, List<ICacheRecord> newAccountRecords) {
         MultiTenantAccount localAccount = getPersistedCurrentAccount();
         MultiTenantAccount newAccount = newAccountRecords == null ? null : getAccountFromICacheRecordList(newAccountRecords);
 
-        if(didCurrentAccountChange(newAccount)){
+        if (didCurrentAccountChange(newAccount)) {
             callback.onAccountChanged(localAccount, newAccount);
-            return;
         }
 
         persistCurrentAccount(newAccountRecords);
@@ -220,8 +237,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     @Override
     public void signIn(@NonNull Activity activity,
 
-                @NonNull String[] scopes,
-                @NonNull AuthenticationCallback callback) {
+                       @NonNull String[] scopes,
+                       @NonNull AuthenticationCallback callback) {
         acquireToken(
                 activity,
                 new String[]{"user.read"},
@@ -245,13 +262,13 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             public void onSuccess(ILocalAuthenticationResult localAuthenticationResult) {
 
                 //Get Local Authentication Result then check if the current account is set or not
-                MultiTenantAccount newAccount =  getAccountFromICacheRecordList(localAuthenticationResult.getCacheRecordWithTenantProfileData());
+                MultiTenantAccount newAccount = getAccountFromICacheRecordList(localAuthenticationResult.getCacheRecordWithTenantProfileData());
 
-                if(didCurrentAccountChange(newAccount)){
+                if (didCurrentAccountChange(newAccount)) {
                     //Throw on Error with UserMismatchException
                     authenticationCallback.onError(new MsalClientException(MsalClientException.CURRENT_ACCOUNT_MISMATCH));
                     return;
-                }else{
+                } else {
                     persistCurrentAccount(localAuthenticationResult.getCacheRecordWithTenantProfileData());
                 }
 
@@ -272,22 +289,13 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         };
     }
 
-    private boolean didCurrentAccountChange(final @Nullable MultiTenantAccount newAccount){
+    private boolean didCurrentAccountChange(final @Nullable MultiTenantAccount newAccount) {
         MultiTenantAccount persistedAccount = getPersistedCurrentAccount();
 
-        if(persistedAccount == null){
-            if(newAccount == null){
-                return false;
-            }else{
-                return true;
-            }
-        }else{
-            if(persistedAccount.getId().equalsIgnoreCase(newAccount.getId())){
-                return false;
-            }else{
-                return true;
-            }
-        }
+        String persistedAccountId = persistedAccount == null ? "" : persistedAccount.getHomeAccountId();
+        String newAccountId = newAccount == null ? "" : newAccount.getHomeAccountId();
+
+        return !persistedAccountId.equalsIgnoreCase(newAccountId);
     }
 
     @Override
@@ -296,7 +304,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         final PublicClientApplicationConfiguration configuration = getConfiguration();
 
 
-        try{
+        try {
             if (mIsSharedDevice) {
                 removeAccountFromSharedDevice(callback, configuration);
                 return;
@@ -318,10 +326,10 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                                 params.getAuthority(),
                                 mPublicClientConfiguration
                         ),
-                        new TaskCompletedCallbackWithError<Boolean, MsalException>() {
+                        new TaskCompletedCallbackWithError<Boolean, BaseException>() {
                             @Override
-                            public void onError(MsalException error) {
-                                callback.onError(error);
+                            public void onError(BaseException error) {
+                                callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(error));
                             }
 
                             @Override
@@ -337,7 +345,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 callback.onError(new MsalClientException(MsalClientException.NO_ACCOUNT_TO_SIGN_OUT, "No account is currently signed in to your Single Account Public Client Application"));
             }
 
-        }catch(MsalClientException clientException){
+        } catch (MsalClientException clientException) {
             callback.onError(clientException);
         }
 
@@ -370,26 +378,39 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     }
 
     private void removeAccountFromSharedDevice(@NonNull final SignOutCallback callback,
-                                               PublicClientApplicationConfiguration configuration){
+                                               @NonNull PublicClientApplicationConfiguration configuration) {
+        final String methodName = ":removeAccountFromSharedDevice";
 
-            new BrokerMsalController().removeAccountFromSharedDevice(
-                    configuration,
-                    new TaskCompletedCallbackWithError<Boolean, Exception>() {
-                        @Override
-                        public void onTaskCompleted(Boolean success) {
-                            if (success) {
-                                persistCurrentAccount(null);
-                            }
+        //TODO: migrate to Command.
+        try {
+            if (!MSALControllerFactory.brokerEligible(
+                    configuration.getAppContext(),
+                    configuration.getDefaultAuthority(),
+                    configuration)) {
 
-                            callback.onSignOut();
-                        }
+                final String errorMessage = "This request is not eligible to use the broker.";
+                com.microsoft.identity.common.internal.logging.Logger.error(TAG + methodName, errorMessage, null);
+                throw new MsalClientException(MsalClientException.NOT_ELIGIBLE_TO_USE_BROKER, errorMessage);
+            }
+        } catch (MsalClientException e) {
+            callback.onError(e);
+            return;
+        }
 
-                        @Override
-                        public void onError(Exception exception) {
-                            //TODO: Need instanceof check prior to cast
-                            callback.onError((MsalException)exception);
-                        }
-                    });
+        new BrokerMsalController().removeAccountFromSharedDevice(
+                configuration,
+                new TaskCompletedCallbackWithError<Void, MsalException>() {
+                    @Override
+                    public void onTaskCompleted(Void aVoid) {
+                        persistCurrentAccount(null);
+                        callback.onSignOut();
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        callback.onError(exception);
+                    }
+                });
     }
 
     /**

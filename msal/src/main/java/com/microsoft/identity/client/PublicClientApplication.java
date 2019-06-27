@@ -787,38 +787,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         return mIsSharedDevice;
     }
 
-    public interface LoadAccountCallback extends TaskCompletedCallbackWithError<List<IAccount>, Exception> {
-        /**
-         * Called once succeed and pass the result object.
-         *
-         * @param result the success result.
-         */
-        void onTaskCompleted(List<IAccount> result);
-
-        /**
-         * Called once exception thrown.
-         *
-         * @param exception
-         */
-        void onError(Exception exception);
-    }
-
-    public interface GetAccountCallback extends TaskCompletedCallbackWithError<IAccount, Exception> {
-        /**
-         * Called once succeed and pass the result object.
-         *
-         * @param result the success result.
-         */
-        void onTaskCompleted(IAccount result);
-
-        /**
-         * Called once exception thrown.
-         *
-         * @param exception
-         */
-        void onError(Exception exception);
-    }
-
     @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
@@ -1223,9 +1191,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-    static TaskCompletedCallbackWithError<List<ICacheRecord>, Exception> getLoadAccountsCallback(
-            final LoadAccountCallback loadAccountsCallback) {
-        return new TaskCompletedCallbackWithError<List<ICacheRecord>, Exception>() {
+    static TaskCompletedCallbackWithError<List<ICacheRecord>, BaseException> getLoadAccountsCallback(
+            final LoadAccountsCallback loadAccountsCallback) {
+        return new TaskCompletedCallbackWithError<List<ICacheRecord>, BaseException>() {
             @Override
             public void onTaskCompleted(final List<ICacheRecord> result) {
                 if (null == result) {
@@ -1238,8 +1206,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             }
 
             @Override
-            public void onError(final Exception exception) {
-                loadAccountsCallback.onError(exception);
+            public void onError(final BaseException exception) {
+                loadAccountsCallback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
             }
         };
     }

@@ -56,6 +56,12 @@ import com.microsoft.identity.common.exception.ErrorStrings;
  * </p>
  */
 public final class MsalClientException extends MsalException {
+
+    /**
+     * The parameter provided by the user is invalid.
+     * */
+    public static final String INVALID_PARAMETER = "invalid_parameter";
+
     /**
      * There are multiple cache entries found, the sdk cannot pick the correct access token
      * or refresh token from the cache. Likely it's a bug in the sdk when caching tokens or authority

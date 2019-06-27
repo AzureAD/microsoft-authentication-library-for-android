@@ -29,6 +29,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
+
+import java.util.List;
 
 public interface IPublicClientApplication {
 
@@ -111,4 +114,20 @@ public interface IPublicClientApplication {
      * @return
      */
     boolean isSharedDevice();
+
+    interface LoadAccountsCallback extends TaskCompletedCallbackWithError<List<IAccount>, MsalException> {
+        /**
+         * Called once succeed and pass the result object.
+         *
+         * @param result the success result.
+         */
+        void onTaskCompleted(List<IAccount> result);
+
+        /**
+         * Called once exception thrown.
+         *
+         * @param exception
+         */
+        void onError(MsalException exception);
+    }
 }

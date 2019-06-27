@@ -129,7 +129,12 @@ public class MsalWrapper {
         }
 
         if (mApplication instanceof ISingleAccountPublicClientApplication) {
-            return "Single Account (Shared device)";
+            ISingleAccountPublicClientApplication app = (ISingleAccountPublicClientApplication) mApplication;
+            if (app.isSharedDevice()) {
+                return "Single Account - Shared device";
+            } else {
+                return "Single Account - Non-shared device";
+            }
         }
 
         return "Multiple Account";
@@ -194,7 +199,7 @@ public class MsalWrapper {
             IMultipleAccountPublicClientApplication multipleAcctApp = (IMultipleAccountPublicClientApplication) mApplication;
             multipleAcctApp.getAccount(
                     requestOptions.getLoginHint().trim(),
-                    new PublicClientApplication.GetAccountCallback() {
+                    new IMultipleAccountPublicClientApplication.GetAccountCallback() {
                         @Override
                         public void onTaskCompleted(final IAccount account) {
                             if (null != account) {
@@ -214,7 +219,7 @@ public class MsalWrapper {
                         }
 
                         @Override
-                        public void onError(final Exception exception) {
+                        public void onError(final MsalException exception) {
                             notifyCallback.notify("No account found matching loginHint");
                         }
                     });
@@ -247,14 +252,14 @@ public class MsalWrapper {
             IMultipleAccountPublicClientApplication multipleAcctApp = (IMultipleAccountPublicClientApplication) mApplication;
             multipleAcctApp.getAccount(
                     requestOptions.getLoginHint().trim(),
-                    new PublicClientApplication.GetAccountCallback() {
+                    new IMultipleAccountPublicClientApplication.GetAccountCallback() {
                         @Override
                         public void onTaskCompleted(final IAccount account) {
                             if (account != null) {
                                 AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
-                                        .withScopes(Arrays.asList( requestOptions.getScopes().toLowerCase().split(" ")))
+                                        .withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")))
                                         .forAccount(account)
-                                        .fromAuthority(mApplication.getConfiguration().getDefaultAuthority().toString())
+                                        .fromAuthority(mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString())
                                         .forceRefresh(requestOptions.forceRefresh())
                                         .callback(getAuthenticationCallback(notifyCallback))
                                         .build();
@@ -265,7 +270,7 @@ public class MsalWrapper {
                         }
 
                         @Override
-                        public void onError(final Exception exception) {
+                        public void onError(final MsalException exception) {
                             notifyCallback.notify("No account found matching identifier");
                         }
                     });
@@ -275,8 +280,9 @@ public class MsalWrapper {
                 return;
             }
             AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
-                    .withScopes(Arrays.asList( requestOptions.getScopes().toLowerCase().split(" ")))
+                    .withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")))
                     .forAccount(mLoadedAccount.get(0))
+                    .fromAuthority(mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString())
                     .forceRefresh(requestOptions.forceRefresh())
                     .callback(getAuthenticationCallback(notifyCallback))
                     .build();
@@ -333,26 +339,22 @@ public class MsalWrapper {
 
         if (mApplication instanceof IMultipleAccountPublicClientApplication) {
             final IMultipleAccountPublicClientApplication application = (IMultipleAccountPublicClientApplication) (mApplication);
-            application.getAccount(username, new PublicClientApplication.GetAccountCallback() {
+            application.getAccount(username, new IMultipleAccountPublicClientApplication.GetAccountCallback() {
                 @Override
                 public void onTaskCompleted(IAccount accountToRemove) {
                     application.removeAccount(
                             accountToRemove,
-                            new TaskCompletedCallbackWithError<Boolean, Exception>() {
+                            new IMultipleAccountPublicClientApplication.RemoveAccountCallback() {
                                 @Override
-                                public void onTaskCompleted(Boolean isSuccess) {
-                                    if (isSuccess) {
-                                        notifyCallback.notify("The account is successfully removed.");
+                                public void onRemoved() {
+                                    notifyCallback.notify("The account is successfully removed.");
 
-                                        // Reload account list.
-                                        loadAccountFromBroker(notifyCallback);
-                                    } else {
-                                        notifyCallback.notify("Failed to remove the account.");
-                                    }
+                                    // Reload account list.
+                                    loadAccountFromBroker(notifyCallback);
                                 }
 
                                 @Override
-                                public void onError(Exception exception) {
+                                public void onError(@NonNull MsalException exception) {
                                     exception.printStackTrace();
                                     notifyCallback.notify("Failed to remove the account.");
                                 }
@@ -360,28 +362,24 @@ public class MsalWrapper {
                 }
 
                 @Override
-                public void onError(Exception exception) {
+                public void onError(MsalException exception) {
                     exception.printStackTrace();
                     notifyCallback.notify("Failed to remove the account.");
                 }
             });
         } else if (mApplication instanceof ISingleAccountPublicClientApplication) {
             final ISingleAccountPublicClientApplication application = (ISingleAccountPublicClientApplication) (mApplication);
-            application.signOut(new TaskCompletedCallbackWithError<Boolean, Exception>() {
+            application.signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
                 @Override
-                public void onTaskCompleted(Boolean result) {
-                    if (result) {
-                        notifyCallback.notify("The account is successfully removed.");
+                public void onSignOut() {
+                    notifyCallback.notify("The account is successfully removed.");
 
-                        // Reload account list.
-                        loadAccountFromBroker(notifyCallback);
-                    } else {
-                        notifyCallback.notify("Account is not removed.");
-                    }
+                    // Reload account list.
+                    loadAccountFromBroker(notifyCallback);
                 }
 
                 @Override
-                public void onError(Exception exception) {
+                public void onError(@NonNull MsalException exception) {
                     notifyCallback.notify("Failed to remove the account: " + exception.getMessage());
                 }
             });
@@ -399,7 +397,7 @@ public class MsalWrapper {
 
         if (mApplication instanceof IMultipleAccountPublicClientApplication) {
             IMultipleAccountPublicClientApplication multipleAcctApp = (IMultipleAccountPublicClientApplication) mApplication;
-            multipleAcctApp.getAccounts(new PublicClientApplication.LoadAccountCallback() {
+            multipleAcctApp.getAccounts(new IPublicClientApplication.LoadAccountsCallback() {
                 @Override
                 public void onTaskCompleted(List<IAccount> result) {
                     mLoadedAccount = result;
@@ -407,7 +405,7 @@ public class MsalWrapper {
                 }
 
                 @Override
-                public void onError(Exception exception) {
+                public void onError(MsalException exception) {
                     exception.printStackTrace();
                     notifyCallback.notify("Failed to load account from broker");
                 }
