@@ -1013,7 +1013,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         validateSilentParameters(acquireTokenSilentParameters);
 
-        acquireTokenSilent(acquireTokenSilentParameters);
+        acquireTokenSilentAsync(acquireTokenSilentParameters);
     }
 
     private void validateSilentParameters(
@@ -1027,7 +1027,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     @Override
-    public void acquireTokenSilent(
+    public void acquireTokenSilentAsync(
             @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
         validateSilentParameters(acquireTokenSilentParameters);
 
@@ -1077,6 +1077,43 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         } catch (final BaseException exception) {
             callback.onError(exception);
         }
+    }
+
+    @Override
+    public IAuthenticationResult acquireTokenSilent(@NonNull AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException {
+        if (acquireTokenSilentParameters.getCallback() != null) {
+            throw new IllegalArgumentException("Do not provide callback for synchronous methods");
+        }
+
+        final ResultFuture<AsyncResult<IAuthenticationResult>> future = new ResultFuture<>();
+
+        acquireTokenSilentParameters.setCallback(new AuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                future.setResult(new AsyncResult<IAuthenticationResult>(authenticationResult, null));
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                future.setResult(new AsyncResult<IAuthenticationResult>(null, exception));
+            }
+
+            @Override
+            public void onCancel() {
+                future.setResult(new AsyncResult<IAuthenticationResult>(null, new MsalUserCancelException()));
+            }
+        });
+
+        acquireTokenSilentAsync(acquireTokenSilentParameters);
+
+        AsyncResult<IAuthenticationResult> result = future.get();
+
+        if (result.getSuccess()) {
+            return result.getResult();
+        } else {
+            throw result.getException();
+        }
+
     }
 
     @VisibleForTesting

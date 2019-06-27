@@ -27,6 +27,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
@@ -97,7 +98,17 @@ public interface IPublicClientApplication {
      *
      * @param acquireTokenSilentParameters
      */
-    void acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters);
+    void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters);
+
+    /**
+     * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
+     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
+     * or it fails the refresh, exception will be sent back via callback.
+     *
+     * @param acquireTokenSilentParameters
+     */
+    @WorkerThread
+    IAuthenticationResult acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException;
 
     /**
      * Returns the PublicClientConfiguration for this instance of PublicClientApplication
