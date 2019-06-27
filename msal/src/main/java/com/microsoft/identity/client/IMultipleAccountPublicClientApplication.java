@@ -26,7 +26,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 
+import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
+
+import java.util.List;
 
 /**
  * An interface that contains list of operations that are available when MSAL is in 'multiple account' mode.
@@ -42,7 +45,13 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      *
      * @param callback The callback to notify once this action has finished.
      */
-    void getAccounts(@NonNull final PublicClientApplication.LoadAccountCallback callback);
+    void getAccounts(@NonNull final LoadAccountsCallback callback);
+
+    /**
+     * Returns a List of {@link IAccount} objects for which this application has RefreshTokens.
+     */
+    @WorkerThread
+    List<IAccount> getAccounts() throws InterruptedException, MsalException;
 
     /**
      * Retrieve the IAccount object matching the identifier.
@@ -52,7 +61,27 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * @param callback   The callback to notify once this action has finished.
      */
     void getAccount(@NonNull final String identifier,
-                    @NonNull final PublicClientApplication.GetAccountCallback callback
+                    @NonNull final GetAccountCallback callback
+    );
+
+    /**
+     * Retrieve the IAccount object matching the identifier.
+     * The identifier could be homeAccountIdentifier, localAccountIdentifier or username.
+     *
+     * @param identifier String of the identifier
+     *
+     */
+    @WorkerThread
+    IAccount getAccount(@NonNull final String identifier) throws InterruptedException, MsalException;
+
+    /**
+     * Removes the Account and Credentials (tokens) for the supplied IAccount.
+     *
+     * @param account The IAccount whose entry and associated tokens should be removed.
+     *
+     */
+    void removeAccount(@Nullable final IAccount account,
+                       @NonNull final RemoveAccountCallback callback
     );
 
     /**
@@ -61,9 +90,8 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * @param account The IAccount whose entry and associated tokens should be removed.
      * @return True, if the account was removed. False otherwise.
      */
-    void removeAccount(@Nullable final IAccount account,
-                       @NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback
-    );
+    @WorkerThread
+    boolean removeAccount(@Nullable final IAccount account) throws MsalException, InterruptedException;
 
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
@@ -87,14 +115,42 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
      * or it fails the refresh, exception will be sent back via callback.
      *
+     * @param scopes  The non-null array of scopes to be requested for the access token.
+     *                MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param account {@link IAccount} represents the account to silently request tokens for.
+     */
+    @WorkerThread
+    IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
+                                             @NonNull final IAccount account) throws MsalException, InterruptedException;
+
+    /**
+     * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
+     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
+     * or it fails the refresh, exception will be sent back via callback.
+     *
      * @param scopes       The non-null array of scopes to be requested for the access token.
      *                     MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
      * @param account      {@link IAccount} represents the account to silently request tokens for.
      * @param authority    Optional. Can be passed to override the configured authority.
      * @param forceRefresh True if the request is forced to refresh, false otherwise.
-     * @param callback     {@link AuthenticationCallback} that is used to send the result back. The success result will be
-     *                     sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
-     *                     Failure case will be sent back via {
+     */
+    @WorkerThread
+    IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
+                                             @NonNull final IAccount account,
+                                             @Nullable final String authority,
+                                             final boolean forceRefresh) throws MsalException, InterruptedException;
+
+    /**
+     * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
+     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
+     * or it fails the refresh, exception will be sent back via callback.
+     *
+     * @param scopes   The non-null array of scopes to be requested for the access token.
+     *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param account  {@link IAccount} represents the account to silently request tokens for.
+     * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                 sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     *                 Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
     void acquireTokenSilentAsync(@NonNull final String[] scopes,
@@ -103,4 +159,33 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
                                  final boolean forceRefresh,
                                  @NonNull final AuthenticationCallback callback);
 
+    interface GetAccountCallback extends TaskCompletedCallbackWithError<IAccount, MsalException> {
+        /**
+         * Called once succeed and pass the result object.
+         *
+         * @param result the success result.
+         */
+        void onTaskCompleted(IAccount result);
+
+        /**
+         * Called once exception thrown.
+         *
+         * @param exception
+         */
+        void onError(MsalException exception);
+    }
+
+    interface RemoveAccountCallback {
+        /**
+         * Invoked when account successfully removed
+         */
+        void onRemoved();
+
+        /**
+         * Invoked when the account failed to load.
+         *
+         * @param exception the exception object.
+         */
+        void onError(@NonNull final MsalException exception);
+    }
 }

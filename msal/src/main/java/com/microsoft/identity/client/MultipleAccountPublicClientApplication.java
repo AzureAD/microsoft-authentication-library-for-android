@@ -29,10 +29,14 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
+import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
@@ -48,6 +52,7 @@ import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.request.OperationParameters;
+import com.microsoft.identity.common.internal.result.ResultFuture;
 
 import java.util.HashMap;
 import java.util.List;
@@ -88,6 +93,16 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     }
 
     @Override
+    public IAuthenticationResult acquireTokenSilent(@NonNull String[] scopes, @NonNull IAccount account) throws MsalException, InterruptedException {
+        return acquireTokenSilentSync(scopes, null, account, false);
+    }
+
+    @Override
+    public IAuthenticationResult acquireTokenSilent(@NonNull String[] scopes, @NonNull IAccount account, @Nullable String authority, boolean forceRefresh) throws MsalException, InterruptedException {
+        return acquireTokenSilentSync(scopes, authority, account, forceRefresh);
+    }
+
+    @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final IAccount account,
                                         @Nullable final String authority,
@@ -104,14 +119,14 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     }
 
 
-
     /**
      * Asynchronously returns a List of {@link IAccount} objects for which this application has RefreshTokens.
      *
      * @param callback The callback to notify once this action has finished.
      */
     @Override
-    public void getAccounts(@NonNull final LoadAccountCallback callback) {
+    public void getAccounts(@NonNull final LoadAccountsCallback callback) {
+        ApiDispatcher.initializeDiagnosticContext();
         final String methodName = ":getAccounts";
         final List<ICacheRecord> accounts =
                 mPublicClientConfiguration
@@ -199,6 +214,34 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         }
     }
 
+    @Override
+    public List<IAccount> getAccounts() throws InterruptedException, MsalException {
+
+        throwOnMainThread("getAccounts");
+
+        final ResultFuture<AsyncResult<List<IAccount>>> future = new ResultFuture<>();
+
+        getAccounts(new LoadAccountsCallback() {
+            @Override
+            public void onTaskCompleted(List<IAccount> result) {
+                future.setResult(new AsyncResult<List<IAccount>>(result, null));
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                future.setResult(new AsyncResult<List<IAccount>>(null, exception));
+            }
+        });
+
+         AsyncResult<List<IAccount>> result = future.get();
+
+         if(result.getSuccess()){
+             return result.getResult();
+         }else{
+             throw result.getException();
+         }
+    }
+
     /**
      * Retrieve the IAccount object matching the identifier.
      * The identifier could be homeAccountIdentifier, localAccountIdentifier or username.
@@ -225,7 +268,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                             params.getAuthority(),
                             mPublicClientConfiguration
                     ),
-                    new TaskCompletedCallbackWithError<List<ICacheRecord>, Exception>() {
+                    new TaskCompletedCallbackWithError<List<ICacheRecord>, BaseException>() {
                         @Override
                         public void onTaskCompleted(final List<ICacheRecord> result) {
                             if (null == result || result.size() == 0) {
@@ -264,13 +307,13 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                         }
 
                         @Override
-                        public void onError(final Exception exception) {
+                        public void onError(final BaseException exception) {
                             com.microsoft.identity.common.internal.logging.Logger.error(
                                     TAG + methodName,
                                     exception.getMessage(),
                                     exception
                             );
-                            callback.onError(exception);
+                            callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
                         }
                     }
             );
@@ -287,49 +330,115 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     }
 
     @Override
+    public IAccount getAccount(@NonNull String identifier) throws InterruptedException, MsalException {
+
+        throwOnMainThread("getAccount");
+
+        final ResultFuture<AsyncResult<IAccount>> future = new ResultFuture<>();
+
+        getAccount(identifier, new GetAccountCallback() {
+            @Override
+            public void onTaskCompleted(IAccount result) {
+                future.setResult(new AsyncResult<IAccount>(result, null));
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                future.setResult(new AsyncResult<IAccount>(null, exception));
+            }
+        });
+
+        AsyncResult<IAccount> result = future.get();
+
+        if(result.getSuccess()){
+            return result.getResult();
+        }else{
+            throw result.getException();
+        }
+
+    }
+
+    @Override
     public void removeAccount(@Nullable final IAccount account,
-                              @NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback) {
+                              @NonNull final RemoveAccountCallback callback) {
+        ApiDispatcher.initializeDiagnosticContext();
+
         // First, cast the input IAccount to a MultiTenantAccount
         final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
 
         //create the parameter
+        if (null == multiTenantAccount) {
+            com.microsoft.identity.common.internal.logging.Logger.warn(
+                    TAG,
+                    "Requisite IAccount or IAccount fields were null. Insufficient criteria to remove IAccount."
+            );
+
+            callback.onError(new MsalClientException(MsalClientException.INVALID_PARAMETER));
+            return;
+        }
+
+        final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+
+        // TODO Clean this up, only the cache should make these records...
+        // The broker strips these properties out of this object to hit the cache
+        // Refactor this out...
+        final AccountRecord requestAccountRecord = new AccountRecord();
+        requestAccountRecord.setEnvironment(multiTenantAccount.getEnvironment());
+        requestAccountRecord.setHomeAccountId(multiTenantAccount.getHomeAccountId());
+        params.setAccount(requestAccountRecord);
+
         try {
-            if (null == multiTenantAccount) {
-                com.microsoft.identity.common.internal.logging.Logger.warn(
-                        TAG,
-                        "Requisite IAccount or IAccount fields were null. Insufficient criteria to remove IAccount."
-                );
+            final RemoveAccountCommand command = new RemoveAccountCommand(
+                    params,
+                    MSALControllerFactory.getAcquireTokenSilentControllers(
+                            mPublicClientConfiguration.getAppContext(),
+                            params.getAuthority(),
+                            mPublicClientConfiguration
+                    ),
+                    new TaskCompletedCallbackWithError<Boolean, BaseException>() {
+                        @Override
+                        public void onError(BaseException error) {
+                            callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(error));
+                        }
 
-                callback.onTaskCompleted(false);
-            } else {
-                final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+                        @Override
+                        public void onTaskCompleted(Boolean success) {
+                            callback.onRemoved();
+                        }
+                    }
+            );
 
-                // TODO Clean this up, only the cache should make these records...
-                // The broker strips these properties out of this object to hit the cache
-                // Refactor this out...
-                final AccountRecord requestAccountRecord = new AccountRecord();
-                requestAccountRecord.setEnvironment(multiTenantAccount.getEnvironment());
-                requestAccountRecord.setHomeAccountId(multiTenantAccount.getHomeAccountId());
-                params.setAccount(requestAccountRecord);
+            ApiDispatcher.removeAccount(command);
 
-                final RemoveAccountCommand command = new RemoveAccountCommand(
-                        params,
-                        MSALControllerFactory.getAcquireTokenSilentControllers(
-                                mPublicClientConfiguration.getAppContext(),
-                                params.getAuthority(),
-                                mPublicClientConfiguration
-                        ),
-                        callback
-                );
-
-                ApiDispatcher.removeAccount(command);
-            }
         } catch (final MsalClientException e) {
             callback.onError(e);
         }
     }
 
+    @Override
+    public boolean removeAccount(@Nullable IAccount account) throws MsalException, InterruptedException {
 
+        final ResultFuture<AsyncResult<Boolean>> future = new ResultFuture();
+        removeAccount(account,
+                new RemoveAccountCallback() {
+                    @Override
+                    public void onRemoved() {
+                        future.setResult(new AsyncResult<Boolean>(true, null));
+                    }
 
+                    @Override
+                    public void onError(@NonNull MsalException exception) {
+                        future.setResult(new AsyncResult<Boolean>(false, exception));
+                    }
+                });
 
+        AsyncResult<Boolean> result = future.get();
+
+        if(result.getSuccess()){
+            return result.getResult().booleanValue();
+        }else{
+            throw result.getException();
+        }
+
+    }
 }

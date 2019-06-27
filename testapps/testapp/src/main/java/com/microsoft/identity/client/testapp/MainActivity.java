@@ -191,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     class TelemetryDefaultObserver implements ITelemetryDefaultObserver {
-        public void upload(List<Map<String, String>> telemetryData) {
+        public void onReceived(List<Map<String, String>> telemetryData) {
             for (Map properties : telemetryData) {
                 final Iterator iterator = properties.entrySet().iterator();
                 while (iterator.hasNext()) {
@@ -204,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     class TelemetryAggregatedObserver implements ITelemetryAggregatedObserver {
-        public void upload(Map<String, String> telemetryData) {
+        public void onReceived(Map<String, String> telemetryData) {
             final Iterator iterator = telemetryData.entrySet().iterator();
             while (iterator.hasNext()) {
                 final Map.Entry pair = (Map.Entry) iterator.next();

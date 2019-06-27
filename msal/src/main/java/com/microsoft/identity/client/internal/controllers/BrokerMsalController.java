@@ -46,6 +46,7 @@ import com.microsoft.identity.client.IMicrosoftAuthService;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
@@ -748,26 +749,13 @@ public class BrokerMsalController extends BaseController {
     /**
      * Perform an operation with Broker's MicrosoftAuthService on a background thread.
      *
-     * @param configuration a PublicClientApplicationConfiguration file.
+     * @param appContext    app context.
      * @param callback      a callback function to be invoked to return result/error of the performed task.
      * @param brokerTask    the task to be performed.
      */
-    private <T> void performBrokerTask(@NonNull final PublicClientApplicationConfiguration configuration,
-                                       @NonNull final TaskCompletedCallbackWithError<T, Exception> callback,
+    private <T> void performBrokerTask(@NonNull final Context appContext,
+                                       @NonNull final TaskCompletedCallbackWithError<T, MsalException> callback,
                                        @NonNull final BrokerTask<T> brokerTask) {
-
-        try {
-            if (!MSALControllerFactory.brokerEligible(
-                    configuration.getAppContext(),
-                    configuration.getDefaultAuthority(),
-                    configuration)) {
-                final String errorMessage = "This request is not eligible to use the broker.";
-                Logger.error(TAG + brokerTask.getOperationName(), errorMessage, null);
-                callback.onError(new MsalClientException(MsalClientException.NOT_ELIGIBLE_TO_USE_BROKER, errorMessage));
-            }
-        } catch (MsalClientException e) {
-            callback.onError(ExceptionAdapter.baseExceptionFromException(e));
-        }
 
         final Handler handler = new Handler(Looper.getMainLooper());
 
@@ -775,7 +763,7 @@ public class BrokerMsalController extends BaseController {
             @Override
             public void run() {
                 IMicrosoftAuthService service;
-                final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
+                final MicrosoftAuthClient client = new MicrosoftAuthClient(appContext);
                 try {
                     final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
                     service = authServiceFuture.get();
@@ -796,7 +784,8 @@ public class BrokerMsalController extends BaseController {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onError(ExceptionAdapter.baseExceptionFromException(e));
+                            BaseException baseException = ExceptionAdapter.baseExceptionFromException(e);
+                            callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(baseException));
                         }
                     });
                 } finally {
@@ -811,11 +800,11 @@ public class BrokerMsalController extends BaseController {
      * This only works when getBrokerAccountMode() is BROKER_ACCOUNT_MODE_SINGLE_ACCOUNT.
      */
     public void getCurrentAccount(@NonNull final PublicClientApplicationConfiguration configuration,
-                                  @NonNull final TaskCompletedCallbackWithError<List<ICacheRecord>, Exception> callback) {
+                                  @NonNull final TaskCompletedCallbackWithError<List<ICacheRecord>, MsalException> callback) {
         final String methodName = ":getCurrentAccount";
 
         performBrokerTask(
-                configuration,
+                configuration.getAppContext(),
                 callback,
                 new BrokerTask<List<ICacheRecord>>() {
                     @Override
@@ -990,6 +979,7 @@ public class BrokerMsalController extends BaseController {
     private boolean removeBrokerAccountWithAuthService(@NonNull final OperationParameters parameters)
             throws BaseException, InterruptedException, ExecutionException, RemoteException {
         final String methodName = ":removeBrokerAccountWithAuthService";
+
         IMicrosoftAuthService service;
         final MicrosoftAuthClient client = new MicrosoftAuthClient(parameters.getAppContext());
 
@@ -1034,21 +1024,21 @@ public class BrokerMsalController extends BaseController {
      * 4. Sign out from default browser.
      */
     public void removeAccountFromSharedDevice(@NonNull final PublicClientApplicationConfiguration configuration,
-                                              @NonNull final TaskCompletedCallbackWithError<Boolean, Exception> callback) {
+                                              @NonNull final TaskCompletedCallbackWithError<Void, MsalException> callback) {
         final String methodName = ":removeAccountFromSharedDevice";
 
         performBrokerTask(
-                configuration,
+                configuration.getAppContext(),
                 callback,
-                new BrokerTask<Boolean>() {
+                new BrokerTask<Void>() {
                     @Override
-                    public Boolean perform(IMicrosoftAuthService service) throws BaseException, RemoteException {
+                    public Void perform(IMicrosoftAuthService service) throws BaseException, RemoteException {
                         final Bundle resultBundle = service.removeAccountFromSharedDevice(
                                 getRequestBundleForRemoveAccountFromSharedDevice(configuration)
                         );
 
                         if (resultBundle == null) {
-                            return true;
+                            return null;
                         } else {
                             final BrokerResult brokerResult = MsalBrokerResultAdapter.brokerResultFromBundle(resultBundle);
                             com.microsoft.identity.common.internal.logging.Logger.error(
@@ -1057,8 +1047,8 @@ public class BrokerMsalController extends BaseController {
                                             + brokerResult.getErrorMessage(),
                                     null);
 
-                            throw new ClientException(
-                                    ClientException.UNKNOWN_ERROR,
+                            throw new MsalClientException(
+                                    MsalClientException.UNKNOWN_ERROR,
                                     brokerResult.getErrorMessage());
                         }
                     }

@@ -24,25 +24,24 @@ package com.microsoft.identity.client.internal;
 
 import android.support.annotation.Nullable;
 
-import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 
-public class CreateApplicationResult  {
-
+public class AsyncResult<T> {
+    private T mResult;
     private MsalException mMsalException;
-    private IPublicClientApplication mIPublicClientApplication;
     private boolean mSuccess = false;
 
-    public CreateApplicationResult(@Nullable IPublicClientApplication application, @Nullable MsalException exception){
+    public AsyncResult(@Nullable T result, @Nullable MsalException exception){
+        mResult = result;
         mMsalException = exception;
-        mIPublicClientApplication = application;
-        if(application != null){
+
+        if(result != null){
             mSuccess = true;
         }
     }
 
-    public IPublicClientApplication getPublicClientApplication(){
-        return mIPublicClientApplication;
+    public T getResult(){
+        return mResult;
     }
 
     public MsalException getException(){
@@ -52,5 +51,4 @@ public class CreateApplicationResult  {
     public boolean getSuccess(){
         return mSuccess;
     }
-
 }
