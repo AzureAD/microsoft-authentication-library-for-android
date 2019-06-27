@@ -380,7 +380,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
                 ApiDispatcher.removeAccount(command);
             } else {
-                callback.onError(new MsalClientException(MsalClientException.NO_ACCOUNT_TO_SIGN_OUT, "No account is currently signed in to your Single Account Public Client Application"));
+                callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT, "No account is currently signed in to your Single Account Public Client Application"));
             }
 
         } catch (MsalClientException clientException) {
@@ -518,7 +518,12 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final AuthenticationCallback callback) {
 
-        //TODO: Add null check for getPeristedAccount and throw exception if account not found
+
+        if(getPersistedCurrentAccount() == null){
+            callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
+            return;
+        }
+
         acquireTokenSilent(
                 scopes,
                 getPersistedCurrentAccount(),
@@ -531,6 +536,11 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @WorkerThread
     public IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes) throws MsalException, InterruptedException {
+
+        if(getPersistedCurrentAccount() == null){
+            throw new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);
+        }
+
         return acquireTokenSilentSync(scopes, null, getPersistedCurrentAccount(), false);
     }
 
@@ -540,6 +550,11 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                                         @Nullable final String authority,
                                         final boolean forceRefresh,
                                         @NonNull final AuthenticationCallback callback) {
+
+        if(getPersistedCurrentAccount() == null){
+            callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
+        }
+
         acquireTokenSilent(
                 scopes,
                 getPersistedCurrentAccount(),
@@ -554,6 +569,10 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     public IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
                                    @Nullable final String authority,
                                    final boolean forceRefresh) throws MsalException, InterruptedException {
+
+        if(getPersistedCurrentAccount() == null){
+            throw new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);
+        }
         return acquireTokenSilentSync(scopes, authority, getPersistedCurrentAccount(), forceRefresh);
     }
 
