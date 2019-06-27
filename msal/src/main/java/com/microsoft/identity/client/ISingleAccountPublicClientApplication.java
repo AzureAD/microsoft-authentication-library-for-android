@@ -48,8 +48,16 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      *
      * @param callback a callback to be invoked when the operation finishes.
      */
+    void getCurrentAccountAsync(final CurrentAccountCallback callback);
 
-    void getCurrentAccount(final CurrentAccountCallback callback);
+    /**
+     * Gets the current account and notify if the current account changes.
+     * This method must be called whenever the application is resumed or prior to running a scheduled background operation.
+     *
+     * @return CurrentAccountResult
+     */
+    @WorkerThread
+    ICurrentAccountResult getCurrentAccount() throws InterruptedException, MsalException;
 
     /**
      * Allows a user to sign in to your application with one of their accounts.
@@ -84,6 +92,7 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      *
      * @return boolean indicating whether the account was removed successfully
      */
+    @WorkerThread
     boolean signOut() throws MsalException, InterruptedException;
 
     /**

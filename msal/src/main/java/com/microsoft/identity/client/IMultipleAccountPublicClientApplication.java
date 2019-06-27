@@ -48,6 +48,12 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
     void getAccounts(@NonNull final LoadAccountsCallback callback);
 
     /**
+     * Returns a List of {@link IAccount} objects for which this application has RefreshTokens.
+     */
+    @WorkerThread
+    List<IAccount> getAccounts() throws InterruptedException, MsalException;
+
+    /**
      * Retrieve the IAccount object matching the identifier.
      * The identifier could be homeAccountIdentifier, localAccountIdentifier or username.
      *
@@ -59,10 +65,20 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
     );
 
     /**
+     * Retrieve the IAccount object matching the identifier.
+     * The identifier could be homeAccountIdentifier, localAccountIdentifier or username.
+     *
+     * @param identifier String of the identifier
+     *
+     */
+    @WorkerThread
+    IAccount getAccount(@NonNull final String identifier) throws InterruptedException, MsalException;
+
+    /**
      * Removes the Account and Credentials (tokens) for the supplied IAccount.
      *
      * @param account The IAccount whose entry and associated tokens should be removed.
-     * @return True, if the account was removed. False otherwise.
+     *
      */
     void removeAccount(@Nullable final IAccount account,
                        @NonNull final RemoveAccountCallback callback
@@ -74,6 +90,7 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * @param account The IAccount whose entry and associated tokens should be removed.
      * @return True, if the account was removed. False otherwise.
      */
+    @WorkerThread
     boolean removeAccount(@Nullable final IAccount account) throws MsalException, InterruptedException;
 
     /**
@@ -102,6 +119,7 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      *                MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
      * @param account {@link IAccount} represents the account to silently request tokens for.
      */
+    @WorkerThread
     IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
                                              @NonNull final IAccount account) throws MsalException, InterruptedException;
 
@@ -116,6 +134,7 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * @param authority    Optional. Can be passed to override the configured authority.
      * @param forceRefresh True if the request is forced to refresh, false otherwise.
      */
+    @WorkerThread
     IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
                                              @NonNull final IAccount account,
                                              @Nullable final String authority,

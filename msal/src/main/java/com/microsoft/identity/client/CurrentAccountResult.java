@@ -20,37 +20,33 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.internal;
+package com.microsoft.identity.client;
 
-import android.support.annotation.Nullable;
+public class CurrentAccountResult implements ICurrentAccountResult {
 
-import com.microsoft.identity.client.IPublicClientApplication;
-import com.microsoft.identity.client.exception.MsalException;
+    private IAccount mCurrentAccount;
+    private IAccount mPriorAccount;
+    private boolean mChanged;
 
-public class CreateApplicationResult  {
 
-    private MsalException mMsalException;
-    private IPublicClientApplication mIPublicClientApplication;
-    private boolean mSuccess = false;
-
-    public CreateApplicationResult(@Nullable IPublicClientApplication application, @Nullable MsalException exception){
-        mMsalException = exception;
-        mIPublicClientApplication = application;
-        if(application != null){
-            mSuccess = true;
-        }
+    public CurrentAccountResult(IAccount current, IAccount prior, boolean changed){
+        mCurrentAccount = current;
+        mPriorAccount = prior;
+        mChanged = changed;
     }
 
-    public IPublicClientApplication getPublicClientApplication(){
-        return mIPublicClientApplication;
+    @Override
+    public IAccount getCurrentAccount() {
+        return mCurrentAccount;
     }
 
-    public MsalException getException(){
-        return mMsalException;
+    @Override
+    public IAccount getPriorAccount() {
+        return mPriorAccount;
     }
 
-    public boolean getSuccess(){
-        return mSuccess;
+    @Override
+    public boolean didAccountChange() {
+        return mChanged;
     }
-
 }

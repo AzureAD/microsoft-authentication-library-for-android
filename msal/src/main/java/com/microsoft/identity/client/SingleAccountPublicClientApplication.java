@@ -30,6 +30,7 @@ import android.support.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.RemoveAccountResult;
 import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
@@ -106,7 +107,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
 
     @Override
-    public void getCurrentAccount(final CurrentAccountCallback callback) {
+    public void getCurrentAccountAsync(final CurrentAccountCallback callback) {
         final String methodName = ":getCurrentAccount";
         final PublicClientApplicationConfiguration configuration = getConfiguration();
 
@@ -183,6 +184,43 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         } catch (MsalClientException clientException) {
             callback.onError(clientException);
         }
+    }
+
+    @Override
+    public ICurrentAccountResult getCurrentAccount() throws InterruptedException, MsalException {
+        throwOnMainThread("getCurrentAccount");
+
+        final ResultFuture<AsyncResult<CurrentAccountResult>> future = new ResultFuture<>();
+
+        getCurrentAccountAsync(new CurrentAccountCallback() {
+            @Override
+            public void onAccountLoaded(@Nullable IAccount activeAccount) {
+                CurrentAccountResult currentAccountResult = new CurrentAccountResult(activeAccount, null, false);
+                future.setResult(new AsyncResult<CurrentAccountResult>(currentAccountResult, null));
+            }
+
+            @Override
+            public void onAccountChanged(@Nullable IAccount priorAccount, @Nullable IAccount currentAccount) {
+                CurrentAccountResult currentAccountResult = new CurrentAccountResult(currentAccount, priorAccount, false);
+                future.setResult(new AsyncResult<CurrentAccountResult>(currentAccountResult, null));
+            }
+
+            @Override
+            public void onError(@NonNull Exception exception) {
+                //TODO: Need to talk to Dome about exception here rather than MsalException
+                future.setResult(new AsyncResult<CurrentAccountResult>(null, (MsalException)exception));
+            }
+        });
+
+        AsyncResult<CurrentAccountResult> result = future.get();
+
+        if(result.getSuccess()){
+            return result.getResult();
+        }else{
+            throw result.getException();
+        }
+
+
     }
 
 
@@ -354,6 +392,9 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public boolean signOut() throws MsalException, InterruptedException {
+
+        throwOnMainThread("signOut");
+
         final ResultFuture<RemoveAccountResult> future = new ResultFuture<>();
 
         signOut(new SignOutCallback() {

@@ -20,36 +20,29 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.internal;
+package com.microsoft.identity.client;
 
-import android.support.annotation.Nullable;
+public interface ICurrentAccountResult {
 
-import com.microsoft.identity.client.AuthenticationResult;
-import com.microsoft.identity.client.IAuthenticationResult;
-import com.microsoft.identity.client.exception.MsalException;
+    /**
+     * Returns the current account signed into the app or in the case of shared device mode.  Signed into the device
+     * @return IAccount
+     */
+    IAccount getCurrentAccount();
 
-public class AcquireTokenResult {
-    private MsalException mMsalException;
-    private IAuthenticationResult mAuthenticationResult;
-    private boolean mSuccess = false;
+    /**
+     * If the current signed in account changed as a result of being removed from the device, returns
+     * the prior account signed into the app  or in the case of shared device mode.  Signed into the device
+     * @return IAccount
+     */
+    IAccount getPriorAccount();
 
-    public AcquireTokenResult(@Nullable IAuthenticationResult authenticationResult, @Nullable MsalException exception){
-        mMsalException = exception;
-        mAuthenticationResult = authenticationResult;
-        if(mAuthenticationResult != null){
-            mSuccess = true;
-        }
-    }
+    /**
+     * Indicates whether the current account has changed since last checked.  If changed you can access the prior and current acocunts
+     * to perform necessary clean up within the UX.
+     * @return
+     */
+    boolean didAccountChange();
 
-    public IAuthenticationResult getAuthenticationResult(){
-        return mAuthenticationResult;
-    }
 
-    public MsalException getException(){
-        return mMsalException;
-    }
-
-    public boolean getSuccess(){
-        return mSuccess;
-    }
 }

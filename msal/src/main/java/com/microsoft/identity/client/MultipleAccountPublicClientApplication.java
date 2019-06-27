@@ -30,6 +30,7 @@ import android.support.annotation.Nullable;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.RemoveAccountResult;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
@@ -57,7 +58,6 @@ import com.microsoft.identity.common.internal.result.ResultFuture;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Future;
 
 public class MultipleAccountPublicClientApplication extends PublicClientApplication
         implements IMultipleAccountPublicClientApplication {
@@ -215,6 +215,34 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         }
     }
 
+    @Override
+    public List<IAccount> getAccounts() throws InterruptedException, MsalException {
+
+        throwOnMainThread("getAccounts");
+
+        final ResultFuture<AsyncResult<List<IAccount>>> future = new ResultFuture<>();
+
+        getAccounts(new LoadAccountsCallback() {
+            @Override
+            public void onTaskCompleted(List<IAccount> result) {
+                future.setResult(new AsyncResult<List<IAccount>>(result, null));
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                future.setResult(new AsyncResult<List<IAccount>>(null, exception));
+            }
+        });
+
+         AsyncResult<List<IAccount>> result = future.get();
+
+         if(result.getSuccess()){
+             return result.getResult();
+         }else{
+             throw result.getException();
+         }
+    }
+
     /**
      * Retrieve the IAccount object matching the identifier.
      * The identifier could be homeAccountIdentifier, localAccountIdentifier or username.
@@ -302,6 +330,35 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             );
             callback.onError(e);
         }
+    }
+
+    @Override
+    public IAccount getAccount(@NonNull String identifier) throws InterruptedException, MsalException {
+
+        throwOnMainThread("getAccount");
+
+        final ResultFuture<AsyncResult<IAccount>> future = new ResultFuture<>();
+
+        getAccount(identifier, new GetAccountCallback() {
+            @Override
+            public void onTaskCompleted(IAccount result) {
+                future.setResult(new AsyncResult<IAccount>(result, null));
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                future.setResult(new AsyncResult<IAccount>(null, exception));
+            }
+        });
+
+        AsyncResult<IAccount> result = future.get();
+
+        if(result.getSuccess()){
+            return result.getResult();
+        }else{
+            throw result.getException();
+        }
+
     }
 
     @Override

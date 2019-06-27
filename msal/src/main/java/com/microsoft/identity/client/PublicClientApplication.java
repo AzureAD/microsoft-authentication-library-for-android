@@ -41,8 +41,7 @@ import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalUserCancelException;
-import com.microsoft.identity.client.internal.AcquireTokenResult;
-import com.microsoft.identity.client.internal.CreateApplicationResult;
+import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
 import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
@@ -337,24 +336,24 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         throwOnMainThread("createMultipleAccountPublicClientApplication");
 
-        final ResultFuture<CreateApplicationResult> future = new ResultFuture<>();
+        final ResultFuture<AsyncResult<IPublicClientApplication>> future = new ResultFuture<>();
         create(context,
                 configuration,
                 new ApplicationCreatedListener() {
                     @Override
                     public void onCreated(IPublicClientApplication application) {
-                        future.setResult(new CreateApplicationResult(application, null));
+                        future.setResult(new AsyncResult<IPublicClientApplication>(application, null));
                     }
 
                     @Override
                     public void onError(MsalException exception) {
-                        future.setResult(new CreateApplicationResult(null, exception));
+                        future.setResult(new AsyncResult<IPublicClientApplication>(null, exception));
                     }
                 }
         );
 
         //Blocking Call
-        CreateApplicationResult result = future.get();
+        AsyncResult<IPublicClientApplication> result = future.get();
 
         if(!result.getSuccess()){
             //Exception thrown
@@ -362,7 +361,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             throw ex;
         }
 
-        return result.getPublicClientApplication();
+        return result.getResult();
 
     }
 
@@ -1346,7 +1345,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         throwOnMainThread("acquireTokenSilent");
 
-        final ResultFuture<AcquireTokenResult> future = new ResultFuture<>();
+        final ResultFuture<AsyncResult<IAuthenticationResult>> future = new ResultFuture<>();
 
         acquireTokenSilent(
                 scopes,
@@ -1357,25 +1356,25 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 new AuthenticationCallback() {
                     @Override
                     public void onSuccess(IAuthenticationResult authenticationResult) {
-                        future.setResult(new AcquireTokenResult(authenticationResult, null));
+                        future.setResult(new AsyncResult<IAuthenticationResult>(authenticationResult, null));
                     }
 
                     @Override
                     public void onError(MsalException exception) {
-                        future.setResult(new AcquireTokenResult(null, exception));
+                        future.setResult(new AsyncResult<IAuthenticationResult>(null, exception));
                     }
 
                     @Override
                     public void onCancel() {
-                        future.setResult(new AcquireTokenResult(null, new MsalUserCancelException()));
+                        future.setResult(new AsyncResult<IAuthenticationResult>(null, new MsalUserCancelException()));
                     }
                 }
         );
 
-        AcquireTokenResult result = future.get();
+        AsyncResult<IAuthenticationResult> result = future.get();
 
         if(result.getSuccess()){
-            return result.getAuthenticationResult();
+            return result.getResult();
         }else{
             throw result.getException();
         }
