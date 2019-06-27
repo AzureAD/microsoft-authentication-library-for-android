@@ -74,6 +74,12 @@ import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
+import com.microsoft.identity.common.internal.telemetry.Telemetry;
+import com.microsoft.identity.common.internal.telemetry.TelemetryEventStrings;
+import com.microsoft.identity.common.internal.telemetry.events.ApiEndEvent;
+import com.microsoft.identity.common.internal.telemetry.events.ApiStartEvent;
+import com.microsoft.identity.common.internal.telemetry.events.BrokerEndEvent;
+import com.microsoft.identity.common.internal.telemetry.events.BrokerStartEvent;
 import com.microsoft.identity.common.internal.ui.browser.Browser;
 import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 import com.microsoft.identity.common.internal.util.ICacheRecordGsonAdapter;
@@ -114,6 +120,11 @@ public class BrokerMsalController extends BaseController {
     @Override
     public AcquireTokenResult acquireToken(AcquireTokenOperationParameters parameters)
             throws InterruptedException, BaseException {
+        Telemetry.emit(
+                new ApiStartEvent()
+                        .putProperties(parameters)
+                        .putApiId(TelemetryEventStrings.API_BROKER_GET_ACCOUNTS)
+        );
 
         //Create BrokerResultFuture to block on response from the broker... response will be return as an activity result
         //BrokerActivity will receive the result and ask the API dispatcher to complete the request
@@ -127,6 +138,7 @@ public class BrokerMsalController extends BaseController {
         final Intent brokerActivityIntent = new Intent(parameters.getAppContext(), BrokerActivity.class);
         brokerActivityIntent.putExtra(BrokerActivity.BROKER_INTENT, interactiveRequestIntent);
 
+        mBrokerResultFuture = new BrokerResultFuture();
         //Start the BrokerActivity
         parameters.getActivity().startActivity(brokerActivityIntent);
 
@@ -136,8 +148,15 @@ public class BrokerMsalController extends BaseController {
         // For MSA Accounts Broker doesn't save the accounts, instead it just passes the result along,
         // MSAL needs to save this account locally for future token calls.
         saveMsaAccountToCache(resultBundle, (MsalOAuth2TokenCache) parameters.getTokenCache());
+        final AcquireTokenResult result = getAcquireTokenResult(resultBundle);
 
-        return getAcquireTokenResult(resultBundle);
+        Telemetry.emit(
+                new ApiEndEvent()
+                        .putResult(result)
+                        .putApiId(TelemetryEventStrings.API_BROKER_GET_ACCOUNTS)
+        );
+
+        return result;
     }
 
     /**
@@ -174,6 +193,10 @@ public class BrokerMsalController extends BaseController {
     private Intent getBrokerAuthorizationIntentFromAuthService(@NonNull final AcquireTokenOperationParameters parameters)
             throws ClientException {
         final String methodName = ":getBrokerAuthorizationIntentFromAuthService";
+        Telemetry.emit(
+                new BrokerStartEvent()
+                        .putAction(methodName)
+        );
         IMicrosoftAuthService service;
         Intent resultIntent;
 
@@ -183,11 +206,30 @@ public class BrokerMsalController extends BaseController {
         try {
             service = authServiceFuture.get();
             resultIntent = service.getIntentForInteractiveRequest();
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(true)
+            );
         } catch (final RemoteException e) {
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(false)
+                            .putErrorCode(ErrorStrings.BROKER_BIND_SERVICE_FAILED)
+                            .putErrorDescription(e.getLocalizedMessage())
+            );
             throw new ClientException(ErrorStrings.BROKER_BIND_SERVICE_FAILED,
                     "Exception occurred while attempting to invoke remote service",
                     e);
         } catch (final Exception e) {
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(false)
+                            .putErrorCode(ErrorStrings.BROKER_BIND_SERVICE_FAILED)
+                            .putErrorDescription(e.getLocalizedMessage())
+            );
             throw new ClientException(ErrorStrings.BROKER_BIND_SERVICE_FAILED,
                     "Exception occurred while awaiting (get) return of MicrosoftAuthService",
                     e);
@@ -201,6 +243,10 @@ public class BrokerMsalController extends BaseController {
     @SuppressLint("MissingPermission")
     private Intent getBrokerAuthorizationIntentFromAccountManager(@NonNull final AcquireTokenOperationParameters parameters) throws ClientException {
         final String methodName = ":getBrokerAuthorizationIntentFromAccountManager";
+        Telemetry.emit(
+                new BrokerStartEvent()
+                        .putAction(methodName)
+        );
         Intent intent = null;
         try {
             final MsalBrokerRequestAdapter msalBrokerRequestAdapter = new MsalBrokerRequestAdapter();
@@ -235,12 +281,26 @@ public class BrokerMsalController extends BaseController {
                     AuthenticationConstants.Broker.CALLER_INFO_UID,
                     Binder.getCallingUid()
             );
+
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(true)
+            );
         } catch (final OperationCanceledException e) {
             Logger.error(
                     TAG + methodName,
                     ErrorStrings.BROKER_REQUEST_CANCELLED,
                     "Exception thrown when talking to account manager. The broker request cancelled.",
                     e
+            );
+
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(false)
+                            .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
+                            .putErrorDescription("OperationCanceledException thrown when talking to account manager. The broker request cancelled.")
             );
 
             throw new ClientException(
@@ -256,6 +316,14 @@ public class BrokerMsalController extends BaseController {
                     e
             );
 
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(false)
+                            .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
+                            .putErrorDescription("AuthenticatorException thrown when talking to account manager. The broker request cancelled.")
+            );
+
             throw new ClientException(
                     ErrorStrings.BROKER_REQUEST_CANCELLED,
                     "AuthenticatorException thrown when talking to account manager. The broker request cancelled.",
@@ -268,6 +336,14 @@ public class BrokerMsalController extends BaseController {
                     ErrorStrings.BROKER_REQUEST_CANCELLED,
                     "IOException thrown when talking to account manager. The broker request cancelled.",
                     e
+            );
+
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(false)
+                            .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
+                            .putErrorDescription("IOException thrown when talking to account manager. The broker request cancelled.")
             );
 
             throw new ClientException(
@@ -300,17 +376,37 @@ public class BrokerMsalController extends BaseController {
      */
     @Override
     public void completeAcquireToken(int requestCode, int resultCode, Intent data) {
+        Telemetry.emit(
+                new ApiStartEvent()
+                        .putApiId(TelemetryEventStrings.API_BROKER_COMPLETE_ACQUIRE_TOKEN_INTERACTIVE)
+                        .put(TelemetryEventStrings.TELEMETRY_KEY_RESULT_CODE, String.valueOf(resultCode))
+                        .put(TelemetryEventStrings.TELEMETRY_KEY_REQUEST_CODE, String.valueOf(requestCode))
+        );
+
         mBrokerResultFuture.setResultBundle(data.getExtras());
+
+        Telemetry.emit(
+                new ApiEndEvent()
+                        .putApiId(TelemetryEventStrings.API_BROKER_COMPLETE_ACQUIRE_TOKEN_INTERACTIVE)
+        );
     }
 
     @Override
     public AcquireTokenResult acquireTokenSilent(AcquireTokenSilentOperationParameters parameters) throws BaseException {
         final String methodName = ":acquireTokenSilent";
+
+        Telemetry.emit(
+                new ApiStartEvent()
+                        .putProperties(parameters)
+                        .putApiId(TelemetryEventStrings.API_BROKER_ACQUIRE_TOKEN_SILENT)
+        );
+
         AcquireTokenResult acquireTokenResult;
 
         if (isMicrosoftAuthServiceSupported(parameters.getAppContext())) {
             Logger.verbose(TAG + methodName, "Is microsoft auth service supported? " + "[yes]");
             Logger.verbose(TAG + methodName, "Get the broker authorization intent from auth service.");
+
             acquireTokenResult = acquireTokenSilentWithAuthService(parameters);
         } else {
             Logger.verbose(TAG + methodName, "Is microsoft auth service supported? " + "[no]");
@@ -318,10 +414,22 @@ public class BrokerMsalController extends BaseController {
             acquireTokenResult = acquireTokenSilentWithAccountManager(parameters);
         }
 
+        Telemetry.emit(
+                new ApiEndEvent()
+                        .putResult(acquireTokenResult)
+                        .putApiId(TelemetryEventStrings.API_BROKER_ACQUIRE_TOKEN_SILENT)
+        );
+
         return acquireTokenResult;
     }
 
     private AcquireTokenResult acquireTokenSilentWithAuthService(AcquireTokenSilentOperationParameters parameters) throws BaseException {
+        final String methodName = ":acquireTokenSilentWithAuthService";
+        Telemetry.emit(
+                new BrokerStartEvent()
+                        .putAction(methodName)
+        );
+
         IMicrosoftAuthService service;
 
         MicrosoftAuthClient client = new MicrosoftAuthClient(parameters.getAppContext());
@@ -337,9 +445,25 @@ public class BrokerMsalController extends BaseController {
         try {
             final Bundle requestBundle = getSilentBrokerRequestBundle(parameters);
             final Bundle resultBundle = service.acquireTokenSilently(requestBundle);
+            final AcquireTokenResult result = getAcquireTokenResult(resultBundle);
 
-            return getAcquireTokenResult(resultBundle);
-        } catch (RemoteException e) {
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(true)
+            );
+
+            return result;
+        } catch (final RemoteException e) {
+
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(false)
+                            .putErrorCode(ErrorStrings.BROKER_BIND_SERVICE_FAILED)
+                            .putErrorDescription("RemoteException occurred while attempting to invoke remote service")
+            );
+
             throw new ClientException(
                     ErrorStrings.BROKER_BIND_SERVICE_FAILED,
                     "Exception occurred while attempting to invoke remote service",
@@ -357,12 +481,23 @@ public class BrokerMsalController extends BaseController {
                                     final PublicClientApplication.BrokerDeviceModeCallback callback) {
 
         final String methodName = ":getBrokerAccountMode";
+        Telemetry.emit(
+                new BrokerStartEvent()
+                        .putAction(methodName)
+        );
+
         final Handler handler = new Handler(Looper.getMainLooper());
 
         if (!MSALControllerFactory.brokerInstalled(appContext)) {
             final String errorMessage = "Broker app is not installed on the device. Shared device mode requires the broker.";
             com.microsoft.identity.common.internal.logging.Logger.verbose(TAG + methodName, errorMessage, null);
             callback.onGetMode(false);
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(false)
+                            .putErrorDescription(errorMessage)
+            );
             return;
         }
 
