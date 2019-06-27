@@ -31,7 +31,6 @@ import android.support.annotation.WorkerThread;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.AsyncResult;
-import com.microsoft.identity.client.internal.RemoveAccountResult;
 import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
@@ -395,24 +394,24 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
         throwOnMainThread("signOut");
 
-        final ResultFuture<RemoveAccountResult> future = new ResultFuture<>();
+        final ResultFuture<AsyncResult<Boolean>> future = new ResultFuture<>();
 
         signOut(new SignOutCallback() {
             @Override
             public void onSignOut() {
-                future.setResult(new RemoveAccountResult(null));
+                future.setResult(new AsyncResult<Boolean>(true, null));
             }
 
             @Override
             public void onError(@NonNull MsalException exception) {
-                future.setResult(new RemoveAccountResult(exception));
+                future.setResult(new AsyncResult<Boolean>(false, exception));
             }
         });
 
-        RemoveAccountResult result = future.get();
+        AsyncResult<Boolean> result = future.get();
 
         if(result.getSuccess()){
-            return true;
+            return result.getResult();
         }else{
             throw result.getException();
         }
