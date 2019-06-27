@@ -29,6 +29,8 @@ import android.support.annotation.WorkerThread;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 
+import java.util.List;
+
 /**
  * An interface that contains list of operations that are available when MSAL is in 'multiple account' mode.
  * - This mode allows an application to make API calls with more than one accounts.
@@ -43,7 +45,7 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      *
      * @param callback The callback to notify once this action has finished.
      */
-    void getAccounts(@NonNull final PublicClientApplication.LoadAccountCallback callback);
+    void getAccounts(@NonNull final LoadAccountsCallback callback);
 
     /**
      * Retrieve the IAccount object matching the identifier.
@@ -53,7 +55,7 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * @param callback   The callback to notify once this action has finished.
      */
     void getAccount(@NonNull final String identifier,
-                    @NonNull final PublicClientApplication.GetAccountCallback callback
+                    @NonNull final GetAccountCallback callback
     );
 
     /**
@@ -96,13 +98,12 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
      * or it fails the refresh, exception will be sent back via callback.
      *
-     * @param scopes   The non-null array of scopes to be requested for the access token.
-     *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param account  {@link IAccount} represents the account to silently request tokens for.
-     *
+     * @param scopes  The non-null array of scopes to be requested for the access token.
+     *                MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param account {@link IAccount} represents the account to silently request tokens for.
      */
     IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
-                                 @NonNull final IAccount account) throws MsalException, InterruptedException;
+                                             @NonNull final IAccount account) throws MsalException, InterruptedException;
 
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
@@ -114,12 +115,11 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * @param account      {@link IAccount} represents the account to silently request tokens for.
      * @param authority    Optional. Can be passed to override the configured authority.
      * @param forceRefresh True if the request is forced to refresh, false otherwise.
-     *
      */
     IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
-                                 @NonNull final IAccount account,
-                                 @Nullable final String authority,
-                                 final boolean forceRefresh) throws MsalException, InterruptedException;
+                                             @NonNull final IAccount account,
+                                             @Nullable final String authority,
+                                             final boolean forceRefresh) throws MsalException, InterruptedException;
 
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
@@ -140,11 +140,28 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
                                  final boolean forceRefresh,
                                  @NonNull final AuthenticationCallback callback);
 
+    interface GetAccountCallback extends TaskCompletedCallbackWithError<IAccount, MsalException> {
+        /**
+         * Called once succeed and pass the result object.
+         *
+         * @param result the success result.
+         */
+        void onTaskCompleted(IAccount result);
+
+        /**
+         * Called once exception thrown.
+         *
+         * @param exception
+         */
+        void onError(MsalException exception);
+    }
+
     interface RemoveAccountCallback {
         /**
          * Invoked when account successfully removed
          */
         void onRemoved();
+
         /**
          * Invoked when the account failed to load.
          *

@@ -51,10 +51,9 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
 
     void getCurrentAccount(final CurrentAccountCallback callback);
 
-
     /**
      * Allows a user to sign in to your application with one of their accounts.
-     *
+     * <p>
      * Note: The authority used to make the sign in request will be either the MSAL default: https://login.microsoftonline.com/common
      * or the default authority specified by you in your configuration
      *
@@ -87,8 +86,6 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      */
     boolean signOut() throws MsalException, InterruptedException;
 
-
-
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
      * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
@@ -109,9 +106,8 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
      * or it fails the refresh, exception will be sent back via callback.
      *
-     * @param scopes   The non-null array of scopes to be requested for the access token.
-     *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     *
+     * @param scopes The non-null array of scopes to be requested for the access token.
+     *               MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
      */
     @WorkerThread
     IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes) throws MsalException, InterruptedException;
@@ -144,12 +140,11 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      *                     MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
      * @param authority    Optional. Can be passed to override the configured authority.
      * @param forceRefresh True if the request is forced to refresh, false otherwise.
-     *
      */
     @WorkerThread
     IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
-                                 @Nullable final String authority,
-                                 final boolean forceRefresh) throws MsalException, InterruptedException;
+                                             @Nullable final String authority,
+                                             final boolean forceRefresh) throws MsalException, InterruptedException;
 
     /**
      * Callback for asynchronous loading of the msal IAccount account.
@@ -179,12 +174,12 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
         void onError(@NonNull final Exception exception);
     }
 
-
     interface SignOutCallback {
         /**
          * Invoked when account successfully signed out
          */
         void onSignOut();
+
         /**
          * Invoked when the account failed to load.
          *
