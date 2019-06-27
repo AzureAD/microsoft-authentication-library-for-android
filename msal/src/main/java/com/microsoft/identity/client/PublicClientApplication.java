@@ -40,7 +40,8 @@ import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.internal.CreateApplicationResult;
+import com.microsoft.identity.client.exception.MsalUserCancelException;
+import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
 import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
@@ -335,24 +336,24 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         throwOnMainThread("createMultipleAccountPublicClientApplication");
 
-        final ResultFuture<CreateApplicationResult> future = new ResultFuture<>();
+        final ResultFuture<AsyncResult<IPublicClientApplication>> future = new ResultFuture<>();
         create(context,
                 configuration,
                 new ApplicationCreatedListener() {
                     @Override
                     public void onCreated(IPublicClientApplication application) {
-                        future.setResult(new CreateApplicationResult(application, null));
+                        future.setResult(new AsyncResult<IPublicClientApplication>(application, null));
                     }
 
                     @Override
                     public void onError(MsalException exception) {
-                        future.setResult(new CreateApplicationResult(null, exception));
+                        future.setResult(new AsyncResult<IPublicClientApplication>(null, exception));
                     }
                 }
         );
 
         //Blocking Call
-        CreateApplicationResult result = future.get();
+        AsyncResult<IPublicClientApplication> result = future.get();
 
         if(!result.getSuccess()){
             //Exception thrown
@@ -360,7 +361,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             throw ex;
         }
 
-        return result.getPublicClientApplication();
+        return result.getResult();
 
     }
 
@@ -785,38 +786,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         return mIsSharedDevice;
     }
 
-    public interface LoadAccountCallback extends TaskCompletedCallbackWithError<List<IAccount>, Exception> {
-        /**
-         * Called once succeed and pass the result object.
-         *
-         * @param result the success result.
-         */
-        void onTaskCompleted(List<IAccount> result);
-
-        /**
-         * Called once exception thrown.
-         *
-         * @param exception
-         */
-        void onError(Exception exception);
-    }
-
-    public interface GetAccountCallback extends TaskCompletedCallbackWithError<IAccount, Exception> {
-        /**
-         * Called once succeed and pass the result object.
-         *
-         * @param result the success result.
-         */
-        void onTaskCompleted(IAccount result);
-
-        /**
-         * Called once exception thrown.
-         *
-         * @param exception
-         */
-        void onError(Exception exception);
-    }
-
     @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
@@ -1044,7 +1013,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         validateSilentParameters(acquireTokenSilentParameters);
 
-        acquireTokenSilent(acquireTokenSilentParameters);
+        acquireTokenSilentAsync(acquireTokenSilentParameters);
     }
 
     private void validateSilentParameters(
@@ -1058,7 +1027,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     @Override
-    public void acquireTokenSilent(
+    public void acquireTokenSilentAsync(
             @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
         validateSilentParameters(acquireTokenSilentParameters);
 
@@ -1108,6 +1077,43 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         } catch (final BaseException exception) {
             callback.onError(exception);
         }
+    }
+
+    @Override
+    public IAuthenticationResult acquireTokenSilent(@NonNull AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException {
+        if (acquireTokenSilentParameters.getCallback() != null) {
+            throw new IllegalArgumentException("Do not provide callback for synchronous methods");
+        }
+
+        final ResultFuture<AsyncResult<IAuthenticationResult>> future = new ResultFuture<>();
+
+        acquireTokenSilentParameters.setCallback(new AuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                future.setResult(new AsyncResult<IAuthenticationResult>(authenticationResult, null));
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                future.setResult(new AsyncResult<IAuthenticationResult>(null, exception));
+            }
+
+            @Override
+            public void onCancel() {
+                future.setResult(new AsyncResult<IAuthenticationResult>(null, new MsalUserCancelException()));
+            }
+        });
+
+        acquireTokenSilentAsync(acquireTokenSilentParameters);
+
+        AsyncResult<IAuthenticationResult> result = future.get();
+
+        if (result.getSuccess()) {
+            return result.getResult();
+        } else {
+            throw result.getException();
+        }
+
     }
 
     @VisibleForTesting
@@ -1221,9 +1227,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-    static TaskCompletedCallbackWithError<List<ICacheRecord>, Exception> getLoadAccountsCallback(
-            final LoadAccountCallback loadAccountsCallback) {
-        return new TaskCompletedCallbackWithError<List<ICacheRecord>, Exception>() {
+    static TaskCompletedCallbackWithError<List<ICacheRecord>, BaseException> getLoadAccountsCallback(
+            final LoadAccountsCallback loadAccountsCallback) {
+        return new TaskCompletedCallbackWithError<List<ICacheRecord>, BaseException>() {
             @Override
             public void onTaskCompleted(final List<ICacheRecord> result) {
                 if (null == result) {
@@ -1236,8 +1242,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             }
 
             @Override
-            public void onError(final Exception exception) {
-                loadAccountsCallback.onError(exception);
+            public void onError(final BaseException exception) {
+                loadAccountsCallback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
             }
         };
     }
@@ -1368,4 +1374,46 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             return false;
         }
     };
+
+    protected IAuthenticationResult acquireTokenSilentSync(@NonNull final String[] scopes,
+                                                           @Nullable final String authority,
+                                                           @NonNull final IAccount account,
+                                                           final boolean forceRefresh) throws MsalException, InterruptedException {
+
+        throwOnMainThread("acquireTokenSilent");
+
+        final ResultFuture<AsyncResult<IAuthenticationResult>> future = new ResultFuture<>();
+
+        acquireTokenSilent(
+                scopes,
+                account,
+                authority, // authority
+                forceRefresh, // forceRefresh
+                null, // claimsRequest
+                new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
+                        future.setResult(new AsyncResult<IAuthenticationResult>(authenticationResult, null));
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        future.setResult(new AsyncResult<IAuthenticationResult>(null, exception));
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        future.setResult(new AsyncResult<IAuthenticationResult>(null, new MsalUserCancelException()));
+                    }
+                }
+        );
+
+        AsyncResult<IAuthenticationResult> result = future.get();
+
+        if(result.getSuccess()){
+            return result.getResult();
+        }else{
+            throw result.getException();
+        }
+    }
 }

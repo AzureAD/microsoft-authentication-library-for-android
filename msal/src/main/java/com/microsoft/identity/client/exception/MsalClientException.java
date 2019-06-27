@@ -56,6 +56,12 @@ import com.microsoft.identity.common.exception.ErrorStrings;
  * </p>
  */
 public final class MsalClientException extends MsalException {
+
+    /**
+     * The parameter provided by the user is invalid.
+     * */
+    public static final String INVALID_PARAMETER = "invalid_parameter";
+
     /**
      * There are multiple cache entries found, the sdk cannot pick the correct access token
      * or refresh token from the cache. Likely it's a bug in the sdk when caching tokens or authority
@@ -167,10 +173,10 @@ public final class MsalClientException extends MsalException {
      */
     public static final String NOT_ELIGIBLE_TO_USE_BROKER = "not_eligible_to_use_broker";
 
-    /**
+     /**
      * No account currently signed in to SingleAccountPublicClientApplication
      */
-    public static final String NO_ACCOUNT_TO_SIGN_OUT = "no_account_to_sign_out";
+    public static final String NO_CURRENT_ACCOUNT = "no_current_account";
 
     /**
      * Returned account does not match new account
