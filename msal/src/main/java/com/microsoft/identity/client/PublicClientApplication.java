@@ -627,9 +627,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     protected PublicClientApplication(@NonNull final Context context,
                                       @Nullable final PublicClientApplicationConfiguration developerConfig) {
-        setupConfiguration(context, developerConfig);
-
-        setupTelemetry(context, developerConfig);
+        initializeConfiguration(context, developerConfig);
 
         AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
@@ -645,7 +643,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     private void setupTelemetry(@NonNull final Context context,
-                                @Nullable final PublicClientApplicationConfiguration developerConfig) {
+                                @NonNull final PublicClientApplicationConfiguration developerConfig) {
         if (null != developerConfig.getTelemetryConfiguration()) {
             com.microsoft.identity.common.internal.logging.Logger.verbose(
                     TAG,
@@ -1083,9 +1081,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     @Override
     public void acquireTokenSilent(
             @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
-        //TODO Issue#669
-        // validateSilentParameters(acquireTokenSilentParameters);
-
         acquireTokenSilentParameters.setAccountRecord(
                 getAccountRecord(
                         acquireTokenSilentParameters.getAccount(),
@@ -1187,8 +1182,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         return gson.fromJson(config, PublicClientApplicationConfiguration.class);
     }
 
-    private void setupConfiguration(@NonNull Context context,
-                                    @Nullable PublicClientApplicationConfiguration developerConfig) {
+    private void initializeConfiguration(@NonNull Context context,
+                                         @Nullable PublicClientApplicationConfiguration developerConfig) {
         final PublicClientApplicationConfiguration defaultConfig = loadDefaultConfiguration(context);
 
         if (developerConfig != null) {
@@ -1199,6 +1194,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         mPublicClientConfiguration = defaultConfig;
         mPublicClientConfiguration.setAppContext(context);
         mPublicClientConfiguration.setOAuth2TokenCache(getOAuth2TokenCache());
+
+        setupTelemetry(context, mPublicClientConfiguration);
     }
 
     private PublicClientApplicationConfiguration loadDefaultConfiguration(@NonNull final Context context) {
