@@ -257,9 +257,9 @@ public class MsalWrapper {
                         public void onTaskCompleted(final IAccount account) {
                             if (account != null) {
                                 AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
-                                        .withScopes(Arrays.asList( requestOptions.getScopes().toLowerCase().split(" ")))
+                                        .withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")))
                                         .forAccount(account)
-                                        .fromAuthority(mApplication.getConfiguration().getDefaultAuthority().toString())
+                                        .fromAuthority(mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString())
                                         .forceRefresh(requestOptions.forceRefresh())
                                         .callback(getAuthenticationCallback(notifyCallback))
                                         .build();
@@ -280,8 +280,9 @@ public class MsalWrapper {
                 return;
             }
             AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
-                    .withScopes(Arrays.asList( requestOptions.getScopes().toLowerCase().split(" ")))
+                    .withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")))
                     .forAccount(mLoadedAccount.get(0))
+                    .fromAuthority(mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString())
                     .forceRefresh(requestOptions.forceRefresh())
                     .callback(getAuthenticationCallback(notifyCallback))
                     .build();
