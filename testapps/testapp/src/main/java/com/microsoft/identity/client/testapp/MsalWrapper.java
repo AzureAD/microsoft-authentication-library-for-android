@@ -22,8 +22,6 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
-import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
-import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -211,7 +209,7 @@ public class MsalWrapper {
                                                 .callback(getAuthenticationCallback(notifyCallback))
                                                 .build();
 
-                                mApplication.acquireTokenSilent(acquireTokenSilentParameters);
+                                mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
 
                             } else {
                                 notifyCallback.notify("No account found matching loginHint");
@@ -237,7 +235,7 @@ public class MsalWrapper {
                             .callback(getAuthenticationCallback(notifyCallback))
                             .build();
 
-            mApplication.acquireTokenSilent(acquireTokenSilentParameters);
+            mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
         }
     }
 
@@ -263,7 +261,7 @@ public class MsalWrapper {
                                         .forceRefresh(requestOptions.forceRefresh())
                                         .callback(getAuthenticationCallback(notifyCallback))
                                         .build();
-                                mApplication.acquireTokenSilent(parameters);
+                                mApplication.acquireTokenSilentAsync(parameters);
                             } else {
                                 notifyCallback.notify("No account found matching identifier");
                             }
@@ -287,7 +285,7 @@ public class MsalWrapper {
                     .callback(getAuthenticationCallback(notifyCallback))
                     .build();
 
-            mApplication.acquireTokenSilent(parameters);
+            mApplication.acquireTokenSilentAsync(parameters);
         }
     }
 
@@ -413,7 +411,7 @@ public class MsalWrapper {
             });
         } else if (mApplication instanceof ISingleAccountPublicClientApplication) {
             ISingleAccountPublicClientApplication singleAcctApp = (ISingleAccountPublicClientApplication) mApplication;
-            singleAcctApp.getCurrentAccount(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
+            singleAcctApp.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
                 @Override
                 public void onAccountLoaded(@Nullable IAccount activeAccount) {
                     mLoadedAccount = new ArrayList<>();

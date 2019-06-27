@@ -27,7 +27,6 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
-import com.microsoft.identity.client.exception.MsalUserCancelException;
 
 /**
  * Callback passed with token acquisition. {@link IAuthenticationResult} or {@link MsalException} will be returned back via callback.
