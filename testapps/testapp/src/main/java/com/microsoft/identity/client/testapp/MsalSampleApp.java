@@ -65,8 +65,10 @@ public class MsalSampleApp extends Application {
             }
         });
 
+        // to add one observer
         Telemetry.getInstance().addObserver(new TelemetryAggregatedObserver());
         Telemetry.getInstance().addObserver(new TelemetryDefaultObserver());
+        // to remove one type of observer
         Telemetry.getInstance().removeObserver(TelemetryDefaultObserver.class);
     }
 
@@ -76,9 +78,9 @@ public class MsalSampleApp extends Application {
                 final Iterator iterator = properties.entrySet().iterator();
                 while (iterator.hasNext()) {
                     final Map.Entry pair = (Map.Entry) iterator.next();
-                    Log.e("Test", pair.getKey() + ":" + pair.getValue());
+                    Log.e("", pair.getKey() + ":" + pair.getValue());
                 }
-                Log.e("Test", "====================================" + '\n');
+                Log.e("", "====================================" + '\n');
             }
         }
     }
@@ -88,9 +90,9 @@ public class MsalSampleApp extends Application {
             final Iterator iterator = telemetryData.entrySet().iterator();
             while (iterator.hasNext()) {
                 final Map.Entry pair = (Map.Entry) iterator.next();
-                Log.e("Test", pair.getKey() + ":" + pair.getValue());
+                Log.e("", pair.getKey() + ":" + pair.getValue());
             }
-            Log.e("Test", "====================================" + '\n');
+            Log.e("", "====================================" + '\n');
         }
     }
 
