@@ -250,8 +250,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                            @NonNull final GetAccountCallback callback) {
         final String methodName = ":getAccount";
 
-        ApiDispatcher.initializeDiagnosticContext();
-
         com.microsoft.identity.common.internal.logging.Logger.verbose(
                 TAG + methodName,
                 "Get account with the identifier."

@@ -36,6 +36,7 @@ import com.microsoft.identity.common.internal.authorities.Environment;
 import com.microsoft.identity.common.internal.authorities.UnknownAudience;
 import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.ui.browser.BrowserDescriptor;
 
@@ -52,6 +53,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.LOGGING;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.MULTIPLE_CLOUDS_SUPPORTED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.TELEMETRY;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.SHARED_DEVICE_MODE_SUPPORTED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ENVIRONMENT;
@@ -70,6 +72,7 @@ public class PublicClientApplicationConfiguration {
         static final String USE_BROKER = "broker_redirect_uri_registered";
         static final String ENVIRONMENT = "environment";
         static final String REQUIRED_BROKER_PROTOCOL_VERSION = "minimum_required_broker_protocol_version";
+        static final String TELEMETRY = "telemetry";
         static final String BROWSER_SAFE_LIST = "browser_safelist";
         static final String SHARED_DEVICE_MODE_SUPPORTED = "shared_device_mode_supported";
         static final String ACCOUNT_MODE = "account_mode";
@@ -107,6 +110,9 @@ public class PublicClientApplicationConfiguration {
 
     @SerializedName(BROWSER_SAFE_LIST)
     List<BrowserDescriptor> mBrowserSafeList;
+
+    @SerializedName(TELEMETRY)
+    TelemetryConfiguration mTelemetryConfiguration;
 
     @SerializedName(SHARED_DEVICE_MODE_SUPPORTED)
     Boolean mSharedDeviceModeSupported;
@@ -181,6 +187,15 @@ public class PublicClientApplicationConfiguration {
      */
     public LoggerConfiguration getLoggerConfiguration() {
         return mLoggerConfiguration;
+    }
+
+    /**
+     * Gets the currently configured {@link TelemetryConfiguration} for the PublicClientApplication.
+     *
+     * @return The TelemetryConfiguration to use.
+     */
+    public TelemetryConfiguration getTelemetryConfiguration() {
+        return mTelemetryConfiguration;
     }
 
     /**
@@ -323,6 +338,7 @@ public class PublicClientApplicationConfiguration {
         this.mHttpConfiguration = config.mHttpConfiguration == null ? this.mHttpConfiguration : config.mHttpConfiguration;
         this.mMultipleCloudsSupported = config.mMultipleCloudsSupported == null ? this.mMultipleCloudsSupported : config.mMultipleCloudsSupported;
         this.mUseBroker = config.mUseBroker == null ? this.mUseBroker : config.mUseBroker;
+        this.mTelemetryConfiguration = config.mTelemetryConfiguration == null ? this.mTelemetryConfiguration : config.mTelemetryConfiguration;
         if (this.mBrowserSafeList == null) {
             this.mBrowserSafeList = config.mBrowserSafeList;
         } else if (config.mBrowserSafeList != null){

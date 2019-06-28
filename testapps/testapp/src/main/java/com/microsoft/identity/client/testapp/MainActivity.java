@@ -53,13 +53,18 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
+import com.microsoft.identity.common.internal.telemetry.Telemetry;
+import com.microsoft.identity.common.internal.telemetry.observers.ITelemetryAggregatedObserver;
+import com.microsoft.identity.common.internal.telemetry.observers.ITelemetryDefaultObserver;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
