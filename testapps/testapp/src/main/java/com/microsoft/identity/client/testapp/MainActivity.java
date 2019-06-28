@@ -186,32 +186,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 null
         );
 
-        Telemetry.getInstance().addObserver(new TelemetryAggregatedObserver());
-        Telemetry.getInstance().addObserver(new TelemetryDefaultObserver());
-    }
-
-    class TelemetryDefaultObserver implements ITelemetryDefaultObserver {
-        public void onReceived(List<Map<String, String>> telemetryData) {
-            for (Map properties : telemetryData) {
-                final Iterator iterator = properties.entrySet().iterator();
-                while (iterator.hasNext()) {
-                    final Map.Entry pair = (Map.Entry) iterator.next();
-                    Log.e(TAG, pair.getKey() + ":" + pair.getValue());
-                }
-                Log.e(TAG, "====================================" + '\n');
-            }
-        }
-    }
-
-    class TelemetryAggregatedObserver implements ITelemetryAggregatedObserver {
-        public void onReceived(Map<String, String> telemetryData) {
-            final Iterator iterator = telemetryData.entrySet().iterator();
-            while (iterator.hasNext()) {
-                final Map.Entry pair = (Map.Entry) iterator.next();
-                Log.e(TAG, pair.getKey() + ":" + pair.getValue());
-            }
-            Log.e(TAG, "====================================" + '\n');
-        }
     }
 
     @Override
