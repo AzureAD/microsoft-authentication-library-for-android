@@ -302,9 +302,12 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 MultiTenantAccount newAccount = getAccountFromICacheRecordList(localAuthenticationResult.getCacheRecordWithTenantProfileData());
 
                 if (didCurrentAccountChange(newAccount)) {
-                    //Throw on Error with UserMismatchException
-                    authenticationCallback.onError(new MsalClientException(MsalClientException.CURRENT_ACCOUNT_MISMATCH));
-                    return;
+                    if(getPersistedCurrentAccount() != null) {
+                        authenticationCallback.onError(new MsalClientException(MsalClientException.CURRENT_ACCOUNT_MISMATCH));
+                        return;
+                    }else{
+                        persistCurrentAccount(localAuthenticationResult.getCacheRecordWithTenantProfileData());
+                    }
                 } else {
                     persistCurrentAccount(localAuthenticationResult.getCacheRecordWithTenantProfileData());
                 }
