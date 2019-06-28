@@ -110,18 +110,6 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
                                  @NonNull final IAccount account,
                                  @NonNull final AuthenticationCallback callback);
 
-    /**
-     * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
-     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
-     * or it fails the refresh, exception will be sent back via callback.
-     *
-     * @param scopes  The non-null array of scopes to be requested for the access token.
-     *                MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param account {@link IAccount} represents the account to silently request tokens for.
-     */
-    @WorkerThread
-    IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
-                                             @NonNull final IAccount account) throws MsalException, InterruptedException;
 
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
@@ -132,13 +120,12 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      *                     MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
      * @param account      {@link IAccount} represents the account to silently request tokens for.
      * @param authority    Optional. Can be passed to override the configured authority.
-     * @param forceRefresh True if the request is forced to refresh, false otherwise.
+     *
      */
     @WorkerThread
     IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
                                              @NonNull final IAccount account,
-                                             @Nullable final String authority,
-                                             final boolean forceRefresh) throws MsalException, InterruptedException;
+                                             @Nullable final String authority) throws MsalException, InterruptedException;
 
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
@@ -156,7 +143,6 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
     void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                  @NonNull final IAccount account,
                                  @Nullable final String authority,
-                                 final boolean forceRefresh,
                                  @NonNull final AuthenticationCallback callback);
 
     interface GetAccountCallback extends TaskCompletedCallbackWithError<IAccount, MsalException> {
