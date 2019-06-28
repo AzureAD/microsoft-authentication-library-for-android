@@ -302,9 +302,12 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 MultiTenantAccount newAccount = getAccountFromICacheRecordList(localAuthenticationResult.getCacheRecordWithTenantProfileData());
 
                 if (didCurrentAccountChange(newAccount)) {
-                    //Throw on Error with UserMismatchException
-                    authenticationCallback.onError(new MsalClientException(MsalClientException.CURRENT_ACCOUNT_MISMATCH));
-                    return;
+                    if(getPersistedCurrentAccount() != null) {
+                        authenticationCallback.onError(new MsalClientException(MsalClientException.CURRENT_ACCOUNT_MISMATCH));
+                        return;
+                    }else{
+                        persistCurrentAccount(localAuthenticationResult.getCacheRecordWithTenantProfileData());
+                    }
                 } else {
                     persistCurrentAccount(localAuthenticationResult.getCacheRecordWithTenantProfileData());
                 }
@@ -515,39 +518,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
-                                        @NonNull final AuthenticationCallback callback) {
-
-
-        if(getPersistedCurrentAccount() == null){
-            callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
-            return;
-        }
-
-        acquireTokenSilent(
-                scopes,
-                getPersistedCurrentAccount(),
-                null, // authority
-                false, // forceRefresh
-                null, // claimsRequest
-                callback
-        );
-    }
-
-    @WorkerThread
-    public IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes) throws MsalException, InterruptedException {
-
-        if(getPersistedCurrentAccount() == null){
-            throw new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);
-        }
-
-        return acquireTokenSilentSync(scopes, null, getPersistedCurrentAccount(), false);
-    }
-
-
-    @Override
-    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @Nullable final String authority,
-                                        final boolean forceRefresh,
                                         @NonNull final AuthenticationCallback callback) {
 
         if(getPersistedCurrentAccount() == null){
@@ -558,7 +529,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 scopes,
                 getPersistedCurrentAccount(),
                 authority,
-                forceRefresh,
+                false,
                 null, // claimsRequest
                 callback
         );
@@ -566,13 +537,12 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @WorkerThread
     public IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
-                                   @Nullable final String authority,
-                                   final boolean forceRefresh) throws MsalException, InterruptedException {
+                                   @Nullable final String authority) throws MsalException, InterruptedException {
 
         if(getPersistedCurrentAccount() == null){
             throw new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);
         }
-        return acquireTokenSilentSync(scopes, authority, getPersistedCurrentAccount(), forceRefresh);
+        return acquireTokenSilentSync(scopes, authority, getPersistedCurrentAccount(), false);
     }
 
 
