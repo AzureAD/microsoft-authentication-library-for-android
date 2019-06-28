@@ -81,7 +81,7 @@ public class LocalMSALController extends BaseController {
         Telemetry.emit(
                 new ApiStartEvent()
                         .putProperties(parameters)
-                        .putApiId(TelemetryEventStrings.API_LOCAL_ACQUIRE_TOKEN_INTERACTIVE)
+                        .putApiId(TelemetryEventStrings.Api.LOCAL_ACQUIRE_TOKEN_INTERACTIVE)
         );
 
         final AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
@@ -149,7 +149,7 @@ public class LocalMSALController extends BaseController {
         Telemetry.emit(
                 new ApiEndEvent()
                         .putResult(acquireTokenResult)
-                        .putApiId(TelemetryEventStrings.API_LOCAL_ACQUIRE_TOKEN_INTERACTIVE)
+                        .putApiId(TelemetryEventStrings.Api.LOCAL_ACQUIRE_TOKEN_INTERACTIVE)
         );
 
         return acquireTokenResult;
@@ -189,9 +189,9 @@ public class LocalMSALController extends BaseController {
 
         Telemetry.emit(
                 new ApiStartEvent()
-                        .putApiId(TelemetryEventStrings.API_LOCAL_COMPLETE_ACQUIRE_TOKEN_INTERACTIVE)
-                        .put(TelemetryEventStrings.TELEMETRY_KEY_RESULT_CODE, String.valueOf(resultCode))
-                        .put(TelemetryEventStrings.TELEMETRY_KEY_REQUEST_CODE, String.valueOf(requestCode))
+                        .putApiId(TelemetryEventStrings.Api.LOCAL_COMPLETE_ACQUIRE_TOKEN_INTERACTIVE)
+                        .put(TelemetryEventStrings.Key.RESULT_CODE, String.valueOf(resultCode))
+                        .put(TelemetryEventStrings.Key.REQUEST_CODE, String.valueOf(requestCode))
         );
 
         mAuthorizationStrategy.completeAuthorization(requestCode, resultCode, data);
@@ -210,7 +210,7 @@ public class LocalMSALController extends BaseController {
         Telemetry.emit(
                 new ApiStartEvent()
                         .putProperties(parameters)
-                        .putApiId(TelemetryEventStrings.API_LOCAL_ACQUIRE_TOKEN_SILENT)
+                        .putApiId(TelemetryEventStrings.Api.LOCAL_ACQUIRE_TOKEN_SILENT)
         );
 
         final AcquireTokenResult acquireTokenSilentResult = new AcquireTokenResult();
@@ -301,7 +301,7 @@ public class LocalMSALController extends BaseController {
         Telemetry.emit(
                 new ApiEndEvent()
                         .putResult(acquireTokenSilentResult)
-                        .putApiId(TelemetryEventStrings.API_LOCAL_ACQUIRE_TOKEN_SILENT)
+                        .putApiId(TelemetryEventStrings.Api.LOCAL_ACQUIRE_TOKEN_SILENT)
         );
 
         return acquireTokenSilentResult;
@@ -313,7 +313,7 @@ public class LocalMSALController extends BaseController {
         Telemetry.emit(
                 new ApiStartEvent()
                         .putProperties(parameters)
-                        .putApiId(TelemetryEventStrings.API_LOCAL_GET_ACCOUNTS)
+                        .putApiId(TelemetryEventStrings.Api.LOCAL_GET_ACCOUNTS)
         );
 
         final List<ICacheRecord> accountsInCache =
@@ -326,8 +326,8 @@ public class LocalMSALController extends BaseController {
 
         Telemetry.emit(
                 new ApiEndEvent()
-                        .putApiId(TelemetryEventStrings.API_LOCAL_GET_ACCOUNTS)
-                        .put(TelemetryEventStrings.TELEMETRY_KEY_IS_SUCCESSFUL, TelemetryEventStrings.TELEMETRY_VALUE_TRUE)
+                        .putApiId(TelemetryEventStrings.Api.LOCAL_GET_ACCOUNTS)
+                        .put(TelemetryEventStrings.Key.IS_SUCCESSFUL, TelemetryEventStrings.Value.TRUE)
         );
 
         return accountsInCache;
@@ -339,7 +339,7 @@ public class LocalMSALController extends BaseController {
         Telemetry.emit(
                 new ApiStartEvent()
                         .putProperties(parameters)
-                        .putApiId(TelemetryEventStrings.API_LOCAL_REMOVE_ACCOUNT)
+                        .putApiId(TelemetryEventStrings.Api.LOCAL_REMOVE_ACCOUNT)
         );
 
         final boolean deleteHomeAndGuestAccounts = true;
@@ -362,8 +362,8 @@ public class LocalMSALController extends BaseController {
 
         Telemetry.emit(
                 new ApiEndEvent()
-                        .put(TelemetryEventStrings.TELEMETRY_KEY_IS_SUCCESSFUL, String.valueOf(localRemoveAccountSuccess))
-                        .putApiId(TelemetryEventStrings.API_LOCAL_REMOVE_ACCOUNT)
+                        .put(TelemetryEventStrings.Key.IS_SUCCESSFUL, String.valueOf(localRemoveAccountSuccess))
+                        .putApiId(TelemetryEventStrings.Api.LOCAL_REMOVE_ACCOUNT)
         );
 
         return localRemoveAccountSuccess;

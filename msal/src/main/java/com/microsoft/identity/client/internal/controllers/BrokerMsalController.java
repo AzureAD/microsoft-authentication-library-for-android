@@ -124,7 +124,7 @@ public class BrokerMsalController extends BaseController {
         Telemetry.emit(
                 new ApiStartEvent()
                         .putProperties(parameters)
-                        .putApiId(TelemetryEventStrings.API_BROKER_GET_ACCOUNTS)
+                        .putApiId(TelemetryEventStrings.Api.BROKER_GET_ACCOUNTS)
         );
 
         //Create BrokerResultFuture to block on response from the broker... response will be return as an activity result
@@ -154,7 +154,7 @@ public class BrokerMsalController extends BaseController {
         Telemetry.emit(
                 new ApiEndEvent()
                         .putResult(result)
-                        .putApiId(TelemetryEventStrings.API_BROKER_GET_ACCOUNTS)
+                        .putApiId(TelemetryEventStrings.Api.BROKER_GET_ACCOUNTS)
         );
 
         return result;
@@ -379,16 +379,16 @@ public class BrokerMsalController extends BaseController {
     public void completeAcquireToken(int requestCode, int resultCode, Intent data) {
         Telemetry.emit(
                 new ApiStartEvent()
-                        .putApiId(TelemetryEventStrings.API_BROKER_COMPLETE_ACQUIRE_TOKEN_INTERACTIVE)
-                        .put(TelemetryEventStrings.TELEMETRY_KEY_RESULT_CODE, String.valueOf(resultCode))
-                        .put(TelemetryEventStrings.TELEMETRY_KEY_REQUEST_CODE, String.valueOf(requestCode))
+                        .putApiId(TelemetryEventStrings.Api.BROKER_COMPLETE_ACQUIRE_TOKEN_INTERACTIVE)
+                        .put(TelemetryEventStrings.Key.RESULT_CODE, String.valueOf(resultCode))
+                        .put(TelemetryEventStrings.Key.REQUEST_CODE, String.valueOf(requestCode))
         );
 
         mBrokerResultFuture.setResultBundle(data.getExtras());
 
         Telemetry.emit(
                 new ApiEndEvent()
-                        .putApiId(TelemetryEventStrings.API_BROKER_COMPLETE_ACQUIRE_TOKEN_INTERACTIVE)
+                        .putApiId(TelemetryEventStrings.Api.BROKER_COMPLETE_ACQUIRE_TOKEN_INTERACTIVE)
         );
     }
 
@@ -399,7 +399,7 @@ public class BrokerMsalController extends BaseController {
         Telemetry.emit(
                 new ApiStartEvent()
                         .putProperties(parameters)
-                        .putApiId(TelemetryEventStrings.API_BROKER_ACQUIRE_TOKEN_SILENT)
+                        .putApiId(TelemetryEventStrings.Api.BROKER_ACQUIRE_TOKEN_SILENT)
         );
 
         AcquireTokenResult acquireTokenResult;
@@ -418,7 +418,7 @@ public class BrokerMsalController extends BaseController {
         Telemetry.emit(
                 new ApiEndEvent()
                         .putResult(acquireTokenResult)
-                        .putApiId(TelemetryEventStrings.API_BROKER_ACQUIRE_TOKEN_SILENT)
+                        .putApiId(TelemetryEventStrings.Api.BROKER_ACQUIRE_TOKEN_SILENT)
         );
 
         return acquireTokenResult;
