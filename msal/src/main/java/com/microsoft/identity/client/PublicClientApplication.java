@@ -636,10 +636,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
+
         if (mPublicClientConfiguration.getOAuth2TokenCache() instanceof MsalOAuth2TokenCache) {
             mTokenShareUtility = new TokenShareUtility(
                     mPublicClientConfiguration.getClientId(),
                     mPublicClientConfiguration.getRedirectUri(),
+                    mPublicClientConfiguration.getDefaultAuthority().getAuthorityURL().toString(),
                     (MsalOAuth2TokenCache) mPublicClientConfiguration.getOAuth2TokenCache()
             );
         } else {
