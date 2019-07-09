@@ -170,7 +170,7 @@ public class BrokerMsalController extends BaseController {
         final String methodName = ":getBrokerAuthorizationIntent";
         Intent interactiveRequestIntent;
 
-        if (isMicrosoftAuthServiceSupported(parameters.getAppContext())) {
+        if (isMicrosoftAuthServiceSupported(parameters.getAppContext()) && helloWithMicrosoftAuthService(parameters)) {
             Logger.verbose(TAG + methodName, "Is microsoft auth service supported? " + "[yes]");
             Logger.verbose(TAG + methodName, "Get the broker authorization intent from auth service.");
             interactiveRequestIntent = getBrokerAuthorizationIntentFromAuthService(parameters);
@@ -182,10 +182,12 @@ public class BrokerMsalController extends BaseController {
                             BrokerRequest.class)
             );
             interactiveRequestIntent.putExtra(AuthenticationConstants.Broker.ACCOUNT_NAME, parameters.getLoginHint());
-        } else {
+        } else if (helloWithAccountManager(parameters)){
             Logger.verbose(TAG + methodName, "Is microsoft auth service supported? " + "[no]");
             Logger.verbose(TAG + methodName, "Get the broker authorization intent from Account Manager.");
             interactiveRequestIntent = getBrokerAuthorizationIntentFromAccountManager(parameters);
+        } else {
+            interactiveRequestIntent = null;
         }
 
         return interactiveRequestIntent;
@@ -409,10 +411,12 @@ public class BrokerMsalController extends BaseController {
             Logger.verbose(TAG + methodName, "Get the broker authorization intent from auth service.");
 
             acquireTokenResult = acquireTokenSilentWithAuthService(parameters);
-        } else {
+        } else if (helloWithAccountManager(parameters)){
             Logger.verbose(TAG + methodName, "Is microsoft auth service supported? " + "[no]");
             Logger.verbose(TAG + methodName, "Get the broker authorization intent from Account Manager.");
             acquireTokenResult = acquireTokenSilentWithAccountManager(parameters);
+        } else {
+            acquireTokenResult = null;
         }
 
         Telemetry.emit(
@@ -837,10 +841,12 @@ public class BrokerMsalController extends BaseController {
             Logger.verbose(TAG + methodName, "Is microsoft auth service supported? " + "[yes]");
             Logger.verbose(TAG + methodName, "Get the broker accounts from auth service.");
             return getBrokerAccountsWithAuthService(parameters);
-        } else {
+        } else if (helloWithAccountManager(parameters)){
             Logger.verbose(TAG + methodName, "Is microsoft auth service supported? " + "[no]");
             Logger.verbose(TAG + methodName, "Get the broker accounts from Account Manager.");
             return getBrokerAccountsFromAccountManager(parameters);
+        } else {
+            return null;
         }
     }
 
@@ -935,10 +941,12 @@ public class BrokerMsalController extends BaseController {
             Logger.verbose(TAG + methodName, "Is microsoft auth service supported? " + "[yes]");
             Logger.verbose(TAG + methodName, "Remove the account(s) from auth service.");
             return removeBrokerAccountWithAuthService(parameters);
-        } else {
+        } else if (helloWithAccountManager(parameters)){
             Logger.verbose(TAG + methodName, "Is microsoft auth service supported? " + "[no]");
             Logger.verbose(TAG + methodName, "Remove the account(s) from Account Manager.");
             return removeBrokerAccountFromAccountManager(parameters);
+        } else {
+            return false;
         }
     }
 
@@ -1074,6 +1082,114 @@ public class BrokerMsalController extends BaseController {
         return requestBundle;
     }
 
+    private static boolean helloWithMicrosoftAuthService(@NonNull final OperationParameters parameters) throws ClientException {
+            final String methodName = ":helloWithMicrosoftAuthService";
+
+            IMicrosoftAuthService service;
+            final MicrosoftAuthClient client = new MicrosoftAuthClient(parameters.getAppContext());
+
+            try {
+                final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
+
+                service = authServiceFuture.get();
+
+                Bundle requestBundle = MsalBrokerRequestAdapter.getBrokerHelloBundle(parameters);
+
+                final Bundle resultBundle = service.hello(requestBundle);
+                if (!resultBundle.getString(AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY).isEmpty()) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } catch (final BaseException | InterruptedException | ExecutionException | RemoteException e) {
+                com.microsoft.identity.common.internal.logging.Logger.error(
+                        TAG + methodName,
+                        "Exception is thrown when trying to verify the broker protocol version."
+                                + e.getMessage(),
+                        ErrorStrings.IO_ERROR,
+                        e);
+                throw new ClientException(
+                        ErrorStrings.IO_ERROR,
+                        e.getMessage(),
+                        e
+                );
+            } finally {
+                client.disconnect();
+            }
+    }
+
+    @WorkerThread
+    @SuppressLint("MissingPermission")
+    private static boolean helloWithAccountManager(@NonNull final OperationParameters parameters)
+            throws ClientException {
+        final String methodName = ":helloWithAccountManager";
+
+        try {
+            Account[] accountList = AccountManager.get(parameters.getAppContext()).getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+            //get result bundle
+            if (accountList.length > 0) {
+                final Bundle requestBundle = MsalBrokerRequestAdapter.getBrokerHelloBundle(parameters);
+                final AccountManagerFuture<Bundle> result = AccountManager.get(parameters.getAppContext())
+                        .updateCredentials(
+                                accountList[0],
+                                AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
+                                requestBundle,
+                                null,
+                                null,
+                                null
+                        );
+
+                final Bundle resultBundle = result.getResult();
+                if (!resultBundle.getString(AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY).isEmpty()) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } catch (final OperationCanceledException e) {
+            Logger.error(
+                    TAG + methodName,
+                    ErrorStrings.BROKER_REQUEST_CANCELLED,
+                    "Exception thrown when talking to account manager. The broker request cancelled.",
+                    e
+            );
+
+            throw new ClientException(
+                    ErrorStrings.BROKER_REQUEST_CANCELLED,
+                    "OperationCanceledException thrown when talking to account manager. The broker request cancelled.",
+                    e
+            );
+        } catch (final AuthenticatorException e) {
+            Logger.error(
+                    TAG + methodName,
+                    ErrorStrings.BROKER_REQUEST_CANCELLED,
+                    "AuthenticatorException thrown when talking to account manager. The broker request cancelled.",
+                    e
+            );
+
+            throw new ClientException(
+                    ErrorStrings.BROKER_REQUEST_CANCELLED,
+                    "AuthenticatorException thrown when talking to account manager. The broker request cancelled.",
+                    e
+            );
+        } catch (final IOException e) {
+            // Authenticator gets problem from webrequest or file read/write
+            Logger.error(
+                    TAG + methodName,
+                    ErrorStrings.BROKER_REQUEST_CANCELLED,
+                    "IOException thrown when talking to account manager. The broker request cancelled.",
+                    e
+            );
+
+            throw new ClientException(
+                    ErrorStrings.BROKER_REQUEST_CANCELLED,
+                    "IOException thrown when talking to account manager. The broker request cancelled.",
+                    e
+            );
+        }
+    }
 
     static boolean isMicrosoftAuthServiceSupported(@NonNull final Context context) {
         final MicrosoftAuthClient client = new MicrosoftAuthClient(context);
