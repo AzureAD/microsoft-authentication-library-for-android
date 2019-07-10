@@ -631,13 +631,13 @@ public class BrokerMsalController extends BaseController {
             final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
             service = authServiceFuture.get();
             final Bundle requestBundle = MsalBrokerRequestAdapter.getBrokerHelloBundle(parameters);
-            final Bundle resultBundle = service.hello(requestBundle);
-            if (!resultBundle.getString(AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY).isEmpty()) {
+            final BrokerResult result = MsalBrokerResultAdapter.brokerResultFromBundle(service.hello(requestBundle));
+            if (result.isSuccess()) {
                 return true;
             } else {
-                return false;
+                throw new ClientException(result.getErrorCode(), result.getErrorMessage());
             }
-        } catch (final ClientException | InterruptedException | ExecutionException | RemoteException e) {
+        } catch (final InterruptedException | ExecutionException | RemoteException e) {
             com.microsoft.identity.common.internal.logging.Logger.error(
                     TAG + methodName,
                     "Exception is thrown when trying to verify the broker protocol version."
@@ -659,11 +659,13 @@ public class BrokerMsalController extends BaseController {
     static boolean helloWithAccountManager(@NonNull final Context applicationContext, @NonNull final OperationParameters parameters)
             throws ClientException {
         final String methodName = ":helloWithAccountManager";
+        final String DATA_HELLO = "com.microsoft.workaccount.hello";
         try {
             Account[] accountList = AccountManager.get(applicationContext).getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
             //get result bundle
             if (accountList.length > 0) {
                 final Bundle requestBundle = MsalBrokerRequestAdapter.getBrokerHelloBundle(parameters);
+                requestBundle.putString(DATA_HELLO, "true");
                 final AccountManagerFuture<Bundle> result = AccountManager.get(parameters.getAppContext())
                         .updateCredentials(
                                 accountList[0],
@@ -675,7 +677,10 @@ public class BrokerMsalController extends BaseController {
                         );
 
                 final Bundle resultBundle = result.getResult();
-                if (!resultBundle.getString(AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY).isEmpty()) {
+
+                if (null != resultBundle
+                        && null != resultBundle.getString(AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY)
+                        && !resultBundle.getString(AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY).isEmpty()) {
                     return true;
                 } else {
                     return false;
