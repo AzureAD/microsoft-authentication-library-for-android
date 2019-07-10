@@ -632,7 +632,9 @@ public class BrokerMsalController extends BaseController {
             service = authServiceFuture.get();
             final Bundle requestBundle = MsalBrokerRequestAdapter.getBrokerHelloBundle(parameters);
             final BrokerResult result = MsalBrokerResultAdapter.brokerResultFromBundle(service.hello(requestBundle));
-            if (result.isSuccess()) {
+            if (result == null) {
+                return false;
+            } else if (result.isSuccess()) {
                 return true;
             } else {
                 throw new ClientException(result.getErrorCode(), result.getErrorMessage());
@@ -676,14 +678,13 @@ public class BrokerMsalController extends BaseController {
                                 null
                         );
 
-                final Bundle resultBundle = result.getResult();
-
-                if (null != resultBundle
-                        && null != resultBundle.getString(AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY)
-                        && !resultBundle.getString(AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY).isEmpty()) {
+                final BrokerResult brokerResult = MsalBrokerResultAdapter.brokerResultFromBundle(result.getResult());
+                if (result == null) {
+                    return false;
+                } else if (brokerResult.isSuccess()) {
                     return true;
                 } else {
-                    return false;
+                    throw new ClientException(brokerResult.getErrorCode(), brokerResult.getErrorMessage());
                 }
             } else {
                 return false;
