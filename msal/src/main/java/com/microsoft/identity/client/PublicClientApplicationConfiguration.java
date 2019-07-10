@@ -339,6 +339,7 @@ public class PublicClientApplicationConfiguration {
         this.mMultipleCloudsSupported = config.mMultipleCloudsSupported == null ? this.mMultipleCloudsSupported : config.mMultipleCloudsSupported;
         this.mUseBroker = config.mUseBroker == null ? this.mUseBroker : config.mUseBroker;
         this.mTelemetryConfiguration = config.mTelemetryConfiguration == null ? this.mTelemetryConfiguration : config.mTelemetryConfiguration;
+        this.mRequiredBrokerProtocolVersion = config.mRequiredBrokerProtocolVersion == null ? this.mRequiredBrokerProtocolVersion : config.mRequiredBrokerProtocolVersion;
         if (this.mBrowserSafeList == null) {
             this.mBrowserSafeList = config.mBrowserSafeList;
         } else if (config.mBrowserSafeList != null){
