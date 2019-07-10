@@ -34,12 +34,24 @@ public interface ITokenShare extends ITokenShareInternal {
      * {@inheritDoc}
      */
     @Override
-    String getWrappedFamilyRefreshToken(String identifier) throws MsalClientException;
+    String getOrgIdFamilyRefreshToken(String identifier) throws MsalClientException;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    void saveFamilyRefreshToken(String tokenCacheItemJson) throws MsalClientException;
+    void saveOrgIdFamilyRefreshToken(String ssoStateSerializerBlob) throws MsalClientException;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    String getMsaFamilyRefreshToken(String identifier) throws MsalClientException;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    void saveMsaFamilyRefreshToken(String refreshToken) throws MsalClientException;
 
 }
