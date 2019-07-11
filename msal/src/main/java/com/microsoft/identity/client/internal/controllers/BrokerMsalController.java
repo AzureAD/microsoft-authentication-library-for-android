@@ -783,7 +783,8 @@ public class BrokerMsalController extends BaseController {
         }
 
         //check if account manager available
-        if (BrokerMsalController.helloWithAccountManager(parameters.getAppContext(), parameters)) {
+        if (BrokerMsalController.isAccountManagerPermissionsGranted(parameters.getAppContext())
+                && BrokerMsalController.helloWithAccountManager(parameters.getAppContext(), parameters)) {
             Logger.verbose(TAG + methodName, "Add the account manager strategy.");
             this.addBrokerStrategy(new BrokerAccountManagerStrategy());
         }
