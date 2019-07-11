@@ -662,6 +662,12 @@ public class BrokerMsalController extends BaseController {
             throws ClientException {
         final String methodName = ":helloWithAccountManager";
         final String DATA_HELLO = "com.microsoft.workaccount.hello";
+
+        if (BrokerMsalController.isAccountManagerPermissionsGranted(parameters.getAppContext())) {
+            //If the account manager permissions are not granted, return false.
+            return false;
+        }
+
         try {
             Account[] accountList = AccountManager.get(applicationContext).getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
             //get result bundle
@@ -782,9 +788,9 @@ public class BrokerMsalController extends BaseController {
             this.addBrokerStrategy(new BrokerAuthServiceStrategy());
         }
 
+
         //check if account manager available
-        if (BrokerMsalController.isAccountManagerPermissionsGranted(parameters.getAppContext())
-                && BrokerMsalController.helloWithAccountManager(parameters.getAppContext(), parameters)) {
+        if (BrokerMsalController.helloWithAccountManager(parameters.getAppContext(), parameters)) {
             Logger.verbose(TAG + methodName, "Add the account manager strategy.");
             this.addBrokerStrategy(new BrokerAccountManagerStrategy());
         }
