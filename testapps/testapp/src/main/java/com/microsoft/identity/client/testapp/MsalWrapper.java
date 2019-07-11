@@ -405,7 +405,11 @@ public class MsalWrapper {
                 @Override
                 public void onError(MsalException exception) {
                     exception.printStackTrace();
-                    notifyCallback.notify("Failed to load account from broker");
+                    notifyCallback.notify
+                            ("Failed to load account from broker. "
+                                    + "Error code: " + exception.getErrorCode()
+                                    + " Error Message: " + exception.getMessage()
+                            );
                 }
 
             });

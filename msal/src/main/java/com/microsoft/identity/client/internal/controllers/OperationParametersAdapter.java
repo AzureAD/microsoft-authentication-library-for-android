@@ -72,6 +72,7 @@ public class OperationParametersAdapter {
         parameters.setApplicationName(configuration.getAppContext().getPackageName());
         parameters.setApplicationVersion(getPackageVersion(configuration.getAppContext()));
         parameters.setSdkVersion(PublicClientApplication.getSdkVersion());
+        parameters.setRequiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion());
         return parameters;
     }
 
