@@ -551,7 +551,11 @@ public class BrokerMsalController extends BaseController {
                     public List<ICacheRecord> perform(IMicrosoftAuthService service) throws ClientException, RemoteException {
                         return MsalBrokerResultAdapter
                                 .accountsFromBundle(
-                                        service.getCurrentAccount(BrokerAuthServiceStrategy.getRequestBundleForRemoveAccount(OperationParametersAdapter.createOperationParameters(configuration)))
+                                        service.getCurrentAccount(
+                                                BrokerAuthServiceStrategy.getRequestBundleForGetAccounts(
+                                                        OperationParametersAdapter.createOperationParameters(configuration)
+                                                )
+                                        )
                                 );
                     }
 

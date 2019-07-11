@@ -218,7 +218,7 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
         }
     }
 
-    private Bundle getRequestBundleForGetAccounts(@NonNull final OperationParameters parameters) {
+    static Bundle getRequestBundleForGetAccounts(@NonNull final OperationParameters parameters) {
         final Bundle requestBundle = new Bundle();
         requestBundle.putString(ACCOUNT_CLIENTID_KEY, parameters.getClientId());
         requestBundle.putString(ACCOUNT_REDIRECT, parameters.getRedirectUri());
