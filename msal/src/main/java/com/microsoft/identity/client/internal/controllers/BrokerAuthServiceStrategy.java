@@ -69,9 +69,8 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     @WorkerThread
     Intent getBrokerAuthorizationIntent(@NonNull final AcquireTokenOperationParameters parameters) throws ClientException {
         final String methodName = ":getBrokerAuthorizationIntent";
-        Intent interactiveRequestIntent;
-        Logger.verbose(TAG + methodName, "Is microsoft auth service supported? " + "[yes]");
         Logger.verbose(TAG + methodName, "Get the broker authorization intent from auth service.");
+        Intent interactiveRequestIntent;
         interactiveRequestIntent = getBrokerAuthorizationIntentFromAuthService(parameters);
         final MsalBrokerRequestAdapter msalBrokerRequestAdapter = new MsalBrokerRequestAdapter();
         interactiveRequestIntent.putExtra(

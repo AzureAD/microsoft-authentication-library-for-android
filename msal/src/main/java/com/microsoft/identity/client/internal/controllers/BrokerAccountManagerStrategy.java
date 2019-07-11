@@ -75,14 +75,8 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     @WorkerThread
     Intent getBrokerAuthorizationIntent(@NonNull final AcquireTokenOperationParameters parameters) throws ClientException {
         final String methodName = ":getBrokerAuthorizationIntent";
-        Intent interactiveRequestIntent;
-
-
-        Logger.verbose(TAG + methodName, "Is microsoft auth service supported? " + "[no]");
         Logger.verbose(TAG + methodName, "Get the broker authorization intent from Account Manager.");
-        interactiveRequestIntent = getBrokerAuthorizationIntentFromAccountManager(parameters);
-
-        return interactiveRequestIntent;
+        return getBrokerAuthorizationIntentFromAccountManager(parameters);
     }
 
     @SuppressLint("MissingPermission")
@@ -99,7 +93,10 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
             final Bundle requestBundle = new Bundle();
             final BrokerRequest brokerRequest = msalBrokerRequestAdapter.
                     brokerRequestFromAcquireTokenParameters(parameters);
-
+            requestBundle.putInt(
+                    AuthenticationConstants.Broker.CALLER_INFO_UID,
+                    Binder.getCallingUid()
+            );
             requestBundle.putString(
                     AuthenticationConstants.Broker.BROKER_REQUEST_V2,
                     new Gson().toJson(brokerRequest, BrokerRequest.class)
@@ -296,6 +293,8 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
         } else {
             final Bundle bundle = new Bundle();
             bundle.putBoolean(DATA_CACHE_RECORD, true);
+            bundle.putInt(AuthenticationConstants.Broker.CALLER_INFO_UID,
+                    Binder.getCallingUid());
             bundle.putString(ACCOUNT_CLIENTID_KEY, parameters.getClientId());
 
             for (final Account eachAccount : accountList) {
@@ -338,6 +337,8 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                     Bundle brokerOptions = new Bundle();
                     brokerOptions.putString(ACCOUNT_CLIENTID_KEY, parameters.getClientId());
                     brokerOptions.putString(ENVIRONMENT, parameters.getAccount().getEnvironment());
+                    brokerOptions.putInt(AuthenticationConstants.Broker.CALLER_INFO_UID,
+                            Binder.getCallingUid());
                     brokerOptions.putString(ACCOUNT_HOME_ACCOUNT_ID, parameters.getAccount().getHomeAccountId());
                     brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS,
                             AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS_VALUE);

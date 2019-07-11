@@ -777,10 +777,10 @@ public class BrokerMsalController extends BaseController {
         }
 
         //check if bound service available
-        if (BrokerMsalController.helloWithMicrosoftAuthService(parameters.getAppContext(), parameters)) {
-            Logger.verbose(TAG + methodName, "Add the broker AuthService strategy.");
-            this.addBrokerStrategy(new BrokerAuthServiceStrategy());
-        }
+//        if (BrokerMsalController.helloWithMicrosoftAuthService(parameters.getAppContext(), parameters)) {
+//            Logger.verbose(TAG + methodName, "Add the broker AuthService strategy.");
+//            this.addBrokerStrategy(new BrokerAuthServiceStrategy());
+//        }
 
         //check if account manager available
         if (BrokerMsalController.helloWithAccountManager(parameters.getAppContext(), parameters)) {
