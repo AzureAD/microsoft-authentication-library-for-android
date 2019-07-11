@@ -171,7 +171,7 @@ public class BrokerMsalController extends BaseController {
      */
     private Intent getBrokerAuthorizationIntent(@NonNull final AcquireTokenOperationParameters parameters) throws ClientException {
         final String methodName = ":getBrokerAuthorizationIntent";
-        initializeBrokerMsalController(parameters);
+        helloBroker(parameters);
 
         Intent interactiveRequestIntent = null;
 
@@ -237,7 +237,7 @@ public class BrokerMsalController extends BaseController {
     @Override
     public AcquireTokenResult acquireTokenSilent(AcquireTokenSilentOperationParameters parameters) throws BaseException {
         final String methodName = ":acquireTokenSilent";
-        initializeBrokerMsalController(parameters);
+        helloBroker(parameters);
 
         Telemetry.emit(
                 new ApiStartEvent()
@@ -289,7 +289,7 @@ public class BrokerMsalController extends BaseController {
     public List<ICacheRecord> getAccounts(@NonNull final OperationParameters parameters)
             throws ClientException, InterruptedException, ExecutionException, RemoteException, OperationCanceledException, IOException, AuthenticatorException {
         final String methodName = ":getBrokerAccounts";
-        initializeBrokerMsalController(parameters);
+        helloBroker(parameters);
         List<ICacheRecord> result = null;
 
         for (int ii = 0; ii < getStrategies().size(); ii++) {
@@ -322,7 +322,7 @@ public class BrokerMsalController extends BaseController {
     public boolean removeAccount(@NonNull final OperationParameters parameters)
             throws BaseException, InterruptedException, ExecutionException, RemoteException {
         final String methodName = ":removeBrokerAccount";
-        initializeBrokerMsalController(parameters);
+        helloBroker(parameters);
         boolean result = false;
 
 
@@ -775,7 +775,7 @@ public class BrokerMsalController extends BaseController {
         return isGranted;
     }
 
-    private void initializeBrokerMsalController(@NonNull final OperationParameters parameters)
+    private void helloBroker(@NonNull final OperationParameters parameters)
             throws ClientException {
         final String methodName = ":initializeBrokerMsalController";
         if (!getStrategies().isEmpty()) {
@@ -788,7 +788,6 @@ public class BrokerMsalController extends BaseController {
             this.addBrokerStrategy(new BrokerAuthServiceStrategy());
         }
 
-
         //check if account manager available
         if (BrokerMsalController.helloWithAccountManager(parameters.getAppContext(), parameters)) {
             Logger.verbose(TAG + methodName, "Add the account manager strategy.");
@@ -797,7 +796,7 @@ public class BrokerMsalController extends BaseController {
 
         if (getStrategies().isEmpty()) {
             throw new ClientException(
-                    ErrorStrings.BROKER_PROTOCOL_VERSION_INCOMPATIBLE,
+                    ErrorStrings.UNSUPPORTED_BROKER_VERSION,
                     "The protocol versions between the MSAL client app and broker do not compatible. "
             );
         }
