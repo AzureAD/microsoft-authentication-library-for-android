@@ -49,7 +49,7 @@ public class ResultFragment extends Fragment {
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_result, container, false);
 
-        mTextView = (TextView) view.findViewById(R.id.txt_result);
+        mTextView = view.findViewById(R.id.txt_result);
         final Bundle bundle = getArguments();
         final String accessToken = (String) bundle.get(ACCESS_TOKEN);
         final String displayable = (String) bundle.get(DISPLAYABLE);

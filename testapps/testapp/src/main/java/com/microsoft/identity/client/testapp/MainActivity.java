@@ -73,9 +73,6 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private IAccount mSelectedAccount;
-    private Handler mHandler;
-
     private IAuthenticationResult mAuthResult;
 
     private RelativeLayout mContentMain;
@@ -85,7 +82,6 @@ public class MainActivity extends AppCompatActivity
         public void acquireTokenSucceed(IAuthenticationResult result) {
             mAuthResult = result;
             onNavigationItemSelected(getNavigationView().getMenu().getItem(1));
-            mSelectedAccount = null;
         }
 
         @Override
@@ -329,10 +325,6 @@ public class MainActivity extends AppCompatActivity
         );
     }
 
-    void setUser(final IAccount user) {
-        mSelectedAccount = user;
-    }
-
     private NavigationView getNavigationView() {
         final NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -351,10 +343,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     private Handler getHandler() {
-        if (mHandler == null) {
-            return new Handler(MainActivity.this.getMainLooper());
-        }
-
-        return mHandler;
+        return new Handler(MainActivity.this.getMainLooper());
     }
 }

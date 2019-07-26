@@ -20,7 +20,6 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
 package com.microsoft.identity.client.testapp;
 
 import android.os.Bundle;
@@ -52,13 +51,6 @@ import java.util.Map;
  */
 public class UsersFragment extends Fragment {
 
-    private static final String USERNAME = "username";
-    private static final String IS_CREDENTIAL_PRESENT = "is_credential_present";
-    private static final String IDENTIFIER = "identifier";
-    private static final String OBJECT_ID = "object_id";
-    private static final String TENANT_ID = "tenant_id";
-    private static final String ACCOUNT_ID = "account_id";
-    private static final String HOME_ACCOUNT_ID = "home_account_id";
     private ListView mUserList;
     private Gson mGson;
 
@@ -94,8 +86,6 @@ public class UsersFragment extends Fragment {
         mUserList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                final IAccount selectedAccount = accounts.get(position);
-                ((MainActivity) getActivity()).setUser(selectedAccount);
                 getFragmentManager().popBackStack();
             }
         });
