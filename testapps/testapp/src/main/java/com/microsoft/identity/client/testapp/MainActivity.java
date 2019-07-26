@@ -34,7 +34,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.RelativeLayout;
@@ -53,18 +52,12 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
-import com.microsoft.identity.common.internal.telemetry.Telemetry;
-import com.microsoft.identity.common.internal.telemetry.observers.ITelemetryAggregatedObserver;
-import com.microsoft.identity.common.internal.telemetry.observers.ITelemetryDefaultObserver;
 
-import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -74,8 +67,9 @@ import javax.crypto.spec.SecretKeySpec;
 /**
  * The app's main activity.
  */
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
-        AcquireTokenFragment.OnFragmentInteractionListener, CacheFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener,
+        AcquireTokenFragment.OnFragmentInteractionListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -209,11 +203,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             fragment.setArguments(bundle);
             mAuthResult = null;
-        } else if (menuItemId == R.id.nav_cache) {
-            fragment = new CacheFragment();
-            final Bundle args = new Bundle();
-            args.putSerializable(CacheFragment.ARG_LIST_CONTENTS, (Serializable) CacheFragment.TEST_LIST_ELEMENTS);
-            fragment.setArguments(args);
         } else if (menuItemId == R.id.nav_log) {
             fragment = new LogFragment();
             final String logs = ((MsalSampleApp) this.getApplication()).getLogs();
@@ -367,18 +356,5 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         return mHandler;
-    }
-
-    @Override
-    public void onDeleteToken(int position, final CacheFragment cacheFragment) {
-        Log.d(TAG, "onDeleteToken(" + position + ")");
-        cacheFragment.setLoading();
-        // TODO delete the items or whatever
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                cacheFragment.reload(CacheFragment.TEST_LIST_ELEMENTS);
-            }
-        }, 750L);
     }
 }
