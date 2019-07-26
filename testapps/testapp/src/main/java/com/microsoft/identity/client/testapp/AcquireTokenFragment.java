@@ -55,7 +55,6 @@ public class AcquireTokenFragment extends Fragment {
     private EditText mScope;
     private EditText mExtraScope;
     private Switch mEnablePII;
-    private Switch mRequestDeviceIdClaim;
     private Switch mForceRefresh;
     private Button mGetUsers;
     private Button mClearCache;
@@ -83,7 +82,6 @@ public class AcquireTokenFragment extends Fragment {
         mScope = view.findViewById(R.id.scope);
         mExtraScope = view.findViewById(R.id.extraScope);
         mEnablePII = view.findViewById(enablePII);
-        mRequestDeviceIdClaim = view.findViewById(R.id.request_deviceid);
         mForceRefresh = view.findViewById(R.id.forceRefresh);
         mSelectAccount = view.findViewById(R.id.select_user);
         mGetUsers = view.findViewById(R.id.btn_getUsers);
@@ -226,19 +224,7 @@ public class AcquireTokenFragment extends Fragment {
         final String extraScopesToConsent = mExtraScope.getText().toString();
         final boolean enablePII = mEnablePII.isChecked();
         final boolean forceRefresh = mForceRefresh.isChecked();
-        final boolean requestDeviceId = mRequestDeviceIdClaim.isChecked();
-
-        return RequestOptions.create(
-                environment,
-                loginHint,
-                uiBehavior,
-                userAgent,
-                scopes,
-                extraScopesToConsent,
-                enablePII,
-                forceRefresh,
-                requestDeviceId
-        );
+        return RequestOptions.create(environment, loginHint, uiBehavior, userAgent, scopes, extraScopesToConsent, enablePII, forceRefresh);
     }
 
     static class RequestOptions {
@@ -250,7 +236,6 @@ public class AcquireTokenFragment extends Fragment {
         final String mExtraScope;
         final boolean mEnablePII;
         final boolean mForceRefresh;
-        final boolean mRequestDeviceId;
 
         RequestOptions(final Constants.AzureActiveDirectoryEnvironment environment,
                        final String loginHint,
@@ -259,8 +244,7 @@ public class AcquireTokenFragment extends Fragment {
                        final String scope,
                        final String extraScope,
                        final boolean enablePII,
-                       final boolean forceRefresh,
-                       final boolean requestDeviceId) {
+                       final boolean forceRefresh) {
             mEnvironment = environment;
             mLoginHint = loginHint;
             mUiBehavior = uiBehavior;
@@ -269,7 +253,6 @@ public class AcquireTokenFragment extends Fragment {
             mExtraScope = extraScope;
             mEnablePII = enablePII;
             mForceRefresh = forceRefresh;
-            mRequestDeviceId = requestDeviceId;
         }
 
         static RequestOptions create(final Constants.AzureActiveDirectoryEnvironment environment,
@@ -279,8 +262,7 @@ public class AcquireTokenFragment extends Fragment {
                                      final String scope,
                                      final String extraScope,
                                      final boolean enablePII,
-                                     final boolean forceRefresh,
-                                     final boolean requestDeviceId) {
+                                     final boolean forceRefresh) {
             return new RequestOptions(
                     environment,
                     loginHint,
@@ -289,8 +271,7 @@ public class AcquireTokenFragment extends Fragment {
                     scope,
                     extraScope,
                     enablePII,
-                    forceRefresh,
-                    requestDeviceId
+                    forceRefresh
             );
         }
 
@@ -320,10 +301,6 @@ public class AcquireTokenFragment extends Fragment {
 
         boolean forceRefresh() {
             return mForceRefresh;
-        }
-
-        boolean requestDeviceId() {
-            return mRequestDeviceId;
         }
 
         Constants.UserAgent getUserAgent() {

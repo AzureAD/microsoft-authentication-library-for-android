@@ -16,8 +16,6 @@ import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
 import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.claims.ClaimsRequest;
-import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
@@ -204,22 +202,11 @@ public class MsalWrapper {
                         public void onTaskCompleted(final IAccount account) {
                             if (null != account) {
                                 AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
-
-                                ClaimsRequest claimsRequest = null;
-
-                                if (requestOptions.requestDeviceId()) {
-                                    claimsRequest = new ClaimsRequest();
-                                    RequestedClaimAdditionalInformation information = new RequestedClaimAdditionalInformation();
-                                    information.setEssential(true);
-                                    claimsRequest.requestClaimInAccessToken("deviceid", information);
-                                }
-
                                 AcquireTokenSilentParameters acquireTokenSilentParameters =
                                         builder.withResource(requestOptions.getScopes().toLowerCase().trim())
                                                 .forAccount(account)
                                                 .forceRefresh(requestOptions.forceRefresh())
                                                 .callback(getAuthenticationCallback(notifyCallback))
-                                                .withClaims(claimsRequest)
                                                 .build();
 
                                 mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
@@ -240,22 +227,12 @@ public class MsalWrapper {
                 return;
             }
 
-            ClaimsRequest claimsRequest = null;
-
-            if (requestOptions.requestDeviceId()) {
-                claimsRequest = new ClaimsRequest();
-                RequestedClaimAdditionalInformation information = new RequestedClaimAdditionalInformation();
-                information.setEssential(true);
-                claimsRequest.requestClaimInAccessToken("deviceid", information);
-            }
-
             AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
             AcquireTokenSilentParameters acquireTokenSilentParameters =
                     builder.withResource(requestOptions.getScopes().toLowerCase().trim())
                             .forAccount(mLoadedAccount.get(0))
                             .forceRefresh(requestOptions.forceRefresh())
                             .callback(getAuthenticationCallback(notifyCallback))
-                            .withClaims(claimsRequest)
                             .build();
 
             mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
@@ -277,23 +254,12 @@ public class MsalWrapper {
                         @Override
                         public void onTaskCompleted(final IAccount account) {
                             if (account != null) {
-
-                                ClaimsRequest claimsRequest = null;
-
-                                if (requestOptions.requestDeviceId()) {
-                                    claimsRequest = new ClaimsRequest();
-                                    RequestedClaimAdditionalInformation information = new RequestedClaimAdditionalInformation();
-                                    information.setEssential(true);
-                                    claimsRequest.requestClaimInAccessToken("deviceid", information);
-                                }
-
                                 AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
                                         .withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")))
                                         .forAccount(account)
                                         .fromAuthority(mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString())
                                         .forceRefresh(requestOptions.forceRefresh())
                                         .callback(getAuthenticationCallback(notifyCallback))
-                                        .withClaims(claimsRequest)
                                         .build();
                                 mApplication.acquireTokenSilentAsync(parameters);
                             } else {
@@ -311,23 +277,12 @@ public class MsalWrapper {
                 notifyCallback.notify("account is not yet loaded");
                 return;
             }
-
-            ClaimsRequest claimsRequest = null;
-
-            if (requestOptions.requestDeviceId()) {
-                claimsRequest = new ClaimsRequest();
-                RequestedClaimAdditionalInformation information = new RequestedClaimAdditionalInformation();
-                information.setEssential(true);
-                claimsRequest.requestClaimInAccessToken("deviceid", information);
-            }
-
             AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
                     .withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")))
                     .forAccount(mLoadedAccount.get(0))
                     .fromAuthority(mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString())
                     .forceRefresh(requestOptions.forceRefresh())
                     .callback(getAuthenticationCallback(notifyCallback))
-                    .withClaims(claimsRequest)
                     .build();
 
             mApplication.acquireTokenSilentAsync(parameters);
