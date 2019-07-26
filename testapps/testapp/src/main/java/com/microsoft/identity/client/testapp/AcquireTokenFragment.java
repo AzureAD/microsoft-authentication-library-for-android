@@ -49,7 +49,6 @@ import static com.microsoft.identity.client.testapp.R.id.enablePII;
  * acquireToken Fragment, contains the flow for acquireToken interactively, acquireTokenSilent, getUsers, removeUser.
  */
 public class AcquireTokenFragment extends Fragment {
-    private Spinner mAuthority;
     private EditText mLoginhint;
     private Spinner mUiBehavior;
     private Spinner mUserAgent;
@@ -77,7 +76,6 @@ public class AcquireTokenFragment extends Fragment {
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_acquire, container, false);
 
-        mAuthority = view.findViewById(R.id.authorityType);
         mLoginhint = view.findViewById(R.id.loginHint);
         mUiBehavior = view.findViewById(R.id.uiBehavior);
         mUserAgent = view.findViewById(R.id.auth_user_agent);
@@ -95,7 +93,6 @@ public class AcquireTokenFragment extends Fragment {
         mAADEnvironments = view.findViewById(R.id.environment);
         mPublicApplicationMode = view.findViewById(R.id.public_application_mode);
 
-        bindSpinnerChoice(mAuthority, Constants.AuthorityType.class);
         bindSpinnerChoice(mUiBehavior, UiBehavior.class);
         bindSpinnerChoice(mUserAgent, Constants.UserAgent.class);
         bindSpinnerChoice(mAADEnvironments, Constants.AzureActiveDirectoryEnvironment.class);
@@ -219,7 +216,6 @@ public class AcquireTokenFragment extends Fragment {
     }
 
     RequestOptions getCurrentRequestOptions() {
-        final Constants.AuthorityType authorityType = Constants.AuthorityType.valueOf(mAuthority.getSelectedItem().toString());
         final Constants.AzureActiveDirectoryEnvironment environment = Constants.AzureActiveDirectoryEnvironment.valueOf(mAADEnvironments.getSelectedItem().toString());
         final String loginHint = mLoginhint.getText().toString();
         final UiBehavior uiBehavior = UiBehavior.valueOf(mUiBehavior.getSelectedItem().toString());
@@ -228,11 +224,10 @@ public class AcquireTokenFragment extends Fragment {
         final String extraScopesToConsent = mExtraScope.getText().toString();
         final boolean enablePII = mEnablePII.isChecked();
         final boolean forceRefresh = mForceRefresh.isChecked();
-        return RequestOptions.create(authorityType, environment, loginHint, uiBehavior, userAgent, scopes, extraScopesToConsent, enablePII, forceRefresh);
+        return RequestOptions.create(environment, loginHint, uiBehavior, userAgent, scopes, extraScopesToConsent, enablePII, forceRefresh);
     }
 
     static class RequestOptions {
-        final Constants.AuthorityType mAuthorityType;
         final Constants.AzureActiveDirectoryEnvironment mEnvironment;
         final String mLoginHint;
         final UiBehavior mUiBehavior;
@@ -242,12 +237,14 @@ public class AcquireTokenFragment extends Fragment {
         final boolean mEnablePII;
         final boolean mForceRefresh;
 
-        RequestOptions(final Constants.AuthorityType authorityType,
-                       final Constants.AzureActiveDirectoryEnvironment environment,
-                       final String loginHint, final UiBehavior uiBehavior,
-                       final Constants.UserAgent userAgent, final String scope,
-                       final String extraScope, final boolean enablePII, final boolean forceRefresh) {
-            mAuthorityType = authorityType;
+        RequestOptions(final Constants.AzureActiveDirectoryEnvironment environment,
+                       final String loginHint,
+                       final UiBehavior uiBehavior,
+                       final Constants.UserAgent userAgent,
+                       final String scope,
+                       final String extraScope,
+                       final boolean enablePII,
+                       final boolean forceRefresh) {
             mEnvironment = environment;
             mLoginHint = loginHint;
             mUiBehavior = uiBehavior;
@@ -258,14 +255,24 @@ public class AcquireTokenFragment extends Fragment {
             mForceRefresh = forceRefresh;
         }
 
-        static RequestOptions create(final Constants.AuthorityType authority, final Constants.AzureActiveDirectoryEnvironment environment, final String loginHint,
+        static RequestOptions create(final Constants.AzureActiveDirectoryEnvironment environment,
+                                     final String loginHint,
                                      final UiBehavior uiBehavior,
-                                     final Constants.UserAgent userAgent, final String scope, final String extraScope, final boolean enablePII, final boolean forceRefresh) {
-            return new RequestOptions(authority, environment, loginHint, uiBehavior, userAgent, scope, extraScope, enablePII, forceRefresh);
-        }
-
-        Constants.AuthorityType getAuthorityType() {
-            return mAuthorityType;
+                                     final Constants.UserAgent userAgent,
+                                     final String scope,
+                                     final String extraScope,
+                                     final boolean enablePII,
+                                     final boolean forceRefresh) {
+            return new RequestOptions(
+                    environment,
+                    loginHint,
+                    uiBehavior,
+                    userAgent,
+                    scope,
+                    extraScope,
+                    enablePII,
+                    forceRefresh
+            );
         }
 
         Constants.AzureActiveDirectoryEnvironment getEnvironment() {

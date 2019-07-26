@@ -34,9 +34,6 @@
             android:id="@+id/nav_result"
             android:title="Result" />
         <item
-            android:id="@+id/nav_cache"
-            android:title="Cache" />
-        <item
             android:id="@+id/nav_log"
             android:title="Log" />
     </group>
