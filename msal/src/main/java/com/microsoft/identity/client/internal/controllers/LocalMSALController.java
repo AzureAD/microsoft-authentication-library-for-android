@@ -100,6 +100,12 @@ public class LocalMSALController extends BaseController {
 
         //0.1 If not known throw resulting exception
         if (!authorityResult.getKnown()) {
+            Telemetry.emit(
+                    new ApiEndEvent()
+                            .putException(authorityResult.getClientException())
+                            .putApiId(TelemetryEventStrings.Api.LOCAL_ACQUIRE_TOKEN_INTERACTIVE)
+            );
+
             throw authorityResult.getClientException();
         }
 
@@ -195,6 +201,11 @@ public class LocalMSALController extends BaseController {
         );
 
         mAuthorizationStrategy.completeAuthorization(requestCode, resultCode, data);
+
+        Telemetry.emit(
+                new ApiEndEvent()
+                        .putApiId(TelemetryEventStrings.Api.LOCAL_COMPLETE_ACQUIRE_TOKEN_INTERACTIVE)
+        );
     }
 
     @Override
@@ -258,10 +269,18 @@ public class LocalMSALController extends BaseController {
             } else {
                 //TODO need the refactor, should just throw the ui required exception, rather than
                 // wrap the exception later in the exception wrapper.
-                throw new ClientException(
+                final ClientException exception = new ClientException(
                         MsalUiRequiredException.NO_TOKENS_FOUND,
                         "No refresh token was found. "
                 );
+
+                Telemetry.emit(
+                        new ApiEndEvent()
+                                .putException(exception)
+                                .putApiId(TelemetryEventStrings.Api.LOCAL_ACQUIRE_TOKEN_SILENT)
+                );
+
+                throw exception;
             }
         } else if (fullCacheRecord.getAccessToken().isExpired()) {
             Logger.warn(
@@ -327,6 +346,7 @@ public class LocalMSALController extends BaseController {
         Telemetry.emit(
                 new ApiEndEvent()
                         .putApiId(TelemetryEventStrings.Api.LOCAL_GET_ACCOUNTS)
+                        .put(TelemetryEventStrings.Key.ACCOUNTS_NUMBER, Integer.toString(accountsInCache.size()))
                         .put(TelemetryEventStrings.Key.IS_SUCCESSFUL, TelemetryEventStrings.Value.TRUE)
         );
 

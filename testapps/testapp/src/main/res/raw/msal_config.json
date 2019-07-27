@@ -13,7 +13,7 @@
     }
   ],
   "telemetry": {
-    "pii_enabled": true,
+    "pii_enabled": false,
     "notify_on_failure_only": false,
     "debug_enabled": true
   }
