@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.util.Map;
@@ -29,11 +30,19 @@ import java.util.Map;
 public interface IClaimable {
 
     /**
-     * Gets the claims associated with this account's IdToken.
+     * Gets the claims associated with this IClaimable's IdToken.
      *
      * @return A Map of claims.
      */
     @Nullable
     Map<String, ?> getClaims();
+
+    /**
+     * Gets the prefrerreed_username claim associated with this IClaimable.
+     *
+     * @return The preferred_username claim or "" (empty string) if not available.
+     */
+    @NonNull
+    String getUsername();
 
 }

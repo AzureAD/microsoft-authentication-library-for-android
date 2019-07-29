@@ -97,4 +97,20 @@ public class Account implements IAccount {
     public Map<String, ?> getClaims() {
         return mIdTokenClaims;
     }
+
+    @NonNull
+    @Override
+    public String getUsername() {
+        String username = "";
+
+        if (null != getClaims()) {
+            final String usernameClaim = (String) getClaims().get(IDToken.PREFERRED_USERNAME);
+
+            if (null != usernameClaim) {
+                username = usernameClaim;
+            }
+        }
+
+        return username;
+    }
 }
