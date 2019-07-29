@@ -36,6 +36,16 @@ public class TenantProfile extends Account implements ITenantProfile {
     @NonNull
     @Override
     public String getTenantId() {
-        return (String) getClaims().get(MicrosoftIdToken.TENANT_ID);
+        String tenantId = "";
+
+        if (null != getClaims()) {
+            final String tidClaim = (String) getClaims().get(MicrosoftIdToken.TENANT_ID);
+
+            if (null != tidClaim) {
+                tenantId = tidClaim;
+            }
+        }
+
+        return tenantId;
     }
 }

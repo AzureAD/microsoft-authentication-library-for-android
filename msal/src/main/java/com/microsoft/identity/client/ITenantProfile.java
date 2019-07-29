@@ -22,10 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import android.support.annotation.NonNull;
-
 public interface ITenantProfile extends IAccount {
-
-    @NonNull
-    String getTenantId();
+    // Intentionally left blank.
 }
