@@ -38,11 +38,19 @@ public interface IClaimable {
     Map<String, ?> getClaims();
 
     /**
-     * Gets the prefrerreed_username claim associated with this IClaimable.
+     * Gets the preferred_username claim associated with this IClaimable.
      *
      * @return The preferred_username claim or "" (empty string) if not available.
      */
     @NonNull
     String getUsername();
+
+    /**
+     * Gets the tid claim associated with this IClaimable.
+     *
+     * @return The tid claim or "" (empty string) if not available.
+     */
+    @NonNull
+    String getTenantId();
 
 }

@@ -68,7 +68,8 @@ public class Account implements IAccount {
     }
 
     @NonNull
-    String getTenantId() {
+    @Override
+    public String getTenantId() {
         return mHomeTenantId;
     }
 
