@@ -39,6 +39,9 @@ public interface IClaimable {
 
     /**
      * Gets the preferred_username claim associated with this IClaimable.
+     * <p>
+     * Note: On the Microsoft B2C Identity Platform, this claim may be unavailable when external
+     * identity providers are used.
      *
      * @return The preferred_username claim or "" (empty string) if not available.
      */
