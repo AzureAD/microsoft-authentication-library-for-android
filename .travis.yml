@@ -1,22 +1,16 @@
 # ./travis.yml for MSAL android
 
 language: android
-dist: precise
 
 jdk:
   - oraclejdk8
 
-# Don't use the Travis Container-Based Infrastructure
-sudo: true
-
 android:
   components:
-    # Travis has a bug that we need to workaround to use sdk 25
-    # https://github.com/travis-ci/travis-ci/issues/6059
     - tools
     - platform-tools
+    - tools
     - build-tools-28.0.3
-    - android-25
     - android-27
     - extra
     - extra-android-m2repository
@@ -35,7 +29,7 @@ licenses:
 
 env:
     global:
-      # This is to guaratee a clean gradle log
+      # This is to guarantee a clean gradle log
       - TERM=dumb
     matrix:
       - ANDROID_SDKS=android-27 ANDROID_TARGET=android-27
