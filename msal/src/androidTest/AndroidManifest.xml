@@ -4,14 +4,6 @@
     android:versionCode="1"
     android:versionName="1.0">
 
-    <!--suppress AndroidDomInspection -->
-    <instrumentation>
-        <!--suppress AndroidElementNotAllowed -->
-        <meta-data
-            android:name="notPackage"
-            android:value="net.bytebuddy" />
-    </instrumentation>
-
     <uses-sdk
         android:minSdkVersion="21"
         android:targetSdkVersion="25" />

@@ -58,6 +58,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.junit.Assert.assertTrue;
+
 /**
  * Tests for {@link MsalUtils}.
  */
@@ -70,17 +72,17 @@ public final class MsalUtilTest {
 
     @Test
     public void testNullMessage() {
-        Assert.assertTrue(MsalUtils.isEmpty(null));
+        assertTrue(MsalUtils.isEmpty(null));
     }
 
     @Test
     public void testEmptyMessage() {
-        Assert.assertTrue(MsalUtils.isEmpty(""));
+        assertTrue(MsalUtils.isEmpty(""));
     }
 
     @Test
     public void testBlankMessage() {
-        Assert.assertTrue(MsalUtils.isEmpty("  "));
+        assertTrue(MsalUtils.isEmpty("  "));
     }
 
     @Test
@@ -90,14 +92,14 @@ public final class MsalUtilTest {
 
     @Test
     public void testEmptyEncodeDecodeString() throws UnsupportedEncodingException {
-        Assert.assertTrue(MsalUtils.urlFormEncode("").equals(""));
-        Assert.assertTrue(MsalUtils.urlFormDecode("").equals(""));
+        Assert.assertEquals("", MsalUtils.urlFormEncode(""));
+        Assert.assertEquals("", MsalUtils.urlFormDecode(""));
     }
 
     @Test
     public void testEncodeDecodeString() throws UnsupportedEncodingException {
-        Assert.assertTrue(MsalUtils.urlFormEncode("1 $%&=").equals("1+%24%25%26%3D"));
-        Assert.assertTrue(MsalUtils.urlFormDecode("+%24%25%26%3D").equals(" $%&="));
+        Assert.assertEquals("1+%24%25%26%3D", MsalUtils.urlFormEncode("1 $%&="));
+        Assert.assertEquals(" $%&=", MsalUtils.urlFormDecode("+%24%25%26%3D"));
     }
 
     @Test
@@ -116,7 +118,7 @@ public final class MsalUtilTest {
         try {
             final Map<String, String> result = MsalUtils.extractJsonObjectIntoMap("{\"JsonKey\":\"JsonValue\"}");
             Assert.assertNotNull(result);
-            Assert.assertTrue(result.get("JsonKey").equals("JsonValue"));
+            Assert.assertEquals("JsonValue", result.get("JsonKey"));
         } catch (JSONException e) {
             Assert.fail("Unexpected exception.");
         }
@@ -152,7 +154,7 @@ public final class MsalUtilTest {
     @Test
     public void testGetScopeAsSetEmptyAndNullScopes() {
         Assert.assertNotNull(MsalUtils.getScopesAsSet("").isEmpty());
-        Assert.assertTrue(MsalUtils.getScopesAsSet(null).isEmpty());
+        assertTrue(MsalUtils.getScopesAsSet(null).isEmpty());
     }
 
     @Test
@@ -161,23 +163,23 @@ public final class MsalUtilTest {
         final String singleScope = "scope";
         final Set<String> singleScopeSet = MsalUtils.getScopesAsSet(singleScope);
         Assert.assertNotNull(singleScopeSet);
-        Assert.assertTrue(singleScopeSet.size() == EXPECTED_SINGLE_SCOPE_SIZE);
-        Assert.assertTrue(singleScopeSet.contains(singleScope));
+        Assert.assertEquals(singleScopeSet.size(), EXPECTED_SINGLE_SCOPE_SIZE);
+        assertTrue(singleScopeSet.contains(singleScope));
 
         // Verify if the scopes array has multiple space in the input string, it's corretly converted into the set.
         final String singleScopeWithTrailingSpace = singleScope + "   ";
         final Set<String> singleScopeSetWithTrailingSpace = MsalUtils.getScopesAsSet(singleScopeWithTrailingSpace);
         Assert.assertNotNull(singleScopeSetWithTrailingSpace);
-        Assert.assertTrue(singleScopeSetWithTrailingSpace.size() == EXPECTED_SINGLE_SCOPE_SIZE);
-        Assert.assertTrue(singleScopeSetWithTrailingSpace.contains(singleScope));
+        Assert.assertEquals(singleScopeSetWithTrailingSpace.size(), EXPECTED_SINGLE_SCOPE_SIZE);
+        assertTrue(singleScopeSetWithTrailingSpace.contains(singleScope));
 
         final String multipleScopesInput = "scope1 scope2  scope3  ";
         final Set<String> multipleScopesSet = MsalUtils.getScopesAsSet(multipleScopesInput);
         Assert.assertNotNull(multipleScopesSet);
-        Assert.assertTrue(multipleScopesSet.size() == EXPECTED_MULTI_SCOPE_SIZE);
-        Assert.assertTrue(multipleScopesSet.contains("scope1"));
-        Assert.assertTrue(multipleScopesSet.contains("scope2"));
-        Assert.assertTrue(multipleScopesSet.contains("scope3"));
+        Assert.assertEquals(multipleScopesSet.size(), EXPECTED_MULTI_SCOPE_SIZE);
+        assertTrue(multipleScopesSet.contains("scope1"));
+        assertTrue(multipleScopesSet.contains("scope2"));
+        assertTrue(multipleScopesSet.contains("scope3"));
     }
 
     @Test
@@ -206,7 +208,7 @@ public final class MsalUtilTest {
         mockedActivityInfo1.name = BrowserTabActivity.class.getName();
         mockedResolveInfo1.activityInfo = mockedActivityInfo1;
         resolveInfos.add(mockedResolveInfo1);
-        Assert.assertTrue(MsalUtils.hasCustomTabRedirectActivity(mockedContext, url));
+        assertTrue(MsalUtils.hasCustomTabRedirectActivity(mockedContext, url));
 
         // resolve info list contains multiple items
         final ResolveInfo mockedResolveInfo2 = Mockito.mock(ResolveInfo.class);
@@ -253,7 +255,7 @@ public final class MsalUtilTest {
         resolvedInfos.add(mockedResolveInfoForChrome);
         final String chromePackageNameWithCustomTabSupport = MsalUtils.getChromePackageWithCustomTabSupport(mockedContext);
         Assert.assertNotNull(chromePackageNameWithCustomTabSupport);
-        Assert.assertTrue(chromePackageNameWithCustomTabSupport.equals(MsalUtils.CHROME_PACKAGE));
+        Assert.assertEquals(chromePackageNameWithCustomTabSupport, MsalUtils.CHROME_PACKAGE);
     }
 
     @Test
@@ -284,34 +286,34 @@ public final class MsalUtilTest {
 
         // The three chrome package all exists on the device, return the stable chrome package name.
         mockedApplicationInfo.enabled = true;
-        Assert.assertTrue(MsalUtils.getChromePackage(mockedContext).equals(MsalUtils.CHROME_PACKAGE));
+        Assert.assertEquals(MsalUtils.getChromePackage(mockedContext), MsalUtils.CHROME_PACKAGE);
     }
 
     @Test
     public void testDecodeUrlToMap() {
         // url is null or empty
-        Assert.assertTrue(MsalUtils.decodeUrlToMap(null, " ").isEmpty());
-        Assert.assertTrue(MsalUtils.decodeUrlToMap("", "").isEmpty());
+        assertTrue(MsalUtils.decodeUrlToMap(null, " ").isEmpty());
+        assertTrue(MsalUtils.decodeUrlToMap("", "").isEmpty());
 
         // delimiter is null
-        Assert.assertTrue(MsalUtils.decodeUrlToMap("some url", null).isEmpty());
+        assertTrue(MsalUtils.decodeUrlToMap("some url", null).isEmpty());
 
         final String urlToDecode = "a=b&c=d";
         final Map<String, String> result = MsalUtils.decodeUrlToMap(urlToDecode, "&");
         Assert.assertNotNull(result);
-        Assert.assertTrue(result.size() == 2);
-        Assert.assertTrue(result.get("a").equals("b"));
-        Assert.assertTrue(result.get("c").equals("d"));
+        Assert.assertEquals(2, result.size());
+        Assert.assertEquals("b", result.get("a"));
+        Assert.assertEquals("d", result.get("c"));
     }
 
     @Test
     public void testConvertSetToStringEmptyOrNullSetOrDelimiter() {
-        Assert.assertTrue(StringUtil.convertSetToString(null, " ").equals(""));
-        Assert.assertTrue(StringUtil.convertSetToString(Collections.EMPTY_SET, " ").equals(""));
+        Assert.assertEquals("", StringUtil.convertSetToString(null, " "));
+        Assert.assertEquals("", StringUtil.convertSetToString(Collections.EMPTY_SET, " "));
 
         final Set<String> set = new HashSet<>();
         set.add("some string");
-        Assert.assertTrue(StringUtil.convertSetToString(set, null).equals(""));
+        Assert.assertEquals("", StringUtil.convertSetToString(set, null));
     }
 
     @Test
@@ -321,7 +323,7 @@ public final class MsalUtilTest {
         input.add("scope2");
         final String result = StringUtil.convertSetToString(new HashSet<>(input), " ");
 
-        Assert.assertTrue(result.equals("scope1 scope2"));
+        Assert.assertEquals("scope1 scope2", result);
     }
 
     @Test
@@ -331,8 +333,8 @@ public final class MsalUtilTest {
         final Set<String> convertedScope = MsalUtils.convertArrayToSet(scopes);
 
         Assert.assertNotNull(convertedScope);
-        Assert.assertTrue(convertedScope.size() == 1);
-        Assert.assertTrue(convertedScope.iterator().next().equalsIgnoreCase(scope1));
+        Assert.assertEquals(1, convertedScope.size());
+        assertTrue(convertedScope.iterator().next().equalsIgnoreCase(scope1));
 
         final String scope2 = "scope2";
         final String scope3 = "scope3";
@@ -340,19 +342,19 @@ public final class MsalUtilTest {
         final Set<String> convertedScope2 = MsalUtils.convertArrayToSet(scopesTest2);
 
         Assert.assertNotNull(convertedScope2);
-        Assert.assertTrue(convertedScope2.size() == EXPECTED_SET_SIZE);
-        Assert.assertTrue(convertedScope2.contains(scope1));
-        Assert.assertTrue(convertedScope2.contains(scope2));
-        Assert.assertTrue(convertedScope2.contains(scope3));
+        Assert.assertEquals(convertedScope2.size(), EXPECTED_SET_SIZE);
+        assertTrue(convertedScope2.contains(scope1));
+        assertTrue(convertedScope2.contains(scope2));
+        assertTrue(convertedScope2.contains(scope3));
     }
 
     @Test
     public void testBase64Encode() {
         String stringToEncode = "a+b@c.com";
-        Assert.assertTrue(base64Decode(MsalUtils.base64UrlEncodeToString(stringToEncode)).equals(stringToEncode));
+        Assert.assertEquals(base64Decode(MsalUtils.base64UrlEncodeToString(stringToEncode)), stringToEncode);
 
         stringToEncode = "a$c@b.com";
-        Assert.assertTrue(base64Decode(MsalUtils.base64UrlEncodeToString(stringToEncode)).equals(stringToEncode));
+        Assert.assertEquals(base64Decode(MsalUtils.base64UrlEncodeToString(stringToEncode)), stringToEncode);
     }
 
     @Test
@@ -362,8 +364,7 @@ public final class MsalUtilTest {
         queryParamteters.put("qp1", "someqp1");
 
         final String appendedAuthority = MsalUtils.appendQueryParameterToUrl(authorityUrl, queryParamteters);
-        Assert.assertTrue(appendedAuthority.equals(
-                "https://login.microsoftonline.com/common/v2/authorize?p=testpolicy&qp1=someqp1"));
+        Assert.assertEquals("https://login.microsoftonline.com/common/v2/authorize?p=testpolicy&qp1=someqp1", appendedAuthority);
     }
 
     @Test
@@ -373,8 +374,7 @@ public final class MsalUtilTest {
         queryParamteters.put("qp1", "someqp1");
 
         final String appendedAuthority = MsalUtils.appendQueryParameterToUrl(authorityUrl, queryParamteters);
-        Assert.assertTrue(appendedAuthority.equals(
-                "https://login.microsoftonline.com/common/v2/authorize?p=testpolicy&qp1=someqp1"));
+        Assert.assertEquals("https://login.microsoftonline.com/common/v2/authorize?p=testpolicy&qp1=someqp1", appendedAuthority);
 
     }
 
