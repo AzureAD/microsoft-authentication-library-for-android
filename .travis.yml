@@ -12,12 +12,15 @@ android:
     # Compilation SDK version
     - android-27
 
+    # Emulator SDK Version
+    - android-24
+
     # Additional Components
     - extra-google-m2repository
     - extra-android-m2repository
 
     # Emulator image
-    - sys-img-armeabi-v7a-google_apis-22
+    - sys-img-armeabi-v7a-google_apis-24
 
 before_install:
   - chmod +x gradlew
