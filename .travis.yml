@@ -13,14 +13,14 @@ android:
     - android-27
 
     # Emulator SDK Version
-    - android-24
+    - android-25
 
     # Additional Components
     - extra-google-m2repository
     - extra-android-m2repository
 
     # Emulator image
-    - sys-img-armeabi-v7a-google_apis-24
+    - sys-img-x86_64-google_apis-25
 
 before_install:
   - chmod +x gradlew
@@ -37,7 +37,7 @@ cache:
 
 before_script:
   - android list targets
-  - echo no | android create avd --force -n test -t android-24 --abi armeabi-v7a --tag google_apis
+  - echo no | android create avd --force -n test -t android-25 --abi x86_64 --tag google_apis
   - emulator -avd test -no-skin -no-window &
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
