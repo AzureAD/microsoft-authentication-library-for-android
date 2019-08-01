@@ -17,7 +17,7 @@ android:
     - extra-android-m2repository
 
     # Emulator image
-    - sys-img-armeabi-v7a-google_apis-27
+    - sys-img-armeabi-v7a-google_apis-22
 
 before_install:
   - chmod +x gradlew
@@ -34,7 +34,7 @@ cache:
 
 before_script:
   - android list targets
-  - echo no | android create avd --force -n test -t android-27 --abi armeabi-v7a --tag google_apis
+  - echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a --tag google_apis
   - emulator -avd test -no-skin -no-window &
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
