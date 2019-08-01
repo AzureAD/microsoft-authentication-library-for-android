@@ -4,6 +4,14 @@
     android:versionCode="1"
     android:versionName="1.0">
 
+    <!--suppress AndroidDomInspection -->
+    <instrumentation>
+        <!--suppress AndroidElementNotAllowed -->
+        <meta-data
+            android:name="notPackage"
+            android:value="net.bytebuddy" />
+    </instrumentation>
+
     <uses-sdk
         android:minSdkVersion="21"
         android:targetSdkVersion="25" />
@@ -12,8 +20,8 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
-        android:label="MSAL Test App"
-        android:allowBackup="false">
+        android:allowBackup="false"
+        android:label="MSAL Test App">
         <uses-library android:name="android.test.runner" />
 
         <activity
@@ -29,8 +37,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:scheme="msalclient-id"
-                    android:host="auth" />
+                    android:host="auth"
+                    android:scheme="msalclient-id" />
             </intent-filter>
         </activity>
 
