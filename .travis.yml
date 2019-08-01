@@ -13,12 +13,11 @@ android:
     - android-27
 
     # Additional Components
-    - extra-google-google_play_services
     - extra-google-m2repository
     - extra-android-m2repository
 
     # Emulator image
-    - sys-img-x86-android-27
+    - sys-img-x86-addon-google_apis-google-27
 
 before_install:
   - chmod +x gradlew
