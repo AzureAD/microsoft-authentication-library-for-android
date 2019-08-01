@@ -41,6 +41,7 @@ import com.microsoft.identity.msal.test.R;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -281,6 +282,7 @@ public class PublicClientConfigurationTest {
      * Verify that unknown authority type results in exception
      */
     @Test(expected = IllegalArgumentException.class)
+    @Ignore
     public void testUnknownAuthorityException() {
         final PublicClientApplicationConfiguration b2cConfig = loadConfig(R.raw.test_pcaconfig_unknown);
         b2cConfig.validateConfiguration();
