@@ -105,10 +105,10 @@ task sourcesJar(type: Jar) {
 }
 
 dependencies {
-    implementation "androidx.appcompat:appcompat:1.0.0"
-    implementation "androidx.browser:browser:1.0.0"
+    implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
+    implementation "androidx.browser:browser:$rootProject.ext.browserVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
-    implementation 'com.nimbusds:nimbus-jose-jwt:5.7'
+    implementation "com.nimbusds:nimbus-jose-jwt:$rootProject.ext.nimbusVersion"
 
     // test dependencies
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
@@ -116,9 +116,9 @@ dependencies {
     testImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
 
     // instrumentation test dependencies
-    androidTestImplementation "androidx.test:runner:1.1.0"
+    androidTestImplementation "androidx.test:runner:$rootProject.ext.runnerVersion"
     // Set this dependency to use JUnit 4 rules
-    androidTestImplementation "androidx.test:rules:1.1.0"
+    androidTestImplementation "androidx.test:rules:$rootProject.rulesVersion"
     androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
     // 'local' flavor dependencies
     localApi(project(":common")) {
