@@ -94,15 +94,14 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
 
     @Override
-    public IAuthenticationResult acquireTokenSilent(@NonNull String[] scopes, @NonNull IAccount account, @Nullable String authority) throws MsalException, InterruptedException {
+    public IAuthenticationResult acquireTokenSilent(@NonNull String[] scopes, @NonNull IAccount account, @NonNull String authority) throws MsalException, InterruptedException {
         return acquireTokenSilentSync(scopes, authority, account, false);
     }
 
     @Override
-    public void
-    acquireTokenSilentAsync(@NonNull final String[] scopes,
+    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final IAccount account,
-                                        @Nullable final String authority,
+                                        @NonNull final String authority,
                                         @NonNull final AuthenticationCallback callback) {
         acquireTokenSilent(
                 scopes,

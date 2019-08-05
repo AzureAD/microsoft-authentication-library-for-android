@@ -518,7 +518,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
-                                        @Nullable final String authority,
+                                        @NonNull final String authority,
                                         @NonNull final AuthenticationCallback callback) {
 
         if(getPersistedCurrentAccount() == null){
@@ -537,7 +537,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @WorkerThread
     public IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
-                                   @Nullable final String authority) throws MsalException, InterruptedException {
+                                                    @NonNull final String authority) throws MsalException, InterruptedException {
 
         if(getPersistedCurrentAccount() == null){
             throw new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);
