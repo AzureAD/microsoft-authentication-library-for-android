@@ -1,33 +1,27 @@
 language: android
 jdk: oraclejdk8
-
-# Don't use the Travis Container-Based Infrastructure
-sudo: true
+dist: trusty
 
 # Build Variables
 env:
   global:
     - BUILD_TOOLS_VERSION=28.0.3
-    - COMPILE_SDK_VERSION=27
-    - EMULATOR_API_VERSION=21
-
-    # This is to guarantee a clean gradle log
-    - TERM=dumb
+    - ANDROID_COMPILE_API_LEVEL=27
 
 android:
   components:
     - tools
     - platform-tools
+
+    # BuildTools version used by this project
     - build-tools-$BUILD_TOOLS_VERSION
-    - android-$COMPILE_SDK_VERSION
+
+    # Compilation SDK version
+    - android-$ANDROID_COMPILE_API_LEVEL
+
+    # Additional Components
     - extra-google-m2repository
-
-    ## Emulator config ##
-    # The SDK version used for the emulator
-    - android-$EMULATOR_API_VERSION
-
-    #system images
-    - sys-img-armeabi-v7a-android-$EMULATOR_API_VERSION
+    - extra-android-m2repository
 
 before_install:
   - chmod +x gradlew
@@ -35,6 +29,7 @@ before_install:
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
   - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+
 cache:
   directories:
     - $HOME/.gradle/caches/
@@ -43,11 +38,7 @@ cache:
 
 before_script:
   - android list targets
-  - echo no | android create avd --force -n test -t android-$EMULATOR_API_VERSION --abi armeabi-v7a
-  - emulator -avd test -no-audio -no-window &
-  - android-wait-for-emulator
-  - adb shell input keyevent 82 &
 
 script:
   - cd $PWD
-  - ./gradlew clean msal:assembleLocal msal:connectedLocalDebugAndroidTest -PdisablePreDex
+  - ./gradlew clean msal:assembleLocal
