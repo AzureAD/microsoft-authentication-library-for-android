@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.exception.MsalException;
 
