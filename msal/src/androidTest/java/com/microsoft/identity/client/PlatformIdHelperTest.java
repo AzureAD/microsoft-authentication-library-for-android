@@ -24,8 +24,7 @@
 package com.microsoft.identity.client;
 
 import android.os.Build;
-import android.support.test.runner.AndroidJUnit4;
-import android.test.suitebuilder.annotation.SmallTest;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.microsoft.identity.client.internal.telemetry.PlatformIdHelper;
 
@@ -39,7 +38,6 @@ import java.util.Map;
  * Tests for {@link PlatformIdHelper}.
  */
 @RunWith(AndroidJUnit4.class)
-@SmallTest
 public final class PlatformIdHelperTest {
     @Test
     public void testPlatformIdHelperParams() {

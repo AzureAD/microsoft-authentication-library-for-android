@@ -33,9 +33,8 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
-import android.test.AndroidTestCase;
+import androidx.test.InstrumentationRegistry;
+import androidx.test.runner.AndroidJUnit4;
 import android.util.Pair;
 
 import com.microsoft.identity.client.exception.MsalClientException;
@@ -77,14 +76,15 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import static com.microsoft.identity.client.AndroidTestUtil.MOCK_UID;
-import static com.microsoft.identity.client.AndroidTestUtil.MOCK_UTID;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.fail;
 
 /**
  * Tests for {@link PublicClientApplication}.
  */
 @RunWith(AndroidJUnit4.class)
-public final class PublicClientApplicationTest extends AndroidTestCase {
+public final class PublicClientApplicationTest {
     private Context mAppContext;
     private String mRedirectUri;
     private static final String CLIENT_ID = "client-id";
@@ -96,8 +96,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     private static final String DEFAULT_CLIENT_INFO = AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID);
 
     @Before
-    public void setUp() throws Exception {
-        super.setUp();
+    public void setUp() {
         InstrumentationRegistry.getContext().getCacheDir();
         System.setProperty("dexmaker.dexcache",
                 InstrumentationRegistry.getContext().getCacheDir().getPath());
@@ -108,8 +107,7 @@ public final class PublicClientApplicationTest extends AndroidTestCase {
     }
 
     @After
-    public void tearDown() throws Exception {
-        super.tearDown();
+    public void tearDown() {
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
         AndroidTestUtil.removeAllTokens(mAppContext);
         Telemetry.disableForTest(false);

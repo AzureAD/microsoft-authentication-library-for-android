@@ -23,7 +23,7 @@
 
 package com.microsoft.identity.client;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.runner.AndroidJUnit4;
 import android.util.Pair;
 
 import com.microsoft.identity.client.internal.telemetry.ApiEvent;

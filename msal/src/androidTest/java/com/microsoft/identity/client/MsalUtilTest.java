@@ -31,8 +31,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
-import android.support.test.runner.AndroidJUnit4;
-import android.test.suitebuilder.annotation.SmallTest;
+import androidx.test.runner.AndroidJUnit4;
 import android.util.Base64;
 
 import com.microsoft.identity.client.internal.MsalUtils;
@@ -62,7 +61,6 @@ import java.util.Set;
  * Tests for {@link MsalUtils}.
  */
 @RunWith(AndroidJUnit4.class)
-@SmallTest
 public final class MsalUtilTest {
     static final int EXPECTED_SINGLE_SCOPE_SIZE = 1;
     static final int EXPECTED_MULTI_SCOPE_SIZE = 3;
