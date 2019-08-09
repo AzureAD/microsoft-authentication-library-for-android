@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import androidx.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 
@@ -34,14 +34,10 @@ import java.io.IOException;
 @RunWith(AndroidJUnit4.class)
 public class DiscoveryTests {
 
-
     @Test
     public void testInstanceDiscovery() throws IOException {
         AndroidTestMockUtil.mockSuccessInstanceDiscoveryAPIVersion1_1();
-
         AzureActiveDirectory.performCloudDiscovery();
-
-
     }
 
 

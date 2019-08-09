@@ -31,8 +31,9 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
-import androidx.test.runner.AndroidJUnit4;
 import android.util.Base64;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.internal.util.StringUtil;

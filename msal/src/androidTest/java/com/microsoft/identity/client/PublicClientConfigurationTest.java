@@ -26,7 +26,7 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.test.InstrumentationRegistry;
-import androidx.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.common.internal.authorities.AccountsInOneOrganization;
