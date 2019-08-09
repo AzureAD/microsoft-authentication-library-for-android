@@ -22,10 +22,12 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -33,6 +35,26 @@ import java.io.IOException;
 
 @RunWith(AndroidJUnit4.class)
 public class DiscoveryTests {
+
+    @Before
+    public void setUp() {
+        System.setProperty(
+                "dexmaker.dexcache",
+                androidx.test.platform.app.InstrumentationRegistry
+                        .getInstrumentation()
+                        .getTargetContext()
+                        .getCacheDir()
+                        .getPath()
+        );
+
+        System.setProperty(
+                "org.mockito.android.target",
+                ApplicationProvider
+                        .getApplicationContext()
+                        .getCacheDir()
+                        .getPath()
+        );
+    }
 
     @Test
     public void testInstanceDiscovery() throws IOException {
