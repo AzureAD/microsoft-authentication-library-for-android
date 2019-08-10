@@ -24,9 +24,10 @@ package com.microsoft.identity.client;
 
 import android.content.Context;
 import android.content.Intent;
+
 import androidx.test.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.rule.ActivityTestRule;
-import androidx.test.runner.AndroidJUnit4;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.internal.net.HttpUrlConnectionFactory;

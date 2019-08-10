@@ -116,7 +116,7 @@ dependencies {
     testImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
 
     // instrumentation test dependencies
-    androidTestImplementation "androidx.test:runner:$rootProject.ext.runnerVersion"
+    androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
     // Set this dependency to use JUnit 4 rules
     androidTestImplementation "androidx.test:rules:$rootProject.rulesVersion"
     androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"

@@ -23,7 +23,8 @@
 
 package com.microsoft.identity.client;
 
-import androidx.test.runner.AndroidJUnit4;
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.client.internal.telemetry.ApiEvent;
 import com.microsoft.identity.client.internal.telemetry.CacheEvent;
@@ -61,6 +62,22 @@ public class TelemetryTest {
 
     @Before
     public void setUp() {
+        System.setProperty(
+                "dexmaker.dexcache",
+                androidx.test.platform.app.InstrumentationRegistry
+                        .getInstrumentation()
+                        .getTargetContext()
+                        .getCacheDir()
+                        .getPath()
+        );
+
+        System.setProperty(
+                "org.mockito.android.target",
+                ApplicationProvider
+                        .getApplicationContext()
+                        .getCacheDir()
+                        .getPath()
+        );
         DefaultEvent.initializeDefaults(
                 new Defaults(TEST_APPLICATION_NAME, TEST_APPLICATION_VERSION,
                         TEST_APPLICATION_CLIENT_ID, TEST_APPLICATION_DEVICE_ID,
