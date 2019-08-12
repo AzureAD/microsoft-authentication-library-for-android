@@ -24,6 +24,7 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
@@ -99,16 +100,16 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
      * or it fails the refresh, exception will be sent back via callback.
      *
-     * @param scopes       The non-null array of scopes to be requested for the access token.
-     *                     MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param authority    Optional. Can be passed to override the configured authority.
-     * @param callback     {@link AuthenticationCallback} that is used to send the result back. The success result will be
-     *                     sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
-     *                     Failure case will be sent back via {
+     * @param scopes    The non-null array of scopes to be requested for the access token.
+     *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param authority Authority to issue the token.
+     * @param callback  {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                  sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     *                  Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
     void acquireTokenSilentAsync(@NonNull final String[] scopes,
-                                 @Nullable final String authority,
+                                 @NonNull final String authority,
                                  @NonNull final AuthenticationCallback callback);
 
     /**
@@ -116,10 +117,9 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
      * or it fails the refresh, exception will be sent back via callback.
      *
-     * @param scopes       The non-null array of scopes to be requested for the access token.
-     *                     MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param authority    Optional. Can be passed to override the configured authority.
-     *
+     * @param scopes    The non-null array of scopes to be requested for the access token.
+     *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param authority Optional. Can be passed to override the configured authority.
      */
     @WorkerThread
     IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
