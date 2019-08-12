@@ -24,6 +24,7 @@ package com.microsoft.identity.client;
 
 import android.app.Activity;
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
@@ -207,15 +208,15 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             @Override
             public void onError(@NonNull Exception exception) {
                 //TODO: Need to talk to Dome about exception here rather than MsalException
-                future.setResult(new AsyncResult<CurrentAccountResult>(null, (MsalException)exception));
+                future.setResult(new AsyncResult<CurrentAccountResult>(null, (MsalException) exception));
             }
         });
 
         AsyncResult<CurrentAccountResult> result = future.get();
 
-        if(result.getSuccess()){
+        if (result.getSuccess()) {
             return result.getResult();
-        }else{
+        } else {
             throw result.getException();
         }
 
@@ -302,10 +303,10 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 MultiTenantAccount newAccount = getAccountFromICacheRecordList(localAuthenticationResult.getCacheRecordWithTenantProfileData());
 
                 if (didCurrentAccountChange(newAccount)) {
-                    if(getPersistedCurrentAccount() != null) {
+                    if (getPersistedCurrentAccount() != null) {
                         authenticationCallback.onError(new MsalClientException(MsalClientException.CURRENT_ACCOUNT_MISMATCH));
                         return;
-                    }else{
+                    } else {
                         persistCurrentAccount(localAuthenticationResult.getCacheRecordWithTenantProfileData());
                     }
                 } else {
@@ -339,10 +340,9 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     }
 
     @Override
-    public void signOut(@NonNull final SignOutCallback callback){
+    public void signOut(@NonNull final SignOutCallback callback) {
         final String methodName = ":signOut";
         final PublicClientApplicationConfiguration configuration = getConfiguration();
-
 
         try {
             if (mIsSharedDevice) {
@@ -388,8 +388,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         } catch (MsalClientException clientException) {
             callback.onError(clientException);
         }
-
-
     }
 
     @Override
@@ -413,9 +411,9 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
         AsyncResult<Boolean> result = future.get();
 
-        if(result.getSuccess()){
+        if (result.getSuccess()) {
             return result.getResult();
-        }else{
+        } else {
             throw result.getException();
         }
     }
@@ -517,17 +515,46 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     }
 
     @Override
+    public void acquireToken(@NonNull Activity activity, @NonNull String[] scopes, @NonNull AuthenticationCallback callback) {
+        acquireToken(
+                activity,
+                scopes,
+                getPersistedCurrentAccount(), // account, could be null.
+                null, // uiBehavior
+                null, // extraQueryParams
+                null, // extraScopes
+                null, // authority
+                callback,
+                null, // loginHint
+                null // claimsRequest
+        );
+    }
+
+    @Override
+    public void acquireToken(@NonNull AcquireTokenParameters acquireTokenParameters) {
+        IAccount persistedAccount = getPersistedCurrentAccount();
+        if (persistedAccount != null) {
+            // If the account exists, overwrite Account and ignore loginHint.
+            acquireTokenParameters.setAccount(persistedAccount);
+            acquireTokenParameters.setLoginHint("");
+        }
+
+        super.acquireToken(acquireTokenParameters);
+    }
+
+    @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final String authority,
                                         @NonNull final AuthenticationCallback callback) {
 
-        if(getPersistedCurrentAccount() == null){
+        IAccount persistedAccount = getPersistedCurrentAccount();
+        if (persistedAccount == null) {
             callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
         }
 
         acquireTokenSilent(
                 scopes,
-                getPersistedCurrentAccount(),
+                persistedAccount,
                 authority,
                 false,
                 null, // claimsRequest
@@ -539,15 +566,37 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     public IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
                                                     @NonNull final String authority) throws MsalException, InterruptedException {
 
-        if(getPersistedCurrentAccount() == null){
+        IAccount persistedAccount = getPersistedCurrentAccount();
+        if (persistedAccount == null) {
             throw new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);
         }
-        return acquireTokenSilentSync(scopes, authority, getPersistedCurrentAccount(), false);
+
+        return acquireTokenSilentSync(scopes, authority, persistedAccount, false);
     }
 
+    @Override
+    public void acquireTokenSilentAsync(@NonNull AcquireTokenSilentParameters acquireTokenSilentParameters) {
+        IAccount persistedAccount = getPersistedCurrentAccount();
+        if (persistedAccount == null) {
+            acquireTokenSilentParameters.getCallback().onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
+        }
 
+        // In SingleAccount mode, always overwrite 'Account' with current account.
+        acquireTokenSilentParameters.setAccount(persistedAccount);
 
+        super.acquireTokenSilentAsync(acquireTokenSilentParameters);
+    }
 
+    @Override
+    public IAuthenticationResult acquireTokenSilent(@NonNull AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException {
+        IAccount persistedAccount = getPersistedCurrentAccount();
+        if (persistedAccount == null) {
+            throw new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);
+        }
 
+        // In SingleAccount mode, always overwrite 'Account' with current account.
+        acquireTokenSilentParameters.setAccount(persistedAccount);
 
+        return super.acquireTokenSilent(acquireTokenSilentParameters);
+    }
 }
