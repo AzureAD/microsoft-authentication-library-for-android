@@ -120,7 +120,7 @@ dependencies {
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
     // TODO the below dependency should be mockito-core but the MockMaker isn't working...
     testImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
-    testImplementation 'org.robolectric:robolectric:4.0'
+    testImplementation "org.robolectric:robolectric:$rootProject.ext.robolectricVersion"
     // instrumentation test dependencies
     androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
     // Set this dependency to use JUnit 4 rules
