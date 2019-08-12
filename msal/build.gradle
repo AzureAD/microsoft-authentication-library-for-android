@@ -40,6 +40,12 @@ android {
         disable 'OldTargetApi'
     }
 
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+
     flavorDimensions "main"
 
     productFlavors {
@@ -109,12 +115,11 @@ dependencies {
     implementation "com.android.support:customtabs:$rootProject.ext.supportLibraryVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     implementation 'com.nimbusds:nimbus-jose-jwt:5.7'
-
     // test dependencies
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
     // TODO the below dependency should be mockito-core but the MockMaker isn't working...
     testImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
-
+    testImplementation 'org.robolectric:robolectric:4.0'
     // instrumentation test dependencies
     androidTestImplementation "com.android.support.test:runner:$rootProject.ext.runnerVersion"
     // Set this dependency to use JUnit 4 rules
@@ -124,9 +129,7 @@ dependencies {
     localApi(project(":common")) {
         transitive = false
     }
-
     snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '0.0.13-RC1', changing: true)
-
     distApi("com.microsoft.identity:common:0.0.13-RC1") {
         transitive = false
     }
