@@ -321,72 +321,8 @@ public final class PublicClientApplicationTest {
      */
     @Test
     @Ignore
-    public void testAuthoritySetInManifestGetTokenFailed()
-            throws PackageManager.NameNotFoundException, IOException, InterruptedException {
-
+    public void testAuthoritySetInManifestGetTokenFailed(){
         // TODO: Revisit this once we're ready to update test cases for ISingle and IMuliple PCA.
-//        new GetTokenBaseTestCase() {
-//
-//            @Override
-//            protected String getAlternateAuthorityInManifest() {
-//                return ALTERNATE_AUTHORITY;
-//            }
-//
-//            @Override
-//            void mockHttpRequest() throws IOException {
-//                final HttpURLConnection mockedConnection = AndroidTestMockUtil.getMockedConnectionWithFailureResponse(
-//                        HttpURLConnection.HTTP_BAD_REQUEST, AndroidTestUtil.getErrorResponseMessage("invalid_request"));
-//                Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
-//                HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
-//            }
-//
-//            @Override
-//            void makeAcquireTokenCall(final PublicClientApplication publicClientApplication,
-//                                      final Activity activity,
-//                                      final CountDownLatch releaseLock) {
-//
-//                publicClientApplication.acquireToken(activity, SCOPE, "somehint", new AuthenticationCallback() {
-//                    @Override
-//                    public void onSuccess(IAuthenticationResult authenticationResult) {
-//                        fail();
-//                    }
-//
-//                    @Override
-//                    public void onError(MsalException exception) {
-//                        assertTrue(exception instanceof MsalServiceException);
-//
-//                        final MsalServiceException serviceException = (MsalServiceException) exception;
-//                        assertTrue(MsalServiceException.INVALID_REQUEST.equals(serviceException.getErrorCode()));
-//                        assertTrue(!serviceException.getMessage().isEmpty());
-//                        assertTrue(serviceException.getHttpStatusCode() == HttpURLConnection.HTTP_BAD_REQUEST);
-//                        releaseLock.countDown();
-//                    }
-//
-//                    @Override
-//                    public void onCancel() {
-//                        fail();
-//                    }
-//                });
-//            }
-//
-//            @Override
-//            String getFinalAuthUrl() throws UnsupportedEncodingException {
-//                return mRedirectUri + "?code=1234&state=" + AndroidTestUtil.encodeProtocolState(
-//                        ALTERNATE_AUTHORITY, new HashSet<>(Arrays.asList(SCOPE)));
-//            }
-//
-//            @Override
-//            protected void performAdditionalVerify(Activity testActivity) {
-//                Mockito.verify(testActivity).startActivityForResult(Mockito.argThat(
-//                        new ArgumentMatcher<Intent>() {
-//                            @Override
-//                            public boolean matches(Intent argument) {
-//                                final String data = argument.getStringExtra(Constants.REQUEST_URL_KEY);
-//                                return data.startsWith(ALTERNATE_AUTHORITY);
-//                            }
-//                        }), Matchers.eq(RequestCodes.LOCAL_AUTHORIZATION_REQUEST));
-//            }
-//        }.performTest();
     }
 
     /**
