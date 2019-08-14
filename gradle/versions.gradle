@@ -2,20 +2,35 @@
 ext {
     // SDK
     minSdkVersion = 16
+    automationAppMinSDKVersion = 21
     targetSdkVersion = 27
-    compileSdkVersion = 27
+    compileSdkVersion = 28
     buildToolsVersion = "28.0.3"
 
     // Plugins
-    gradleVersion = '3.2.1'
+    gradleVersion = '3.3.1'
     androidMavenGradlePluginVersion = "1.4.1"
 
     // Libraries
-    supportLibraryVersion = "27.1.1"
+    androidxJunitVersion = "1.1.1"
+    annotationVersion = "1.0.0"
+    appCompatVersion = "1.0.2"
+    browserVersion = "1.0.0"
+    dexmakerMockitoVersion = "1.4"
+    espressoCoreVersion = "3.1.0"
+    gsonVersion = "2.8.5"
     junitVersion = "4.12"
+    legacySupportV4Version = "1.0.0"
+    materialVersion = "1.0.0"
     mockitoCoreVersion = "2.18.3"
     mockitoAndroidVersion = "2.18.3"
-    runnerVersion = "0.5"
-    rulesVersion = "0.5"
-    gsonVersion = "2.8.4"
+    multidexVersion = "2.0.1"
+    powerMockVersion = "1.6.6"
+    nimbusVersion = "5.7"
+    runnerVersion = "1.2.0"
+    rulesVersion = "1.2.0"
+
+    // TODO: adal automation test app.
+    supportLibraryVersion = "27.1.+"
+    adalLegacy = "1.15.0"
 }

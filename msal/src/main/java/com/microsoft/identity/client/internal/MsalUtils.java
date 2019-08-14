@@ -32,7 +32,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.net.Uri;
-import android.support.customtabs.CustomTabsService;
+import androidx.browser.customtabs.CustomTabsService;
 import android.util.Base64;
 
 import com.microsoft.identity.client.BrowserTabActivity;

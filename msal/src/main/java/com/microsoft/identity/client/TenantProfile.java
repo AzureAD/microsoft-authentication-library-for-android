@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
@@ -36,6 +36,16 @@ public class TenantProfile extends Account implements ITenantProfile {
     @NonNull
     @Override
     public String getTenantId() {
-        return (String) getClaims().get(MicrosoftIdToken.TENANT_ID);
+        String tenantId = "";
+
+        if (null != getClaims()) {
+            final String tidClaim = (String) getClaims().get(MicrosoftIdToken.TENANT_ID);
+
+            if (null != tidClaim) {
+                tenantId = tidClaim;
+            }
+        }
+
+        return tenantId;
     }
 }

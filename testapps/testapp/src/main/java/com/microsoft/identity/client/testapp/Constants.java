@@ -27,12 +27,6 @@ package com.microsoft.identity.client.testapp;
  */
 
 public class Constants {
-    enum AuthorityType {
-        AAD_COMMON,
-        B2C,
-        AAD_MSDEVEX,
-        AAD_GUEST
-    }
 
     enum UserAgent {
         DEFAULT,

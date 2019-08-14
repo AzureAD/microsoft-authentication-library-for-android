@@ -31,15 +31,17 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
-import android.support.test.runner.AndroidJUnit4;
-import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
+
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import org.json.JSONException;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
@@ -62,11 +64,31 @@ import java.util.Set;
  * Tests for {@link MsalUtils}.
  */
 @RunWith(AndroidJUnit4.class)
-@SmallTest
 public final class MsalUtilTest {
+
     static final int EXPECTED_SINGLE_SCOPE_SIZE = 1;
     static final int EXPECTED_MULTI_SCOPE_SIZE = 3;
     static final int EXPECTED_SET_SIZE = 3;
+
+    @Before
+    public void setUp() {
+        System.setProperty(
+                "dexmaker.dexcache",
+                androidx.test.platform.app.InstrumentationRegistry
+                        .getInstrumentation()
+                        .getTargetContext()
+                        .getCacheDir()
+                        .getPath()
+        );
+
+        System.setProperty(
+                "org.mockito.android.target",
+                ApplicationProvider
+                        .getApplicationContext()
+                        .getCacheDir()
+                        .getPath()
+        );
+    }
 
     @Test
     public void testNullMessage() {

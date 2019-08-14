@@ -23,7 +23,7 @@
 
 package com.microsoft.identity.client.exception;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.microsoft.identity.common.exception.IntuneAppProtectionPolicyRequiredException;
 

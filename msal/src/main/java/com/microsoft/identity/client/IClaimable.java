@@ -22,18 +22,38 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.Map;
 
 public interface IClaimable {
 
     /**
-     * Gets the claims associated with this account's IdToken.
+     * Gets the claims associated with this IClaimable's IdToken.
      *
      * @return A Map of claims.
      */
     @Nullable
     Map<String, ?> getClaims();
+
+    /**
+     * Gets the preferred_username claim associated with this IClaimable.
+     * <p>
+     * Note: On the Microsoft B2C Identity Platform, this claim may be unavailable when external
+     * identity providers are used.
+     *
+     * @return The preferred_username claim or "" (empty string) if not available.
+     */
+    @NonNull
+    String getUsername();
+
+    /**
+     * Gets the tid claim associated with this IClaimable.
+     *
+     * @return The tid claim or "" (empty string) if not available.
+     */
+    @NonNull
+    String getTenantId();
 
 }

@@ -22,8 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
@@ -68,7 +68,8 @@ public class Account implements IAccount {
     }
 
     @NonNull
-    String getTenantId() {
+    @Override
+    public String getTenantId() {
         return mHomeTenantId;
     }
 
@@ -96,5 +97,21 @@ public class Account implements IAccount {
     @Override
     public Map<String, ?> getClaims() {
         return mIdTokenClaims;
+    }
+
+    @NonNull
+    @Override
+    public String getUsername() {
+        String username = "";
+
+        if (null != getClaims()) {
+            final String usernameClaim = (String) getClaims().get(IDToken.PREFERRED_USERNAME);
+
+            if (null != usernameClaim) {
+                username = usernameClaim;
+            }
+        }
+
+        return username;
     }
 }

@@ -23,8 +23,8 @@
 package com.microsoft.identity.client;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.msal.test.R;
@@ -36,11 +36,10 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class ConstructorTest {
 
-
     @Test
-    public void testSingleAccountConstructor(){
+    public void testSingleAccountConstructor() {
+        Context context = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext();
 
-        Context context = InstrumentationRegistry.getContext();
         try {
             ISingleAccountPublicClientApplication app = PublicClientApplication.createSingleAccountPublicClientApplication(context, R.raw.test_msal_config_single_account);
             Assert.assertTrue(app instanceof ISingleAccountPublicClientApplication);
@@ -53,9 +52,9 @@ public class ConstructorTest {
     }
 
     @Test
-    public void testMultipleAccountConstructor(){
+    public void testMultipleAccountConstructor() {
+        Context context = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext();
 
-        Context context = InstrumentationRegistry.getContext();
         try {
             IMultipleAccountPublicClientApplication app = PublicClientApplication.createMultipleAccountPublicClientApplication(context, R.raw.test_msal_config_multiple_account);
             Assert.assertTrue(app instanceof IMultipleAccountPublicClientApplication);
@@ -68,8 +67,9 @@ public class ConstructorTest {
     }
 
     @Test
-    public void testMultipleAccountAsyncConstructor(){
-        Context context = InstrumentationRegistry.getContext();
+    public void testMultipleAccountAsyncConstructor() {
+        Context context = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext();
+
         PublicClientApplication.createMultipleAccountPublicClientApplication(context, R.raw.test_msal_config_multiple_account, new PublicClientApplication.ApplicationCreatedListener() {
             @Override
             public void onCreated(IPublicClientApplication application) {
@@ -83,8 +83,9 @@ public class ConstructorTest {
     }
 
     @Test
-    public void testSingleAccountAsyncConstructor(){
-        Context context = InstrumentationRegistry.getContext();
+    public void testSingleAccountAsyncConstructor() {
+        Context context = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext();
+
         PublicClientApplication.createMultipleAccountPublicClientApplication(context, R.raw.test_msal_config_single_account, new PublicClientApplication.ApplicationCreatedListener() {
             @Override
             public void onCreated(IPublicClientApplication application) {
@@ -96,5 +97,4 @@ public class ConstructorTest {
             }
         });
     }
-
 }

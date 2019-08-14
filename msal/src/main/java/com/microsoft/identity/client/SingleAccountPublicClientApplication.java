@@ -24,9 +24,9 @@ package com.microsoft.identity.client;
 
 import android.app.Activity;
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.WorkerThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
@@ -518,7 +518,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
-                                        @Nullable final String authority,
+                                        @NonNull final String authority,
                                         @NonNull final AuthenticationCallback callback) {
 
         if(getPersistedCurrentAccount() == null){
@@ -537,7 +537,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @WorkerThread
     public IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
-                                   @Nullable final String authority) throws MsalException, InterruptedException {
+                                                    @NonNull final String authority) throws MsalException, InterruptedException {
 
         if(getPersistedCurrentAccount() == null){
             throw new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);

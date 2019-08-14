@@ -25,16 +25,15 @@ package com.microsoft.identity.client.testapp;
 
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.NavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.Log;
+import com.google.android.material.navigation.NavigationView;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.RelativeLayout;
@@ -53,18 +52,12 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
-import com.microsoft.identity.common.internal.telemetry.Telemetry;
-import com.microsoft.identity.common.internal.telemetry.observers.ITelemetryAggregatedObserver;
-import com.microsoft.identity.common.internal.telemetry.observers.ITelemetryDefaultObserver;
 
-import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -74,13 +67,11 @@ import javax.crypto.spec.SecretKeySpec;
 /**
  * The app's main activity.
  */
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
-        AcquireTokenFragment.OnFragmentInteractionListener, CacheFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener,
+        AcquireTokenFragment.OnFragmentInteractionListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-
-    private IAccount mSelectedAccount;
-    private Handler mHandler;
 
     private IAuthenticationResult mAuthResult;
 
@@ -91,7 +82,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         public void acquireTokenSucceed(IAuthenticationResult result) {
             mAuthResult = result;
             onNavigationItemSelected(getNavigationView().getMenu().getItem(1));
-            mSelectedAccount = null;
         }
 
         @Override
@@ -209,11 +199,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             fragment.setArguments(bundle);
             mAuthResult = null;
-        } else if (menuItemId == R.id.nav_cache) {
-            fragment = new CacheFragment();
-            final Bundle args = new Bundle();
-            args.putSerializable(CacheFragment.ARG_LIST_CONTENTS, (Serializable) CacheFragment.TEST_LIST_ELEMENTS);
-            fragment.setArguments(args);
         } else if (menuItemId == R.id.nav_log) {
             fragment = new LogFragment();
             final String logs = ((MsalSampleApp) this.getApplication()).getLogs();
@@ -340,10 +325,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         );
     }
 
-    void setUser(final IAccount user) {
-        mSelectedAccount = user;
-    }
-
     private NavigationView getNavigationView() {
         final NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -362,23 +343,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private Handler getHandler() {
-        if (mHandler == null) {
-            return new Handler(MainActivity.this.getMainLooper());
-        }
-
-        return mHandler;
-    }
-
-    @Override
-    public void onDeleteToken(int position, final CacheFragment cacheFragment) {
-        Log.d(TAG, "onDeleteToken(" + position + ")");
-        cacheFragment.setLoading();
-        // TODO delete the items or whatever
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                cacheFragment.reload(CacheFragment.TEST_LIST_ELEMENTS);
-            }
-        }, 750L);
+        return new Handler(MainActivity.this.getMainLooper());
     }
 }
