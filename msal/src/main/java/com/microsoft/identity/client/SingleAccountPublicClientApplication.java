@@ -515,7 +515,9 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     }
 
     @Override
-    public void acquireToken(@NonNull Activity activity, @NonNull String[] scopes, @NonNull AuthenticationCallback callback) {
+    public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final String[] scopes,
+                             @NonNull final AuthenticationCallback callback) {
         acquireToken(
                 activity,
                 scopes,
@@ -575,7 +577,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     }
 
     @Override
-    public void acquireTokenSilentAsync(@NonNull AcquireTokenSilentParameters acquireTokenSilentParameters) {
+    public void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
         IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount == null) {
             acquireTokenSilentParameters.getCallback().onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
@@ -588,7 +590,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     }
 
     @Override
-    public IAuthenticationResult acquireTokenSilent(@NonNull AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException {
+    public IAuthenticationResult acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException {
         IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount == null) {
             throw new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);
