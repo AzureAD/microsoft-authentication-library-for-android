@@ -230,7 +230,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             }
         });
 
-        AsyncResult<List<IAccount>> result = future.get();
+        final AsyncResult<List<IAccount>> result = future.get();
 
         if (result.getSuccess()) {
             return result.getResult();
