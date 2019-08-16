@@ -112,8 +112,10 @@ public final class PublicClientApplicationIntegrationTest {
 
                 final String username = TestConfigurationHelper.getUpnForTest(query);
 
+                final String defaultAuthority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
+
                 final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .fromAuthority(AAD_ROPC_TEST_AUTHORITY)
+                        .fromAuthority(defaultAuthority)
                         .withScopes(Arrays.asList(SCOPES))
                         .forceRefresh(false)
                         .callback(new AuthenticationCallback() {
@@ -183,8 +185,10 @@ public final class PublicClientApplicationIntegrationTest {
 
                 final String username = TestConfigurationHelper.getUpnForTest(query);
 
+                final String defaultAuthority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
+
                 final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .fromAuthority(AAD_ROPC_TEST_AUTHORITY)
+                        .fromAuthority(defaultAuthority)
                         .withScopes(Arrays.asList(SCOPES))
                         .forceRefresh(true)
                         .callback(new AuthenticationCallback() {
@@ -254,8 +258,10 @@ public final class PublicClientApplicationIntegrationTest {
 
                 final String username = TestConfigurationHelper.getUpnForTest(query);
 
+                final String defaultAuthority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
+
                 final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .fromAuthority(AAD_ROPC_TEST_AUTHORITY)
+                        .fromAuthority(defaultAuthority)
                         .withScopes(Arrays.asList(SCOPES))
                         .forceRefresh(false)
                         .callback(new AuthenticationCallback() {
@@ -331,8 +337,10 @@ public final class PublicClientApplicationIntegrationTest {
 
                 final String username = TestConfigurationHelper.getUpnForTest(query);
 
+                final String defaultAuthority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
+
                 final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .fromAuthority(AAD_ROPC_TEST_AUTHORITY)
+                        .fromAuthority(defaultAuthority)
                         .withScopes(Arrays.asList(SCOPES))
                         .forceRefresh(false)
                         .callback(new AuthenticationCallback() {
