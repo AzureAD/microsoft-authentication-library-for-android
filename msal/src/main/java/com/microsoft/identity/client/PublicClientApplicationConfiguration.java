@@ -345,6 +345,9 @@ public class PublicClientApplicationConfiguration {
         } else if (config.mBrowserSafeList != null){
             this.mBrowserSafeList.addAll(config.mBrowserSafeList);
         }
+
+        // Multiple is the default mode.
+        this.mAccountMode = config.mAccountMode != AccountMode.MULTIPLE ? config.mAccountMode : this.mAccountMode;
     }
 
     void validateConfiguration() {

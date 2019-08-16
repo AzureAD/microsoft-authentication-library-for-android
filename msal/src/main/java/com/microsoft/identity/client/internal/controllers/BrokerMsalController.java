@@ -348,35 +348,37 @@ public class BrokerMsalController extends BaseController {
     /**
      * Get device mode from Broker.
      */
-    public void getBrokerDeviceMode(final Context appContext,
+    public void getBrokerDeviceMode(final PublicClientApplicationConfiguration configuration,
                                     final PublicClientApplication.BrokerDeviceModeCallback callback) {
+        final String methodName = ":getBrokerDeviceMode";
 
-        final String methodName = ":getBrokerAccountMode";
+        try {
+            if (!MSALControllerFactory.brokerEligible(
+                    configuration.getAppContext(),
+                    configuration.getDefaultAuthority(),
+                    configuration)) {
+
+                final String errorMessage = "This request is not eligible to use the broker. Do not check sharedDevice mode and return false immediately.";
+                com.microsoft.identity.common.internal.logging.Logger.error(TAG + methodName, errorMessage, null);
+                callback.onGetMode(false);
+                return;
+            }
+        } catch (MsalClientException e) {
+            callback.onError(e);
+            return;
+        }
+
         Telemetry.emit(
                 new BrokerStartEvent()
                         .putAction(methodName)
         );
 
         final Handler handler = new Handler(Looper.getMainLooper());
-
-        if (!MSALControllerFactory.brokerInstalled(appContext)) {
-            final String errorMessage = "Broker app is not installed on the device. Shared device mode requires the broker.";
-            com.microsoft.identity.common.internal.logging.Logger.verbose(TAG + methodName, errorMessage, null);
-            callback.onGetMode(false);
-            Telemetry.emit(
-                    new BrokerEndEvent()
-                            .putAction(methodName)
-                            .isSuccessful(false)
-                            .putErrorDescription(errorMessage)
-            );
-            return;
-        }
-
         sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
                 IMicrosoftAuthService service;
-                final MicrosoftAuthClient client = new MicrosoftAuthClient(appContext);
+                final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
                 try {
                     final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
 

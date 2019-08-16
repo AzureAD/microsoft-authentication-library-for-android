@@ -30,14 +30,11 @@ import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
 
 import android.text.TextUtils;
 import android.util.Pair;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.exception.MsalClientException;
@@ -45,7 +42,6 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalUserCancelException;
 import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.MsalUtils;
-import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
 import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
@@ -55,9 +51,6 @@ import com.microsoft.identity.client.internal.telemetry.Defaults;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.internal.authorities.Authority;
-import com.microsoft.identity.common.internal.authorities.AuthorityDeserializer;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
@@ -78,18 +71,15 @@ import com.microsoft.identity.common.internal.request.ILocalAuthenticationCallba
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 import com.microsoft.identity.msal.BuildConfig;
-import com.microsoft.identity.msal.R;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
+import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
 import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isHomeTenantEquivalent;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
@@ -164,6 +154,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     protected PublicClientApplicationConfiguration mPublicClientConfiguration;
     protected TokenShareUtility mTokenShareUtility;
 
+    //region PCA factory methods
+
     /**
      * {@link PublicClientApplication#create(Context, int, ApplicationCreatedListener)} will read the client id and other configuration settings from the
      * file included in your applications resources.
@@ -190,12 +182,96 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(context, "context");
         validateNonNullArgument(listener, "listener");
 
-        create(context,
-                loadConfiguration(context, configFileResourceId),
-                listener
-        );
+        create(PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFileResourceId),
+                null,
+                null,
+                listener);
     }
 
+
+    /**
+     * {@link PublicClientApplication#create(Context, File, ApplicationCreatedListener)} will read the client id and other configuration settings from the
+     * specified file.
+     *
+     * @param context    Application's {@link Context}. The sdk requires the application context to be passed in
+     *                   {@link PublicClientApplication}. Cannot be null.
+     *                   <p>
+     *                   Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
+     *                   strong reference to the activity, thus preventing correct garbage collection and causing bugs.
+     *                   </p>
+     * @param configFile The file containing the JSON configuration for the PublicClientApplication
+     * @param listener   a callback to be invoked when the object is successfully created.
+     * @see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     * <p>
+     * For more information on the schema of the MSAL config json please
+     * @see <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     */
+    public static void create(@NonNull final Context context,
+                              @Nullable final File configFile,
+                              @NonNull final ApplicationCreatedListener listener) {
+        validateNonNullArgument(context, "context");
+        validateNonNullArgument(listener, "listener");
+
+        create(PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFile),
+                null,
+                null,
+                listener);
+    }
+
+    /**
+     * {@link PublicClientApplication#create(Context, String, ApplicationCreatedListener)} allows the client id to be passed instead of
+     * providing through the AndroidManifest metadata. If this constructor is called, the default authority https://login.microsoftonline.com/common will be used.
+     *
+     * @param context  Application's {@link Context}. The sdk requires the application context to be passed in
+     *                 {@link PublicClientApplication}. Cannot be null.
+     *                 <p>
+     *                 Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
+     *                 strong reference to the activity, thus preventing correct garbage collection and causing bugs.
+     *                 </p>
+     * @param clientId The application's client id.
+     * @param listener a callback to be invoked when the object is successfully created.
+     */
+    public static void create(@NonNull final Context context,
+                              @NonNull final String clientId,
+                              @NonNull final ApplicationCreatedListener listener) {
+        validateNonNullArgument(context, "context");
+        validateNonNullArgument(clientId, "clientId");
+        validateNonNullArgument(listener, "listener");
+
+        create(PublicClientApplicationConfigurationFactory.initializeConfiguration(context),
+                clientId,
+                null,
+                listener);
+    }
+
+    /**
+     * {@link PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)} allows the client id and authority to be passed instead of
+     * providing them through metadata.
+     *
+     * @param context   Application's {@link Context}. The sdk requires the application context to be passed in
+     *                  {@link PublicClientApplication}. Cannot be null.
+     *                  <p>
+     *                  Note: The {@link Context} should be the application context instead of an running activity's context, which could potentially make the sdk hold a
+     *                  strong reference to the activity, thus preventing correct garbage collection and causing bugs.
+     *                  </p>
+     * @param clientId  The application client id.
+     * @param authority The default authority to be used for the authority.
+     * @param listener  a callback to be invoked when the object is successfully created.
+     */
+    public static void create(@NonNull final Context context,
+                              @NonNull final String clientId,
+                              @NonNull final String authority,
+                              @NonNull final ApplicationCreatedListener listener) {
+        validateNonNullArgument(context, "context");
+        validateNonNullArgument(clientId, "clientId");
+        validateNonNullArgument(authority, "authority");
+        validateNonNullArgument(listener, "listener");
+
+        create(PublicClientApplicationConfigurationFactory.initializeConfiguration(context),
+                clientId,
+                authority,
+                listener);
+    }
 
     /**
      * {@link PublicClientApplication#create(Context, int, ApplicationCreatedListener)} will read the client id and other configuration settings from the
@@ -218,13 +294,14 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                                   final int configFileResourceId) throws InterruptedException, MsalException {
         validateNonNullArgument(context, "context");
 
-        final PublicClientApplicationConfiguration configuration = loadConfiguration(context, configFileResourceId);
-        return createPublicClientApplication(context, configuration);
+        return create(PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFileResourceId));
     }
+    //endregion
 
+    //region Multiple Account PCA factory methods.
 
     /**
-     * {@link PublicClientApplication#createMultipleAccountPublicClientApplication(Context, int, ApplicationCreatedListener)} will read the client id and other configuration settings from the
+     * {@link PublicClientApplication#createMultipleAccountPublicClientApplication(Context, int, IMultipleAccountApplicationCreatedListener)} will read the client id and other configuration settings from the
      * file included in your applications resources.
      * <p>
      * For more information on adding configuration files to your applications resources please
@@ -245,12 +322,46 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      */
     public static void createMultipleAccountPublicClientApplication(@NonNull final Context context,
                                                                     final int configFileResourceId,
-                                                                    @NonNull final ApplicationCreatedListener listener) {
+                                                                    @NonNull final IMultipleAccountApplicationCreatedListener listener) {
 
         validateNonNullArgument(context, "context");
+        validateNonNullArgument(listener, "listener");
 
-        create(context,
-                loadConfiguration(context, configFileResourceId),
+        createMultipleAccountPublicClientApplication(
+                PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFileResourceId),
+                listener
+        );
+    }
+
+    /**
+     * {@link PublicClientApplication#createMultipleAccountPublicClientApplication(Context, int, IMultipleAccountApplicationCreatedListener)} will read the client id and other configuration settings from the
+     * file included in your applications resources.
+     * <p>
+     * For more information on adding configuration files to your applications resources please
+     *
+     * @param context    Application's {@link Context}. The sdk requires the application context to be passed in
+     *                   {@link PublicClientApplication}. Cannot be null.
+     *                   <p>
+     *                   Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
+     *                   strong reference to the activity, thus preventing correct garbage collection and causing bugs.
+     *                   </p>
+     * @param configFile The file containing the JSON configuration for the PublicClientApplication
+     * @param listener   a callback to be invoked when the object is successfully created.
+     *                   <p>
+     *                   For more information on the schema of the MSAL config json please
+     * @param listener   a callback to be invoked when the object is successfully created.
+     * @see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     * @see <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     */
+    public static void createMultipleAccountPublicClientApplication(@NonNull final Context context,
+                                                                    @NonNull final File configFile,
+                                                                    @NonNull final IMultipleAccountApplicationCreatedListener listener) {
+
+        validateNonNullArgument(context, "context");
+        validateNonNullArgument(listener, "listener");
+
+        createMultipleAccountPublicClientApplication(
+                PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFile),
                 listener
         );
     }
@@ -274,28 +385,14 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      */
     @WorkerThread
     public static IMultipleAccountPublicClientApplication createMultipleAccountPublicClientApplication(@NonNull final Context context,
-                                                                                                       final int configFileResourceId) throws MsalException, InterruptedException {
+                                                                                                       @NonNull final int configFileResourceId) throws MsalException, InterruptedException {
         validateNonNullArgument(context, "context");
 
-        final PublicClientApplicationConfiguration configuration = loadConfiguration(context, configFileResourceId);
-
-        if (configuration.mAccountMode != AccountMode.MULTIPLE) {
-            throw new MsalClientException("AccountMode in configuration is not set to multiple");
-        }
-
-        IPublicClientApplication application = createPublicClientApplication(context, configuration);
-        if (application instanceof IMultipleAccountPublicClientApplication) {
-            return (IMultipleAccountPublicClientApplication) application;
-        } else {
-            if (configuration.mAccountMode == AccountMode.MULTIPLE && application.isSharedDevice()) {
-                throw new MsalClientException("AccountMode in configuration is set to multiple; however the device is marked as shared");
-            }
-            throw new MsalClientException("A multiple account public client application could not be created for unknown reasons");
-        }
+        return createMultipleAccountPublicClientApplication(PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFileResourceId));
     }
 
     /**
-     * {@link PublicClientApplication#createMultipleAccountPublicClientApplication(Context, int, ApplicationCreatedListener)} will read the client id and other configuration settings from the
+     * {@link PublicClientApplication#createMultipleAccountPublicClientApplication(Context, File)} will read the client id and other configuration settings from the
      * file included in your applications resources.
      * <p>
      * For more information on adding configuration files to your applications resources please
@@ -314,67 +411,18 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     @WorkerThread
     public static IMultipleAccountPublicClientApplication createMultipleAccountPublicClientApplication(@NonNull final Context context,
                                                                                                        @NonNull final File configFile) throws InterruptedException, MsalException {
-
         validateNonNullArgument(context, "context");
         validateNonNullArgument(configFile, "configFile");
 
-        PublicClientApplicationConfiguration configuration = loadConfiguration(configFile);
-
-        if (configuration.mAccountMode != AccountMode.MULTIPLE) {
-            throw new MsalClientException("AccountMode in configuration is not set to multiple");
-        }
-
-        IPublicClientApplication application = createPublicClientApplication(context, configuration);
-
-        if (application instanceof IMultipleAccountPublicClientApplication) {
-            return (IMultipleAccountPublicClientApplication) application;
-        } else {
-            if (configuration.mAccountMode == AccountMode.MULTIPLE && application.isSharedDevice()) {
-                throw new MsalClientException("AccountMode in configuration is set to multiple; however the device is marked as shared");
-            }
-            throw new MsalClientException("A multiple account public client application could not be created for unknown reasons");
-        }
+        return createMultipleAccountPublicClientApplication(PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFile));
     }
 
-    private static IPublicClientApplication createPublicClientApplication(@NonNull final Context context,
-                                                                          final PublicClientApplicationConfiguration configuration) throws MsalException, InterruptedException {
+    //endregion
 
-        validateNonNullArgument(context, "context");
-        validateNonNullArgument(configuration, "configuration");
-
-        throwOnMainThread("createMultipleAccountPublicClientApplication");
-
-        final ResultFuture<AsyncResult<IPublicClientApplication>> future = new ResultFuture<>();
-        create(context,
-                configuration,
-                new ApplicationCreatedListener() {
-                    @Override
-                    public void onCreated(IPublicClientApplication application) {
-                        future.setResult(new AsyncResult<IPublicClientApplication>(application, null));
-                    }
-
-                    @Override
-                    public void onError(MsalException exception) {
-                        future.setResult(new AsyncResult<IPublicClientApplication>(null, exception));
-                    }
-                }
-        );
-
-        //Blocking Call
-        AsyncResult<IPublicClientApplication> result = future.get();
-
-        if (!result.getSuccess()) {
-            //Exception thrown
-            MsalException ex = result.getException();
-            throw ex;
-        }
-
-        return result.getResult();
-
-    }
+    //region Single Account PCA factory methods.
 
     /**
-     * {@link PublicClientApplication#createSingleAccountPublicClientApplication(Context, int, ApplicationCreatedListener)} will read the client id and other configuration settings from the
+     * {@link PublicClientApplication#createSingleAccountPublicClientApplication(Context, int, ISingleAccountApplicationCreatedListener)} will read the client id and other configuration settings from the
      * file included in your applications resources.
      * <p>
      * For more information on adding configuration files to your applications resources please
@@ -395,18 +443,47 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      */
     public static void createSingleAccountPublicClientApplication(@NonNull final Context context,
                                                                   final int configFileResourceId,
-                                                                  @NonNull final ApplicationCreatedListener listener) {
+                                                                  @NonNull final ISingleAccountApplicationCreatedListener listener) {
 
         validateNonNullArgument(context, "context");
         validateNonNullArgument(listener, "listener");
-        if (context == null) {
-            throw new IllegalArgumentException("context is null.");
-        }
 
-        create(context,
-                loadConfiguration(context, configFileResourceId),
-                listener
-        );
+        createSingleAccountPublicClientApplication(
+                PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFileResourceId),
+                listener);
+    }
+
+    /**
+     * {@link PublicClientApplication#createSingleAccountPublicClientApplication(Context, int, ISingleAccountApplicationCreatedListener)} will read the client id and other configuration settings from the
+     * file included in your applications resources.
+     * <p>
+     * For more information on adding configuration files to your applications resources please
+     *
+     * @param context    Application's {@link Context}. The sdk requires the application context to be passed in
+     *                   {@link PublicClientApplication}. Cannot be null.
+     *                   <p>
+     *                   Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
+     *                   strong reference to the activity, thus preventing correct garbage collection and causing bugs.
+     *                   </p>
+     * @param configFile The file containing the JSON configuration for the PublicClientApplication
+     * @param listener   a callback to be invoked when the object is successfully created.
+     *                   <p>
+     *                   For more information on the schema of the MSAL config json please
+     * @param listener   a callback to be invoked when the object is successfully created.
+     * @see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     * @see <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     */
+    public static void createSingleAccountPublicClientApplication(@NonNull final Context context,
+                                                                  @NonNull final File configFile,
+                                                                  @NonNull final ISingleAccountApplicationCreatedListener listener) {
+
+        validateNonNullArgument(context, "context");
+        validateNonNullArgument(configFile, "configFile");
+        validateNonNullArgument(listener, "listener");
+
+        createSingleAccountPublicClientApplication(
+                PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFile),
+                listener);
     }
 
     /**
@@ -431,18 +508,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                                                                                    final int configFileResourceId) throws InterruptedException, MsalException {
         validateNonNullArgument(context, "context");
 
-        final PublicClientApplicationConfiguration configuration = loadConfiguration(context, configFileResourceId);
-
-        if (configuration.mAccountMode != AccountMode.SINGLE) {
-            throw new MsalClientException("AccountMode in configuration is not set to single");
-        }
-
-        IPublicClientApplication application = createPublicClientApplication(context, configuration);
-        if (application instanceof ISingleAccountPublicClientApplication) {
-            return (ISingleAccountPublicClientApplication) application;
-        } else {
-            throw new MsalClientException("A multiple single public client application could not be created for unknown reasons");
-        }
+        return createSingleAccountPublicClientApplication(PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFileResourceId));
     }
 
     /**
@@ -464,13 +530,69 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      */
     @WorkerThread
     public static ISingleAccountPublicClientApplication createSingleAccountPublicClientApplication(@NonNull final Context context,
-                                                                                                   final File configFile) throws InterruptedException, MsalException {
-
+                                                                                                   @Nullable final File configFile) throws InterruptedException, MsalException {
         validateNonNullArgument(context, "context");
 
-        final PublicClientApplicationConfiguration configuration = loadConfiguration(configFile);
-        IPublicClientApplication application = createPublicClientApplication(context, configuration);
+        return createSingleAccountPublicClientApplication(PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFile));
+    }
+    //endregion
 
+    //region internal factory methods.
+    @WorkerThread
+    private static IPublicClientApplication create(@NonNull final PublicClientApplicationConfiguration configuration) throws MsalException, InterruptedException {
+        validateNonNullArgument(configuration, "configuration");
+
+        throwOnMainThread("createPublicClientApplication");
+
+        final ResultFuture<AsyncResult<IPublicClientApplication>> future = new ResultFuture<>();
+        create(configuration,
+                null,
+                null,
+                new ApplicationCreatedListener() {
+                    @Override
+                    public void onCreated(IPublicClientApplication application) {
+                        future.setResult(new AsyncResult<IPublicClientApplication>(application, null));
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        future.setResult(new AsyncResult<IPublicClientApplication>(null, exception));
+                    }
+                }
+        );
+
+        //Blocking Call
+        AsyncResult<IPublicClientApplication> result = future.get();
+
+        if (!result.getSuccess()) {
+            //Exception thrown
+            MsalException ex = result.getException();
+            throw ex;
+        }
+
+        return result.getResult();
+    }
+
+    @WorkerThread
+    private static IMultipleAccountPublicClientApplication createMultipleAccountPublicClientApplication(@NonNull final PublicClientApplicationConfiguration configuration) throws InterruptedException, MsalException {
+        if (configuration.mAccountMode != AccountMode.MULTIPLE) {
+            throw new MsalClientException("AccountMode in configuration is not set to multiple");
+        }
+
+        IPublicClientApplication application = create(configuration);
+        if (application instanceof IMultipleAccountPublicClientApplication) {
+            return (IMultipleAccountPublicClientApplication) application;
+        } else {
+            if (configuration.mAccountMode == AccountMode.MULTIPLE && application.isSharedDevice()) {
+                throw new MsalClientException("AccountMode in configuration is set to multiple; however the device is marked as shared (which requires single account mode)");
+            }
+            throw new MsalClientException("A multiple account public client application could not be created for unknown reasons");
+        }
+    }
+
+    @WorkerThread
+    private static ISingleAccountPublicClientApplication createSingleAccountPublicClientApplication(@Nullable final PublicClientApplicationConfiguration configuration) throws InterruptedException, MsalException {
+        IPublicClientApplication application = create(configuration);
         if (application instanceof ISingleAccountPublicClientApplication) {
             return (ISingleAccountPublicClientApplication) application;
         } else {
@@ -481,160 +603,106 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-
-    /**
-     * {@link PublicClientApplication#create(Context, File, ApplicationCreatedListener)} will read the client id and other configuration settings from the
-     * specified file.
-     *
-     * @param context    Application's {@link Context}. The sdk requires the application context to be passed in
-     *                   {@link PublicClientApplication}. Cannot be null.
-     *                   <p>
-     *                   Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
-     *                   strong reference to the activity, thus preventing correct garbage collection and causing bugs.
-     *                   </p>
-     * @param configFile The file containing the JSON configuration for the PublicClientApplication
-     * @param listener   a callback to be invoked when the object is successfully created.
-     * @see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
-     * <p>
-     * For more information on the schema of the MSAL config json please
-     * @see <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
-     */
-    public static void create(@NonNull final Context context,
-                              final File configFile,
-                              @NonNull final ApplicationCreatedListener listener) {
-
-        validateNonNullArgument(context, "context");
-
-        create(context,
-                loadConfiguration(configFile),
-                listener);
-    }
-
-    /**
-     * @param methodName
-     */
-    protected static void throwOnMainThread(String methodName) {
-
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            throw new IllegalStateException("method: " + methodName + " may not be called from main thread.");
-        }
-    }
-
-    /**
-     * {@link PublicClientApplication#create(Context, String, ApplicationCreatedListener)} allows the client id to be passed instead of
-     * providing through the AndroidManifest metadata. If this constructor is called, the default authority https://login.microsoftonline.com/common will be used.
-     *
-     * @param context  Application's {@link Context}. The sdk requires the application context to be passed in
-     *                 {@link PublicClientApplication}. Cannot be null.
-     *                 <p>
-     *                 Note: The {@link Context} should be the application context instead of the running activity's context, which could potentially make the sdk hold a
-     *                 strong reference to the activity, thus preventing correct garbage collection and causing bugs.
-     *                 </p>
-     * @param clientId The application's client id.
-     * @param listener a callback to be invoked when the object is successfully created.
-     */
-    public static void create(@NonNull final Context context,
-                              @NonNull final String clientId,
-                              @NonNull final ApplicationCreatedListener listener) {
-
-        validateNonNullArgument(context, "context");
-        validateNonNullArgument(context, "listener");
-
-
-        if (MsalUtils.isEmpty(clientId)) {
-            throw new IllegalArgumentException("client id is empty or null");
-        }
-
-        new BrokerMsalController().getBrokerDeviceMode(context, new BrokerDeviceModeCallback() {
-            @Override
-            public void onGetMode(boolean isSharedDevice) {
-                if (isSharedDevice) {
-                    listener.onCreated(new SingleAccountPublicClientApplication(context, clientId, isSharedDevice));
-                } else {
-                    listener.onCreated(new MultipleAccountPublicClientApplication(context, clientId));
-                }
-            }
-
-            @Override
-            public void onError(MsalException exception) {
-                listener.onError(exception);
-            }
-        });
-    }
-
-    /**
-     * {@link PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)} allows the client id and authority to be passed instead of
-     * providing them through metadata.
-     *
-     * @param context   Application's {@link Context}. The sdk requires the application context to be passed in
-     *                  {@link PublicClientApplication}. Cannot be null.
-     *                  <p>
-     *                  Note: The {@link Context} should be the application context instead of an running activity's context, which could potentially make the sdk hold a
-     *                  strong reference to the activity, thus preventing correct garbage collection and causing bugs.
-     *                  </p>
-     * @param clientId  The application client id.
-     * @param authority The default authority to be used for the authority.
-     * @param listener  a callback to be invoked when the object is successfully created.
-     */
-    public static void create(@NonNull final Context context,
-                              @NonNull final String clientId,
-                              @NonNull final String authority,
-                              @NonNull final ApplicationCreatedListener listener) {
-
-        validateNonNullArgument(context, "context");
-
-        if (MsalUtils.isEmpty(clientId)) {
-            throw new IllegalArgumentException("client id is empty or null");
-        }
-
-        if (TextUtils.isEmpty(authority)) {
-            throw new IllegalArgumentException("authority is empty or null");
-        }
-
-        new BrokerMsalController().getBrokerDeviceMode(context, new BrokerDeviceModeCallback() {
-            @Override
-            public void onGetMode(boolean isSharedDevice) {
-                if (isSharedDevice) {
-                    listener.onCreated(new SingleAccountPublicClientApplication(context, clientId, authority, isSharedDevice));
-                } else {
-                    listener.onCreated(new MultipleAccountPublicClientApplication(context, clientId, authority));
-                }
-            }
-
-            @Override
-            public void onError(MsalException exception) {
-                listener.onError(exception);
-            }
-        });
-    }
-
-    private static void create(@NonNull final Context context,
-                               final PublicClientApplicationConfiguration developerConfig,
+    private static void create(@NonNull final PublicClientApplicationConfiguration config,
+                               @Nullable final String clientId,
+                               @Nullable final String authority,
                                @NonNull final ApplicationCreatedListener listener) {
-        new BrokerMsalController().getBrokerDeviceMode(context, new BrokerDeviceModeCallback() {
+        new BrokerMsalController().getBrokerDeviceMode(config, new BrokerDeviceModeCallback() {
             @Override
             public void onGetMode(boolean isSharedDevice) {
-                if (isSharedDevice) {
-                    listener.onCreated(new SingleAccountPublicClientApplication(context, developerConfig, isSharedDevice));
+                if (config.getAccountMode() == AccountMode.SINGLE || isSharedDevice) {
+                    listener.onCreated(new SingleAccountPublicClientApplication(config, clientId, authority, isSharedDevice));
                 } else {
-                    if (developerConfig.getAccountMode() == AccountMode.SINGLE) {
-                        listener.onCreated(new SingleAccountPublicClientApplication(context, developerConfig, false));
-                    } else {
-                        listener.onCreated(new MultipleAccountPublicClientApplication(context, developerConfig));
+                    listener.onCreated(new MultipleAccountPublicClientApplication(config, clientId, authority));
+                }
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                listener.onError(exception);
+            }
+        });
+    }
+
+    private static void createMultipleAccountPublicClientApplication(@NonNull final PublicClientApplicationConfiguration configuration,
+                                                                     @NonNull final IMultipleAccountApplicationCreatedListener listener) {
+        create(configuration,
+                null,
+                null,
+                new ApplicationCreatedListener() {
+                    @Override
+                    public void onCreated(IPublicClientApplication application) {
+                        if (application instanceof IMultipleAccountPublicClientApplication) {
+                            listener.onCreated((IMultipleAccountPublicClientApplication) application);
+                        } else {
+                            if (application.getConfiguration().mAccountMode == AccountMode.MULTIPLE && application.isSharedDevice()) {
+                                listener.onError(new MsalClientException("AccountMode in configuration is set to multiple; however the device is marked as shared (which requires single account mode)"));
+                                return;
+                            }
+                            listener.onError(new MsalClientException("A multiple account public client application could not be created for unknown reasons"));
+                        }
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        listener.onError(exception);
                     }
                 }
-            }
-
-            @Override
-            public void onError(MsalException exception) {
-                listener.onError(exception);
-            }
-        });
+        );
     }
 
-    protected PublicClientApplication(@NonNull final Context context,
-                                      @Nullable final PublicClientApplicationConfiguration developerConfig) {
-        initializeConfiguration(context, developerConfig);
+    private static void createSingleAccountPublicClientApplication(@NonNull final PublicClientApplicationConfiguration configuration,
+                                                                   @NonNull final ISingleAccountApplicationCreatedListener listener) {
+        create(configuration,
+                null,
+                null,
+                new ApplicationCreatedListener() {
+                    @Override
+                    public void onCreated(IPublicClientApplication application) {
+                        if (application instanceof ISingleAccountPublicClientApplication) {
+                            listener.onCreated((ISingleAccountPublicClientApplication) application);
+                        } else {
+                            if (application.getConfiguration().mAccountMode != AccountMode.SINGLE) {
+                                listener.onError(new MsalClientException("AccountMode in configuration is not set to single"));
+                                return;
+                            }
+                            listener.onError(new MsalClientException("A single account public client application could not be created for unknown reasons"));
+                        }
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        listener.onError(exception);
+                    }
+                }
+        );
+    }
+    //endregion
+
+    protected PublicClientApplication(@NonNull final PublicClientApplicationConfiguration configFile,
+                                      @Nullable final String clientId,
+                                      @Nullable final String authority) {
+
+        mPublicClientConfiguration = configFile;
+
+        if (clientId != null) {
+            mPublicClientConfiguration.mClientId = clientId;
+        }
+
+        if (authority != null) {
+            mPublicClientConfiguration.getAuthorities().clear();
+
+            Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority);
+            authorityObject.setDefault(true);
+            mPublicClientConfiguration.getAuthorities().add(authorityObject);
+        }
+
+        initializeApplication();
+    }
+
+    private void initializeApplication() {
+        final Context context = mPublicClientConfiguration.getAppContext();
+        setupTelemetry(context, mPublicClientConfiguration);
 
         AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
@@ -649,6 +717,30 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         } else {
             throw new IllegalStateException("TSL support mandates use of the MsalOAuth2TokenCache");
         }
+
+        // Init Events with defaults (application-wide)
+        DefaultEvent.initializeDefaults(
+                Defaults.forApplication(
+                        context,
+                        mPublicClientConfiguration.getClientId()
+                )
+        );
+
+        mPublicClientConfiguration.mRedirectUri
+                = BrokerValidator.getBrokerRedirectUri(
+                context,
+                mPublicClientConfiguration.getAppContext().getPackageName());
+
+        checkIntentFilterAddedToAppManifest();
+
+        // Since network request is sent from the sdk, if calling app doesn't declare the internet permission in the
+        // manifest, we cannot make the network call.
+        checkInternetPermission();
+
+        // Init HTTP cache
+        HttpCache.initialize(context.getCacheDir());
+
+        com.microsoft.identity.common.internal.logging.Logger.info(TAG, "Create new public client application.");
     }
 
     private void setupTelemetry(@NonNull final Context context,
@@ -669,58 +761,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 .withContext(context)
                 .defaultConfiguration(developerConfig.getTelemetryConfiguration())
                 .build();
-    }
-
-    protected PublicClientApplication(@NonNull final Context context,
-                                      @NonNull final String clientId) {
-        this(context, (PublicClientApplicationConfiguration) null);
-        mPublicClientConfiguration.mClientId = clientId;
-        initializeApplication();
-    }
-
-    protected PublicClientApplication(@NonNull final Context context,
-                                      @NonNull final String clientId,
-                                      @NonNull final String authority) {
-
-        this(context, clientId);
-
-        mPublicClientConfiguration.getAuthorities().clear();
-
-        if (authority != null) {
-            Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority);
-            authorityObject.setDefault(true);
-            mPublicClientConfiguration.getAuthorities().add(authorityObject);
-        }
-
-        Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
-    }
-
-    private void initializeApplication() {
-        final Context context = mPublicClientConfiguration.getAppContext();
-
-        // Init Events with defaults (application-wide)
-        DefaultEvent.initializeDefaults(
-                Defaults.forApplication(
-                        context,
-                        mPublicClientConfiguration.getClientId()
-                )
-        );
-
-        mPublicClientConfiguration.mRedirectUri
-                = BrokerValidator.getBrokerRedirectUri(
-                mPublicClientConfiguration.getAppContext(),
-                mPublicClientConfiguration.getAppContext().getPackageName());
-
-        checkIntentFilterAddedToAppManifest();
-
-        // Since network request is sent from the sdk, if calling app doesn't declare the internet permission in the
-        // manifest, we cannot make the network call.
-        checkInternetPermission();
-
-        // Init HTTP cache
-        HttpCache.initialize(context.getCacheDir());
-
-        com.microsoft.identity.common.internal.logging.Logger.info(TAG, "Create new public client application.");
     }
 
     @Override
@@ -797,21 +837,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     "Cannot perform this action - broker is enabled."
             );
         }
-    }
-
-    /**
-     * Listener callback for asynchronous initialization of IPublicClientApplication object.
-     */
-    public interface ApplicationCreatedListener {
-        /**
-         * Called once an IPublicClientApplication is successfully created.
-         */
-        void onCreated(final IPublicClientApplication application);
-
-        /**
-         * Called once IPublicClientApplication can't be created.
-         */
-        void onError(final MsalException exception);
     }
 
     /**
@@ -899,17 +924,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
 
         acquireToken(acquireTokenParameters);
-    }
-
-    protected static void validateNonNullArgument(@Nullable Object o,
-                                                  @NonNull String argName) {
-        if (null == o
-                || (o instanceof CharSequence) && TextUtils.isEmpty((CharSequence) o)) {
-            throw new IllegalArgumentException(
-                    argName
-                            + " cannot be null or empty"
-            );
-        }
     }
 
     /**
@@ -1146,102 +1160,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         } else {
             throw result.getException();
         }
-
-    }
-
-    @VisibleForTesting
-    static PublicClientApplicationConfiguration loadConfiguration(@NonNull final Context context,
-                                                                  final int configResourceId) {
-        InputStream configStream = context.getResources().openRawResource(configResourceId);
-        boolean useDefaultConfigResourceId = configResourceId == R.raw.msal_default_config;
-        return loadConfiguration(configStream, useDefaultConfigResourceId);
-    }
-
-    @VisibleForTesting
-    static PublicClientApplicationConfiguration loadConfiguration(@NonNull File configFile) {
-        try {
-            return loadConfiguration(new FileInputStream(configFile), false);
-        } catch (FileNotFoundException e) {
-            throw new IllegalArgumentException("Provided configuration file path=" + configFile.getPath() + " not found.");
-        }
-    }
-
-    private static PublicClientApplicationConfiguration loadConfiguration(InputStream configStream, boolean isDefaultConfiguration) {
-        byte[] buffer;
-
-        try {
-            buffer = new byte[configStream.available()];
-            configStream.read(buffer);
-        } catch (IOException e) {
-            if (isDefaultConfiguration) {
-                throw new IllegalStateException("Unable to open default configuration file.", e);
-            } else {
-                throw new IllegalArgumentException("Unable to open provided configuration file.", e);
-            }
-        } finally {
-            try {
-                configStream.close();
-            } catch (IOException e) {
-                if (isDefaultConfiguration) {
-                    com.microsoft.identity.common.internal.logging.Logger.warn(
-                            TAG + "loadConfiguration",
-                            "Unable to close default configuration file. This can cause memory leak."
-                    );
-                } else {
-                    com.microsoft.identity.common.internal.logging.Logger.warn(
-                            TAG + "loadConfiguration",
-                            "Unable to close provided configuration file. This can cause memory leak."
-                    );
-                }
-            }
-        }
-
-        final String config = new String(buffer);
-        final Gson gson = getGsonForLoadingConfiguration();
-
-        return gson.fromJson(config, PublicClientApplicationConfiguration.class);
-    }
-
-    private void initializeConfiguration(@NonNull Context context,
-                                         @Nullable PublicClientApplicationConfiguration developerConfig) {
-        final PublicClientApplicationConfiguration defaultConfig = loadDefaultConfiguration(context);
-
-        if (developerConfig != null) {
-            defaultConfig.mergeConfiguration(developerConfig);
-            defaultConfig.validateConfiguration();
-        }
-
-        mPublicClientConfiguration = defaultConfig;
-        mPublicClientConfiguration.setAppContext(context);
-        mPublicClientConfiguration.setOAuth2TokenCache(getOAuth2TokenCache());
-
-        setupTelemetry(context, mPublicClientConfiguration);
-    }
-
-    private PublicClientApplicationConfiguration loadDefaultConfiguration(@NonNull final Context context) {
-        final String methodName = ":loadDefaultConfiguration";
-        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                TAG + methodName,
-                "Loading default configuration"
-        );
-        return loadConfiguration(context, R.raw.msal_default_config);
-    }
-
-    private static Gson getGsonForLoadingConfiguration() {
-        return new GsonBuilder()
-                .registerTypeAdapter(
-                        Authority.class,
-                        new AuthorityDeserializer()
-                )
-                .registerTypeAdapter(
-                        AzureActiveDirectoryAudience.class,
-                        new AzureActiveDirectoryAudienceDeserializer()
-                )
-                .registerTypeAdapter(
-                        Logger.LogLevel.class,
-                        new LogLevelDeserializer()
-                )
-                .create();
     }
 
     // TODO: if no more input validation is needed, this could be moved back to the constructor.

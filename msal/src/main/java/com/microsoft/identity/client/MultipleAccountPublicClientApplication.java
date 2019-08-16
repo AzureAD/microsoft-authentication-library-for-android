@@ -60,24 +60,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
+
 public class MultipleAccountPublicClientApplication extends PublicClientApplication
         implements IMultipleAccountPublicClientApplication {
     private static final String TAG = MultipleAccountPublicClientApplication.class.getSimpleName();
 
-    protected MultipleAccountPublicClientApplication(@NonNull final Context context,
-                                                     @NonNull final PublicClientApplicationConfiguration developerConfig) {
-        super(context, developerConfig);
-    }
-
-    protected MultipleAccountPublicClientApplication(@NonNull final Context context,
-                                                     @NonNull final String clientId) {
-        super(context, clientId);
-    }
-
-    protected MultipleAccountPublicClientApplication(@NonNull final Context context,
-                                                     @NonNull final String clientId,
-                                                     @NonNull final String authority) {
-        super(context, clientId, authority);
+    protected MultipleAccountPublicClientApplication(@NonNull PublicClientApplicationConfiguration config,
+                                                     @Nullable final String clientId,
+                                                     @Nullable final String authority) {
+        super(config, clientId, authority);
     }
 
     @Override
