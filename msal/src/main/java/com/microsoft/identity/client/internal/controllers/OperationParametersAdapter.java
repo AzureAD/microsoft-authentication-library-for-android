@@ -25,6 +25,7 @@ package com.microsoft.identity.client.internal.controllers;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -231,36 +232,30 @@ public class OperationParametersAdapter {
 
     public static AcquireTokenSilentOperationParameters createAcquireTokenSilentOperationParameters(
             @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters,
-            @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration,
+            @NonNull final PublicClientApplicationConfiguration pcaConfig,
             @Nullable final String requestEnvironment,
             @Nullable final String requestHomeAccountId) {
-        final AcquireTokenSilentOperationParameters acquireTokenSilentOperationParameters
-                = new AcquireTokenSilentOperationParameters();
+        final Context context = pcaConfig.getAppContext();
+        final String requestAuthority = acquireTokenSilentParameters.getAuthority();
+        final Authority authority = Authority.getAuthorityFromAuthorityUrl(requestAuthority);
+        final ClaimsRequest claimsRequest = acquireTokenSilentParameters.getClaimsRequest();
+        final String jsonClaimsRequest = ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest);
 
-        acquireTokenSilentOperationParameters.setAppContext(
-                publicClientApplicationConfiguration.getAppContext()
-        );
-        acquireTokenSilentOperationParameters.setScopes(
-                new HashSet<>(acquireTokenSilentParameters.getScopes()
-                )
-        );
-        acquireTokenSilentOperationParameters.setClientId(
-                publicClientApplicationConfiguration.getClientId()
-        );
-        acquireTokenSilentOperationParameters.setTokenCache(
-                publicClientApplicationConfiguration.getOAuth2TokenCache()
-        );
-
-        acquireTokenSilentOperationParameters.setAuthority(
-                Authority.getAuthorityFromAuthorityUrl(
-                        acquireTokenSilentParameters.getAuthority()
-                )
-        );
+        final AcquireTokenSilentOperationParameters atsOperationParams = new AcquireTokenSilentOperationParameters();
+        atsOperationParams.setAppContext(pcaConfig.getAppContext());
+        atsOperationParams.setScopes(new HashSet<>(acquireTokenSilentParameters.getScopes()));
+        atsOperationParams.setClientId(pcaConfig.getClientId());
+        atsOperationParams.setTokenCache(pcaConfig.getOAuth2TokenCache());
+        atsOperationParams.setAuthority(authority);
+        atsOperationParams.setApplicationName(context.getPackageName());
+        atsOperationParams.setApplicationVersion(getPackageVersion(context));
+        atsOperationParams.setSdkVersion(PublicClientApplication.getSdkVersion());
+        atsOperationParams.setForceRefresh(acquireTokenSilentParameters.getForceRefresh());
+        atsOperationParams.setRedirectUri(pcaConfig.getRedirectUri());
+        atsOperationParams.setClaimsRequest(jsonClaimsRequest);
 
         if (null != acquireTokenSilentParameters.getAccountRecord()) {
-            acquireTokenSilentOperationParameters.setAccount(
-                    acquireTokenSilentParameters.getAccountRecord()
-            );
+            atsOperationParams.setAccount(acquireTokenSilentParameters.getAccountRecord());
         } else if (null != acquireTokenSilentParameters.getAccount()) {
             // This will happen when the account exists in broker.
             // We need to construct the AccountRecord object with IAccount.
@@ -272,8 +267,9 @@ public class OperationParametersAdapter {
             requestAccountRecord.setEnvironment(requestEnvironment);
             requestAccountRecord.setHomeAccountId(requestHomeAccountId);
 
-            if (acquireTokenSilentOperationParameters.getAuthority() instanceof AzureActiveDirectoryAuthority) {
-                AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) acquireTokenSilentOperationParameters.getAuthority();
+            if (atsOperationParams.getAuthority() instanceof AzureActiveDirectoryAuthority) {
+                AzureActiveDirectoryAuthority aadAuthority =
+                        (AzureActiveDirectoryAuthority) atsOperationParams.getAuthority();
                 final String tenantId = aadAuthority.getAudience().getTenantId();
 
                 if (isHomeTenantEquivalent(tenantId)
@@ -296,7 +292,7 @@ public class OperationParametersAdapter {
                     );
                     requestAccountRecord.setLocalAccountId(tenantProfile.getId());
                 }
-            } else if (acquireTokenSilentOperationParameters.getAuthority() instanceof AzureActiveDirectoryB2CAuthority) {
+            } else if (atsOperationParams.getAuthority() instanceof AzureActiveDirectoryB2CAuthority) {
                 // Use home
                 validateClaimsExistForTenant("B2C (home tenant)", multiTenantAccount.getClaims());
 
@@ -308,40 +304,17 @@ public class OperationParametersAdapter {
                 throw new UnsupportedOperationException("Unsupported authority type.");
             }
 
-            acquireTokenSilentOperationParameters.setAccount(requestAccountRecord);
+            atsOperationParams.setAccount(requestAccountRecord);
         }
 
-        acquireTokenSilentOperationParameters.setRedirectUri(
-                publicClientApplicationConfiguration.getRedirectUri()
-        );
-
-        if (acquireTokenSilentOperationParameters.getAuthority() instanceof AzureActiveDirectoryAuthority) {
+        if (atsOperationParams.getAuthority() instanceof AzureActiveDirectoryAuthority) {
             AzureActiveDirectoryAuthority aadAuthority =
-                    (AzureActiveDirectoryAuthority) acquireTokenSilentOperationParameters.getAuthority();
+                    (AzureActiveDirectoryAuthority) atsOperationParams.getAuthority();
 
-            aadAuthority.setMultipleCloudsSupported(
-                    publicClientApplicationConfiguration.getMultipleCloudsSupported()
-            );
+            aadAuthority.setMultipleCloudsSupported(pcaConfig.getMultipleCloudsSupported());
         }
-        acquireTokenSilentOperationParameters.setClaimsRequest(
-                ClaimsRequest.getJsonStringFromClaimsRequest(
-                        acquireTokenSilentParameters.getClaimsRequest()
-                )
-        );
 
-        acquireTokenSilentOperationParameters.setForceRefresh(
-                acquireTokenSilentParameters.getForceRefresh()
-        );
-
-        final Context context = publicClientApplicationConfiguration.getAppContext();
-
-        acquireTokenSilentOperationParameters.setApplicationName(context.getPackageName());
-
-        acquireTokenSilentOperationParameters.setApplicationVersion(getPackageVersion(context));
-
-        acquireTokenSilentOperationParameters.setSdkVersion(PublicClientApplication.getSdkVersion());
-
-        return acquireTokenSilentOperationParameters;
+        return atsOperationParams;
     }
 
     /**
@@ -366,7 +339,7 @@ public class OperationParametersAdapter {
                     errMsg
             );
 
-            throw new IllegalStateException(errMsg);
+            //throw new IllegalStateException(errMsg);
         }
     }
 
