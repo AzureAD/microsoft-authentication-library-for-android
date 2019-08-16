@@ -24,6 +24,7 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
@@ -32,12 +33,16 @@ import com.microsoft.identity.client.exception.MsalException;
 
 /**
  * An interface that contains list of operations that are available when MSAL is in 'single account' mode.
- * - In this mode, the user can 'sign-in' an account to the device.
- * - Once an account is 'signed-in', every app on the device will be able to retrieve this account, and use them to silently perform API calls.
- * - If the user wants to acquire a token for another account, the previous account must be removed from the device first through globalSignOut().
- * Otherwise, the operation will fail.
- * <p>
- * Currently, this mode is only set when the device is registered as 'shared'.
+ * - In this mode, one account can be signed-in to the app.
+ * - If the user wants to acquire a token for another account, the previous account must be signed out first.
+ *
+ * When the device is registered as 'shared', this will be the only available PublicClientApplication the app can obtain.
+ * The calling app has to support ISingleAccountPublicClientApplication if it is planning to support shared device mode.
+ *
+ * In the shared device mode,
+ * - 'Sign-in' means that the user will be signed in to the device - not just this app.
+ * - Once an account is 'signed-in', every MSAL app on the device that support shared device mode will be able to retrieve this account, and use them to silently perform API calls.
+ * - 'Sign-out' means that user will be signed out from the device - every MSAL apps and the default browser.
  */
 public interface ISingleAccountPublicClientApplication extends IPublicClientApplication {
 
@@ -99,16 +104,16 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
      * or it fails the refresh, exception will be sent back via callback.
      *
-     * @param scopes       The non-null array of scopes to be requested for the access token.
-     *                     MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param authority    Optional. Can be passed to override the configured authority.
-     * @param callback     {@link AuthenticationCallback} that is used to send the result back. The success result will be
-     *                     sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
-     *                     Failure case will be sent back via {
+     * @param scopes    The non-null array of scopes to be requested for the access token.
+     *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param authority Authority to issue the token.
+     * @param callback  {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                  sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     *                  Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
     void acquireTokenSilentAsync(@NonNull final String[] scopes,
-                                 @Nullable final String authority,
+                                 @NonNull final String authority,
                                  @NonNull final AuthenticationCallback callback);
 
     /**
@@ -116,10 +121,9 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
      * or it fails the refresh, exception will be sent back via callback.
      *
-     * @param scopes       The non-null array of scopes to be requested for the access token.
-     *                     MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param authority    Optional. Can be passed to override the configured authority.
-     *
+     * @param scopes    The non-null array of scopes to be requested for the access token.
+     *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param authority Optional. Can be passed to override the configured authority.
      */
     @WorkerThread
     IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
