@@ -3,15 +3,14 @@ package com.microsoft.identity.client.roboelectric;
 import android.app.Activity;
 import android.content.Context;
 
+import androidx.test.core.app.ApplicationProvider;
+
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.msal.R;
 
 import org.mockito.Mockito;
-import org.robolectric.RuntimeEnvironment;
-import org.robolectric.shadows.ShadowLooper;
-import org.robolectric.util.Scheduler;
 
 public abstract class PublicClientApplicationBaseTest {
 
@@ -25,15 +24,9 @@ public abstract class PublicClientApplicationBaseTest {
         return mockedActivity;
     }
 
-    private void flushScheduler() {
-//        Scheduler scheduler = ShadowLooper.shadowMainLooper().getScheduler();
-        Scheduler scheduler = ShadowLooper.getShadowMainLooper().getScheduler();
-        while (!scheduler.advanceToLastPostedRunnable()) ;
-    }
 
     public void performTest() {
-        //HttpWebRequest.disableNetworkCheckForTestForTest(true);
-        final Context context = RuntimeEnvironment.application;
+        final Context context = ApplicationProvider.getApplicationContext();
         final Activity testActivity = getActivity(context);
 
         PublicClientApplication.create(context, R.raw.test_msal_config_multiple_account, new PublicClientApplication.ApplicationCreatedListener() {
@@ -41,7 +34,6 @@ public abstract class PublicClientApplicationBaseTest {
             public void onCreated(IPublicClientApplication application) {
                 try {
                     makeAcquireTokenCall(application, testActivity);
-                    flushScheduler();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
