@@ -290,30 +290,30 @@ public class OperationParametersAdapter {
             requestAccountRecord.setHomeAccountId(requestHomeAccountId);
 
             if (atsOperationParams.getAuthority() instanceof AzureActiveDirectoryAuthority) {
-//                AzureActiveDirectoryAuthority aadAuthority =
-//                        (AzureActiveDirectoryAuthority) atsOperationParams.getAuthority();
-//                final String tenantId = aadAuthority.getAudience().getTenantId();
-//
-//                if (isHomeTenantEquivalent(tenantId)
-//                        || isAccountHomeTenant(multiTenantAccount.getClaims(), tenantId)) {
-//                    // use home...
-//                    validateClaimsExistForTenant(tenantId, multiTenantAccount.getClaims());
-//
-//                    requestAccountRecord.setUsername(
-//                            SchemaUtil.getDisplayableId(multiTenantAccount.getClaims())
-//                    );
-//                    requestAccountRecord.setLocalAccountId(multiTenantAccount.getId());
-//                } else {
-//                    // Use that tenant's profile...
-//                    final ITenantProfile tenantProfile = multiTenantAccount.getTenantProfiles().get(tenantId);
-//
-//                    validateClaimsExistForTenant(tenantId, tenantProfile.getClaims());
-//
-//                    requestAccountRecord.setUsername(
-//                            SchemaUtil.getDisplayableId(tenantProfile.getClaims())
-//                    );
-//                    requestAccountRecord.setLocalAccountId(tenantProfile.getId());
-//                }
+                AzureActiveDirectoryAuthority aadAuthority =
+                        (AzureActiveDirectoryAuthority) atsOperationParams.getAuthority();
+                final String tenantId = aadAuthority.getAudience().getTenantId();
+
+                if (isHomeTenantEquivalent(tenantId)
+                        || isAccountHomeTenant(multiTenantAccount.getClaims(), tenantId)) {
+                    // use home...
+                    validateClaimsExistForTenant(tenantId, multiTenantAccount.getClaims());
+
+                    requestAccountRecord.setUsername(
+                            SchemaUtil.getDisplayableId(multiTenantAccount.getClaims())
+                    );
+                    requestAccountRecord.setLocalAccountId(multiTenantAccount.getId());
+                } else {
+                    // Use that tenant's profile...
+                    final ITenantProfile tenantProfile = multiTenantAccount.getTenantProfiles().get(tenantId);
+
+                    validateClaimsExistForTenant(tenantId, tenantProfile.getClaims());
+
+                    requestAccountRecord.setUsername(
+                            SchemaUtil.getDisplayableId(tenantProfile.getClaims())
+                    );
+                    requestAccountRecord.setLocalAccountId(tenantProfile.getId());
+                }
             } else if (atsOperationParams.getAuthority() instanceof AzureActiveDirectoryB2CAuthority) {
                 // Use home
                 validateClaimsExistForTenant("B2C (home tenant)", multiTenantAccount.getClaims());
