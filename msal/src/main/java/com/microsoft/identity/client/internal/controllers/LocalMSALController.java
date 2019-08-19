@@ -52,6 +52,7 @@ import com.microsoft.identity.common.internal.telemetry.Telemetry;
 import com.microsoft.identity.common.internal.telemetry.TelemetryEventStrings;
 import com.microsoft.identity.common.internal.telemetry.events.ApiEndEvent;
 import com.microsoft.identity.common.internal.telemetry.events.ApiStartEvent;
+import com.microsoft.identity.common.internal.telemetry.events.CacheStartEvent;
 import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
 
 import java.io.IOException;
@@ -259,6 +260,14 @@ public class LocalMSALController extends BaseController {
                         TAG + methodName,
                         "No access token found, but RT is available."
                 );
+
+                Telemetry.emit(
+                        new CacheStartEvent()
+                                .putTokenType(
+                                        fullCacheRecord.getRefreshToken().getClass().getSimpleName()
+                                )
+                );
+
                 renewAccessToken(
                         parameters,
                         acquireTokenSilentResult,
