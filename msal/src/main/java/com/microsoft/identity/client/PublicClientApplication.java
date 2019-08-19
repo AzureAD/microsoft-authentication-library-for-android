@@ -27,10 +27,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Looper;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.VisibleForTesting;
-import android.support.annotation.WorkerThread;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+import androidx.annotation.WorkerThread;
+
 import android.text.TextUtils;
 import android.util.Pair;
 
@@ -863,25 +865,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         );
     }
 
-    @Override
-    public void acquireToken(@NonNull final Activity activity,
-                             @NonNull final String[] scopes,
-                             @Nullable final String loginHint,
-                             @NonNull final AuthenticationCallback callback) {
-        acquireToken(
-                activity,
-                scopes,
-                null, // account
-                null, // uiBehavior
-                null, // extraQueryParams
-                null, // extraScopes
-                null, // authority
-                callback,
-                loginHint,
-                null // claimsRequest
-        );
-    }
-
     protected void acquireToken(@NonNull final Activity activity,
                                 @NonNull final String[] scopes,
                                 @Nullable final IAccount account,
@@ -985,6 +968,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     protected void validateAcquireTokenSilentParameters(AcquireTokenSilentParameters parameters) {
+        if (TextUtils.isEmpty(parameters.getAuthority())) {
+            throw new IllegalArgumentException(
+                    "Authority must be specified for acquireTokenSilent"
+            );
+        }
+
         return;
     }
 
@@ -1052,7 +1041,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     protected void acquireTokenSilent(@NonNull final String[] scopes,
                                       @NonNull final IAccount account,
-                                      @Nullable final String authority,
+                                      @NonNull final String authority,
                                       final boolean forceRefresh,
                                       @Nullable final ClaimsRequest claimsRequest,
                                       @NonNull final AuthenticationCallback callback) {
@@ -1069,19 +1058,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                         .callback(callback)
                         .build();
 
-        validateSilentParameters(acquireTokenSilentParameters);
-
         acquireTokenSilentAsync(acquireTokenSilentParameters);
-    }
-
-    private void validateSilentParameters(
-            @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
-
-        if (TextUtils.isEmpty(acquireTokenSilentParameters.getAuthority())) {
-            throw new IllegalArgumentException(
-                    "Authority must be specified for acquireTokenSilent"
-            );
-        }
     }
 
     @Override
@@ -1434,7 +1411,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     };
 
     protected IAuthenticationResult acquireTokenSilentSync(@NonNull final String[] scopes,
-                                                           @Nullable final String authority,
+                                                           @NonNull final String authority,
                                                            @NonNull final IAccount account,
                                                            final boolean forceRefresh) throws MsalException, InterruptedException {
 

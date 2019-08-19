@@ -27,10 +27,10 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.customtabs.CustomTabsClient;
-import android.support.customtabs.CustomTabsIntent;
-import android.support.customtabs.CustomTabsServiceConnection;
-import android.support.customtabs.CustomTabsSession;
+import androidx.browser.customtabs.CustomTabsClient;
+import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.browser.customtabs.CustomTabsServiceConnection;
+import androidx.browser.customtabs.CustomTabsSession;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.internal.MsalUtils;
@@ -80,7 +80,7 @@ public class MsalChromeCustomTabManager {
     }
 
     /**
-     * Method to bind Chrome {@link android.support.customtabs.CustomTabsService}.
+     * Method to bind Chrome {@link androidx.browser.customtabs.CustomTabsService}.
      * Waits until the {@link MsalCustomTabsServiceConnection} is connected or the
      * {@link MsalChromeCustomTabManager#CUSTOM_TABS_MAX_CONNECTION_TIMEOUT} is timed out.
      */
@@ -135,7 +135,7 @@ public class MsalChromeCustomTabManager {
     }
 
     /**
-     * Method to unbind Chrome {@link android.support.customtabs.CustomTabsService}.
+     * Method to unbind Chrome {@link androidx.browser.customtabs.CustomTabsService}.
      */
     public synchronized void unbindCustomTabsService() {
         if (null != mCustomTabsServiceConnection && mCustomTabsServiceConnection.getCustomTabsServiceIsBound()) {
@@ -225,7 +225,7 @@ public class MsalChromeCustomTabManager {
         }
 
         /**
-         * Boolean to indicate if the {@link android.support.customtabs.CustomTabsService} is bound or not.
+         * Boolean to indicate if the {@link androidx.browser.customtabs.CustomTabsService} is bound or not.
          *
          * @return true if the CustomTabsService is bound else false.
          */

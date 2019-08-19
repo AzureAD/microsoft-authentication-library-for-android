@@ -22,11 +22,13 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
@@ -94,15 +96,14 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
 
     @Override
-    public IAuthenticationResult acquireTokenSilent(@NonNull String[] scopes, @NonNull IAccount account, @Nullable String authority) throws MsalException, InterruptedException {
+    public IAuthenticationResult acquireTokenSilent(@NonNull String[] scopes, @NonNull IAccount account, @NonNull String authority) throws MsalException, InterruptedException {
         return acquireTokenSilentSync(scopes, authority, account, false);
     }
 
     @Override
-    public void
-    acquireTokenSilentAsync(@NonNull final String[] scopes,
+    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final IAccount account,
-                                        @Nullable final String authority,
+                                        @NonNull final String authority,
                                         @NonNull final AuthenticationCallback callback) {
         acquireTokenSilent(
                 scopes,
@@ -229,13 +230,13 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             }
         });
 
-         AsyncResult<List<IAccount>> result = future.get();
+        final AsyncResult<List<IAccount>> result = future.get();
 
-         if(result.getSuccess()){
-             return result.getResult();
-         }else{
-             throw result.getException();
-         }
+        if (result.getSuccess()) {
+            return result.getResult();
+        } else {
+            throw result.getException();
+        }
     }
 
     /**
@@ -346,9 +347,9 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
         AsyncResult<IAccount> result = future.get();
 
-        if(result.getSuccess()){
+        if (result.getSuccess()) {
             return result.getResult();
-        }else{
+        } else {
             throw result.getException();
         }
 
@@ -430,11 +431,30 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
         AsyncResult<Boolean> result = future.get();
 
-        if(result.getSuccess()){
+        if (result.getSuccess()) {
             return result.getResult().booleanValue();
-        }else{
+        } else {
             throw result.getException();
         }
 
+    }
+
+    @Override
+    public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final String[] scopes,
+                             @Nullable final String loginHint,
+                             @NonNull final AuthenticationCallback callback) {
+        acquireToken(
+                activity,
+                scopes,
+                null, // account
+                null, // uiBehavior
+                null, // extraQueryParams
+                null, // extraScopes
+                null, // authority
+                callback,
+                loginHint,
+                null // claimsRequest
+        );
     }
 }

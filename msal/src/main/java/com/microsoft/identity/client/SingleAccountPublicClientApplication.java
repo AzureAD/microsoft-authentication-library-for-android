@@ -24,9 +24,10 @@ package com.microsoft.identity.client;
 
 import android.app.Activity;
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.WorkerThread;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
@@ -55,7 +56,6 @@ import java.util.List;
 public class SingleAccountPublicClientApplication extends PublicClientApplication
         implements ISingleAccountPublicClientApplication {
     private static final String TAG = SingleAccountPublicClientApplication.class.getSimpleName();
-
 
     /**
      * Name of the shared preference cache for storing SingleAccountPublicClientApplication data.
@@ -104,9 +104,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 new StorageHelper(context));
     }
 
-
     @Override
-    public void getCurrentAccountAsync(final CurrentAccountCallback callback) {
+    public void getCurrentAccountAsync(@NonNull final CurrentAccountCallback callback) {
         final String methodName = ":getCurrentAccount";
         final PublicClientApplicationConfiguration configuration = getConfiguration();
 
@@ -207,24 +206,21 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             @Override
             public void onError(@NonNull Exception exception) {
                 //TODO: Need to talk to Dome about exception here rather than MsalException
-                future.setResult(new AsyncResult<CurrentAccountResult>(null, (MsalException)exception));
+                future.setResult(new AsyncResult<CurrentAccountResult>(null, (MsalException) exception));
             }
         });
 
         AsyncResult<CurrentAccountResult> result = future.get();
 
-        if(result.getSuccess()){
+        if (result.getSuccess()) {
             return result.getResult();
-        }else{
+        } else {
             throw result.getException();
         }
-
-
     }
 
-
-    private void getCurrentAccountFromSharedDevice(final CurrentAccountCallback callback,
-                                                   final PublicClientApplicationConfiguration configuration) {
+    private void getCurrentAccountFromSharedDevice(@NonNull final CurrentAccountCallback callback,
+                                                   @NonNull final PublicClientApplicationConfiguration configuration) {
         final String methodName = ":getCurrentAccountFromSharedDevice";
 
         //TODO: migrate to Command.
@@ -258,7 +254,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 });
     }
 
-    private void checkCurrentAccountNotifyCallback(final CurrentAccountCallback callback, List<ICacheRecord> newAccountRecords) {
+    private void checkCurrentAccountNotifyCallback(@NonNull final CurrentAccountCallback callback,
+                                                   @Nullable final List<ICacheRecord> newAccountRecords) {
         MultiTenantAccount localAccount = getPersistedCurrentAccount();
         MultiTenantAccount newAccount = newAccountRecords == null ? null : getAccountFromICacheRecordList(newAccountRecords);
 
@@ -272,10 +269,9 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
 
     @Override
-    public void signIn(@NonNull Activity activity,
-
-                       @NonNull String[] scopes,
-                       @NonNull AuthenticationCallback callback) {
+    public void signIn(@NonNull final Activity activity,
+                       @NonNull final String[] scopes,
+                       @NonNull final AuthenticationCallback callback) {
         acquireToken(
                 activity,
                 new String[]{"user.read"},
@@ -291,7 +287,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     }
 
     @Override
-    protected ILocalAuthenticationCallback getLocalAuthenticationCallback(final AuthenticationCallback authenticationCallback) {
+    protected ILocalAuthenticationCallback getLocalAuthenticationCallback(@NonNull final AuthenticationCallback authenticationCallback) {
 
         return new ILocalAuthenticationCallback() {
 
@@ -302,10 +298,10 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 MultiTenantAccount newAccount = getAccountFromICacheRecordList(localAuthenticationResult.getCacheRecordWithTenantProfileData());
 
                 if (didCurrentAccountChange(newAccount)) {
-                    if(getPersistedCurrentAccount() != null) {
+                    if (getPersistedCurrentAccount() != null) {
                         authenticationCallback.onError(new MsalClientException(MsalClientException.CURRENT_ACCOUNT_MISMATCH));
                         return;
-                    }else{
+                    } else {
                         persistCurrentAccount(localAuthenticationResult.getCacheRecordWithTenantProfileData());
                     }
                 } else {
@@ -329,20 +325,19 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         };
     }
 
-    private boolean didCurrentAccountChange(final @Nullable MultiTenantAccount newAccount) {
-        MultiTenantAccount persistedAccount = getPersistedCurrentAccount();
+    private boolean didCurrentAccountChange(@Nullable final MultiTenantAccount newAccount) {
+        final MultiTenantAccount persistedAccount = getPersistedCurrentAccount();
 
-        String persistedAccountId = persistedAccount == null ? "" : persistedAccount.getHomeAccountId();
-        String newAccountId = newAccount == null ? "" : newAccount.getHomeAccountId();
+        final String persistedAccountId = persistedAccount == null ? "" : persistedAccount.getHomeAccountId();
+        final String newAccountId = newAccount == null ? "" : newAccount.getHomeAccountId();
 
         return !persistedAccountId.equalsIgnoreCase(newAccountId);
     }
 
     @Override
-    public void signOut(@NonNull final SignOutCallback callback){
+    public void signOut(@NonNull final SignOutCallback callback) {
         final String methodName = ":signOut";
         final PublicClientApplicationConfiguration configuration = getConfiguration();
-
 
         try {
             if (mIsSharedDevice) {
@@ -388,8 +383,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         } catch (MsalClientException clientException) {
             callback.onError(clientException);
         }
-
-
     }
 
     @Override
@@ -411,17 +404,17 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             }
         });
 
-        AsyncResult<Boolean> result = future.get();
+        final AsyncResult<Boolean> result = future.get();
 
-        if(result.getSuccess()){
+        if (result.getSuccess()) {
             return result.getResult();
-        }else{
+        } else {
             throw result.getException();
         }
     }
 
     private void removeAccountFromSharedDevice(@NonNull final SignOutCallback callback,
-                                               @NonNull PublicClientApplicationConfiguration configuration) {
+                                               @NonNull final PublicClientApplicationConfiguration configuration) {
         final String methodName = ":removeAccountFromSharedDevice";
 
         //TODO: migrate to Command.
@@ -462,12 +455,12 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
      * @return a persisted MultiTenantAccount. This could be null.
      */
     private MultiTenantAccount getPersistedCurrentAccount() {
-        String currentAccountJsonString = sharedPreferencesFileManager.getString(CURRENT_ACCOUNT_SHARED_PREFERENCE_KEY);
+        final String currentAccountJsonString = sharedPreferencesFileManager.getString(CURRENT_ACCOUNT_SHARED_PREFERENCE_KEY);
         if (currentAccountJsonString == null) {
             return null;
         }
 
-        List<ICacheRecord> cacheRecordList = MsalBrokerResultAdapter.getICacheRecordListFromJsonString(currentAccountJsonString);
+        final List<ICacheRecord> cacheRecordList = MsalBrokerResultAdapter.getICacheRecordListFromJsonString(currentAccountJsonString);
         return getAccountFromICacheRecordList(cacheRecordList);
     }
 
@@ -477,7 +470,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
      * @param cacheRecords list of cache record that belongs to an account.
      *                     Please note that this layer will not verify if the list ubelongs to a single account or not.
      */
-    private void persistCurrentAccount(@Nullable List<ICacheRecord> cacheRecords) {
+    private void persistCurrentAccount(@Nullable final List<ICacheRecord> cacheRecords) {
 
         sharedPreferencesFileManager.clear();
 
@@ -497,7 +490,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
      *                     If the list can be converted to multiple accounts, only the first one will be returned.
      */
     @Nullable
-    private MultiTenantAccount getAccountFromICacheRecordList(@NonNull List<ICacheRecord> cacheRecords) {
+    private MultiTenantAccount getAccountFromICacheRecordList(@NonNull final List<ICacheRecord> cacheRecords) {
         final String methodName = ":getAccountFromICacheRecords";
         if (cacheRecords == null || cacheRecords.size() == 0) {
             return null;
@@ -517,17 +510,48 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     }
 
     @Override
+    public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final String[] scopes,
+                             @NonNull final AuthenticationCallback callback) {
+        acquireToken(
+                activity,
+                scopes,
+                getPersistedCurrentAccount(), // account, could be null.
+                null, // uiBehavior
+                null, // extraQueryParams
+                null, // extraScopes
+                null, // authority
+                callback,
+                null, // loginHint
+                null // claimsRequest
+        );
+    }
+
+    @Override
+    public void acquireToken(@NonNull final AcquireTokenParameters acquireTokenParameters) {
+        final IAccount persistedAccount = getPersistedCurrentAccount();
+        if (persistedAccount != null) {
+            // If the account exists, overwrite Account and ignore loginHint.
+            acquireTokenParameters.setAccount(persistedAccount);
+            acquireTokenParameters.setLoginHint("");
+        }
+
+        super.acquireToken(acquireTokenParameters);
+    }
+
+    @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
-                                        @Nullable final String authority,
+                                        @NonNull final String authority,
                                         @NonNull final AuthenticationCallback callback) {
 
-        if(getPersistedCurrentAccount() == null){
+        final IAccount persistedAccount = getPersistedCurrentAccount();
+        if (persistedAccount == null) {
             callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
         }
 
         acquireTokenSilent(
                 scopes,
-                getPersistedCurrentAccount(),
+                persistedAccount,
                 authority,
                 false,
                 null, // claimsRequest
@@ -537,17 +561,39 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @WorkerThread
     public IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
-                                   @Nullable final String authority) throws MsalException, InterruptedException {
+                                                    @NonNull final String authority) throws MsalException, InterruptedException {
 
-        if(getPersistedCurrentAccount() == null){
+        final IAccount persistedAccount = getPersistedCurrentAccount();
+        if (persistedAccount == null) {
             throw new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);
         }
-        return acquireTokenSilentSync(scopes, authority, getPersistedCurrentAccount(), false);
+
+        return acquireTokenSilentSync(scopes, authority, persistedAccount, false);
     }
 
+    @Override
+    public void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
+        final IAccount persistedAccount = getPersistedCurrentAccount();
+        if (persistedAccount == null) {
+            acquireTokenSilentParameters.getCallback().onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
+        }
 
+        // In SingleAccount mode, always overwrite 'Account' with current account.
+        acquireTokenSilentParameters.setAccount(persistedAccount);
 
+        super.acquireTokenSilentAsync(acquireTokenSilentParameters);
+    }
 
+    @Override
+    public IAuthenticationResult acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException {
+        final IAccount persistedAccount = getPersistedCurrentAccount();
+        if (persistedAccount == null) {
+            throw new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);
+        }
 
+        // In SingleAccount mode, always overwrite 'Account' with current account.
+        acquireTokenSilentParameters.setAccount(persistedAccount);
 
+        return super.acquireTokenSilent(acquireTokenSilentParameters);
+    }
 }

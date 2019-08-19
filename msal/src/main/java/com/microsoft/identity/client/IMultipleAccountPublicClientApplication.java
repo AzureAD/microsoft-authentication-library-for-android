@@ -22,9 +22,11 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.WorkerThread;
+import android.app.Activity;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
@@ -69,7 +71,6 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * The identifier could be homeAccountIdentifier, localAccountIdentifier or username.
      *
      * @param identifier String of the identifier
-     *
      */
     @WorkerThread
     IAccount getAccount(@NonNull final String identifier) throws InterruptedException, MsalException;
@@ -78,7 +79,6 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * Removes the Account and Credentials (tokens) for the supplied IAccount.
      *
      * @param account The IAccount whose entry and associated tokens should be removed.
-     *
      */
     void removeAccount(@Nullable final IAccount account,
                        @NonNull final RemoveAccountCallback callback
@@ -92,6 +92,29 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      */
     @WorkerThread
     boolean removeAccount(@Nullable final IAccount account) throws MsalException, InterruptedException;
+
+    /**
+     * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
+     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
+     *
+     * @param activity  Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
+     * @param scopes    The non-null array of scopes to be requested for the access token.
+     *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
+     *                  which will have the UPN pre-populated.
+     * @param callback  The Non-null {@link AuthenticationCallback} to receive the result back.
+     *                  1) If user cancels the flow by pressing the device back button, the result will be sent
+     *                  back via {@link AuthenticationCallback#onCancel()}.
+     *                  2) If the sdk successfully receives the token back, result will be sent back via
+     *                  {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
+     *                  3) All the other errors will be sent back via
+     *                  {@link AuthenticationCallback#onError(MsalException)}.
+     */
+    void acquireToken(@NonNull final Activity activity,
+                      @NonNull final String[] scopes,
+                      @Nullable final String loginHint,
+                      @NonNull final AuthenticationCallback callback
+    );
 
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
@@ -116,33 +139,33 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
      * or it fails the refresh, exception will be sent back via callback.
      *
-     * @param scopes       The non-null array of scopes to be requested for the access token.
-     *                     MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param account      {@link IAccount} represents the account to silently request tokens for.
-     * @param authority    Optional. Can be passed to override the configured authority.
-     *
+     * @param scopes    The non-null array of scopes to be requested for the access token.
+     *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param account   {@link IAccount} represents the account to silently request tokens for.
+     * @param authority Authority to issue the token.
      */
     @WorkerThread
     IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
                                              @NonNull final IAccount account,
-                                             @Nullable final String authority) throws MsalException, InterruptedException;
+                                             @NonNull final String authority) throws MsalException, InterruptedException;
 
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
      * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
      * or it fails the refresh, exception will be sent back via callback.
      *
-     * @param scopes   The non-null array of scopes to be requested for the access token.
-     *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param account  {@link IAccount} represents the account to silently request tokens for.
-     * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
-     *                 sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
-     *                 Failure case will be sent back via {
+     * @param scopes    The non-null array of scopes to be requested for the access token.
+     *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param account   {@link IAccount} represents the account to silently request tokens for.
+     * @param authority Authority to issue the token.
+     * @param callback  {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                  sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     *                  Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
     void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                  @NonNull final IAccount account,
-                                 @Nullable final String authority,
+                                 @NonNull final String authority,
                                  @NonNull final AuthenticationCallback callback);
 
     interface GetAccountCallback extends TaskCompletedCallbackWithError<IAccount, MsalException> {
