@@ -108,7 +108,7 @@ class AccountAdapter {
                 }
             }};
 
-            return homeAccountIds.contains(guestAccountHomeAccountId);
+            return !homeAccountIds.contains(guestAccountHomeAccountId);
         }
 
         @Override
