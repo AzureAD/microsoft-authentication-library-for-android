@@ -364,7 +364,7 @@ public class BrokerMsalController extends BaseController {
                 return;
             }
         } catch (MsalClientException e) {
-            callback.onError(e);
+            callback.onGetMode(false);
             return;
         }
 
