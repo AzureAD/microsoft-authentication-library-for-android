@@ -27,10 +27,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Looper;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
+
 import android.text.TextUtils;
 import android.util.Pair;
 
@@ -859,25 +861,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 null, // authority
                 callback,
                 null, // loginHint
-                null // claimsRequest
-        );
-    }
-
-    @Override
-    public void acquireToken(@NonNull final Activity activity,
-                             @NonNull final String[] scopes,
-                             @Nullable final String loginHint,
-                             @NonNull final AuthenticationCallback callback) {
-        acquireToken(
-                activity,
-                scopes,
-                null, // account
-                null, // uiBehavior
-                null, // extraQueryParams
-                null, // extraScopes
-                null, // authority
-                callback,
-                loginHint,
                 null // claimsRequest
         );
     }

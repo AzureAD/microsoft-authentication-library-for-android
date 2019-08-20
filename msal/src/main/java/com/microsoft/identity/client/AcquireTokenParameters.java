@@ -39,7 +39,6 @@ public class AcquireTokenParameters extends TokenParameters {
     private List<String> mExtraScopesToConsent;
     private List<Pair<String, String>> mExtraQueryStringParameters;
 
-
     public AcquireTokenParameters(AcquireTokenParameters.Builder builder) {
         super(builder);
         mActivity = builder.mActivity;
@@ -48,7 +47,6 @@ public class AcquireTokenParameters extends TokenParameters {
         mExtraScopesToConsent = builder.mExtraScopesToConsent;
         mExtraQueryStringParameters = builder.mExtraQueryStringParameters;
     }
-
 
     /**
      * Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}
