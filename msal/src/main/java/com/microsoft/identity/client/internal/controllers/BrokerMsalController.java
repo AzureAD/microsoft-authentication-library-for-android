@@ -364,6 +364,7 @@ public class BrokerMsalController extends BaseController {
                 return;
             }
         } catch (MsalClientException e) {
+            com.microsoft.identity.common.internal.logging.Logger.error(TAG + methodName, e.toString(), null);
             callback.onGetMode(false);
             return;
         }
