@@ -50,6 +50,10 @@ import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
+import com.microsoft.identity.common.internal.telemetry.Telemetry;
+import com.microsoft.identity.common.internal.telemetry.TelemetryEventStrings;
+import com.microsoft.identity.common.internal.telemetry.events.BrokerEndEvent;
+import com.microsoft.identity.common.internal.telemetry.events.CacheEndEvent;
 
 import java.io.IOException;
 import java.util.List;
@@ -122,12 +126,16 @@ abstract class BrokerBaseStrategy {
                     resultAdapter.authenticationResultFromBundle(resultBundle)
             );
 
+            Telemetry.emit(new BrokerEndEvent().isSuccessful(true));
+
             return acquireTokenResult;
         }
 
         Logger.warn(TAG, "Exception returned from broker, retrieving exception details ");
 
-        throw resultAdapter.baseExceptionFromBundle(resultBundle);
+        final BaseException exception = resultAdapter.baseExceptionFromBundle(resultBundle);
+        Telemetry.emit(new BrokerEndEvent().putException(exception));
+        throw exception;
     }
 
 }

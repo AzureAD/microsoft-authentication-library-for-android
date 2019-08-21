@@ -261,13 +261,6 @@ public class LocalMSALController extends BaseController {
                         "No access token found, but RT is available."
                 );
 
-                Telemetry.emit(
-                        new CacheStartEvent()
-                                .putTokenType(
-                                        fullCacheRecord.getRefreshToken().getClass().getSimpleName()
-                                )
-                );
-
                 renewAccessToken(
                         parameters,
                         acquireTokenSilentResult,
