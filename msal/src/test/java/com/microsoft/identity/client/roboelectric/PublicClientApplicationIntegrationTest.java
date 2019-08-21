@@ -16,10 +16,11 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.shadows.ShadowAuthority;
+import com.microsoft.identity.client.shadows.ShadowStorageHelper;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.dto.CredentialType;
 import com.microsoft.identity.common.internal.util.StringUtil;
-import com.microsoft.identity.common.shadows.ShadowStorageHelper;
 import com.microsoft.identity.common.utilities.TestConfigurationHelper;
 import com.microsoft.identity.common.utilities.TestConfigurationQuery;
 
@@ -41,15 +42,16 @@ import static com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate
 import static junit.framework.Assert.fail;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowStorageHelper.class})
+@Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class})
 public final class PublicClientApplicationIntegrationTest {
 
     private static final String[] SCOPES = {"user.read", "openid", "offline_access", "profile"};
+    private static final String DEFAULT_AAD_AUTHORITY = "https://login.microsoftonline.com/common";
     private static final String AAD_ROPC_TEST_AUTHORITY = "https://test.authority/aad.ropc";
 
     private void flushScheduler() {
         final Scheduler scheduler = RuntimeEnvironment.getMasterScheduler();
-        while (!scheduler.advanceToLastPostedRunnable());
+        while (!scheduler.advanceToLastPostedRunnable()) ;
     }
 
     @Test
@@ -103,7 +105,7 @@ public final class PublicClientApplicationIntegrationTest {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity) throws InterruptedException {
+                                      final Activity activity) {
 
                 TestConfigurationQuery query = new TestConfigurationQuery();
                 query.userType = "Member";
@@ -112,12 +114,10 @@ public final class PublicClientApplicationIntegrationTest {
 
                 final String username = TestConfigurationHelper.getUpnForTest(query);
 
-                final String defaultAuthority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
-
                 final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .fromAuthority(defaultAuthority)
                         .withScopes(Arrays.asList(SCOPES))
                         .forceRefresh(false)
+                        .fromAuthority(DEFAULT_AAD_AUTHORITY)
                         .callback(new AuthenticationCallback() {
                             @Override
                             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -176,7 +176,7 @@ public final class PublicClientApplicationIntegrationTest {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity) throws InterruptedException {
+                                      final Activity activity) {
 
                 TestConfigurationQuery query = new TestConfigurationQuery();
                 query.userType = "Member";
@@ -185,12 +185,10 @@ public final class PublicClientApplicationIntegrationTest {
 
                 final String username = TestConfigurationHelper.getUpnForTest(query);
 
-                final String defaultAuthority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
-
                 final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .fromAuthority(defaultAuthority)
                         .withScopes(Arrays.asList(SCOPES))
                         .forceRefresh(true)
+                        .fromAuthority(DEFAULT_AAD_AUTHORITY)
                         .callback(new AuthenticationCallback() {
                             @Override
                             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -249,7 +247,7 @@ public final class PublicClientApplicationIntegrationTest {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity) throws InterruptedException {
+                                      final Activity activity) {
 
                 TestConfigurationQuery query = new TestConfigurationQuery();
                 query.userType = "Member";
@@ -258,12 +256,10 @@ public final class PublicClientApplicationIntegrationTest {
 
                 final String username = TestConfigurationHelper.getUpnForTest(query);
 
-                final String defaultAuthority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
-
                 final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .fromAuthority(defaultAuthority)
                         .withScopes(Arrays.asList(SCOPES))
                         .forceRefresh(false)
+                        .fromAuthority(DEFAULT_AAD_AUTHORITY)
                         .callback(new AuthenticationCallback() {
                             @Override
                             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -293,12 +289,6 @@ public final class PublicClientApplicationIntegrationTest {
                                 Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
                                 IAccount account = authenticationResult.getAccount();
                                 silentParameters.setAccount(account);
-                                final Context context = ApplicationProvider.getApplicationContext();
-                                String prefName = "com.microsoft.identity.client.account_credential_cache";
-                                SharedPreferences sharedPreferences = context.getSharedPreferences(prefName, Context.MODE_PRIVATE);
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.clear();
-                                editor.commit();
                             }
 
                             @Override
@@ -315,6 +305,7 @@ public final class PublicClientApplicationIntegrationTest {
 
                 publicClientApplication.acquireToken(parameters);
                 flushScheduler();
+                clearCache();
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
                 flushScheduler();
             }
@@ -328,7 +319,7 @@ public final class PublicClientApplicationIntegrationTest {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity) throws InterruptedException {
+                                      final Activity activity) {
 
                 TestConfigurationQuery query = new TestConfigurationQuery();
                 query.userType = "Member";
@@ -337,12 +328,10 @@ public final class PublicClientApplicationIntegrationTest {
 
                 final String username = TestConfigurationHelper.getUpnForTest(query);
 
-                final String defaultAuthority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
-
                 final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .fromAuthority(defaultAuthority)
                         .withScopes(Arrays.asList(SCOPES))
                         .forceRefresh(false)
+                        .fromAuthority(DEFAULT_AAD_AUTHORITY)
                         .callback(new AuthenticationCallback() {
                             @Override
                             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -372,16 +361,6 @@ public final class PublicClientApplicationIntegrationTest {
                                 Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
                                 IAccount account = authenticationResult.getAccount();
                                 silentParameters.setAccount(account);
-                                final Context context = ApplicationProvider.getApplicationContext();
-                                String prefName = "com.microsoft.identity.client.account_credential_cache";
-                                SharedPreferences sharedPreferences = context.getSharedPreferences(prefName, Context.MODE_PRIVATE);
-                                final Map<String, ?> cacheValues = sharedPreferences.getAll();
-                                final String keyToRemove = getKeyToBeRemoved(cacheValues);
-                                if (keyToRemove != null) {
-                                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                                    editor.remove(keyToRemove);
-                                    editor.commit();
-                                }
                             }
 
                             @Override
@@ -398,6 +377,7 @@ public final class PublicClientApplicationIntegrationTest {
 
                 publicClientApplication.acquireToken(parameters);
                 flushScheduler();
+                removeAccessTokenFromCache();
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
                 flushScheduler();
             }
@@ -459,8 +439,33 @@ public final class PublicClientApplicationIntegrationTest {
     }
 
     private boolean isAccessToken(@NonNull final String cacheKey) {
-        boolean isAccessToken = CredentialType.AccessToken == getCredentialTypeForCredentialCacheKey(cacheKey);;
+        boolean isAccessToken = CredentialType.AccessToken == getCredentialTypeForCredentialCacheKey(cacheKey);
         return isAccessToken;
+    }
+
+    private SharedPreferences getSharedPreferences() {
+        final Context context = ApplicationProvider.getApplicationContext();
+        String prefName = "com.microsoft.identity.client.account_credential_cache";
+        SharedPreferences sharedPreferences = context.getSharedPreferences(prefName, Context.MODE_PRIVATE);
+        return sharedPreferences;
+    }
+
+    private void clearCache() {
+        SharedPreferences sharedPreferences = getSharedPreferences();
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.clear();
+        editor.commit();
+    }
+
+    private void removeAccessTokenFromCache() {
+        SharedPreferences sharedPreferences = getSharedPreferences();
+        final Map<String, ?> cacheValues = sharedPreferences.getAll();
+        final String keyToRemove = getKeyToBeRemoved(cacheValues);
+        if (keyToRemove != null) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.remove(keyToRemove);
+            editor.commit();
+        }
     }
 
 
