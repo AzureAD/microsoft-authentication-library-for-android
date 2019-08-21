@@ -802,7 +802,7 @@ public class BrokerMsalController extends BaseController {
         if (getStrategies().isEmpty()) {
             throw new ClientException(
                     ErrorStrings.UNSUPPORTED_BROKER_VERSION,
-                    "The protocol versions between the MSAL client app and broker do not compatible. "
+                    "The protocol versions between the MSAL client app and broker are not compatible."
             );
         }
     }

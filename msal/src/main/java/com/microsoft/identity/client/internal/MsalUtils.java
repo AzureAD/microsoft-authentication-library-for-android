@@ -485,8 +485,7 @@ public final class MsalUtils {
     /**
      * @param methodName
      */
-    public static void throwOnMainThread(String methodName) {
-
+    public static void throwOnMainThread(final String methodName) {
         if (Looper.myLooper() == Looper.getMainLooper()) {
             throw new IllegalStateException("method: " + methodName + " may not be called from main thread.");
         }

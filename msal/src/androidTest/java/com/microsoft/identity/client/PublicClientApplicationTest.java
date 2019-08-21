@@ -42,6 +42,8 @@ import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.internal.net.HttpUrlConnectionFactory;
 
+import com.microsoft.identity.msal.test.R;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -63,6 +65,8 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.fail;
+
 
 /**
  * Tests for {@link PublicClientApplication}.
@@ -111,7 +115,7 @@ public final class PublicClientApplicationTest {
         mockHasCustomTabRedirect(context);
 
         try {
-            ISingleAccountPublicClientApplication app = PublicClientApplication.createSingleAccountPublicClientApplication(context, com.microsoft.identity.msal.test.R.raw.test_msal_config_single_account);
+            ISingleAccountPublicClientApplication app = PublicClientApplication.createSingleAccountPublicClientApplication(context, R.raw.test_msal_config_single_account);
             Assert.assertTrue(app instanceof ISingleAccountPublicClientApplication);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -127,7 +131,7 @@ public final class PublicClientApplicationTest {
         mockHasCustomTabRedirect(context);
 
         try {
-            IMultipleAccountPublicClientApplication app = PublicClientApplication.createMultipleAccountPublicClientApplication(context, com.microsoft.identity.msal.test.R.raw.test_msal_config_multiple_account);
+            IMultipleAccountPublicClientApplication app = PublicClientApplication.createMultipleAccountPublicClientApplication(context, R.raw.test_msal_config_multiple_account);
             Assert.assertTrue(app instanceof IMultipleAccountPublicClientApplication);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -142,7 +146,7 @@ public final class PublicClientApplicationTest {
         mockPackageManagerWithDefaultFlag(context);
         mockHasCustomTabRedirect(context);
 
-        PublicClientApplication.createMultipleAccountPublicClientApplication(context, com.microsoft.identity.msal.test.R.raw.test_msal_config_multiple_account, new PublicClientApplication.IMultipleAccountApplicationCreatedListener() {
+        PublicClientApplication.createMultipleAccountPublicClientApplication(context, R.raw.test_msal_config_multiple_account, new PublicClientApplication.IMultipleAccountApplicationCreatedListener() {
             @Override
             public void onCreated(IMultipleAccountPublicClientApplication application) {
                 Assert.assertTrue(application instanceof IMultipleAccountPublicClientApplication);
@@ -161,7 +165,7 @@ public final class PublicClientApplicationTest {
         mockPackageManagerWithDefaultFlag(context);
         mockHasCustomTabRedirect(context);
 
-        PublicClientApplication.createMultipleAccountPublicClientApplication(context, com.microsoft.identity.msal.test.R.raw.test_msal_config_single_account, new PublicClientApplication.IMultipleAccountApplicationCreatedListener() {
+        PublicClientApplication.createMultipleAccountPublicClientApplication(context, R.raw.test_msal_config_single_account, new PublicClientApplication.IMultipleAccountApplicationCreatedListener() {
             @Override
             public void onCreated(IMultipleAccountPublicClientApplication application) {
                 Assert.assertTrue(false);
@@ -180,7 +184,7 @@ public final class PublicClientApplicationTest {
         mockPackageManagerWithDefaultFlag(context);
         mockHasCustomTabRedirect(context);
 
-        PublicClientApplication.createSingleAccountPublicClientApplication(context, com.microsoft.identity.msal.test.R.raw.test_msal_config_single_account, new PublicClientApplication.ISingleAccountApplicationCreatedListener() {
+        PublicClientApplication.createSingleAccountPublicClientApplication(context, R.raw.test_msal_config_single_account, new PublicClientApplication.ISingleAccountApplicationCreatedListener() {
             @Override
             public void onCreated(ISingleAccountPublicClientApplication application) {
                 Assert.assertTrue(application instanceof  ISingleAccountPublicClientApplication);
@@ -198,7 +202,7 @@ public final class PublicClientApplicationTest {
         mockPackageManagerWithDefaultFlag(context);
         mockHasCustomTabRedirect(context);
 
-        PublicClientApplication.createSingleAccountPublicClientApplication(context, com.microsoft.identity.msal.test.R.raw.test_msal_config_multiple_account, new PublicClientApplication.ISingleAccountApplicationCreatedListener() {
+        PublicClientApplication.createSingleAccountPublicClientApplication(context, R.raw.test_msal_config_multiple_account, new PublicClientApplication.ISingleAccountApplicationCreatedListener() {
             @Override
             public void onCreated(ISingleAccountPublicClientApplication application) {
                 Assert.assertTrue(false);
@@ -372,7 +376,7 @@ public final class PublicClientApplicationTest {
                     .thenReturn(packageInfo);
 
         } catch (Exception e) {
-            // Best effort.
+            fail();
         }
     }
 

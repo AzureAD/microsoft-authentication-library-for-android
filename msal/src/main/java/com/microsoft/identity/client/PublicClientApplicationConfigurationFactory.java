@@ -63,7 +63,7 @@ public class PublicClientApplicationConfigurationFactory {
      * and merge it to the default config object.
      **/
     public static PublicClientApplicationConfiguration initializeConfiguration(@NonNull final Context context,
-                                                                               @NonNull final int configResourceId) {
+                                                                               final int configResourceId) {
         return initializeConfigurationInternal(context, loadConfiguration(context, configResourceId));
     }
 
@@ -104,13 +104,13 @@ public class PublicClientApplicationConfigurationFactory {
     @VisibleForTesting
     static PublicClientApplicationConfiguration loadConfiguration(@NonNull final Context context,
                                                                   final int configResourceId) {
-        InputStream configStream = context.getResources().openRawResource(configResourceId);
+        final InputStream configStream = context.getResources().openRawResource(configResourceId);
         boolean useDefaultConfigResourceId = configResourceId == R.raw.msal_default_config;
         return loadConfiguration(configStream, useDefaultConfigResourceId);
     }
 
     @VisibleForTesting
-    static PublicClientApplicationConfiguration loadConfiguration(@NonNull File configFile) {
+    static PublicClientApplicationConfiguration loadConfiguration(@NonNull final File configFile) {
         try {
             return loadConfiguration(new FileInputStream(configFile), false);
         } catch (FileNotFoundException e) {
@@ -118,7 +118,8 @@ public class PublicClientApplicationConfigurationFactory {
         }
     }
 
-    private static PublicClientApplicationConfiguration loadConfiguration(InputStream configStream, boolean isDefaultConfiguration) {
+    private static PublicClientApplicationConfiguration loadConfiguration(final @NonNull InputStream configStream,
+                                                                          final boolean isDefaultConfiguration) {
         byte[] buffer;
 
         try {
