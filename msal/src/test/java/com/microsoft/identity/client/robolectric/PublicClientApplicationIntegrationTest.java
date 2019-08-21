@@ -1,4 +1,4 @@
-package com.microsoft.identity.client.roboelectric;
+package com.microsoft.identity.client.robolectric;
 
 import android.app.Activity;
 import android.content.Context;
