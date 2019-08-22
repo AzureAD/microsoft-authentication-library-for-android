@@ -38,6 +38,7 @@ import com.microsoft.identity.client.MultiTenantAccount;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.claims.ClaimsRequest;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
@@ -269,7 +270,8 @@ public class OperationParametersAdapter {
      *                 is thrown.
      */
     public static void validateClaimsExistForTenant(@NonNull final String tenantId,
-                                                    @Nullable final IClaimable claimable) {
+                                                    @Nullable final IClaimable claimable)
+            throws MsalClientException {
         final String methodName = ":validateClaimsExistForTenant";
 
         if (null == claimable || null == claimable.getClaims()) {
@@ -282,7 +284,7 @@ public class OperationParametersAdapter {
                     errMsg
             );
 
-            throw new IllegalStateException(errMsg);
+            throw new MsalClientException(errMsg);
         }
     }
 

@@ -1105,7 +1105,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     private AccountRecord selectAccountRecordForTokenRequest(
             @NonNull final PublicClientApplicationConfiguration pcaConfig,
-            @NonNull final TokenParameters tokenParameters) throws ServiceException {
+            @NonNull final TokenParameters tokenParameters)
+            throws ServiceException, MsalClientException {
         // If not authority was provided in the request, fallback to the default authority...
         if (TextUtils.isEmpty(tokenParameters.getAuthority())) {
             tokenParameters.setAuthority(
@@ -1208,7 +1209,17 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                     .getTenantProfiles()
                                     .get(tenantPath);
 
-                    validateClaimsExistForTenant(tenantPath, profileForRequest);
+                    boolean isSilent = tokenParameters instanceof AcquireTokenSilentParameters;
+
+                    if (null == profileForRequest) { // We did not find a profile to use
+                        if (isSilent) {
+                            validateClaimsExistForTenant(tenantPath, profileForRequest);
+                        } else {
+                            // We didn't find an Account but the request is interactive so we'll
+                            // return null and let the user sort it out.
+                            return null;
+                        }
+                    }
 
                     accountRecord.setLocalAccountId(profileForRequest.getId());
                     accountRecord.setUsername(profileForRequest.getUsername());
