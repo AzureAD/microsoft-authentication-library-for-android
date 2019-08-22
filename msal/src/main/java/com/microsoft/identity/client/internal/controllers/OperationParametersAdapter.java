@@ -285,7 +285,7 @@ public class OperationParametersAdapter {
                     errMsg
             );
 
-            //throw new IllegalStateException(errMsg);
+            throw new IllegalStateException(errMsg);
         }
     }
 
