@@ -25,7 +25,6 @@ package com.microsoft.identity.client.internal.controllers;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -33,21 +32,18 @@ import androidx.annotation.Nullable;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.IClaimable;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.claims.ClaimsRequest;
-import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
-import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.OpenIdConnectPromptParameter;
-import com.microsoft.identity.common.internal.providers.oauth2.OpenIdProviderConfiguration;
-import com.microsoft.identity.common.internal.providers.oauth2.OpenIdProviderConfigurationClient;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.OperationParameters;
@@ -55,7 +51,6 @@ import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 
 import static com.microsoft.identity.common.internal.authorities.AllAccounts.ALL_ACCOUNTS_TENANT_ID;
@@ -276,11 +271,11 @@ public class OperationParametersAdapter {
      * @param claims   The claims, which may be null - if they are, an {@link IllegalStateException}
      *                 is thrown.
      */
-    private static void validateClaimsExistForTenant(@NonNull final String tenantId,
-                                                     @Nullable final Map<String, ?> claims) {
+    public static void validateClaimsExistForTenant(@NonNull final String tenantId,
+                                                    @Nullable final IClaimable claimable) {
         final String methodName = ":validateClaimsExistForTenant";
 
-        if (null == claims) {
+        if (null == claimable || null == claimable.getClaims()) {
             final String errMsg = "Attempting to authorize for tenant: "
                     + tenantId
                     + " but no matching account was found.";

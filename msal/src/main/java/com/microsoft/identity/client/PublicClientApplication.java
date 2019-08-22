@@ -95,6 +95,7 @@ import java.util.Map;
 
 import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isAccountHomeTenant;
 import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isHomeTenantEquivalent;
+import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.validateClaimsExistForTenant;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_MSA_PERSISTENCE_ERROR;
@@ -1161,7 +1162,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             if (isHomeTenantEquivalent(tenantIdNameOrAlias)
                     || isAccountHomeTenant(multiTenantAccount.getClaims(), tenantIdNameOrAlias)) {
                 // Use home...
-                // TODO validate claims exist...
+                validateClaimsExistForTenant(tenantIdNameOrAlias, multiTenantAccount);
+
                 accountRecord.setLocalAccountId(multiTenantAccount.getId());
                 accountRecord.setUsername(
                         SchemaUtil.getDisplayableId(multiTenantAccount.getClaims())
@@ -1170,8 +1172,13 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 return accountRecord;
             } else if (null != multiTenantAccount.getTenantProfiles().get(tenantIdNameOrAlias)) {
                 // Use this guest...
-                // TODO validate claims exist...
-                final ITenantProfile profileForRequest = multiTenantAccount.getTenantProfiles().get(tenantIdNameOrAlias);
+                final ITenantProfile profileForRequest =
+                        multiTenantAccount
+                                .getTenantProfiles()
+                                .get(tenantIdNameOrAlias);
+
+                validateClaimsExistForTenant(tenantIdNameOrAlias, profileForRequest);
+
                 accountRecord.setLocalAccountId(profileForRequest.getId());
                 accountRecord.setUsername(
                         SchemaUtil.getDisplayableId(profileForRequest.getClaims())
@@ -1193,6 +1200,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
                 if (multiTenantAccount.getTenantId().equals(tenantPath)) {
                     // use home...
+                    validateClaimsExistForTenant(tenantPath, multiTenantAccount);
+
                     accountRecord.setLocalAccountId(multiTenantAccount.getId());
                     accountRecord.setUsername(
                             SchemaUtil.getDisplayableId(multiTenantAccount.getClaims())
@@ -1203,6 +1212,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             multiTenantAccount
                                     .getTenantProfiles()
                                     .get(tenantPath);
+
+                    validateClaimsExistForTenant(tenantPath, profileForRequest);
 
                     accountRecord.setLocalAccountId(profileForRequest.getId());
                     accountRecord.setUsername(
