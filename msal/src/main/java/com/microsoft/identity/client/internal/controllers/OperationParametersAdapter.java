@@ -237,9 +237,7 @@ public class OperationParametersAdapter {
 
     public static AcquireTokenSilentOperationParameters createAcquireTokenSilentOperationParameters(
             @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters,
-            @NonNull final PublicClientApplicationConfiguration pcaConfig,
-            @Nullable final String requestEnvironment,
-            @Nullable final String requestHomeAccountId) {
+            @NonNull final PublicClientApplicationConfiguration pcaConfig) {
         final Context context = pcaConfig.getAppContext();
         final String requestAuthority = acquireTokenSilentParameters.getAuthority();
         final Authority authority = Authority.getAuthorityFromAuthorityUrl(requestAuthority);
@@ -258,13 +256,7 @@ public class OperationParametersAdapter {
         atsOperationParams.setForceRefresh(acquireTokenSilentParameters.getForceRefresh());
         atsOperationParams.setRedirectUri(pcaConfig.getRedirectUri());
         atsOperationParams.setClaimsRequest(jsonClaimsRequest);
-
-        setRequestAccount(
-                acquireTokenSilentParameters,
-                requestEnvironment,
-                requestHomeAccountId,
-                atsOperationParams
-        );
+        atsOperationParams.setAccount(acquireTokenSilentParameters.getAccountRecord());
 
         if (atsOperationParams.getAuthority() instanceof AzureActiveDirectoryAuthority) {
             AzureActiveDirectoryAuthority aadAuthority =
@@ -274,103 +266,6 @@ public class OperationParametersAdapter {
         }
 
         return atsOperationParams;
-    }
-
-    private static void setRequestAccount(
-            @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters,
-            @Nullable final String requestEnvironment,
-            @Nullable final String requestHomeAccountId,
-            @NonNull final AcquireTokenSilentOperationParameters atsOperationParams) {
-        if (null != acquireTokenSilentParameters.getAccountRecord()) {
-            atsOperationParams.setAccount(acquireTokenSilentParameters.getAccountRecord());
-        } else if (null != acquireTokenSilentParameters.getAccount()) {
-            // This will happen when the account exists in broker.
-            // We need to construct the AccountRecord object with IAccount.
-            // for broker acquireToken request only.
-            final IAccount account = acquireTokenSilentParameters.getAccount();
-            final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
-
-            final AccountRecord requestAccountRecord = new AccountRecord();
-            requestAccountRecord.setEnvironment(requestEnvironment);
-            requestAccountRecord.setHomeAccountId(requestHomeAccountId);
-
-            if (atsOperationParams.getAuthority() instanceof AzureActiveDirectoryAuthority) {
-                AzureActiveDirectoryAuthority aadAuthority =
-                        (AzureActiveDirectoryAuthority) atsOperationParams.getAuthority();
-                final String tenantId = aadAuthority.getAudience().getTenantId();
-
-                if (isHomeTenantEquivalent(tenantId)
-                        || isAccountHomeTenant(multiTenantAccount.getClaims(), tenantId)) {
-                    // use home...
-                    validateClaimsExistForTenant(tenantId, multiTenantAccount.getClaims());
-
-                    requestAccountRecord.setUsername(
-                            SchemaUtil.getDisplayableId(multiTenantAccount.getClaims())
-                    );
-                    requestAccountRecord.setLocalAccountId(multiTenantAccount.getId());
-                } else {
-                    // Use that tenant's profile...
-                    final ITenantProfile[] tenantProfile = {multiTenantAccount.getTenantProfiles().get(tenantId)};
-
-                    if (null == tenantProfile[0]) {
-                        // This profile does not exist, it must be a named tenant...
-                        final String authorityStr = aadAuthority.getAuthorityURL().toString();
-                        final OpenIdProviderConfigurationClient client =
-                                new OpenIdProviderConfigurationClient(authorityStr);
-                        try {
-                            final OpenIdProviderConfiguration configuration = client.loadOpenIdProviderConfiguration();
-                            final String issuer = configuration.getIssuer();
-                            final Uri issuerUri = Uri.parse(issuer);
-                            final List<String> paths = issuerUri.getPathSegments();
-                            final String tenantPath = paths.get(0);
-
-                            if (multiTenantAccount.getTenantId().equals(tenantPath)) {
-                                // Use home
-                                validateClaimsExistForTenant(tenantId, multiTenantAccount.getClaims());
-
-                                requestAccountRecord.setUsername(
-                                        SchemaUtil.getDisplayableId(multiTenantAccount.getClaims())
-                                );
-
-                                requestAccountRecord.setLocalAccountId(multiTenantAccount.getId());
-                            } else {
-                                tenantProfile[0] = multiTenantAccount.getTenantProfiles().get(tenantPath);
-                                validateClaimsExistForTenant(tenantId, tenantProfile[0].getClaims());
-
-                                requestAccountRecord.setUsername(
-                                        SchemaUtil.getDisplayableId(tenantProfile[0].getClaims())
-                                );
-
-                                requestAccountRecord.setLocalAccountId(tenantProfile[0].getId());
-                            }
-                        } catch (ServiceException e) {
-                            e.printStackTrace();
-                            // TODO Handle this
-                        }
-                    } else {
-                        validateClaimsExistForTenant(tenantId, tenantProfile[0].getClaims());
-
-                        requestAccountRecord.setUsername(
-                                SchemaUtil.getDisplayableId(tenantProfile[0].getClaims())
-                        );
-
-                        requestAccountRecord.setLocalAccountId(tenantProfile[0].getId());
-                    }
-                }
-            } else if (atsOperationParams.getAuthority() instanceof AzureActiveDirectoryB2CAuthority) {
-                // Use home
-                validateClaimsExistForTenant("B2C (home tenant)", multiTenantAccount.getClaims());
-
-                requestAccountRecord.setUsername(
-                        SchemaUtil.getDisplayableId(multiTenantAccount.getClaims())
-                );
-                requestAccountRecord.setLocalAccountId(multiTenantAccount.getId());
-            } else {
-                throw new UnsupportedOperationException("Unsupported authority type.");
-            }
-
-            atsOperationParams.setAccount(requestAccountRecord);
-        }
     }
 
     /**
