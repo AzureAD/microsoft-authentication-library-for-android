@@ -984,64 +984,45 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     @Override
     public void acquireToken(@NonNull final AcquireTokenParameters acquireTokenParameters) {
-        acquireTokenParameters.setAccountRecord(
-                getAccountRecord(
-                        acquireTokenParameters.getAccount(),
-                        getRequestTenantId(
-                                mPublicClientConfiguration,
-                                acquireTokenParameters
-                        )
-                )
-        );
+        final ILocalAuthenticationCallback localAuthenticationCallback =
+                getLocalAuthenticationCallback(acquireTokenParameters.getCallback());
 
-        validateAcquireTokenParameters(acquireTokenParameters);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    acquireTokenParameters.setAccountRecord(
+                            selectAccountRecordForTokenRequest(
+                                    mPublicClientConfiguration,
+                                    acquireTokenParameters
+                            )
+                    );
 
-        final AcquireTokenOperationParameters params = OperationParametersAdapter.
-                createAcquireTokenOperationParameters(
-                        acquireTokenParameters,
-                        mPublicClientConfiguration
-                );
+                    validateAcquireTokenParameters(acquireTokenParameters);
 
-        ILocalAuthenticationCallback localAuthenticationCallback =
-                getLocalAuthenticationCallback(
-                        acquireTokenParameters.getCallback()
-                );
+                    final AcquireTokenOperationParameters params = OperationParametersAdapter.
+                            createAcquireTokenOperationParameters(
+                                    acquireTokenParameters,
+                                    mPublicClientConfiguration
+                            );
 
-        try {
-            final InteractiveTokenCommand command = new InteractiveTokenCommand(
-                    params,
-                    MSALControllerFactory.getAcquireTokenController(
-                            mPublicClientConfiguration.getAppContext(),
-                            params.getAuthority(),
-                            mPublicClientConfiguration
-                    ),
-                    localAuthenticationCallback
-            );
-            ApiDispatcher.beginInteractive(command);
-        } catch (final BaseException exception) {
-            localAuthenticationCallback.onError(exception);
-        }
-    }
 
-    protected AccountRecord getAccountRecord(@Nullable final IAccount account,
-                                             @NonNull String tenantId) {
-        final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
+                    final InteractiveTokenCommand command = new InteractiveTokenCommand(
+                            params,
+                            MSALControllerFactory.getAcquireTokenController(
+                                    mPublicClientConfiguration.getAppContext(),
+                                    params.getAuthority(),
+                                    mPublicClientConfiguration
+                            ),
+                            localAuthenticationCallback
+                    );
 
-        if (null != multiTenantAccount) {
-
-            if (FORCE_HOME_LOOKUP.equals(tenantId)) {
-                tenantId = account.getTenantId();
+                    ApiDispatcher.beginInteractive(command);
+                } catch (final BaseException exception) {
+                    localAuthenticationCallback.onError(exception);
+                }
             }
-
-            return AccountAdapter.getAccountInternal(
-                    mPublicClientConfiguration.getClientId(),
-                    mPublicClientConfiguration.getOAuth2TokenCache(),
-                    multiTenantAccount.getHomeAccountId(),
-                    tenantId
-            );
-        }
-
-        return null;
+        }).start();
     }
 
     protected void acquireTokenSilent(@NonNull final String[] scopes,
@@ -1115,6 +1096,16 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private AccountRecord selectAccountRecordForTokenRequest(
             @NonNull final PublicClientApplicationConfiguration pcaConfig,
             @NonNull final TokenParameters tokenParameters) throws ServiceException {
+        // If not authority was provided in the request, fallback to the default authority...
+        if (TextUtils.isEmpty(tokenParameters.getAuthority())) {
+            tokenParameters.setAuthority(
+                    pcaConfig
+                            .getDefaultAuthority()
+                            .getAuthorityUri()
+                            .toString()
+            );
+        }
+
         if (null == tokenParameters.getAccount()) {
             return null; // No account was set!
         }
