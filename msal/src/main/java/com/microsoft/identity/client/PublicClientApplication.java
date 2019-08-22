@@ -27,6 +27,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Pair;
@@ -92,6 +93,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isAccountHomeTenant;
 import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isHomeTenantEquivalent;
@@ -147,10 +150,11 @@ import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHAR
  * </p>
  */
 public class PublicClientApplication implements IPublicClientApplication, ITokenShare {
-    private static final String TAG = PublicClientApplication.class.getSimpleName();
 
+    private static final String TAG = PublicClientApplication.class.getSimpleName();
     private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
+    private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
 
     /**
      * Constant used to signal a home account's tenant id should be used when performing cache lookups
@@ -984,12 +988,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     @Override
     public void acquireToken(@NonNull final AcquireTokenParameters acquireTokenParameters) {
-        final ILocalAuthenticationCallback localAuthenticationCallback =
-                getLocalAuthenticationCallback(acquireTokenParameters.getCallback());
-
-        new Thread(new Runnable() {
+        sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
+                final ILocalAuthenticationCallback localAuthenticationCallback =
+                        getLocalAuthenticationCallback(acquireTokenParameters.getCallback());
                 try {
                     acquireTokenParameters.setAccountRecord(
                             selectAccountRecordForTokenRequest(
@@ -1019,10 +1022,17 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
                     ApiDispatcher.beginInteractive(command);
                 } catch (final BaseException exception) {
-                    localAuthenticationCallback.onError(exception);
+                    // If there is an Exception, post it to the main thread...
+                    final Handler handler = new Handler(Looper.getMainLooper());
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            localAuthenticationCallback.onError(exception);
+                        }
+                    });
                 }
             }
-        }).start();
+        });
     }
 
     protected void acquireTokenSilent(@NonNull final String[] scopes,
@@ -1050,13 +1060,13 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     @Override
     public void acquireTokenSilentAsync(
             @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
-        final ILocalAuthenticationCallback callback = getLocalAuthenticationCallback(
-                acquireTokenSilentParameters.getCallback()
-        );
-
-        new Thread(new Runnable() {
+        sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
+                final ILocalAuthenticationCallback callback = getLocalAuthenticationCallback(
+                        acquireTokenSilentParameters.getCallback()
+                );
+
                 try {
                     acquireTokenSilentParameters.setAccountRecord(
                             selectAccountRecordForTokenRequest(
@@ -1089,7 +1099,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     callback.onError(exception);
                 }
             }
-        }).start();
+        });
     }
 
 
