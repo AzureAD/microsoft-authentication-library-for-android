@@ -192,11 +192,8 @@ public class OperationParametersAdapter {
         }
 
         final Context context = acquireTokenParameters.getActivity().getApplicationContext();
-
         acquireTokenOperationParameters.setApplicationName(context.getPackageName());
-
         acquireTokenOperationParameters.setApplicationVersion(getPackageVersion(context));
-
         acquireTokenOperationParameters.setSdkVersion(PublicClientApplication.getSdkVersion());
 
         return acquireTokenOperationParameters;
