@@ -1085,31 +1085,38 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         validateAcquireTokenSilentParameters(acquireTokenSilentParameters);
 
-        final AcquireTokenSilentOperationParameters params =
-                OperationParametersAdapter.createAcquireTokenSilentOperationParameters(
-                        acquireTokenSilentParameters,
-                        mPublicClientConfiguration,
-                        requestEnvironment,
-                        requestHomeAccountId
-                );
+        final String finalRequestEnvironment = requestEnvironment;
+        final String finalRequestHomeAccountId = requestHomeAccountId;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final AcquireTokenSilentOperationParameters params =
+                        OperationParametersAdapter.createAcquireTokenSilentOperationParameters(
+                                acquireTokenSilentParameters,
+                                mPublicClientConfiguration,
+                                finalRequestEnvironment,
+                                finalRequestHomeAccountId
+                        );
 
-        ILocalAuthenticationCallback callback = getLocalAuthenticationCallback(acquireTokenSilentParameters.getCallback());
+                ILocalAuthenticationCallback callback = getLocalAuthenticationCallback(acquireTokenSilentParameters.getCallback());
 
-        try {
-            final TokenCommand silentTokenCommand = new TokenCommand(
-                    params,
-                    MSALControllerFactory.getAcquireTokenSilentControllers(
-                            mPublicClientConfiguration.getAppContext(),
-                            params.getAuthority(),
-                            mPublicClientConfiguration
-                    ),
-                    callback
-            );
+                try {
+                    final TokenCommand silentTokenCommand = new TokenCommand(
+                            params,
+                            MSALControllerFactory.getAcquireTokenSilentControllers(
+                                    mPublicClientConfiguration.getAppContext(),
+                                    params.getAuthority(),
+                                    mPublicClientConfiguration
+                            ),
+                            callback
+                    );
 
-            ApiDispatcher.submitSilent(silentTokenCommand);
-        } catch (final BaseException exception) {
-            callback.onError(exception);
-        }
+                    ApiDispatcher.submitSilent(silentTokenCommand);
+                } catch (final BaseException exception) {
+                    callback.onError(exception);
+                }
+            }
+        }).start();
     }
 
     @Override

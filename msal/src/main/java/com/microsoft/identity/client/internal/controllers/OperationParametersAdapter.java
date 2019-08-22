@@ -38,6 +38,7 @@ import com.microsoft.identity.client.MultiTenantAccount;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.claims.ClaimsRequest;
+import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
@@ -56,7 +57,6 @@ import com.microsoft.identity.common.internal.util.StringUtil;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 
 import static com.microsoft.identity.common.internal.authorities.AllAccounts.ALL_ACCOUNTS_TENANT_ID;
 import static com.microsoft.identity.common.internal.authorities.AnyPersonalAccount.ANY_PERSONAL_ACCOUNT_TENANT_ID;
@@ -314,50 +314,47 @@ public class OperationParametersAdapter {
 
                     if (null == tenantProfile[0]) {
                         // This profile does not exist, it must be a named tenant...
-                        final CountDownLatch latch = new CountDownLatch(1);
                         final String authorityStr = aadAuthority.getAuthorityURL().toString();
                         final OpenIdProviderConfigurationClient client =
                                 new OpenIdProviderConfigurationClient(authorityStr);
-                        client.loadOpenIdProviderConfiguration(
-                                new OpenIdProviderConfigurationClient.OpenIdProviderConfigurationCallback() {
-                                    @Override
-                                    public void onTaskCompleted(final OpenIdProviderConfiguration openIdProviderConfiguration) {
-                                        final String issuer = openIdProviderConfiguration.getIssuer();
-                                        final Uri issuerUri = Uri.parse(issuer);
-                                        final List<String> paths = issuerUri.getPathSegments();
-                                        final String tenantPath = paths.get(0);
-                                        if (multiTenantAccount.getTenantId().equals(tenantPath)) {
-                                            // Use home
-                                            validateClaimsExistForTenant(tenantId, multiTenantAccount.getClaims());
-
-                                            requestAccountRecord.setUsername(
-                                                    SchemaUtil.getDisplayableId(multiTenantAccount.getClaims())
-                                            );
-                                            requestAccountRecord.setLocalAccountId(multiTenantAccount.getId());
-
-                                        } else {
-                                            tenantProfile[0] = multiTenantAccount.getTenantProfiles().get(tenantPath);
-                                            validateClaimsExistForTenant(tenantId, tenantProfile[0].getClaims());
-
-                                            requestAccountRecord.setUsername(
-                                                    SchemaUtil.getDisplayableId(tenantProfile[0].getClaims())
-                                            );
-                                            requestAccountRecord.setLocalAccountId(tenantProfile[0].getId());
-                                        }
-                                        latch.countDown();
-                                    }
-
-                                    @Override
-                                    public void onError(final Exception error) {
-                                        // TODO Cannot do ATS if there is an error.
-                                        latch.countDown();
-                                    }
-                                });
                         try {
-                            latch.await();
-                        } catch (InterruptedException e) {
-                            // TODO something sane
+                            final OpenIdProviderConfiguration configuration = client.loadOpenIdProviderConfiguration();
+                            final String issuer = configuration.getIssuer();
+                            final Uri issuerUri = Uri.parse(issuer);
+                            final List<String> paths = issuerUri.getPathSegments();
+                            final String tenantPath = paths.get(0);
+
+                            if (multiTenantAccount.getTenantId().equals(tenantPath)) {
+                                // Use home
+                                validateClaimsExistForTenant(tenantId, multiTenantAccount.getClaims());
+
+                                requestAccountRecord.setUsername(
+                                        SchemaUtil.getDisplayableId(multiTenantAccount.getClaims())
+                                );
+
+                                requestAccountRecord.setLocalAccountId(multiTenantAccount.getId());
+                            } else {
+                                tenantProfile[0] = multiTenantAccount.getTenantProfiles().get(tenantPath);
+                                validateClaimsExistForTenant(tenantId, tenantProfile[0].getClaims());
+
+                                requestAccountRecord.setUsername(
+                                        SchemaUtil.getDisplayableId(tenantProfile[0].getClaims())
+                                );
+
+                                requestAccountRecord.setLocalAccountId(tenantProfile[0].getId());
+                            }
+                        } catch (ServiceException e) {
+                            e.printStackTrace();
+                            // TODO Handle this
                         }
+                    } else {
+                        validateClaimsExistForTenant(tenantId, tenantProfile[0].getClaims());
+
+                        requestAccountRecord.setUsername(
+                                SchemaUtil.getDisplayableId(tenantProfile[0].getClaims())
+                        );
+
+                        requestAccountRecord.setLocalAccountId(tenantProfile[0].getId());
                     }
                 }
             } else if (atsOperationParams.getAuthority() instanceof AzureActiveDirectoryB2CAuthority) {
