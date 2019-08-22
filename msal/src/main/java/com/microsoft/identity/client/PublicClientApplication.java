@@ -26,7 +26,6 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -636,8 +635,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     @WorkerThread
     private static IMultipleAccountPublicClientApplication createMultipleAccountPublicClientApplication(@NonNull final PublicClientApplicationConfiguration configuration) throws InterruptedException, MsalException {
         if (configuration.mAccountMode != AccountMode.MULTIPLE) {
-            throw new MsalClientException(ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_ACCOUNT_MODE_NOT_MULTIPLE_ERRORCODE,
-                    ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_ACCOUNT_MODE_NOT_MULTIPLE_ERRORMESSAGE);
+            throw new MsalClientException(ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_ACCOUNT_MODE_NOT_MULTIPLE_ERROR_CODE,
+                    ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_ACCOUNT_MODE_NOT_MULTIPLE_ERROR_MESSAGE);
         }
 
         final IPublicClientApplication application = create(configuration);
@@ -645,11 +644,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             return (IMultipleAccountPublicClientApplication) application;
         } else {
             if (configuration.mAccountMode == AccountMode.MULTIPLE && application.isSharedDevice()) {
-                throw new MsalClientException(ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_ON_SHARED_DEVICE_ERRORCODE,
-                        ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_ON_SHARED_DEVICE_ERRORMESSAGE);
+                throw new MsalClientException(ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_ON_SHARED_DEVICE_ERROR_CODE,
+                        ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_ON_SHARED_DEVICE_ERROR_MESSAGE);
             }
-            throw new MsalClientException(ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_UNKNOWN_REASON_ERRORCODE,
-                    ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_UNKNOWN_REASON_ERRORMESSAGE);
+            throw new MsalClientException(ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_UNKNOWN_REASON_ERROR_CODE,
+                    ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_UNKNOWN_REASON_ERROR_MESSAGE);
         }
     }
 
@@ -660,11 +659,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             return (ISingleAccountPublicClientApplication) application;
         } else {
             if (configuration.mAccountMode != AccountMode.SINGLE) {
-                throw new MsalClientException(ErrorStrings.CANNOT_INITIALIZE_SINGLE_ACCOUNT_PCA_ACCOUNT_MODE_NOT_SINGLE_ERRORCODE,
-                        ErrorStrings.CANNOT_INITIALIZE_SINGLE_ACCOUNT_PCA_ACCOUNT_MODE_NOT_SINGLE_ERRORMESSAGE);
+                throw new MsalClientException(ErrorStrings.CANNOT_INITIALIZE_SINGLE_ACCOUNT_PCA_ACCOUNT_MODE_NOT_SINGLE_ERROR_CODE,
+                        ErrorStrings.CANNOT_INITIALIZE_SINGLE_ACCOUNT_PCA_ACCOUNT_MODE_NOT_SINGLE_ERROR_MESSAGE);
             }
-            throw new MsalClientException(ErrorStrings.CANNOT_INITIALIZE_SINGLE_ACCOUNT_PCA_UNKNOWN_REASON_ERRORCODE,
-                    ErrorStrings.CANNOT_INITIALIZE_SINGLE_ACCOUNT_PCA_UNKNOWN_REASON_ERRORMESSAGE);
+            throw new MsalClientException(ErrorStrings.CANNOT_INITIALIZE_SINGLE_ACCOUNT_PCA_UNKNOWN_REASON_ERROR_CODE,
+                    ErrorStrings.CANNOT_INITIALIZE_SINGLE_ACCOUNT_PCA_UNKNOWN_REASON_ERROR_MESSAGE);
         }
     }
 
@@ -701,12 +700,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             listener.onCreated((IMultipleAccountPublicClientApplication) application);
                         } else {
                             if (application.getConfiguration().mAccountMode == AccountMode.MULTIPLE && application.isSharedDevice()) {
-                                listener.onError(new MsalClientException(ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_ON_SHARED_DEVICE_ERRORCODE,
-                                        ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_ON_SHARED_DEVICE_ERRORMESSAGE));
+                                listener.onError(new MsalClientException(ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_ON_SHARED_DEVICE_ERROR_CODE,
+                                        ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_ON_SHARED_DEVICE_ERROR_MESSAGE));
                                 return;
                             }
-                            listener.onError(new MsalClientException(ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_UNKNOWN_REASON_ERRORCODE,
-                                    ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_UNKNOWN_REASON_ERRORMESSAGE));
+                            listener.onError(new MsalClientException(ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_UNKNOWN_REASON_ERROR_CODE,
+                                    ErrorStrings.CANNOT_INITIALIZE_MULTIPLE_ACCOUNT_PCA_UNKNOWN_REASON_ERROR_MESSAGE));
                         }
                     }
 
@@ -730,12 +729,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             listener.onCreated((ISingleAccountPublicClientApplication) application);
                         } else {
                             if (application.getConfiguration().mAccountMode != AccountMode.SINGLE) {
-                                listener.onError(new MsalClientException(ErrorStrings.CANNOT_INITIALIZE_SINGLE_ACCOUNT_PCA_ACCOUNT_MODE_NOT_SINGLE_ERRORCODE,
-                                        ErrorStrings.CANNOT_INITIALIZE_SINGLE_ACCOUNT_PCA_ACCOUNT_MODE_NOT_SINGLE_ERRORMESSAGE));
+                                listener.onError(new MsalClientException(ErrorStrings.CANNOT_INITIALIZE_SINGLE_ACCOUNT_PCA_ACCOUNT_MODE_NOT_SINGLE_ERROR_CODE,
+                                        ErrorStrings.CANNOT_INITIALIZE_SINGLE_ACCOUNT_PCA_ACCOUNT_MODE_NOT_SINGLE_ERROR_MESSAGE));
                                 return;
                             }
-                            listener.onError(new MsalClientException(ErrorStrings.CANNOT_INITIALIZE_SINGLE_ACCOUNT_PCA_UNKNOWN_REASON_ERRORCODE,
-                                    ErrorStrings.CANNOT_INITIALIZE_SINGLE_ACCOUNT_PCA_UNKNOWN_REASON_ERRORMESSAGE));
+                            listener.onError(new MsalClientException(ErrorStrings.CANNOT_INITIALIZE_SINGLE_ACCOUNT_PCA_UNKNOWN_REASON_ERROR_CODE,
+                                    ErrorStrings.CANNOT_INITIALIZE_SINGLE_ACCOUNT_PCA_UNKNOWN_REASON_ERROR_MESSAGE));
                         }
                     }
 
