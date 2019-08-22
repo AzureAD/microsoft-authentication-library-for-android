@@ -25,6 +25,7 @@ package com.microsoft.identity.client.internal.controllers;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -44,6 +45,8 @@ import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.OpenIdConnectPromptParameter;
+import com.microsoft.identity.common.internal.providers.oauth2.OpenIdProviderConfiguration;
+import com.microsoft.identity.common.internal.providers.oauth2.OpenIdProviderConfigurationClient;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.OperationParameters;
@@ -51,7 +54,9 @@ import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 import static com.microsoft.identity.common.internal.authorities.AllAccounts.ALL_ACCOUNTS_TENANT_ID;
 import static com.microsoft.identity.common.internal.authorities.AnyPersonalAccount.ANY_PERSONAL_ACCOUNT_TENANT_ID;
@@ -305,14 +310,55 @@ public class OperationParametersAdapter {
                     requestAccountRecord.setLocalAccountId(multiTenantAccount.getId());
                 } else {
                     // Use that tenant's profile...
-                    final ITenantProfile tenantProfile = multiTenantAccount.getTenantProfiles().get(tenantId);
+                    final ITenantProfile[] tenantProfile = {multiTenantAccount.getTenantProfiles().get(tenantId)};
 
-                    validateClaimsExistForTenant(tenantId, tenantProfile.getClaims());
+                    if (null == tenantProfile[0]) {
+                        // This profile does not exist, it must be a named tenant...
+                        final CountDownLatch latch = new CountDownLatch(1);
+                        final String authorityStr = aadAuthority.getAuthorityURL().toString();
+                        final OpenIdProviderConfigurationClient client =
+                                new OpenIdProviderConfigurationClient(authorityStr);
+                        client.loadOpenIdProviderConfiguration(
+                                new OpenIdProviderConfigurationClient.OpenIdProviderConfigurationCallback() {
+                                    @Override
+                                    public void onTaskCompleted(final OpenIdProviderConfiguration openIdProviderConfiguration) {
+                                        final String issuer = openIdProviderConfiguration.getIssuer();
+                                        final Uri issuerUri = Uri.parse(issuer);
+                                        final List<String> paths = issuerUri.getPathSegments();
+                                        final String tenantPath = paths.get(0);
+                                        if (multiTenantAccount.getTenantId().equals(tenantPath)) {
+                                            // Use home
+                                            validateClaimsExistForTenant(tenantId, multiTenantAccount.getClaims());
 
-                    requestAccountRecord.setUsername(
-                            SchemaUtil.getDisplayableId(tenantProfile.getClaims())
-                    );
-                    requestAccountRecord.setLocalAccountId(tenantProfile.getId());
+                                            requestAccountRecord.setUsername(
+                                                    SchemaUtil.getDisplayableId(multiTenantAccount.getClaims())
+                                            );
+                                            requestAccountRecord.setLocalAccountId(multiTenantAccount.getId());
+
+                                        } else {
+                                            tenantProfile[0] = multiTenantAccount.getTenantProfiles().get(tenantPath);
+                                            validateClaimsExistForTenant(tenantId, tenantProfile[0].getClaims());
+
+                                            requestAccountRecord.setUsername(
+                                                    SchemaUtil.getDisplayableId(tenantProfile[0].getClaims())
+                                            );
+                                            requestAccountRecord.setLocalAccountId(tenantProfile[0].getId());
+                                        }
+                                        latch.countDown();
+                                    }
+
+                                    @Override
+                                    public void onError(final Exception error) {
+                                        // TODO Cannot do ATS if there is an error.
+                                        latch.countDown();
+                                    }
+                                });
+                        try {
+                            latch.await();
+                        } catch (InterruptedException e) {
+                            // TODO something sane
+                        }
+                    }
                 }
             } else if (atsOperationParams.getAuthority() instanceof AzureActiveDirectoryB2CAuthority) {
                 // Use home
