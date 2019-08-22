@@ -116,9 +116,6 @@ dependencies {
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     implementation "com.nimbusds:nimbus-jose-jwt:$rootProject.ext.nimbusVersion"
 
-    implementation project(':keyvault')
-    implementation project(':labapi')
-
     // test dependencies
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
     // TODO the below dependency should be mockito-core but the MockMaker isn't working...
