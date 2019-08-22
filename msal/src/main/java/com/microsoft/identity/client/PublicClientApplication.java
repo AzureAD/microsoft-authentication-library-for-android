@@ -1166,9 +1166,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 validateClaimsExistForTenant(tenantIdNameOrAlias, multiTenantAccount);
 
                 accountRecord.setLocalAccountId(multiTenantAccount.getId());
-                accountRecord.setUsername(
-                        SchemaUtil.getDisplayableId(multiTenantAccount.getClaims())
-                );
+                accountRecord.setUsername(multiTenantAccount.getUsername());
 
                 return accountRecord;
             } else if (null != multiTenantAccount.getTenantProfiles().get(tenantIdNameOrAlias)) {
@@ -1181,9 +1179,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 validateClaimsExistForTenant(tenantIdNameOrAlias, profileForRequest);
 
                 accountRecord.setLocalAccountId(profileForRequest.getId());
-                accountRecord.setUsername(
-                        SchemaUtil.getDisplayableId(profileForRequest.getClaims())
-                );
+                accountRecord.setUsername(profileForRequest.getUsername());
 
                 return accountRecord;
             } else {
@@ -1204,9 +1200,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     validateClaimsExistForTenant(tenantPath, multiTenantAccount);
 
                     accountRecord.setLocalAccountId(multiTenantAccount.getId());
-                    accountRecord.setUsername(
-                            SchemaUtil.getDisplayableId(multiTenantAccount.getClaims())
-                    );
+                    accountRecord.setUsername(multiTenantAccount.getUsername());
                 } else {
                     // Use the matching profile
                     final ITenantProfile profileForRequest =
@@ -1217,9 +1211,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     validateClaimsExistForTenant(tenantPath, profileForRequest);
 
                     accountRecord.setLocalAccountId(profileForRequest.getId());
-                    accountRecord.setUsername(
-                            SchemaUtil.getDisplayableId(profileForRequest.getClaims())
-                    );
+                    accountRecord.setUsername(profileForRequest.getUsername());
                 }
 
                 return accountRecord;
