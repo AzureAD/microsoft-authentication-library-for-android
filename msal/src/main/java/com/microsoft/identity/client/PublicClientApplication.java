@@ -1025,7 +1025,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         if (null != multiTenantAccount) {
 
             if (FORCE_HOME_LOOKUP.equals(tenantId)) {
-                tenantId = ((MultiTenantAccount) account).getTenantId();
+                tenantId = account.getTenantId();
             }
 
             return AccountAdapter.getAccountInternal(
