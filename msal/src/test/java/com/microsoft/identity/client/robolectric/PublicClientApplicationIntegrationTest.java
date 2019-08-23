@@ -49,11 +49,6 @@ public final class PublicClientApplicationIntegrationTest {
     private static final String DEFAULT_AAD_AUTHORITY = "https://login.microsoftonline.com/common";
     private static final String AAD_ROPC_TEST_AUTHORITY = "https://test.authority/aad.ropc";
 
-    private void flushScheduler() {
-        final Scheduler scheduler = RuntimeEnvironment.getMasterScheduler();
-        while (!scheduler.advanceToLastPostedRunnable()) ;
-    }
-
     @Test
     public void canPerformROPC() {
         new PublicClientApplicationBaseTest() {
@@ -93,7 +88,7 @@ public final class PublicClientApplicationIntegrationTest {
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
-                flushScheduler();
+                RoboTestUtils.flushScheduler();
             }
 
         }.performTest();
@@ -162,9 +157,9 @@ public final class PublicClientApplicationIntegrationTest {
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
-                flushScheduler();
+                RoboTestUtils.flushScheduler();
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
-                flushScheduler();
+                RoboTestUtils.flushScheduler();
             }
 
         }.performTest();
@@ -233,9 +228,9 @@ public final class PublicClientApplicationIntegrationTest {
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
-                flushScheduler();
+                RoboTestUtils.flushScheduler();
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
-                flushScheduler();
+                RoboTestUtils.flushScheduler();
             }
 
         }.performTest();
@@ -304,10 +299,10 @@ public final class PublicClientApplicationIntegrationTest {
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
-                flushScheduler();
-                clearCache();
+                RoboTestUtils.flushScheduler();
+                RoboTestUtils.clearCache();
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
-                flushScheduler();
+                RoboTestUtils.flushScheduler();
             }
 
         }.performTest();
@@ -376,96 +371,13 @@ public final class PublicClientApplicationIntegrationTest {
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
-                flushScheduler();
-                removeAccessTokenFromCache();
+                RoboTestUtils.flushScheduler();
+                RoboTestUtils.removeAccessTokenFromCache();
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
-                flushScheduler();
+                RoboTestUtils.flushScheduler();
             }
 
         }.performTest();
-    }
-
-
-    public String getKeyToBeRemoved(Map<String, ?> cacheValues) {
-        for (Map.Entry<String, ?> cacheValue : cacheValues.entrySet()) {
-            final String cacheKey = cacheValue.getKey();
-            if (isAccessToken(cacheKey)) {
-                return cacheKey;
-            }
-        }
-
-        return null;
-    }
-
-
-    /**
-     * Inspects the supplied cache key to determine the target CredentialType.
-     *
-     * @param cacheKey The cache key to inspect.
-     * @return The CredentialType or null if a proper type cannot be resolved.
-     */
-    @Nullable
-    private CredentialType getCredentialTypeForCredentialCacheKey(@NonNull final String cacheKey) {
-        if (StringExtensions.isNullOrBlank(cacheKey)) {
-            throw new IllegalArgumentException("Param [cacheKey] cannot be null.");
-        }
-
-        final Set<String> credentialTypesLowerCase = new HashSet<>();
-
-        for (final String credentialTypeStr : CredentialType.valueSet()) {
-            credentialTypesLowerCase.add(credentialTypeStr.toLowerCase(Locale.US));
-        }
-
-        CredentialType type = null;
-        for (final String credentialTypeStr : credentialTypesLowerCase) {
-            if (cacheKey.contains(CACHE_VALUE_SEPARATOR + credentialTypeStr + CACHE_VALUE_SEPARATOR)) {
-                if (credentialTypeStr.equalsIgnoreCase(CredentialType.AccessToken.name())) {
-                    type = CredentialType.AccessToken;
-                    break;
-                } else if (credentialTypeStr.equalsIgnoreCase(CredentialType.RefreshToken.name())) {
-                    type = CredentialType.RefreshToken;
-                    break;
-                } else if (credentialTypeStr.equalsIgnoreCase(CredentialType.IdToken.name())) {
-                    type = CredentialType.IdToken;
-                    break;
-                } else if (credentialTypeStr.equalsIgnoreCase(CredentialType.V1IdToken.name())) {
-                    type = CredentialType.V1IdToken;
-                    break;
-                }
-            }
-        }
-
-        return type;
-    }
-
-    private boolean isAccessToken(@NonNull final String cacheKey) {
-        boolean isAccessToken = CredentialType.AccessToken == getCredentialTypeForCredentialCacheKey(cacheKey);
-        return isAccessToken;
-    }
-
-    private SharedPreferences getSharedPreferences() {
-        final Context context = ApplicationProvider.getApplicationContext();
-        String prefName = "com.microsoft.identity.client.account_credential_cache";
-        SharedPreferences sharedPreferences = context.getSharedPreferences(prefName, Context.MODE_PRIVATE);
-        return sharedPreferences;
-    }
-
-    private void clearCache() {
-        SharedPreferences sharedPreferences = getSharedPreferences();
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.clear();
-        editor.commit();
-    }
-
-    private void removeAccessTokenFromCache() {
-        SharedPreferences sharedPreferences = getSharedPreferences();
-        final Map<String, ?> cacheValues = sharedPreferences.getAll();
-        final String keyToRemove = getKeyToBeRemoved(cacheValues);
-        if (keyToRemove != null) {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.remove(keyToRemove);
-            editor.commit();
-        }
     }
 
 
