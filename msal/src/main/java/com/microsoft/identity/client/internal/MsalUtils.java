@@ -32,7 +32,13 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.net.Uri;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.browser.customtabs.CustomTabsService;
+
+import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Base64;
 
 import com.microsoft.identity.client.BrowserTabActivity;
@@ -99,6 +105,20 @@ public final class MsalUtils {
     @SuppressWarnings("PMD.InefficientEmptyStringCheck")
     public static boolean isEmpty(final String message) {
         return message == null || message.trim().length() == 0;
+    }
+
+    /**
+     * Throws IllegalArgumentException if the argument is null.
+     */
+    public static void validateNonNullArgument(@Nullable final Object o,
+                                               @NonNull final String argName) {
+        if (null == o
+                || (o instanceof CharSequence) && TextUtils.isEmpty((CharSequence) o)) {
+            throw new IllegalArgumentException(
+                    argName
+                            + " cannot be null or empty"
+            );
+        }
     }
 
     /**
@@ -460,5 +480,14 @@ public final class MsalUtils {
         }
 
         return convertedSet;
+    }
+
+    /**
+     * @param methodName
+     */
+    public static void throwOnMainThread(final String methodName) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            throw new IllegalStateException("method: " + methodName + " may not be called from main thread.");
+        }
     }
 }

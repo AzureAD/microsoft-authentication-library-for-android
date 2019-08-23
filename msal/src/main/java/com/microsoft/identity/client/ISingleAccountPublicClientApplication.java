@@ -35,10 +35,10 @@ import com.microsoft.identity.client.exception.MsalException;
  * An interface that contains list of operations that are available when MSAL is in 'single account' mode.
  * - In this mode, one account can be signed-in to the app.
  * - If the user wants to acquire a token for another account, the previous account must be signed out first.
- *
+ * <p>
  * When the device is registered as 'shared', this will be the only available PublicClientApplication the app can obtain.
  * The calling app has to support ISingleAccountPublicClientApplication if it is planning to support shared device mode.
- *
+ * <p>
  * In the shared device mode,
  * - 'Sign-in' means that the user will be signed in to the device - not just this app.
  * - Once an account is 'signed-in', every MSAL app on the device that support shared device mode will be able to retrieve this account, and use them to silently perform API calls.
@@ -154,7 +154,7 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
          *
          * @param exception the exception object.
          */
-        void onError(@NonNull final Exception exception);
+        void onError(@NonNull final MsalException exception);
     }
 
     interface SignOutCallback {
