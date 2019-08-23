@@ -20,7 +20,7 @@ import java.util.Set;
 
 import static com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate.CACHE_VALUE_SEPARATOR;
 
-public class RoboTestUtils {
+class RoboTestUtils {
 
     private static final String SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache";
 
@@ -87,14 +87,14 @@ public class RoboTestUtils {
         return sharedPreferences;
     }
 
-    public static void clearCache() {
+    static void clearCache() {
         SharedPreferences sharedPreferences = getSharedPreferences();
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.clear();
         editor.commit();
     }
 
-    public static void removeAccessTokenFromCache() {
+    static void removeAccessTokenFromCache() {
         SharedPreferences sharedPreferences = getSharedPreferences();
         final Map<String, ?> cacheValues = sharedPreferences.getAll();
         final String keyToRemove = getCacheKeyForAccessToken(cacheValues);
@@ -105,10 +105,9 @@ public class RoboTestUtils {
         }
     }
 
-    public static void flushScheduler() {
+    static void flushScheduler() {
         final Scheduler scheduler = RuntimeEnvironment.getMasterScheduler();
         while (!scheduler.advanceToLastPostedRunnable()) ;
     }
-
 
 }
