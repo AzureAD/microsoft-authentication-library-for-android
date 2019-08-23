@@ -1184,11 +1184,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 return accountRecord;
             } else {
                 // We need to query metadata...
-                final OpenIdProviderConfigurationClient client =
-                        new OpenIdProviderConfigurationClient(requestAuthority);
-
                 final OpenIdProviderConfiguration providerConfiguration =
-                        client.loadOpenIdProviderConfiguration();
+                        loadOpenIdProviderConfigurationMetadata(requestAuthority);
 
                 final String issuer = providerConfiguration.getIssuer();
                 final Uri issuerUri = Uri.parse(issuer);
@@ -1235,6 +1232,21 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             .getSimpleName()
             );
         }
+    }
+
+    private OpenIdProviderConfiguration loadOpenIdProviderConfigurationMetadata(
+            @NonNull final String requestAuthority) throws ServiceException {
+        final String methodName = ":loadOpenIdProviderConfigurationMetadata";
+
+        com.microsoft.identity.common.internal.logging.Logger.info(
+                TAG + methodName,
+                "Loading OpenId Provider Metadata..."
+        );
+
+        final OpenIdProviderConfigurationClient client =
+                new OpenIdProviderConfigurationClient(requestAuthority);
+
+        return client.loadOpenIdProviderConfiguration();
     }
 
     private static boolean isUuid(@NonNull final String tenantIdNameOrAlias) {
