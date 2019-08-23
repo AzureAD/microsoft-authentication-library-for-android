@@ -26,15 +26,16 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
+import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
-
-import android.text.TextUtils;
-import android.util.Pair;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -54,6 +55,7 @@ import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
 import com.microsoft.identity.client.internal.telemetry.Defaults;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
 import com.microsoft.identity.common.exception.BaseException;
+import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AuthorityDeserializer;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
@@ -72,6 +74,8 @@ import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.net.cache.HttpCache;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.internal.providers.oauth2.OpenIdProviderConfiguration;
+import com.microsoft.identity.common.internal.providers.oauth2.OpenIdProviderConfigurationClient;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.ILocalAuthenticationCallback;
@@ -89,8 +93,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isAccountHomeTenant;
 import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isHomeTenantEquivalent;
+import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.validateClaimsExistForTenant;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_MSA_PERSISTENCE_ERROR;
@@ -142,10 +151,11 @@ import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHAR
  * </p>
  */
 public class PublicClientApplication implements IPublicClientApplication, ITokenShare {
-    private static final String TAG = PublicClientApplication.class.getSimpleName();
 
+    private static final String TAG = PublicClientApplication.class.getSimpleName();
     private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
+    private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
 
     /**
      * Constant used to signal a home account's tenant id should be used when performing cache lookups
@@ -979,64 +989,54 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     @Override
     public void acquireToken(@NonNull final AcquireTokenParameters acquireTokenParameters) {
-        acquireTokenParameters.setAccountRecord(
-                getAccountRecord(
-                        acquireTokenParameters.getAccount(),
-                        getRequestTenantId(
-                                mPublicClientConfiguration,
-                                acquireTokenParameters
-                        )
-                )
-        );
+        // In order to support use of named tenants (such as contoso.onmicrosoft.com), we need
+        // to be able to query OpenId Provider Configuration Metadata - for this reason, we will
+        // build-up the acquireTokenOperationParams on a background thread.
+        sBackgroundExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                final ILocalAuthenticationCallback localAuthenticationCallback =
+                        getLocalAuthenticationCallback(acquireTokenParameters.getCallback());
+                try {
+                    acquireTokenParameters.setAccountRecord(
+                            selectAccountRecordForTokenRequest(
+                                    mPublicClientConfiguration,
+                                    acquireTokenParameters
+                            )
+                    );
 
-        validateAcquireTokenParameters(acquireTokenParameters);
+                    validateAcquireTokenParameters(acquireTokenParameters);
 
-        final AcquireTokenOperationParameters params = OperationParametersAdapter.
-                createAcquireTokenOperationParameters(
-                        acquireTokenParameters,
-                        mPublicClientConfiguration
-                );
+                    final AcquireTokenOperationParameters params = OperationParametersAdapter.
+                            createAcquireTokenOperationParameters(
+                                    acquireTokenParameters,
+                                    mPublicClientConfiguration
+                            );
 
-        ILocalAuthenticationCallback localAuthenticationCallback =
-                getLocalAuthenticationCallback(
-                        acquireTokenParameters.getCallback()
-                );
 
-        try {
-            final InteractiveTokenCommand command = new InteractiveTokenCommand(
-                    params,
-                    MSALControllerFactory.getAcquireTokenController(
-                            mPublicClientConfiguration.getAppContext(),
-                            params.getAuthority(),
-                            mPublicClientConfiguration
-                    ),
-                    localAuthenticationCallback
-            );
-            ApiDispatcher.beginInteractive(command);
-        } catch (final BaseException exception) {
-            localAuthenticationCallback.onError(exception);
-        }
-    }
+                    final InteractiveTokenCommand command = new InteractiveTokenCommand(
+                            params,
+                            MSALControllerFactory.getAcquireTokenController(
+                                    mPublicClientConfiguration.getAppContext(),
+                                    params.getAuthority(),
+                                    mPublicClientConfiguration
+                            ),
+                            localAuthenticationCallback
+                    );
 
-    protected AccountRecord getAccountRecord(@Nullable final IAccount account,
-                                             @NonNull String tenantId) {
-        final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
-
-        if (null != multiTenantAccount) {
-
-            if (FORCE_HOME_LOOKUP.equals(tenantId)) {
-                tenantId = ((MultiTenantAccount) account).getTenantId();
+                    ApiDispatcher.beginInteractive(command);
+                } catch (final BaseException exception) {
+                    // If there is an Exception, post it to the main thread...
+                    final Handler handler = new Handler(Looper.getMainLooper());
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            localAuthenticationCallback.onError(exception);
+                        }
+                    });
+                }
             }
-
-            return AccountAdapter.getAccountInternal(
-                    mPublicClientConfiguration.getClientId(),
-                    mPublicClientConfiguration.getOAuth2TokenCache(),
-                    multiTenantAccount.getHomeAccountId(),
-                    tenantId
-            );
-        }
-
-        return null;
+        });
     }
 
     protected void acquireTokenSilent(@NonNull final String[] scopes,
@@ -1064,51 +1064,187 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     @Override
     public void acquireTokenSilentAsync(
             @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
-        acquireTokenSilentParameters.setAccountRecord(
-                getAccountRecord(
-                        acquireTokenSilentParameters.getAccount(),
-                        getRequestTenantId(
-                                mPublicClientConfiguration,
-                                acquireTokenSilentParameters
-                        )
-                )
-        );
-
-        String requestEnvironment = null;
-        String requestHomeAccountId = null;
-
-        if (null != acquireTokenSilentParameters.getAccountRecord()) {
-            final AccountRecord requestAccount = acquireTokenSilentParameters.getAccountRecord();
-            requestEnvironment = requestAccount.getEnvironment();
-            requestHomeAccountId = requestAccount.getHomeAccountId();
-        }
-
-        validateAcquireTokenSilentParameters(acquireTokenSilentParameters);
-
-        final AcquireTokenSilentOperationParameters params =
-                OperationParametersAdapter.createAcquireTokenSilentOperationParameters(
-                        acquireTokenSilentParameters,
-                        mPublicClientConfiguration,
-                        requestEnvironment,
-                        requestHomeAccountId
+        sBackgroundExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                final ILocalAuthenticationCallback callback = getLocalAuthenticationCallback(
+                        acquireTokenSilentParameters.getCallback()
                 );
 
-        ILocalAuthenticationCallback callback = getLocalAuthenticationCallback(acquireTokenSilentParameters.getCallback());
+                try {
+                    acquireTokenSilentParameters.setAccountRecord(
+                            selectAccountRecordForTokenRequest(
+                                    mPublicClientConfiguration,
+                                    acquireTokenSilentParameters
+                            )
+                    );
 
-        try {
-            final TokenCommand silentTokenCommand = new TokenCommand(
-                    params,
-                    MSALControllerFactory.getAcquireTokenSilentControllers(
-                            mPublicClientConfiguration.getAppContext(),
-                            params.getAuthority(),
-                            mPublicClientConfiguration
-                    ),
-                    callback
+                    validateAcquireTokenSilentParameters(acquireTokenSilentParameters);
+
+                    final AcquireTokenSilentOperationParameters params =
+                            OperationParametersAdapter.createAcquireTokenSilentOperationParameters(
+                                    acquireTokenSilentParameters,
+                                    mPublicClientConfiguration
+                            );
+
+
+                    final TokenCommand silentTokenCommand = new TokenCommand(
+                            params,
+                            MSALControllerFactory.getAcquireTokenSilentControllers(
+                                    mPublicClientConfiguration.getAppContext(),
+                                    params.getAuthority(),
+                                    mPublicClientConfiguration
+                            ),
+                            callback
+                    );
+
+                    ApiDispatcher.submitSilent(silentTokenCommand);
+                } catch (final BaseException exception) {
+                    callback.onError(exception);
+                }
+            }
+        });
+    }
+
+
+    private AccountRecord selectAccountRecordForTokenRequest(
+            @NonNull final PublicClientApplicationConfiguration pcaConfig,
+            @NonNull final TokenParameters tokenParameters)
+            throws ServiceException, MsalClientException {
+        // If not authority was provided in the request, fallback to the default authority...
+        if (TextUtils.isEmpty(tokenParameters.getAuthority())) {
+            tokenParameters.setAuthority(
+                    pcaConfig
+                            .getDefaultAuthority()
+                            .getAuthorityUri()
+                            .toString()
             );
+        }
 
-            ApiDispatcher.submitSilent(silentTokenCommand);
-        } catch (final BaseException exception) {
-            callback.onError(exception);
+        if (null == tokenParameters.getAccount()) {
+            return null; // No account was set!
+        }
+
+        // The root account we'll be fetching tokens for...
+        final IAccount rootAccount = tokenParameters.getAccount();
+        final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) rootAccount;
+        final String requestAuthority = tokenParameters.getAuthority();
+        final Authority authority = Authority.getAuthorityFromAuthorityUrl(requestAuthority);
+
+        if (authority instanceof AzureActiveDirectoryB2CAuthority) {
+            // use home account - b2c is not compatible with broker, so no need to construct
+            // the account used in the request...
+            return AccountAdapter.getAccountInternal(
+                    mPublicClientConfiguration.getClientId(),
+                    mPublicClientConfiguration.getOAuth2TokenCache(),
+                    multiTenantAccount.getHomeAccountId(),
+                    multiTenantAccount.getTenantId()
+            );
+        } else if (authority instanceof AzureActiveDirectoryAuthority) {
+            final AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) authority;
+
+            // Although the below call implies the returned value will be a tenantId, this isn't
+            // strictly true: it can also be an alias such as 'common', 'consumers', or
+            // 'organizations'. Additionally, if the developer has used a named tenant it could end
+            // up being something like <tenant_name>.onmicrosoft.com
+            //
+            // If the tenant is a GUID, we need to choose the account/profile that corresponds to it
+            //
+            // If the tenant is named 'common', 'consumers', or 'organizations' we need to use the
+            // home account
+            //
+            // If the account is named like <tenant_name>.onmicrosoft.com we need to query the OpenId
+            // Provider Configuration Metadata in order to get the tenant id. Once we have the
+            // tenant id, we must then select the appropriate home or profile.
+            String tenantIdNameOrAlias = aadAuthority.getAudience().getTenantId();
+
+            // The AccountRecord we'll use to request a token...
+            final AccountRecord accountRecord = new AccountRecord();
+            accountRecord.setEnvironment(multiTenantAccount.getEnvironment());
+            accountRecord.setHomeAccountId(multiTenantAccount.getHomeAccountId());
+
+            final boolean isUuid = isUuid(tenantIdNameOrAlias);
+
+            if (!isUuid && !isHomeTenantEquivalent(tenantIdNameOrAlias)) {
+                final OpenIdProviderConfiguration providerConfiguration =
+                        loadOpenIdProviderConfigurationMetadata(requestAuthority);
+
+                final String issuer = providerConfiguration.getIssuer();
+                final Uri issuerUri = Uri.parse(issuer);
+                final List<String> paths = issuerUri.getPathSegments();
+
+                if (paths.isEmpty()) {
+                    final String errMsg = "OpenId Metadata did not contain a path to the tenant";
+
+                    com.microsoft.identity.common.internal.logging.Logger.error(
+                            TAG,
+                            errMsg,
+                            null
+                    );
+
+                    throw new MsalClientException(errMsg);
+                }
+
+                tenantIdNameOrAlias = paths.get(0);
+            }
+
+            final IAccount accountForRequest;
+
+            if (isHomeTenantEquivalent(tenantIdNameOrAlias)
+                    || isAccountHomeTenant(multiTenantAccount.getClaims(), tenantIdNameOrAlias)) {
+                accountForRequest = multiTenantAccount;
+            } else {
+                accountForRequest = multiTenantAccount.getTenantProfiles().get(tenantIdNameOrAlias);
+            }
+
+            if (null == accountForRequest) { // We did not find a profile to use
+                final boolean isSilent = tokenParameters instanceof AcquireTokenSilentParameters;
+
+                if (isSilent) {
+                    validateClaimsExistForTenant(tenantIdNameOrAlias, null);
+                } else {
+                    // We didn't find an Account but the request is interactive so we'll
+                    // return null and let the user sort it out.
+                    return null;
+                }
+            }
+
+            accountRecord.setLocalAccountId(accountForRequest.getId());
+            accountRecord.setUsername(accountForRequest.getUsername());
+
+            return accountRecord;
+        } else {
+            // Unrecognized authority type
+            throw new UnsupportedOperationException(
+                    "Unsupported Authority type: "
+                            + authority
+                            .getClass()
+                            .getSimpleName()
+            );
+        }
+    }
+
+    private OpenIdProviderConfiguration loadOpenIdProviderConfigurationMetadata(
+            @NonNull final String requestAuthority) throws ServiceException {
+        final String methodName = ":loadOpenIdProviderConfigurationMetadata";
+
+        com.microsoft.identity.common.internal.logging.Logger.info(
+                TAG + methodName,
+                "Loading OpenId Provider Metadata..."
+        );
+
+        final OpenIdProviderConfigurationClient client =
+                new OpenIdProviderConfigurationClient(requestAuthority);
+
+        return client.loadOpenIdProviderConfiguration();
+    }
+
+    private static boolean isUuid(@NonNull final String tenantIdNameOrAlias) {
+        try {
+            UUID.fromString(tenantIdNameOrAlias);
+            return true;
+        } catch (final IllegalArgumentException e) {
+            return false;
         }
     }
 
