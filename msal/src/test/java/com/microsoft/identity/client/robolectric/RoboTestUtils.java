@@ -22,6 +22,8 @@ import static com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate
 
 public class RoboTestUtils {
 
+    private static final String SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache";
+
     private static String getCacheKeyForAccessToken(Map<String, ?> cacheValues) {
         for (Map.Entry<String, ?> cacheValue : cacheValues.entrySet()) {
             final String cacheKey = cacheValue.getKey();
@@ -81,8 +83,7 @@ public class RoboTestUtils {
 
     private static SharedPreferences getSharedPreferences() {
         final Context context = ApplicationProvider.getApplicationContext();
-        String prefName = "com.microsoft.identity.client.account_credential_cache";
-        SharedPreferences sharedPreferences = context.getSharedPreferences(prefName, Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
         return sharedPreferences;
     }
 
