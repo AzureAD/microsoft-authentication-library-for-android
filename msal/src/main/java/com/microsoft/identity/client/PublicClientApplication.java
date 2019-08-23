@@ -93,6 +93,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -1161,26 +1162,21 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             accountRecord.setEnvironment(multiTenantAccount.getEnvironment());
             accountRecord.setHomeAccountId(multiTenantAccount.getHomeAccountId());
 
-            if (isHomeTenantEquivalent(tenantIdNameOrAlias)
-                    || isAccountHomeTenant(multiTenantAccount.getClaims(), tenantIdNameOrAlias)) {
-                // Use home...
-                validateClaimsExistForTenant(tenantIdNameOrAlias, multiTenantAccount);
+            final boolean isUuid = isUuid(tenantIdNameOrAlias);
 
-                accountRecord.setLocalAccountId(multiTenantAccount.getId());
-                accountRecord.setUsername(multiTenantAccount.getUsername());
+            if (isUuid) {
+                final IAccount accountForRequest;
 
-                return accountRecord;
-            } else if (null != multiTenantAccount.getTenantProfiles().get(tenantIdNameOrAlias)) {
-                // Use this guest...
-                final ITenantProfile profileForRequest =
-                        multiTenantAccount
-                                .getTenantProfiles()
-                                .get(tenantIdNameOrAlias);
+                if (isHomeTenantEquivalent(tenantIdNameOrAlias)
+                        || isAccountHomeTenant(multiTenantAccount.getClaims(), tenantIdNameOrAlias)) {
+                    accountForRequest = multiTenantAccount;
+                } else {
+                    accountForRequest = multiTenantAccount.getTenantProfiles().get(tenantIdNameOrAlias);
+                }
 
-                validateClaimsExistForTenant(tenantIdNameOrAlias, profileForRequest);
-
-                accountRecord.setLocalAccountId(profileForRequest.getId());
-                accountRecord.setUsername(profileForRequest.getUsername());
+                validateClaimsExistForTenant(tenantIdNameOrAlias, accountForRequest);
+                accountRecord.setLocalAccountId(accountForRequest.getId());
+                accountRecord.setUsername(accountForRequest.getUsername());
 
                 return accountRecord;
             } else {
@@ -1235,6 +1231,15 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             .getClass()
                             .getSimpleName()
             );
+        }
+    }
+
+    private static boolean isUuid(@NonNull final String tenantIdNameOrAlias) {
+        try {
+            UUID.fromString(tenantIdNameOrAlias);
+            return true;
+        } catch (final IllegalArgumentException e) {
+            return false;
         }
     }
 
