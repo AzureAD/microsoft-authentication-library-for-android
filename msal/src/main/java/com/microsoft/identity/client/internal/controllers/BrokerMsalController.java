@@ -35,6 +35,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Parcelable;
 import android.os.RemoteException;
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
@@ -80,6 +81,7 @@ import com.microsoft.identity.common.internal.telemetry.events.BrokerStartEvent;
 import com.microsoft.identity.common.internal.ui.browser.Browser;
 import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 import com.microsoft.identity.common.internal.util.ICacheRecordGsonAdapter;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -90,6 +92,7 @@ import java.util.concurrent.Executors;
 
 import static com.microsoft.identity.client.internal.controllers.BrokerBaseStrategy.getAcquireTokenResult;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.DEFAULT_BROWSER_PACKAGE_NAME;
+import static com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter.getHelloResultFromBundle;
 
 /**
  * The implementation of MSAL Controller for Broker
@@ -633,14 +636,7 @@ public class BrokerMsalController extends BaseController {
             final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
             service = authServiceFuture.get();
             final Bundle requestBundle = MsalBrokerRequestAdapter.getBrokerHelloBundle(parameters);
-            final BrokerResult result = MsalBrokerResultAdapter.brokerResultFromBundle(service.hello(requestBundle));
-            if (result == null) {
-                return false;
-            } else if (result.isSuccess()) {
-                return true;
-            } else {
-                throw new ClientException(result.getErrorCode(), result.getErrorMessage());
-            }
+            return MsalBrokerResultAdapter.getHelloResultFromBundle(service.hello(requestBundle));
         } catch (final InterruptedException | ExecutionException | RemoteException e) {
             com.microsoft.identity.common.internal.logging.Logger.error(
                     TAG + methodName,
@@ -665,7 +661,7 @@ public class BrokerMsalController extends BaseController {
         final String methodName = ":helloWithAccountManager";
         final String DATA_HELLO = "com.microsoft.workaccount.hello";
 
-        if (BrokerMsalController.isAccountManagerPermissionsGranted(parameters.getAppContext())) {
+        if (!BrokerMsalController.isAccountManagerPermissionsGranted(parameters.getAppContext())) {
             //If the account manager permissions are not granted, return false.
             return false;
         }
@@ -686,13 +682,10 @@ public class BrokerMsalController extends BaseController {
                                 null
                         );
 
-                final BrokerResult brokerResult = MsalBrokerResultAdapter.brokerResultFromBundle(result.getResult());
                 if (result == null) {
                     return false;
-                } else if (brokerResult.isSuccess()) {
-                    return true;
                 } else {
-                    throw new ClientException(brokerResult.getErrorCode(), brokerResult.getErrorMessage());
+                    return MsalBrokerResultAdapter.getHelloResultFromBundle(result.getResult());
                 }
             } else {
                 return false;
