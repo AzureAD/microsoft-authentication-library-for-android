@@ -1172,6 +1172,19 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 final String issuer = providerConfiguration.getIssuer();
                 final Uri issuerUri = Uri.parse(issuer);
                 final List<String> paths = issuerUri.getPathSegments();
+
+                if (paths.isEmpty()) {
+                    final String errMsg = "OpenId Metadata did not contain a path to the tenant";
+
+                    com.microsoft.identity.common.internal.logging.Logger.error(
+                            TAG,
+                            errMsg,
+                            null
+                    );
+
+                    throw new MsalClientException(errMsg);
+                }
+
                 tenantIdNameOrAlias = paths.get(0);
             }
 
