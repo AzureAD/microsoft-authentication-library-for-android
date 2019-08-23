@@ -30,6 +30,8 @@ import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 
 import java.util.Map;
 
+import static com.microsoft.identity.common.internal.cache.SchemaUtil.MISSING_FROM_THE_TOKEN_RESPONSE;
+
 public class Account implements IAccount {
 
     private final Map<String, ?> mIdTokenClaims;
@@ -109,6 +111,8 @@ public class Account implements IAccount {
 
             if (null != usernameClaim) {
                 username = usernameClaim;
+            } else {
+                username = MISSING_FROM_THE_TOKEN_RESPONSE;
             }
         }
 
