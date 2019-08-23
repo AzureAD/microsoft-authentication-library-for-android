@@ -1165,7 +1165,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
             final boolean isUuid = isUuid(tenantIdNameOrAlias);
 
-            if (!isUuid) {
+            if (!isUuid && !isHomeTenantEquivalent(tenantIdNameOrAlias)) {
                 final OpenIdProviderConfiguration providerConfiguration =
                         loadOpenIdProviderConfigurationMetadata(requestAuthority);
 
