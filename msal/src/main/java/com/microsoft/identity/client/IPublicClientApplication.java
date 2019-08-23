@@ -117,4 +117,52 @@ public interface IPublicClientApplication {
          */
         void onError(MsalException exception);
     }
+
+
+    /**
+     * Listener callback for asynchronous initialization of IPublicClientApplication object.
+     */
+    interface ApplicationCreatedListener {
+        /**
+         * Called once an IPublicClientApplication is successfully created.
+         */
+        void onCreated(final IPublicClientApplication application);
+
+        /**
+         * Called once IPublicClientApplication can't be created.
+         */
+        void onError(final MsalException exception);
+    }
+
+
+    /**
+     * Listener callback for asynchronous initialization of ISingleAccountPublicClientApplication object.
+     */
+    interface ISingleAccountApplicationCreatedListener {
+        /**
+         * Called once an ISingleAccountPublicClientApplication is successfully created.
+         */
+        void onCreated(final ISingleAccountPublicClientApplication application);
+
+        /**
+         * Called once ISingleAccountPublicClientApplication can't be created.
+         */
+        void onError(final MsalException exception);
+    }
+
+    /**
+     * Listener callback for asynchronous initialization of IMultipleAccountPublicClientApplication object.
+     */
+    interface IMultipleAccountApplicationCreatedListener {
+        /**
+         * Called once an IMultipleAccountPublicClientApplication is successfully created.
+         */
+        void onCreated(final IMultipleAccountPublicClientApplication application);
+
+        /**
+         * Called once IMultipleAccountPublicClientApplication can't be created.
+         */
+        void onError(final MsalException exception);
+    }
+
 }
