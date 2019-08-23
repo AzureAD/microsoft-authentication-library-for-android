@@ -1158,7 +1158,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             // If the account is named like <tenant_name>.onmicrosoft.com we need to query the OpenId
             // Provider Configuration Metadata in order to get the tenant id. Once we have the
             // tenant id, we must then select the appropriate home or profile.
-            final String tenantIdNameOrAlias = aadAuthority.getAudience().getTenantId();
+            String tenantIdNameOrAlias = aadAuthority.getAudience().getTenantId();
 
             // The AccountRecord we'll use to request a token...
             final AccountRecord accountRecord = new AccountRecord();
@@ -1167,62 +1167,41 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
             final boolean isUuid = isUuid(tenantIdNameOrAlias);
 
-            if (isUuid) {
-                final IAccount accountForRequest;
-
-                if (isHomeTenantEquivalent(tenantIdNameOrAlias)
-                        || isAccountHomeTenant(multiTenantAccount.getClaims(), tenantIdNameOrAlias)) {
-                    accountForRequest = multiTenantAccount;
-                } else {
-                    accountForRequest = multiTenantAccount.getTenantProfiles().get(tenantIdNameOrAlias);
-                }
-
-                validateClaimsExistForTenant(tenantIdNameOrAlias, accountForRequest);
-                accountRecord.setLocalAccountId(accountForRequest.getId());
-                accountRecord.setUsername(accountForRequest.getUsername());
-
-                return accountRecord;
-            } else {
-                // We need to query metadata...
+            if (!isUuid) {
                 final OpenIdProviderConfiguration providerConfiguration =
                         loadOpenIdProviderConfigurationMetadata(requestAuthority);
 
                 final String issuer = providerConfiguration.getIssuer();
                 final Uri issuerUri = Uri.parse(issuer);
                 final List<String> paths = issuerUri.getPathSegments();
-                final String tenantPath = paths.get(0);
-
-                if (multiTenantAccount.getTenantId().equals(tenantPath)) {
-                    // use home...
-                    validateClaimsExistForTenant(tenantPath, multiTenantAccount);
-
-                    accountRecord.setLocalAccountId(multiTenantAccount.getId());
-                    accountRecord.setUsername(multiTenantAccount.getUsername());
-                } else {
-                    // Use the matching profile
-                    final ITenantProfile profileForRequest =
-                            multiTenantAccount
-                                    .getTenantProfiles()
-                                    .get(tenantPath);
-
-                    boolean isSilent = tokenParameters instanceof AcquireTokenSilentParameters;
-
-                    if (null == profileForRequest) { // We did not find a profile to use
-                        if (isSilent) {
-                            validateClaimsExistForTenant(tenantPath, profileForRequest);
-                        } else {
-                            // We didn't find an Account but the request is interactive so we'll
-                            // return null and let the user sort it out.
-                            return null;
-                        }
-                    }
-
-                    accountRecord.setLocalAccountId(profileForRequest.getId());
-                    accountRecord.setUsername(profileForRequest.getUsername());
-                }
-
-                return accountRecord;
+                tenantIdNameOrAlias = paths.get(0);
             }
+
+            final IAccount accountForRequest;
+
+            if (isHomeTenantEquivalent(tenantIdNameOrAlias)
+                    || isAccountHomeTenant(multiTenantAccount.getClaims(), tenantIdNameOrAlias)) {
+                accountForRequest = multiTenantAccount;
+            } else {
+                accountForRequest = multiTenantAccount.getTenantProfiles().get(tenantIdNameOrAlias);
+            }
+
+            if (null == accountForRequest) { // We did not find a profile to use
+                final boolean isSilent = tokenParameters instanceof AcquireTokenSilentParameters;
+
+                if (isSilent) {
+                    validateClaimsExistForTenant(tenantIdNameOrAlias, null);
+                } else {
+                    // We didn't find an Account but the request is interactive so we'll
+                    // return null and let the user sort it out.
+                    return null;
+                }
+            }
+
+            accountRecord.setLocalAccountId(accountForRequest.getId());
+            accountRecord.setUsername(accountForRequest.getUsername());
+
+            return accountRecord;
         } else {
             // Unrecognized authority type
             throw new UnsupportedOperationException(
