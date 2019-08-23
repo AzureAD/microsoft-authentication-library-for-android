@@ -989,6 +989,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     @Override
     public void acquireToken(@NonNull final AcquireTokenParameters acquireTokenParameters) {
+        // In order to support use of named tenants (such as contoso.onmicrosoft.com), we need
+        // to be able to query OpenId Provider Configuration Metadata - for this reason, we will
+        // build-up the acquireTokenOperationParams on a background thread.
         sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
