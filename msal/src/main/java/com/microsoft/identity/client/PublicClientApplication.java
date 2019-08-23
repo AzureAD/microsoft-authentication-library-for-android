@@ -1125,8 +1125,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             return null; // No account was set!
         }
 
-        // TODO consider the interactive case and how we might fallback to config
-
         // The root account we'll be fetching tokens for...
         final IAccount rootAccount = tokenParameters.getAccount();
         final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) rootAccount;
