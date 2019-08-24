@@ -26,6 +26,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 
@@ -34,6 +35,8 @@ import java.util.Map;
 import static com.microsoft.identity.common.internal.cache.SchemaUtil.MISSING_FROM_THE_TOKEN_RESPONSE;
 
 public class Account implements IAccount {
+
+    private static final String TAG = Account.class.getSimpleName();
 
     private final Map<String, ?> mIdTokenClaims;
     private String mClientInfo;
@@ -62,15 +65,22 @@ public class Account implements IAccount {
     public String getId() {
         String id;
 
+        ClientInfo clientInfo = null;
+
         if (null != mClientInfo) { // This property should only exist for home accounts...
             try {
-                final ClientInfo clientInfo = new ClientInfo(mClientInfo);
-                id = clientInfo.getUniqueIdentifier();
-            } catch (MsalClientException e) {
-                e.printStackTrace();
-                id = ""; // TODO remove....
-                // TODO Handle
+                clientInfo = new ClientInfo(mClientInfo);
+            } catch (final MsalClientException e) {
+                Logger.error(
+                        TAG,
+                        "Failed to parse ClientInfo",
+                        e
+                );
             }
+        }
+
+        if (null != clientInfo) {
+            id = clientInfo.getUniqueIdentifier();
         } else if (null != mIdTokenClaims) {
             id = (String) mIdTokenClaims.get(MicrosoftIdToken.OBJECT_ID);
         } else {
