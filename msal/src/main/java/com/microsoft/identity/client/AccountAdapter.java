@@ -230,6 +230,9 @@ class AccountAdapter {
             for (final ICacheRecord cacheRecord : entry.getValue()) {
                 final String tenantId = cacheRecord.getAccount().getRealm();
                 final TenantProfile profile = new TenantProfile(
+                        // Intentionally do NOT supply the client info here.
+                        // If client info is present, getId() will return the home tenant OID
+                        // instead of the OID from the guest tenant.
                         null,
                         getIdToken(cacheRecord)
                 );
@@ -256,6 +259,9 @@ class AccountAdapter {
 
                 if (guestRecordHomeAccountId.contains(account.getId())) {
                     final TenantProfile profile = new TenantProfile(
+                            // Intentionally do NOT supply the client info here.
+                            // If client info is present, getId() will return the home tenant OID
+                            // instead of the OID from the guest tenant.
                             null,
                             getIdToken(guestRecord)
                     );
@@ -279,6 +285,9 @@ class AccountAdapter {
             // This allows us to cast the results however the caller sees fit...
             final IAccount rootAccount;
             rootAccount = new MultiTenantAccount(
+                    // Because this is a home account, we'll supply the client info
+                    // the uid value is the "id" of the account.
+                    // For B2C, this value will contain the policy name appended to the OID.
                     homeCacheRecord.getAccount().getClientInfo(),
                     getIdToken(homeCacheRecord)
             );
