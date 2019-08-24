@@ -208,6 +208,7 @@ class AccountAdapter {
         for (final Map.Entry<String, List<ICacheRecord>> entry : bucketedRecords.entrySet()) {
             // Create our empty root...
             final MultiTenantAccount emptyRoot = new MultiTenantAccount(
+                    null,
                     null // home tenant IdToken.... doesn't exist!
             );
 
@@ -228,7 +229,10 @@ class AccountAdapter {
 
             for (final ICacheRecord cacheRecord : entry.getValue()) {
                 final String tenantId = cacheRecord.getAccount().getRealm();
-                final TenantProfile profile = new TenantProfile(getIdToken(cacheRecord));
+                final TenantProfile profile = new TenantProfile(
+                        null,
+                        getIdToken(cacheRecord)
+                );
 
                 tenantProfileMap.put(tenantId, profile);
             }
@@ -251,7 +255,10 @@ class AccountAdapter {
                 final String guestRecordHomeAccountId = guestRecord.getAccount().getHomeAccountId();
 
                 if (guestRecordHomeAccountId.contains(account.getId())) {
-                    final TenantProfile profile = new TenantProfile(getIdToken(guestRecord));
+                    final TenantProfile profile = new TenantProfile(
+                            null,
+                            getIdToken(guestRecord)
+                    );
                     tenantProfiles.put(guestRecord.getAccount().getRealm(), profile);
                 }
             }
@@ -271,7 +278,10 @@ class AccountAdapter {
             // Each IAccount will be initialized as a MultiTenantAccount whether it really is or not...
             // This allows us to cast the results however the caller sees fit...
             final IAccount rootAccount;
-            rootAccount = new MultiTenantAccount(getIdToken(homeCacheRecord));
+            rootAccount = new MultiTenantAccount(
+                    homeCacheRecord.getAccount().getClientInfo(),
+                    getIdToken(homeCacheRecord)
+            );
 
             // Set the tenant_id
             ((MultiTenantAccount) rootAccount).setTenantId(
