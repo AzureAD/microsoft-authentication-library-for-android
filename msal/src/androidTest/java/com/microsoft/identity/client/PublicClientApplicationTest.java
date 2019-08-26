@@ -41,7 +41,6 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.internal.net.HttpUrlConnectionFactory;
-
 import com.microsoft.identity.msal.test.R;
 
 import org.junit.After;
@@ -76,6 +75,7 @@ public final class PublicClientApplicationTest {
     private Context mAppContext;
     private static final String CLIENT_ID = "client-id";
     private static final String[] SCOPE = {"scope1", "scope2"};
+    public static final String TEST_AUTHORITY = "msauth://com.microsoft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D";
 
     @Before
     public void setUp() {
@@ -187,7 +187,7 @@ public final class PublicClientApplicationTest {
         PublicClientApplication.createSingleAccountPublicClientApplication(context, R.raw.test_msal_config_single_account, new PublicClientApplication.ISingleAccountApplicationCreatedListener() {
             @Override
             public void onCreated(ISingleAccountPublicClientApplication application) {
-                Assert.assertTrue(application instanceof  ISingleAccountPublicClientApplication);
+                Assert.assertTrue(application instanceof ISingleAccountPublicClientApplication);
             }
 
             @Override
@@ -224,7 +224,9 @@ public final class PublicClientApplicationTest {
         mockPackageManagerWithClientId(context, null, CLIENT_ID);
         mockPackageManagerWithDefaultFlag(context);
 
-        new PublicClientApplication(PublicClientApplicationConfigurationFactory.initializeConfiguration(context), CLIENT_ID, null);
+        final PublicClientApplicationConfiguration config = PublicClientApplicationConfigurationFactory.initializeConfiguration(context);
+        config.mRedirectUri = "msal123456://auth";
+        new PublicClientApplication(config, CLIENT_ID, null);
     }
 
     /**
@@ -237,7 +239,9 @@ public final class PublicClientApplicationTest {
         mockHasCustomTabRedirect(context);
         mockPackageManagerWithDefaultFlag(context);
 
-        final PublicClientApplication application = new PublicClientApplication(PublicClientApplicationConfigurationFactory.initializeConfiguration(context), CLIENT_ID, null);
+        final PublicClientApplicationConfiguration config = PublicClientApplicationConfigurationFactory.initializeConfiguration(context);
+        config.mRedirectUri = TEST_AUTHORITY;
+        final PublicClientApplication application = new PublicClientApplication(config, CLIENT_ID, null);
         application.acquireToken(getActivity(context), SCOPE, null);
     }
 
@@ -254,6 +258,7 @@ public final class PublicClientApplicationTest {
 
         PublicClientApplicationConfiguration config = PublicClientApplicationConfigurationFactory.initializeConfiguration(context);
         config.mTelemetryConfiguration = null;
+        config.mRedirectUri = TEST_AUTHORITY;
 
         new PublicClientApplication(config, CLIENT_ID, null);
     }
@@ -289,7 +294,7 @@ public final class PublicClientApplicationTest {
      */
     @Test
     @Ignore
-    public void testAuthoritySetInManifestGetTokenFailed(){
+    public void testAuthoritySetInManifestGetTokenFailed() {
         //TODO: to be replaced with Robolectric
     }
 
@@ -316,7 +321,9 @@ public final class PublicClientApplicationTest {
         mockHasCustomTabRedirect(context);
         mockPackageManagerWithDefaultFlag(context);
 
-        final PublicClientApplication pca = new PublicClientApplication(PublicClientApplicationConfigurationFactory.initializeConfiguration(context), CLIENT_ID, null);
+        final PublicClientApplicationConfiguration config = PublicClientApplicationConfigurationFactory.initializeConfiguration(context);
+        config.mRedirectUri = TEST_AUTHORITY;
+        final PublicClientApplication pca = new PublicClientApplication(config, CLIENT_ID, null);
         final PublicClientApplicationConfiguration appConfig = pca.getConfiguration();
 
         SecretKeyFactory keyFactory = SecretKeyFactory
@@ -364,7 +371,7 @@ public final class PublicClientApplicationTest {
         Mockito.when(mockedPackageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt())).thenReturn(mockedPackageInfo);
     }
 
-    private void mockPackageManagerWithDefaultFlag(final Context context){
+    private void mockPackageManagerWithDefaultFlag(final Context context) {
         // This is to bypass telemetry initialization code.
         try {
             final ApplicationInfo applicationInfo = Mockito.mock(ApplicationInfo.class);
