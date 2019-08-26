@@ -79,7 +79,7 @@ public final class PublicClientApplicationMockTest {
     }
 
     @Test
-    public void canPerformROPC() {
+    public void canAcquireToken() {
         new PublicClientApplicationBaseTest() {
 
             @Override
