@@ -75,7 +75,7 @@ public final class PublicClientApplicationTest {
     private Context mAppContext;
     private static final String CLIENT_ID = "client-id";
     private static final String[] SCOPE = {"scope1", "scope2"};
-    public static final String TEST_AUTHORITY = "msauth://com.microsoft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D";
+    public static final String TEST_AUTHORITY = "msauth://com.microsoft.identity.client.sample.local/signature";
 
     @Before
     public void setUp() {
