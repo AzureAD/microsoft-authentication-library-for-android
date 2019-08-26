@@ -1365,14 +1365,18 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-    // TODO: if no more input validation is needed, this could be moved back to the constructor.
     private void checkIntentFilterAddedToAppManifest() {
-        if (!MsalUtils.hasCustomTabRedirectActivity(
+        final boolean hasCustomTabRedirectActivity = MsalUtils.hasCustomTabRedirectActivity(
                 mPublicClientConfiguration.getAppContext(),
                 mPublicClientConfiguration.getRedirectUri()
-        )) {
-            throw new IllegalStateException("Intent filter for: "
-                    + BrowserTabActivity.class.getSimpleName() + " is missing.  Please refer to the MSAL readme.");
+        );
+
+        if (!hasCustomTabRedirectActivity) {
+            throw new IllegalStateException(
+                    "Intent filter for: "
+                            + BrowserTabActivity.class.getSimpleName()
+                            + " is missing.  Please refer to the MSAL readme."
+            );
         }
     }
 
