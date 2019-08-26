@@ -56,7 +56,6 @@ import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
-import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
@@ -796,11 +795,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 )
         );
 
-        mPublicClientConfiguration.mRedirectUri
-                = BrokerValidator.getBrokerRedirectUri(
-                context,
-                mPublicClientConfiguration.getAppContext().getPackageName());
-
         checkIntentFilterAddedToAppManifest();
 
         // Since network request is sent from the sdk, if calling app doesn't declare the internet permission in the
@@ -813,7 +807,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         com.microsoft.identity.common.internal.logging.Logger.info(TAG, "Create new public client application.");
     }
 
-    private void initializeTokenSharingLibrary(){
+    private void initializeTokenSharingLibrary() {
         if (mPublicClientConfiguration.getOAuth2TokenCache() instanceof MsalOAuth2TokenCache) {
             mTokenShareUtility = new TokenShareUtility(
                     mPublicClientConfiguration.getClientId(),
@@ -1373,7 +1367,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     // TODO: if no more input validation is needed, this could be moved back to the constructor.
     private void checkIntentFilterAddedToAppManifest() {
-        if (!MsalUtils.hasCustomTabRedirectActivity(mPublicClientConfiguration.getAppContext(), mPublicClientConfiguration.getRedirectUri())) {
+        if (!MsalUtils.hasCustomTabRedirectActivity(
+                mPublicClientConfiguration.getAppContext(),
+                mPublicClientConfiguration.getRedirectUri()
+        )) {
             throw new IllegalStateException("Intent filter for: "
                     + BrowserTabActivity.class.getSimpleName() + " is missing.  Please refer to the MSAL readme.");
         }
