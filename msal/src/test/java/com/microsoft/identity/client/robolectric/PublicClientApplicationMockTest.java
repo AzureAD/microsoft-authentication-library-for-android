@@ -447,8 +447,7 @@ public final class PublicClientApplicationMockTest {
                             }
                         })
                         .build();
-
-                RoboTestUtils.removeAccessTokenFromCache();
+                
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
                 RoboTestUtils.flushScheduler();
             }
