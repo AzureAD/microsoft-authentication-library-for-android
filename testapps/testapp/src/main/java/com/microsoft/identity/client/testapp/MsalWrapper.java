@@ -431,9 +431,9 @@ public class MsalWrapper {
                 public void onAccountChanged(IAccount priorAccount, IAccount currentAccount) {
                     notifyCallback.notify(
                             "signed-in account is changed from "
-                                    + (null == priorAccount ? "null" : getPreferredUsername(priorAccount))
+                                    + (null == priorAccount ? "null" : priorAccount.getUsername())
                                     + " to "
-                                    + (null == currentAccount ? "null" : getPreferredUsername(currentAccount))
+                                    + (null == currentAccount ? "null" : currentAccount.getUsername())
                     );
                 }
 
@@ -443,27 +443,6 @@ public class MsalWrapper {
                 }
             });
         }
-    }
-
-    @NonNull
-    static String getPreferredUsername(@NonNull final IAccount account) {
-        Map<String, ?> claims = null;
-
-        // First inspect the root (the home account) - if there are claims, source the username from here
-        if (null != account.getClaims()) {
-            claims = account.getClaims();
-        } else { // We did not have a home account... fallback on iterating over the guests profiles...
-            final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
-
-            for (final ITenantProfile profile : multiTenantAccount.getTenantProfiles().values()) {
-                if (null != profile.getClaims()) {
-                    claims = profile.getClaims();
-                    break;
-                }
-            }
-        }
-
-        return SchemaUtil.getDisplayableId(claims);
     }
 
     private void performPostAccountLoadedJobs() {
