@@ -11,6 +11,7 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.robolectric.shadows.ShadowAuthority;
+import com.microsoft.identity.client.robolectric.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.robolectric.shadows.ShadowStorageHelper;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.utilities.TestConfigurationHelper;
@@ -27,7 +28,7 @@ import java.util.Arrays;
 import static junit.framework.Assert.fail;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class})
+@Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowMsalUtils.class})
 public final class AcquireTokenNetworkTest {
 
     private static final String[] SCOPES = {"user.read", "openid", "offline_access", "profile"};
