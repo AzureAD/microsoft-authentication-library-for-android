@@ -12,6 +12,7 @@ ext {
     androidMavenGradlePluginVersion = "1.4.1"
 
     // Libraries
+    androidxTestCoreVersion = "1.2.0"
     androidxJunitVersion = "1.1.1"
     annotationVersion = "1.0.0"
     appCompatVersion = "1.0.2"
