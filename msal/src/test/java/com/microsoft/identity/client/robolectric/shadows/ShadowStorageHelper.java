@@ -1,4 +1,4 @@
-package com.microsoft.identity.client.shadows;
+package com.microsoft.identity.client.robolectric.shadows;
 
 import androidx.annotation.NonNull;
 

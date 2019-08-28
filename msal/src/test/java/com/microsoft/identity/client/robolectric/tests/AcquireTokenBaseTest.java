@@ -1,4 +1,4 @@
-package com.microsoft.identity.client.robolectric;
+package com.microsoft.identity.client.robolectric.tests;
 
 import android.app.Activity;
 import android.content.Context;
@@ -12,10 +12,15 @@ import com.microsoft.identity.msal.R;
 
 import org.mockito.Mockito;
 
-public abstract class PublicClientApplicationBaseTest {
+import java.io.File;
+
+public abstract class AcquireTokenBaseTest {
+
+    private static final String CONFIG_FILE_PATH = "src/test/res/raw/test_config.json";
 
     abstract void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                        final Activity activity) throws InterruptedException;
+
 
     private Activity getActivity(final Context context) {
         final Activity mockedActivity = Mockito.mock(Activity.class);
@@ -29,7 +34,9 @@ public abstract class PublicClientApplicationBaseTest {
         final Context context = ApplicationProvider.getApplicationContext();
         final Activity testActivity = getActivity(context);
 
-        PublicClientApplication.create(context, R.raw.test_msal_config_multiple_account, new PublicClientApplication.ApplicationCreatedListener() {
+        File configFile = new File(CONFIG_FILE_PATH);
+
+        PublicClientApplication.create(context, configFile, new PublicClientApplication.ApplicationCreatedListener() {
             @Override
             public void onCreated(IPublicClientApplication application) {
                 try {

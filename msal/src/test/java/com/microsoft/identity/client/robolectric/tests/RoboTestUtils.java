@@ -1,4 +1,4 @@
-package com.microsoft.identity.client.robolectric;
+package com.microsoft.identity.client.robolectric.tests;
 
 import android.content.Context;
 import android.content.SharedPreferences;

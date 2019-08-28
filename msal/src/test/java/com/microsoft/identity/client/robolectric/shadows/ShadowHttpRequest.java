@@ -1,4 +1,4 @@
-package com.microsoft.identity.client.shadows;
+package com.microsoft.identity.client.robolectric.shadows;
 
 import com.microsoft.identity.common.internal.net.HttpRequest;
 import com.microsoft.identity.common.internal.net.HttpResponse;
