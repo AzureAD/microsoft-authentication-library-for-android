@@ -741,7 +741,7 @@ public class BrokerMsalController extends BaseController {
                         );
 
                 final BrokerResult brokerResult = MsalBrokerResultAdapter.brokerResultFromBundle(result.getResult());
-                if (result == null) {
+                if (result == null || brokerResult == null) {
                     return false;
                 } else if (brokerResult.isSuccess()) {
                     return true;
