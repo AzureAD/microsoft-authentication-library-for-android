@@ -108,7 +108,7 @@ class AccountAdapter {
                 }
             }};
 
-            return homeAccountIds.contains(guestAccountHomeAccountId);
+            return !homeAccountIds.contains(guestAccountHomeAccountId);
         }
 
         @Override
@@ -208,6 +208,7 @@ class AccountAdapter {
         for (final Map.Entry<String, List<ICacheRecord>> entry : bucketedRecords.entrySet()) {
             // Create our empty root...
             final MultiTenantAccount emptyRoot = new MultiTenantAccount(
+                    null,
                     null // home tenant IdToken.... doesn't exist!
             );
 
@@ -228,7 +229,13 @@ class AccountAdapter {
 
             for (final ICacheRecord cacheRecord : entry.getValue()) {
                 final String tenantId = cacheRecord.getAccount().getRealm();
-                final TenantProfile profile = new TenantProfile(getIdToken(cacheRecord));
+                final TenantProfile profile = new TenantProfile(
+                        // Intentionally do NOT supply the client info here.
+                        // If client info is present, getId() will return the home tenant OID
+                        // instead of the OID from the guest tenant.
+                        null,
+                        getIdToken(cacheRecord)
+                );
 
                 tenantProfileMap.put(tenantId, profile);
             }
@@ -251,7 +258,13 @@ class AccountAdapter {
                 final String guestRecordHomeAccountId = guestRecord.getAccount().getHomeAccountId();
 
                 if (guestRecordHomeAccountId.contains(account.getId())) {
-                    final TenantProfile profile = new TenantProfile(getIdToken(guestRecord));
+                    final TenantProfile profile = new TenantProfile(
+                            // Intentionally do NOT supply the client info here.
+                            // If client info is present, getId() will return the home tenant OID
+                            // instead of the OID from the guest tenant.
+                            null,
+                            getIdToken(guestRecord)
+                    );
                     tenantProfiles.put(guestRecord.getAccount().getRealm(), profile);
                 }
             }
@@ -271,7 +284,13 @@ class AccountAdapter {
             // Each IAccount will be initialized as a MultiTenantAccount whether it really is or not...
             // This allows us to cast the results however the caller sees fit...
             final IAccount rootAccount;
-            rootAccount = new MultiTenantAccount(getIdToken(homeCacheRecord));
+            rootAccount = new MultiTenantAccount(
+                    // Because this is a home account, we'll supply the client info
+                    // the uid value is the "id" of the account.
+                    // For B2C, this value will contain the policy name appended to the OID.
+                    homeCacheRecord.getAccount().getClientInfo(),
+                    getIdToken(homeCacheRecord)
+            );
 
             // Set the tenant_id
             ((MultiTenantAccount) rootAccount).setTenantId(

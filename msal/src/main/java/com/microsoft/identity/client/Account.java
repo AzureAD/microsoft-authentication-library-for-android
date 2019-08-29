@@ -25,19 +25,30 @@ package com.microsoft.identity.client;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 
 import java.util.Map;
 
+import static com.microsoft.identity.common.internal.cache.SchemaUtil.MISSING_FROM_THE_TOKEN_RESPONSE;
+
 public class Account implements IAccount {
 
+    private static final String TAG = Account.class.getSimpleName();
+
     private final Map<String, ?> mIdTokenClaims;
+    private String mClientInfo;
     private String mHomeOid;
     private String mHomeTenantId;
     private String mEnvironment;
 
-    public Account(@Nullable final IDToken homeTenantIdToken) {
+    public Account(
+            @Nullable final String clientInfo,
+            @Nullable final IDToken homeTenantIdToken) {
+        mClientInfo = clientInfo;
+
         if (null != homeTenantIdToken) {
             mIdTokenClaims = homeTenantIdToken.getTokenClaims();
         } else {
@@ -54,7 +65,23 @@ public class Account implements IAccount {
     public String getId() {
         String id;
 
-        if (null != mIdTokenClaims) {
+        ClientInfo clientInfo = null;
+
+        if (null != mClientInfo) { // This property should only exist for home accounts...
+            try {
+                clientInfo = new ClientInfo(mClientInfo);
+            } catch (final MsalClientException e) {
+                Logger.error(
+                        TAG,
+                        "Failed to parse ClientInfo",
+                        e
+                );
+            }
+        }
+
+        if (null != clientInfo) {
+            id = clientInfo.getUniqueIdentifier();
+        } else if (null != mIdTokenClaims) {
             id = (String) mIdTokenClaims.get(MicrosoftIdToken.OBJECT_ID);
         } else {
             id = mHomeOid;
@@ -109,6 +136,8 @@ public class Account implements IAccount {
 
             if (null != usernameClaim) {
                 username = usernameClaim;
+            } else {
+                username = MISSING_FROM_THE_TOKEN_RESPONSE;
             }
         }
 

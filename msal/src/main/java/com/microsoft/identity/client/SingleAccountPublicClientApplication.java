@@ -53,6 +53,8 @@ import com.microsoft.identity.common.internal.result.ResultFuture;
 
 import java.util.List;
 
+import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
+
 public class SingleAccountPublicClientApplication extends PublicClientApplication
         implements ISingleAccountPublicClientApplication {
     private static final String TAG = SingleAccountPublicClientApplication.class.getSimpleName();
@@ -71,29 +73,12 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     private SharedPreferencesFileManager sharedPreferencesFileManager;
 
-
-    protected SingleAccountPublicClientApplication(@NonNull final Context context,
-                                                   @NonNull final PublicClientApplicationConfiguration developerConfig,
+    protected SingleAccountPublicClientApplication(@NonNull PublicClientApplicationConfiguration config,
+                                                   @Nullable final String clientId,
+                                                   @Nullable final String authority,
                                                    @NonNull final Boolean isSharedDevice) {
-        super(context, developerConfig);
-        initializeSharedPreferenceFileManager(context);
-        mIsSharedDevice = isSharedDevice;
-    }
-
-    protected SingleAccountPublicClientApplication(@NonNull final Context context,
-                                                   @NonNull final String clientId,
-                                                   @NonNull final Boolean isSharedDevice) {
-        super(context, clientId);
-        initializeSharedPreferenceFileManager(context);
-        mIsSharedDevice = isSharedDevice;
-    }
-
-    protected SingleAccountPublicClientApplication(@NonNull final Context context,
-                                                   @NonNull final String clientId,
-                                                   @NonNull final String authority,
-                                                   @NonNull final Boolean isSharedDevice) {
-        super(context, clientId, authority);
-        initializeSharedPreferenceFileManager(context);
+        super(config, clientId, authority);
+        initializeSharedPreferenceFileManager(config.getAppContext());
         mIsSharedDevice = isSharedDevice;
     }
 
@@ -121,7 +106,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                     "Getting the current account"
             );
 
-
             final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
             final LoadAccountCommand command = new LoadAccountCommand(
                     params,
@@ -130,47 +114,24 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                             params.getAuthority(),
                             mPublicClientConfiguration
                     ),
-                    new TaskCompletedCallbackWithError<List<ICacheRecord>, Exception>() {
+                    new TaskCompletedCallbackWithError<List<ICacheRecord>, BaseException>() {
                         @Override
                         public void onTaskCompleted(final List<ICacheRecord> result) {
-                            if (null == result || result.size() == 0) {
-                                com.microsoft.identity.common.internal.logging.Logger.verbose(
-                                        TAG + methodName,
-                                        "No account found.");
-                                checkCurrentAccountNotifyCallback(callback, null);
-                            } else {
-                                // First, transform the result into IAccount + TenantProfile form
-                                final List<IAccount>
-                                        accounts = AccountAdapter.adapt(result);
-
-                                MultiTenantAccount currentAccount = getPersistedCurrentAccount();
-                                if (currentAccount != null) {
-                                    final String trimmedIdentifier = currentAccount.getHomeAccountId();
-
-                                    final AccountMatcher accountMatcher = new AccountMatcher(
-                                            homeAccountMatcher
-                                    );
-
-                                    for (final IAccount account : accounts) {
-                                        if (accountMatcher.matches(trimmedIdentifier, account)) {
-                                            checkCurrentAccountNotifyCallback(callback, result);
-                                            return;
-                                        }
-                                    }
-                                }
-
-                                checkCurrentAccountNotifyCallback(callback, null);
-                            }
+                            // To simplify the logic, if more than one account is returned, the first account will be picked.
+                            // We do not support switching from MULTIPLE to SINGLE.
+                            // See getAccountFromICacheRecordList() for more details.
+                            checkCurrentAccountNotifyCallback(callback, result);
                         }
 
                         @Override
-                        public void onError(final Exception exception) {
+                        public void onError(final BaseException exception) {
                             com.microsoft.identity.common.internal.logging.Logger.error(
                                     TAG + methodName,
                                     exception.getMessage(),
                                     exception
                             );
-                            callback.onError(exception);
+
+                            callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
                         }
                     }
 
@@ -194,19 +155,18 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             @Override
             public void onAccountLoaded(@Nullable IAccount activeAccount) {
                 CurrentAccountResult currentAccountResult = new CurrentAccountResult(activeAccount, null, false);
-                future.setResult(new AsyncResult<CurrentAccountResult>(currentAccountResult, null));
+                future.setResult(new AsyncResult<>(currentAccountResult, null));
             }
 
             @Override
             public void onAccountChanged(@Nullable IAccount priorAccount, @Nullable IAccount currentAccount) {
                 CurrentAccountResult currentAccountResult = new CurrentAccountResult(currentAccount, priorAccount, false);
-                future.setResult(new AsyncResult<CurrentAccountResult>(currentAccountResult, null));
+                future.setResult(new AsyncResult<>(currentAccountResult, null));
             }
 
             @Override
-            public void onError(@NonNull Exception exception) {
-                //TODO: Need to talk to Dome about exception here rather than MsalException
-                future.setResult(new AsyncResult<CurrentAccountResult>(null, (MsalException) exception));
+            public void onError(@NonNull MsalException exception) {
+                future.setResult(new AsyncResult<CurrentAccountResult>(null, exception));
             }
         });
 
@@ -224,21 +184,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         final String methodName = ":getCurrentAccountFromSharedDevice";
 
         //TODO: migrate to Command.
-        try {
-            if (!MSALControllerFactory.brokerEligible(
-                    configuration.getAppContext(),
-                    configuration.getDefaultAuthority(),
-                    configuration)) {
-
-                final String errorMessage = "This request is not eligible to use the broker.";
-                com.microsoft.identity.common.internal.logging.Logger.error(TAG + methodName, errorMessage, null);
-                throw new MsalClientException(MsalClientException.NOT_ELIGIBLE_TO_USE_BROKER, errorMessage);
-            }
-        } catch (MsalClientException e) {
-            callback.onError(e);
-            return;
-        }
-
         new BrokerMsalController().getCurrentAccount(
                 configuration,
                 new TaskCompletedCallbackWithError<List<ICacheRecord>, MsalException>() {
@@ -418,21 +363,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         final String methodName = ":removeAccountFromSharedDevice";
 
         //TODO: migrate to Command.
-        try {
-            if (!MSALControllerFactory.brokerEligible(
-                    configuration.getAppContext(),
-                    configuration.getDefaultAuthority(),
-                    configuration)) {
-
-                final String errorMessage = "This request is not eligible to use the broker.";
-                com.microsoft.identity.common.internal.logging.Logger.error(TAG + methodName, errorMessage, null);
-                throw new MsalClientException(MsalClientException.NOT_ELIGIBLE_TO_USE_BROKER, errorMessage);
-            }
-        } catch (MsalClientException e) {
-            callback.onError(e);
-            return;
-        }
-
         new BrokerMsalController().removeAccountFromSharedDevice(
                 configuration,
                 new TaskCompletedCallbackWithError<Void, MsalException>() {

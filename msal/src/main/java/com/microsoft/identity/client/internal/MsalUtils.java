@@ -32,8 +32,13 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.net.Uri;
-import androidx.browser.customtabs.CustomTabsService;
+import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Base64;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.browser.customtabs.CustomTabsService;
 
 import com.microsoft.identity.client.BrowserTabActivity;
 
@@ -99,6 +104,20 @@ public final class MsalUtils {
     @SuppressWarnings("PMD.InefficientEmptyStringCheck")
     public static boolean isEmpty(final String message) {
         return message == null || message.trim().length() == 0;
+    }
+
+    /**
+     * Throws IllegalArgumentException if the argument is null.
+     */
+    public static void validateNonNullArgument(@Nullable final Object o,
+                                               @NonNull final String argName) {
+        if (null == o
+                || (o instanceof CharSequence) && TextUtils.isEmpty((CharSequence) o)) {
+            throw new IllegalArgumentException(
+                    argName
+                            + " cannot be null or empty"
+            );
+        }
     }
 
     /**
@@ -199,8 +218,10 @@ public final class MsalUtils {
      * @param url
      * @return
      */
-    public static boolean hasCustomTabRedirectActivity(final Context context, final String url) {
+    public static boolean hasCustomTabRedirectActivity(@NonNull final Context context,
+                                                       @NonNull final String url) {
         final PackageManager packageManager = context.getPackageManager();
+
         if (packageManager == null) {
             return false;
         }
@@ -210,13 +231,18 @@ public final class MsalUtils {
         intent.addCategory(Intent.CATEGORY_DEFAULT);
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
         intent.setDataAndNormalize(Uri.parse(url));
-        final List<ResolveInfo> resolveInfoList = packageManager.queryIntentActivities(intent,
-                PackageManager.GET_RESOLVED_FILTER);
+
+        final List<ResolveInfo> resolveInfoList = packageManager.queryIntentActivities(
+                intent,
+                PackageManager.GET_RESOLVED_FILTER
+        );
 
         // resolve info list will never be null, if no matching activities are found, empty list will be returned.
         boolean hasActivity = false;
-        for (ResolveInfo info : resolveInfoList) {
-            ActivityInfo activityInfo = info.activityInfo;
+
+        for (final ResolveInfo info : resolveInfoList) {
+            final ActivityInfo activityInfo = info.activityInfo;
+
             if (activityInfo.name.equals(BrowserTabActivity.class.getName())) {
                 hasActivity = true;
             } else {
@@ -460,5 +486,14 @@ public final class MsalUtils {
         }
 
         return convertedSet;
+    }
+
+    /**
+     * @param methodName
+     */
+    public static void throwOnMainThread(final String methodName) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            throw new IllegalStateException("method: " + methodName + " may not be called from main thread.");
+        }
     }
 }

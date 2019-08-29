@@ -23,14 +23,16 @@
 package com.microsoft.identity.client;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 
 public class TenantProfile extends Account implements ITenantProfile {
 
-    public TenantProfile(@NonNull final IDToken idToken) {
-        super(idToken);
+    public TenantProfile(@Nullable final String clientInfo,
+                         @NonNull final IDToken idToken) {
+        super(clientInfo, idToken);
     }
 
     @NonNull

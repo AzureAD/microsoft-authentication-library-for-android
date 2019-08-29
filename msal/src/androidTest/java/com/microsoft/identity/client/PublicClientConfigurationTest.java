@@ -142,7 +142,7 @@ public class PublicClientConfigurationTest {
     @Test
     public void testMinimumValidConfigurationMergeViaFile() throws IOException {
         final File file = copyResourceToTestFile(R.raw.test_pcaconfig_min);
-        testMinimumValidConfigurationMerge(PublicClientApplication.loadConfiguration(file));
+        testMinimumValidConfigurationMerge(PublicClientApplicationConfigurationFactory.loadConfiguration(file));
     }
 
     /**
@@ -389,11 +389,11 @@ public class PublicClientConfigurationTest {
     }
 
     private PublicClientApplicationConfiguration loadConfig(final int resourceId) {
-        return PublicClientApplication.loadConfiguration(mContext, resourceId);
+        return PublicClientApplicationConfigurationFactory.loadConfiguration(mContext, resourceId);
     }
 
     private PublicClientApplicationConfiguration loadConfig(final File file) {
-        return PublicClientApplication.loadConfiguration(file);
+        return PublicClientApplicationConfigurationFactory.loadConfiguration(file);
     }
 
     @NonNull

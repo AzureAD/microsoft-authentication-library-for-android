@@ -2,6 +2,7 @@ package com.microsoft.identity.client.testapp;
 
 import android.app.Activity;
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -437,7 +438,7 @@ public class MsalWrapper {
                 }
 
                 @Override
-                public void onError(Exception exception) {
+                public void onError(MsalException exception) {
                     notifyCallback.notify(exception.getMessage());
                 }
             });
