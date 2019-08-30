@@ -23,7 +23,7 @@
 package com.microsoft.identity.client;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
+import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.configuration.AccountMode;

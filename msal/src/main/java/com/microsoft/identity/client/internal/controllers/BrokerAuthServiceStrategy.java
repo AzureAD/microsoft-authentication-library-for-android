@@ -25,8 +25,8 @@ package com.microsoft.identity.client.internal.controllers;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.RemoteException;
-import androidx.annotation.NonNull;
-import androidx.annotation.WorkerThread;
+import android.support.annotation.NonNull;
+import android.support.annotation.WorkerThread;
 
 import com.google.gson.Gson;
 import com.microsoft.identity.client.IMicrosoftAuthService;
