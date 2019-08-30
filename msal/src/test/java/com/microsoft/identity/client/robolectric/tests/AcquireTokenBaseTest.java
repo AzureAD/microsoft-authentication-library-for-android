@@ -16,7 +16,7 @@ import java.io.File;
 
 public abstract class AcquireTokenBaseTest {
 
-    private static final String CONFIG_FILE_PATH = "src/test/res/raw/test_config.json";
+    private static final String CONFIG_FILE_PATH = "src/test/res/raw/aad_test_config.json";
 
     abstract void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                        final Activity activity) throws InterruptedException;
@@ -52,6 +52,4 @@ public abstract class AcquireTokenBaseTest {
             }
         });
     }
-
-
 }

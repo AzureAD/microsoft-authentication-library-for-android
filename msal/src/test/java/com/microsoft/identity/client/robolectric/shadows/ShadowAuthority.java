@@ -3,9 +3,9 @@ package com.microsoft.identity.client.robolectric.shadows;
 import android.net.Uri;
 
 import com.microsoft.identity.common.internal.authorities.Authority;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.common.internal.authorities.B2CTestAuthority;
 import com.microsoft.identity.common.internal.authorities.MockAuthority;
-import com.microsoft.identity.common.internal.authorities.RopcTestAuthority;
+import com.microsoft.identity.common.internal.authorities.AADTestAuthority;
 import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
 import com.microsoft.identity.common.internal.logging.Logger;
 
@@ -19,9 +19,9 @@ import java.util.List;
 public class ShadowAuthority {
 
     private static final String TAG = ShadowAuthority.class.getSimpleName();
-
-    private static final String AAD_ROPC_TEST_PATH_SEGMENT = "aad.ropc";
+    
     private static final String AAD_MOCK_PATH_SEGMENT = "aad.mock";
+    private static final String B2C_ROPC_TEST_PATH_SEGMENT = "tfp";
 
     /**
      * Returns an Authority based on an authority url.  This method attempts to parse the URL and based on the contents of it
@@ -54,14 +54,6 @@ public class ShadowAuthority {
 
         switch (authorityType.toLowerCase()) {
             // more cases can be added here in the future
-            case AAD_ROPC_TEST_PATH_SEGMENT:
-                //Return new Ropc Test Authority
-                Logger.verbose(
-                        TAG + methodName,
-                        "Authority type is AAD ROPC"
-                );
-                authority = new RopcTestAuthority();
-                break;
             case AAD_MOCK_PATH_SEGMENT:
                 //Return new Ropc Test Authority
                 Logger.verbose(
@@ -70,13 +62,20 @@ public class ShadowAuthority {
                 );
                 authority = new MockAuthority();
                 break;
-
+            case B2C_ROPC_TEST_PATH_SEGMENT:
+                //Return new B2C Authority
+                Logger.verbose(
+                        TAG + methodName,
+                        "Authority type is B2C ROPC"
+                );
+                authority = new B2CTestAuthority(authorityUrl);
+                break;
             default:
                 Logger.verbose(
                         TAG + methodName,
-                        "Authority type default: AAD"
+                        "Authority type default: AAD ROPC"
                 );
-                authority = new AzureActiveDirectoryAuthority();
+                authority = new AADTestAuthority();
                 break;
         }
 

@@ -32,8 +32,6 @@ import static junit.framework.Assert.fail;
 public final class AcquireTokenNetworkTest {
 
     private static final String[] SCOPES = {"user.read", "openid", "offline_access", "profile"};
-    private static final String DEFAULT_AAD_AUTHORITY = "https://login.microsoftonline.com/common";
-    private static final String AAD_ROPC_TEST_AUTHORITY = "https://test.authority/aad.ropc";
 
     @Test
     public void canPerformROPC() {
@@ -54,7 +52,6 @@ public final class AcquireTokenNetworkTest {
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
-                        .fromAuthority(AAD_ROPC_TEST_AUTHORITY)
                         .callback(new AuthenticationCallback() {
                             @Override
                             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -98,7 +95,6 @@ public final class AcquireTokenNetworkTest {
                 final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                         .withScopes(Arrays.asList(SCOPES))
                         .forceRefresh(false)
-                        .fromAuthority(DEFAULT_AAD_AUTHORITY)
                         .callback(new AuthenticationCallback() {
                             @Override
                             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -121,7 +117,6 @@ public final class AcquireTokenNetworkTest {
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
-                        .fromAuthority(AAD_ROPC_TEST_AUTHORITY)
                         .callback(new AuthenticationCallback() {
                             @Override
                             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -169,7 +164,6 @@ public final class AcquireTokenNetworkTest {
                 final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                         .withScopes(Arrays.asList(SCOPES))
                         .forceRefresh(true)
-                        .fromAuthority(DEFAULT_AAD_AUTHORITY)
                         .callback(new AuthenticationCallback() {
                             @Override
                             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -192,7 +186,6 @@ public final class AcquireTokenNetworkTest {
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
-                        .fromAuthority(AAD_ROPC_TEST_AUTHORITY)
                         .callback(new AuthenticationCallback() {
                             @Override
                             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -240,7 +233,6 @@ public final class AcquireTokenNetworkTest {
                 final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                         .withScopes(Arrays.asList(SCOPES))
                         .forceRefresh(false)
-                        .fromAuthority(DEFAULT_AAD_AUTHORITY)
                         .callback(new AuthenticationCallback() {
                             @Override
                             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -263,7 +255,6 @@ public final class AcquireTokenNetworkTest {
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
-                        .fromAuthority(AAD_ROPC_TEST_AUTHORITY)
                         .callback(new AuthenticationCallback() {
                             @Override
                             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -312,7 +303,6 @@ public final class AcquireTokenNetworkTest {
                 final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                         .withScopes(Arrays.asList(SCOPES))
                         .forceRefresh(false)
-                        .fromAuthority(DEFAULT_AAD_AUTHORITY)
                         .callback(new AuthenticationCallback() {
                             @Override
                             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -335,7 +325,6 @@ public final class AcquireTokenNetworkTest {
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
-                        .fromAuthority(AAD_ROPC_TEST_AUTHORITY)
                         .callback(new AuthenticationCallback() {
                             @Override
                             public void onSuccess(IAuthenticationResult authenticationResult) {
