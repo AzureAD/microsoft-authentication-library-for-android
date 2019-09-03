@@ -218,7 +218,6 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                     new BrokerEndEvent()
                             .putAction(methodName)
                             .isSuccessful(true)
-                            .put(TelemetryEventStrings.Key.ACCOUNTS_NUMBER, String.valueOf(cacheRecords.size()))
             );
 
             return cacheRecords;
