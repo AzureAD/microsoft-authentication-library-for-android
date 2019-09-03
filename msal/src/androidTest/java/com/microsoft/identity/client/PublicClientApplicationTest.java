@@ -33,6 +33,10 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
+import android.test.AndroidTestCase;
+import android.util.Pair;
 
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -63,30 +67,26 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.fail;
+import static com.microsoft.identity.client.AndroidTestUtil.MOCK_UID;
+import static com.microsoft.identity.client.AndroidTestUtil.MOCK_UTID;
 
 
 /**
  * Tests for {@link PublicClientApplication}.
  */
 @RunWith(AndroidJUnit4.class)
-public final class PublicClientApplicationTest {
+public final class PublicClientApplicationTest extends AndroidTestCase {
     private Context mAppContext;
     private static final String CLIENT_ID = "client-id";
     private static final String[] SCOPE = {"scope1", "scope2"};
     public static final String TEST_AUTHORITY = "msauth://com.microsoft.identity.client.sample.local/signature";
 
     @Before
-    public void setUp() {
-        System.setProperty(
-                "dexmaker.dexcache",
-                androidx.test.platform.app.InstrumentationRegistry
-                        .getInstrumentation()
-                        .getTargetContext()
-                        .getCacheDir()
-                        .getPath()
-        );
+    public void setUp() throws Exception {
+        super.setUp();
+        InstrumentationRegistry.getContext().getCacheDir();
+        System.setProperty("dexmaker.dexcache",
+                InstrumentationRegistry.getContext().getCacheDir().getPath());
 
         System.setProperty(
                 "org.mockito.android.target",
@@ -101,7 +101,8 @@ public final class PublicClientApplicationTest {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
+        super.tearDown();
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
         AndroidTestUtil.removeAllTokens(mAppContext);
         Telemetry.disableForTest(false);

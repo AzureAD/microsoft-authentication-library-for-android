@@ -23,6 +23,7 @@
 
 package com.microsoft.identity.client;
 
+import android.support.test.runner.AndroidJUnit4;
 import android.util.Pair;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;

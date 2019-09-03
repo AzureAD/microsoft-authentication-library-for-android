@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import androidx.annotation.NonNull;
+import android.support.annotation.NonNull;
 
 import java.io.Serializable;
 
