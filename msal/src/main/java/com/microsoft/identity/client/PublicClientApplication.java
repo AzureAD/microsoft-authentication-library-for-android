@@ -978,6 +978,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                 @Nullable final String loginHint,
                                 @Nullable final ClaimsRequest claimsRequest) {
         validateNonNullArgument(activity, "Activity");
+        validateNonNullArgument(scopes, "Scopes");
         validateNonNullArgument(callback, "Callback");
 
         AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
@@ -1055,7 +1056,19 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     protected void validateAcquireTokenParameters(AcquireTokenParameters parameters) {
-        return;
+        final Activity activity = parameters.getActivity();
+        final List scopes = parameters.getScopes();
+        final AuthenticationCallback callback = parameters.getCallback();
+
+        validateNonNullArgument(activity, "Activity");
+        validateNonNullArgument(scopes, "Scopes");
+        validateNonNullArgument(callback, "Callback");
+
+        if (scopes.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Scopes cannot be null or empty"
+            );
+        }
     }
 
     protected void validateAcquireTokenSilentParameters(AcquireTokenSilentParameters parameters) {
