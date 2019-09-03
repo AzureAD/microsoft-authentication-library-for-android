@@ -35,7 +35,7 @@ public class AcquireTokenParameters extends TokenParameters {
 
     private Activity mActivity;
     private String mLoginHint;
-    private UiBehavior mUiBehavior;
+    private Prompt mPrompt;
     private List<String> mExtraScopesToConsent;
     private List<Pair<String, String>> mExtraQueryStringParameters;
     private AuthenticationCallback mCallback;
@@ -44,7 +44,7 @@ public class AcquireTokenParameters extends TokenParameters {
         super(builder);
         mActivity = builder.mActivity;
         mLoginHint = builder.mLoginHint;
-        mUiBehavior = builder.mUiBehavior;
+        mPrompt = builder.mPrompt;
         mExtraScopesToConsent = builder.mExtraScopesToConsent;
         mExtraQueryStringParameters = builder.mExtraQueryStringParameters;
         mCallback = builder.mCallback;
@@ -83,8 +83,8 @@ public class AcquireTokenParameters extends TokenParameters {
      *
      * @return
      */
-    public UiBehavior getUiBehavior() {
-        return mUiBehavior;
+    public Prompt getPrompt() {
+        return mPrompt;
     }
 
     /**
@@ -126,7 +126,7 @@ public class AcquireTokenParameters extends TokenParameters {
 
         private Activity mActivity;
         private String mLoginHint;
-        private UiBehavior mUiBehavior;
+        private Prompt mPrompt;
         private List<String> mExtraScopesToConsent;
         private List<Pair<String, String>> mExtraQueryStringParameters;
         private AuthenticationCallback mCallback;
@@ -141,8 +141,8 @@ public class AcquireTokenParameters extends TokenParameters {
             return self();
         }
 
-        public AcquireTokenParameters.Builder withUiBehavior(UiBehavior uiBehavior) {
-            mUiBehavior = uiBehavior;
+        public AcquireTokenParameters.Builder withPrompt(Prompt prompt) {
+            mPrompt = prompt;
             return self();
         }
 

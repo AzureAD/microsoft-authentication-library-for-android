@@ -28,7 +28,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.OpenIdConnectProm
 /**
  * The UI options that developer can pass during interactive token acquisition requests.
  */
-public enum UiBehavior {
+public enum Prompt {
 
     /**
      * acquireToken will send prompt=select_account to the authorize endpoint. Shows a list of users from which can be
@@ -41,20 +41,25 @@ public enum UiBehavior {
      * <p>
      * toString override is to enable the correct protocol value of login to be returned instead of "force_login".
      */
-    FORCE_LOGIN,
+    LOGIN,
 
     /**
      * acquireToken will send prompt=consent to the authorize endpoint.  The user will be prompted to consent even if consent was granted before.
      */
-    CONSENT;
+    CONSENT,
+
+    /**
+     * acquireToken will not send the prompt parameter to the authorize endpoint.  The user may be prompted to login or to consent as required by the request.
+     */
+    WHEN_REQUIRED;
 
     @Override
     public String toString() {
         switch (this) {
             case SELECT_ACCOUNT:
                 return SELECT_ACCOUNT.name().toLowerCase();
-            case FORCE_LOGIN:
-                return "login";
+            case LOGIN:
+                return LOGIN.name().toLowerCase();
             case CONSENT:
                 return CONSENT.name().toLowerCase();
             default:
@@ -66,7 +71,7 @@ public enum UiBehavior {
         switch (this) {
             case SELECT_ACCOUNT:
                 return OpenIdConnectPromptParameter.SELECT_ACCOUNT;
-            case FORCE_LOGIN:
+            case LOGIN:
                 return OpenIdConnectPromptParameter.LOGIN;
             case CONSENT:
                 return OpenIdConnectPromptParameter.CONSENT;

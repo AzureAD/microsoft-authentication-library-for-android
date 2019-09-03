@@ -180,14 +180,14 @@ public class OperationParametersAdapter {
             acquireTokenOperationParameters.setAuthorizationAgent(AuthorizationAgent.DEFAULT);
         }
 
-        if (acquireTokenParameters.getUiBehavior() == null) {
+        if (acquireTokenParameters.getPrompt() == null) {
             acquireTokenOperationParameters.setOpenIdConnectPromptParameter(
                     OpenIdConnectPromptParameter.SELECT_ACCOUNT
             );
         } else {
             acquireTokenOperationParameters.setOpenIdConnectPromptParameter(
                     acquireTokenParameters
-                            .getUiBehavior()
+                            .getPrompt()
                             .toOpenIdConnectPromptParameter()
             );
         }
