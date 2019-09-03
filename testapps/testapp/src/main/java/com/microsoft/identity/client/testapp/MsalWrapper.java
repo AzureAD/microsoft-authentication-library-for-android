@@ -155,7 +155,7 @@ public class MsalWrapper {
                 .startAuthorizationFromActivity(activity)
                 .withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")))
                 .withLoginHint(requestOptions.getLoginHint())
-                .withUiBehavior(requestOptions.getUiBehavior())
+                .withPrompt(requestOptions.getPrompt())
                 .withOtherScopesToAuthorize(Arrays.asList(requestOptions.getExtraScopesToConsent().toLowerCase().split(" ")))
                 .callback(getAuthenticationCallback(notifyCallback))
                 .build();
@@ -178,7 +178,7 @@ public class MsalWrapper {
         AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
         AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(activity)
                 .withResource(requestOptions.getScopes().toLowerCase().trim())
-                .withUiBehavior(requestOptions.getUiBehavior())
+                .withPrompt(requestOptions.getPrompt())
                 .withAuthorizationQueryStringParameters(null)
                 .callback(getAuthenticationCallback(notifyCallback))
                 .withLoginHint(requestOptions.getLoginHint())
