@@ -65,7 +65,8 @@ public final class AcquireTokenMockTest {
                         .callback(new AuthenticationCallback() {
                             @Override
                             public void onSuccess(IAuthenticationResult authenticationResult) {
-                                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                                //Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                                fail("Testing a failing test on travis");
                             }
 
                             @Override
