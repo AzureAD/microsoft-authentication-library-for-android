@@ -15,6 +15,7 @@ import com.microsoft.identity.client.robolectric.shadows.ShadowAuthority;
 import com.microsoft.identity.client.robolectric.shadows.ShadowHttpRequest;
 import com.microsoft.identity.client.robolectric.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.robolectric.shadows.ShadowStorageHelper;
+import com.microsoft.identity.client.robolectric.shadows.ShadowStrategyResultServerError;
 import com.microsoft.identity.client.robolectric.shadows.ShadowStrategyResultUnsuccessful;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.authorities.Authority;
@@ -465,7 +466,7 @@ public final class AcquireTokenMockTest {
     }
 
     @Test
-    @Config(shadows = {ShadowStrategyResultUnsuccessful.class})
+    @Config(shadows = {ShadowStrategyResultServerError.class})
     public void acquireTokenFailsIfServerErrorOccurs() {
         new AcquireTokenBaseTest() {
 
