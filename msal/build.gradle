@@ -87,6 +87,11 @@ android {
             exclude 'com/microsoft/identity/client/robolectric/tests/B2CTest.class'
         }
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 // Task to generate javadoc
