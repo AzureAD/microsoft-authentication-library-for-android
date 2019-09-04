@@ -22,6 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import static com.microsoft.identity.common.internal.logging.Logger.setAllowLogcat;
+import static com.microsoft.identity.common.internal.logging.Logger.setAllowPii;
+
 /**
  * MSAL Logger for diagnostic purpose. The sdk generates logs with both logcat logging or the external logger.
  * By default, the sdk enables logging with logcat. To turn off logging:
@@ -97,23 +100,26 @@ public final class Logger {
      * @param logLevel The {@link LogLevel} to be enabled for the diagnostic logging.
      */
     public void setLogLevel(final LogLevel logLevel) {
+        final com.microsoft.identity.common.internal.logging.Logger logger =
+                com.microsoft.identity.common.internal.logging.Logger.getInstance();
+
         switch (logLevel) {
             case ERROR:
-                com.microsoft.identity.common.internal.logging.Logger.getInstance()
-                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.ERROR);
+                logger.setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.ERROR);
                 break;
+
             case WARNING:
-                com.microsoft.identity.common.internal.logging.Logger.getInstance()
-                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.WARN);
+                logger.setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.WARN);
                 break;
+
             case INFO:
-                com.microsoft.identity.common.internal.logging.Logger.getInstance()
-                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.INFO);
+                logger.setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.INFO);
                 break;
+
             case VERBOSE:
-                com.microsoft.identity.common.internal.logging.Logger.getInstance()
-                        .setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.VERBOSE);
+                logger.setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.VERBOSE);
                 break;
+
             default:
                 throw new IllegalArgumentException("Unknown logLevel");
         }
@@ -137,22 +143,29 @@ public final class Logger {
         }
 
         // If mExternalLogger is not set. Then implement the ILoggerCallback interface in common-core.
-        com.microsoft.identity.common.internal.logging.Logger.getInstance().setExternalLogger(new com.microsoft.identity.common.internal.logging.ILoggerCallback() {
+        final com.microsoft.identity.common.internal.logging.Logger logger =
+                com.microsoft.identity.common.internal.logging.Logger.getInstance();
+
+        logger.setExternalLogger(new com.microsoft.identity.common.internal.logging.ILoggerCallback() {
             @Override
             public void log(String tag, com.microsoft.identity.common.internal.logging.Logger.LogLevel logLevel, String message, boolean containsPII) {
                 switch (logLevel) {
                     case ERROR:
                         mExternalLogger.log(tag, LogLevel.ERROR, message, containsPII);
                         break;
+
                     case WARN:
                         mExternalLogger.log(tag, LogLevel.WARNING, message, containsPII);
                         break;
+
                     case VERBOSE:
                         mExternalLogger.log(tag, LogLevel.VERBOSE, message, containsPII);
                         break;
+
                     case INFO:
                         mExternalLogger.log(tag, LogLevel.INFO, message, containsPII);
                         break;
+
                     default:
                         throw new IllegalArgumentException("Unknown logLevel");
                 }
@@ -168,15 +181,16 @@ public final class Logger {
      * @param enableLogcatLog True if enabling the logcat logging, false otherwise.
      */
     public void setEnableLogcatLog(final boolean enableLogcatLog) {
-        com.microsoft.identity.common.internal.logging.Logger.setAllowLogcat(enableLogcatLog);
+        setAllowLogcat(enableLogcatLog);
     }
 
     /**
-     * Enable log message with PII (personal identifiable information) info. By default, MSAL doesn't log any PII.
+     * Enable log message with PII (personal identifiable information) info.
+     * By default, MSAL doesn't log any PII.
      *
      * @param enablePII True if enabling PII info to be logged, false otherwise.
      */
     public void setEnablePII(final boolean enablePII) {
-        com.microsoft.identity.common.internal.logging.Logger.setAllowPii(enablePII);
+        setAllowPii(enablePII);
     }
 }
