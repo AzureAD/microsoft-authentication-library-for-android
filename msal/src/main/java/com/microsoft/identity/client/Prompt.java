@@ -24,11 +24,14 @@
 package com.microsoft.identity.client;
 
 import com.microsoft.identity.common.internal.providers.oauth2.OpenIdConnectPromptParameter;
+import com.microsoft.identity.common.internal.logging.Logger;
 
 /**
  * The UI options that developer can pass during interactive token acquisition requests.
  */
 public enum Prompt {
+
+
 
     /**
      * acquireToken will send prompt=select_account to the authorize endpoint. Shows a list of users from which can be
@@ -62,12 +65,15 @@ public enum Prompt {
                 return LOGIN.name().toLowerCase();
             case CONSENT:
                 return CONSENT.name().toLowerCase();
+            case WHEN_REQUIRED:
+                return WHEN_REQUIRED.name().toLowerCase();
             default:
                 throw new IllegalArgumentException();
         }
     }
 
     public OpenIdConnectPromptParameter toOpenIdConnectPromptParameter() {
+        String tag = Prompt.class.getSimpleName() + ":toOpenIdConnectPromptParameter";
         switch (this) {
             case SELECT_ACCOUNT:
                 return OpenIdConnectPromptParameter.SELECT_ACCOUNT;
@@ -75,6 +81,10 @@ public enum Prompt {
                 return OpenIdConnectPromptParameter.LOGIN;
             case CONSENT:
                 return OpenIdConnectPromptParameter.CONSENT;
+            case WHEN_REQUIRED:
+                String error = "WHEN_REQUIRED Does not have corresponding value in in the OIDC prompt enumeration.  It's meant to convey do not sent the prompt parameter.";
+                Logger.info(tag, error);
+                throw new UnsupportedOperationException(error);
             default:
                 return OpenIdConnectPromptParameter.SELECT_ACCOUNT;
         }
