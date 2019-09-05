@@ -35,7 +35,7 @@ public class AcquireTokenParameters extends TokenParameters {
 
     private Activity mActivity;
     private String mLoginHint;
-    private UiBehavior mUiBehavior;
+    private Prompt mPrompt;
     private List<String> mExtraScopesToConsent;
     private List<Pair<String, String>> mExtraQueryStringParameters;
 
@@ -43,7 +43,7 @@ public class AcquireTokenParameters extends TokenParameters {
         super(builder);
         mActivity = builder.mActivity;
         mLoginHint = builder.mLoginHint;
-        mUiBehavior = builder.mUiBehavior;
+        mPrompt = builder.mPrompt;
         mExtraScopesToConsent = builder.mExtraScopesToConsent;
         mExtraQueryStringParameters = builder.mExtraQueryStringParameters;
     }
@@ -89,17 +89,17 @@ public class AcquireTokenParameters extends TokenParameters {
      *
      * @return
      */
-    public UiBehavior getUiBehavior() {
-        return mUiBehavior;
+    public Prompt getPrompt() {
+        return mPrompt;
     }
 
     /**
      * Controls the value of the prompt parameter sent along with the authorization request.
      *
-     * @param uiBehavior
+     * @param prompt
      */
-    public void setUiBehavior(UiBehavior uiBehavior) {
-        this.mUiBehavior = uiBehavior;
+    public void setPrompt(Prompt prompt) {
+        this.mPrompt = prompt;
     }
 
     /**
@@ -146,7 +146,7 @@ public class AcquireTokenParameters extends TokenParameters {
 
         private Activity mActivity;
         private String mLoginHint;
-        private UiBehavior mUiBehavior;
+        private Prompt mPrompt;
         private List<String> mExtraScopesToConsent;
         private List<Pair<String, String>> mExtraQueryStringParameters;
 
@@ -160,8 +160,8 @@ public class AcquireTokenParameters extends TokenParameters {
             return self();
         }
 
-        public AcquireTokenParameters.Builder withUiBehavior(UiBehavior uiBehavior) {
-            mUiBehavior = uiBehavior;
+        public AcquireTokenParameters.Builder withPrompt(Prompt prompt) {
+            mPrompt = prompt;
             return self();
         }
 
