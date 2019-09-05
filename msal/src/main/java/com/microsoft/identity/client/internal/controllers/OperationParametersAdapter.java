@@ -35,6 +35,7 @@ import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IClaimable;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
+import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.claims.ClaimsRequest;
@@ -180,7 +181,7 @@ public class OperationParametersAdapter {
             acquireTokenOperationParameters.setAuthorizationAgent(AuthorizationAgent.DEFAULT);
         }
 
-        if (acquireTokenParameters.getPrompt() == null) {
+        if (acquireTokenParameters.getPrompt() == null || acquireTokenParameters.getPrompt() == Prompt.WHEN_REQUIRED) {
             acquireTokenOperationParameters.setOpenIdConnectPromptParameter(
                     OpenIdConnectPromptParameter.SELECT_ACCOUNT
             );
