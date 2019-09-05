@@ -38,6 +38,7 @@ import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.configuration.AccountMode;
+import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalUserCancelException;
@@ -64,6 +65,8 @@ import com.microsoft.identity.common.internal.controllers.InteractiveTokenComman
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.controllers.TokenCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.net.HttpRequest;
 import com.microsoft.identity.common.internal.net.cache.HttpCache;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
@@ -85,6 +88,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
 import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isAccountHomeTenant;
@@ -193,10 +197,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(context, "context");
         validateNonNullArgument(listener, "listener");
 
-        create(PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFileResourceId),
-                null,
-                null,
-                listener);
+        create(
+                initializeConfiguration(context, configFileResourceId),
+                null, // client id
+                null, // authority
+                listener
+        );
     }
 
     /**
@@ -226,10 +232,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(context, "context");
         validateNonNullArgument(listener, "listener");
 
-        create(PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFile),
-                null,
-                null,
-                listener);
+        create(
+                initializeConfiguration(context, configFile),
+                null, // client id
+                null, // authority
+                listener
+        );
     }
 
     /**
@@ -256,10 +264,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(clientId, "clientId");
         validateNonNullArgument(listener, "listener");
 
-        create(PublicClientApplicationConfigurationFactory.initializeConfiguration(context),
+        create(
+                initializeConfiguration(context),
                 clientId,
-                null,
-                listener);
+                null, // authority
+                listener
+        );
     }
 
     /**
@@ -289,10 +299,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(authority, "authority");
         validateNonNullArgument(listener, "listener");
 
-        create(PublicClientApplicationConfigurationFactory.initializeConfiguration(context),
+        create(
+                initializeConfiguration(context),
                 clientId,
                 authority,
-                listener);
+                listener
+        );
     }
 
     /**
@@ -323,7 +335,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                                   final int configFileResourceId) throws InterruptedException, MsalException {
         validateNonNullArgument(context, "context");
 
-        return create(PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFileResourceId));
+        return create(initializeConfiguration(context, configFileResourceId));
     }
     //endregion
 
@@ -360,7 +372,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(listener, "listener");
 
         createMultipleAccountPublicClientApplication(
-                PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFileResourceId),
+                initializeConfiguration(context, configFileResourceId),
                 listener
         );
     }
@@ -395,7 +407,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(listener, "listener");
 
         createMultipleAccountPublicClientApplication(
-                PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFile),
+                initializeConfiguration(context, configFile),
                 listener
         );
     }
@@ -430,7 +442,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(context, "context");
 
         return createMultipleAccountPublicClientApplication(
-                PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFileResourceId));
+                initializeConfiguration(context, configFileResourceId)
+        );
     }
 
     /**
@@ -463,7 +476,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(configFile, "configFile");
 
         return createMultipleAccountPublicClientApplication(
-                PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFile));
+                initializeConfiguration(context, configFile)
+        );
     }
 
     //endregion
@@ -500,8 +514,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(listener, "listener");
 
         createSingleAccountPublicClientApplication(
-                PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFileResourceId),
-                listener);
+                initializeConfiguration(context, configFileResourceId),
+                listener
+        );
     }
 
     /**
@@ -535,8 +550,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(listener, "listener");
 
         createSingleAccountPublicClientApplication(
-                PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFile),
-                listener);
+                initializeConfiguration(context, configFile),
+                listener
+        );
     }
 
     /**
@@ -569,7 +585,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(context, "context");
 
         return createSingleAccountPublicClientApplication(
-                PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFileResourceId));
+                initializeConfiguration(context, configFileResourceId)
+        );
     }
 
     /**
@@ -602,7 +619,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(context, "context");
 
         return createSingleAccountPublicClientApplication(
-                PublicClientApplicationConfigurationFactory.initializeConfiguration(context, configFile));
+                initializeConfiguration(context, configFile)
+        );
     }
     //endregion
 
@@ -615,12 +633,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         final ResultFuture<AsyncResult<IPublicClientApplication>> future = new ResultFuture<>();
         create(configuration,
-                null,
-                null,
+                null, // client id
+                null, // authority
                 new ApplicationCreatedListener() {
                     @Override
                     public void onCreated(final IPublicClientApplication application) {
-                        future.setResult(new AsyncResult<IPublicClientApplication>(application, null));
+                        future.setResult(new AsyncResult<>(application, null));
                     }
 
                     @Override
@@ -645,8 +663,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     @WorkerThread
     private static IMultipleAccountPublicClientApplication createMultipleAccountPublicClientApplication(@NonNull final PublicClientApplicationConfiguration configuration) throws InterruptedException, MsalException {
         if (configuration.mAccountMode != AccountMode.MULTIPLE) {
-            throw new MsalClientException(ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE,
-                    ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE);
+            throw new MsalClientException(
+                    ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE,
+                    ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE
+            );
         }
 
         final IPublicClientApplication application = create(configuration);
@@ -654,26 +674,37 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             return (IMultipleAccountPublicClientApplication) application;
         } else {
             if (configuration.mAccountMode == AccountMode.MULTIPLE && application.isSharedDevice()) {
-                throw new MsalClientException(ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_CODE,
-                        ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_MESSAGE);
+                throw new MsalClientException(
+                        ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_CODE,
+                        ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_MESSAGE
+                );
             }
-            throw new MsalClientException(ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE,
-                    ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE);
+
+            throw new MsalClientException(
+                    ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE,
+                    ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE
+            );
         }
     }
 
     @WorkerThread
-    private static ISingleAccountPublicClientApplication createSingleAccountPublicClientApplication(@Nullable final PublicClientApplicationConfiguration configuration) throws InterruptedException, MsalException {
+    private static ISingleAccountPublicClientApplication createSingleAccountPublicClientApplication(
+            @Nullable final PublicClientApplicationConfiguration configuration) throws InterruptedException, MsalException {
         final IPublicClientApplication application = create(configuration);
+
         if (application instanceof ISingleAccountPublicClientApplication) {
             return (ISingleAccountPublicClientApplication) application;
         } else {
             if (configuration.mAccountMode != AccountMode.SINGLE) {
-                throw new MsalClientException(ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE,
-                        ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE);
+                throw new MsalClientException(
+                        ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE,
+                        ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE
+                );
             }
-            throw new MsalClientException(ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE,
-                    ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE);
+            throw new MsalClientException(
+                    ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE,
+                    ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE
+            );
         }
     }
 
@@ -710,12 +741,20 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             listener.onCreated((IMultipleAccountPublicClientApplication) application);
                         } else {
                             if (application.getConfiguration().mAccountMode == AccountMode.MULTIPLE && application.isSharedDevice()) {
-                                listener.onError(new MsalClientException(ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_CODE,
-                                        ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_MESSAGE));
+                                listener.onError(
+                                        new MsalClientException(
+                                                ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_CODE,
+                                                ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_MESSAGE
+                                        )
+                                );
                                 return;
                             }
-                            listener.onError(new MsalClientException(ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE,
-                                    ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE));
+                            listener.onError(
+                                    new MsalClientException(
+                                            ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE,
+                                            ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE
+                                    )
+                            );
                         }
                     }
 
@@ -739,12 +778,20 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             listener.onCreated((ISingleAccountPublicClientApplication) application);
                         } else {
                             if (application.getConfiguration().mAccountMode != AccountMode.SINGLE) {
-                                listener.onError(new MsalClientException(ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE,
-                                        ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE));
+                                listener.onError(
+                                        new MsalClientException(
+                                                ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE,
+                                                ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE
+                                        )
+                                );
                                 return;
                             }
-                            listener.onError(new MsalClientException(ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE,
-                                    ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE));
+                            listener.onError(
+                                    new MsalClientException(
+                                            ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE,
+                                            ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE
+                                    )
+                            );
                         }
                     }
 
@@ -779,11 +826,15 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     private void initializeApplication() {
+        final String methodName = ":initializeApplication";
+
         final Context context = mPublicClientConfiguration.getAppContext();
         setupTelemetry(context, mPublicClientConfiguration);
 
         AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
+
+        initializeHttpSettings(mPublicClientConfiguration.getHttpConfiguration());
 
         initializeTokenSharingLibrary();
 
@@ -804,7 +855,36 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         // Init HTTP cache
         HttpCache.initialize(context.getCacheDir());
 
-        com.microsoft.identity.common.internal.logging.Logger.info(TAG, "Create new public client application.");
+        com.microsoft.identity.common.internal.logging.Logger.info(
+                TAG + methodName,
+                "Create new public client application."
+        );
+    }
+
+    private void initializeHttpSettings(@Nullable final HttpConfiguration httpConfiguration) {
+        final String methodName = ":initializeHttpSettings";
+
+        if (null == httpConfiguration) {
+            Logger.info(
+                    TAG + methodName,
+                    "HttpConfiguration not provided - using defaults."
+            );
+
+            return;
+        }
+
+        final int readTimeout = httpConfiguration.getReadTimeout();
+        final int connectTimeout = httpConfiguration.getConnectTimeout();
+
+        // Configured values must be >= 0
+
+        if (readTimeout >= 0) {
+            HttpRequest.READ_TIMEOUT = readTimeout;
+        }
+
+        if (connectTimeout >= 0) {
+            HttpRequest.CONNECT_TIMEOUT = connectTimeout;
+        }
     }
 
     private void initializeTokenSharingLibrary() {
