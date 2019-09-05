@@ -212,21 +212,21 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         callback.onAccountLoaded(newAccount);
     }
 
-
     @Override
     public void signIn(@NonNull final Activity activity,
+                       @NonNull final String loginHint,
                        @NonNull final String[] scopes,
                        @NonNull final AuthenticationCallback callback) {
         acquireToken(
                 activity,
-                new String[]{"user.read"},
+                scopes,
                 null, // account
                 null, // uiBehavior
                 null, // extraQueryParams
-                scopes, // extraScopes
+                null,
                 null, // authority
                 callback,
-                null, // loginHint
+                loginHint, // loginHint
                 null // claimsRequest
         );
     }
