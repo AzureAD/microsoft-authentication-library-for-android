@@ -344,46 +344,6 @@ public final class AcquireTokenMockTest {
     }
 
     @Test
-    public void silentWorksWhenCacheHasNoAccessToken() {
-        new AcquireTokenBaseTest() {
-
-            @Override
-            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity) {
-                final IAccount account = loadAccountForTest(publicClientApplication);
-
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .withScopes(Arrays.asList(SCOPES))
-                        .forceRefresh(false)
-                        .forAccount(account)
-                        .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                fail(exception.getMessage());
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
-                        .build();
-
-                RoboTestUtils.removeAccessTokenFromCache();
-                publicClientApplication.acquireTokenSilentAsync(silentParameters);
-                RoboTestUtils.flushScheduler();
-            }
-
-        }.performTest();
-    }
-
-    @Test
     public void silentWorksWhenCacheHasExpiredAccessToken() {
         new AcquireTokenBaseTest() {
 
@@ -524,12 +484,12 @@ public final class AcquireTokenMockTest {
                         .callback(new AuthenticationCallback() {
                             @Override
                             public void onSuccess(IAuthenticationResult authenticationResult) {
-                                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                                fail("Unexpected Success");
                             }
 
                             @Override
                             public void onError(MsalException exception) {
-                                fail(exception.getMessage());
+                                Assert.assertTrue(true);
                             }
 
                             @Override
