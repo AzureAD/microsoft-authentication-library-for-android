@@ -1375,7 +1375,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             throw new IllegalStateException(
                     "Intent filter for: "
                             + BrowserTabActivity.class.getSimpleName()
-                            + " is missing.  Please refer to the MSAL readme."
+                            + " is missing. Please verify that the registered redirect URI in AndroidManifest.xml is valid. "
+                            + "Please note that the leading /'//' is required for android:path. "
+                            + "For more information, please refer to the MSAL readme and https://developer.android.com/training/app-links/deep-linking."
             );
         }
     }
