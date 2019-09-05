@@ -38,7 +38,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.microsoft.identity.client.IAccount;
-import com.microsoft.identity.client.UiBehavior;
+import com.microsoft.identity.client.Prompt;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +50,7 @@ import static com.microsoft.identity.client.testapp.R.id.enablePII;
  */
 public class AcquireTokenFragment extends Fragment {
     private EditText mLoginhint;
-    private Spinner mUiBehavior;
+    private Spinner mPrompt;
     private Spinner mUserAgent;
     private EditText mScope;
     private EditText mExtraScope;
@@ -77,7 +77,7 @@ public class AcquireTokenFragment extends Fragment {
         final View view = inflater.inflate(R.layout.fragment_acquire, container, false);
 
         mLoginhint = view.findViewById(R.id.loginHint);
-        mUiBehavior = view.findViewById(R.id.uiBehavior);
+        mPrompt = view.findViewById(R.id.uiBehavior);
         mUserAgent = view.findViewById(R.id.auth_user_agent);
         mScope = view.findViewById(R.id.scope);
         mExtraScope = view.findViewById(R.id.extraScope);
@@ -93,7 +93,7 @@ public class AcquireTokenFragment extends Fragment {
         mAADEnvironments = view.findViewById(R.id.environment);
         mPublicApplicationMode = view.findViewById(R.id.public_application_mode);
 
-        bindSpinnerChoice(mUiBehavior, UiBehavior.class);
+        bindSpinnerChoice(mPrompt, Prompt.class);
         bindSpinnerChoice(mUserAgent, Constants.UserAgent.class);
         bindSpinnerChoice(mAADEnvironments, Constants.AzureActiveDirectoryEnvironment.class);
 
@@ -218,7 +218,7 @@ public class AcquireTokenFragment extends Fragment {
     RequestOptions getCurrentRequestOptions() {
         final Constants.AzureActiveDirectoryEnvironment environment = Constants.AzureActiveDirectoryEnvironment.valueOf(mAADEnvironments.getSelectedItem().toString());
         final String loginHint = mLoginhint.getText().toString();
-        final UiBehavior uiBehavior = UiBehavior.valueOf(mUiBehavior.getSelectedItem().toString());
+        final Prompt uiBehavior = Prompt.valueOf(mPrompt.getSelectedItem().toString());
         final Constants.UserAgent userAgent = Constants.UserAgent.valueOf(mUserAgent.getSelectedItem().toString());
         final String scopes = mScope.getText().toString();
         final String extraScopesToConsent = mExtraScope.getText().toString();
@@ -230,7 +230,7 @@ public class AcquireTokenFragment extends Fragment {
     static class RequestOptions {
         final Constants.AzureActiveDirectoryEnvironment mEnvironment;
         final String mLoginHint;
-        final UiBehavior mUiBehavior;
+        final Prompt mPrompt;
         final Constants.UserAgent mUserAgent;
         final String mScope;
         final String mExtraScope;
@@ -239,7 +239,7 @@ public class AcquireTokenFragment extends Fragment {
 
         RequestOptions(final Constants.AzureActiveDirectoryEnvironment environment,
                        final String loginHint,
-                       final UiBehavior uiBehavior,
+                       final Prompt prompt,
                        final Constants.UserAgent userAgent,
                        final String scope,
                        final String extraScope,
@@ -247,7 +247,7 @@ public class AcquireTokenFragment extends Fragment {
                        final boolean forceRefresh) {
             mEnvironment = environment;
             mLoginHint = loginHint;
-            mUiBehavior = uiBehavior;
+            mPrompt = prompt;
             mUserAgent = userAgent;
             mScope = scope;
             mExtraScope = extraScope;
@@ -257,7 +257,7 @@ public class AcquireTokenFragment extends Fragment {
 
         static RequestOptions create(final Constants.AzureActiveDirectoryEnvironment environment,
                                      final String loginHint,
-                                     final UiBehavior uiBehavior,
+                                     final Prompt uiBehavior,
                                      final Constants.UserAgent userAgent,
                                      final String scope,
                                      final String extraScope,
@@ -283,8 +283,8 @@ public class AcquireTokenFragment extends Fragment {
             return mLoginHint;
         }
 
-        UiBehavior getUiBehavior() {
-            return mUiBehavior;
+        Prompt getPrompt() {
+            return mPrompt;
         }
 
         String getScopes() {
