@@ -11,6 +11,7 @@ import org.robolectric.annotation.Implements;
 @Implements(MsalUtils.class)
 public class ShadowMsalUtils {
 
+    // mocking this to assume we have custom tab redirect activity during tests
     public static boolean hasCustomTabRedirectActivity(@NonNull final Context context,
                                                        @NonNull final String url) {
         return true;

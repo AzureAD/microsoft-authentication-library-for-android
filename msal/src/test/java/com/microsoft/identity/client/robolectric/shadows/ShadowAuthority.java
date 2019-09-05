@@ -2,10 +2,10 @@ package com.microsoft.identity.client.robolectric.shadows;
 
 import android.net.Uri;
 
+import com.microsoft.identity.common.internal.authorities.AADTestAuthority;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.B2CTestAuthority;
 import com.microsoft.identity.common.internal.authorities.MockAuthority;
-import com.microsoft.identity.common.internal.authorities.AADTestAuthority;
 import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
 import com.microsoft.identity.common.internal.logging.Logger;
 
@@ -19,9 +19,9 @@ import java.util.List;
 public class ShadowAuthority {
 
     private static final String TAG = ShadowAuthority.class.getSimpleName();
-    
-    private static final String AAD_MOCK_PATH_SEGMENT = "aad.mock";
-    private static final String B2C_ROPC_TEST_PATH_SEGMENT = "tfp";
+
+    private static final String AAD_MOCK_PATH_SEGMENT = "mock";
+    private static final String B2C_TEST_PATH_SEGMENT = "tfp";
 
     /**
      * Returns an Authority based on an authority url.  This method attempts to parse the URL and based on the contents of it
@@ -53,27 +53,30 @@ public class ShadowAuthority {
         String authorityType = pathSegments.get(0);
 
         switch (authorityType.toLowerCase()) {
+            // For our test environment, authority could be a AAD, B2C or a mocked authority
+            // For AAD and B2C, we create a test version of that authority that supports ROPC
             // more cases can be added here in the future
             case AAD_MOCK_PATH_SEGMENT:
-                //Return new Ropc Test Authority
+                //Return new AAD MOCK Authority
                 Logger.verbose(
                         TAG + methodName,
-                        "Authority type is AAD MOCK"
+                        "Authority type is Mock"
                 );
                 authority = new MockAuthority();
                 break;
-            case B2C_ROPC_TEST_PATH_SEGMENT:
-                //Return new B2C Authority
+            case B2C_TEST_PATH_SEGMENT:
+                //Return new B2C TEST Authority
                 Logger.verbose(
                         TAG + methodName,
-                        "Authority type is B2C ROPC"
+                        "Authority type is B2C Test"
                 );
                 authority = new B2CTestAuthority(authorityUrl);
                 break;
             default:
+                // return new AAD Test Authority
                 Logger.verbose(
                         TAG + methodName,
-                        "Authority type default: AAD ROPC"
+                        "Authority type default: AAD Test"
                 );
                 authority = new AADTestAuthority();
                 break;

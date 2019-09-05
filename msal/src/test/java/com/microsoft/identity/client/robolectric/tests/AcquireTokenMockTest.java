@@ -45,7 +45,7 @@ import static junit.framework.Assert.fail;
 public final class AcquireTokenMockTest {
 
     private static final String[] SCOPES = {"user.read"};
-    private static final String AAD_MOCK_AUTHORITY = "https://test.authority/aad.mock";
+    private static final String AAD_MOCK_AUTHORITY = "https://test.authority/mock";
 
     @Test
     public void canAcquireToken() {
@@ -416,7 +416,7 @@ public final class AcquireTokenMockTest {
                             }
                         })
                         .build();
-                
+
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
                 RoboTestUtils.flushScheduler();
             }

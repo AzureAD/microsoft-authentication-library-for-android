@@ -11,10 +11,6 @@ import java.security.GeneralSecurityException;
 
 import javax.crypto.SecretKey;
 
-
-// Robolectric provides Shadows that work in similar way to how mocks work in Mockito.
-// Implementing a shadow for a specific class doesn't shadow the entire class,
-// instead it only shadows the method that is implemented in the shadow class.
 @Implements(StorageHelper.class)
 public class ShadowStorageHelper {
 
