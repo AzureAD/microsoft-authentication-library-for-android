@@ -49,6 +49,7 @@ import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 import com.microsoft.identity.common.internal.telemetry.Telemetry;
+import com.microsoft.identity.common.internal.telemetry.TelemetryEventStrings;
 import com.microsoft.identity.common.internal.telemetry.events.BrokerEndEvent;
 import com.microsoft.identity.common.internal.telemetry.events.BrokerStartEvent;
 
@@ -85,7 +86,9 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
         Telemetry.emit(
                 new BrokerStartEvent()
                         .putAction(methodName)
+                        .putStrategy(TelemetryEventStrings.Value.ACCOUNT_MANAGER)
         );
+
         Intent intent;
         try {
             final MsalBrokerRequestAdapter msalBrokerRequestAdapter = new MsalBrokerRequestAdapter();
@@ -130,10 +133,11 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                             .isSuccessful(true)
             );
         } catch (final OperationCanceledException e) {
+            final String errorMessage = "OperationCanceledException thrown when talking to account manager. The broker request cancelled.";
             Logger.error(
                     TAG + methodName,
                     ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "Exception thrown when talking to account manager. The broker request cancelled.",
+                    errorMessage,
                     e
             );
 
@@ -142,19 +146,21 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                             .putAction(methodName)
                             .isSuccessful(false)
                             .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
-                            .putErrorDescription("OperationCanceledException thrown when talking to account manager. The broker request cancelled.")
+                            .putErrorDescription(errorMessage)
             );
 
             throw new ClientException(
                     ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "OperationCanceledException thrown when talking to account manager. The broker request cancelled.",
+                    errorMessage,
                     e
             );
         } catch (final AuthenticatorException e) {
+            final String errorMessage = "AuthenticatorException thrown when talking to account manager. The broker request cancelled.";
+
             Logger.error(
                     TAG + methodName,
                     ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "AuthenticatorException thrown when talking to account manager. The broker request cancelled.",
+                    errorMessage,
                     e
             );
 
@@ -163,20 +169,21 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                             .putAction(methodName)
                             .isSuccessful(false)
                             .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
-                            .putErrorDescription("AuthenticatorException thrown when talking to account manager. The broker request cancelled.")
+                            .putErrorDescription(errorMessage)
             );
 
             throw new ClientException(
                     ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "AuthenticatorException thrown when talking to account manager. The broker request cancelled.",
+                    errorMessage,
                     e
             );
         } catch (final IOException e) {
+            final String errorMessage = "IOException thrown when talking to account manager. The broker request cancelled.";
             // Authenticator gets problem from webrequest or file read/write
             Logger.error(
                     TAG + methodName,
                     ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "IOException thrown when talking to account manager. The broker request cancelled.",
+                    errorMessage,
                     e
             );
 
@@ -185,12 +192,12 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                             .putAction(methodName)
                             .isSuccessful(false)
                             .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
-                            .putErrorDescription("IOException thrown when talking to account manager. The broker request cancelled.")
+                            .putErrorDescription(errorMessage)
             );
 
             throw new ClientException(
                     ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "IOException thrown when talking to account manager. The broker request cancelled.",
+                    errorMessage,
                     e
             );
         }
@@ -204,6 +211,12 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
             throws BaseException {
         // if there is not any user added to account, it returns empty
         final String methodName = ":acquireTokenSilentWithAccountManager";
+        Telemetry.emit(
+                new BrokerStartEvent()
+                        .putAction(methodName)
+                        .putStrategy(TelemetryEventStrings.Value.ACCOUNT_MANAGER)
+        );
+
         Bundle bundleResult = null;
         if (parameters.getAccount() != null) {
             // blocking call to get token from cache or refresh request in
@@ -230,43 +243,70 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                 Logger.verbose(TAG + methodName, "Received result from broker");
                 bundleResult = result.getResult();
             } catch (final OperationCanceledException e) {
+                final String errorMsg = "OperationCanceledException thrown when talking to account manager. The broker request cancelled.";
                 Logger.error(
                         TAG + methodName,
                         ErrorStrings.BROKER_REQUEST_CANCELLED,
-                        "Exception thrown when talking to account manager. The broker request cancelled.",
+                        errorMsg,
                         e
+                );
+
+                Telemetry.emit(
+                        new BrokerEndEvent()
+                                .putAction(methodName)
+                                .isSuccessful(false)
+                                .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
+                                .putErrorDescription(errorMsg)
                 );
 
                 throw new ClientException(
                         ErrorStrings.BROKER_REQUEST_CANCELLED,
-                        "OperationCanceledException thrown when talking to account manager. The broker request cancelled.",
+                        errorMsg,
                         e
                 );
             } catch (final AuthenticatorException e) {
+                final String errorMsg = "AuthenticatorException thrown when talking to account manager. The broker request cancelled.";
                 Logger.error(
                         TAG + methodName,
                         ErrorStrings.BROKER_REQUEST_CANCELLED,
-                        "AuthenticatorException thrown when talking to account manager. The broker request cancelled.",
+                        errorMsg,
                         e
+                );
+
+                Telemetry.emit(
+                        new BrokerEndEvent()
+                                .putAction(methodName)
+                                .isSuccessful(false)
+                                .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
+                                .putErrorDescription(errorMsg)
                 );
 
                 throw new ClientException(
                         ErrorStrings.BROKER_REQUEST_CANCELLED,
-                        "AuthenticatorException thrown when talking to account manager. The broker request cancelled.",
+                        errorMsg,
                         e
                 );
             } catch (final IOException e) {
+                final String errorMsg = "IOException thrown when talking to account manager. The broker request cancelled.";
                 // Authenticator gets problem from webrequest or file read/write
                 Logger.error(
                         TAG + methodName,
                         ErrorStrings.BROKER_REQUEST_CANCELLED,
-                        "IOException thrown when talking to account manager. The broker request cancelled.",
+                        errorMsg,
                         e
+                );
+
+                Telemetry.emit(
+                        new BrokerEndEvent()
+                                .putAction(methodName)
+                                .isSuccessful(false)
+                                .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
+                                .putErrorDescription(errorMsg)
                 );
 
                 throw new ClientException(
                         ErrorStrings.BROKER_REQUEST_CANCELLED,
-                        "IOException thrown when talking to account manager. The broker request cancelled.",
+                        errorMsg,
                         e
                 );
             }
@@ -280,6 +320,12 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     protected List<ICacheRecord> getBrokerAccounts(@NonNull final OperationParameters parameters)
             throws OperationCanceledException, IOException, AuthenticatorException, ClientException {
         final String methodName = ":getBrokerAccountsFromAccountManager";
+        Telemetry.emit(
+                new BrokerStartEvent()
+                        .putAction(methodName)
+                        .putStrategy(TelemetryEventStrings.Value.ACCOUNT_MANAGER)
+        );
+
         final Account[] accountList = AccountManager.get(parameters.getAppContext()).getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
         final List<ICacheRecord> cacheRecords = new ArrayList<>();
         Logger.verbose(
@@ -289,6 +335,12 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
         );
 
         if (accountList == null || accountList.length == 0) {
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(false)
+                            .putErrorCode(ErrorStrings.NO_ACCOUNT_FOUND)
+            );
             return cacheRecords;
         } else {
             final Bundle bundle = new Bundle();
@@ -316,6 +368,12 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                 );
             }
 
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(true)
+            );
+
             return cacheRecords;
         }
     }
@@ -324,6 +382,11 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     @SuppressLint("MissingPermission")
     protected boolean removeBrokerAccount(@NonNull final OperationParameters parameters) {
         final String methodName = ":removeBrokerAccountFromAccountManager";
+        Telemetry.emit(
+                new BrokerStartEvent()
+                        .putAction(methodName)
+                        .putStrategy(TelemetryEventStrings.Value.ACCOUNT_MANAGER)
+        );
         // getAuthToken call will execute in async as well
         Logger.verbose(TAG + methodName, "Try to remove account from account manager.");
 
@@ -353,6 +416,12 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                 }
             }
         }
+
+        Telemetry.emit(
+                new BrokerEndEvent()
+                        .putAction(methodName)
+                        .isSuccessful(true)
+        );
 
         return true;
     }

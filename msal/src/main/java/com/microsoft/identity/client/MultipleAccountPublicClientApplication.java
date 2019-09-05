@@ -115,7 +115,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
      */
     @Override
     public void getAccounts(@NonNull final LoadAccountsCallback callback) {
-        ApiDispatcher.initializeDiagnosticContext();
         final String methodName = ":getAccounts";
         final List<ICacheRecord> accounts =
                 mPublicClientConfiguration
@@ -350,8 +349,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     @Override
     public void removeAccount(@Nullable final IAccount account,
                               @NonNull final RemoveAccountCallback callback) {
-        ApiDispatcher.initializeDiagnosticContext();
-
         // First, cast the input IAccount to a MultiTenantAccount
         final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
 

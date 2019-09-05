@@ -128,7 +128,7 @@ public class BrokerMsalController extends BaseController {
         Telemetry.emit(
                 new ApiStartEvent()
                         .putProperties(parameters)
-                        .putApiId(TelemetryEventStrings.Api.BROKER_GET_ACCOUNTS)
+                        .putApiId(TelemetryEventStrings.Api.BROKER_ACQUIRE_TOKEN_INTERACTIVE)
         );
 
         //Create BrokerResultFuture to block on response from the broker... response will be return as an activity result
@@ -158,7 +158,7 @@ public class BrokerMsalController extends BaseController {
         Telemetry.emit(
                 new ApiEndEvent()
                         .putResult(result)
-                        .putApiId(TelemetryEventStrings.Api.BROKER_GET_ACCOUNTS)
+                        .putApiId(TelemetryEventStrings.Api.BROKER_ACQUIRE_TOKEN_INTERACTIVE)
         );
 
         return result;
@@ -290,6 +290,12 @@ public class BrokerMsalController extends BaseController {
     public List<ICacheRecord> getAccounts(@NonNull final OperationParameters parameters)
             throws ClientException, InterruptedException, ExecutionException, RemoteException, OperationCanceledException, IOException, AuthenticatorException {
         final String methodName = ":getBrokerAccounts";
+        Telemetry.emit(
+                new ApiStartEvent()
+                        .putProperties(parameters)
+                        .putApiId(TelemetryEventStrings.Api.BROKER_GET_ACCOUNTS)
+        );
+
         helloBroker(parameters);
         List<ICacheRecord> result = null;
 
@@ -309,10 +315,23 @@ public class BrokerMsalController extends BaseController {
             } catch (final Exception exception) {
                 if (ii == (getStrategies().size() - 1)) {
                     //throw the exception for the last trying of strategies.
+                    Telemetry.emit(
+                            new ApiEndEvent()
+                                    .putException(exception)
+                                    .putApiId(TelemetryEventStrings.Api.BROKER_GET_ACCOUNTS)
+                    );
+
                     throw exception;
                 }
             }
         }
+
+        Telemetry.emit(
+                new ApiEndEvent()
+                        .put(TelemetryEventStrings.Key.ACCOUNTS_NUMBER, Integer.toString(result.size()))
+                        .isApiCallSuccessful(Boolean.TRUE)
+                        .putApiId(TelemetryEventStrings.Api.BROKER_GET_ACCOUNTS)
+        );
 
         return result;
     }
@@ -323,6 +342,12 @@ public class BrokerMsalController extends BaseController {
     public boolean removeAccount(@NonNull final OperationParameters parameters)
             throws BaseException, InterruptedException, ExecutionException, RemoteException {
         final String methodName = ":removeBrokerAccount";
+        Telemetry.emit(
+                new ApiStartEvent()
+                        .putProperties(parameters)
+                        .putApiId(TelemetryEventStrings.Api.BROKER_REMOVE_ACCOUNT)
+        );
+
         helloBroker(parameters);
         boolean result = false;
 
@@ -340,10 +365,22 @@ public class BrokerMsalController extends BaseController {
             } catch (final Exception exception) {
                 if (ii == (getStrategies().size() - 1)) {
                     //throw the exception for the last trying of strategies.
+                    Telemetry.emit(
+                            new ApiEndEvent()
+                                    .putException(exception)
+                                    .putApiId(TelemetryEventStrings.Api.BROKER_REMOVE_ACCOUNT)
+                    );
+
                     throw exception;
                 }
             }
         }
+
+        Telemetry.emit(
+                new ApiEndEvent()
+                        .isApiCallSuccessful(Boolean.TRUE)
+                        .putApiId(TelemetryEventStrings.Api.BROKER_REMOVE_ACCOUNT)
+        );
 
         return result;
     }
@@ -373,11 +410,27 @@ public class BrokerMsalController extends BaseController {
         }
 
         Telemetry.emit(
-                new BrokerStartEvent()
-                        .putAction(methodName)
+                new ApiStartEvent()
+                        .putApiId(TelemetryEventStrings.Api.GET_BROKER_DEVICE_MODE)
         );
 
         final Handler handler = new Handler(Looper.getMainLooper());
+
+        if (!MSALControllerFactory.brokerInstalled(configuration.getAppContext())) {
+            final String errorMessage = "Broker app is not installed on the device. Shared device mode requires the broker.";
+            com.microsoft.identity.common.internal.logging.Logger.verbose(TAG + methodName, errorMessage, null);
+            callback.onGetMode(false);
+
+            Telemetry.emit(
+                    new ApiEndEvent()
+                            .putApiId(TelemetryEventStrings.Api.GET_BROKER_DEVICE_MODE)
+                            .put(TelemetryEventStrings.Key.ERROR_DESCRIPTION, errorMessage)
+                            .isApiCallSuccessful(Boolean.FALSE)
+            );
+
+            return;
+        }
+
         sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
@@ -397,6 +450,13 @@ public class BrokerMsalController extends BaseController {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
+                            Telemetry.emit(
+                                    new ApiEndEvent()
+                                            .putApiId(TelemetryEventStrings.Api.GET_BROKER_DEVICE_MODE)
+                                            .put(TelemetryEventStrings.Key.IS_DEVICE_SHARED, Boolean.toString(mode))
+                                            .isApiCallSuccessful(Boolean.TRUE)
+                            );
+
                             callback.onGetMode(mode);
                         }
                     });
@@ -409,6 +469,14 @@ public class BrokerMsalController extends BaseController {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
+                            Telemetry.emit(
+                                    new ApiEndEvent()
+                                            .putApiId(TelemetryEventStrings.Api.GET_BROKER_DEVICE_MODE)
+                                            .put(TelemetryEventStrings.Key.ERROR_CODE, MsalClientException.IO_ERROR)
+                                            .put(TelemetryEventStrings.Key.ERROR_DESCRIPTION, errorMessage)
+                                            .isApiCallSuccessful(Boolean.FALSE)
+                            );
+
                             callback.onError(new MsalClientException(MsalClientException.IO_ERROR, errorMessage, e));
                         }
                     });
@@ -685,7 +753,8 @@ public class BrokerMsalController extends BaseController {
                                 null
                         );
 
-                if (result == null) {
+                final BrokerResult brokerResult = MsalBrokerResultAdapter.brokerResultFromBundle(result.getResult());
+                if (result == null || brokerResult == null) {
                     return false;
                 } else {
                     return MsalBrokerResultAdapter.getHelloResultFromBundle(result.getResult());
@@ -775,7 +844,7 @@ public class BrokerMsalController extends BaseController {
 
     private void helloBroker(@NonNull final OperationParameters parameters)
             throws ClientException {
-        final String methodName = ":initializeBrokerMsalController";
+        final String methodName = ":helloBroker";
         if (!getStrategies().isEmpty()) {
             mStrategies = new ArrayList<>();
         }
