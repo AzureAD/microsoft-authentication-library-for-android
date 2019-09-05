@@ -133,10 +133,11 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                             .isSuccessful(true)
             );
         } catch (final OperationCanceledException e) {
+            final String errorMessage = "OperationCanceledException thrown when talking to account manager. The broker request cancelled.";
             Logger.error(
                     TAG + methodName,
                     ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "Exception thrown when talking to account manager. The broker request cancelled.",
+                    errorMessage,
                     e
             );
 
@@ -145,19 +146,21 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                             .putAction(methodName)
                             .isSuccessful(false)
                             .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
-                            .putErrorDescription("OperationCanceledException thrown when talking to account manager. The broker request cancelled.")
+                            .putErrorDescription(errorMessage)
             );
 
             throw new ClientException(
                     ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "OperationCanceledException thrown when talking to account manager. The broker request cancelled.",
+                    errorMessage,
                     e
             );
         } catch (final AuthenticatorException e) {
+            final String errorMessage = "AuthenticatorException thrown when talking to account manager. The broker request cancelled.";
+
             Logger.error(
                     TAG + methodName,
                     ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "AuthenticatorException thrown when talking to account manager. The broker request cancelled.",
+                    errorMessage,
                     e
             );
 
@@ -166,20 +169,21 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                             .putAction(methodName)
                             .isSuccessful(false)
                             .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
-                            .putErrorDescription("AuthenticatorException thrown when talking to account manager. The broker request cancelled.")
+                            .putErrorDescription(errorMessage)
             );
 
             throw new ClientException(
                     ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "AuthenticatorException thrown when talking to account manager. The broker request cancelled.",
+                    errorMessage,
                     e
             );
         } catch (final IOException e) {
+            final String errorMessage = "IOException thrown when talking to account manager. The broker request cancelled.";
             // Authenticator gets problem from webrequest or file read/write
             Logger.error(
                     TAG + methodName,
                     ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "IOException thrown when talking to account manager. The broker request cancelled.",
+                    errorMessage,
                     e
             );
 
@@ -188,12 +192,12 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                             .putAction(methodName)
                             .isSuccessful(false)
                             .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
-                            .putErrorDescription("IOException thrown when talking to account manager. The broker request cancelled.")
+                            .putErrorDescription(errorMessage)
             );
 
             throw new ClientException(
                     ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "IOException thrown when talking to account manager. The broker request cancelled.",
+                    errorMessage,
                     e
             );
         }
@@ -239,10 +243,11 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                 Logger.verbose(TAG + methodName, "Received result from broker");
                 bundleResult = result.getResult();
             } catch (final OperationCanceledException e) {
+                final String errorMsg = "OperationCanceledException thrown when talking to account manager. The broker request cancelled.";
                 Logger.error(
                         TAG + methodName,
                         ErrorStrings.BROKER_REQUEST_CANCELLED,
-                        "Exception thrown when talking to account manager. The broker request cancelled.",
+                        errorMsg,
                         e
                 );
 
@@ -251,19 +256,20 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                                 .putAction(methodName)
                                 .isSuccessful(false)
                                 .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
-                                .putErrorDescription("OperationCanceledException thrown when talking to account manager. The broker request cancelled.")
+                                .putErrorDescription(errorMsg)
                 );
 
                 throw new ClientException(
                         ErrorStrings.BROKER_REQUEST_CANCELLED,
-                        "OperationCanceledException thrown when talking to account manager. The broker request cancelled.",
+                        errorMsg,
                         e
                 );
             } catch (final AuthenticatorException e) {
+                final String errorMsg = "AuthenticatorException thrown when talking to account manager. The broker request cancelled.";
                 Logger.error(
                         TAG + methodName,
                         ErrorStrings.BROKER_REQUEST_CANCELLED,
-                        "AuthenticatorException thrown when talking to account manager. The broker request cancelled.",
+                        errorMsg,
                         e
                 );
 
@@ -272,20 +278,21 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                                 .putAction(methodName)
                                 .isSuccessful(false)
                                 .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
-                                .putErrorDescription("AuthenticatorException thrown when talking to account manager. The broker request cancelled.")
+                                .putErrorDescription(errorMsg)
                 );
 
                 throw new ClientException(
                         ErrorStrings.BROKER_REQUEST_CANCELLED,
-                        "AuthenticatorException thrown when talking to account manager. The broker request cancelled.",
+                        errorMsg,
                         e
                 );
             } catch (final IOException e) {
+                final String errorMsg = "IOException thrown when talking to account manager. The broker request cancelled.";
                 // Authenticator gets problem from webrequest or file read/write
                 Logger.error(
                         TAG + methodName,
                         ErrorStrings.BROKER_REQUEST_CANCELLED,
-                        "IOException thrown when talking to account manager. The broker request cancelled.",
+                        errorMsg,
                         e
                 );
 
@@ -294,12 +301,12 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                                 .putAction(methodName)
                                 .isSuccessful(false)
                                 .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
-                                .putErrorDescription("IOException thrown when talking to account manager. The broker request cancelled.")
+                                .putErrorDescription(errorMsg)
                 );
 
                 throw new ClientException(
                         ErrorStrings.BROKER_REQUEST_CANCELLED,
-                        "IOException thrown when talking to account manager. The broker request cancelled.",
+                        errorMsg,
                         e
                 );
             }
