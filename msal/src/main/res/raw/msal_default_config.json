@@ -19,7 +19,8 @@
   },
   "logging": {
     "pii_enabled" : false,
-    "log_level" : "WARNING"
+    "log_level" : "WARNING",
+    "logcat_enabled" : false
   },
   "shared_device_mode_supported": false,
   "account_mode": "MULTIPLE",

@@ -1006,6 +1006,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         if (null != loggerConfig) {
             final com.microsoft.identity.client.Logger.LogLevel configLogLevel = loggerConfig.getLogLevel();
             final boolean configPiiState = loggerConfig.isPiiEnabled();
+            final boolean configLogCatState = loggerConfig.isLogCatEnabled();
 
             final com.microsoft.identity.client.Logger logger = com.microsoft.identity.client.Logger.getInstance();
 
@@ -1014,6 +1015,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             }
 
             logger.setEnablePII(configPiiState);
+            logger.setEnableLogcatLog(configLogCatState);
         }
     }
 

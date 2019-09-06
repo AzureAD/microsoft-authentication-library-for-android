@@ -25,6 +25,7 @@ package com.microsoft.identity.client.configuration;
 import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.Logger;
 
+import static com.microsoft.identity.client.configuration.LoggerConfiguration.SerializedNames.LOGCAT_ENABLED;
 import static com.microsoft.identity.client.configuration.LoggerConfiguration.SerializedNames.LOG_LEVEL;
 import static com.microsoft.identity.client.configuration.LoggerConfiguration.SerializedNames.PII_ENABLED;
 
@@ -36,6 +37,7 @@ public class LoggerConfiguration {
     public static final class SerializedNames {
         public static final String PII_ENABLED = "pii_enabled";
         public static final String LOG_LEVEL = "log_level";
+        public static final String LOGCAT_ENABLED = "logcat_enabled";
     }
 
     @SerializedName(PII_ENABLED)
@@ -43,6 +45,9 @@ public class LoggerConfiguration {
 
     @SerializedName(LOG_LEVEL)
     private Logger.LogLevel mLogLevel;
+
+    @SerializedName(LOGCAT_ENABLED)
+    private boolean mLogCatEnabled;
 
     /**
      * Gets the Pii Enabled state.
@@ -60,5 +65,14 @@ public class LoggerConfiguration {
      */
     public Logger.LogLevel getLogLevel() {
         return mLogLevel;
+    }
+
+    /**
+     * Gets the LogCat enabled state.
+     *
+     * @return True if LogCat is enabled, false otherwise.
+     */
+    public boolean isLogCatEnabled() {
+        return mLogCatEnabled;
     }
 }
