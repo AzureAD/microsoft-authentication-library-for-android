@@ -47,7 +47,7 @@ public class LoggerConfiguration {
     private Logger.LogLevel mLogLevel;
 
     @SerializedName(LOGCAT_ENABLED)
-    private boolean mLogCatEnabled;
+    private boolean mLogcatEnabled;
 
     /**
      * Gets the Pii Enabled state.
@@ -68,11 +68,11 @@ public class LoggerConfiguration {
     }
 
     /**
-     * Gets the LogCat enabled state.
+     * Gets the Logcat enabled state.
      *
-     * @return True if LogCat is enabled, false otherwise.
+     * @return True if Logcat is enabled, false otherwise.
      */
     public boolean isLogcatEnabled() {
-        return mLogCatEnabled;
+        return mLogcatEnabled;
     }
 }
