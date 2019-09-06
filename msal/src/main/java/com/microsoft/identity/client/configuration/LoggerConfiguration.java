@@ -72,7 +72,7 @@ public class LoggerConfiguration {
      *
      * @return True if LogCat is enabled, false otherwise.
      */
-    public boolean isLogCatEnabled() {
+    public boolean isLogcatEnabled() {
         return mLogCatEnabled;
     }
 }
