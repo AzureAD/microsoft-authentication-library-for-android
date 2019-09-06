@@ -39,6 +39,7 @@ import androidx.annotation.WorkerThread;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
+import com.microsoft.identity.client.configuration.LoggerConfiguration;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalUserCancelException;
@@ -974,6 +975,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
 
         initializeHttpSettings(mPublicClientConfiguration.getHttpConfiguration());
+        initializeLoggerSettings(mPublicClientConfiguration.getLoggerConfiguration());
 
         initializeTokenSharingLibrary();
 
@@ -998,6 +1000,23 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 TAG + methodName,
                 "Create new public client application."
         );
+    }
+
+    private void initializeLoggerSettings(@Nullable final LoggerConfiguration loggerConfig) {
+        if (null != loggerConfig) {
+            final com.microsoft.identity.client.Logger.LogLevel configLogLevel = loggerConfig.getLogLevel();
+            final boolean configPiiState = loggerConfig.isPiiEnabled();
+            final boolean configLogcatState = loggerConfig.isLogcatEnabled();
+
+            final com.microsoft.identity.client.Logger logger = com.microsoft.identity.client.Logger.getInstance();
+
+            if (null != configLogLevel) {
+                logger.setLogLevel(configLogLevel);
+            }
+
+            logger.setEnablePII(configPiiState);
+            logger.setEnableLogcatLog(configLogcatState);
+        }
     }
 
     private void initializeHttpSettings(@Nullable final HttpConfiguration httpConfiguration) {
