@@ -17,6 +17,10 @@
     "connect_timeout": 10000,
     "read_timeout": 30000
   },
+  "logging": {
+    "pii_enabled" : false,
+    "log_level" : "WARNING"
+  },
   "shared_device_mode_supported": false,
   "account_mode": "MULTIPLE",
   "browser_safelist": [
