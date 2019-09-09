@@ -78,9 +78,9 @@ public final class AcquireTokenMockTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                String username = "fake@test.com";
+                final String username = "fake@test.com";
 
-                AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
@@ -118,7 +118,7 @@ public final class AcquireTokenMockTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withScopes(Arrays.asList(SCOPES))
                         .fromAuthority(AAD_MOCK_AUTHORITY)
@@ -155,7 +155,7 @@ public final class AcquireTokenMockTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                String username = "fake@test.com";
+                final String username = "fake@test.com";
 
                 final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                         .withScopes(Arrays.asList(SCOPES))
@@ -179,7 +179,7 @@ public final class AcquireTokenMockTest {
                         })
                         .build();
 
-                AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
@@ -416,9 +416,9 @@ public final class AcquireTokenMockTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                String username = "fake@test.com";
+                final String username = "fake@test.com";
 
-                AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
@@ -457,9 +457,9 @@ public final class AcquireTokenMockTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                String username = "fake@test.com";
+                final String username = "fake@test.com";
 
-                AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
@@ -498,9 +498,9 @@ public final class AcquireTokenMockTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                String username = "fake@test.com";
+                final String username = "fake@test.com";
 
-                AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .fromAuthority(AAD_MOCK_AUTHORITY)
@@ -530,11 +530,11 @@ public final class AcquireTokenMockTest {
     }
 
     private ICacheRecord saveTokens(TokenResponse tokenResponse, IPublicClientApplication application) throws ClientException {
-        OAuth2TokenCache tokenCache = application.getConfiguration().getOAuth2TokenCache();
-        String clientId = application.getConfiguration().getClientId();
-        Authority authority = new MockAuthority();
-        OAuth2Strategy strategy = authority.createOAuth2Strategy();
-        MicrosoftStsAuthorizationRequest fakeAuthRequest = Mockito.mock(MicrosoftStsAuthorizationRequest.class);
+        final OAuth2TokenCache tokenCache = application.getConfiguration().getOAuth2TokenCache();
+        final String clientId = application.getConfiguration().getClientId();
+        final Authority authority = new MockAuthority();
+        final OAuth2Strategy strategy = authority.createOAuth2Strategy();
+        final MicrosoftStsAuthorizationRequest fakeAuthRequest = Mockito.mock(MicrosoftStsAuthorizationRequest.class);
         Mockito.when(fakeAuthRequest.getAuthority()).thenReturn(authority.getAuthorityURL());
         Mockito.when(fakeAuthRequest.getClientId()).thenReturn(clientId);
         return tokenCache.save(strategy, fakeAuthRequest, tokenResponse);

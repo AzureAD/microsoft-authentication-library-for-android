@@ -63,14 +63,14 @@ public final class AcquireTokenNetworkTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                TestConfigurationQuery query = new TestConfigurationQuery();
+                final TestConfigurationQuery query = new TestConfigurationQuery();
                 query.userType = "Member";
                 query.isFederated = false;
                 query.federationProvider = "ADFSv4";
 
-                String username = TestConfigurationHelper.getUpnForTest(query);
+                final String username = TestConfigurationHelper.getUpnForTest(query);
 
-                AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
@@ -107,7 +107,7 @@ public final class AcquireTokenNetworkTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                TestConfigurationQuery query = new TestConfigurationQuery();
+                final TestConfigurationQuery query = new TestConfigurationQuery();
                 query.userType = "Member";
                 query.isFederated = false;
                 query.federationProvider = "ADFSv4";
@@ -135,7 +135,7 @@ public final class AcquireTokenNetworkTest {
                         })
                         .build();
 
-                AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
@@ -176,7 +176,7 @@ public final class AcquireTokenNetworkTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                TestConfigurationQuery query = new TestConfigurationQuery();
+                final TestConfigurationQuery query = new TestConfigurationQuery();
                 query.userType = "Member";
                 query.isFederated = false;
                 query.federationProvider = "ADFSv4";
@@ -204,7 +204,7 @@ public final class AcquireTokenNetworkTest {
                         })
                         .build();
 
-                AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
@@ -245,7 +245,7 @@ public final class AcquireTokenNetworkTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                TestConfigurationQuery query = new TestConfigurationQuery();
+                final TestConfigurationQuery query = new TestConfigurationQuery();
                 query.userType = "Member";
                 query.isFederated = false;
                 query.federationProvider = "ADFSv4";
@@ -273,7 +273,7 @@ public final class AcquireTokenNetworkTest {
                         })
                         .build();
 
-                AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
@@ -315,7 +315,7 @@ public final class AcquireTokenNetworkTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                TestConfigurationQuery query = new TestConfigurationQuery();
+                final TestConfigurationQuery query = new TestConfigurationQuery();
                 query.userType = "Member";
                 query.isFederated = false;
                 query.federationProvider = "ADFSv4";
@@ -343,7 +343,7 @@ public final class AcquireTokenNetworkTest {
                         })
                         .build();
 
-                AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))

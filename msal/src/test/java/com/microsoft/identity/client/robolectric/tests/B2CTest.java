@@ -63,11 +63,12 @@ public final class B2CTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                TestConfigurationQuery query = new TestConfigurationQuery();
+                final TestConfigurationQuery query = new TestConfigurationQuery();
                 query.b2cProvider = "Local";
-                String username = TestConfigurationHelper.getUpnForTest(query);
 
-                AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                final String username = TestConfigurationHelper.getUpnForTest(query);
+
+                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
@@ -104,7 +105,7 @@ public final class B2CTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                TestConfigurationQuery query = new TestConfigurationQuery();
+                final TestConfigurationQuery query = new TestConfigurationQuery();
                 query.b2cProvider = "Local";
 
                 final String username = TestConfigurationHelper.getUpnForTest(query);
@@ -130,7 +131,7 @@ public final class B2CTest {
                         })
                         .build();
 
-                AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
@@ -171,7 +172,7 @@ public final class B2CTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                TestConfigurationQuery query = new TestConfigurationQuery();
+                final TestConfigurationQuery query = new TestConfigurationQuery();
                 query.b2cProvider = "Local";
 
                 final String username = TestConfigurationHelper.getUpnForTest(query);
@@ -197,7 +198,7 @@ public final class B2CTest {
                         })
                         .build();
 
-                AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
@@ -238,7 +239,7 @@ public final class B2CTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                TestConfigurationQuery query = new TestConfigurationQuery();
+                final TestConfigurationQuery query = new TestConfigurationQuery();
                 query.b2cProvider = "Local";
 
                 final String username = TestConfigurationHelper.getUpnForTest(query);
@@ -264,7 +265,7 @@ public final class B2CTest {
                         })
                         .build();
 
-                AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
@@ -306,7 +307,7 @@ public final class B2CTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                TestConfigurationQuery query = new TestConfigurationQuery();
+                final TestConfigurationQuery query = new TestConfigurationQuery();
                 query.b2cProvider = "Local";
 
                 final String username = TestConfigurationHelper.getUpnForTest(query);
@@ -332,7 +333,7 @@ public final class B2CTest {
                         })
                         .build();
 
-                AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))

@@ -55,7 +55,7 @@ public abstract class B2CBaseTest {
         final Context context = ApplicationProvider.getApplicationContext();
         final Activity testActivity = getActivity(context);
 
-        File configFile = new File(CONFIG_FILE_PATH);
+        final File configFile = new File(CONFIG_FILE_PATH);
 
         PublicClientApplication.create(context, configFile, new PublicClientApplication.ApplicationCreatedListener() {
             @Override
