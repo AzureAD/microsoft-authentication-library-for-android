@@ -24,7 +24,7 @@ package com.microsoft.identity.client;
 
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 
-public class AuthenticationResultAdapter {
+class AuthenticationResultAdapter {
 
     static IAuthenticationResult adapt(ILocalAuthenticationResult localAuthenticationResult) {
 

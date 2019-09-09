@@ -62,6 +62,9 @@ import java.util.Map;
 
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
 
+/**
+ * Implements {@link com.microsoft.identity.client.IMultipleAccountPublicClientApplication}
+ */
 public class MultipleAccountPublicClientApplication extends PublicClientApplication
         implements IMultipleAccountPublicClientApplication {
     private static final String TAG = MultipleAccountPublicClientApplication.class.getSimpleName();

@@ -22,6 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+/**
+ * Encapsulates the parameters for the acquireTokenSilent method
+ */
 public class AcquireTokenSilentParameters extends TokenParameters {
     private Boolean mForceRefresh;
 
@@ -50,10 +53,23 @@ public class AcquireTokenSilentParameters extends TokenParameters {
         return mForceRefresh;
     }
 
+    /**
+     * Builder object for the acquiretokenSilent parameters object
+     */
     public static class Builder extends TokenParameters.Builder<AcquireTokenSilentParameters.Builder> {
 
         private Boolean mForceRefresh;
 
+
+        /**
+         * <p>
+         *     NOTE: In general you should not use this method.  MSAL will refresh the token automatically using
+         *     it's own heuristic.
+         * </p>
+         * @param force Tells MSAL to refresh the token as part of this request
+         * @return
+         *
+         */
         public AcquireTokenSilentParameters.Builder forceRefresh(Boolean force) {
             mForceRefresh = force;
             return self();

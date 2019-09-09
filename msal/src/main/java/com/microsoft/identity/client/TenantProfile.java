@@ -28,13 +28,19 @@ import androidx.annotation.Nullable;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 
+/**
+ * TenantProfile implements the {@link com.microsoft.identity.client.ITenantProfile ITenantProfile} interface.
+ */
 public class TenantProfile extends Account implements ITenantProfile {
 
-    public TenantProfile(@Nullable final String clientInfo,
+    TenantProfile(@Nullable final String clientInfo,
                          @NonNull final IDToken idToken) {
         super(clientInfo, idToken);
     }
 
+    /**
+     * @return The tenant id to which the tenant profile belongs
+     */
     @NonNull
     @Override
     public String getTenantId() {

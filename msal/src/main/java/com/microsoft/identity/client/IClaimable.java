@@ -27,6 +27,9 @@ import androidx.annotation.Nullable;
 
 import java.util.Map;
 
+/**
+ * Provides access to claims about an account in it's home tenant or in any tenant in which the account has been used to access.
+ */
 public interface IClaimable {
 
     /**

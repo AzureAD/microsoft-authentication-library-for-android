@@ -26,8 +26,19 @@ import androidx.annotation.NonNull;
 
 import java.util.Map;
 
+
+/**
+ * Cast IAccount to IMultiTenantAccount in order to access claims regarding from this account as they
+ * are recorded in each tenant that you have used this account to access within your application.
+ * Use {@link IMultiTenantAccount#getTenantProfiles() getTenantProfiles} to get a map of tenant profiles keyed by tenant id (guid).
+ * </p>
+ * Access claims about the account in each tenant from within the tenant Profile.
+ */
 public interface IMultiTenantAccount extends IAccount {
 
+    /**
+     * @return A map of tenant profiles
+     */
     @NonNull
     Map<String, ITenantProfile> getTenantProfiles();
 

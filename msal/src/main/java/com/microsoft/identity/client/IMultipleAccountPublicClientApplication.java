@@ -95,7 +95,7 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
+     * Default value for {@link Prompt} is {@link Prompt#SELECT_ACCOUNT}.
      *
      * @param activity  Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
      * @param scopes    The non-null array of scopes to be requested for the access token.
@@ -137,7 +137,7 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
      * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
-     * or it fails the refresh, exception will be sent back via callback.
+     * or it fails the refresh, exception will be thrown.
      *
      * @param scopes    The non-null array of scopes to be requested for the access token.
      *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
@@ -168,6 +168,9 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
                                  @NonNull final String authority,
                                  @NonNull final AuthenticationCallback callback);
 
+    /**
+     * The interface for the GetAccountCallback.  Used to receive a requested IAccount or an error.
+     */
     interface GetAccountCallback extends TaskCompletedCallbackWithError<IAccount, MsalException> {
         /**
          * Called once succeed and pass the result object.
@@ -184,6 +187,9 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
         void onError(MsalException exception);
     }
 
+    /**
+     * The callback used to determine whether or not the request to remove an account was successful.
+     */
     interface RemoveAccountCallback {
         /**
          * Invoked when account successfully removed
