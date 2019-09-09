@@ -87,11 +87,6 @@ android {
             exclude 'com/microsoft/identity/client/robolectric/tests/B2CTest.class'
         }
     }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
 }
 
 // Task to generate javadoc
@@ -134,6 +129,7 @@ dependencies {
     testImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
     testImplementation "org.robolectric:robolectric:$rootProject.ext.robolectricVersion"
     testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
+    testImplementation project(':testutils')
     // instrumentation test dependencies
     androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
     // Set this dependency to use JUnit 4 rules

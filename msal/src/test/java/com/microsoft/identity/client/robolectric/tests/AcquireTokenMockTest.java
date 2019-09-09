@@ -19,13 +19,13 @@ import com.microsoft.identity.client.robolectric.shadows.ShadowStrategyResultSer
 import com.microsoft.identity.client.robolectric.shadows.ShadowStrategyResultUnsuccessful;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.authorities.Authority;
-import com.microsoft.identity.common.internal.authorities.MockAuthority;
+import com.microsoft.identity.internal.testutils.authorities.MockAuthority;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
-import com.microsoft.identity.common.internal.testutils.MockTokenResponse;
+import com.microsoft.identity.internal.testutils.MockTokenResponse;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import org.junit.Assert;

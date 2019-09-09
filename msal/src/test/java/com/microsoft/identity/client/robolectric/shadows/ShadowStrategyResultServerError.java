@@ -3,7 +3,7 @@ package com.microsoft.identity.client.robolectric.shadows;
 import com.microsoft.identity.common.internal.net.HttpResponse;
 import com.microsoft.identity.common.internal.net.ObjectMapper;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenErrorResponse;
-import com.microsoft.identity.common.internal.providers.ropc.MockTestStrategy;
+import com.microsoft.identity.internal.testutils.strategies.MockTestStrategy;
 
 import org.robolectric.annotation.Implements;
 

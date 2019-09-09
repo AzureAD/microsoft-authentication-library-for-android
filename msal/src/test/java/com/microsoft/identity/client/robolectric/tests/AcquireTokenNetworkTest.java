@@ -14,8 +14,8 @@ import com.microsoft.identity.client.robolectric.shadows.ShadowAuthority;
 import com.microsoft.identity.client.robolectric.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.robolectric.shadows.ShadowStorageHelper;
 import com.microsoft.identity.common.internal.util.StringUtil;
-import com.microsoft.identity.common.utilities.TestConfigurationHelper;
-import com.microsoft.identity.common.utilities.TestConfigurationQuery;
+import com.microsoft.identity.internal.testutils.labutils.TestConfigurationHelper;
+import com.microsoft.identity.internal.testutils.labutils.TestConfigurationQuery;
 
 import org.junit.Assert;
 import org.junit.Test;

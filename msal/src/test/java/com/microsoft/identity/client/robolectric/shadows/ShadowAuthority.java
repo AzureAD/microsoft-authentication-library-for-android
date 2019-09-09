@@ -2,10 +2,10 @@ package com.microsoft.identity.client.robolectric.shadows;
 
 import android.net.Uri;
 
-import com.microsoft.identity.common.internal.authorities.AADTestAuthority;
+import com.microsoft.identity.internal.testutils.authorities.AADTestAuthority;
 import com.microsoft.identity.common.internal.authorities.Authority;
-import com.microsoft.identity.common.internal.authorities.B2CTestAuthority;
-import com.microsoft.identity.common.internal.authorities.MockAuthority;
+import com.microsoft.identity.internal.testutils.authorities.B2CTestAuthority;
+import com.microsoft.identity.internal.testutils.authorities.MockAuthority;
 import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
 import com.microsoft.identity.common.internal.logging.Logger;
 
