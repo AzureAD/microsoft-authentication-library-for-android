@@ -59,14 +59,6 @@ public class AcquireTokenParameters extends TokenParameters {
         return mActivity;
     }
 
-    /**
-     * Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}
-     *
-     * @param activity
-     */
-    public void setActivity(Activity activity) {
-        this.mActivity = activity;
-    }
 
     /**
      * Optional. Gets the login hint sent along with the authorization request.
@@ -82,7 +74,7 @@ public class AcquireTokenParameters extends TokenParameters {
      *
      * @param loginHint
      */
-    public void setLoginHint(String loginHint) {
+    void setLoginHint(String loginHint) {
         this.mLoginHint = loginHint;
     }
 
@@ -96,15 +88,6 @@ public class AcquireTokenParameters extends TokenParameters {
     }
 
     /**
-     * Controls the value of the prompt parameter sent along with the authorization request.
-     *
-     * @param uiBehavior
-     */
-    public void setUiBehavior(UiBehavior uiBehavior) {
-        this.mUiBehavior = uiBehavior;
-    }
-
-    /**
      * These are additional scopes that you would like the user to authorize the use of, while getting consent
      * for the first set of scopes
      *
@@ -115,16 +98,6 @@ public class AcquireTokenParameters extends TokenParameters {
     }
 
     /**
-     * These are additional scopes that you would like the user to authorize the use of, while getting consent
-     * for the first set of scopes
-     *
-     * @param extraScopesToConsent
-     */
-    public void setExtraScopesToConsent(List<String> extraScopesToConsent) {
-        this.mExtraScopesToConsent = extraScopesToConsent;
-    }
-
-    /**
      * If you've been instructed to pass additional query string parameters to the authorization endpoint.  You can get these here.
      * Otherwise... would recommend not touching.
      *
@@ -132,16 +105,6 @@ public class AcquireTokenParameters extends TokenParameters {
      */
     public List<Pair<String, String>> getExtraQueryStringParameters() {
         return mExtraQueryStringParameters;
-    }
-
-    /**
-     * If you've been instructed to pass additional query string parameters to the authorization endpoint.  You can set these here.
-     * Otherwise... would recommend not touching.
-     *
-     * @param extraQueryStringParameters
-     */
-    public void setExtraQueryStringParameters(List<Pair<String, String>> extraQueryStringParameters) {
-        this.mExtraQueryStringParameters = extraQueryStringParameters;
     }
 
     /**
@@ -157,21 +120,6 @@ public class AcquireTokenParameters extends TokenParameters {
      */
     public AuthenticationCallback getCallback() {
         return mCallback;
-    }
-
-    /**
-     * The Non-null {@link AuthenticationCallback} to receive the result back.
-     * 1) If user cancels the flow by pressing the device back button, the result will be sent
-     * back via {@link AuthenticationCallback#onCancel()}.
-     * 2) If the sdk successfully receives the token back, result will be sent back via
-     * {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
-     * 3) All the other errors will be sent back via
-     * {@link AuthenticationCallback#onError(com.microsoft.identity.client.exception.MsalException)}.
-     *
-     * @param callback
-     */
-    public void setCallback(AuthenticationCallback callback) {
-        this.mCallback = callback;
     }
 
     public static class Builder extends TokenParameters.Builder<AcquireTokenParameters.Builder> {
