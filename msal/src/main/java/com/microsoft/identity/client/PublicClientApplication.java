@@ -1686,10 +1686,16 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             public void onSuccess(ILocalAuthenticationResult localAuthenticationResult) {
 
                 // Check if any of the requested scopes are declined by the server, if yes throw a MsalDeclinedScope exception
-                if(MsalExceptionAdapter.areScopeDeclinedByServer(tokenParameters.getScopes(), localAuthenticationResult.getScope())){
-                    final MsalDeclinedScopeException declinedScopeException = MsalExceptionAdapter.declinedScopeExceptionFromResult(
-                            localAuthenticationResult,
-                            tokenParameters
+                final List<String> declinedScopes = MsalExceptionAdapter.getDeclinedScopes(
+                        Arrays.asList(localAuthenticationResult.getScope()),
+                        tokenParameters.getScopes()
+                );
+                if(!declinedScopes.isEmpty()){
+                    final MsalDeclinedScopeException declinedScopeException =
+                            MsalExceptionAdapter.declinedScopeExceptionFromResult(
+                                    localAuthenticationResult,
+                                    declinedScopes,
+                                    tokenParameters
                     );
                     authenticationCallback.onError(declinedScopeException);
                 }else {
