@@ -40,6 +40,7 @@ import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
+import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalUserCancelException;
@@ -1294,7 +1295,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     }
 
-    protected void validateAcquireTokenParameters(AcquireTokenParameters parameters) throws ArgumentException {
+    protected void validateAcquireTokenParameters(AcquireTokenParameters parameters) throws MsalArgumentException {
         final Activity activity = parameters.getActivity();
         final List scopes = parameters.getScopes();
         final AuthenticationCallback callback = parameters.getCallback();
@@ -1304,7 +1305,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArg(callback, "Callback");
     }
 
-    protected void validateAcquireTokenSilentParameters(AcquireTokenSilentParameters parameters) throws ArgumentException {
+    protected void validateAcquireTokenSilentParameters(AcquireTokenSilentParameters parameters) throws MsalArgumentException {
         String authority = parameters.getAuthority();
         validateNonNullArg(authority, "Authority");
     }
