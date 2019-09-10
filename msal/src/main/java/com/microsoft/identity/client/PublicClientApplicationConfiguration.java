@@ -275,7 +275,7 @@ public class PublicClientApplicationConfiguration {
         mAppContext = applicationContext;
     }
 
-    public OAuth2TokenCache getOAuth2TokenCache() {
+    OAuth2TokenCache getOAuth2TokenCache() {
         return mOAuth2TokenCache;
     }
 

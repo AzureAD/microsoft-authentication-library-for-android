@@ -66,6 +66,7 @@ import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefre
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAccount;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
@@ -546,6 +547,7 @@ public class BrokerMsalController extends BaseController {
      * This only works when getBrokerAccountMode() is BROKER_ACCOUNT_MODE_SINGLE_ACCOUNT.
      */
     public void getCurrentAccount(@NonNull final PublicClientApplicationConfiguration configuration,
+                                  @NonNull final OAuth2TokenCache cache,
                                   @NonNull final TaskCompletedCallbackWithError<List<ICacheRecord>, MsalException> callback) {
         final String methodName = ":getCurrentAccount";
 
@@ -559,7 +561,7 @@ public class BrokerMsalController extends BaseController {
                                 .accountsFromBundle(
                                         service.getCurrentAccount(
                                                 BrokerAuthServiceStrategy.getRequestBundleForGetAccounts(
-                                                        OperationParametersAdapter.createOperationParameters(configuration)
+                                                        OperationParametersAdapter.createOperationParameters(configuration, cache)
                                                 )
                                         )
                                 );
