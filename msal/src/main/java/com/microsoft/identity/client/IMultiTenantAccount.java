@@ -28,7 +28,7 @@ import java.util.Map;
 
 
 /**
- * Cast IAccount to IMultiTenantAccount in order to access claims regarding from this account as they
+ * Cast IAccount to IMultiTenantAccount in order to access claims about this account as they
  * are recorded in each tenant that you have used this account to access within your application.
  * Use {@link IMultiTenantAccount#getTenantProfiles() getTenantProfiles} to get a map of tenant profiles keyed by tenant id (guid).
  * </p>

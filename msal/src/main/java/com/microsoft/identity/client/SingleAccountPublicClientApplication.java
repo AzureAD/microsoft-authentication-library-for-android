@@ -228,7 +228,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
      *                 The access token returned is for MS Graph and will allow you to query for additional information about the signed in account.
      * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
      *                 sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
-     *                 Failure case will be sent back via {
+     *                 Failure case will be sent back via {@link AuthenticationCallback#onError(MsalException)}
+     *                 Cancel case will be sent back via {@link AuthenticationCallback#onCancel()}
      */
     @Override
     public void signIn(@NonNull final Activity activity,

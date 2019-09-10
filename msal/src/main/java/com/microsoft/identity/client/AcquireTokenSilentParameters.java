@@ -67,7 +67,7 @@ public class AcquireTokenSilentParameters extends TokenParameters {
          *     it's own heuristic.
          * </p>
          * @param force Tells MSAL to refresh the token as part of this request
-         * @return
+         * @return the builder
          *
          */
         public AcquireTokenSilentParameters.Builder forceRefresh(Boolean force) {
