@@ -75,7 +75,7 @@ abstract class TokenParameters {
      *
      * @param account
      */
-    public void setAccount(IAccount account) {
+    void setAccount(IAccount account) {
         this.mAccount = account;
     }
 
