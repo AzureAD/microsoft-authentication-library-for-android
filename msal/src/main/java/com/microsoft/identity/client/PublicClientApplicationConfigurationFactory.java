@@ -31,7 +31,6 @@ import androidx.annotation.VisibleForTesting;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AuthorityDeserializer;

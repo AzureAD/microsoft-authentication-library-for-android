@@ -32,7 +32,7 @@ public class AcquireTokenSilentParameters extends TokenParameters {
         mCallback = builder.mCallback;
     }
 
-    public void setCallback(SilentAuthenticationCallback callback) {
+    void setCallback(SilentAuthenticationCallback callback) {
         mCallback = callback;
     }
 
@@ -49,16 +49,6 @@ public class AcquireTokenSilentParameters extends TokenParameters {
      */
     public SilentAuthenticationCallback getCallback() {
         return mCallback;
-    }
-
-    /**
-     * Boolean.  Indicates whether MSAL should refresh the access token.  Default is false and
-     * unless you have good reason to.  You should not use this parameter.
-     *
-     * @param forceRefresh
-     */
-    public void setForceRefresh(Boolean forceRefresh) {
-        mForceRefresh = forceRefresh;
     }
 
     /**

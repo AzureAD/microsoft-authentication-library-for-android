@@ -60,16 +60,6 @@ abstract class TokenParameters {
     }
 
     /**
-     * The non-null array of scopes to be requested for the access token.
-     * MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     *
-     * @param scopes
-     */
-    public void setScopes(List<String> scopes) {
-        this.mScopes = scopes;
-    }
-
-    /**
      * Optional. If provided, will be used to force the session continuation.  If user tries to sign in with a different account, error
      * will be returned.
      *
@@ -85,7 +75,7 @@ abstract class TokenParameters {
      *
      * @param account
      */
-    public void setAccount(IAccount account) {
+    void setAccount(IAccount account) {
         this.mAccount = account;
     }
 
@@ -104,7 +94,7 @@ abstract class TokenParameters {
      *
      * @param authority
      */
-    public void setAuthority(String authority) {
+    void setAuthority(String authority) {
         this.mAuthority = authority;
     }
 
@@ -115,15 +105,6 @@ abstract class TokenParameters {
      */
     public ClaimsRequest getClaimsRequest() {
         return mClaimsRequest;
-    }
-
-    /**
-     * Optional. Can be passed into request specific claims in the id_token and access_token
-     *
-     * @param claimsRequest
-     */
-    public void setClaimsRequest(ClaimsRequest claimsRequest) {
-        this.mClaimsRequest = claimsRequest;
     }
 
     void setAccountRecord(AccountRecord record) {
@@ -195,6 +176,5 @@ abstract class TokenParameters {
         public abstract B self();
 
         public abstract TokenParameters build();
-
     }
 }
