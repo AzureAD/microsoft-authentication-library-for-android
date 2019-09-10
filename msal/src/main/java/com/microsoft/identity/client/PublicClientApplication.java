@@ -50,6 +50,7 @@ import com.microsoft.identity.client.internal.controllers.OperationParametersAda
 import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
 import com.microsoft.identity.client.internal.telemetry.Defaults;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
+import com.microsoft.identity.common.exception.ArgumentException;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.exception.ServiceException;
@@ -86,6 +87,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
+import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArg;
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
 import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isAccountHomeTenant;
 import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isHomeTenantEquivalent;
@@ -1055,30 +1057,19 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     }
 
-    protected void validateAcquireTokenParameters(AcquireTokenParameters parameters) {
+    protected void validateAcquireTokenParameters(AcquireTokenParameters parameters) throws ArgumentException {
         final Activity activity = parameters.getActivity();
         final List scopes = parameters.getScopes();
         final AuthenticationCallback callback = parameters.getCallback();
 
-        validateNonNullArgument(activity, "Activity");
-        validateNonNullArgument(scopes, "Scopes");
-        validateNonNullArgument(callback, "Callback");
-
-        if (scopes.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Scopes cannot be null or empty"
-            );
-        }
+        validateNonNullArg(activity, "Activity");
+        validateNonNullArg(scopes, "Scopes");
+        validateNonNullArg(callback, "Callback");
     }
 
-    protected void validateAcquireTokenSilentParameters(AcquireTokenSilentParameters parameters) {
-        if (TextUtils.isEmpty(parameters.getAuthority())) {
-            throw new IllegalArgumentException(
-                    "Authority must be specified for acquireTokenSilent"
-            );
-        }
-
-        return;
+    protected void validateAcquireTokenSilentParameters(AcquireTokenSilentParameters parameters) throws ArgumentException {
+        String authority = parameters.getAuthority();
+        validateNonNullArg(authority, "Authority");
     }
 
     @Override
@@ -1092,14 +1083,14 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 final ILocalAuthenticationCallback localAuthenticationCallback =
                         getLocalAuthenticationCallback(acquireTokenParameters.getCallback());
                 try {
+                    validateAcquireTokenParameters(acquireTokenParameters);
+
                     acquireTokenParameters.setAccountRecord(
                             selectAccountRecordForTokenRequest(
                                     mPublicClientConfiguration,
                                     acquireTokenParameters
                             )
                     );
-
-                    validateAcquireTokenParameters(acquireTokenParameters);
 
                     final AcquireTokenOperationParameters params = OperationParametersAdapter.
                             createAcquireTokenOperationParameters(
@@ -1166,14 +1157,14 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 );
 
                 try {
+                    validateAcquireTokenSilentParameters(acquireTokenSilentParameters);
+
                     acquireTokenSilentParameters.setAccountRecord(
                             selectAccountRecordForTokenRequest(
                                     mPublicClientConfiguration,
                                     acquireTokenSilentParameters
                             )
                     );
-
-                    validateAcquireTokenSilentParameters(acquireTokenSilentParameters);
 
                     final AcquireTokenSilentOperationParameters params =
                             OperationParametersAdapter.createAcquireTokenSilentOperationParameters(
