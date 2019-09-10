@@ -24,10 +24,31 @@ package com.microsoft.identity.client;
 
 public class AcquireTokenSilentParameters extends TokenParameters {
     private Boolean mForceRefresh;
+    private SilentAuthenticationCallback mCallback;
 
     public AcquireTokenSilentParameters(AcquireTokenSilentParameters.Builder builder) {
         super(builder);
         mForceRefresh = builder.mForceRefresh;
+        mCallback = builder.mCallback;
+    }
+
+    public void setCallback(SilentAuthenticationCallback callback) {
+        mCallback = callback;
+    }
+
+    /**
+     * The Non-null {@link SilentAuthenticationCallback} to receive the result back.
+     * <p>
+     * 1) If the sdk successfully receives the token back, result will be sent back via
+     * {@link SilentAuthenticationCallback#onSuccess(IAuthenticationResult)}
+     * <p>
+     * 2) All the other errors will be sent back via
+     * {@link SilentAuthenticationCallback#onError(com.microsoft.identity.client.exception.MsalException)}.
+     *
+     * @return The silent request callback.
+     */
+    public SilentAuthenticationCallback getCallback() {
+        return mCallback;
     }
 
     /**
@@ -53,10 +74,17 @@ public class AcquireTokenSilentParameters extends TokenParameters {
     public static class Builder extends TokenParameters.Builder<AcquireTokenSilentParameters.Builder> {
 
         private Boolean mForceRefresh;
+        private SilentAuthenticationCallback mCallback;
 
         public AcquireTokenSilentParameters.Builder forceRefresh(Boolean force) {
             mForceRefresh = force;
             return self();
+        }
+
+        public AcquireTokenSilentParameters.Builder withCallback(
+                final SilentAuthenticationCallback authenticationCallback) {
+            mCallback = authenticationCallback;
+            return this;
         }
 
         @Override

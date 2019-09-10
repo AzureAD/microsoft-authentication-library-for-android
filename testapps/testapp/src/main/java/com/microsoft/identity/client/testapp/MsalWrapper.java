@@ -14,21 +14,17 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
-import com.microsoft.identity.client.ITenantProfile;
-import com.microsoft.identity.client.MultiTenantAccount;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
-import com.microsoft.identity.common.internal.cache.SchemaUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class MsalWrapper {
     private static String PostMsalApplicationLoadedKey = "MsalWrapper_PostMsalApplicationLoaded";
@@ -157,7 +153,7 @@ public class MsalWrapper {
                 .withLoginHint(requestOptions.getLoginHint())
                 .withUiBehavior(requestOptions.getUiBehavior())
                 .withOtherScopesToAuthorize(Arrays.asList(requestOptions.getExtraScopesToConsent().toLowerCase().split(" ")))
-                .callback(getAuthenticationCallback(notifyCallback))
+                .withCallback(getAuthenticationCallback(notifyCallback))
                 .build();
 
         mApplication.acquireToken(parameters);
@@ -180,7 +176,7 @@ public class MsalWrapper {
                 .withResource(requestOptions.getScopes().toLowerCase().trim())
                 .withUiBehavior(requestOptions.getUiBehavior())
                 .withAuthorizationQueryStringParameters(null)
-                .callback(getAuthenticationCallback(notifyCallback))
+                .withCallback(getAuthenticationCallback(notifyCallback))
                 .withLoginHint(requestOptions.getLoginHint())
                 .build();
 
@@ -207,7 +203,7 @@ public class MsalWrapper {
                                         builder.withResource(requestOptions.getScopes().toLowerCase().trim())
                                                 .forAccount(account)
                                                 .forceRefresh(requestOptions.forceRefresh())
-                                                .callback(getAuthenticationCallback(notifyCallback))
+                                                .withCallback(getAuthenticationCallback(notifyCallback))
                                                 .build();
 
                                 mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
@@ -233,7 +229,7 @@ public class MsalWrapper {
                     builder.withResource(requestOptions.getScopes().toLowerCase().trim())
                             .forAccount(mLoadedAccount.get(0))
                             .forceRefresh(requestOptions.forceRefresh())
-                            .callback(getAuthenticationCallback(notifyCallback))
+                            .withCallback(getAuthenticationCallback(notifyCallback))
                             .build();
 
             mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
@@ -260,7 +256,7 @@ public class MsalWrapper {
                                         .forAccount(account)
                                         .fromAuthority(mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString())
                                         .forceRefresh(requestOptions.forceRefresh())
-                                        .callback(getAuthenticationCallback(notifyCallback))
+                                        .withCallback(getAuthenticationCallback(notifyCallback))
                                         .build();
                                 mApplication.acquireTokenSilentAsync(parameters);
                             } else {
@@ -283,7 +279,7 @@ public class MsalWrapper {
                     .forAccount(mLoadedAccount.get(0))
                     .fromAuthority(mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString())
                     .forceRefresh(requestOptions.forceRefresh())
-                    .callback(getAuthenticationCallback(notifyCallback))
+                    .withCallback(getAuthenticationCallback(notifyCallback))
                     .build();
 
             mApplication.acquireTokenSilentAsync(parameters);

@@ -38,6 +38,7 @@ public class AcquireTokenParameters extends TokenParameters {
     private UiBehavior mUiBehavior;
     private List<String> mExtraScopesToConsent;
     private List<Pair<String, String>> mExtraQueryStringParameters;
+    private AuthenticationCallback mCallback;
 
     public AcquireTokenParameters(AcquireTokenParameters.Builder builder) {
         super(builder);
@@ -46,6 +47,7 @@ public class AcquireTokenParameters extends TokenParameters {
         mUiBehavior = builder.mUiBehavior;
         mExtraScopesToConsent = builder.mExtraScopesToConsent;
         mExtraQueryStringParameters = builder.mExtraQueryStringParameters;
+        mCallback = builder.mCallback;
     }
 
     /**
@@ -142,6 +144,36 @@ public class AcquireTokenParameters extends TokenParameters {
         this.mExtraQueryStringParameters = extraQueryStringParameters;
     }
 
+    /**
+     * The Non-null {@link AuthenticationCallback} to receive the result back.
+     * 1) If user cancels the flow by pressing the device back button, the result will be sent
+     * back via {@link AuthenticationCallback#onCancel()}.
+     * 2) If the sdk successfully receives the token back, result will be sent back via
+     * {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
+     * 3) All the other errors will be sent back via
+     * {@link AuthenticationCallback#onError(com.microsoft.identity.client.exception.MsalException)}.
+     *
+     * @return
+     */
+    public AuthenticationCallback getCallback() {
+        return mCallback;
+    }
+
+    /**
+     * The Non-null {@link AuthenticationCallback} to receive the result back.
+     * 1) If user cancels the flow by pressing the device back button, the result will be sent
+     * back via {@link AuthenticationCallback#onCancel()}.
+     * 2) If the sdk successfully receives the token back, result will be sent back via
+     * {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
+     * 3) All the other errors will be sent back via
+     * {@link AuthenticationCallback#onError(com.microsoft.identity.client.exception.MsalException)}.
+     *
+     * @param callback
+     */
+    public void setCallback(AuthenticationCallback callback) {
+        this.mCallback = callback;
+    }
+
     public static class Builder extends TokenParameters.Builder<AcquireTokenParameters.Builder> {
 
         private Activity mActivity;
@@ -149,6 +181,7 @@ public class AcquireTokenParameters extends TokenParameters {
         private UiBehavior mUiBehavior;
         private List<String> mExtraScopesToConsent;
         private List<Pair<String, String>> mExtraQueryStringParameters;
+        private AuthenticationCallback mCallback;
 
         public AcquireTokenParameters.Builder startAuthorizationFromActivity(Activity activity) {
             mActivity = activity;
@@ -170,8 +203,15 @@ public class AcquireTokenParameters extends TokenParameters {
             return self();
         }
 
-        public AcquireTokenParameters.Builder withAuthorizationQueryStringParameters(List<Pair<String, String>> parameters) {
+        public AcquireTokenParameters.Builder withAuthorizationQueryStringParameters(
+                List<Pair<String, String>> parameters) {
             mExtraQueryStringParameters = parameters;
+            return self();
+        }
+
+        public AcquireTokenParameters.Builder withCallback(
+                final AuthenticationCallback authenticationCallback) {
+            mCallback = authenticationCallback;
             return self();
         }
 
