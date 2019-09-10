@@ -121,6 +121,12 @@ public final class MsalUtils {
         }
     }
 
+    /**
+     * Throws MsalArgumentException if the argument is null or empty
+     * @param o
+     * @param argName
+     * @throws MsalArgumentException
+     */
     public static void validateNonNullArg(@Nullable final Object o,
                                           @NonNull final String argName) throws MsalArgumentException {
         if (null == o

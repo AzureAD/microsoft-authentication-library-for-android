@@ -52,7 +52,6 @@ import com.microsoft.identity.client.internal.controllers.OperationParametersAda
 import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
 import com.microsoft.identity.client.internal.telemetry.Defaults;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
-import com.microsoft.identity.common.exception.ArgumentException;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.Authority;
