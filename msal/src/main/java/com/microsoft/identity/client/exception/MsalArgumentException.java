@@ -16,6 +16,12 @@ public class MsalArgumentException extends MsalException {
     private String mOperationName;
     private String mArgumentName;
 
+    public MsalArgumentException(final String argumentName, final String message) {
+        super(ILLEGAL_ARGUMENT_ERROR_CODE, message);
+        mArgumentName = argumentName;
+
+    }
+
     public MsalArgumentException(final String operationName, final String argumentName, final String message) {
         super(ILLEGAL_ARGUMENT_ERROR_CODE, message);
         mOperationName = operationName;
