@@ -1306,8 +1306,14 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     protected void validateAcquireTokenSilentParameters(AcquireTokenSilentParameters parameters) throws MsalArgumentException {
-        String authority = parameters.getAuthority();
+        final String authority = parameters.getAuthority();
+        final IAccount account = parameters.getAccount();
+        final List scopes = parameters.getScopes();
+        final AuthenticationCallback callback = parameters.getCallback();
         validateNonNullArg(authority, "Authority");
+        validateNonNullArg(account, "Account");
+        validateNonNullArg(callback, "Callback");
+        validateNonNullArg(scopes, "Scopes");
     }
 
     @Override
@@ -1426,7 +1432,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     ApiDispatcher.submitSilent(silentTokenCommand);
                 } catch (final Exception exception) {
                     // convert exception to BaseException
-                    BaseException baseException = ExceptionAdapter.baseExceptionFromException(exception);
+                    final BaseException baseException = ExceptionAdapter.baseExceptionFromException(exception);
                     callback.onError(baseException);
                 }
             }
