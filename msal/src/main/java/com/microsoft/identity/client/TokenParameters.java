@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * Base class for AcquireTokenParameters and AcquireTokenSilentParameters
  */
-abstract class TokenParameters {
+public abstract class TokenParameters {
 
     private List<String> mScopes;
     private IAccount mAccount;

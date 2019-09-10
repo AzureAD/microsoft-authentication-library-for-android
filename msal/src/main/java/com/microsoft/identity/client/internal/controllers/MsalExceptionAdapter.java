@@ -22,8 +22,13 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
+import com.microsoft.identity.client.AcquireTokenParameters;
+import com.microsoft.identity.client.AcquireTokenSilentParameters;
+import com.microsoft.identity.client.TokenParameters;
+import com.microsoft.identity.client.TokenParametersAdapter;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalIntuneAppProtectionPolicyRequiredException;
 import com.microsoft.identity.client.exception.MsalServiceException;
@@ -36,21 +41,32 @@ import com.microsoft.identity.common.exception.IntuneAppProtectionPolicyRequired
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.exception.UiRequiredException;
 import com.microsoft.identity.common.exception.UserCancelException;
+import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import androidx.annotation.NonNull;
 
 public class MsalExceptionAdapter {
+
+    private static final String TAG = MsalExceptionAdapter.class.getName();
 
     public static MsalException msalExceptionFromBaseException(final BaseException e) {
         MsalException msalException = null;
 
         if (e instanceof ClientException) {
-            ClientException clientException = ((ClientException) e);
+            final ClientException clientException = ((ClientException) e);
             msalException = new MsalClientException(
                     clientException.getErrorCode(),
                     clientException.getMessage(),
                     clientException
             );
         } else if (e instanceof ArgumentException) {
-            ArgumentException argumentException = ((ArgumentException) e);
+            final ArgumentException argumentException = ((ArgumentException) e);
             msalException = new MsalArgumentException(
                     argumentException.getArgumentName(),
                     argumentException.getOperationName(),
@@ -58,14 +74,14 @@ public class MsalExceptionAdapter {
                     argumentException
             );
         } else if (e instanceof UiRequiredException) {
-            UiRequiredException uiRequiredException = ((UiRequiredException) e);
+            final UiRequiredException uiRequiredException = ((UiRequiredException) e);
             msalException = new MsalUiRequiredException(uiRequiredException.getErrorCode(), uiRequiredException.getMessage());
         } else if (e instanceof IntuneAppProtectionPolicyRequiredException){
             msalException = new MsalIntuneAppProtectionPolicyRequiredException(
                     (IntuneAppProtectionPolicyRequiredException)e
             );
         }else if (e instanceof ServiceException) {
-            ServiceException serviceException = ((ServiceException) e);
+            final ServiceException serviceException = ((ServiceException) e);
             msalException = new MsalServiceException(
                     serviceException.getErrorCode(),
                     serviceException.getMessage(),
@@ -75,13 +91,58 @@ public class MsalExceptionAdapter {
         } else if (e instanceof UserCancelException) {
             msalException = new MsalUserCancelException();
         }
-
         if (msalException == null) {
             msalException = new MsalClientException(MsalClientException.UNKNOWN_ERROR, e.getMessage(), e);
         }
 
         return msalException;
 
+    }
+
+    /**
+     * Helper method which returns if any requestes scopes are declined by the server.
+     */
+    public static boolean areScopeDeclinedByServer(@NonNull final List<String> requestScopes,
+                                                   @NonNull final String[] responseScopes){
+        final String methodName = ":areScopeDeclinedByServer";
+        final Set<String> grantedScopes = new HashSet<>(Arrays.asList(responseScopes));
+        for(String scope : requestScopes){
+            if(!grantedScopes.contains(scope)){
+                Logger.info(TAG + methodName, "Request scope not in scopes granted by server " + scope);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Helper method which retuns a {@link MsalDeclinedScopeException} from {@link ILocalAuthenticationResult}
+     * @param localAuthenticationResult : input ILocalAuthenticationResult
+     * @param requestParameters : request Token parameters.
+     * @return MsalDeclinedScopeException
+     */
+    public static MsalDeclinedScopeException declinedScopeExceptionFromResult(@NonNull final ILocalAuthenticationResult localAuthenticationResult,
+                                                                              @NonNull final TokenParameters requestParameters){
+        final String methodName = ":declinedScopeExceptionFromResult";
+        final List<String> grantedScopes = Arrays.asList(localAuthenticationResult.getScope());
+        Logger.info(TAG + methodName,
+                "Returning DeclinedScopeException as not all requested scopes are granted," +
+                        " Requested scopes: " + requestParameters.getScopes().toString()
+                        + " Granted scopes:" + grantedScopes.toString());
+
+        AcquireTokenSilentParameters silentParameters;
+        if(requestParameters instanceof AcquireTokenSilentParameters){
+            silentParameters = (AcquireTokenSilentParameters) requestParameters;
+        }else {
+            silentParameters = TokenParametersAdapter.silentParametersFromInteractive(
+                    (AcquireTokenParameters) requestParameters,
+                    localAuthenticationResult
+            );
+        }
+        // Set the granted scopes as request scopes.
+        silentParameters.setScopes(grantedScopes);
+
+        return new MsalDeclinedScopeException(grantedScopes, silentParameters);
     }
 
 }
