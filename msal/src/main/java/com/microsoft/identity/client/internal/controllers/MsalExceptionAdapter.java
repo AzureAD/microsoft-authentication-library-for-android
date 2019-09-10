@@ -101,32 +101,16 @@ public class MsalExceptionAdapter {
     }
 
     /**
-     * Helper method which returns if any requestes scopes are declined by the server.
-     */
-    public static boolean areScopeDeclinedByServer(@NonNull final List<String> requestScopes,
-                                                   @NonNull final String[] responseScopes){
-        final String methodName = ":areScopeDeclinedByServer";
-        final Set<String> grantedScopes = new HashSet<>(Arrays.asList(responseScopes));
-        for(String scope : requestScopes){
-            if(!grantedScopes.contains(scope)){
-                Logger.info(TAG + methodName, "Request scope not in scopes granted by server " + scope);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Helper method which retuns a {@link MsalDeclinedScopeException} from {@link ILocalAuthenticationResult}
      * @param localAuthenticationResult : input ILocalAuthenticationResult
      * @param requestParameters : request Token parameters.
      * @return MsalDeclinedScopeException
      */
     public static MsalDeclinedScopeException declinedScopeExceptionFromResult(@NonNull final ILocalAuthenticationResult localAuthenticationResult,
+                                                                              @NonNull final List<String> declinedScopes,
                                                                               @NonNull final TokenParameters requestParameters){
         final String methodName = ":declinedScopeExceptionFromResult";
         final List<String> grantedScopes = Arrays.asList(localAuthenticationResult.getScope());
-        final List<String> declinedScopes = getDeclinedScopes(grantedScopes, requestParameters.getScopes());
         Logger.info(TAG + methodName,
                 "Returning DeclinedScopeException as not all requested scopes are granted," +
                         " Requested scopes: " + requestParameters.getScopes().toString()
@@ -147,12 +131,22 @@ public class MsalExceptionAdapter {
         return new MsalDeclinedScopeException(grantedScopes, declinedScopes, silentParameters);
     }
 
-    private static List<String> getDeclinedScopes(@NonNull final List<String> grantedScopes,
+    public static List<String> getDeclinedScopes(@NonNull final List<String> grantedScopes,
                                                   @NonNull final List<String> requestedScopes){
 
-        final Set<String> grantedScopesSet = new HashSet<>(grantedScopes);
-        final List<String> declinedScopes = new ArrayList<>();
+        final Set<String> grantedScopesSet = new HashSet<>();
+        for(final String grantedScope : grantedScopes){
+            grantedScopesSet.add(grantedScope.toLowerCase());
+        }
+
+        final Set<String> requestedScopesSet = new HashSet<>();
         for(final String requestedScope : requestedScopes){
+            requestedScopesSet.add(requestedScope.toLowerCase());
+        }
+
+        final List<String> declinedScopes = new ArrayList<>();
+
+        for(final String requestedScope : requestedScopesSet){
             if(!grantedScopesSet.contains(requestedScope)){
                 declinedScopes.add(requestedScope);
             }
