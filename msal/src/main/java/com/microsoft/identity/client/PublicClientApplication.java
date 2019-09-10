@@ -1104,7 +1104,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     final AcquireTokenOperationParameters params = OperationParametersAdapter.
                             createAcquireTokenOperationParameters(
                                     acquireTokenParameters,
-                                    mPublicClientConfiguration
+                                    mPublicClientConfiguration,
+                                    mPublicClientConfiguration.getOAuth2TokenCache()
                             );
 
 
@@ -1178,7 +1179,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     final AcquireTokenSilentOperationParameters params =
                             OperationParametersAdapter.createAcquireTokenSilentOperationParameters(
                                     acquireTokenSilentParameters,
-                                    mPublicClientConfiguration
+                                    mPublicClientConfiguration,
+                                    mPublicClientConfiguration.getOAuth2TokenCache()
                             );
 
 
