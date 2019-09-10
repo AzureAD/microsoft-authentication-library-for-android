@@ -61,6 +61,7 @@ import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
+import com.microsoft.identity.common.internal.controllers.ExceptionAdapter;
 import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.controllers.TokenCommand;
@@ -1347,13 +1348,15 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     );
 
                     ApiDispatcher.beginInteractive(command);
-                } catch (final BaseException exception) {
+                } catch (final Exception exception) {
+                    // convert exception to BaseException
+                    final BaseException baseException = ExceptionAdapter.baseExceptionFromException(exception);
                     // If there is an Exception, post it to the main thread...
                     final Handler handler = new Handler(Looper.getMainLooper());
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            localAuthenticationCallback.onError(exception);
+                            localAuthenticationCallback.onError(baseException);
                         }
                     });
                 }
@@ -1421,8 +1424,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     );
 
                     ApiDispatcher.submitSilent(silentTokenCommand);
-                } catch (final BaseException exception) {
-                    callback.onError(exception);
+                } catch (final Exception exception) {
+                    // convert exception to BaseException
+                    BaseException baseException = ExceptionAdapter.baseExceptionFromException(exception);
+                    callback.onError(baseException);
                 }
             }
         });
