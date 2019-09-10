@@ -35,7 +35,7 @@ public class TokenParametersAdapter {
                                                                                @NonNull final ILocalAuthenticationResult localAuthenticationResult){
         final IAccount account = AccountAdapter.adapt(localAuthenticationResult.getCacheRecordWithTenantProfileData()).get(0);
         AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .callback(acquireTokenParameters.getCallback())
+                .withCallback(acquireTokenParameters.getCallback())
                 .fromAuthority(acquireTokenParameters.getAuthority())
                 .withClaims(acquireTokenParameters.getClaimsRequest())
                 .withScopes(acquireTokenParameters.getScopes())
