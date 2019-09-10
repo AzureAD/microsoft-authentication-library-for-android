@@ -44,6 +44,7 @@ import com.microsoft.identity.common.exception.UserCancelException;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -125,6 +126,7 @@ public class MsalExceptionAdapter {
                                                                               @NonNull final TokenParameters requestParameters){
         final String methodName = ":declinedScopeExceptionFromResult";
         final List<String> grantedScopes = Arrays.asList(localAuthenticationResult.getScope());
+        final List<String> declinedScopes = getDeclinedScopes(grantedScopes, requestParameters.getScopes());
         Logger.info(TAG + methodName,
                 "Returning DeclinedScopeException as not all requested scopes are granted," +
                         " Requested scopes: " + requestParameters.getScopes().toString()
@@ -142,7 +144,19 @@ public class MsalExceptionAdapter {
         // Set the granted scopes as request scopes.
         silentParameters.setScopes(grantedScopes);
 
-        return new MsalDeclinedScopeException(grantedScopes, silentParameters);
+        return new MsalDeclinedScopeException(grantedScopes, declinedScopes, silentParameters);
     }
 
+    private static List<String> getDeclinedScopes(@NonNull final List<String> grantedScopes,
+                                                  @NonNull final List<String> requestedScopes){
+
+        final Set<String> grantedScopesSet = new HashSet<>(grantedScopes);
+        final List<String> declinedScopes = new ArrayList<>();
+        for(final String requestedScope : requestedScopes){
+            if(!grantedScopesSet.contains(requestedScope)){
+                declinedScopes.add(requestedScope);
+            }
+        }
+        return declinedScopes;
+    }
 }

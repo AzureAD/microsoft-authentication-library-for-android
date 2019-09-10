@@ -23,40 +23,65 @@
 package com.microsoft.identity.client.exception;
 
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.common.exception.ErrorStrings;
 
 import java.util.List;
 
 import androidx.annotation.NonNull;
 
+/**
+ * Exception class to indicate that one or more requested scopes have been declined by the server.
+ *
+ * Developers can opt to continue acquiring token by passing the silentParametersForGrantedScopes and calling
+ * acquireTokenSilent call on this error.
+ */
 public class MsalDeclinedScopeException extends MsalException {
 
     private List<String> mGrantedScopes;
 
-    private AcquireTokenSilentParameters mAcquireTokenSilentParameters;
+    private List<String> mDeclinedScopes;
+
+    private AcquireTokenSilentParameters mSilentParametersForGrantedScopes;
 
     public MsalDeclinedScopeException(@NonNull final List<String> grantedScopes,
-                                      @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters){
+                                      @NonNull final List<String> declinedScopes,
+                                      @NonNull final AcquireTokenSilentParameters silentParametersForGrantedScopes){
         super(ErrorStrings.DECLINED_SCOPE_ERROR_CODE, ErrorStrings.DECLINED_SCOPE_ERROR_MESSAGE);
         mGrantedScopes = grantedScopes;
-        mAcquireTokenSilentParameters = acquireTokenSilentParameters;
+        mDeclinedScopes = declinedScopes;
+        mSilentParametersForGrantedScopes = silentParametersForGrantedScopes;
     }
 
+    /**
+     * List of scopes granted by the server.
+     *
+     * @return List
+     */
     public List<String> getGrantedScopes() {
         return mGrantedScopes;
     }
 
-    public void setGrantedScopes(List<String> grantedScopes) {
-        this.mGrantedScopes = grantedScopes;
+    /**
+     * List of scopes declined by the server. This can happen due to multiple reasons.
+     *
+     * * Requested scope is not supported
+     * * Requested scope is not recognized (According to OIDC, any scope values used that are not understood by an implementation should be ignored.)
+     * * Requested scope is not supported for a particular account (Organizational scopes when it is a consumer account)
+     *
+     * @return List
+     */
+    public List<String> getDeclinedScopes() {
+        return mDeclinedScopes;
     }
 
-    public AcquireTokenSilentParameters getAcquireTokenSilentParameters() {
-        return mAcquireTokenSilentParameters;
+    /**
+     * Returns pre configured {@link AcquireTokenSilentParameters} from the original request
+     * to make a subsequent silent request for granted scopes.
+     *
+     * @return AcquireTokenSilentParameters
+     */
+    public AcquireTokenSilentParameters getSilentParametersForGrantedScopes() {
+        return mSilentParametersForGrantedScopes;
     }
 
-
-    public IAccount getAccount(){
-        return  mAcquireTokenSilentParameters.getAccount();
-    }
 }
