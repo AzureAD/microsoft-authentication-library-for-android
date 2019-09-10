@@ -1235,7 +1235,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                         )
                 )
                 .fromAuthority(authority)
-                .callback(callback)
+                .withCallback(callback)
                 .withLoginHint(loginHint)
                 .withClaims(claimsRequest)
                 .build();
@@ -1309,7 +1309,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         final String authority = parameters.getAuthority();
         final IAccount account = parameters.getAccount();
         final List scopes = parameters.getScopes();
-        final AuthenticationCallback callback = parameters.getCallback();
+        final SilentAuthenticationCallback callback = parameters.getCallback();
         validateNonNullArg(authority, "Authority");
         validateNonNullArg(account, "Account");
         validateNonNullArg(callback, "Callback");
@@ -1386,7 +1386,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                         .fromAuthority(authority)
                         .forceRefresh(forceRefresh)
                         .withClaims(claimsRequest)
-                        .callback(callback)
+                        .withCallback(callback)
                         .build();
 
         acquireTokenSilentAsync(acquireTokenSilentParameters);
@@ -1669,7 +1669,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         };
     }
 
-    protected ILocalAuthenticationCallback getLocalAuthenticationCallback(final AuthenticationCallback authenticationCallback) {
+    protected ILocalAuthenticationCallback getLocalAuthenticationCallback(
+            final SilentAuthenticationCallback authenticationCallback) {
 
         return new ILocalAuthenticationCallback() {
 
@@ -1687,7 +1688,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
             @Override
             public void onCancel() {
-                authenticationCallback.onCancel();
+                if (authenticationCallback instanceof AuthenticationCallback) {
+                    ((AuthenticationCallback) authenticationCallback).onCancel();
+                } else {
+                    throw new IllegalStateException("Silent requests cannot be cancelled.");
+                }
             }
         };
     }

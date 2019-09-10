@@ -232,13 +232,12 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     }
 
     @Override
-    protected ILocalAuthenticationCallback getLocalAuthenticationCallback(@NonNull final AuthenticationCallback authenticationCallback) {
-
+    protected ILocalAuthenticationCallback getLocalAuthenticationCallback(
+            @NonNull final SilentAuthenticationCallback authenticationCallback) {
         return new ILocalAuthenticationCallback() {
 
             @Override
-            public void onSuccess(ILocalAuthenticationResult localAuthenticationResult) {
-
+            public void onSuccess(@NonNull final ILocalAuthenticationResult localAuthenticationResult) {
                 //Get Local Authentication Result then check if the current account is set or not
                 MultiTenantAccount newAccount = getAccountFromICacheRecordList(localAuthenticationResult.getCacheRecordWithTenantProfileData());
 
@@ -265,7 +264,11 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
             @Override
             public void onCancel() {
-                authenticationCallback.onCancel();
+                if (authenticationCallback instanceof AuthenticationCallback) {
+                    ((AuthenticationCallback) authenticationCallback).onCancel();
+                } else {
+                    throw new IllegalStateException("Silent requests cannot be cancelled.");
+                }
             }
         };
     }
