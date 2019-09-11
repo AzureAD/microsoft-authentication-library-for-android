@@ -1685,23 +1685,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             @Override
             public void onSuccess(ILocalAuthenticationResult localAuthenticationResult) {
 
-                // Check if any of the requested scopes are declined by the server, if yes throw a MsalDeclinedScope exception
-                final List<String> declinedScopes = MsalExceptionAdapter.getDeclinedScopes(
-                        Arrays.asList(localAuthenticationResult.getScope()),
-                        tokenParameters.getScopes()
-                );
-                if(!declinedScopes.isEmpty()){
-                    final MsalDeclinedScopeException declinedScopeException =
-                            MsalExceptionAdapter.declinedScopeExceptionFromResult(
-                                    localAuthenticationResult,
-                                    declinedScopes,
-                                    tokenParameters
-                    );
-                    authenticationCallback.onError(declinedScopeException);
-                }else {
-                    IAuthenticationResult authenticationResult = AuthenticationResultAdapter.adapt(localAuthenticationResult);
-                    authenticationCallback.onSuccess(authenticationResult);
-                }
+                postAuthResult(localAuthenticationResult, tokenParameters, authenticationCallback);
             }
 
             @Override
@@ -1719,6 +1703,33 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 }
             }
         };
+    }
+
+    /**
+     * Helper method to post authentication result.
+     */
+    protected void postAuthResult(@NonNull final ILocalAuthenticationResult localAuthenticationResult,
+                                  @NonNull final TokenParameters requestParameters,
+                                  @NonNull final SilentAuthenticationCallback authenticationCallback){
+
+        // Check if any of the requested scopes are declined by the server, if yes throw a MsalDeclinedScope exception
+        final List<String> declinedScopes = MsalExceptionAdapter.getDeclinedScopes(
+                Arrays.asList(localAuthenticationResult.getScope()),
+                requestParameters.getScopes()
+        );
+
+        if(!declinedScopes.isEmpty()){
+            final MsalDeclinedScopeException declinedScopeException =
+                    MsalExceptionAdapter.declinedScopeExceptionFromResult(
+                            localAuthenticationResult,
+                            declinedScopes,
+                            requestParameters
+                    );
+            authenticationCallback.onError(declinedScopeException);
+        }else {
+            IAuthenticationResult authenticationResult = AuthenticationResultAdapter.adapt(localAuthenticationResult);
+            authenticationCallback.onSuccess(authenticationResult);
+        }
     }
 
     private OAuth2TokenCache<?, ?, ?> getOAuth2TokenCache() {
