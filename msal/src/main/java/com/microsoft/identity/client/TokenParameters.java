@@ -60,6 +60,16 @@ public abstract class TokenParameters {
     }
 
     /**
+     * The non-null array of scopes to be requested for the access token.
+     * MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     *
+     * @param scopes
+     */
+    void setScopes(final List<String> scopes){
+        mScopes = scopes;
+    }
+
+    /**
      * Optional. If provided, will be used to force the session continuation.  If user tries to sign in with a different account, error
      * will be returned.
      *

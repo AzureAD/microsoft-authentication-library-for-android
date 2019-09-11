@@ -1713,14 +1713,14 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                   @NonNull final SilentAuthenticationCallback authenticationCallback){
 
         // Check if any of the requested scopes are declined by the server, if yes throw a MsalDeclinedScope exception
-        final List<String> declinedScopes = MsalExceptionAdapter.getDeclinedScopes(
+        final List<String> declinedScopes = AuthenticationResultAdapter.getDeclinedScopes(
                 Arrays.asList(localAuthenticationResult.getScope()),
                 requestParameters.getScopes()
         );
 
         if(!declinedScopes.isEmpty()){
             final MsalDeclinedScopeException declinedScopeException =
-                    MsalExceptionAdapter.declinedScopeExceptionFromResult(
+                    AuthenticationResultAdapter.declinedScopeExceptionFromResult(
                             localAuthenticationResult,
                             declinedScopes,
                             requestParameters

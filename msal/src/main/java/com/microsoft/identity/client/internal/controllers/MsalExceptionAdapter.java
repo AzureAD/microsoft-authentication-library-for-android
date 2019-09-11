@@ -22,13 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
-import com.microsoft.identity.client.AcquireTokenParameters;
-import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.TokenParameters;
-import com.microsoft.identity.client.TokenParametersAdapter;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalIntuneAppProtectionPolicyRequiredException;
 import com.microsoft.identity.client.exception.MsalServiceException;
@@ -41,16 +36,6 @@ import com.microsoft.identity.common.exception.IntuneAppProtectionPolicyRequired
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.exception.UiRequiredException;
 import com.microsoft.identity.common.exception.UserCancelException;
-import com.microsoft.identity.common.internal.logging.Logger;
-import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import androidx.annotation.NonNull;
 
 public class MsalExceptionAdapter {
 
@@ -98,59 +83,5 @@ public class MsalExceptionAdapter {
 
         return msalException;
 
-    }
-
-    /**
-     * Helper method which retuns a {@link MsalDeclinedScopeException} from {@link ILocalAuthenticationResult}
-     * @param localAuthenticationResult : input ILocalAuthenticationResult
-     * @param requestParameters : request Token parameters.
-     * @return MsalDeclinedScopeException
-     */
-    public static MsalDeclinedScopeException declinedScopeExceptionFromResult(@NonNull final ILocalAuthenticationResult localAuthenticationResult,
-                                                                              @NonNull final List<String> declinedScopes,
-                                                                              @NonNull final TokenParameters requestParameters){
-        final String methodName = ":declinedScopeExceptionFromResult";
-        final List<String> grantedScopes = Arrays.asList(localAuthenticationResult.getScope());
-        Logger.warn(TAG + methodName,
-                "Returning DeclinedScopeException as not all requested scopes are granted," +
-                        " Requested scopes: " + requestParameters.getScopes().toString()
-                        + " Granted scopes:" + grantedScopes.toString());
-
-        AcquireTokenSilentParameters silentParameters;
-        if(requestParameters instanceof AcquireTokenSilentParameters){
-            silentParameters = (AcquireTokenSilentParameters) requestParameters;
-        }else {
-            silentParameters = TokenParametersAdapter.silentParametersFromInteractive(
-                    (AcquireTokenParameters) requestParameters,
-                    localAuthenticationResult
-            );
-        }
-        // Set the granted scopes as request scopes.
-        silentParameters.setScopes(grantedScopes);
-
-        return new MsalDeclinedScopeException(grantedScopes, declinedScopes, silentParameters);
-    }
-
-    public static List<String> getDeclinedScopes(@NonNull final List<String> grantedScopes,
-                                                  @NonNull final List<String> requestedScopes){
-
-        final Set<String> grantedScopesSet = new HashSet<>();
-        for(final String grantedScope : grantedScopes){
-            grantedScopesSet.add(grantedScope.toLowerCase());
-        }
-
-        final Set<String> requestedScopesSet = new HashSet<>();
-        for(final String requestedScope : requestedScopes){
-            requestedScopesSet.add(requestedScope.toLowerCase());
-        }
-
-        final List<String> declinedScopes = new ArrayList<>();
-
-        for(final String requestedScope : requestedScopesSet){
-            if(!grantedScopesSet.contains(requestedScope)){
-                declinedScopes.add(requestedScope);
-            }
-        }
-        return declinedScopes;
     }
 }
