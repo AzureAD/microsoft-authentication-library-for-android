@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * Base class for AcquireTokenParameters and AcquireTokenSilentParameters
  */
-abstract class TokenParameters {
+public abstract class TokenParameters {
 
     private List<String> mScopes;
     private IAccount mAccount;
@@ -57,6 +57,16 @@ abstract class TokenParameters {
      */
     public List<String> getScopes() {
         return mScopes;
+    }
+
+    /**
+     * The non-null array of scopes to be requested for the access token.
+     * MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     *
+     * @param scopes
+     */
+    void setScopes(final List<String> scopes){
+        mScopes = scopes;
     }
 
     /**

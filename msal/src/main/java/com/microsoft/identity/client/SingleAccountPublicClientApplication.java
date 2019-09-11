@@ -30,6 +30,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
@@ -51,6 +52,7 @@ import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
@@ -233,7 +235,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     protected ILocalAuthenticationCallback getLocalAuthenticationCallback(
-            @NonNull final SilentAuthenticationCallback authenticationCallback) {
+            @NonNull final SilentAuthenticationCallback authenticationCallback,
+            @NonNull final TokenParameters tokenParameters) {
         return new ILocalAuthenticationCallback() {
 
             @Override
@@ -252,8 +255,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                     persistCurrentAccount(localAuthenticationResult.getCacheRecordWithTenantProfileData());
                 }
 
-                IAuthenticationResult authenticationResult = AuthenticationResultAdapter.adapt(localAuthenticationResult);
-                authenticationCallback.onSuccess(authenticationResult);
+                postAuthResult(localAuthenticationResult, tokenParameters, authenticationCallback);
+
             }
 
             @Override
