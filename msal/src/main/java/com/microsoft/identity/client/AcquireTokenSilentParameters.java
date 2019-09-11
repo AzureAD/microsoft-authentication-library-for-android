@@ -23,7 +23,7 @@
 package com.microsoft.identity.client;
 
 public class AcquireTokenSilentParameters extends TokenParameters {
-    private Boolean mForceRefresh;
+    private boolean mForceRefresh;
     private SilentAuthenticationCallback mCallback;
 
     public AcquireTokenSilentParameters(AcquireTokenSilentParameters.Builder builder) {
@@ -57,7 +57,7 @@ public class AcquireTokenSilentParameters extends TokenParameters {
      *
      * @param forceRefresh
      */
-    public void setForceRefresh(Boolean forceRefresh) {
+    public void setForceRefresh(boolean forceRefresh) {
         mForceRefresh = forceRefresh;
     }
 
@@ -67,17 +67,17 @@ public class AcquireTokenSilentParameters extends TokenParameters {
      *
      * @return Boolean
      */
-    public Boolean getForceRefresh() {
+    public boolean getForceRefresh() {
         return mForceRefresh;
     }
 
     public static class Builder extends TokenParameters.Builder<AcquireTokenSilentParameters.Builder> {
 
-        private Boolean mForceRefresh;
+        private boolean mForceRefresh;
         private SilentAuthenticationCallback mCallback;
 
-        public AcquireTokenSilentParameters.Builder forceRefresh(Boolean force) {
-            mForceRefresh = force;
+        public AcquireTokenSilentParameters.Builder forceRefresh(boolean forceRefresh) {
+            mForceRefresh = forceRefresh;
             return self();
         }
 
