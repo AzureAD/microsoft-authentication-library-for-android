@@ -26,12 +26,15 @@ import androidx.annotation.NonNull;
 
 import java.io.Serializable;
 
+/**
+ * The interface used to access information about an account signed in and/or used to request tokens.
+ */
 public interface IAccount extends Serializable, IClaimable {
 
     /**
      * Gets the id of the account.
      * <p>
-     * For the Microsoft Identity Platform: the OID of the account in its home tenant.
+     * For the Microsoft Identity Platform.
      *
      * @return The id.
      */

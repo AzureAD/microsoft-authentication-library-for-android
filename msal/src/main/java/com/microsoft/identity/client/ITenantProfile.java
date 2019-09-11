@@ -22,6 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+/**
+ * An interface via which you can access claims about an account that are specific to a tenant that the account has accessed.
+ */
 public interface ITenantProfile extends IAccount {
     // Intentionally left blank.
 }

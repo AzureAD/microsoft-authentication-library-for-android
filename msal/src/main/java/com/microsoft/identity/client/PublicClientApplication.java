@@ -183,8 +183,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                             </p>
      * @param listener             a callback to be invoked when the object is successfully created. Cannot be null.
      * @see PublicClientApplication#create(Context, File, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, int)
      */
     public static void create(@NonNull final Context context,
@@ -216,8 +214,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                   </p>
      * @param listener   a callback to be invoked when the object is successfully created. Cannot be null.
      * @see PublicClientApplication#create(Context, int, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, int)
      */
     public static void create(@NonNull final Context context,
@@ -244,9 +240,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                 </p>
      * @param clientId The application's client id. Cannot be null.
      * @param listener a callback to be invoked when the object is successfully created. Cannot be null.
-     * @see PublicClientApplication#create(Context, int, ApplicationCreatedListener)
+     * @see PublicClientApplication#create(Context, String, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, File, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, int)
      */
     public static void create(@NonNull final Context context,
@@ -275,10 +270,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @param clientId  The application client id. Cannot be null.
      * @param authority The default authority to be used for the authority. Cannot be null.
      * @param listener  a callback to be invoked when the object is successfully created. Cannot be null.
-     * @see PublicClientApplication#create(Context, int, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, File, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, int)
+     *
      */
     public static void create(@NonNull final Context context,
                               @NonNull final String clientId,
@@ -311,11 +303,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                             and <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
      *                             </p>
      * @return An instance of IPublicClientApplication.
-     * @throws IllegalStateException if this function is invoked on the main thread.
-     * @see PublicClientApplication#create(Context, int, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, File, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)
+     *
+     *
      */
     @WorkerThread
     @NonNull
@@ -418,7 +407,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                             and <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
      *                             </p>
      * @return An instance of IMultipleAccountPublicClientApplication.
-     * @throws IllegalStateException if this function is invoked on the main thread.
+     *
      * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, int, IMultipleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, File, IMultipleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, File)
@@ -450,7 +439,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                   For more information on the schema of the MSAL configuration file, please see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
      *                   and <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
      *                   </p>
-     * @throws IllegalStateException if this function is invoked on the main thread.
+     *
      * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, int, IMultipleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, File, IMultipleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, int)
@@ -557,7 +546,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                             and <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
      *                             </p>
      * @return An instance of ISingleAccountPublicClientApplication.
-     * @throws IllegalStateException if this function is invoked on the main thread.
+     *
      * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, File, ISingleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, int, ISingleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, File)
@@ -590,7 +579,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                   and <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
      *                   </p>
      * @return An instance of ISingleAccountPublicClientApplication.
-     * @throws IllegalStateException if this function is invoked on the main thread.
+     *
      * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, File, ISingleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, int, ISingleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, int)
@@ -917,7 +906,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     /**
-     * Listener callback for asynchronous loading of MSAL mode retrieval.
+     * Callback for asynchronous loading of shared device mode.
      */
     public interface BrokerDeviceModeCallback {
         /**

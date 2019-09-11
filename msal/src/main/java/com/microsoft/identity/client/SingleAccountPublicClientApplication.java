@@ -89,6 +89,9 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 new StorageHelper(context));
     }
 
+    /**
+     * @param callback a callback to be invoked when the operation finishes.
+     */
     @Override
     public void getCurrentAccountAsync(@NonNull final CurrentAccountCallback callback) {
         final String methodName = ":getCurrentAccount";
@@ -145,6 +148,11 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         }
     }
 
+    /**
+     * @return ICurrentAccountResult
+     * @throws InterruptedException
+     * @throws MsalException
+     */
     @Override
     public ICurrentAccountResult getCurrentAccount() throws InterruptedException, MsalException {
         throwOnMainThread("getCurrentAccount");
@@ -214,6 +222,16 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     }
 
 
+    /**
+     * @param activity Non-null {@link Activity} that is used as the parent activity for launching the {@link AuthenticationActivity}.
+     * @param scopes   The non-null array of scopes to be consented to during sign in.
+     *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     *                 The access token returned is for MS Graph and will allow you to query for additional information about the signed in account.
+     * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                 sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     *                 Failure case will be sent back via {@link AuthenticationCallback#onError(MsalException)}
+     *                 Cancel case will be sent back via {@link AuthenticationCallback#onCancel()}
+     */
     @Override
     public void signIn(@NonNull final Activity activity,
                        @NonNull final String[] scopes,
@@ -280,6 +298,9 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         return !persistedAccountId.equalsIgnoreCase(newAccountId);
     }
 
+    /**
+     * @param callback a callback to be invoked when the operation finishes.
+     */
     @Override
     public void signOut(@NonNull final SignOutCallback callback) {
         final String methodName = ":signOut";
@@ -331,7 +352,13 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         }
     }
 
+    /**
+     * @return A boolean indicating whether the currently signed in account was signed out.
+     * @throws MsalException
+     * @throws InterruptedException
+     */
     @Override
+    @WorkerThread
     public boolean signOut() throws MsalException, InterruptedException {
 
         throwOnMainThread("signOut");
@@ -440,6 +467,17 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         return (MultiTenantAccount) account.get(0);
     }
 
+    /**
+     * @param activity Non-null {@link Activity} that is used as the parent activity for launching the {@link AuthenticationActivity}.
+     * @param scopes   The non-null array of scopes to be requested for the access token.
+     *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param callback The {@link AuthenticationCallback} to receive the result back.
+     *                 1) If user cancels the flow by pressing the device back button, the result will be sent
+     *                 back via {@link AuthenticationCallback#onCancel()}.
+     *                 2) If the sdk successfully receives the token back, result will be sent back via
+     *                 {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
+     *                 3) All the other errors will be sent back via
+     */
     @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
@@ -458,6 +496,10 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         );
     }
 
+    /**
+     * AcquireToken using the {@link com.microsoft.identity.client.AcquireTokenParameters AcquireTokenParameters} object
+     * @param acquireTokenParameters
+     */
     @Override
     public void acquireToken(@NonNull final AcquireTokenParameters acquireTokenParameters) {
         final IAccount persistedAccount = getPersistedCurrentAccount();
@@ -470,6 +512,14 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         super.acquireToken(acquireTokenParameters);
     }
 
+    /**
+     * @param scopes    The non-null array of scopes to be requested for the access token.
+     *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param authority Authority to issue the token.
+     * @param callback  {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                  sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     *                  Failure case will be sent back via {
+     */
     @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final String authority,
@@ -490,6 +540,14 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         );
     }
 
+    /**
+     * @param scopes    The non-null array of scopes to be requested for the access token.
+     *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param authority Optional. Can be passed to override the configured authority.
+     * @return
+     * @throws MsalException
+     * @throws InterruptedException
+     */
     @WorkerThread
     public IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
                                                     @NonNull final String authority) throws MsalException, InterruptedException {
@@ -502,6 +560,10 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         return acquireTokenSilentSync(scopes, authority, persistedAccount, false);
     }
 
+    /**
+     * Async AcquireTokenSilent method that accepts the {@link com.microsoft.identity.client.AcquireTokenSilentParameters AcquireTokenSilentParameters} object.
+     * @param acquireTokenSilentParameters
+     */
     @Override
     public void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
         final IAccount persistedAccount = getPersistedCurrentAccount();
@@ -515,6 +577,13 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         super.acquireTokenSilentAsync(acquireTokenSilentParameters);
     }
 
+    /**
+     * AcquireTokenSilent method that accepts the {@link com.microsoft.identity.client.AcquireTokenSilentParameters AcquireTokenSilentParameters} object.
+     * @param acquireTokenSilentParameters
+     * @return
+     * @throws InterruptedException
+     * @throws MsalException
+     */
     @Override
     public IAuthenticationResult acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException {
         final IAccount persistedAccount = getPersistedCurrentAccount();

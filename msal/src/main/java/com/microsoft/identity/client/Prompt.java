@@ -32,7 +32,6 @@ import com.microsoft.identity.common.internal.logging.Logger;
 public enum Prompt {
 
 
-
     /**
      * acquireToken will send prompt=select_account to the authorize endpoint. Shows a list of users from which can be
      * selected for authentication.
@@ -42,7 +41,6 @@ public enum Prompt {
     /**
      * acquireToken will send prompt=login to the authorize endpoint.  The user will always be prompted for credentials by the service.
      * <p>
-     * toString override is to enable the correct protocol value of login to be returned instead of "force_login".
      */
     LOGIN,
 

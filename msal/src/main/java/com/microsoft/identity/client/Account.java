@@ -34,6 +34,9 @@ import java.util.Map;
 
 import static com.microsoft.identity.common.internal.cache.SchemaUtil.MISSING_FROM_THE_TOKEN_RESPONSE;
 
+/**
+ * The Account object which implements {@link com.microsoft.identity.client.IAccount IAccount}.
+ */
 public class Account implements IAccount {
 
     private static final String TAG = Account.class.getSimpleName();
@@ -44,7 +47,8 @@ public class Account implements IAccount {
     private String mHomeTenantId;
     private String mEnvironment;
 
-    public Account(
+
+    Account(
             @Nullable final String clientInfo,
             @Nullable final IDToken homeTenantIdToken) {
         mClientInfo = clientInfo;

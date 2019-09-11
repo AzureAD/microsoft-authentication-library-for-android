@@ -38,7 +38,7 @@ public interface IPublicClientApplication {
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
+     * Default value for {@link Prompt} is {@link Prompt#SELECT_ACCOUNT}.
      *
      * @param activity Non-null {@link Activity} that is used as the parent activity for launching the {@link AuthenticationActivity}.
      * @param scopes   The non-null array of scopes to be requested for the access token.
@@ -58,7 +58,7 @@ public interface IPublicClientApplication {
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
+     * Default value for {@link Prompt} is {@link Prompt#SELECT_ACCOUNT}.
      * <p>
      * Convey parameters via the AquireTokenParameters object
      *
@@ -79,7 +79,7 @@ public interface IPublicClientApplication {
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
      * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
-     * or it fails the refresh, exception will be sent back via callback.
+     * or it fails the refresh, exception will be thrown.
      *
      * @param acquireTokenSilentParameters
      */
@@ -88,8 +88,7 @@ public interface IPublicClientApplication {
 
     /**
      * Returns the PublicClientConfiguration for this instance of PublicClientApplication
-     * Configuration is based on the defaults established for MSAl and can be overridden by creating the
-     * PublicClientApplication using {@link PublicClientApplication#PublicClientApplication(Context, PublicClientApplicationConfiguration)}
+     * Configuration is based on the defaults established for MSAl and can be overridden using constructor methods that accept configuration
      *
      * @return
      */
@@ -120,7 +119,7 @@ public interface IPublicClientApplication {
 
 
     /**
-     * Listener callback for asynchronous initialization of IPublicClientApplication object.
+     * Callback for asynchronous initialization of IPublicClientApplication object.
      */
     interface ApplicationCreatedListener {
         /**

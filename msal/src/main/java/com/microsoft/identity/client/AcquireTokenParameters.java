@@ -142,6 +142,10 @@ public class AcquireTokenParameters extends TokenParameters {
         this.mExtraQueryStringParameters = extraQueryStringParameters;
     }
 
+
+    /**
+     * A builder to assist in the creation of the AcquireTokenParameters
+     */
     public static class Builder extends TokenParameters.Builder<AcquireTokenParameters.Builder> {
 
         private Activity mActivity;
@@ -150,26 +154,48 @@ public class AcquireTokenParameters extends TokenParameters {
         private List<String> mExtraScopesToConsent;
         private List<Pair<String, String>> mExtraQueryStringParameters;
 
+        /**
+         * @param activity The activity used to launch the MSAL activity for interactively signing in, collecting user consent, etc...
+         * @return The builder
+         */
         public AcquireTokenParameters.Builder startAuthorizationFromActivity(Activity activity) {
             mActivity = activity;
             return self();
         }
 
+
+        /**
+         * @param loginHint The login hint that you would like to send to the security token service to accelerate
+         * @return The builder
+         */
         public AcquireTokenParameters.Builder withLoginHint(String loginHint) {
             mLoginHint = loginHint;
             return self();
         }
 
+        /**
+         * @param prompt The prompt parameter
+         * @return the builder
+         */
         public AcquireTokenParameters.Builder withPrompt(Prompt prompt) {
             mPrompt = prompt;
             return self();
         }
 
+        /**
+         * @param scopes Additional scopes that you would like the user to authorize the use of in addition to the scopes
+         *               requested to be included the first access token
+         * @return the builder
+         */
         public AcquireTokenParameters.Builder withOtherScopesToAuthorize(List<String> scopes) {
             mExtraScopesToConsent = scopes;
             return self();
         }
 
+        /**
+         * @param parameters Additional parameters that you would like to include in the authorization request
+         * @return the builder
+         */
         public AcquireTokenParameters.Builder withAuthorizationQueryStringParameters(List<Pair<String, String>> parameters) {
             mExtraQueryStringParameters = parameters;
             return self();
