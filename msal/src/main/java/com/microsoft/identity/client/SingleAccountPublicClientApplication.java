@@ -106,7 +106,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                     "Getting the current account"
             );
 
-            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
             final LoadAccountCommand command = new LoadAccountCommand(
                     params,
                     MSALControllerFactory.getAcquireTokenController(
@@ -186,6 +186,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         //TODO: migrate to Command.
         new BrokerMsalController().getCurrentAccount(
                 configuration,
+                configuration.getOAuth2TokenCache(),
                 new TaskCompletedCallbackWithError<List<ICacheRecord>, MsalException>() {
                     @Override
                     public void onTaskCompleted(List<ICacheRecord> cacheRecords) {
@@ -293,7 +294,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             final MultiTenantAccount persistedCurrentAccount = getPersistedCurrentAccount();
 
             if (persistedCurrentAccount != null) {
-                final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+                final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
                 final AccountRecord requestAccountRecord = new AccountRecord();
                 requestAccountRecord.setEnvironment(persistedCurrentAccount.getEnvironment());
                 requestAccountRecord.setHomeAccountId(persistedCurrentAccount.getHomeAccountId());
