@@ -1621,6 +1621,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     private void checkIntentFilterAddedToAppManifest() {
+        if (!mPublicClientConfiguration.mUseBroker){
+            return;
+        }
+
         final boolean hasCustomTabRedirectActivity = MsalUtils.hasCustomTabRedirectActivity(
                 mPublicClientConfiguration.getAppContext(),
                 mPublicClientConfiguration.getRedirectUri()
