@@ -9,69 +9,42 @@ The MSAL library for Android gives your app the ability to use the [Microsoft Cl
 [![Version Badge](https://img.shields.io/maven-central/v/com.microsoft.identity.client/msal.svg)](http://repo1.maven.org/maven2/com/microsoft/identity/client/msal/)
 [![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-android.svg?branch=master)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-android)
 
-## Important Note about the MSAL Preview
 
-This library can be used in a production environment. We provide the same production level support for this library as we do our current production libraries. During the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability (GA) release we will require you to update to the GA version within 6 months. Applications written using a preview version of library may no longer work.
+##Introduction
 
-## Example
+### What's new with this library?
 
-```Java
-    // Instantiates MSAL Public Client App
-    PublicClientApplication myApp = new PublicClientApplication(
-                    this.getApplicationContext(),
-                    R.raw.auth_config);
+** need help filling this in
+  -Features lib supports
+  -updates from PP to ga
+  -ADAL to MSAL changes
 
-    // Acquires a token from AzureAD 
-    myApp.acquireToken(this, SCOPES, getAuthInteractiveCallback());
+### Recommended Usage
 
-    // ...
+* supported devices, API levels (need help here)
 
-    // The access token can now be used to access a protected API!
-    String accessToken = authenticationResult.getAccessToken();
-```
-
-For a full example, checkout the [code sample](https://github.com/Azure-Samples/active-directory-android-native-v2).
 
 ## Installation
 
+For a full example, checkout the [quickstart](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-v2-android) and [code sample](https://github.com/Azure-Samples/ms-identity-android-java).
+
 ### Binaries via Gradle (Recommended way)
+** This needs to be updated
 
 Add to your app's build.gradle:
 
 ```gradle
     dependencies {
-        implementation 'com.microsoft.identity.client:msal:0.2.+'
+        implementation 'com.microsoft.identity.client:msal:1.0.+'
         }
     }
 ```
 
 ### AAR package inside libs folder
-You can get the AAR file from maven central and drop it into **libs** folder of your project.
-
-## Community Help and Support
-
-We use [StackOverflow](http://stackoverflow.com/questions/tagged/msal) with the community to provide support. You should browse existing issues to see if someone has asked about your issue before. If there are workable solutions to your issue then try out those solutions. If not, ask your question and let the community help you out. We're part of the community too and watch for new questions. We help with answers when the community cannot give you a solution.
-
-If you find and bug or have a feature request, please raise the issue on [GitHub Issues](../../issues). 
-
-## Contribute
-
-We enthusiastically welcome contributions and feedback. You should clone the repo and start contributing now. 
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
-
-## Security Library
-
-This library controls how users sign-in and access services. We recommend you always take the latest version of our library in your app when you can. We use [semantic versioning](http://semver.org) so you can control the risk of updating your app. For example, always downloading the latest minor version number (e.g. x.*y*.x) ensures you get the latest security and feature enhanements with the assurance that our API surface area has not changed. You can always see the latest version and release notes under the **Releases** tab of GitHub.
-
-## Security Reporting
-
-If you find a security issue with our libraries or services, please report the issue to [secure@microsoft.com](mailto:secure@microsoft.com) with as much detail as you can provide. Your submission may be eligible for a bounty through the [Microsoft Bounty](http://aka.ms/bugbounty) program. Please do not post security issues to **GitHub Issues** or any other public site. We will contact you shortly after receiving your issue report. We encourage you to get new security incident notifications by visiting [Microsoft technical security notifications](https://technet.microsoft.com/en-us/security/dd252948) to subscribe to Security Advisory Alerts.
-
-
-Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MIT License (the "License");
+You can get the AAR file from maven central (Link??) and drop it into **libs** folder of your project.
 
 ## Using MSAL
+** I think a lot of this needs to be updated
 
 - Make sure you've included MSAL in your app's *build.gradle*.
 - Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to register an application. To register your app, use [the Azure portal](https://aka.ms/AppRegistrationsPreview). For Azure AD B2C, checkout [how to register your app with B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-app-registration).  
@@ -89,7 +62,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MI
 ```
 
 2. Configure your Intent filter, make sure you add your App/Client ID
-  
+
 ```XML
     <!--Intent filter to capture System Browser calling back to our app after Sign In-->
     <activity
@@ -144,7 +117,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MI
                 String accessToken = authenticationResult.getAccessToken();
             }
             @Override
-            public void onError(MsalException exception) { 
+            public void onError(MsalException exception) {
                 /* Failed to acquireToken */
 
                 if (exception instanceof MsalClientException) {
@@ -165,4 +138,29 @@ Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MI
 
 The access token can now be used to [Call an API](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/Calling-an-API)).
 
+## Running Tests
 
+** NEED
+
+## Community Help and Support
+
+We use [StackOverflow](http://stackoverflow.com/questions/tagged/msal) with the community to provide support. You should browse existing issues to see if someone has asked about your issue before. If there are workable solutions to your issue then try out those solutions. If not, ask your question and let the community help you out. We're part of the community too and watch for new questions. We help with answers when the community cannot give you a solution.
+
+If you find and bug or have a feature request, please raise the issue on [GitHub Issues](../../issues).
+
+## Contribute
+
+We enthusiastically welcome contributions and feedback. You should clone the repo and start contributing now.
+
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+
+## Security Library
+
+This library controls how users sign-in and access services. We recommend you always take the latest version of our library in your app when you can. We use [semantic versioning](http://semver.org) so you can control the risk of updating your app. For example, always downloading the latest minor version number (e.g. x.*y*.x) ensures you get the latest security and feature enhanements with the assurance that our API surface area has not changed. You can always see the latest version and release notes under the **Releases** tab of GitHub.
+
+## Security Reporting
+
+If you find a security issue with our libraries or services, please report the issue to [secure@microsoft.com](mailto:secure@microsoft.com) with as much detail as you can provide. Your submission may be eligible for a bounty through the [Microsoft Bounty](http://aka.ms/bugbounty) program. Please do not post security issues to **GitHub Issues** or any other public site. We will contact you shortly after receiving your issue report. We encourage you to get new security incident notifications by visiting [Microsoft technical security notifications](https://technet.microsoft.com/en-us/security/dd252948) to subscribe to Security Advisory Alerts.
+
+
+Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MIT License (the "License");
