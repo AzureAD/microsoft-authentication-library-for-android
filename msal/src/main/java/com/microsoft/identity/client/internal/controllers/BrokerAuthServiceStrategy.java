@@ -25,6 +25,7 @@ package com.microsoft.identity.client.internal.controllers;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.RemoteException;
+
 import android.support.annotation.NonNull;
 import android.support.annotation.WorkerThread;
 

@@ -28,26 +28,26 @@ import org.junit.Test;
 
 public final class UIBehaviorTest {
 
-    public final static String FORCE_LOGIN = "login";
+    public final static String LOGIN = "login";
     public final static String CONSENT = "consent";
     public final static String SELECT_ACCOUNT = "select_account";
 
 
     @Test
     public void testToStringForceLogin() {
-        UiBehavior behavior = UiBehavior.FORCE_LOGIN;
-        Assert.assertEquals(behavior.toString(), FORCE_LOGIN);
+        Prompt behavior = Prompt.LOGIN;
+        Assert.assertEquals(behavior.toString(), LOGIN);
     }
 
     @Test
     public void testToStringConsent() {
-        UiBehavior behavior = UiBehavior.CONSENT;
+        Prompt behavior = Prompt.CONSENT;
         Assert.assertEquals(behavior.toString(), CONSENT);
     }
 
     @Test
     public void testToStringSelectAccount() {
-        UiBehavior behavior = UiBehavior.SELECT_ACCOUNT;
+        Prompt behavior = Prompt.SELECT_ACCOUNT;
         Assert.assertEquals(behavior.toString(), SELECT_ACCOUNT);
     }
 }

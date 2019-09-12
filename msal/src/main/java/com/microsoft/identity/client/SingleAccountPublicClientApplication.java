@@ -29,6 +29,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
@@ -50,6 +51,7 @@ import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
@@ -105,7 +107,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                     "Getting the current account"
             );
 
-            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
             final LoadAccountCommand command = new LoadAccountCommand(
                     params,
                     MSALControllerFactory.getAcquireTokenController(
@@ -185,6 +187,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         //TODO: migrate to Command.
         new BrokerMsalController().getCurrentAccount(
                 configuration,
+                configuration.getOAuth2TokenCache(),
                 new TaskCompletedCallbackWithError<List<ICacheRecord>, MsalException>() {
                     @Override
                     public void onTaskCompleted(List<ICacheRecord> cacheRecords) {
@@ -231,13 +234,13 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     }
 
     @Override
-    protected ILocalAuthenticationCallback getLocalAuthenticationCallback(@NonNull final AuthenticationCallback authenticationCallback) {
-
+    protected ILocalAuthenticationCallback getLocalAuthenticationCallback(
+            @NonNull final SilentAuthenticationCallback authenticationCallback,
+            @NonNull final TokenParameters tokenParameters) {
         return new ILocalAuthenticationCallback() {
 
             @Override
-            public void onSuccess(ILocalAuthenticationResult localAuthenticationResult) {
-
+            public void onSuccess(@NonNull final ILocalAuthenticationResult localAuthenticationResult) {
                 //Get Local Authentication Result then check if the current account is set or not
                 MultiTenantAccount newAccount = getAccountFromICacheRecordList(localAuthenticationResult.getCacheRecordWithTenantProfileData());
 
@@ -252,8 +255,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                     persistCurrentAccount(localAuthenticationResult.getCacheRecordWithTenantProfileData());
                 }
 
-                IAuthenticationResult authenticationResult = AuthenticationResultAdapter.adapt(localAuthenticationResult);
-                authenticationCallback.onSuccess(authenticationResult);
+                postAuthResult(localAuthenticationResult, tokenParameters, authenticationCallback);
+
             }
 
             @Override
@@ -264,7 +267,11 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
             @Override
             public void onCancel() {
-                authenticationCallback.onCancel();
+                if (authenticationCallback instanceof AuthenticationCallback) {
+                    ((AuthenticationCallback) authenticationCallback).onCancel();
+                } else {
+                    throw new IllegalStateException("Silent requests cannot be cancelled.");
+                }
             }
         };
     }
@@ -292,7 +299,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             final MultiTenantAccount persistedCurrentAccount = getPersistedCurrentAccount();
 
             if (persistedCurrentAccount != null) {
-                final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+                final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
                 final AccountRecord requestAccountRecord = new AccountRecord();
                 requestAccountRecord.setEnvironment(persistedCurrentAccount.getEnvironment());
                 requestAccountRecord.setHomeAccountId(persistedCurrentAccount.getHomeAccountId());

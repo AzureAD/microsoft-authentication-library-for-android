@@ -23,6 +23,7 @@
 package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Intent;
+
 import android.support.annotation.NonNull;
 import android.support.annotation.WorkerThread;
 import android.text.TextUtils;

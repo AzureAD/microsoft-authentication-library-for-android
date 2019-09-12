@@ -22,16 +22,25 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
+
+import android.support.annotation.NonNull;
 
 /**
- * Callback passed with token acquisition. {@link IAuthenticationResult} or
- * {@link MsalException} will be returned back via callback.
+ * Class to adapt between AcquireTokenSilentParameters and AcquireTokenParameters.
  */
-public interface AuthenticationCallback extends SilentAuthenticationCallback {
+public class TokenParametersAdapter {
 
-    /**
-     * Will be called if user cancels the flow.
-     */
-    void onCancel();
+    public static AcquireTokenSilentParameters silentParametersFromInteractive(@NonNull final AcquireTokenParameters acquireTokenParameters,
+                                                                               @NonNull final ILocalAuthenticationResult localAuthenticationResult){
+        final IAccount account = AccountAdapter.adapt(localAuthenticationResult.getCacheRecordWithTenantProfileData()).get(0);
+        AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .withCallback(acquireTokenParameters.getCallback())
+                .fromAuthority(acquireTokenParameters.getAuthority())
+                .withClaims(acquireTokenParameters.getClaimsRequest())
+                .withScopes(acquireTokenParameters.getScopes())
+                .forAccount(account)
+                .build();
+        return silentParameters;
+    }
 }

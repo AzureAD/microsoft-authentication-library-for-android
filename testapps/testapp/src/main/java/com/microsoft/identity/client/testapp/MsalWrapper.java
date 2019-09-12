@@ -2,6 +2,7 @@ package com.microsoft.identity.client.testapp;
 
 import android.app.Activity;
 import android.content.Context;
+
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -13,21 +14,21 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
-import com.microsoft.identity.client.ITenantProfile;
-import com.microsoft.identity.client.MultiTenantAccount;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
-import com.microsoft.identity.common.internal.cache.SchemaUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public class MsalWrapper {
     private static String PostMsalApplicationLoadedKey = "MsalWrapper_PostMsalApplicationLoaded";
@@ -154,9 +155,9 @@ public class MsalWrapper {
                 .startAuthorizationFromActivity(activity)
                 .withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")))
                 .withLoginHint(requestOptions.getLoginHint())
-                .withUiBehavior(requestOptions.getUiBehavior())
+                .withPrompt(requestOptions.getPrompt())
                 .withOtherScopesToAuthorize(Arrays.asList(requestOptions.getExtraScopesToConsent().toLowerCase().split(" ")))
-                .callback(getAuthenticationCallback(notifyCallback))
+                .withCallback(getAuthenticationCallback(notifyCallback))
                 .build();
 
         mApplication.acquireToken(parameters);
@@ -177,9 +178,9 @@ public class MsalWrapper {
         AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
         AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(activity)
                 .withResource(requestOptions.getScopes().toLowerCase().trim())
-                .withUiBehavior(requestOptions.getUiBehavior())
+                .withPrompt(requestOptions.getPrompt())
                 .withAuthorizationQueryStringParameters(null)
-                .callback(getAuthenticationCallback(notifyCallback))
+                .withCallback(getAuthenticationCallback(notifyCallback))
                 .withLoginHint(requestOptions.getLoginHint())
                 .build();
 
@@ -206,7 +207,7 @@ public class MsalWrapper {
                                         builder.withResource(requestOptions.getScopes().toLowerCase().trim())
                                                 .forAccount(account)
                                                 .forceRefresh(requestOptions.forceRefresh())
-                                                .callback(getAuthenticationCallback(notifyCallback))
+                                                .withCallback(getAuthenticationCallback(notifyCallback))
                                                 .build();
 
                                 mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
@@ -232,7 +233,7 @@ public class MsalWrapper {
                     builder.withResource(requestOptions.getScopes().toLowerCase().trim())
                             .forAccount(mLoadedAccount.get(0))
                             .forceRefresh(requestOptions.forceRefresh())
-                            .callback(getAuthenticationCallback(notifyCallback))
+                            .withCallback(getAuthenticationCallback(notifyCallback))
                             .build();
 
             mApplication.acquireTokenSilentAsync(acquireTokenSilentParameters);
@@ -259,7 +260,7 @@ public class MsalWrapper {
                                         .forAccount(account)
                                         .fromAuthority(mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString())
                                         .forceRefresh(requestOptions.forceRefresh())
-                                        .callback(getAuthenticationCallback(notifyCallback))
+                                        .withCallback(getAuthenticationCallback(notifyCallback))
                                         .build();
                                 mApplication.acquireTokenSilentAsync(parameters);
                             } else {
@@ -282,7 +283,7 @@ public class MsalWrapper {
                     .forAccount(mLoadedAccount.get(0))
                     .fromAuthority(mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString())
                     .forceRefresh(requestOptions.forceRefresh())
-                    .callback(getAuthenticationCallback(notifyCallback))
+                    .withCallback(getAuthenticationCallback(notifyCallback))
                     .build();
 
             mApplication.acquireTokenSilentAsync(parameters);
@@ -314,6 +315,13 @@ public class MsalWrapper {
                     // This explicitly indicates that developer needs to prompt the user, it could be refresh token is expired, revoked
                     // or user changes the password; or it could be that no token was found in the token cache.
                     notifyCallback.notify(exception.getMessage());
+                } else if(exception instanceof MsalDeclinedScopeException){
+                    // Declined scope implies that not all scopes requested have been granted.
+                    // Developer can either continue with Authentication by calling acquireTokenSilent
+                    // using the AcquireTokenSilentParameters in the MsalDeclinedScopeException or fail the authentication
+                    mApplication.acquireTokenSilentAsync(
+                            ((MsalDeclinedScopeException) exception).getSilentParametersForGrantedScopes()
+                    );
                 }
             }
 

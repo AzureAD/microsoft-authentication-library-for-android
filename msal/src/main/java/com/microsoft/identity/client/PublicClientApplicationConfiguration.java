@@ -23,6 +23,7 @@
 package com.microsoft.identity.client;
 
 import android.content.Context;
+
 import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
@@ -49,15 +50,15 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_USER_AGENT;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.BROWSER_SAFE_LIST;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CLIENT_ID;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ENVIRONMENT;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.HTTP;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.LOGGING;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.MULTIPLE_CLOUDS_SUPPORTED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.TELEMETRY;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.SHARED_DEVICE_MODE_SUPPORTED;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ENVIRONMENT;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REQUIRED_BROKER_PROTOCOL_VERSION;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.SHARED_DEVICE_MODE_SUPPORTED;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.TELEMETRY;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
 
 public class PublicClientApplicationConfiguration {
 
@@ -274,7 +275,7 @@ public class PublicClientApplicationConfiguration {
         mAppContext = applicationContext;
     }
 
-    public OAuth2TokenCache getOAuth2TokenCache() {
+    OAuth2TokenCache getOAuth2TokenCache() {
         return mOAuth2TokenCache;
     }
 

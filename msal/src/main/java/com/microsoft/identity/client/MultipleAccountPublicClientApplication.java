@@ -23,7 +23,6 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -180,7 +179,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         }
 
         try {
-            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
             final LoadAccountCommand command = new LoadAccountCommand(
                     params,
                     MSALControllerFactory.getAcquireTokenSilentControllers(
@@ -248,7 +247,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         );
 
         try {
-            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
             final LoadAccountCommand command = new LoadAccountCommand(
                     params,
                     MSALControllerFactory.getAcquireTokenSilentControllers(
@@ -365,7 +364,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             return;
         }
 
-        final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+        final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
 
         // TODO Clean this up, only the cache should make these records...
         // The broker strips these properties out of this object to hit the cache
