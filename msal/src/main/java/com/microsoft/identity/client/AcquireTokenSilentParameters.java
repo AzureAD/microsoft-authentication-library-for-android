@@ -63,10 +63,10 @@ public class AcquireTokenSilentParameters extends TokenParameters {
 
     public static class Builder extends TokenParameters.Builder<AcquireTokenSilentParameters.Builder> {
 
-        private Boolean mForceRefresh;
+        private boolean mForceRefresh;
         private SilentAuthenticationCallback mCallback;
 
-        public AcquireTokenSilentParameters.Builder forceRefresh(Boolean force) {
+        public AcquireTokenSilentParameters.Builder forceRefresh(boolean force) {
             mForceRefresh = force;
             return self();
         }
