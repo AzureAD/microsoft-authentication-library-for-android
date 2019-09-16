@@ -116,7 +116,7 @@ public class PublicClientApplicationConfiguration {
     TelemetryConfiguration mTelemetryConfiguration;
 
     @SerializedName(SHARED_DEVICE_MODE_SUPPORTED)
-    Boolean mSharedDeviceModeSupported;
+    boolean mSharedDeviceModeSupported;
 
     @SerializedName(ACCOUNT_MODE)
     AccountMode mAccountMode;
