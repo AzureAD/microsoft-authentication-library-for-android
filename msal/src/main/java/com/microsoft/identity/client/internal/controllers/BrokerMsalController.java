@@ -353,11 +353,6 @@ public class BrokerMsalController extends BaseController {
                                     final PublicClientApplication.BrokerDeviceModeCallback callback) {
         final String methodName = ":getBrokerDeviceMode";
 
-        if (!configuration.getSharedDeviceModeSupported()) {
-            callback.onGetMode(false);
-            return;
-        }
-
         try {
             if (!MSALControllerFactory.brokerEligible(
                     configuration.getAppContext(),

@@ -349,6 +349,7 @@ public class PublicClientApplicationConfiguration {
 
         // Multiple is the default mode.
         this.mAccountMode = config.mAccountMode != AccountMode.MULTIPLE ? config.mAccountMode : this.mAccountMode;
+        this.mSharedDeviceModeSupported = config.mSharedDeviceModeSupported | this.mSharedDeviceModeSupported;
     }
 
     void validateConfiguration() {
