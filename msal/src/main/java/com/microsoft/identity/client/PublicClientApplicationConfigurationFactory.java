@@ -83,10 +83,9 @@ public class PublicClientApplicationConfigurationFactory {
         final PublicClientApplicationConfiguration config = loadDefaultConfiguration(context);
         if (developerConfig != null) {
             config.mergeConfiguration(developerConfig);
-            config.validateConfiguration();
         }
 
-        config.setAppContext(context);
+        config.validateConfiguration();
         config.setOAuth2TokenCache(MsalOAuth2TokenCache.create(context));
         return config;
     }
