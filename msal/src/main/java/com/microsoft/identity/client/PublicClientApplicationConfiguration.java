@@ -116,7 +116,7 @@ public class PublicClientApplicationConfiguration {
     TelemetryConfiguration mTelemetryConfiguration;
 
     @SerializedName(SHARED_DEVICE_MODE_SUPPORTED)
-    Boolean mSharedDeviceModeSupported;
+    boolean mSharedDeviceModeSupported;
 
     @SerializedName(ACCOUNT_MODE)
     AccountMode mAccountMode;
@@ -349,6 +349,7 @@ public class PublicClientApplicationConfiguration {
 
         // Multiple is the default mode.
         this.mAccountMode = config.mAccountMode != AccountMode.MULTIPLE ? config.mAccountMode : this.mAccountMode;
+        this.mSharedDeviceModeSupported = config.mSharedDeviceModeSupported | this.mSharedDeviceModeSupported;
     }
 
     void validateConfiguration() {
