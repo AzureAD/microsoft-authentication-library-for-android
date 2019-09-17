@@ -992,8 +992,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 )
         );
 
-        checkIntentFilterAddedToAppManifest();
-
         // Since network request is sent from the sdk, if calling app doesn't declare the internet
         // permission in the manifest, we cannot make the network call.
         checkInternetPermission();
@@ -1625,23 +1623,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             return result.getResult();
         } else {
             throw result.getException();
-        }
-    }
-
-    private void checkIntentFilterAddedToAppManifest() {
-        final boolean hasCustomTabRedirectActivity = MsalUtils.hasCustomTabRedirectActivity(
-                mPublicClientConfiguration.getAppContext(),
-                mPublicClientConfiguration.getRedirectUri()
-        );
-
-        if (!hasCustomTabRedirectActivity) {
-            throw new IllegalStateException(
-                    "Intent filter for: "
-                            + BrowserTabActivity.class.getSimpleName()
-                            + " is missing. Please verify that the registered redirect URI in AndroidManifest.xml is valid. "
-                            + "Please note that the leading /'//' is required for android:path. "
-                            + "For more information, please refer to the MSAL readme and https://developer.android.com/training/app-links/deep-linking."
-            );
         }
     }
 

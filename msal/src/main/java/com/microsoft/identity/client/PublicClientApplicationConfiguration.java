@@ -23,6 +23,7 @@
 package com.microsoft.identity.client;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -30,18 +31,22 @@ import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
+import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.Environment;
 import com.microsoft.identity.common.internal.authorities.UnknownAudience;
 import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
+import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.ui.browser.BrowserDescriptor;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.crypto.SecretKey;
 
@@ -61,6 +66,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
 
 public class PublicClientApplicationConfiguration {
+    private static final String TAG = PublicClientApplicationConfiguration.class.getSimpleName();
 
     public static final class SerializedNames {
         static final String CLIENT_ID = "client_id";
@@ -116,7 +122,7 @@ public class PublicClientApplicationConfiguration {
     TelemetryConfiguration mTelemetryConfiguration;
 
     @SerializedName(SHARED_DEVICE_MODE_SUPPORTED)
-    boolean mSharedDeviceModeSupported;
+    Boolean mSharedDeviceModeSupported;
 
     @SerializedName(ACCOUNT_MODE)
     AccountMode mAccountMode;
@@ -138,6 +144,7 @@ public class PublicClientApplicationConfiguration {
 
     /**
      * Gets the list of browser safe list.
+     *
      * @return The list of browser which are allowed to use for auth flow.
      */
     public List<BrowserDescriptor> getBrowserSafeList() {
@@ -261,6 +268,7 @@ public class PublicClientApplicationConfiguration {
 
     /**
      * Indicates the minimum required broker protocol version number.
+     *
      * @return String of broker protocol version
      */
     public String getRequiredBrokerProtocolVersion() {
@@ -343,23 +351,24 @@ public class PublicClientApplicationConfiguration {
         this.mRequiredBrokerProtocolVersion = config.mRequiredBrokerProtocolVersion == null ? this.mRequiredBrokerProtocolVersion : config.mRequiredBrokerProtocolVersion;
         if (this.mBrowserSafeList == null) {
             this.mBrowserSafeList = config.mBrowserSafeList;
-        } else if (config.mBrowserSafeList != null){
+        } else if (config.mBrowserSafeList != null) {
             this.mBrowserSafeList.addAll(config.mBrowserSafeList);
         }
 
         // Multiple is the default mode.
         this.mAccountMode = config.mAccountMode != AccountMode.MULTIPLE ? config.mAccountMode : this.mAccountMode;
-        this.mSharedDeviceModeSupported = config.mSharedDeviceModeSupported | this.mSharedDeviceModeSupported;
+        this.mSharedDeviceModeSupported = config.mSharedDeviceModeSupported == null ? this.mSharedDeviceModeSupported : config.mSharedDeviceModeSupported;
     }
 
     void validateConfiguration() {
         nullConfigurationCheck(REDIRECT_URI, mRedirectUri);
         nullConfigurationCheck(CLIENT_ID, mClientId);
         checkDefaultAuthoritySpecified();
+        checkIntentFilterAddedToAppManifestForBrokerFlow();
 
         // Only validate the browser safe list configuration
         // when the authorization agent is set either DEFAULT or BROWSER.
-        if ( !mAuthorizationAgent.equals(AuthorizationAgent.WEBVIEW)
+        if (!mAuthorizationAgent.equals(AuthorizationAgent.WEBVIEW)
                 && (mBrowserSafeList == null || mBrowserSafeList.isEmpty())) {
             throw new IllegalArgumentException(
                     "Null browser safe list configured."
@@ -395,4 +404,39 @@ public class PublicClientApplicationConfiguration {
         }
     }
 
+    private boolean isLegacyLocalMsalRedirectUri() {
+        final String LEGACY_LOCAL_MSAL_REDIRECT_URI_REGEX = "msal[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b://auth";
+        Pattern pairRegex = Pattern.compile(LEGACY_LOCAL_MSAL_REDIRECT_URI_REGEX);
+        Matcher matcher = pairRegex.matcher(mRedirectUri);
+        return matcher.matches();
+    }
+
+    private void checkIntentFilterAddedToAppManifestForBrokerFlow() {
+        if (!mUseBroker) {
+            return;
+        }
+
+        if (isLegacyLocalMsalRedirectUri()) {
+            // This means that the app is still using the legacy local-MSAL Redirect uri (already removed from the new portal).
+            // If this is the case, we can assume that the user doesn't need Broker support.
+            Logger.info(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth.");
+            mUseBroker = false;
+            return;
+        }
+
+        final boolean hasCustomTabRedirectActivity = MsalUtils.hasCustomTabRedirectActivity(
+                mAppContext,
+                mRedirectUri
+        );
+
+        if (!hasCustomTabRedirectActivity) {
+            throw new IllegalStateException(
+                    "Intent filter for: "
+                            + BrowserTabActivity.class.getSimpleName()
+                            + " is missing. Please verify that the registered redirect URI in AndroidManifest.xml is valid. "
+                            + "Please note that the leading /'//' is required for android:path. "
+                            + "For more information, please refer to the MSAL readme and https://developer.android.com/training/app-links/deep-linking."
+            );
+        }
+    }
 }
