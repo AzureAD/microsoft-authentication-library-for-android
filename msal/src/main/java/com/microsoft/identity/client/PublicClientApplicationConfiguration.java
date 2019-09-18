@@ -364,7 +364,6 @@ public class PublicClientApplicationConfiguration {
         nullConfigurationCheck(REDIRECT_URI, mRedirectUri);
         nullConfigurationCheck(CLIENT_ID, mClientId);
         checkDefaultAuthoritySpecified();
-        checkIntentFilterAddedToAppManifestForBrokerFlow();
 
         // Only validate the browser safe list configuration
         // when the authorization agent is set either DEFAULT or BROWSER.
@@ -404,20 +403,20 @@ public class PublicClientApplicationConfiguration {
         }
     }
 
-    private boolean isLegacyLocalMsalRedirectUri() {
-        final String LEGACY_LOCAL_MSAL_REDIRECT_URI_REGEX = "msal[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b://auth";
-        Pattern pairRegex = Pattern.compile(LEGACY_LOCAL_MSAL_REDIRECT_URI_REGEX);
-        Matcher matcher = pairRegex.matcher(mRedirectUri);
+    private boolean isBrokerRedirectUri() {
+        final String BROKER_REDIRECT_URI_REGEX = "msauth://"+ mAppContext.getPackageName() + "/.*";
+        final Pattern pairRegex = Pattern.compile(BROKER_REDIRECT_URI_REGEX);
+        final Matcher matcher = pairRegex.matcher(mRedirectUri);
         return matcher.matches();
     }
 
-    private void checkIntentFilterAddedToAppManifestForBrokerFlow() {
+    public void checkIntentFilterAddedToAppManifestForBrokerFlow() {
         if (!mUseBroker) {
             return;
         }
 
-        if (isLegacyLocalMsalRedirectUri()) {
-            // This means that the app is still using the legacy local-MSAL Redirect uri (already removed from the new portal).
+        if (!isBrokerRedirectUri()) {
+            // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
             // If this is the case, we can assume that the user doesn't need Broker support.
             Logger.info(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth.");
             mUseBroker = false;

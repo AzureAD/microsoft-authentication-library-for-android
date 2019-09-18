@@ -225,7 +225,7 @@ public final class PublicClientApplicationTest {
         mockPackageManagerWithDefaultFlag(context);
 
         final PublicClientApplicationConfiguration config = PublicClientApplicationConfigurationFactory.initializeConfiguration(context);
-        config.mRedirectUri = "msal123456://auth";
+        config.mRedirectUri = "msauth://com.microsoft.identity.msal.test/123456";
         new PublicClientApplication(config, CLIENT_ID, null);
     }
 

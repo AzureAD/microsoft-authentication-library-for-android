@@ -992,6 +992,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 )
         );
 
+        mPublicClientConfiguration.checkIntentFilterAddedToAppManifestForBrokerFlow();
+
         // Since network request is sent from the sdk, if calling app doesn't declare the internet
         // permission in the manifest, we cannot make the network call.
         checkInternetPermission();
