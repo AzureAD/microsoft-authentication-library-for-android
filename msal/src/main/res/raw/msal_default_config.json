@@ -22,7 +22,6 @@
     "log_level": "WARNING",
     "logcat_enabled": true
   },
-  "shared_device_mode_supported": false,
   "account_mode": "MULTIPLE",
   "browser_safelist": [
     {

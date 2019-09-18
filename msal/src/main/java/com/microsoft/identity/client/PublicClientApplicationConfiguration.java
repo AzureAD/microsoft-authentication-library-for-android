@@ -23,7 +23,6 @@
 package com.microsoft.identity.client;
 
 import android.content.Context;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -61,7 +60,6 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.MULTIPLE_CLOUDS_SUPPORTED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REQUIRED_BROKER_PROTOCOL_VERSION;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.SHARED_DEVICE_MODE_SUPPORTED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.TELEMETRY;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
 
@@ -81,7 +79,6 @@ public class PublicClientApplicationConfiguration {
         static final String REQUIRED_BROKER_PROTOCOL_VERSION = "minimum_required_broker_protocol_version";
         static final String TELEMETRY = "telemetry";
         static final String BROWSER_SAFE_LIST = "browser_safelist";
-        static final String SHARED_DEVICE_MODE_SUPPORTED = "shared_device_mode_supported";
         static final String ACCOUNT_MODE = "account_mode";
     }
 
@@ -120,9 +117,6 @@ public class PublicClientApplicationConfiguration {
 
     @SerializedName(TELEMETRY)
     TelemetryConfiguration mTelemetryConfiguration;
-
-    @SerializedName(SHARED_DEVICE_MODE_SUPPORTED)
-    Boolean mSharedDeviceModeSupported;
 
     @SerializedName(ACCOUNT_MODE)
     AccountMode mAccountMode;
@@ -246,18 +240,6 @@ public class PublicClientApplicationConfiguration {
     }
 
     /**
-     * Indicates whether or not the public client application supports shared device mode
-     * <p>
-     * Shared device mode is enabled by the Administrators of devices using the Microsoft Authenticator app or via
-     * provisioning via a mobile device management solution.
-     *
-     * @return The boolean indicator of whether shared device mode is supported by this app.
-     */
-    public Boolean getSharedDeviceModeSupported() {
-        return mSharedDeviceModeSupported;
-    }
-
-    /**
      * Gets the currently configured {@link AccountMode} for the PublicClientApplication.
      *
      * @return The AccountMode supported by this application.
@@ -357,7 +339,6 @@ public class PublicClientApplicationConfiguration {
 
         // Multiple is the default mode.
         this.mAccountMode = config.mAccountMode != AccountMode.MULTIPLE ? config.mAccountMode : this.mAccountMode;
-        this.mSharedDeviceModeSupported = config.mSharedDeviceModeSupported == null ? this.mSharedDeviceModeSupported : config.mSharedDeviceModeSupported;
     }
 
     void validateConfiguration() {
