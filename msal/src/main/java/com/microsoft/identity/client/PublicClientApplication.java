@@ -74,6 +74,7 @@ import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperatio
 import com.microsoft.identity.common.internal.request.ILocalAuthenticationCallback;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
+import com.microsoft.identity.common.internal.servertelemetry.ServerTelemetry;
 import com.microsoft.identity.msal.BuildConfig;
 
 import java.io.File;
@@ -780,6 +781,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     private void initializeApplication() {
         final Context context = mPublicClientConfiguration.getAppContext();
+        setupServerSideTelemetry(context);
         setupTelemetry(context, mPublicClientConfiguration);
 
         AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
@@ -820,6 +822,14 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
+    private void setupServerSideTelemetry(Context context) {
+        ServerTelemetry.initializeServerTelemetry(context);
+        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                TAG,
+                "Server side telemetry has been initialized properly."
+        );
+    }
+
     private void setupTelemetry(@NonNull final Context context,
                                 @NonNull final PublicClientApplicationConfiguration developerConfig) {
         if (null != developerConfig.getTelemetryConfiguration()) {
@@ -827,11 +837,13 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     TAG,
                     "Telemetry configuration is set. Telemetry is enabled."
             );
+            //ServerTelemetry.putCurrentTelemetryEnabled(true);
         } else {
             com.microsoft.identity.common.internal.logging.Logger.verbose(
                     TAG,
                     "Telemetry configuration is null. Telemetry is disabled."
             );
+            //ServerTelemetry.putCurrentTelemetryEnabled(false);
         }
 
         new com.microsoft.identity.common.internal.telemetry.Telemetry.Builder()
