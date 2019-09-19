@@ -216,20 +216,6 @@ public final class PublicClientApplicationTest {
     }
 
     /**
-     * Verify correct exception is thrown if {@link BrowserTabActivity} does not have the correct intent-filer.
-     */
-    @Test(expected = IllegalStateException.class)
-    public void testNoCustomTabSchemeConfigured() throws PackageManager.NameNotFoundException {
-        final Context context = new MockContext(mAppContext);
-        mockPackageManagerWithClientId(context, null, CLIENT_ID);
-        mockPackageManagerWithDefaultFlag(context);
-
-        final PublicClientApplicationConfiguration config = PublicClientApplicationConfigurationFactory.initializeConfiguration(context);
-        config.mRedirectUri = "msauth://com.microsoft.identity.msal.test/123456";
-        new PublicClientApplication(config, CLIENT_ID, null);
-    }
-
-    /**
      * Verify correct exception is thrown if callback is not provided.
      */
     @Test(expected = IllegalArgumentException.class)
