@@ -86,7 +86,6 @@ public class PublicClientApplicationConfigurationFactory {
             config.validateConfiguration();
         }
 
-        config.setAppContext(context);
         config.setOAuth2TokenCache(MsalOAuth2TokenCache.create(context));
         return config;
     }
@@ -97,7 +96,10 @@ public class PublicClientApplicationConfigurationFactory {
                 TAG + methodName,
                 "Loading default configuration"
         );
-        return loadConfiguration(context, R.raw.msal_default_config);
+        final PublicClientApplicationConfiguration config = loadConfiguration(context, R.raw.msal_default_config);
+        config.setAppContext(context);
+
+        return config;
     }
 
     @VisibleForTesting

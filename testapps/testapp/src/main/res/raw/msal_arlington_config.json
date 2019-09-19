@@ -4,7 +4,6 @@
   "redirect_uri" : "msalcb7faed4-b8c0-49ee-b421-f5ed16894c83://auth",
   "multiple_clouds_supported":true,
   "broker_redirect_uri_registered": true,
-  "shared_device_mode_supported": true,
   "authorities" : [
     {
       "type": "AAD",
