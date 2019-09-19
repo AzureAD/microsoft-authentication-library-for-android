@@ -48,8 +48,6 @@ import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.ui.browser.BrowserDescriptor;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -394,7 +392,7 @@ public class PublicClientApplicationConfiguration {
     }
 
     private boolean isBrokerRedirectUri() {
-        final String BROKER_REDIRECT_URI_REGEX = "msauth://"+ mAppContext.getPackageName() + "/.*";
+        final String BROKER_REDIRECT_URI_REGEX = "msauth://" + mAppContext.getPackageName() + "/.*";
         final Pattern pairRegex = Pattern.compile(BROKER_REDIRECT_URI_REGEX);
         final Matcher matcher = pairRegex.matcher(mRedirectUri);
         return matcher.matches();
@@ -404,26 +402,25 @@ public class PublicClientApplicationConfiguration {
     private void verifyRedirectUriWithAppSignature() {
         final String packageName = mAppContext.getPackageName();
         try {
-            PackageInfo info = mAppContext.getPackageManager().getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
-            for (final Signature signature: info.signatures) {
-                final Uri.Builder builder = new Uri.Builder();
-
+            final PackageInfo info = mAppContext.getPackageManager().getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
+            for (final Signature signature : info.signatures) {
                 final MessageDigest messageDigest = MessageDigest.getInstance("SHA");
                 messageDigest.update(signature.toByteArray());
                 final String signatureHash = Base64.encodeToString(messageDigest.digest(), Base64.NO_WRAP);
 
-                Uri uri = builder.scheme("msauth")
-                            .authority(packageName)
-                            .appendPath(signatureHash)
-                            .build();
+                final Uri.Builder builder = new Uri.Builder();
+                final Uri uri = builder.scheme("msauth")
+                        .authority(packageName)
+                        .appendPath(signatureHash)
+                        .build();
 
-                if (mRedirectUri.equalsIgnoreCase(uri.toString())){
+                if (mRedirectUri.equalsIgnoreCase(uri.toString())) {
                     // Life is good.
                     return;
                 }
             }
         } catch (PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
-            Logger.error(TAG, "Unexpected error",e);
+            Logger.error(TAG, "Unexpected error in verifyRedirectUriWithAppSignature()", e);
         }
 
         throw new IllegalStateException("The redirect URI in the configuration file doesn't match with the one " +
