@@ -23,6 +23,11 @@
 package com.microsoft.identity.client;
 
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.net.Uri;
+import android.util.Base64;
 
 import androidx.annotation.NonNull;
 
@@ -43,6 +48,10 @@ import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.ui.browser.BrowserDescriptor;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -391,6 +400,36 @@ public class PublicClientApplicationConfiguration {
         return matcher.matches();
     }
 
+    // Verifies broker redirect URI against the app's signature, to make sure that this is legit.
+    private void verifyRedirectUriWithAppSignature() {
+        final String packageName = mAppContext.getPackageName();
+        try {
+            PackageInfo info = mAppContext.getPackageManager().getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
+            for (final Signature signature: info.signatures) {
+                final Uri.Builder builder = new Uri.Builder();
+
+                final MessageDigest messageDigest = MessageDigest.getInstance("SHA");
+                messageDigest.update(signature.toByteArray());
+                final String signatureHash = Base64.encodeToString(messageDigest.digest(), Base64.NO_WRAP);
+
+                Uri uri = builder.scheme("msauth")
+                            .authority(packageName)
+                            .appendPath(signatureHash)
+                            .build();
+
+                if (mRedirectUri.equalsIgnoreCase(uri.toString())){
+                    // Life is good.
+                    return;
+                }
+            }
+        } catch (PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
+            Logger.error(TAG, "Unexpected error",e);
+        }
+
+        throw new IllegalStateException("The redirect URI in the configuration file doesn't match with the one " +
+                "generated with package name and signature hash. Please verify the uri in the config file and your app registration in Azure portal.");
+    }
+
     public void checkIntentFilterAddedToAppManifestForBrokerFlow() {
         if (!mUseBroker) {
             return;
@@ -404,19 +443,32 @@ public class PublicClientApplicationConfiguration {
             return;
         }
 
+        verifyRedirectUriWithAppSignature();
+
         final boolean hasCustomTabRedirectActivity = MsalUtils.hasCustomTabRedirectActivity(
                 mAppContext,
                 mRedirectUri
         );
 
         if (!hasCustomTabRedirectActivity) {
+            final Uri redirectUri = Uri.parse(mRedirectUri);
             throw new IllegalStateException(
-                    "Intent filter for: "
-                            + BrowserTabActivity.class.getSimpleName()
-                            + " is missing. Please verify that the registered redirect URI in AndroidManifest.xml is valid. "
-                            + "Please note that the leading /'//' is required for android:path. "
-                            + "For more information, please refer to the MSAL readme and https://developer.android.com/training/app-links/deep-linking."
-            );
+                    "Intent filter for: " +
+                            BrowserTabActivity.class.getSimpleName() +
+                            " is missing. " +
+                            " Please make sure you have the following activity in your AndroidManifest.xml \n\n" +
+                            "<activity android:name=\"com.microsoft.identity.client.BrowserTabActivity\">" + "\n" +
+                            "\t" + "<intent-filter>" + "\n" +
+                            "\t\t" + "<action android:name=\"android.intent.action.VIEW\" />" + "\n" +
+                            "\t\t" + "<category android:name=\"android.intent.category.DEFAULT\" />" + "\n" +
+                            "\t\t" + "<category android:name=\"android.intent.category.BROWSABLE\" />" + "\n" +
+                            "\t\t" + "<data" + "\n" +
+                            "\t\t\t" + "android:host=\"" + redirectUri.getHost() + "\"" + "\n" +
+                            "\t\t\t" + "android:path=\'" + redirectUri.getPath() + "\"" + "\n" +
+                            "\t\t\t" + "android:scheme=\"" + redirectUri.getScheme() + "\" />" + "\n" +
+                            "\t" + "</intent-filter>" + "\n" +
+                            "</activity>" + "\n");
         }
     }
+
 }
