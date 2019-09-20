@@ -1,7 +1,7 @@
 Microsoft Authentication Library (MSAL) for Android
 ==============================================
 
-| [Getting Started](https://docs.microsoft.com/en-us/azure/active-directory/develop/guidedsetups/active-directory-mobileanddesktopapp-android-intro) | [Sample Code](https://github.com/Azure-Samples/active-directory-android-native-v2) | [Library Reference](http://javadoc.io/doc/com.microsoft.identity.client/msal) | [Support](README.md#community-help-and-support)
+| [Getting Started](https://docs.microsoft.com/en-us/azure/active-directory/develop/guidedsetups/active-directory-mobileanddesktopapp-android-intro) | [Sample Code](https://github.com/Azure-Samples/ms-identity-android-java) | [Library Reference](http://javadoc.io/doc/com.microsoft.identity.client/msal) | [Support](README.md#community-help-and-support)
 | --- | --- | --- | --- |
 
 The MSAL library for Android gives your app the ability to use the [Microsoft Cloud](https://cloud.microsoft.com) by supporting [Microsoft Azure Active Directory](https://azure.microsoft.com/en-us/services/active-directory/) and [Microsoft accounts](https://account.microsoft.com) in a converged experience using industry standard OAuth2 and OpenID Connect. The library also supports [Azure AD B2C](https://azure.microsoft.com/services/active-directory-b2c/).
@@ -14,35 +14,42 @@ The MSAL library for Android gives your app the ability to use the [Microsoft Cl
 
 ### What's new?
 
-> Note: I suggest that we link to our docs for many of these things
+MSAL Android is now generally available with MSAL 1.0!
 
-- MSAL Android is now generally available with MSAL 1.0
 - Supported Authorities
-  - Microsoft identity platform (also known as the Azure Active Directory v2 Endpoint)
-  - Azure Active Directory B2C
-- Microsoft authentication broker support
+  - Microsoft [identity platform](https://docs.microsoft.com/en-us/azure/active-directory/develop/) (also known as the Azure Active Directory v2 Endpoint)
+  - [Azure Active Directory B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/)
+    - [Integrate with B2C](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-andoid-b2c)
+- Microsoft [authentication broker](https://docs.microsoft.com/en-us/azure/active-directory/develop/brokered-auth) support
   - Supports enterprise scenarios including:
     - Device Registration
     - Device Management
     - Intune App Protection
     - Device Single Sign On
-- Introduction of Single and Multi Account Public Client Applications
-- IAccount and access to claims
+- Introduction of [Single and Multi Account](https://docs.microsoft.com/en-us/azure/active-directory/develop/single-multi-account) Public Client Applications
+- [IAccount and access to claims](https://docs.microsoft.com/en-us/azure/active-directory/develop/accounts-overview)
+- Enable Single Sign-On with different [authorization agents](https://docs.microsoft.com/en-us/azure/active-directory/develop/authorization-agents)
 - Support for synchronous methods from worker threads
+>NOTE: Tyler -  Think there may be some outdated config info on docs.ms under concepts->app scenarios->mobile app that calls web APIs. Where does new doc live?
+
 - Improved configuration and control of your PublicClientApplication using configuration file
-- Implemented using AndroidX
+- AndroidX Compatible
 
 ### Migrating from ADAL
+>NOTE: check this is right link
 
-You can review the ADAL to MSAL migration guide here
+You can review the ADAL to MSAL migration guide [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/migrate-android-adal-msal)
 
 ### Migrating from preview versions of MSAL
+
+>NOTE: where does this doc live?  
 
 You can review the MSAL Preview to GA release guide here
 
 ### Sample
+>NOTE: shane- should we link kotlin sample?
 
-For a complete running sample [link to new sample]()
+For a complete running sample [link to new sample](https://github.com/Azure-Samples/ms-identity-android-java)
 
 ## Using MSAL
 
@@ -64,16 +71,15 @@ dependencies {
 
 ### Step 2: Create your MSAL configuration file
 
->NOTE: Add link to configuration file documentation here
+>NOTE: Add link to configuration file documentation here. HELP, where is this?
 
-It's simplest to create your configuration file as a "raw" resoruce file in your project resources.  You'll be able to refer to this using the generated resource identifier when constructing an instance of PublicClientApplication.
+It's simplest to create your configuration file as a "raw" resource file in your project resources.  You'll be able to refer to this using the generated resource identifier when constructing an instance of PublicClientApplication. If you are registering your app in the portal for the first time, you will also be provided with this config JSON.
 
 ```javascript
 {
-  "client_id" : "0984a7b6-bc13-4141-8b0d-8f767e136bb7",
+  "client_id" : "<YOUR_CLIENT_ID>",
   "redirect_uri" : "msauth://<YOUR_PACKAGE_NAME>/<YOUR_BASE64_URL_ENCODED_PACKAGE_SIGNATURE>",
-  "broker_redirect_uri_registered": true, 
-  //Above is the broker redirect URI format.  If you're upgrading an existing app to the latest MSAL and you are not using the format above.  Set this to false.
+  "broker_redirect_uri_registered": true,
 }
 ```
 
@@ -88,7 +94,7 @@ It's simplest to create your configuration file as a "raw" resoruce file in your
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 ```
 
-3. Configure an intent filter in the Android Manifest, using your redirect URI
+2. Configure an intent filter in the Android Manifest, using your redirect URI
 
 >NOTE: Failure to include an intent filter matching the redirect URI you specify via configuration will result in a failed interactive token request.  Please double check this!
 
@@ -100,19 +106,42 @@ It's simplest to create your configuration file as a "raw" resoruce file in your
             <action android:name="android.intent.action.VIEW" />
             <category android:name="android.intent.category.DEFAULT" />
             <category android:name="android.intent.category.BROWSABLE" />
-            <data 
+            <data
                 android:scheme="msauth"
                 android:host="<YOUR_PACKAGE_NAME>"
-                android:host="/<YOUR_BASE64_URL_ENCODED_PACKAGE_SIGNATURE>" />
+                android:path="/<YOUR_BASE64_URL_ENCODED_PACKAGE_SIGNATURE>" />
         </intent-filter>
     </activity>
 ```
 
 ### Step 4: Create an MSAL PublicClientApplication
 
->NOTE: In this example were creating an instance of MultipleAccountPublicClientApplication which is designed to work with apps that allow multiple accounts to be used within the same application.  For more information on multiple vs. single account public client applications click [here](link)
+>NOTE: In this example were creating an instance of MultipleAccountPublicClientApplication which is designed to work with apps that allow multiple accounts to be used within the same application. If you would like to use SingleAccount mode, replace with the following fragment and replace 'mMultipleAccountApp' with 'mSingleAccountApp' . For more information on multiple vs. single account public client applications click [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/single-multi-account). You can also check out the sample app for examples of how this is used.
 
-1.  Create a new MultipleAccountPublicClientApplication instance. 
+>NOTE: help, does this need the same first 3 lines as the multi account fragment? Also, is this the best format for this? Or should we just replace multi account with single account or just leave as is
+
+Example: Create a new SinglePublicClientApplication instance.
+
+```Java
+
+PublicClientApplication.createSingleAccountPublicClientApplication(getContext(),
+        R.raw.auth_config_single_account,
+        new IPublicClientApplication.ISingleAccountApplicationCreatedListener() {
+            @Override
+            public void onCreated(ISingleAccountPublicClientApplication application) {
+                mSingleAccountApp = application;
+                loadAccount();
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                displayError(exception);
+            }
+        });
+```
+
+
+1.  Create a new MultipleAccountPublicClientApplication instance.
 
 ```Java
 
@@ -165,13 +194,14 @@ private AuthenticationCallback getAuthInteractiveCallback() {
     };
 }
 ```
+>NOTE: Add how to acquireToken with AcquireTokenParameters
 
 3. Acquire a token silently
 
 ```java
 
 /*
-    Before getting a token silently for the account used to previously acquire a token interactively.  We recommend that you verify that the account is still present in the local cache or on the device in case of brokered auth
+    Before getting a token silently for the account used to previously acquire a token interactively, we recommend that you verify that the account is still present in the local cache or on the device in case of brokered auth
 
     Let's use the synchronous methods here which can only be invoked from a Worker thread
 */
@@ -184,7 +214,7 @@ if(account != null){
 
     //Request token silently
     String[] newScopes = {"Calendars.Read"}
-    
+
     //Use default authority to request token from pass null
     IAuthenticationResult result = mMultipleAccountApp.acquireTokenSilent(newScopes, account, null);
 }
@@ -201,18 +231,19 @@ If you find and bug or have a feature request, please raise the issue on [GitHub
 
 We enthusiastically welcome contributions and feedback. You should clone the repo and start contributing now.
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments. To build MSAL for android, follow the steps bellow.
 
 ### Clone
 
-MSAL uses a submodule for a "common" library shared by MSAL, ADAL and the Microsoft authentication library
+MSAL uses a submodule for a "common" library shared by MSAL, ADAL and the Microsoft authentication library.
 
 ```cmd
-git clone https://github.com/AzureAD/microsoft-authentication-library-for-android.git msal
+git clone --recurse-submodules https://github.com/AzureAD/microsoft-authentication-library-for-android.git
 cd msal
 git submodule init
 git submodule update
 ```
+>NOTE: shane- Need an explanation for what these mean
 
 ### MSAL Flavors
 
@@ -243,7 +274,7 @@ productFlavors {
 ### Build
 
 ```cmd
-gradlew assembleLocalDebug
+.\gradlew assembleLocalDebug
 ```
 
 ### Run Tests
@@ -251,7 +282,7 @@ gradlew assembleLocalDebug
 >NOTE: This requires a connected device (physical device or Android Emulator)
 
 ```cmd
-gradlew connectedLocalDebugAndroidTest
+.\gradlew connectedLocalDebugAndroidTest
 ```
 
 ## Security Library
