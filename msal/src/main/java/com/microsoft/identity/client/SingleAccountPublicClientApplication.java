@@ -479,7 +479,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final String authority,
-                                        @NonNull final AuthenticationCallback callback) {
+                                        @NonNull final SilentAuthenticationCallback callback) {
 
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount == null) {

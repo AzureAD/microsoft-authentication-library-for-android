@@ -1381,7 +1381,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                       @NonNull final String authority,
                                       final boolean forceRefresh,
                                       @Nullable final ClaimsRequest claimsRequest,
-                                      @NonNull final AuthenticationCallback callback) {
+                                      @NonNull final SilentAuthenticationCallback callback) {
         validateNonNullArgument(account, "Account");
         validateNonNullArgument(callback, "Callback");
 
@@ -1600,7 +1600,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         final ResultFuture<AsyncResult<IAuthenticationResult>> future = new ResultFuture<>();
 
-        acquireTokenSilentParameters.setCallback(new AuthenticationCallback() {
+        acquireTokenSilentParameters.setCallback(new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 future.setResult(new AsyncResult<>(authenticationResult, null));
@@ -1609,11 +1609,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             @Override
             public void onError(MsalException exception) {
                 future.setResult(new AsyncResult<IAuthenticationResult>(null, exception));
-            }
-
-            @Override
-            public void onCancel() {
-                future.setResult(new AsyncResult<IAuthenticationResult>(null, new MsalUserCancelException()));
             }
         });
 
@@ -1836,7 +1831,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 authority, // authority
                 forceRefresh, // forceRefresh
                 null, // claimsRequest
-                new AuthenticationCallback() {
+                new SilentAuthenticationCallback() {
                     @Override
                     public void onSuccess(IAuthenticationResult authenticationResult) {
                         future.setResult(new AsyncResult<>(authenticationResult, null));
@@ -1845,11 +1840,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     @Override
                     public void onError(MsalException exception) {
                         future.setResult(new AsyncResult<IAuthenticationResult>(null, exception));
-                    }
-
-                    @Override
-                    public void onCancel() {
-                        future.setResult(new AsyncResult<IAuthenticationResult>(null, new MsalUserCancelException()));
                     }
                 }
         );
