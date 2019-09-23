@@ -1,10 +1,10 @@
 Microsoft Authentication Library (MSAL) for Android
 ==============================================
 
-| [Getting Started](https://docs.microsoft.com/en-us/azure/active-directory/develop/guidedsetups/active-directory-mobileanddesktopapp-android-intro) | [Sample Code](https://github.com/Azure-Samples/ms-identity-android-java) | [Library Reference](http://javadoc.io/doc/com.microsoft.identity.client/msal) | [Support](README.md#community-help-and-support)
+| [Getting Started](https://docs.microsoft.com/azure/active-directory/develop/guidedsetups/active-directory-mobileanddesktopapp-android-intro) | [Sample Code](https://github.com/Azure-Samples/ms-identity-android-java) | [Library Reference](http://javadoc.io/doc/com.microsoft.identity.client/msal) | [Support](README.md#community-help-and-support)
 | --- | --- | --- | --- |
 
-The MSAL library for Android gives your app the ability to use the [Microsoft Cloud](https://cloud.microsoft.com) by supporting [Microsoft Azure Active Directory](https://azure.microsoft.com/en-us/services/active-directory/) and [Microsoft accounts](https://account.microsoft.com) in a converged experience using industry standard OAuth2 and OpenID Connect. The library also supports [Azure AD B2C](https://azure.microsoft.com/services/active-directory-b2c/).
+The MSAL library for Android gives your app the ability to use the [Microsoft Cloud](https://cloud.microsoft.com) by supporting [Microsoft Azure Active Directory](https://azure.microsoft.com/services/active-directory/) and [Microsoft accounts](https://account.microsoft.com) in a converged experience using industry standard OAuth2 and OpenID Connect. The library also supports [Azure AD B2C](https://azure.microsoft.com/services/active-directory-b2c/).
 
 [![Version Badge](https://img.shields.io/maven-central/v/com.microsoft.identity.client/msal.svg)](http://repo1.maven.org/maven2/com/microsoft/identity/client/msal/)
 [![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-android.svg?branch=master)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-android)
@@ -17,18 +17,18 @@ The MSAL library for Android gives your app the ability to use the [Microsoft Cl
 MSAL Android is now generally available with MSAL 1.0!
 
 - Supported Authorities
-  - Microsoft [identity platform](https://docs.microsoft.com/en-us/azure/active-directory/develop/) (also known as the Azure Active Directory v2 Endpoint)
-  - [Azure Active Directory B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/)
-    - [Integrate with B2C](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-andoid-b2c)
-- Microsoft [authentication broker](https://docs.microsoft.com/en-us/azure/active-directory/develop/brokered-auth) support
+  - Microsoft [identity platform](https://docs.microsoft.com/azure/active-directory/develop/) (also known as the Azure Active Directory v2 Endpoint)
+  - [Azure Active Directory B2C](https://docs.microsoft.com/azure/active-directory-b2c/)
+    - [Integrate with B2C](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-android-b2c)
+- Microsoft [authentication broker](https://docs.microsoft.com/azure/active-directory/develop/brokered-auth) support
   - Supports enterprise scenarios including:
     - Device Registration
     - Device Management
     - Intune App Protection
     - Device Single Sign On
-- Introduction of [Single and Multi Account](https://docs.microsoft.com/en-us/azure/active-directory/develop/single-multi-account) Public Client Applications
-- [IAccount and access to claims](https://docs.microsoft.com/en-us/azure/active-directory/develop/accounts-overview)
-- Enable Single Sign-On with different [authorization agents](https://docs.microsoft.com/en-us/azure/active-directory/develop/authorization-agents)
+- Introduction of [Single and Multi Account](https://docs.microsoft.com/azure/active-directory/develop/single-multi-account) Public Client Applications
+- IAccount and access to claims. For more info see [Accounts and tenant profiles](https://docs.microsoft.com/azure/active-directory/develop/accounts-overview)
+- Enable Single Sign-On with different [authorization agents](https://docs.microsoft.com/azure/active-directory/develop/authorization-agents)
 - Support for synchronous methods from worker threads
 >NOTE: Tyler -  Think there may be some outdated config info on docs.ms under concepts->app scenarios->mobile app that calls web APIs. Where does new doc live?
 
@@ -38,13 +38,13 @@ MSAL Android is now generally available with MSAL 1.0!
 ### Migrating from ADAL
 >NOTE: check this is right link
 
-You can review the ADAL to MSAL migration guide [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/migrate-android-adal-msal)
+See the [ADAL to MSAL migration guide for Android](https://docs.microsoft.com/azure/active-directory/develop/migrate-android-adal-msal)
 
 ### Migrating from preview versions of MSAL
 
 >NOTE: where does this doc live?  
 
-You can review the MSAL Preview to GA release guide here
+See the [MSAL Preview to GA release guide]().
 
 ### Sample
 >NOTE: shane- should we link kotlin sample?
@@ -53,7 +53,7 @@ For a complete running sample [link to new sample](https://github.com/Azure-Samp
 
 ## Using MSAL
 
-- Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to register an application. To register your app, use [the Azure portal](https://aka.ms/AppRegistrationsPreview). For Azure AD B2C, checkout [how to register your app with B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-app-registration).  
+- Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to register an application. To register your app, use [the Azure portal](https://aka.ms/AppRegistrations). For Azure AD B2C, checkout [how to register your app with B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-app-registration).  
 
 ### Requirements
 
@@ -71,7 +71,7 @@ dependencies {
 
 ### Step 2: Create your MSAL configuration file
 
->NOTE: Add link to configuration file documentation here. HELP, where is this?
+[Configuration Documentation](https://docs.microsoft.com/azure/active-directory/develop/msal-configuration)
 
 It's simplest to create your configuration file as a "raw" resource file in your project resources.  You'll be able to refer to this using the generated resource identifier when constructing an instance of PublicClientApplication. If you are registering your app in the portal for the first time, you will also be provided with this config JSON.
 
@@ -116,7 +116,7 @@ It's simplest to create your configuration file as a "raw" resource file in your
 
 ### Step 4: Create an MSAL PublicClientApplication
 
->NOTE: In this example were creating an instance of MultipleAccountPublicClientApplication which is designed to work with apps that allow multiple accounts to be used within the same application. If you would like to use SingleAccount mode, replace with the following fragment and replace 'mMultipleAccountApp' with 'mSingleAccountApp' . For more information on multiple vs. single account public client applications click [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/single-multi-account). You can also check out the sample app for examples of how this is used.
+>NOTE: In this example were creating an instance of MultipleAccountPublicClientApplication which is designed to work with apps that allow multiple accounts to be used within the same application. If you would like to use SingleAccount mode, replace with the following fragment and replace 'mMultipleAccountApp' with 'mSingleAccountApp' . For more information on multiple vs. single account public client applications click [here](https://docs.microsoft.com/azure/active-directory/develop/single-multi-account). You can also check out the sample app for examples of how this is used.
 
 >NOTE: help, does this need the same first 3 lines as the multi account fragment? Also, is this the best format for this? Or should we just replace multi account with single account or just leave as is
 
