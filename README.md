@@ -19,7 +19,7 @@ MSAL Android is now generally available with MSAL 1.0!
 - Supported Authorities
   - Microsoft [identity platform](https://docs.microsoft.com/azure/active-directory/develop/) (also known as the Azure Active Directory v2 Endpoint)
   - [Azure Active Directory B2C](https://docs.microsoft.com/azure/active-directory-b2c/)
-    - [Integrate with B2C](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-android-b2c)
+    - [Integrate with B2C](https://docs.microsoft.com/azure/active-directory/develop/msal-android-b2c)
 - Microsoft [authentication broker](https://docs.microsoft.com/azure/active-directory/develop/brokered-auth) support
   - Supports enterprise scenarios including:
     - Device Registration
