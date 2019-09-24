@@ -970,7 +970,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     protected void acquireToken(@NonNull final Activity activity,
                                 @NonNull final String[] scopes,
                                 @Nullable final IAccount account,
-                                @Nullable final UiBehavior uiBehavior,
+                                @Nullable final Prompt uiBehavior,
                                 @Nullable final List<Pair<String, String>> extraQueryParameters,
                                 @Nullable final String[] extraScopesToConsent,
                                 @Nullable final String authority,
@@ -985,7 +985,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(activity)
                 .forAccount(account)
                 .withScopes(Arrays.asList(scopes))
-                .withUiBehavior(uiBehavior)
+                .withPrompt(uiBehavior)
                 .withAuthorizationQueryStringParameters(extraQueryParameters)
                 .withOtherScopesToAuthorize(
                         Arrays.asList(
@@ -1104,7 +1104,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     final AcquireTokenOperationParameters params = OperationParametersAdapter.
                             createAcquireTokenOperationParameters(
                                     acquireTokenParameters,
-                                    mPublicClientConfiguration
+                                    mPublicClientConfiguration,
+                                    mPublicClientConfiguration.getOAuth2TokenCache()
                             );
 
 
@@ -1178,7 +1179,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     final AcquireTokenSilentOperationParameters params =
                             OperationParametersAdapter.createAcquireTokenSilentOperationParameters(
                                     acquireTokenSilentParameters,
-                                    mPublicClientConfiguration
+                                    mPublicClientConfiguration,
+                                    mPublicClientConfiguration.getOAuth2TokenCache()
                             );
 
 

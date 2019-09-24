@@ -46,6 +46,7 @@ import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 import com.microsoft.identity.common.internal.telemetry.Telemetry;
+import com.microsoft.identity.common.internal.telemetry.TelemetryEventStrings;
 import com.microsoft.identity.common.internal.telemetry.events.BrokerEndEvent;
 import com.microsoft.identity.common.internal.telemetry.events.BrokerStartEvent;
 
@@ -91,7 +92,9 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
         Telemetry.emit(
                 new BrokerStartEvent()
                         .putAction(methodName)
+                        .putStrategy(TelemetryEventStrings.Value.BOUND_SERVICE)
         );
+
         IMicrosoftAuthService service;
         Intent resultIntent;
 
@@ -141,17 +144,25 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
         Telemetry.emit(
                 new BrokerStartEvent()
                         .putAction(methodName)
+                        .putStrategy(TelemetryEventStrings.Value.BOUND_SERVICE)
         );
 
         IMicrosoftAuthService service;
-
         MicrosoftAuthClient client = new MicrosoftAuthClient(parameters.getAppContext());
         MicrosoftAuthServiceFuture future = client.connect();
 
         try {
             //Do we want a time out here?
             service = future.get();
-        } catch (Exception e) {
+        } catch (final InterruptedException | ExecutionException e) {
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(false)
+                            .putErrorCode(ErrorStrings.IO_ERROR)
+                            .putErrorDescription(e.getLocalizedMessage())
+            );
+
             throw new RuntimeException("Exception occurred while awaiting (get) return of MicrosoftAuthService", e);
         }
 
@@ -160,15 +171,8 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
             final Bundle resultBundle = service.acquireTokenSilently(requestBundle);
             final AcquireTokenResult result = getAcquireTokenResult(resultBundle);
 
-            Telemetry.emit(
-                    new BrokerEndEvent()
-                            .putAction(methodName)
-                            .isSuccessful(true)
-            );
-
             return result;
         } catch (final RemoteException e) {
-
             Telemetry.emit(
                     new BrokerEndEvent()
                             .putAction(methodName)
@@ -179,7 +183,7 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
 
             throw new ClientException(
                     ErrorStrings.BROKER_BIND_SERVICE_FAILED,
-                    "Exception occurred while attempting to invoke remote service",
+                    "RemoteException occurred while attempting to invoke remote service",
                     e
             );
         } finally {
@@ -191,6 +195,12 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     protected List<ICacheRecord> getBrokerAccounts(@NonNull final OperationParameters parameters)
             throws ClientException, InterruptedException, ExecutionException, RemoteException {
         final String methodName = ":getBrokerAccountsWithAuthService";
+        Telemetry.emit(
+                new BrokerStartEvent()
+                        .putAction(methodName)
+                        .putStrategy(TelemetryEventStrings.Value.BOUND_SERVICE)
+        );
+
         IMicrosoftAuthService service;
         final MicrosoftAuthClient client = new MicrosoftAuthClient(parameters.getAppContext());
         try {
@@ -204,6 +214,12 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                                     service.getAccounts(requestBundle)
                             );
 
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(true)
+            );
+
             return cacheRecords;
         } catch (final ClientException | InterruptedException | ExecutionException | RemoteException e) {
             com.microsoft.identity.common.internal.logging.Logger.error(
@@ -212,6 +228,15 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                             + e.getMessage(),
                     ErrorStrings.IO_ERROR,
                     e);
+
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(false)
+                            .putErrorCode(ErrorStrings.IO_ERROR)
+                            .putErrorDescription(e.getLocalizedMessage())
+            );
+
             throw e;
         } finally {
             client.disconnect();
@@ -229,6 +254,11 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     @WorkerThread
     protected boolean removeBrokerAccount(@NonNull final OperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
         final String methodName = ":removeBrokerAccountWithAuthService";
+        Telemetry.emit(
+                new BrokerStartEvent()
+                        .putAction(methodName)
+                        .putStrategy(TelemetryEventStrings.Value.BOUND_SERVICE)
+        );
 
         IMicrosoftAuthService service;
         final MicrosoftAuthClient client = new MicrosoftAuthClient(parameters.getAppContext());
@@ -240,6 +270,12 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
 
             Bundle requestBundle = getRequestBundleForRemoveAccount(parameters);
             service.removeAccount(requestBundle);
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(true)
+            );
+
             return true;
         } catch (final BaseException | InterruptedException | ExecutionException | RemoteException e) {
             com.microsoft.identity.common.internal.logging.Logger.error(
@@ -248,6 +284,14 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                             + e.getMessage(),
                     ErrorStrings.IO_ERROR,
                     e);
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(false)
+                            .putErrorCode(ErrorStrings.IO_ERROR)
+                            .putErrorDescription(e.getLocalizedMessage())
+            );
+
             throw e;
         } finally {
             client.disconnect();
@@ -264,5 +308,4 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
 
         return requestBundle;
     }
-
 }
