@@ -73,7 +73,6 @@ import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
-import com.microsoft.identity.common.internal.servertelemetry.ServerTelemetry;
 import com.microsoft.identity.common.internal.telemetry.Telemetry;
 import com.microsoft.identity.common.internal.telemetry.TelemetryEventStrings;
 import com.microsoft.identity.common.internal.telemetry.events.ApiEndEvent;
@@ -128,8 +127,6 @@ public class BrokerMsalController extends BaseController {
                         .putProperties(parameters)
                         .putApiId(TelemetryEventStrings.Api.BROKER_ACQUIRE_TOKEN_INTERACTIVE)
         );
-
-        ServerTelemetry.putCurrentApiId(TelemetryEventStrings.Api.BROKER_ACQUIRE_TOKEN_INTERACTIVE);
 
         //Create BrokerResultFuture to block on response from the broker... response will be return as an activity result
         //BrokerActivity will receive the result and ask the API dispatcher to complete the request
@@ -227,8 +224,6 @@ public class BrokerMsalController extends BaseController {
                         .put(TelemetryEventStrings.Key.REQUEST_CODE, String.valueOf(requestCode))
         );
 
-        ServerTelemetry.putCurrentApiId(TelemetryEventStrings.Api.BROKER_COMPLETE_ACQUIRE_TOKEN_INTERACTIVE);
-
         mBrokerResultFuture.setResultBundle(data.getExtras());
 
         Telemetry.emit(
@@ -247,8 +242,6 @@ public class BrokerMsalController extends BaseController {
                         .putProperties(parameters)
                         .putApiId(TelemetryEventStrings.Api.BROKER_ACQUIRE_TOKEN_SILENT)
         );
-
-        ServerTelemetry.putCurrentApiId(TelemetryEventStrings.Api.BROKER_ACQUIRE_TOKEN_SILENT);
 
         AcquireTokenResult acquireTokenResult = null;
 
@@ -299,8 +292,6 @@ public class BrokerMsalController extends BaseController {
                         .putProperties(parameters)
                         .putApiId(TelemetryEventStrings.Api.BROKER_GET_ACCOUNTS)
         );
-
-        ServerTelemetry.putCurrentApiId(TelemetryEventStrings.Api.BROKER_GET_ACCOUNTS);
 
         helloBroker(parameters);
         List<ICacheRecord> result = null;
@@ -353,8 +344,6 @@ public class BrokerMsalController extends BaseController {
                         .putProperties(parameters)
                         .putApiId(TelemetryEventStrings.Api.BROKER_REMOVE_ACCOUNT)
         );
-
-        ServerTelemetry.putCurrentApiId(TelemetryEventStrings.Api.BROKER_REMOVE_ACCOUNT);
 
         helloBroker(parameters);
         boolean result = false;
@@ -421,8 +410,6 @@ public class BrokerMsalController extends BaseController {
                 new ApiStartEvent()
                         .putApiId(TelemetryEventStrings.Api.GET_BROKER_DEVICE_MODE)
         );
-
-        ServerTelemetry.putCurrentApiId(TelemetryEventStrings.Api.GET_BROKER_DEVICE_MODE);
 
         final Handler handler = new Handler(Looper.getMainLooper());
 

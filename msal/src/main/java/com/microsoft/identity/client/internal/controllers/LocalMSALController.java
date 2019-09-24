@@ -48,7 +48,6 @@ import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.request.SdkType;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
-import com.microsoft.identity.common.internal.servertelemetry.ServerTelemetry;
 import com.microsoft.identity.common.internal.telemetry.Telemetry;
 import com.microsoft.identity.common.internal.telemetry.TelemetryEventStrings;
 import com.microsoft.identity.common.internal.telemetry.events.ApiEndEvent;
@@ -84,8 +83,6 @@ public class LocalMSALController extends BaseController {
                         .putProperties(parameters)
                         .putApiId(TelemetryEventStrings.Api.LOCAL_ACQUIRE_TOKEN_INTERACTIVE)
         );
-
-        ServerTelemetry.putCurrentApiId(TelemetryEventStrings.Api.LOCAL_ACQUIRE_TOKEN_INTERACTIVE);
 
         final AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
 
@@ -203,8 +200,6 @@ public class LocalMSALController extends BaseController {
                         .put(TelemetryEventStrings.Key.REQUEST_CODE, String.valueOf(requestCode))
         );
 
-        ServerTelemetry.putCurrentApiId(TelemetryEventStrings.Api.LOCAL_COMPLETE_ACQUIRE_TOKEN_INTERACTIVE);
-
         mAuthorizationStrategy.completeAuthorization(requestCode, resultCode, data);
 
         Telemetry.emit(
@@ -228,9 +223,6 @@ public class LocalMSALController extends BaseController {
                         .putProperties(parameters)
                         .putApiId(TelemetryEventStrings.Api.LOCAL_ACQUIRE_TOKEN_SILENT)
         );
-
-        ServerTelemetry.putCurrentApiId(TelemetryEventStrings.Api.LOCAL_ACQUIRE_TOKEN_SILENT);
-        ServerTelemetry.putCurrentForceRefresh(parameters.getForceRefresh());
 
         final AcquireTokenResult acquireTokenSilentResult = new AcquireTokenResult();
 
@@ -344,8 +336,6 @@ public class LocalMSALController extends BaseController {
                         .putApiId(TelemetryEventStrings.Api.LOCAL_GET_ACCOUNTS)
         );
 
-        ServerTelemetry.putCurrentApiId(TelemetryEventStrings.Api.LOCAL_GET_ACCOUNTS);
-
         final List<ICacheRecord> accountsInCache =
                 parameters
                         .getTokenCache()
@@ -372,8 +362,6 @@ public class LocalMSALController extends BaseController {
                         .putProperties(parameters)
                         .putApiId(TelemetryEventStrings.Api.LOCAL_REMOVE_ACCOUNT)
         );
-
-        ServerTelemetry.putCurrentApiId(TelemetryEventStrings.Api.LOCAL_REMOVE_ACCOUNT);
 
         final boolean deleteHomeAndGuestAccounts = true;
         String realm = null;
