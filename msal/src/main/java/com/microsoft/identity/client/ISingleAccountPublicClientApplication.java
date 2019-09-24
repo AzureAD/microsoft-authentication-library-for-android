@@ -69,16 +69,19 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * Note: The authority used to make the sign in request will be either the MSAL default: https://login.microsoftonline.com/common
      * or the default authority specified by you in your configuration
      *
-     * @param activity Non-null {@link Activity} that is used as the parent activity for launching the {@link AuthenticationActivity}.
-     * @param scopes   The non-null array of scopes to be consented to during sign in.
-     *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     *                 The access token returned is for MS Graph and will allow you to query for additional information about the signed in account.
-     * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
-     *                 sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
-     *                 Failure case will be sent back via {
+     * @param activity  Non-null {@link Activity} that is used as the parent activity for launching the {@link AuthenticationActivity}.
+     * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
+     *                  which will have the UPN pre-populated.
+     * @param scopes    The non-null array of scopes to be consented to during sign in.
+     *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     *                  The access token returned is for MS Graph and will allow you to query for additional information about the signed in account.
+     * @param callback  {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                  sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     *                  Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
     void signIn(@NonNull final Activity activity,
+                @NonNull final String loginHint,
                 @NonNull final String[] scopes,
                 @NonNull final AuthenticationCallback callback);
 
@@ -107,14 +110,14 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * @param scopes    The non-null array of scopes to be requested for the access token.
      *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
      * @param authority Authority to issue the token.
-     * @param callback  {@link AuthenticationCallback} that is used to send the result back. The success result will be
-     *                  sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     * @param callback  {@link SilentAuthenticationCallback} that is used to send the result back. The success result will be
+     *                  sent back via {@link SilentAuthenticationCallback#onSuccess(IAuthenticationResult)}.
      *                  Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
     void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                  @NonNull final String authority,
-                                 @NonNull final AuthenticationCallback callback);
+                                 @NonNull final SilentAuthenticationCallback callback);
 
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If

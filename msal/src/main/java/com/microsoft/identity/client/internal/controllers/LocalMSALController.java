@@ -23,9 +23,10 @@
 package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Intent;
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
-import android.text.TextUtils;
 
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.exception.ArgumentException;

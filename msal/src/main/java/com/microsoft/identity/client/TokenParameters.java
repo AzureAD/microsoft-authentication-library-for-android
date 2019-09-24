@@ -33,19 +33,17 @@ import java.util.List;
 /**
  * Base class for AcquireTokenParameters and AcquireTokenSilentParameters
  */
-abstract class TokenParameters {
+public abstract class TokenParameters {
 
     private List<String> mScopes;
     private IAccount mAccount;
     private String mAuthority;
     private ClaimsRequest mClaimsRequest;
-    private AuthenticationCallback mCallback;
     private AccountRecord mAccountRecord;
 
     protected TokenParameters(final TokenParameters.Builder builder) {
         mAccount = builder.mAccount;
         mAuthority = builder.mAuthority;
-        mCallback = builder.mCallback;
         mClaimsRequest = builder.mClaimsRequest;
         mScopes = builder.mScopes;
     }
@@ -67,8 +65,8 @@ abstract class TokenParameters {
      *
      * @param scopes
      */
-    public void setScopes(List<String> scopes) {
-        this.mScopes = scopes;
+    void setScopes(final List<String> scopes){
+        mScopes = scopes;
     }
 
     /**
@@ -87,7 +85,7 @@ abstract class TokenParameters {
      *
      * @param account
      */
-    public void setAccount(IAccount account) {
+    void setAccount(IAccount account) {
         this.mAccount = account;
     }
 
@@ -106,7 +104,7 @@ abstract class TokenParameters {
      *
      * @param authority
      */
-    public void setAuthority(String authority) {
+    void setAuthority(String authority) {
         this.mAuthority = authority;
     }
 
@@ -117,45 +115,6 @@ abstract class TokenParameters {
      */
     public ClaimsRequest getClaimsRequest() {
         return mClaimsRequest;
-    }
-
-    /**
-     * Optional. Can be passed into request specific claims in the id_token and access_token
-     *
-     * @param claimsRequest
-     */
-    public void setClaimsRequest(ClaimsRequest claimsRequest) {
-        this.mClaimsRequest = claimsRequest;
-    }
-
-    /**
-     * The Non-null {@link AuthenticationCallback} to receive the result back.
-     * 1) If user cancels the flow by pressing the device back button, the result will be sent
-     * back via {@link AuthenticationCallback#onCancel()}.
-     * 2) If the sdk successfully receives the token back, result will be sent back via
-     * {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
-     * 3) All the other errors will be sent back via
-     * {@link AuthenticationCallback#onError(com.microsoft.identity.client.exception.MsalException)}.
-     *
-     * @return
-     */
-    public AuthenticationCallback getCallback() {
-        return mCallback;
-    }
-
-    /**
-     * The Non-null {@link AuthenticationCallback} to receive the result back.
-     * 1) If user cancels the flow by pressing the device back button, the result will be sent
-     * back via {@link AuthenticationCallback#onCancel()}.
-     * 2) If the sdk successfully receives the token back, result will be sent back via
-     * {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
-     * 3) All the other errors will be sent back via
-     * {@link AuthenticationCallback#onError(com.microsoft.identity.client.exception.MsalException)}.
-     *
-     * @param callback
-     */
-    public void setCallback(AuthenticationCallback callback) {
-        this.mCallback = callback;
     }
 
     void setAccountRecord(AccountRecord record) {
@@ -177,7 +136,6 @@ abstract class TokenParameters {
         private IAccount mAccount;
         private String mAuthority;
         private ClaimsRequest mClaimsRequest;
-        private AuthenticationCallback mCallback;
 
         public B withScopes(List<String> scopes) {
             if (null != mScopes) {
@@ -207,11 +165,6 @@ abstract class TokenParameters {
             return self();
         }
 
-        public B callback(AuthenticationCallback callback) {
-            mCallback = callback;
-            return self();
-        }
-
         public B withResource(final String resource) {
             if (null != mScopes) {
                 throw new IllegalArgumentException(
@@ -233,6 +186,5 @@ abstract class TokenParameters {
         public abstract B self();
 
         public abstract TokenParameters build();
-
     }
 }
