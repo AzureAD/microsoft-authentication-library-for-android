@@ -25,8 +25,8 @@ package com.microsoft.identity.client;
 
 import android.app.Activity;
 import android.content.Context;
+
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalException;

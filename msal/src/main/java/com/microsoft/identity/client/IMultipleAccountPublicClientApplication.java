@@ -124,14 +124,14 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * @param scopes   The non-null array of scopes to be requested for the access token.
      *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
      * @param account  {@link IAccount} represents the account to silently request tokens for.
-     * @param callback {@link AuthenticationCallback} that is used to send the result back. The success result will be
-     *                 sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     * @param callback {@link SilentAuthenticationCallback} that is used to send the result back. The success result will be
+     *                 sent back via {@link SilentAuthenticationCallback#onSuccess(IAuthenticationResult)}.
      *                 Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
     void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                  @NonNull final IAccount account,
-                                 @NonNull final AuthenticationCallback callback);
+                                 @NonNull final SilentAuthenticationCallback callback);
 
 
     /**
@@ -158,15 +158,15 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
      * @param account   {@link IAccount} represents the account to silently request tokens for.
      * @param authority Authority to issue the token.
-     * @param callback  {@link AuthenticationCallback} that is used to send the result back. The success result will be
-     *                  sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     * @param callback  {@link SilentAuthenticationCallback} that is used to send the result back. The success result will be
+     *                  sent back via {@link SilentAuthenticationCallback#onSuccess(IAuthenticationResult)}.
      *                  Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
     void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                  @NonNull final IAccount account,
                                  @NonNull final String authority,
-                                 @NonNull final AuthenticationCallback callback);
+                                 @NonNull final SilentAuthenticationCallback callback);
 
     interface GetAccountCallback extends TaskCompletedCallbackWithError<IAccount, MsalException> {
         /**
