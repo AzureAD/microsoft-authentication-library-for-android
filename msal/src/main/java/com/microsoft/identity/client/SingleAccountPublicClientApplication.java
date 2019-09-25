@@ -219,6 +219,12 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                        @NonNull final String loginHint,
                        @NonNull final String[] scopes,
                        @NonNull final AuthenticationCallback callback) {
+        final IAccount persistedAccount = getPersistedCurrentAccount();
+        if (persistedAccount != null) {
+            callback.onError(new MsalClientException(MsalClientException.INVALID_PARAMETER));
+            return;
+        }
+
         acquireToken(
                 activity,
                 scopes,
@@ -290,48 +296,47 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         final String methodName = ":signOut";
         final PublicClientApplicationConfiguration configuration = getConfiguration();
 
+        final MultiTenantAccount persistedCurrentAccount = getPersistedCurrentAccount();
+        if (persistedCurrentAccount == null) {
+            callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
+            return;
+        }
+
+        if (mIsSharedDevice) {
+            removeAccountFromSharedDevice(callback, configuration);
+            return;
+        }
+
         try {
-            if (mIsSharedDevice) {
-                removeAccountFromSharedDevice(callback, configuration);
-                return;
-            }
+            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
+            final AccountRecord requestAccountRecord = new AccountRecord();
+            requestAccountRecord.setEnvironment(persistedCurrentAccount.getEnvironment());
+            requestAccountRecord.setHomeAccountId(persistedCurrentAccount.getHomeAccountId());
+            params.setAccount(requestAccountRecord);
 
-            final MultiTenantAccount persistedCurrentAccount = getPersistedCurrentAccount();
-
-            if (persistedCurrentAccount != null) {
-                final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
-                final AccountRecord requestAccountRecord = new AccountRecord();
-                requestAccountRecord.setEnvironment(persistedCurrentAccount.getEnvironment());
-                requestAccountRecord.setHomeAccountId(persistedCurrentAccount.getHomeAccountId());
-                params.setAccount(requestAccountRecord);
-
-                final RemoveAccountCommand command = new RemoveAccountCommand(
-                        params,
-                        MSALControllerFactory.getAcquireTokenController(
-                                mPublicClientConfiguration.getAppContext(),
-                                params.getAuthority(),
-                                mPublicClientConfiguration
-                        ),
-                        new TaskCompletedCallbackWithError<Boolean, BaseException>() {
-                            @Override
-                            public void onError(BaseException error) {
-                                callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(error));
-                            }
-
-                            @Override
-                            public void onTaskCompleted(Boolean result) {
-                                persistCurrentAccount(null);
-                                callback.onSignOut();
-                            }
+            final RemoveAccountCommand command = new RemoveAccountCommand(
+                    params,
+                    MSALControllerFactory.getAcquireTokenController(
+                            mPublicClientConfiguration.getAppContext(),
+                            params.getAuthority(),
+                            mPublicClientConfiguration
+                    ),
+                    new TaskCompletedCallbackWithError<Boolean, BaseException>() {
+                        @Override
+                        public void onError(BaseException error) {
+                            callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(error));
                         }
-                );
 
-                ApiDispatcher.removeAccount(command);
-            } else {
-                callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT, "No account is currently signed in to your Single Account Public Client Application"));
-            }
+                        @Override
+                        public void onTaskCompleted(Boolean result) {
+                            persistCurrentAccount(null);
+                            callback.onSignOut();
+                        }
+                    }
+            );
 
-        } catch (MsalClientException clientException) {
+            ApiDispatcher.removeAccount(command);
+        } catch (final MsalClientException clientException) {
             callback.onError(clientException);
         }
     }
@@ -449,6 +454,12 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
+        final IAccount persistedAccount = getPersistedCurrentAccount();
+        if (persistedAccount == null) {
+            callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
+            return;
+        }
+
         acquireToken(
                 activity,
                 scopes,
@@ -478,11 +489,12 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final String authority,
-                                        @NonNull final AuthenticationCallback callback) {
+                                        @NonNull final SilentAuthenticationCallback callback) {
 
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount == null) {
             callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
+            return;
         }
 
         acquireTokenSilent(
@@ -512,6 +524,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount == null) {
             acquireTokenSilentParameters.getCallback().onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
+            return;
         }
 
         // In SingleAccount mode, always overwrite 'Account' with current account.

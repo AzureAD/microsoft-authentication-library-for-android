@@ -996,7 +996,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 )
         );
 
-        checkIntentFilterAddedToAppManifest();
+        mPublicClientConfiguration.checkIntentFilterAddedToAppManifestForBrokerFlow();
 
         // Since network request is sent from the sdk, if calling app doesn't declare the internet
         // permission in the manifest, we cannot make the network call.
@@ -1385,7 +1385,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                       @NonNull final String authority,
                                       final boolean forceRefresh,
                                       @Nullable final ClaimsRequest claimsRequest,
-                                      @NonNull final AuthenticationCallback callback) {
+                                      @NonNull final SilentAuthenticationCallback callback) {
         validateNonNullArgument(account, "Account");
         validateNonNullArgument(callback, "Callback");
 
@@ -1604,7 +1604,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         final ResultFuture<AsyncResult<IAuthenticationResult>> future = new ResultFuture<>();
 
-        acquireTokenSilentParameters.setCallback(new AuthenticationCallback() {
+        acquireTokenSilentParameters.setCallback(new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 future.setResult(new AsyncResult<>(authenticationResult, null));
@@ -1613,11 +1613,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             @Override
             public void onError(MsalException exception) {
                 future.setResult(new AsyncResult<IAuthenticationResult>(null, exception));
-            }
-
-            @Override
-            public void onCancel() {
-                future.setResult(new AsyncResult<IAuthenticationResult>(null, new MsalUserCancelException()));
             }
         });
 
@@ -1629,23 +1624,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             return result.getResult();
         } else {
             throw result.getException();
-        }
-    }
-
-    private void checkIntentFilterAddedToAppManifest() {
-        final boolean hasCustomTabRedirectActivity = MsalUtils.hasCustomTabRedirectActivity(
-                mPublicClientConfiguration.getAppContext(),
-                mPublicClientConfiguration.getRedirectUri()
-        );
-
-        if (!hasCustomTabRedirectActivity) {
-            throw new IllegalStateException(
-                    "Intent filter for: "
-                            + BrowserTabActivity.class.getSimpleName()
-                            + " is missing. Please verify that the registered redirect URI in AndroidManifest.xml is valid. "
-                            + "Please note that the leading /'//' is required for android:path. "
-                            + "For more information, please refer to the MSAL readme and https://developer.android.com/training/app-links/deep-linking."
-            );
         }
     }
 
@@ -1857,7 +1835,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 authority, // authority
                 forceRefresh, // forceRefresh
                 null, // claimsRequest
-                new AuthenticationCallback() {
+                new SilentAuthenticationCallback() {
                     @Override
                     public void onSuccess(IAuthenticationResult authenticationResult) {
                         future.setResult(new AsyncResult<>(authenticationResult, null));
@@ -1866,11 +1844,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     @Override
                     public void onError(MsalException exception) {
                         future.setResult(new AsyncResult<IAuthenticationResult>(null, exception));
-                    }
-
-                    @Override
-                    public void onCancel() {
-                        future.setResult(new AsyncResult<IAuthenticationResult>(null, new MsalUserCancelException()));
                     }
                 }
         );

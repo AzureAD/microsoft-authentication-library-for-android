@@ -23,6 +23,11 @@
 package com.microsoft.identity.client;
 
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.net.Uri;
+import android.util.Base64;
 
 import android.support.annotation.NonNull;
 
@@ -30,18 +35,24 @@ import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
+import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.Environment;
 import com.microsoft.identity.common.internal.authorities.UnknownAudience;
 import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
+import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.ui.browser.BrowserDescriptor;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.crypto.SecretKey;
 
@@ -56,11 +67,11 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.MULTIPLE_CLOUDS_SUPPORTED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REQUIRED_BROKER_PROTOCOL_VERSION;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.SHARED_DEVICE_MODE_SUPPORTED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.TELEMETRY;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
 
 public class PublicClientApplicationConfiguration {
+    private static final String TAG = PublicClientApplicationConfiguration.class.getSimpleName();
 
     public static final class SerializedNames {
         static final String CLIENT_ID = "client_id";
@@ -75,7 +86,6 @@ public class PublicClientApplicationConfiguration {
         static final String REQUIRED_BROKER_PROTOCOL_VERSION = "minimum_required_broker_protocol_version";
         static final String TELEMETRY = "telemetry";
         static final String BROWSER_SAFE_LIST = "browser_safelist";
-        static final String SHARED_DEVICE_MODE_SUPPORTED = "shared_device_mode_supported";
         static final String ACCOUNT_MODE = "account_mode";
     }
 
@@ -115,9 +125,6 @@ public class PublicClientApplicationConfiguration {
     @SerializedName(TELEMETRY)
     TelemetryConfiguration mTelemetryConfiguration;
 
-    @SerializedName(SHARED_DEVICE_MODE_SUPPORTED)
-    Boolean mSharedDeviceModeSupported;
-
     @SerializedName(ACCOUNT_MODE)
     AccountMode mAccountMode;
 
@@ -138,6 +145,7 @@ public class PublicClientApplicationConfiguration {
 
     /**
      * Gets the list of browser safe list.
+     *
      * @return The list of browser which are allowed to use for auth flow.
      */
     public List<BrowserDescriptor> getBrowserSafeList() {
@@ -239,18 +247,6 @@ public class PublicClientApplicationConfiguration {
     }
 
     /**
-     * Indicates whether or not the public client application supports shared device mode
-     * <p>
-     * Shared device mode is enabled by the Administrators of devices using the Microsoft Authenticator app or via
-     * provisioning via a mobile device management solution.
-     *
-     * @return The boolean indicator of whether shared device mode is supported by this app.
-     */
-    public Boolean getSharedDeviceModeSupported() {
-        return mSharedDeviceModeSupported;
-    }
-
-    /**
      * Gets the currently configured {@link AccountMode} for the PublicClientApplication.
      *
      * @return The AccountMode supported by this application.
@@ -261,6 +257,7 @@ public class PublicClientApplicationConfiguration {
 
     /**
      * Indicates the minimum required broker protocol version number.
+     *
      * @return String of broker protocol version
      */
     public String getRequiredBrokerProtocolVersion() {
@@ -343,7 +340,7 @@ public class PublicClientApplicationConfiguration {
         this.mRequiredBrokerProtocolVersion = config.mRequiredBrokerProtocolVersion == null ? this.mRequiredBrokerProtocolVersion : config.mRequiredBrokerProtocolVersion;
         if (this.mBrowserSafeList == null) {
             this.mBrowserSafeList = config.mBrowserSafeList;
-        } else if (config.mBrowserSafeList != null){
+        } else if (config.mBrowserSafeList != null) {
             this.mBrowserSafeList.addAll(config.mBrowserSafeList);
         }
 
@@ -358,7 +355,7 @@ public class PublicClientApplicationConfiguration {
 
         // Only validate the browser safe list configuration
         // when the authorization agent is set either DEFAULT or BROWSER.
-        if ( !mAuthorizationAgent.equals(AuthorizationAgent.WEBVIEW)
+        if (!mAuthorizationAgent.equals(AuthorizationAgent.WEBVIEW)
                 && (mBrowserSafeList == null || mBrowserSafeList.isEmpty())) {
             throw new IllegalArgumentException(
                     "Null browser safe list configured."
@@ -391,6 +388,83 @@ public class PublicClientApplicationConfiguration {
     private void nullConfigurationCheck(String configKey, String configValue) {
         if (configValue == null) {
             throw new IllegalArgumentException(configKey + " cannot be null.  Invalid configuration.");
+        }
+    }
+
+    private boolean isBrokerRedirectUri() {
+        final String BROKER_REDIRECT_URI_REGEX = "msauth://" + mAppContext.getPackageName() + "/.*";
+        final Pattern pairRegex = Pattern.compile(BROKER_REDIRECT_URI_REGEX);
+        final Matcher matcher = pairRegex.matcher(mRedirectUri);
+        return matcher.matches();
+    }
+
+    // Verifies broker redirect URI against the app's signature, to make sure that this is legit.
+    private void verifyRedirectUriWithAppSignature() {
+        final String packageName = mAppContext.getPackageName();
+        try {
+            final PackageInfo info = mAppContext.getPackageManager().getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
+            for (final Signature signature : info.signatures) {
+                final MessageDigest messageDigest = MessageDigest.getInstance("SHA");
+                messageDigest.update(signature.toByteArray());
+                final String signatureHash = Base64.encodeToString(messageDigest.digest(), Base64.NO_WRAP);
+
+                final Uri.Builder builder = new Uri.Builder();
+                final Uri uri = builder.scheme("msauth")
+                        .authority(packageName)
+                        .appendPath(signatureHash)
+                        .build();
+
+                if (mRedirectUri.equalsIgnoreCase(uri.toString())) {
+                    // Life is good.
+                    return;
+                }
+            }
+        } catch (PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
+            Logger.error(TAG, "Unexpected error in verifyRedirectUriWithAppSignature()", e);
+        }
+
+        throw new IllegalStateException("The redirect URI in the configuration file doesn't match with the one " +
+                "generated with package name and signature hash. Please verify the uri in the config file and your app registration in Azure portal.");
+    }
+
+    public void checkIntentFilterAddedToAppManifestForBrokerFlow() {
+        if (!mUseBroker) {
+            return;
+        }
+
+        if (!isBrokerRedirectUri()) {
+            // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
+            // If this is the case, we can assume that the user doesn't need Broker support.
+            Logger.info(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth.");
+            mUseBroker = false;
+            return;
+        }
+
+        verifyRedirectUriWithAppSignature();
+
+        final boolean hasCustomTabRedirectActivity = MsalUtils.hasCustomTabRedirectActivity(
+                mAppContext,
+                mRedirectUri
+        );
+
+        if (!hasCustomTabRedirectActivity) {
+            final Uri redirectUri = Uri.parse(mRedirectUri);
+            throw new IllegalStateException(
+                    "Intent filter for: " +
+                            BrowserTabActivity.class.getSimpleName() +
+                            " is missing. " +
+                            " Please make sure you have the following activity in your AndroidManifest.xml \n\n" +
+                            "<activity android:name=\"com.microsoft.identity.client.BrowserTabActivity\">" + "\n" +
+                            "\t" + "<intent-filter>" + "\n" +
+                            "\t\t" + "<action android:name=\"android.intent.action.VIEW\" />" + "\n" +
+                            "\t\t" + "<category android:name=\"android.intent.category.DEFAULT\" />" + "\n" +
+                            "\t\t" + "<category android:name=\"android.intent.category.BROWSABLE\" />" + "\n" +
+                            "\t\t" + "<data" + "\n" +
+                            "\t\t\t" + "android:host=\"" + redirectUri.getHost() + "\"" + "\n" +
+                            "\t\t\t" + "android:path=\'" + redirectUri.getPath() + "\"" + "\n" +
+                            "\t\t\t" + "android:scheme=\"" + redirectUri.getScheme() + "\" />" + "\n" +
+                            "\t" + "</intent-filter>" + "\n" +
+                            "</activity>" + "\n");
         }
     }
 

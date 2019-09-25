@@ -11,7 +11,7 @@
   "authorization_user_agent": "DEFAULT",
   "minimum_required_broker_protocol_version": "3.0",
   "multiple_clouds_supported": false,
-  "broker_redirect_uri_registered": false,
+  "broker_redirect_uri_registered": true,
   "environment": "Production",
   "http": {
     "connect_timeout": 10000,
@@ -22,7 +22,6 @@
     "log_level": "WARNING",
     "logcat_enabled": true
   },
-  "shared_device_mode_supported": false,
   "account_mode": "MULTIPLE",
   "browser_safelist": [
     {
