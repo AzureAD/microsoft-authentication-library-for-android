@@ -28,6 +28,7 @@ import androidx.annotation.Nullable;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
+import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryIdToken;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 
 import java.util.Map;
@@ -129,18 +130,20 @@ public class Account implements IAccount {
     @NonNull
     @Override
     public String getUsername() {
-        String username = "";
-
         if (null != getClaims()) {
-            final String usernameClaim = (String) getClaims().get(IDToken.PREFERRED_USERNAME);
+            final String preferredUsername = (String) getClaims().get(IDToken.PREFERRED_USERNAME);
+            if (null != preferredUsername) {
+                return preferredUsername;
+            }
 
-            if (null != usernameClaim) {
-                username = usernameClaim;
-            } else {
-                username = MISSING_FROM_THE_TOKEN_RESPONSE;
+            // For backward compatibility.
+            // If AcquireToken was done in ADAL, cached id_token might not have the "preferred_username" field.
+            final String upn = (String) getClaims().get(AzureActiveDirectoryIdToken.UPN);
+            if (null != upn) {
+                return upn;
             }
         }
 
-        return username;
+        return MISSING_FROM_THE_TOKEN_RESPONSE;
     }
 }
