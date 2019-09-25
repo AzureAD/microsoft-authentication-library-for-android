@@ -39,18 +39,20 @@ import com.microsoft.identity.common.exception.UserCancelException;
 
 public class MsalExceptionAdapter {
 
+    private static final String TAG = MsalExceptionAdapter.class.getName();
+
     public static MsalException msalExceptionFromBaseException(final BaseException e) {
         MsalException msalException = null;
 
         if (e instanceof ClientException) {
-            ClientException clientException = ((ClientException) e);
+            final ClientException clientException = ((ClientException) e);
             msalException = new MsalClientException(
                     clientException.getErrorCode(),
                     clientException.getMessage(),
                     clientException
             );
         } else if (e instanceof ArgumentException) {
-            ArgumentException argumentException = ((ArgumentException) e);
+            final ArgumentException argumentException = ((ArgumentException) e);
             msalException = new MsalArgumentException(
                     argumentException.getArgumentName(),
                     argumentException.getOperationName(),
@@ -58,14 +60,14 @@ public class MsalExceptionAdapter {
                     argumentException
             );
         } else if (e instanceof UiRequiredException) {
-            UiRequiredException uiRequiredException = ((UiRequiredException) e);
+            final UiRequiredException uiRequiredException = ((UiRequiredException) e);
             msalException = new MsalUiRequiredException(uiRequiredException.getErrorCode(), uiRequiredException.getMessage());
         } else if (e instanceof IntuneAppProtectionPolicyRequiredException){
             msalException = new MsalIntuneAppProtectionPolicyRequiredException(
                     (IntuneAppProtectionPolicyRequiredException)e
             );
         }else if (e instanceof ServiceException) {
-            ServiceException serviceException = ((ServiceException) e);
+            final ServiceException serviceException = ((ServiceException) e);
             msalException = new MsalServiceException(
                     serviceException.getErrorCode(),
                     serviceException.getMessage(),
@@ -75,7 +77,6 @@ public class MsalExceptionAdapter {
         } else if (e instanceof UserCancelException) {
             msalException = new MsalUserCancelException();
         }
-
         if (msalException == null) {
             msalException = new MsalClientException(MsalClientException.UNKNOWN_ERROR, e.getMessage(), e);
         }
@@ -83,5 +84,4 @@ public class MsalExceptionAdapter {
         return msalException;
 
     }
-
 }
