@@ -31,6 +31,7 @@ import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
+import com.microsoft.identity.client.RoboTestCacheHelper;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
@@ -41,21 +42,15 @@ import com.microsoft.identity.client.robolectric.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.robolectric.shadows.ShadowStrategyResultServerError;
 import com.microsoft.identity.client.robolectric.shadows.ShadowStrategyResultUnsuccessful;
 import com.microsoft.identity.common.exception.ClientException;
-import com.microsoft.identity.common.internal.authorities.Authority;
-import com.microsoft.identity.internal.testutils.authorities.MockAuthority;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
-import com.microsoft.identity.internal.testutils.MockTokenResponse;
 import com.microsoft.identity.common.internal.util.StringUtil;
+import com.microsoft.identity.internal.testutils.MockTokenResponse;
 
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -529,17 +524,6 @@ public final class AcquireTokenMockTest {
         }.performTest();
     }
 
-    private ICacheRecord saveTokens(TokenResponse tokenResponse, IPublicClientApplication application) throws ClientException {
-        final OAuth2TokenCache tokenCache = application.getConfiguration().getOAuth2TokenCache();
-        final String clientId = application.getConfiguration().getClientId();
-        final Authority authority = new MockAuthority();
-        final OAuth2Strategy strategy = authority.createOAuth2Strategy();
-        final MicrosoftStsAuthorizationRequest fakeAuthRequest = Mockito.mock(MicrosoftStsAuthorizationRequest.class);
-        Mockito.when(fakeAuthRequest.getAuthority()).thenReturn(authority.getAuthorityURL());
-        Mockito.when(fakeAuthRequest.getClientId()).thenReturn(clientId);
-        return tokenCache.save(strategy, fakeAuthRequest, tokenResponse);
-    }
-
     private IAccount performGetAccount(IPublicClientApplication application, final String loginHint) {
         final IAccount[] requestedAccount = {null};
         final IMultipleAccountPublicClientApplication multipleAcctApp = (IMultipleAccountPublicClientApplication) application;
@@ -566,10 +550,10 @@ public final class AcquireTokenMockTest {
 
     private ICacheRecord createDataInCache(IPublicClientApplication application) {
         ICacheRecord cacheRecord = null;
-        final TokenResponse tokenResponse = MockTokenResponse.getTokenResponse();
+        final TokenResponse tokenResponse = MockTokenResponse.getMockSuccessTokenResponse();
 
         try {
-            cacheRecord = saveTokens(tokenResponse, application);
+            cacheRecord = RoboTestCacheHelper.saveTokens(tokenResponse, application);
         } catch (ClientException e) {
             fail("Unable to save tokens to cache: " + e.getMessage());
         }
@@ -579,10 +563,10 @@ public final class AcquireTokenMockTest {
 
     private ICacheRecord createDataInCacheWithExpiredAccessToken(IPublicClientApplication application) {
         ICacheRecord cacheRecord = null;
-        final TokenResponse tokenResponse = MockTokenResponse.getTokenResponseWithExpiredAccessToken();
+        final TokenResponse tokenResponse = MockTokenResponse.getMockTokenResponseWithExpiredAccessToken();
 
         try {
-            cacheRecord = saveTokens(tokenResponse, application);
+            cacheRecord = RoboTestCacheHelper.saveTokens(tokenResponse, application);
         } catch (ClientException e) {
             fail("Unable to save tokens to cache: " + e.getMessage());
         }
