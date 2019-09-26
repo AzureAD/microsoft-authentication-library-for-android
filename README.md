@@ -1,8 +1,8 @@
 Microsoft Authentication Library (MSAL) for Android
 ==============================================
 
-| [Getting Started](https://docs.microsoft.com/azure/active-directory/develop/guidedsetups/active-directory-mobileanddesktopapp-android-intro) | [Sample Code](https://github.com/Azure-Samples/ms-identity-android-java) | [Library Reference](http://javadoc.io/doc/com.microsoft.identity.client/msal) | [Support](README.md#community-help-and-support)
-| --- | --- | --- | --- |
+| [Getting Started](https://docs.microsoft.com/azure/active-directory/develop/quickstart-v2-android) | [Sample Code](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/MSAL-Code-Samples)| [Library Reference](http://javadoc.io/doc/com.microsoft.identity.client/msal) | [Support](README.md#community-help-and-support) | [Overview](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki)
+| --- | --- | --- | --- | --- |
 
 The MSAL library for Android gives your app the ability to use the [Microsoft Cloud](https://cloud.microsoft.com) by supporting [Microsoft Azure Active Directory](https://azure.microsoft.com/services/active-directory/) and [Microsoft accounts](https://account.microsoft.com) in a converged experience using industry standard OAuth2 and OpenID Connect. The library also supports [Azure AD B2C](https://azure.microsoft.com/services/active-directory-b2c/).
 
@@ -30,26 +30,16 @@ MSAL Android is now generally available with MSAL 1.0!
 - IAccount and access to claims. For more info see [Accounts and tenant profiles](https://docs.microsoft.com/azure/active-directory/develop/accounts-overview)
 - Enable Single Sign-On with different [authorization agents](https://docs.microsoft.com/azure/active-directory/develop/authorization-agents)
 - Support for synchronous methods from worker threads
->NOTE: Tyler -  Think there may be some outdated config info on docs.ms under concepts->app scenarios->mobile app that calls web APIs. Where does new doc live?
-
-- Improved configuration and control of your PublicClientApplication using configuration file
+- Improved [configuration](https://docs.microsoft.com/azure/active-directory/develop/msal-configuration) and control of your PublicClientApplication using configuration file
 - AndroidX Compatible
 
 ### Migrating from ADAL
->NOTE: check this is right link
 
 See the [ADAL to MSAL migration guide for Android](https://docs.microsoft.com/azure/active-directory/develop/migrate-android-adal-msal)
 
-### Migrating from preview versions of MSAL
-
->NOTE: where does this doc live?  
-
-See the [MSAL Preview to GA release guide]().
-
 ### Sample
->NOTE: shane- should we link kotlin sample?
 
-For a complete running sample [link to new sample](https://github.com/Azure-Samples/ms-identity-android-java)
+Run the [quickstart](https://docs.microsoft.com/azure/active-directory/develop/quickstart-v2-android) to see how our Java sample works, or checkout this [list of all MSAL sample repos](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/MSAL-Code-Samples). 
 
 ## Using MSAL
 
@@ -83,7 +73,7 @@ It's simplest to create your configuration file as a "raw" resource file in your
 }
 ```
 
->NOTE: This is the minimum required configuration.  MSAL relies on the defaults that ship with the library for all other settings.  Please refer to the configuration file documentation to understand the library defaults.
+>NOTE: This is the minimum required configuration.  MSAL relies on the defaults that ship with the library for all other settings.  Please refer to the [configuration file documentation](https://docs.microsoft.com/azure/active-directory/develop/msal-configuration) to understand the library defaults.
 
 ### Step 3: Configure the AndroidManifest.xml
 
@@ -171,7 +161,6 @@ private AuthenticationCallback getAuthInteractiveCallback() {
     };
 }
 ```
->NOTE: Add how to acquireToken with AcquireTokenParameters
 
 3. Acquire a token silently
 
@@ -206,61 +195,9 @@ If you find and bug or have a feature request, please raise the issue on [GitHub
 
 ## Contribute
 
-We enthusiastically welcome contributions and feedback. You should clone the repo and start contributing now.
+We enthusiastically welcome contributions and feedback. You should [clone the repo and start contributing now](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/MSAL-Contributing).
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments. To build MSAL for android, follow the steps bellow.
-
-### Clone
-
-MSAL uses a submodule for a "common" library shared by MSAL, ADAL and the Microsoft authentication library.
-
-```cmd
-git clone --recurse-submodules https://github.com/AzureAD/microsoft-authentication-library-for-android.git
-cd msal
-git submodule init
-git submodule update
-```
->NOTE: shane- Need an explanation for what these mean
-
-### MSAL Flavors
-
-```gradle
- flavorDimensions "main"
-
-productFlavors {
-    // The 'local' productFlavor sources common from mavenLocal and is intended to be used
-    // during development.
-    local {
-        dimension "main"
-        versionNameSuffix "-local"
-    }
-
-    // Intended for nightly builds
-    snapshot {
-        dimension "main"
-    }
-
-    // The 'dist' productFlavor sources common from a central repository and is intended
-    // to be used for releases.
-    dist {
-        dimension "main"
-    }
-}
-```
-
-### Build
-
-```cmd
-.\gradlew assembleLocalDebug
-```
-
-### Run Tests
-
->NOTE: This requires a connected device (physical device or Android Emulator)
-
-```cmd
-.\gradlew connectedLocalDebugAndroidTest
-```
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments. .
 
 ## Roadmap
 Date | Release | Blog post| Main features
@@ -269,11 +206,11 @@ Coming soon | MSAL 1.0.0| | General Availability of MSAL
 
 ## Security Library
 
-This library controls how users sign-in and access services. We recommend you always take the latest version of our library in your app when you can. We use [semantic versioning](http://semver.org) so you can control the risk of updating your app. For example, always downloading the latest minor version number (e.g. x.*y*.x) ensures you get the latest security and feature enhanements with the assurance that our API surface area has not changed. You can always see the latest version and release notes under the **Releases** tab of GitHub.
+This library controls how users sign-in and access services. We recommend you always take the latest version of our library in your app when you can. We use [semantic versioning](http://semver.org) so you can control the risk of updating your app. For example, always downloading the latest minor version number (e.g. x.*y*.x) ensures you get the latest security and feature enhanements with the assurance that our API surface area has not changed. You can always see the latest version and release notes under the [Releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases) tab of GitHub.
 
 ## Security Reporting
 
-If you find a security issue with our libraries or services, please report the issue to [secure@microsoft.com](mailto:secure@microsoft.com) with as much detail as you can provide. Your submission may be eligible for a bounty through the [Microsoft Bounty](http://aka.ms/bugbounty) program. Please do not post security issues to **GitHub Issues** or any other public site. We will contact you shortly after receiving your issue report. We encourage you to get new security incident notifications by visiting [Microsoft technical security notifications](https://technet.microsoft.com/en-us/security/dd252948) to subscribe to Security Advisory Alerts.
+If you find a security issue with our libraries or services, please report the issue to [secure@microsoft.com](mailto:secure@microsoft.com) with as much detail as you can provide. Your submission may be eligible for a bounty through the [Microsoft Bounty](http://aka.ms/bugbounty) program. Please do not post security issues to [GitHub Issues](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues) or any other public site. We will contact you shortly after receiving your issue report. We encourage you to get new security incident notifications by visiting [Microsoft technical security notifications](https://technet.microsoft.com/en-us/security/dd252948) to subscribe to Security Advisory Alerts.
 
 
 Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MIT License (the "License");
