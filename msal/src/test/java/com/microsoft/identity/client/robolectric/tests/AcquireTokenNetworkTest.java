@@ -30,7 +30,6 @@ import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IPublicClientApplication;
-import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.robolectric.shadows.ShadowAuthority;
 import com.microsoft.identity.client.robolectric.shadows.ShadowMsalUtils;
@@ -39,7 +38,9 @@ import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.internal.testutils.labutils.TestConfigurationHelper;
 import com.microsoft.identity.internal.testutils.labutils.TestConfigurationQuery;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -55,6 +56,113 @@ public final class AcquireTokenNetworkTest {
 
     private static final String[] SCOPES = {"user.read", "openid", "offline_access", "profile"};
 
+    private IAccount mAccount;
+
+    @Before
+    public void setup() {
+        mAccount = null;
+    }
+
+    @After
+    public void cleanup() {
+        mAccount = null;
+    }
+
+    private String getUsernameForManagedUser() {
+        final TestConfigurationQuery query = new TestConfigurationQuery();
+        query.userType = "Member";
+        query.isFederated = false;
+        query.federationProvider = "ADFSv4";
+
+        final String username = TestConfigurationHelper.getUpnForTest(query);
+        return username;
+    }
+
+    private AuthenticationCallback successfulInteractiveCallback() {
+        AuthenticationCallback callback = new AuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                mAccount = authenticationResult.getAccount();
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                fail(exception.getMessage());
+            }
+
+            @Override
+            public void onCancel() {
+                fail("User cancelled flow");
+            }
+        };
+
+        return callback;
+    }
+
+    private AuthenticationCallback successfulSilentCallback() {
+        AuthenticationCallback callback = new AuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                fail(exception.getMessage());
+            }
+
+            @Override
+            public void onCancel() {
+                fail("User cancelled flow");
+            }
+        };
+
+        return callback;
+    }
+
+    private AuthenticationCallback failureInteractiveCallback() {
+        AuthenticationCallback callback = new AuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                fail("Unexpected success");
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                Assert.assertTrue(true);
+            }
+
+            @Override
+            public void onCancel() {
+                fail("User cancelled flow");
+            }
+        };
+
+        return callback;
+    }
+
+    private AuthenticationCallback failureSilentCallback() {
+        AuthenticationCallback callback = new AuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                fail("Unexpected success");
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                Assert.assertTrue(true);
+            }
+
+            @Override
+            public void onCancel() {
+                fail("User cancelled flow");
+            }
+        };
+
+        return callback;
+    }
+
     @Test
     public void canPerformROPC() {
         new AcquireTokenBaseTest() {
@@ -62,35 +170,14 @@ public final class AcquireTokenNetworkTest {
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
-
-                final TestConfigurationQuery query = new TestConfigurationQuery();
-                query.userType = "Member";
-                query.isFederated = false;
-                query.federationProvider = "ADFSv4";
-
-                final String username = TestConfigurationHelper.getUpnForTest(query);
-
+                final String username = getUsernameForManagedUser();
                 final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                fail(exception.getMessage());
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
+                        .withCallback(successfulInteractiveCallback())
                         .build();
+
 
                 publicClientApplication.acquireToken(parameters);
                 RoboTestUtils.flushScheduler();
@@ -107,60 +194,27 @@ public final class AcquireTokenNetworkTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                final TestConfigurationQuery query = new TestConfigurationQuery();
-                query.userType = "Member";
-                query.isFederated = false;
-                query.federationProvider = "ADFSv4";
-
-                final String username = TestConfigurationHelper.getUpnForTest(query);
-
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .withScopes(Arrays.asList(SCOPES))
-                        .forceRefresh(false)
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                fail(exception.getMessage());
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
-                        .build();
+                final String username = getUsernameForManagedUser();
+                final String authority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
 
                 final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                                IAccount account = authenticationResult.getAccount();
-                                silentParameters.setAccount(account);
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                fail(exception.getMessage());
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
+                        .withCallback(successfulInteractiveCallback())
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
                 RoboTestUtils.flushScheduler();
+
+                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                        .forAccount(mAccount)
+                        .fromAuthority(authority)
+                        .withScopes(Arrays.asList(SCOPES))
+                        .forceRefresh(false)
+                        .withCallback(successfulSilentCallback())
+                        .build();
+
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
                 RoboTestUtils.flushScheduler();
             }
@@ -176,60 +230,27 @@ public final class AcquireTokenNetworkTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                final TestConfigurationQuery query = new TestConfigurationQuery();
-                query.userType = "Member";
-                query.isFederated = false;
-                query.federationProvider = "ADFSv4";
-
-                final String username = TestConfigurationHelper.getUpnForTest(query);
-
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .withScopes(Arrays.asList(SCOPES))
-                        .forceRefresh(true)
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                fail(exception.getMessage());
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
-                        .build();
+                final String username = getUsernameForManagedUser();
+                final String authority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
 
                 final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                                IAccount account = authenticationResult.getAccount();
-                                silentParameters.setAccount(account);
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                fail(exception.getMessage());
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
+                        .withCallback(successfulInteractiveCallback())
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
                 RoboTestUtils.flushScheduler();
+
+                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                        .forAccount(mAccount)
+                        .fromAuthority(authority)
+                        .withScopes(Arrays.asList(SCOPES))
+                        .forceRefresh(true)
+                        .withCallback(successfulSilentCallback())
+                        .build();
+
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
                 RoboTestUtils.flushScheduler();
             }
@@ -245,61 +266,30 @@ public final class AcquireTokenNetworkTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                final TestConfigurationQuery query = new TestConfigurationQuery();
-                query.userType = "Member";
-                query.isFederated = false;
-                query.federationProvider = "ADFSv4";
-
-                final String username = TestConfigurationHelper.getUpnForTest(query);
-
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .withScopes(Arrays.asList(SCOPES))
-                        .forceRefresh(false)
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                fail("Unexpected success");
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                Assert.assertTrue(exception instanceof MsalClientException);
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
-                        .build();
+                final String username = getUsernameForManagedUser();
+                final String authority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
 
                 final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                                IAccount account = authenticationResult.getAccount();
-                                silentParameters.setAccount(account);
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                fail(exception.getMessage());
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
+                        .withCallback(successfulInteractiveCallback())
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
                 RoboTestUtils.flushScheduler();
+
+                // clear the cache now
                 RoboTestUtils.clearCache();
+
+                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                        .forAccount(mAccount)
+                        .fromAuthority(authority)
+                        .withScopes(Arrays.asList(SCOPES))
+                        .forceRefresh(false)
+                        .withCallback(failureSilentCallback())
+                        .build();
+
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
                 RoboTestUtils.flushScheduler();
             }
@@ -315,61 +305,30 @@ public final class AcquireTokenNetworkTest {
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                final TestConfigurationQuery query = new TestConfigurationQuery();
-                query.userType = "Member";
-                query.isFederated = false;
-                query.federationProvider = "ADFSv4";
-
-                final String username = TestConfigurationHelper.getUpnForTest(query);
-
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .withScopes(Arrays.asList(SCOPES))
-                        .forceRefresh(false)
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                fail(exception.getMessage());
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
-                        .build();
+                final String username = getUsernameForManagedUser();
+                final String authority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
 
                 final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                                IAccount account = authenticationResult.getAccount();
-                                silentParameters.setAccount(account);
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                fail(exception.getMessage());
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
+                        .withCallback(successfulInteractiveCallback())
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
                 RoboTestUtils.flushScheduler();
+
+                // remove the access token from cache
                 RoboTestUtils.removeAccessTokenFromCache();
+
+                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                        .forAccount(mAccount)
+                        .fromAuthority(authority)
+                        .withScopes(Arrays.asList(SCOPES))
+                        .forceRefresh(false)
+                        .withCallback(successfulSilentCallback())
+                        .build();
+
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
                 RoboTestUtils.flushScheduler();
             }
