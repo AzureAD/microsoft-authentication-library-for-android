@@ -116,30 +116,7 @@ It's simplest to create your configuration file as a "raw" resource file in your
 
 ### Step 4: Create an MSAL PublicClientApplication
 
->NOTE: In this example were creating an instance of MultipleAccountPublicClientApplication which is designed to work with apps that allow multiple accounts to be used within the same application. If you would like to use SingleAccount mode, replace with the following fragment and replace 'mMultipleAccountApp' with 'mSingleAccountApp' . For more information on multiple vs. single account public client applications click [here](https://docs.microsoft.com/azure/active-directory/develop/single-multi-account). You can also check out the sample app for examples of how this is used.
-
->NOTE: help, does this need the same first 3 lines as the multi account fragment? Also, is this the best format for this? Or should we just replace multi account with single account or just leave as is
-
-Example: Create a new SinglePublicClientApplication instance.
-
-```Java
-
-PublicClientApplication.createSingleAccountPublicClientApplication(getContext(),
-        R.raw.auth_config_single_account,
-        new IPublicClientApplication.ISingleAccountApplicationCreatedListener() {
-            @Override
-            public void onCreated(ISingleAccountPublicClientApplication application) {
-                mSingleAccountApp = application;
-                loadAccount();
-            }
-
-            @Override
-            public void onError(MsalException exception) {
-                displayError(exception);
-            }
-        });
-```
-
+>NOTE: In this example we are creating an instance of MultipleAccountPublicClientApplication, which is designed to work with apps that allow multiple accounts to be used within the same application. If you would like to use SingleAccount mode, refer to the [single vs. multi account documentation](https://docs.microsoft.com/azure/active-directory/develop/single-multi-account). You can also check out the [quickstart](https://docs.microsoft.com/azure/active-directory/develop/quickstart-v2-android) for examples of how this is used.
 
 1.  Create a new MultipleAccountPublicClientApplication instance.
 
@@ -284,6 +261,11 @@ productFlavors {
 ```cmd
 .\gradlew connectedLocalDebugAndroidTest
 ```
+
+## Roadmap
+Date | Release | Blog post| Main features
+------| ------- | ---------| ---------
+Coming soon | MSAL 1.0.0| | General Availability of MSAL 
 
 ## Security Library
 
