@@ -64,7 +64,6 @@ import static com.microsoft.identity.common.adal.internal.AuthenticationConstant
 public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     private static final String TAG = BrokerAccountManagerStrategy.class.getSimpleName();
 
-    private static final String DATA_USER_INFO = "com.microsoft.workaccount.user.info";
     private static final String DATA_CACHE_RECORD = "com.microsoft.workaccount.cache.record";
 
     /**
@@ -80,6 +79,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
         return getBrokerAuthorizationIntentFromAccountManager(parameters);
     }
 
+    @SuppressWarnings("PMD")
     @SuppressLint("MissingPermission")
     private Intent getBrokerAuthorizationIntentFromAccountManager(@NonNull final AcquireTokenOperationParameters parameters) throws ClientException {
         final String methodName = ":getBrokerAuthorizationIntentFromAccountManager";
@@ -200,6 +200,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     }
 
     @WorkerThread
+    @SuppressWarnings("PMD")
     @SuppressLint("MissingPermission")
     AcquireTokenResult acquireTokenSilent(final AcquireTokenSilentOperationParameters parameters)
             throws BaseException {
@@ -277,6 +278,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     }
 
     @WorkerThread
+    @SuppressWarnings("PMD")
     @SuppressLint("MissingPermission")
     protected List<ICacheRecord> getBrokerAccounts(@NonNull final OperationParameters parameters)
             throws OperationCanceledException, IOException, AuthenticatorException, ClientException {
@@ -322,6 +324,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     }
 
     @WorkerThread
+    @SuppressWarnings("PMD")
     @SuppressLint("MissingPermission")
     protected boolean removeBrokerAccount(@NonNull final OperationParameters parameters) {
         final String methodName = ":removeBrokerAccountFromAccountManager";

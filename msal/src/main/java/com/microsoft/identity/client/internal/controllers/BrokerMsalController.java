@@ -198,14 +198,6 @@ public class BrokerMsalController extends BaseController {
         return interactiveRequestIntent;
     }
 
-    private Handler getPreferredHandler() {
-        if (null != Looper.myLooper() && Looper.getMainLooper() != Looper.myLooper()) {
-            return new Handler(Looper.myLooper());
-        } else {
-            return new Handler(Looper.getMainLooper());
-        }
-    }
-
     /**
      * Get the response from the Broker captured by BrokerActivity.
      * BrokerActivity will pass along the response to the broker controller
@@ -250,7 +242,7 @@ public class BrokerMsalController extends BaseController {
             final BrokerBaseStrategy strategy = getStrategies().get(ii);
             com.microsoft.identity.common.internal.logging.Logger.verbose(
                     TAG + methodName,
-                    "Executing with strategy: "
+                    "Executing with strategy for silent : "
                             + strategy.getClass().getSimpleName()
             );
 

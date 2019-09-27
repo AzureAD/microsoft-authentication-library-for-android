@@ -183,7 +183,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     private void getCurrentAccountFromSharedDevice(@NonNull final CurrentAccountCallback callback,
                                                    @NonNull final PublicClientApplicationConfiguration configuration) {
-        final String methodName = ":getCurrentAccountFromSharedDevice";
 
         //TODO: migrate to Command.
         new BrokerMsalController().getCurrentAccount(
@@ -294,7 +293,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public void signOut(@NonNull final SignOutCallback callback) {
-        final String methodName = ":signOut";
         final PublicClientApplicationConfiguration configuration = getConfiguration();
 
         final MultiTenantAccount persistedCurrentAccount = getPersistedCurrentAccount();
@@ -372,7 +370,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     private void removeAccountFromSharedDevice(@NonNull final SignOutCallback callback,
                                                @NonNull final PublicClientApplicationConfiguration configuration) {
-        final String methodName = ":removeAccountFromSharedDevice";
 
         //TODO: migrate to Command.
         new BrokerMsalController().removeAccountFromSharedDevice(
