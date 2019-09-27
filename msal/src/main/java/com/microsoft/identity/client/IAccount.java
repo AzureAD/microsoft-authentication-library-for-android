@@ -22,41 +22,19 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import androidx.annotation.NonNull;
+
 import java.io.Serializable;
 
-/**
- * Interface describing MSAL's externally-exposed Account representation.
- */
-public interface IAccount extends Serializable {
+public interface IAccount extends Serializable, IClaimable {
 
     /**
-     * Gets the {@link IAccountIdentifier} for this Account -- this value is authority-specific.
+     * Gets the id of the account.
+     * <p>
+     * For the Microsoft Identity Platform: the OID of the account in its home tenant.
      *
-     * @return The AccountIdentifier.
+     * @return The id.
      */
-    IAccountIdentifier getAccountIdentifier();
-
-    /**
-     * Gets the home {@link IAccountIdentifier} for this IAccount -- for IAccount types with tenant
-     * association[s], this value will be unique. Meaning, it's value is the same
-     * in the IAccount's home tenant and in any guest tenants to which it may be associated.
-     *
-     * @return
-     */
-    IAccountIdentifier getHomeAccountIdentifier();
-
-    /**
-     * Gets the username of this IAccount.
-     *
-     * @return The username to get.
-     */
-    String getUsername();
-
-    /**
-     * Gets the environment for this Account.
-     *
-     * @return The environment to get.
-     */
-    String getEnvironment();
-
+    @NonNull
+    String getId();
 }

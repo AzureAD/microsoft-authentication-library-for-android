@@ -23,35 +23,55 @@
 package com.microsoft.identity.client;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.net.Uri;
+import android.util.Base64;
+
+import androidx.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
+import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
+import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.Environment;
 import com.microsoft.identity.common.internal.authorities.UnknownAudience;
 import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
+import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
+import com.microsoft.identity.common.internal.ui.browser.BrowserDescriptor;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.crypto.SecretKey;
 
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ACCOUNT_MODE;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORITIES;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_USER_AGENT;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.BROWSER_SAFE_LIST;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CLIENT_ID;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ENVIRONMENT;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.HTTP;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.LOGGING;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.MULTIPLE_CLOUDS_SUPPORTED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REQUIRED_BROKER_PROTOCOL_VERSION;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.TELEMETRY;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ENVIRONMENT;
 
 public class PublicClientApplicationConfiguration {
+    private static final String TAG = PublicClientApplicationConfiguration.class.getSimpleName();
 
     public static final class SerializedNames {
         static final String CLIENT_ID = "client_id";
@@ -63,6 +83,10 @@ public class PublicClientApplicationConfiguration {
         static final String MULTIPLE_CLOUDS_SUPPORTED = "multiple_clouds_supported";
         static final String USE_BROKER = "broker_redirect_uri_registered";
         static final String ENVIRONMENT = "environment";
+        static final String REQUIRED_BROKER_PROTOCOL_VERSION = "minimum_required_broker_protocol_version";
+        static final String TELEMETRY = "telemetry";
+        static final String BROWSER_SAFE_LIST = "browser_safelist";
+        static final String ACCOUNT_MODE = "account_mode";
     }
 
     @SerializedName(CLIENT_ID)
@@ -92,6 +116,18 @@ public class PublicClientApplicationConfiguration {
     @SerializedName(ENVIRONMENT)
     Environment mEnvironment;
 
+    @SerializedName(REQUIRED_BROKER_PROTOCOL_VERSION)
+    String mRequiredBrokerProtocolVersion;
+
+    @SerializedName(BROWSER_SAFE_LIST)
+    List<BrowserDescriptor> mBrowserSafeList;
+
+    @SerializedName(TELEMETRY)
+    TelemetryConfiguration mTelemetryConfiguration;
+
+    @SerializedName(ACCOUNT_MODE)
+    AccountMode mAccountMode;
+
     transient OAuth2TokenCache mOAuth2TokenCache;
 
     transient Context mAppContext;
@@ -105,6 +141,15 @@ public class PublicClientApplicationConfiguration {
      */
     public void setTokenCacheSecretKeys(@NonNull final byte[] rawKey) {
         AuthenticationSettings.INSTANCE.setSecretKey(rawKey);
+    }
+
+    /**
+     * Gets the list of browser safe list.
+     *
+     * @return The list of browser which are allowed to use for auth flow.
+     */
+    public List<BrowserDescriptor> getBrowserSafeList() {
+        return mBrowserSafeList;
     }
 
     /**
@@ -154,6 +199,15 @@ public class PublicClientApplicationConfiguration {
     }
 
     /**
+     * Gets the currently configured {@link TelemetryConfiguration} for the PublicClientApplication.
+     *
+     * @return The TelemetryConfiguration to use.
+     */
+    public TelemetryConfiguration getTelemetryConfiguration() {
+        return mTelemetryConfiguration;
+    }
+
+    /**
      * Gets the currently configured redirect uri for the PublicClientApplication.
      *
      * @return The redirectUri to use.
@@ -186,10 +240,28 @@ public class PublicClientApplicationConfiguration {
      * <p>
      * The client must have registered
      *
-     * @return The boolean indicator of whether multiple clouds are supported by this application.
+     * @return The boolean indicator of whether or not to use the broker.
      */
     public Boolean getUseBroker() {
         return mUseBroker;
+    }
+
+    /**
+     * Gets the currently configured {@link AccountMode} for the PublicClientApplication.
+     *
+     * @return The AccountMode supported by this application.
+     */
+    public AccountMode getAccountMode() {
+        return this.mAccountMode;
+    }
+
+    /**
+     * Indicates the minimum required broker protocol version number.
+     *
+     * @return String of broker protocol version
+     */
+    public String getRequiredBrokerProtocolVersion() {
+        return mRequiredBrokerProtocolVersion;
     }
 
     public Context getAppContext() {
@@ -200,7 +272,7 @@ public class PublicClientApplicationConfiguration {
         mAppContext = applicationContext;
     }
 
-    public OAuth2TokenCache getOAuth2TokenCache() {
+    OAuth2TokenCache getOAuth2TokenCache() {
         return mOAuth2TokenCache;
     }
 
@@ -264,12 +336,31 @@ public class PublicClientApplicationConfiguration {
         this.mHttpConfiguration = config.mHttpConfiguration == null ? this.mHttpConfiguration : config.mHttpConfiguration;
         this.mMultipleCloudsSupported = config.mMultipleCloudsSupported == null ? this.mMultipleCloudsSupported : config.mMultipleCloudsSupported;
         this.mUseBroker = config.mUseBroker == null ? this.mUseBroker : config.mUseBroker;
+        this.mTelemetryConfiguration = config.mTelemetryConfiguration == null ? this.mTelemetryConfiguration : config.mTelemetryConfiguration;
+        this.mRequiredBrokerProtocolVersion = config.mRequiredBrokerProtocolVersion == null ? this.mRequiredBrokerProtocolVersion : config.mRequiredBrokerProtocolVersion;
+        if (this.mBrowserSafeList == null) {
+            this.mBrowserSafeList = config.mBrowserSafeList;
+        } else if (config.mBrowserSafeList != null) {
+            this.mBrowserSafeList.addAll(config.mBrowserSafeList);
+        }
+
+        // Multiple is the default mode.
+        this.mAccountMode = config.mAccountMode != AccountMode.MULTIPLE ? config.mAccountMode : this.mAccountMode;
     }
 
     void validateConfiguration() {
         nullConfigurationCheck(REDIRECT_URI, mRedirectUri);
         nullConfigurationCheck(CLIENT_ID, mClientId);
         checkDefaultAuthoritySpecified();
+
+        // Only validate the browser safe list configuration
+        // when the authorization agent is set either DEFAULT or BROWSER.
+        if (!mAuthorizationAgent.equals(AuthorizationAgent.WEBVIEW)
+                && (mBrowserSafeList == null || mBrowserSafeList.isEmpty())) {
+            throw new IllegalArgumentException(
+                    "Null browser safe list configured."
+            );
+        }
 
         for (final Authority authority : mAuthorities) {
             if (authority instanceof UnknownAuthority) {
@@ -297,6 +388,83 @@ public class PublicClientApplicationConfiguration {
     private void nullConfigurationCheck(String configKey, String configValue) {
         if (configValue == null) {
             throw new IllegalArgumentException(configKey + " cannot be null.  Invalid configuration.");
+        }
+    }
+
+    private boolean isBrokerRedirectUri() {
+        final String BROKER_REDIRECT_URI_REGEX = "msauth://" + mAppContext.getPackageName() + "/.*";
+        final Pattern pairRegex = Pattern.compile(BROKER_REDIRECT_URI_REGEX);
+        final Matcher matcher = pairRegex.matcher(mRedirectUri);
+        return matcher.matches();
+    }
+
+    // Verifies broker redirect URI against the app's signature, to make sure that this is legit.
+    private void verifyRedirectUriWithAppSignature() {
+        final String packageName = mAppContext.getPackageName();
+        try {
+            final PackageInfo info = mAppContext.getPackageManager().getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
+            for (final Signature signature : info.signatures) {
+                final MessageDigest messageDigest = MessageDigest.getInstance("SHA");
+                messageDigest.update(signature.toByteArray());
+                final String signatureHash = Base64.encodeToString(messageDigest.digest(), Base64.NO_WRAP);
+
+                final Uri.Builder builder = new Uri.Builder();
+                final Uri uri = builder.scheme("msauth")
+                        .authority(packageName)
+                        .appendPath(signatureHash)
+                        .build();
+
+                if (mRedirectUri.equalsIgnoreCase(uri.toString())) {
+                    // Life is good.
+                    return;
+                }
+            }
+        } catch (PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
+            Logger.error(TAG, "Unexpected error in verifyRedirectUriWithAppSignature()", e);
+        }
+
+        throw new IllegalStateException("The redirect URI in the configuration file doesn't match with the one " +
+                "generated with package name and signature hash. Please verify the uri in the config file and your app registration in Azure portal.");
+    }
+
+    public void checkIntentFilterAddedToAppManifestForBrokerFlow() {
+        if (!mUseBroker) {
+            return;
+        }
+
+        if (!isBrokerRedirectUri()) {
+            // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
+            // If this is the case, we can assume that the user doesn't need Broker support.
+            Logger.info(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth.");
+            mUseBroker = false;
+            return;
+        }
+
+        verifyRedirectUriWithAppSignature();
+
+        final boolean hasCustomTabRedirectActivity = MsalUtils.hasCustomTabRedirectActivity(
+                mAppContext,
+                mRedirectUri
+        );
+
+        if (!hasCustomTabRedirectActivity) {
+            final Uri redirectUri = Uri.parse(mRedirectUri);
+            throw new IllegalStateException(
+                    "Intent filter for: " +
+                            BrowserTabActivity.class.getSimpleName() +
+                            " is missing. " +
+                            " Please make sure you have the following activity in your AndroidManifest.xml \n\n" +
+                            "<activity android:name=\"com.microsoft.identity.client.BrowserTabActivity\">" + "\n" +
+                            "\t" + "<intent-filter>" + "\n" +
+                            "\t\t" + "<action android:name=\"android.intent.action.VIEW\" />" + "\n" +
+                            "\t\t" + "<category android:name=\"android.intent.category.DEFAULT\" />" + "\n" +
+                            "\t\t" + "<category android:name=\"android.intent.category.BROWSABLE\" />" + "\n" +
+                            "\t\t" + "<data" + "\n" +
+                            "\t\t\t" + "android:host=\"" + redirectUri.getHost() + "\"" + "\n" +
+                            "\t\t\t" + "android:path=\'" + redirectUri.getPath() + "\"" + "\n" +
+                            "\t\t\t" + "android:scheme=\"" + redirectUri.getScheme() + "\" />" + "\n" +
+                            "\t" + "</intent-filter>" + "\n" +
+                            "</activity>" + "\n");
         }
     }
 

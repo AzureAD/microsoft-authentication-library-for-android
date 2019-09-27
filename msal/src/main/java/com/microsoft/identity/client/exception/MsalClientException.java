@@ -25,6 +25,7 @@ package com.microsoft.identity.client.exception;
 
 import com.microsoft.identity.client.AuthenticationActivity;
 import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.exception.ErrorStrings;
 
 /**
  * This exception class represents general errors that are local to the library. Below is the table of proposed codes and a short description of each.
@@ -55,6 +56,12 @@ import com.microsoft.identity.common.exception.ClientException;
  * </p>
  */
 public final class MsalClientException extends MsalException {
+
+    /**
+     * The parameter provided by the user is invalid.
+     * */
+    public static final String INVALID_PARAMETER = "invalid_parameter";
+
     /**
      * There are multiple cache entries found, the sdk cannot pick the correct access token
      * or refresh token from the cache. Likely it's a bug in the sdk when caching tokens or authority
@@ -147,9 +154,34 @@ public final class MsalClientException extends MsalException {
     public static final String DUPLICATE_QUERY_PARAMETER = ClientException.DUPLICATE_QUERY_PARAMETER;
 
     /**
+     * Failed to bind the service in broker app.
+     */
+    public static final String BROKER_BIND_FAILURE = ErrorStrings.BROKER_BIND_SERVICE_FAILED;
+
+    /**
      * Extra query parameters set by the client app is already sent by the sdk.
      */
     public static final String UNKNOWN_ERROR = ClientException.UNKNOWN_ERROR;
+
+    /**
+     * Broker app is not installed.
+     */
+    public static final String BROKER_NOT_INSTALLED = "broker_not_installed";
+
+    /**
+     * Not eligible to use Broker.
+     */
+    public static final String NOT_ELIGIBLE_TO_USE_BROKER = "not_eligible_to_use_broker";
+
+     /**
+     * No account currently signed in to SingleAccountPublicClientApplication
+     */
+    public static final String NO_CURRENT_ACCOUNT = "no_current_account";
+
+    /**
+     * Returned account does not match new account
+     */
+    public static final String CURRENT_ACCOUNT_MISMATCH = "returned_account_does_not_match_current_account";
 
     /**
      * Temporary non-exposed error code to indicate that ADFS authority validation fails. ADFS as authority is not supported

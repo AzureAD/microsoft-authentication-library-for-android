@@ -24,7 +24,7 @@
 package com.microsoft.identity.client.testapp;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,7 +37,6 @@ import android.widget.TextView;
 public class ResultFragment extends Fragment {
 
     static final String ACCESS_TOKEN = "access_token";
-    static final String ID_TOKEN = "id_token";
     static final String DISPLAYABLE = "displayable";
 
     private TextView mTextView;
@@ -50,13 +49,12 @@ public class ResultFragment extends Fragment {
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_result, container, false);
 
-        mTextView = (TextView) view.findViewById(R.id.txt_result);
+        mTextView = view.findViewById(R.id.txt_result);
         final Bundle bundle = getArguments();
         final String accessToken = (String) bundle.get(ACCESS_TOKEN);
-        final String idToken = (String) bundle.get(ID_TOKEN);
         final String displayable = (String) bundle.get(DISPLAYABLE);
 
-        mTextView.setText(ACCESS_TOKEN + ": " + accessToken + '\n' + ID_TOKEN + ": " + idToken + '\n' + DISPLAYABLE + ": " + displayable);
+        mTextView.setText(ACCESS_TOKEN + ": " + accessToken + '\n' + DISPLAYABLE + ": " + displayable);
         mTextView.setMovementMethod(new ScrollingMovementMethod());
         return view;
     }

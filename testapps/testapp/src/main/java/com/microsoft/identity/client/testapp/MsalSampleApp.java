@@ -20,13 +20,20 @@
 //   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //   THE SOFTWARE.
-
 package com.microsoft.identity.client.testapp;
 
 import android.app.Application;
+import android.util.Log;
 
 import com.microsoft.identity.client.ILoggerCallback;
 import com.microsoft.identity.client.Logger;
+import com.microsoft.identity.common.internal.telemetry.Telemetry;
+import com.microsoft.identity.common.internal.telemetry.observers.ITelemetryAggregatedObserver;
+import com.microsoft.identity.common.internal.telemetry.observers.ITelemetryDefaultObserver;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * MSAL sample app.
@@ -56,6 +63,36 @@ public class MsalSampleApp extends Application {
                 mLogs.append(message).append('\n');
             }
         });
+
+        // to add one observer
+        Telemetry.getInstance().addObserver(new TelemetryAggregatedObserver());
+        Telemetry.getInstance().addObserver(new TelemetryDefaultObserver());
+        // to remove one type of observer
+        Telemetry.getInstance().removeObserver(TelemetryDefaultObserver.class);
+    }
+
+    class TelemetryDefaultObserver implements ITelemetryDefaultObserver {
+        public void onReceived(List<Map<String, String>> telemetryData) {
+            for (Map properties : telemetryData) {
+                final Iterator iterator = properties.entrySet().iterator();
+                while (iterator.hasNext()) {
+                    final Map.Entry pair = (Map.Entry) iterator.next();
+                    Log.e("", pair.getKey() + ":" + pair.getValue());
+                }
+                Log.e("", "====================================" + '\n');
+            }
+        }
+    }
+
+    class TelemetryAggregatedObserver implements ITelemetryAggregatedObserver {
+        public void onReceived(Map<String, String> telemetryData) {
+            final Iterator iterator = telemetryData.entrySet().iterator();
+            while (iterator.hasNext()) {
+                final Map.Entry pair = (Map.Entry) iterator.next();
+                Log.e("", pair.getKey() + ":" + pair.getValue());
+            }
+            Log.e("", "====================================" + '\n');
+        }
     }
 
     String getLogs() {

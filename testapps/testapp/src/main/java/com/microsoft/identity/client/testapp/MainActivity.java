@@ -25,18 +25,15 @@ package com.microsoft.identity.client.testapp;
 
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.NavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
-import android.util.Log;
-import android.util.Pair;
+import com.google.android.material.navigation.NavigationView;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.RelativeLayout;
@@ -50,15 +47,12 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.ILoggerCallback;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.UiBehavior;
-import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 
-import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -73,26 +67,34 @@ import javax.crypto.spec.SecretKeySpec;
 /**
  * The app's main activity.
  */
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
-        AcquireTokenFragment.OnFragmentInteractionListener, CacheFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener,
+        AcquireTokenFragment.OnFragmentInteractionListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private PublicClientApplication mApplication;
-    private IAccount mSelectedAccount;
-    private Handler mHandler;
-
-    private String mAuthority;
-    private String[] mScopes;
-    private UiBehavior mUiBehavior;
-    private String mLoginHint;
-    private List<Pair<String, String>> mExtraQp;
-    private String[] mExtraScopesToConsent;
-    private boolean mEnablePiiLogging;
-    private boolean mForceRefresh;
     private IAuthenticationResult mAuthResult;
 
     private RelativeLayout mContentMain;
+
+    private MsalWrapper.INotifyOperationResultCallback operationResultCallback = new MsalWrapper.INotifyOperationResultCallback() {
+        @Override
+        public void acquireTokenSucceed(IAuthenticationResult result) {
+            mAuthResult = result;
+            onNavigationItemSelected(getNavigationView().getMenu().getItem(1));
+        }
+
+        @Override
+        public void notify(final String message) {
+            getHandler().post(new Runnable() {
+
+                @Override
+                public void run() {
+                    Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+    };
 
     /**
      * When initializing the {@link PublicClientApplication}, all the apps should only provide us the application context instead of
@@ -168,10 +170,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             onNavigationItemSelected(navigationView.getMenu().getItem(0));
         }
 
-        if (mApplication == null) {
-            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
-        }
+        MsalWrapper.getInstance().loadMsalApplication(this.getApplicationContext(),
+                R.raw.msal_config,
+                operationResultCallback,
+                null
+        );
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MsalWrapper.getInstance().onResume(operationResultCallback);
     }
 
     @Override
@@ -185,17 +194,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             final Bundle bundle = new Bundle();
             if (mAuthResult != null) {
                 bundle.putString(ResultFragment.ACCESS_TOKEN, mAuthResult.getAccessToken());
-                bundle.putString(ResultFragment.ID_TOKEN, mAuthResult.getIdToken());
                 bundle.putString(ResultFragment.DISPLAYABLE, mAuthResult.getAccount().getUsername());
             }
 
             fragment.setArguments(bundle);
             mAuthResult = null;
-        } else if (menuItemId == R.id.nav_cache) {
-            fragment = new CacheFragment();
-            final Bundle args = new Bundle();
-            args.putSerializable(CacheFragment.ARG_LIST_CONTENTS, (Serializable) CacheFragment.TEST_LIST_ELEMENTS);
-            fragment.setArguments(args);
         } else if (menuItemId == R.id.nav_log) {
             fragment = new LogFragment();
             final String logs = ((MsalSampleApp) this.getApplication()).getLogs();
@@ -228,214 +231,98 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onAcquireTokenClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
-        prepareRequestParameters(requestOptions);
-
-        if (mEnablePiiLogging) {
-            Logger.getInstance().setEnableLogcatLog(mEnablePiiLogging);
-        }
-
-        callAcquireToken(mScopes, mUiBehavior, mLoginHint, mExtraQp, mExtraScopesToConsent);
-    }
-
-    public void onRemoveUserClicked(final String username) {
-        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
+        loadMsalApplicationFromRequestParameters(requestOptions, new MsalWrapper.IMsalApplicationLoaded() {
             @Override
-            public void onAccountsLoaded(List<IAccount> accountsToRemove) {
-                for (final IAccount accountToRemove : accountsToRemove) {
-                    if (TextUtils.isEmpty(username) || accountToRemove.getUsername().equalsIgnoreCase(username.trim())) {
-                        mApplication.removeAccount(
-                                accountToRemove,
-                                new PublicClientApplication.AccountsRemovedCallback() {
-                                    @Override
-                                    public void onAccountsRemoved(Boolean isSuccess) {
-                                        if (isSuccess) {
-                                            showMessage("The account is successfully removed.");
-                                        } else {
-                                            showMessage("Failed to remove the account.");
-                                        }
-                                    }
-                                });
-                    }
-                }
+            public void onApplicationLoaded() {
+                MsalWrapper.getInstance().acquireToken(MainActivity.this, requestOptions, operationResultCallback);
             }
         });
     }
 
-    public PublicClientApplication getPublicClientApplication() {
-        return mApplication;
+    @Override
+    public void onAcquireTokenWithResourceClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+        loadMsalApplicationFromRequestParameters(requestOptions, new MsalWrapper.IMsalApplicationLoaded() {
+            @Override
+            public void onApplicationLoaded() {
+                MsalWrapper.getInstance().acquireTokenWithResourceId(MainActivity.this, requestOptions, operationResultCallback);
+            }
+        });
+    }
+
+    @Override
+    public void onAcquireTokenSilentWithResourceClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+        loadMsalApplicationFromRequestParameters(requestOptions, new MsalWrapper.IMsalApplicationLoaded() {
+            @Override
+            public void onApplicationLoaded() {
+                MsalWrapper.getInstance().acquireTokenSilentWithResource(requestOptions, operationResultCallback);
+            }
+        });
+    }
+
+    public void onRemoveUserClicked(final String username) {
+        MsalWrapper.getInstance().removeAccount(username, operationResultCallback);
     }
 
     @Override
     public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
-        prepareRequestParameters(requestOptions);
-
-        //final IAccount requestAccount = getAccount();
-        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
+        loadMsalApplicationFromRequestParameters(requestOptions, new MsalWrapper.IMsalApplicationLoaded() {
             @Override
-            public void onAccountsLoaded(final List<IAccount> accounts) {
-                IAccount requestAccount = null;
-
-                for (final IAccount account : accounts) {
-                    if (account.getUsername().equalsIgnoreCase(requestOptions.getLoginHint().trim())) {
-                        requestAccount = account;
-                        break;
-                    }
-                }
-
-                if (null != requestAccount) {
-                    callAcquireTokenSilent(mScopes, requestAccount, mForceRefresh);
-                } else {
-                    showMessage("No account found matching loginHint");
-                }
+            public void onApplicationLoaded() {
+                MsalWrapper.getInstance().acquireTokenSilent(requestOptions, operationResultCallback);
             }
         });
     }
 
     @Override
-    public void bindSelectAccountSpinner(final Spinner selectUser) {
-        mApplication.getAccounts(new PublicClientApplication.AccountsLoadedCallback() {
-            @Override
-            public void onAccountsLoaded(final List<IAccount> accounts) {
-                final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
-                        getApplicationContext(), android.R.layout.simple_spinner_item,
-                        new ArrayList<String>() {{
-                            for (IAccount account : accounts)
-                                add(account.getUsername());
-                        }}
-                );
-                userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                selectUser.setAdapter(userAdapter);
-            }
-        });
+    public void bindSelectAccountSpinner(final Spinner selectUser,
+                                         final List<IAccount> accounts) {
+        final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
+                getApplicationContext(), android.R.layout.simple_spinner_item,
+                new ArrayList<String>() {{
+                    if (accounts != null) {
+                        for (IAccount account : accounts)
+                            add(account.getUsername());
+                    }
+                }}
+        );
+        userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        selectUser.setAdapter(userAdapter);
     }
 
-    void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
-        mAuthority = getAuthority(requestOptions.getAuthorityType());
-        mLoginHint = requestOptions.getLoginHint();
-        mUiBehavior = requestOptions.getUiBehavior();
-        mEnablePiiLogging = requestOptions.enablePiiLogging();
-        mForceRefresh = requestOptions.forceRefresh();
-        Constants.UserAgent userAgent = requestOptions.getUserAgent();
-        //Azure Active Environment (PPE vs. Prod)
-        Constants.AzureActiveDirectoryEnvironment environment = requestOptions.getEnvironment();
+    void loadMsalApplicationFromRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions,
+                                                  final MsalWrapper.IMsalApplicationLoaded postApplicationLoaded) {
 
-
-        final String scopes = requestOptions.getScopes();
-        if (scopes == null) {
-            throw new IllegalArgumentException("null scope");
-        }
-
-        mScopes = scopes.toLowerCase().split(" ");
-        mExtraScopesToConsent = requestOptions.getExtraScopesToConsent() == null ? null : requestOptions.getExtraScopesToConsent().toLowerCase().split(" ");
-
-        if (userAgent.name().equalsIgnoreCase("BROWSER")) {
-            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config_browser);
-        } else if (userAgent.name().equalsIgnoreCase("WEBVIEW")) {
-            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config_webview);
-        } else {
-            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_config);
-        }
-
-        if(environment == Constants.AzureActiveDirectoryEnvironment.PREPRODUCTION){
-            mApplication = new PublicClientApplication(this.getApplicationContext(), R.raw.msal_ppe_config);
-        }
-    }
-
-    final String getAuthority(Constants.AuthorityType authorityTypeType) {
-        switch (authorityTypeType) {
-            case AAD_COMMON:
-                return Constants.AAD_AUTHORITY;
-            case B2C:
-                return "B2c is not configured yet";
-            case AAD_MSDEVEX:
-                return Constants.AAD_MSDEVEX;
-            case AAD_GUEST:
-                return Constants.AAD_GUEST;
-        }
-
-        throw new IllegalArgumentException("Not supported authority type");
-    }
-
-    void setUser(final IAccount user) {
-        mSelectedAccount = user;
-    }
-
-    private void callAcquireToken(final String[] scopes,
-                                  final UiBehavior uiBehavior,
-                                  final String loginHint,
-                                  final List<Pair<String, String>> extraQueryParam,
-                                  final String[] extraScope) {
+        boolean enablePiiLogging = requestOptions.mEnablePII;
         // The sample app is having the PII enable setting on the MainActivity. Ideally, app should decide to enable Pii or not,
-        // if it's enabled, it should be  the setting when the application is onCreate.
-        if (mEnablePiiLogging) {
+        // if it's enabled, it should be set when the application is onCreate.
+        Logger.getInstance().setEnableLogcatLog(enablePiiLogging);
+        if (enablePiiLogging) {
             Logger.getInstance().setEnablePII(true);
         } else {
             Logger.getInstance().setEnablePII(false);
         }
 
-        try {
-            mApplication.acquireToken(
-                    this,
-                    scopes,
-                    loginHint,
-                    uiBehavior,
-                    extraQueryParam,
-                    extraScope,
-                    null,
-                    getAuthenticationCallback()
-            );
-        } catch (IllegalArgumentException e) {
-            showMessage(e.getMessage());
+        Constants.UserAgent userAgent = requestOptions.getUserAgent();
+        //Azure Active Environment (PPE vs. Prod)
+        Constants.AzureActiveDirectoryEnvironment environment = requestOptions.getEnvironment();
+
+        int configFileResourceId = R.raw.msal_config;
+
+        if (userAgent.name().equalsIgnoreCase("BROWSER")) {
+            configFileResourceId = R.raw.msal_config_browser;
+        } else if (userAgent.name().equalsIgnoreCase("WEBVIEW")) {
+            configFileResourceId = R.raw.msal_config_webview;
         }
-    }
 
-    private void callAcquireTokenSilent(final String[] scopes,
-                                        final IAccount account,
-                                        boolean forceRefresh) {
-        mApplication.acquireTokenSilentAsync(
-                scopes,
-                account,
-                null,
-                forceRefresh,
-                getAuthenticationCallback()
+        if (environment == Constants.AzureActiveDirectoryEnvironment.PREPRODUCTION) {
+            configFileResourceId = R.raw.msal_ppe_config;
+        }
+
+        MsalWrapper.getInstance().loadMsalApplication(this.getApplicationContext(),
+                configFileResourceId,
+                operationResultCallback,
+                postApplicationLoaded
         );
-    }
-
-    private AuthenticationCallback getAuthenticationCallback() {
-        return new AuthenticationCallback() {
-
-            @Override
-            public void onSuccess(IAuthenticationResult authenticationResult) {
-                mAuthResult = authenticationResult;
-                onNavigationItemSelected(getNavigationView().getMenu().getItem(1));
-                mSelectedAccount = null;
-            }
-
-            @Override
-            public void onError(MsalException exception) {
-                // Check the exception type.
-                if (exception instanceof MsalClientException) {
-                    // This means errors happened in the sdk itself, could be network, Json parse, etc. Check MsalError.java
-                    // for detailed list of the errors.
-                    showMessage(exception.getMessage());
-                } else if (exception instanceof MsalServiceException) {
-                    // This means something is wrong when the sdk is communication to the service, mostly likely it's the client
-                    // configuration.
-                    showMessage(exception.getMessage());
-                } else if (exception instanceof MsalArgumentException) {
-                    showMessage(exception.getMessage());
-                } else if (exception instanceof MsalUiRequiredException) {
-                    // This explicitly indicates that developer needs to prompt the user, it could be refresh token is expired, revoked
-                    // or user changes the password; or it could be that no token was found in the token cache.
-                    callAcquireToken(mScopes, mUiBehavior, mLoginHint, mExtraQp, mExtraScopesToConsent);
-                }
-            }
-
-            @Override
-            public void onCancel() {
-                showMessage("User cancelled the flow.");
-            }
-        };
     }
 
     private NavigationView getNavigationView() {
@@ -456,23 +343,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private Handler getHandler() {
-        if (mHandler == null) {
-            return new Handler(MainActivity.this.getMainLooper());
-        }
-
-        return mHandler;
-    }
-
-    @Override
-    public void onDeleteToken(int position, final CacheFragment cacheFragment) {
-        Log.d(TAG, "onDeleteToken(" + position + ")");
-        cacheFragment.setLoading();
-        // TODO delete the items or whatever
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                cacheFragment.reload(CacheFragment.TEST_LIST_ELEMENTS);
-            }
-        }, 750L);
+        return new Handler(MainActivity.this.getMainLooper());
     }
 }

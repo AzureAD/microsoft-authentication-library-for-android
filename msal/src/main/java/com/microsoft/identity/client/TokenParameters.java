@@ -25,25 +25,25 @@ package com.microsoft.identity.client;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Base class for AcquireTokenParameters and AcquireTokenSilentParameters
  */
-abstract class TokenParameters {
+public abstract class TokenParameters {
 
     private List<String> mScopes;
     private IAccount mAccount;
     private String mAuthority;
     private ClaimsRequest mClaimsRequest;
-    private AuthenticationCallback mCallback;
     private AccountRecord mAccountRecord;
 
     protected TokenParameters(final TokenParameters.Builder builder) {
         mAccount = builder.mAccount;
         mAuthority = builder.mAuthority;
-        mCallback = builder.mCallback;
         mClaimsRequest = builder.mClaimsRequest;
         mScopes = builder.mScopes;
     }
@@ -65,8 +65,8 @@ abstract class TokenParameters {
      *
      * @param scopes
      */
-    public void setScopes(List<String> scopes) {
-        this.mScopes = scopes;
+    void setScopes(final List<String> scopes){
+        mScopes = scopes;
     }
 
     /**
@@ -85,7 +85,7 @@ abstract class TokenParameters {
      *
      * @param account
      */
-    public void setAccount(IAccount account) {
+    void setAccount(IAccount account) {
         this.mAccount = account;
     }
 
@@ -99,11 +99,12 @@ abstract class TokenParameters {
     }
 
     /**
-     * Optional. Can be passed to override the default authority.
+     * Optional for interactive requests; can be passed to override the default authority.
+     * Required for silent requests.
      *
      * @param authority
      */
-    public void setAuthority(String authority) {
+    void setAuthority(String authority) {
         this.mAuthority = authority;
     }
 
@@ -116,45 +117,6 @@ abstract class TokenParameters {
         return mClaimsRequest;
     }
 
-    /**
-     * Optional. Can be passed into request specific claims in the id_token and access_token
-     *
-     * @param claimsRequest
-     */
-    public void setClaimsRequest(ClaimsRequest claimsRequest) {
-        this.mClaimsRequest = claimsRequest;
-    }
-
-    /**
-     * The Non-null {@link AuthenticationCallback} to receive the result back.
-     * 1) If user cancels the flow by pressing the device back button, the result will be sent
-     * back via {@link AuthenticationCallback#onCancel()}.
-     * 2) If the sdk successfully receives the token back, result will be sent back via
-     * {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
-     * 3) All the other errors will be sent back via
-     * {@link AuthenticationCallback#onError(com.microsoft.identity.client.exception.MsalException)}.
-     *
-     * @return
-     */
-    public AuthenticationCallback getCallback() {
-        return mCallback;
-    }
-
-    /**
-     * The Non-null {@link AuthenticationCallback} to receive the result back.
-     * 1) If user cancels the flow by pressing the device back button, the result will be sent
-     * back via {@link AuthenticationCallback#onCancel()}.
-     * 2) If the sdk successfully receives the token back, result will be sent back via
-     * {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
-     * 3) All the other errors will be sent back via
-     * {@link AuthenticationCallback#onError(com.microsoft.identity.client.exception.MsalException)}.
-     *
-     * @param callback
-     */
-    public void setCallback(AuthenticationCallback callback) {
-        this.mCallback = callback;
-    }
-
     void setAccountRecord(AccountRecord record) {
         mAccountRecord = record;
     }
@@ -162,7 +124,7 @@ abstract class TokenParameters {
     public AccountRecord getAccountRecord() {
         return mAccountRecord;
     }
-    
+
     /**
      * TokenParameters builder
      *
@@ -174,10 +136,16 @@ abstract class TokenParameters {
         private IAccount mAccount;
         private String mAuthority;
         private ClaimsRequest mClaimsRequest;
-        private AuthenticationCallback mCallback;
 
         public B withScopes(List<String> scopes) {
-            mScopes = scopes;
+            if (null != mScopes) {
+                throw new IllegalArgumentException("Scopes is already set.");
+            } else if (null == scopes || scopes.isEmpty()) {
+                throw new IllegalArgumentException("Empty scopes list.");
+            } else {
+                mScopes = scopes;
+            }
+
             return self();
         }
 
@@ -197,14 +165,26 @@ abstract class TokenParameters {
             return self();
         }
 
-        public B callback(AuthenticationCallback callback) {
-            mCallback = callback;
+        public B withResource(final String resource) {
+            if (null != mScopes) {
+                throw new IllegalArgumentException(
+                        "Scopes is already set. Scopes and resources cannot be combined in a single request."
+                );
+            } else if (StringUtil.isEmpty(resource)) {
+                throw new IllegalArgumentException(
+                        "Empty resource string."
+                );
+            } else {
+                mScopes = new ArrayList<String>() {{
+                    add(resource.toLowerCase().trim() + "/.default");
+                }};
+            }
+
             return self();
         }
 
         public abstract B self();
 
         public abstract TokenParameters build();
-
     }
 }

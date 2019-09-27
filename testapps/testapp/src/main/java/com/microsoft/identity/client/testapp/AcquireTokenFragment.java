@@ -25,7 +25,7 @@ package com.microsoft.identity.client.testapp;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,23 +37,20 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import com.microsoft.identity.client.UiBehavior;
-import com.microsoft.identity.common.exception.ClientException;
-import com.microsoft.identity.common.internal.ui.browser.Browser;
-import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
+import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.Prompt;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.microsoft.identity.client.testapp.R.id.enablePII;
-
 
 /**
  * acquireToken Fragment, contains the flow for acquireToken interactively, acquireTokenSilent, getUsers, removeUser.
  */
 public class AcquireTokenFragment extends Fragment {
-    private Spinner mAuthority;
     private EditText mLoginhint;
-    private Spinner mUiBehavior;
+    private Spinner mPrompt;
     private Spinner mUserAgent;
     private EditText mScope;
     private EditText mExtraScope;
@@ -63,9 +60,11 @@ public class AcquireTokenFragment extends Fragment {
     private Button mClearCache;
     private Button mAcquireToken;
     private Button mAcquireTokenSilent;
-    private TextView mDefaultBrowser;
+    private Button mAcquireTokenWithResource;
+    private Button mAcquireTokenSilentWithResource;
     private Spinner mSelectAccount;
     private Spinner mAADEnvironments;
+    private TextView mPublicApplicationMode;
 
     private OnFragmentInteractionListener mOnFragmentInteractionListener;
 
@@ -77,24 +76,24 @@ public class AcquireTokenFragment extends Fragment {
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_acquire, container, false);
 
-        mAuthority = view.findViewById(R.id.authorityType);
         mLoginhint = view.findViewById(R.id.loginHint);
-        mUiBehavior = view.findViewById(R.id.uiBehavior);
+        mPrompt = view.findViewById(R.id.uiBehavior);
         mUserAgent = view.findViewById(R.id.auth_user_agent);
         mScope = view.findViewById(R.id.scope);
         mExtraScope = view.findViewById(R.id.extraScope);
         mEnablePII = view.findViewById(enablePII);
         mForceRefresh = view.findViewById(R.id.forceRefresh);
-        mDefaultBrowser = view.findViewById(R.id.default_browser);
         mSelectAccount = view.findViewById(R.id.select_user);
         mGetUsers = view.findViewById(R.id.btn_getUsers);
         mClearCache = view.findViewById(R.id.btn_clearCache);
         mAcquireToken = view.findViewById(R.id.btn_acquiretoken);
         mAcquireTokenSilent = view.findViewById(R.id.btn_acquiretokensilent);
+        mAcquireTokenWithResource = view.findViewById(R.id.btn_acquiretokenWithResource);
+        mAcquireTokenSilentWithResource = view.findViewById(R.id.btn_acquiretokensilentWithResource);
         mAADEnvironments = view.findViewById(R.id.environment);
+        mPublicApplicationMode = view.findViewById(R.id.public_application_mode);
 
-        bindSpinnerChoice(mAuthority, Constants.AuthorityType.class);
-        bindSpinnerChoice(mUiBehavior, UiBehavior.class);
+        bindSpinnerChoice(mPrompt, Prompt.class);
         bindSpinnerChoice(mUserAgent, Constants.UserAgent.class);
         bindSpinnerChoice(mAADEnvironments, Constants.AzureActiveDirectoryEnvironment.class);
 
@@ -112,6 +111,23 @@ public class AcquireTokenFragment extends Fragment {
                     mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
                 }
                 mOnFragmentInteractionListener.onAcquireTokenSilentClicked(getCurrentRequestOptions());
+            }
+        });
+
+        mAcquireTokenWithResource.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mOnFragmentInteractionListener.onAcquireTokenWithResourceClicked(getCurrentRequestOptions());
+            }
+        });
+
+        mAcquireTokenSilentWithResource.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mSelectAccount.getSelectedItem() != null) {
+                    mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
+                }
+                mOnFragmentInteractionListener.onAcquireTokenSilentWithResourceClicked(getCurrentRequestOptions());
             }
         });
 
@@ -151,27 +167,22 @@ public class AcquireTokenFragment extends Fragment {
         return view;
     }
 
-    private void setCurrentDefaultBrowserValue() {
-        try {
-            if (getActivity() != null) {
-                Browser browser = BrowserSelector.select(getActivity().getApplicationContext());
-                mDefaultBrowser.setText(browser.getPackageName());
-            }
-        } catch (ClientException e) {
-            e.printStackTrace();
-        }
-    }
-
     @Override
     public void onResume() {
         super.onResume();
         if (mOnFragmentInteractionListener != null) {
-            mOnFragmentInteractionListener.bindSelectAccountSpinner(mSelectAccount);
+            MsalWrapper.getInstance().registerPostAccountLoadedJob("bindSelectAccountSpinner",
+                    new MsalWrapper.IPostAccountLoaded() {
+                        @Override
+                        public void onLoaded(List<IAccount> loadedAccount) {
+                            mOnFragmentInteractionListener.bindSelectAccountSpinner(mSelectAccount, loadedAccount);
+                            mPublicApplicationMode.setText(MsalWrapper.getInstance().getPublicApplicationMode());
+                        }
+                    });
         }
         if (mSelectAccount.getSelectedItem() != null) {
             mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
         }
-        setCurrentDefaultBrowserValue();
     }
 
     @Override
@@ -205,38 +216,38 @@ public class AcquireTokenFragment extends Fragment {
     }
 
     RequestOptions getCurrentRequestOptions() {
-        final Constants.AuthorityType authorityType = Constants.AuthorityType.valueOf(mAuthority.getSelectedItem().toString());
         final Constants.AzureActiveDirectoryEnvironment environment = Constants.AzureActiveDirectoryEnvironment.valueOf(mAADEnvironments.getSelectedItem().toString());
         final String loginHint = mLoginhint.getText().toString();
-        final UiBehavior uiBehavior = UiBehavior.valueOf(mUiBehavior.getSelectedItem().toString());
+        final Prompt uiBehavior = Prompt.valueOf(mPrompt.getSelectedItem().toString());
         final Constants.UserAgent userAgent = Constants.UserAgent.valueOf(mUserAgent.getSelectedItem().toString());
         final String scopes = mScope.getText().toString();
         final String extraScopesToConsent = mExtraScope.getText().toString();
         final boolean enablePII = mEnablePII.isChecked();
         final boolean forceRefresh = mForceRefresh.isChecked();
-        return RequestOptions.create(authorityType, environment, loginHint, uiBehavior, userAgent, scopes, extraScopesToConsent, enablePII, forceRefresh);
+        return RequestOptions.create(environment, loginHint, uiBehavior, userAgent, scopes, extraScopesToConsent, enablePII, forceRefresh);
     }
 
     static class RequestOptions {
-        final Constants.AuthorityType mAuthorityType;
         final Constants.AzureActiveDirectoryEnvironment mEnvironment;
         final String mLoginHint;
-        final UiBehavior mUiBehavior;
+        final Prompt mPrompt;
         final Constants.UserAgent mUserAgent;
         final String mScope;
         final String mExtraScope;
         final boolean mEnablePII;
         final boolean mForceRefresh;
 
-        RequestOptions(final Constants.AuthorityType authorityType,
-                       final Constants.AzureActiveDirectoryEnvironment environment,
-                       final String loginHint, final UiBehavior uiBehavior,
-                       final Constants.UserAgent userAgent, final String scope,
-                       final String extraScope, final boolean enablePII, final boolean forceRefresh) {
-            mAuthorityType = authorityType;
+        RequestOptions(final Constants.AzureActiveDirectoryEnvironment environment,
+                       final String loginHint,
+                       final Prompt prompt,
+                       final Constants.UserAgent userAgent,
+                       final String scope,
+                       final String extraScope,
+                       final boolean enablePII,
+                       final boolean forceRefresh) {
             mEnvironment = environment;
             mLoginHint = loginHint;
-            mUiBehavior = uiBehavior;
+            mPrompt = prompt;
             mUserAgent = userAgent;
             mScope = scope;
             mExtraScope = extraScope;
@@ -244,24 +255,36 @@ public class AcquireTokenFragment extends Fragment {
             mForceRefresh = forceRefresh;
         }
 
-        static RequestOptions create(final Constants.AuthorityType authority, final Constants.AzureActiveDirectoryEnvironment environment, final String loginHint,
-                                     final UiBehavior uiBehavior,
-                                     final Constants.UserAgent userAgent, final String scope, final String extraScope, final boolean enablePII, final boolean forceRefresh) {
-            return new RequestOptions(authority, environment, loginHint, uiBehavior, userAgent, scope, extraScope, enablePII, forceRefresh);
+        static RequestOptions create(final Constants.AzureActiveDirectoryEnvironment environment,
+                                     final String loginHint,
+                                     final Prompt uiBehavior,
+                                     final Constants.UserAgent userAgent,
+                                     final String scope,
+                                     final String extraScope,
+                                     final boolean enablePII,
+                                     final boolean forceRefresh) {
+            return new RequestOptions(
+                    environment,
+                    loginHint,
+                    uiBehavior,
+                    userAgent,
+                    scope,
+                    extraScope,
+                    enablePII,
+                    forceRefresh
+            );
         }
 
-        Constants.AuthorityType getAuthorityType() {
-            return mAuthorityType;
+        Constants.AzureActiveDirectoryEnvironment getEnvironment() {
+            return mEnvironment;
         }
-
-        Constants.AzureActiveDirectoryEnvironment getEnvironment() { return mEnvironment;}
 
         String getLoginHint() {
             return mLoginHint;
         }
 
-        UiBehavior getUiBehavior() {
-            return mUiBehavior;
+        Prompt getPrompt() {
+            return mPrompt;
         }
 
         String getScopes() {
@@ -294,6 +317,10 @@ public class AcquireTokenFragment extends Fragment {
 
         void onAcquireTokenSilentClicked(final RequestOptions requestOptions);
 
-        void bindSelectAccountSpinner(Spinner selectAccount);
+        void bindSelectAccountSpinner(Spinner selectAccount, List<IAccount> accounts);
+
+        void onAcquireTokenWithResourceClicked(final RequestOptions requestOptions);
+
+        void onAcquireTokenSilentWithResourceClicked(final RequestOptions requestOptions);
     }
 }

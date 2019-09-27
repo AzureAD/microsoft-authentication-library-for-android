@@ -25,20 +25,27 @@ package com.microsoft.identity.client.internal.controllers;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.support.annotation.NonNull;
 
-import com.microsoft.identity.client.AccountAdapter;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.AzureActiveDirectoryAccountIdentifier;
 import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.IClaimable;
+import com.microsoft.identity.client.ITenantProfile;
+import com.microsoft.identity.client.MultiTenantAccount;
+import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.claims.ClaimsRequest;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
-import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.cache.SchemaUtil;
+import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.oauth2.OpenIdConnectPromptParameter;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
@@ -47,14 +54,37 @@ import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.util.HashSet;
+import java.util.Map;
+
+import static com.microsoft.identity.common.internal.authorities.AllAccounts.ALL_ACCOUNTS_TENANT_ID;
+import static com.microsoft.identity.common.internal.authorities.AnyPersonalAccount.ANY_PERSONAL_ACCOUNT_TENANT_ID;
+import static com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience.ORGANIZATIONS;
+import static com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken.TENANT_ID;
 
 public class OperationParametersAdapter {
 
-    private static final String TAG = OperationParameters.class.getName();
+    private static final String TAG = OperationParametersAdapter.class.getSimpleName();
+
+    public static OperationParameters createOperationParameters(
+            @NonNull final PublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache cache) {
+        final OperationParameters parameters = new OperationParameters();
+        parameters.setAppContext(configuration.getAppContext());
+        parameters.setTokenCache(cache);
+        parameters.setClientId(configuration.getClientId());
+        parameters.setRedirectUri(configuration.getRedirectUri());
+        parameters.setAuthority(configuration.getDefaultAuthority());
+        parameters.setApplicationName(configuration.getAppContext().getPackageName());
+        parameters.setApplicationVersion(getPackageVersion(configuration.getAppContext()));
+        parameters.setSdkVersion(PublicClientApplication.getSdkVersion());
+        parameters.setRequiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion());
+        return parameters;
+    }
 
     public static AcquireTokenOperationParameters createAcquireTokenOperationParameters(
-            AcquireTokenParameters acquireTokenParameters,
-            PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
+            @NonNull final AcquireTokenParameters acquireTokenParameters,
+            @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration,
+            @NonNull final OAuth2TokenCache cache) {
 
         final String methodName = ":createAcquireTokenOperationParameters";
         final AcquireTokenOperationParameters acquireTokenOperationParameters =
@@ -64,8 +94,8 @@ public class OperationParametersAdapter {
             if (acquireTokenParameters.getAccount() != null) {
                 acquireTokenOperationParameters.setAuthority(
                         getRequestAuthority(
-                                acquireTokenParameters.getAccount(),
-                                publicClientApplicationConfiguration)
+                                publicClientApplicationConfiguration
+                        )
                 );
             } else {
                 acquireTokenOperationParameters.
@@ -73,7 +103,6 @@ public class OperationParametersAdapter {
                                 publicClientApplicationConfiguration.getDefaultAuthority()
                         );
             }
-
         } else {
             acquireTokenOperationParameters.setAuthority(
                     Authority.getAuthorityFromAuthorityUrl(
@@ -81,6 +110,10 @@ public class OperationParametersAdapter {
                     )
             );
         }
+
+        acquireTokenOperationParameters.setBrowserSafeList(
+                publicClientApplicationConfiguration.getBrowserSafeList()
+        );
 
         if (acquireTokenOperationParameters.getAuthority() instanceof AzureActiveDirectoryAuthority) {
             AzureActiveDirectoryAuthority aadAuthority =
@@ -90,6 +123,7 @@ public class OperationParametersAdapter {
                     publicClientApplicationConfiguration.getMultipleCloudsSupported()
             );
         }
+
         com.microsoft.identity.common.internal.logging.Logger.verbosePII(
                 methodName,
                 "Using authority: [" + acquireTokenOperationParameters
@@ -111,9 +145,11 @@ public class OperationParametersAdapter {
         );
 
         if (acquireTokenParameters.getAccount() != null) {
-            acquireTokenOperationParameters.setLoginHint(
-                    acquireTokenParameters.getAccount().getUsername()
-            );
+            final IAccount account = acquireTokenParameters.getAccount();
+
+            final String username = getUsername(account);
+
+            acquireTokenOperationParameters.setLoginHint(username);
             acquireTokenOperationParameters.setAccount(
                     acquireTokenParameters.getAccountRecord()
             );
@@ -122,9 +158,7 @@ public class OperationParametersAdapter {
                     acquireTokenParameters.getLoginHint()
             );
         }
-        acquireTokenOperationParameters.setTokenCache(
-                publicClientApplicationConfiguration.getOAuth2TokenCache()
-        );
+        acquireTokenOperationParameters.setTokenCache(cache);
         acquireTokenOperationParameters.setExtraQueryStringParameters(
                 acquireTokenParameters.getExtraQueryStringParameters()
         );
@@ -148,114 +182,134 @@ public class OperationParametersAdapter {
             acquireTokenOperationParameters.setAuthorizationAgent(AuthorizationAgent.DEFAULT);
         }
 
-        if (acquireTokenParameters.getUiBehavior() == null) {
+        if (acquireTokenParameters.getPrompt() == null || acquireTokenParameters.getPrompt() == Prompt.WHEN_REQUIRED) {
             acquireTokenOperationParameters.setOpenIdConnectPromptParameter(
                     OpenIdConnectPromptParameter.SELECT_ACCOUNT
             );
         } else {
             acquireTokenOperationParameters.setOpenIdConnectPromptParameter(
                     acquireTokenParameters
-                            .getUiBehavior()
+                            .getPrompt()
                             .toOpenIdConnectPromptParameter()
             );
         }
 
         final Context context = acquireTokenParameters.getActivity().getApplicationContext();
-
         acquireTokenOperationParameters.setApplicationName(context.getPackageName());
-
         acquireTokenOperationParameters.setApplicationVersion(getPackageVersion(context));
-
         acquireTokenOperationParameters.setSdkVersion(PublicClientApplication.getSdkVersion());
 
         return acquireTokenOperationParameters;
     }
 
+    private static String getUsername(@NonNull final IAccount account) {
+        // We need to get the username for the account...
+        // Since the home account may be null (in the case of guest only), we need to look
+        // both at the home and any tenant profiles
+        String username = null;
+
+        if (null != account.getClaims()) {
+            username = SchemaUtil.getDisplayableId(account.getClaims());
+        } else {
+            // The home account was null, therefore this must be a multi-tenant account
+            final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
+            // Any arbitrary tenant profile should work...
+            final Map<String, ITenantProfile> tenantProfiles = multiTenantAccount.getTenantProfiles();
+
+            for (final Map.Entry<String, ITenantProfile> profileEntry : tenantProfiles.entrySet()) {
+                if (null != profileEntry.getValue().getClaims()) {
+                    final String displayableId = SchemaUtil.getDisplayableId(profileEntry.getValue().getClaims());
+                    if (!SchemaUtil.MISSING_FROM_THE_TOKEN_RESPONSE.equalsIgnoreCase(displayableId)) {
+                        username = displayableId;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return username;
+    }
+
     public static AcquireTokenSilentOperationParameters createAcquireTokenSilentOperationParameters(
-            AcquireTokenSilentParameters acquireTokenSilentParameters,
-            PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
+            @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters,
+            @NonNull final PublicClientApplicationConfiguration pcaConfig,
+            @NonNull final OAuth2TokenCache cache) {
+        final Context context = pcaConfig.getAppContext();
+        final String requestAuthority = acquireTokenSilentParameters.getAuthority();
+        final Authority authority = Authority.getAuthorityFromAuthorityUrl(requestAuthority);
+        final ClaimsRequest claimsRequest = acquireTokenSilentParameters.getClaimsRequest();
+        final String jsonClaimsRequest = ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest);
 
-        final AcquireTokenSilentOperationParameters acquireTokenSilentOperationParameters
-                = new AcquireTokenSilentOperationParameters();
+        final AcquireTokenSilentOperationParameters atsOperationParams = new AcquireTokenSilentOperationParameters();
+        atsOperationParams.setAppContext(pcaConfig.getAppContext());
+        atsOperationParams.setScopes(new HashSet<>(acquireTokenSilentParameters.getScopes()));
+        atsOperationParams.setClientId(pcaConfig.getClientId());
+        atsOperationParams.setTokenCache(cache);
+        atsOperationParams.setAuthority(authority);
+        atsOperationParams.setApplicationName(context.getPackageName());
+        atsOperationParams.setApplicationVersion(getPackageVersion(context));
+        atsOperationParams.setSdkVersion(PublicClientApplication.getSdkVersion());
+        atsOperationParams.setForceRefresh(acquireTokenSilentParameters.getForceRefresh());
+        atsOperationParams.setRedirectUri(pcaConfig.getRedirectUri());
+        atsOperationParams.setClaimsRequest(jsonClaimsRequest);
+        atsOperationParams.setAccount(acquireTokenSilentParameters.getAccountRecord());
 
-        acquireTokenSilentOperationParameters.setAppContext(
-                publicClientApplicationConfiguration.getAppContext()
-        );
-        acquireTokenSilentOperationParameters.setScopes(
-                new HashSet<>(acquireTokenSilentParameters.getScopes()
-                )
-        );
-        acquireTokenSilentOperationParameters.setClientId(
-                publicClientApplicationConfiguration.getClientId()
-        );
-        acquireTokenSilentOperationParameters.setTokenCache(
-                publicClientApplicationConfiguration.getOAuth2TokenCache()
-        );
-
-        if (null != acquireTokenSilentParameters.getAccountRecord()) {
-            acquireTokenSilentOperationParameters.setAccount(
-                    acquireTokenSilentParameters.getAccountRecord()
-            );
-        } else if (null != acquireTokenSilentParameters.getAccount()){
-            // This will happen when the account exists in broker.
-            // We need to construct the AccountRecord object with IAccount.
-            // for broker acquireToken request only.
-            final IAccount account = acquireTokenSilentParameters.getAccount();
-            final AccountRecord requestAccountRecord = new AccountRecord();
-            requestAccountRecord.setEnvironment(account.getEnvironment());
-            requestAccountRecord.setUsername(account.getUsername());
-            requestAccountRecord.setHomeAccountId(account.getHomeAccountIdentifier().getIdentifier());
-            requestAccountRecord.setAlternativeAccountId(account.getAccountIdentifier().getIdentifier());
-            acquireTokenSilentOperationParameters.setAccount(requestAccountRecord);
-        }
-
-        if (StringUtil.isEmpty(acquireTokenSilentParameters.getAuthority())) {
-            acquireTokenSilentParameters.setAuthority(
-                    getSilentRequestAuthority(
-                            acquireTokenSilentParameters.getAccount(),
-                            publicClientApplicationConfiguration
-                    )
-            );
-        }
-        acquireTokenSilentOperationParameters.setAuthority(
-                Authority.getAuthorityFromAuthorityUrl(acquireTokenSilentParameters.getAuthority())
-        );
-        acquireTokenSilentOperationParameters.setRedirectUri(
-                publicClientApplicationConfiguration.getRedirectUri()
-        );
-
-        if (acquireTokenSilentOperationParameters.getAuthority() instanceof AzureActiveDirectoryAuthority) {
+        if (atsOperationParams.getAuthority() instanceof AzureActiveDirectoryAuthority) {
             AzureActiveDirectoryAuthority aadAuthority =
-                    (AzureActiveDirectoryAuthority) acquireTokenSilentOperationParameters.getAuthority();
+                    (AzureActiveDirectoryAuthority) atsOperationParams.getAuthority();
 
-            aadAuthority.setMultipleCloudsSupported(
-                    publicClientApplicationConfiguration.getMultipleCloudsSupported()
-            );
+            aadAuthority.setMultipleCloudsSupported(pcaConfig.getMultipleCloudsSupported());
         }
-        acquireTokenSilentOperationParameters.setClaimsRequest(
-                ClaimsRequest.getJsonStringFromClaimsRequest(
-                        acquireTokenSilentParameters.getClaimsRequest()
-                )
-        );
 
-        acquireTokenSilentOperationParameters.setForceRefresh(
-                acquireTokenSilentParameters.getForceRefresh()
-        );
+        return atsOperationParams;
+    }
 
-        final Context context = publicClientApplicationConfiguration.getAppContext();
+    /**
+     * For a tenant, assert that claims exist for it. This is a convenience function for throwing
+     * exceptions & logging.
+     *
+     * @param tenantId The tenantId for which claims are sought.
+     * @param claims   The claims, which may be null - if they are, an {@link IllegalStateException}
+     *                 is thrown.
+     */
+    public static void validateClaimsExistForTenant(@NonNull final String tenantId,
+                                                    @Nullable final IClaimable claimable)
+            throws MsalClientException {
+        final String methodName = ":validateClaimsExistForTenant";
 
-        acquireTokenSilentOperationParameters.setApplicationName(context.getPackageName());
+        if (null == claimable || null == claimable.getClaims()) {
+            final String errMsg = "Attempting to authorize for tenant: "
+                    + tenantId
+                    + " but no matching account was found.";
 
-        acquireTokenSilentOperationParameters.setApplicationVersion(getPackageVersion(context));
+            Logger.warn(
+                    TAG + methodName,
+                    errMsg
+            );
 
-        acquireTokenSilentOperationParameters.setSdkVersion(PublicClientApplication.getSdkVersion());
+            throw new MsalClientException(errMsg);
+        }
+    }
 
-        return acquireTokenSilentOperationParameters;
+    public static boolean isAccountHomeTenant(@Nullable final Map<String, ?> claims,
+                                              @NonNull final String tenantId) {
+        boolean isAccountHomeTenant = false;
+
+        if (null != claims && !claims.isEmpty()) {
+            isAccountHomeTenant = claims.get(TENANT_ID).equals(tenantId);
+        }
+
+        return isAccountHomeTenant;
+    }
+
+    public static boolean isHomeTenantEquivalent(@NonNull final String tenantId) {
+        return tenantId.equalsIgnoreCase(ALL_ACCOUNTS_TENANT_ID)
+                || tenantId.equalsIgnoreCase(ANY_PERSONAL_ACCOUNT_TENANT_ID)
+                || tenantId.equalsIgnoreCase(ORGANIZATIONS);
     }
 
     private static Authority getRequestAuthority(
-            final IAccount account,
-            final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
+            @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
 
         String requestAuthority = null;
         Authority authority;
@@ -268,12 +322,6 @@ public class OperationParametersAdapter {
                     .toString();
         }
 
-        // If the request is not a B2C request or the passed-in authority is not a valid URL.
-        // MSAL will construct the request authority based on the account info.
-        if (requestAuthority == null) {
-            requestAuthority = getAuthorityFromAccount(account);
-        }
-
         if (requestAuthority == null) {
             authority = publicClientApplicationConfiguration.getDefaultAuthority();
         } else {
@@ -281,64 +329,6 @@ public class OperationParametersAdapter {
         }
 
         return authority;
-    }
-
-    private static String getSilentRequestAuthority(
-            final IAccount account,
-            final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
-
-        String requestAuthority = null;
-
-        // For a B2C request, the silent request will use the passed-in authority string from client app.
-        if (publicClientApplicationConfiguration.getDefaultAuthority() instanceof AzureActiveDirectoryB2CAuthority) {
-            requestAuthority = publicClientApplicationConfiguration
-                    .getDefaultAuthority()
-                    .getAuthorityURL()
-                    .toString();
-        }
-
-        // If the request is not a B2C request or the passed-in authority is not a valid URL.
-        // MSAL will construct the request authority based on the account info.
-        if (requestAuthority == null) {
-            requestAuthority = getAuthorityFromAccount(account);
-        }
-
-        if (requestAuthority == null) {
-            requestAuthority = publicClientApplicationConfiguration
-                    .getDefaultAuthority()
-                    .getAuthorityURL()
-                    .toString();
-        }
-
-        return requestAuthority;
-    }
-
-    public static String getAuthorityFromAccount(final IAccount account) {
-        final String methodName = ":getAuthorityFromAccount";
-        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                TAG + methodName,
-                "Getting authority from account..."
-        );
-
-        final AzureActiveDirectoryAccountIdentifier aadIdentifier;
-        if (null != account
-                && null != account.getAccountIdentifier()
-                && account.getAccountIdentifier() instanceof AzureActiveDirectoryAccountIdentifier
-                && null != (aadIdentifier = (AzureActiveDirectoryAccountIdentifier) account.getAccountIdentifier()).getTenantIdentifier()
-                && !StringUtil.isEmpty(aadIdentifier.getTenantIdentifier())) {
-            return "https://"
-                    + account.getEnvironment()
-                    + "/"
-                    + aadIdentifier.getTenantIdentifier()
-                    + "/";
-        } else {
-            com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG + methodName,
-                    "Account was null..."
-            );
-        }
-
-        return null;
     }
 
     private static String getPackageVersion(@NonNull final Context context) {

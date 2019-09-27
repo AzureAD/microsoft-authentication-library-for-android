@@ -24,16 +24,22 @@ package com.microsoft.identity.client.internal.controllers;
 
 import android.accounts.AccountManager;
 import android.accounts.AuthenticatorDescription;
+import android.annotation.TargetApi;
 import android.content.Context;
-import android.support.annotation.NonNull;
+import android.os.Build;
+import android.os.PowerManager;
+
+import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.authorities.AnyPersonalAccount;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.controllers.BaseController;
+import com.microsoft.identity.common.internal.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +49,7 @@ import java.util.List;
  * app configuration, device state
  */
 public class MSALControllerFactory {
+    private static final String TAG = MSALControllerFactory.class.getName();
 
     /**
      * Returns the appropriate MSAL Controller depending on Authority, App and Device state
@@ -59,13 +66,13 @@ public class MSALControllerFactory {
 
     public static BaseController getAcquireTokenController(@NonNull final Context applicationContext,
                                                            @NonNull final Authority authority,
-                                                           @NonNull final PublicClientApplicationConfiguration applicationConfiguration) {
+                                                           @NonNull final PublicClientApplicationConfiguration applicationConfiguration)
+            throws MsalClientException {
         if (brokerEligible(applicationContext, authority, applicationConfiguration)) {
             return new BrokerMsalController();
         } else {
             return new LocalMSALController();
         }
-
     }
 
     /**
@@ -86,13 +93,13 @@ public class MSALControllerFactory {
      */
     public static List<BaseController> getAcquireTokenSilentControllers(@NonNull final Context applicationContext,
                                                                         @NonNull final Authority authority,
-                                                                        @NonNull final PublicClientApplicationConfiguration applicationConfiguration) {
+                                                                        @NonNull final PublicClientApplicationConfiguration applicationConfiguration)
+            throws MsalClientException {
         List<BaseController> controllers = new ArrayList<>();
         controllers.add(new LocalMSALController());
         if (brokerEligible(applicationContext, authority, applicationConfiguration)) {
             controllers.add(new BrokerMsalController());
         }
-
 
         return controllers;
     }
@@ -112,9 +119,13 @@ public class MSALControllerFactory {
      */
     public static boolean brokerEligible(@NonNull final Context applicationContext,
                                          @NonNull Authority authority,
-                                         @NonNull PublicClientApplicationConfiguration applicationConfiguration) {
+                                         @NonNull PublicClientApplicationConfiguration applicationConfiguration) throws MsalClientException {
+        final String methodName = ":brokerEligible";
+
         //If app has asked for Broker or if the authority is not AAD return false
         if (!applicationConfiguration.getUseBroker() || !(authority instanceof AzureActiveDirectoryAuthority)) {
+            Logger.verbose(TAG + methodName, "Eligible to call broker? [false]");
+            Logger.verbose(TAG + methodName, "App does not ask for Broker or the authority is not AAD authority.");
             return false;
         }
 
@@ -122,15 +133,51 @@ public class MSALControllerFactory {
         AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
 
         if (azureActiveDirectoryAuthority.getAudience() instanceof AnyPersonalAccount) {
+            Logger.verbose(TAG + methodName, "Eligible to call broker? [false]");
+            Logger.verbose(TAG + methodName, "The audience is MSA only.");
             return false;
         }
 
-        // Use broker if installed and verified
-        if (brokerInstalled(applicationContext)) {
-            return true;
+        // Check if broker installed
+        if (!brokerInstalled(applicationContext)) {
+            Logger.verbose(TAG + methodName, "Eligible to call broker? [false]");
+            Logger.verbose(TAG + methodName, "Broker application is not installed.");
+            return false;
         }
 
-        return false;
+        // Check if MicrosoftAuthService supported or AccountManager permission granted
+        if (BrokerMsalController.isMicrosoftAuthServiceSupported(applicationContext)
+                || BrokerMsalController.isAccountManagerPermissionsGranted(applicationContext)) {
+            Logger.verbose(TAG + methodName, "Eligible to call broker? [true]");
+            return true;
+        } else if (!BrokerMsalController.isMicrosoftAuthServiceSupported(applicationContext)
+                && powerOptimizationEnabled(applicationContext)) {
+            Logger.verbose(TAG + methodName, "Eligible to call broker? [false]");
+            Logger.warn(TAG + methodName, "Is bound service supported? [false]");
+            Logger.warn(TAG + methodName, "Is the power optimization enabled? [true]");
+            throw new MsalClientException(MsalClientException.BROKER_BIND_FAILURE, "Unable to connect to the broker.");
+        } else {
+            Logger.verbose(TAG + methodName, "Eligible to call broker? [false]");
+            Logger.warn(TAG + methodName, "Is bound service supported? [false]");
+            Logger.warn(TAG + methodName, "Is the power optimization enabled? [false]");
+            Logger.warn(TAG + methodName, "Is AccountManager permission missing? [true]");
+            throw new MsalClientException(MsalClientException.BROKER_BIND_FAILURE, "Unable to connect to the broker.");
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private static boolean powerOptimizationEnabled(@NonNull final Context applicationContext) {
+        final String methodName = ":powerOptimizationEnabled";
+        final String packageName = applicationContext.getPackageName();
+        PowerManager pm = (PowerManager) applicationContext.getSystemService(Context.POWER_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && null != pm) {
+            final boolean isPowerOptimizationOn = !pm.isIgnoringBatteryOptimizations(packageName);
+            Logger.verbose(TAG + methodName, "Is power optimization on? [" + isPowerOptimizationOn + "]");
+            return isPowerOptimizationOn;
+        } else {
+            Logger.verbose(TAG + methodName, "Is power optimization on? [" + false + "]");
+            return false;
+        }
     }
 
     /**
@@ -146,10 +193,11 @@ public class MSALControllerFactory {
      * @param applicationContext
      * @return
      */
-    private static boolean brokerInstalled(@NonNull final Context applicationContext) {
+    protected static boolean brokerInstalled(@NonNull final Context applicationContext) {
         BrokerValidator brokerValidator = new BrokerValidator(applicationContext);
         AccountManager accountManager = AccountManager.get(applicationContext);
 
+        //Verify the signature
         AuthenticatorDescription[] authenticators = accountManager.getAuthenticatorTypes();
         for (AuthenticatorDescription authenticator : authenticators) {
             if (authenticator.type.equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)
@@ -160,6 +208,4 @@ public class MSALControllerFactory {
 
         return false;
     }
-
-
 }

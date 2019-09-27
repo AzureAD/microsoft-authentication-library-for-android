@@ -1,11 +1,43 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 1.0.0
+----------------------------
+- MSAL Android is now generally available with MSAL 1.0
+- Supported Authorities (Microsoft identity platform and Azure Active Directory B2C)
+- Microsoft authentication broker support
+- Supports enterprise scenarios including:
+    * Device Registration
+    * Device Management
+    * Intune App Protection
+    * Device Single Sign On
+- Introduction of Single and Multi Account Public Client Applications
+- IAccount and access to claims
+- Support for synchronous methods from worker threads
+- Improved configuration and control of your PublicClientApplication using configuration file
+- AndroidX Compatible
+- Common version: 1.0.7
+
+
 Version 0.3.1-alpha
 ----------------------------
-- Adds support for declared non-tfp B2C authorities
-- Fix setting correct id token for B2C if v1 id token is returned
-- Fix incorrect parsing of not_before as Date
-- V2 Broker Support (Alpha)
+- Picks up common@0.0.10-alpha
+- Adds additional validation to PublicClientApplicationConfiguration
+- Adds support for non-tfp B2C authority URIs when declared via configuration
+- Improved logging around network requests
+- getAccounts() is now asynchronous
+- Improved tooltips via nullability annotations
+- Introduced 10 minute request timeout to unlock threading resources if a user is inactive
+- Improved caching of IdTokens
+    * Support for ver: 1 IdTokens added, supports B2C & ADAL backwards compatibility
+- Improved argument validation
+    * Fixed an issue where a null callback could be provided to acquireToken, triggering an NPE
+- Caching improvements
+    * Guest-account migration support added
+    * Network I/O for performing cache migrations has been parallelized
+    * Adds support for setting cache encryption keys
+
+Known issues:
+- Property `authority` of `IAuthenticationResult` is always `null` for AAD authorities
 
 Version 0.2.2
 ----------------------------

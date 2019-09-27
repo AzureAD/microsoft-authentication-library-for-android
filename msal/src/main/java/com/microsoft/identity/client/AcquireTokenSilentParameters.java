@@ -23,11 +23,32 @@
 package com.microsoft.identity.client;
 
 public class AcquireTokenSilentParameters extends TokenParameters {
-    private Boolean mForceRefresh;
+    private boolean mForceRefresh;
+    private SilentAuthenticationCallback mCallback;
 
     public AcquireTokenSilentParameters(AcquireTokenSilentParameters.Builder builder) {
         super(builder);
         mForceRefresh = builder.mForceRefresh;
+        mCallback = builder.mCallback;
+    }
+
+    void setCallback(SilentAuthenticationCallback callback) {
+        mCallback = callback;
+    }
+
+    /**
+     * The Non-null {@link SilentAuthenticationCallback} to receive the result back.
+     * <p>
+     * 1) If the sdk successfully receives the token back, result will be sent back via
+     * {@link SilentAuthenticationCallback#onSuccess(IAuthenticationResult)}
+     * <p>
+     * 2) All the other errors will be sent back via
+     * {@link SilentAuthenticationCallback#onError(com.microsoft.identity.client.exception.MsalException)}.
+     *
+     * @return The silent request callback.
+     */
+    public SilentAuthenticationCallback getCallback() {
+        return mCallback;
     }
 
     /**
@@ -36,7 +57,7 @@ public class AcquireTokenSilentParameters extends TokenParameters {
      *
      * @param forceRefresh
      */
-    public void setForceRefresh(Boolean forceRefresh) {
+    public void setForceRefresh(boolean forceRefresh) {
         mForceRefresh = forceRefresh;
     }
 
@@ -44,19 +65,26 @@ public class AcquireTokenSilentParameters extends TokenParameters {
      * Boolean.  Indicates whether MSAL should refresh the access token.  Default is false and
      * unless you have good reason to.  You should not use this parameter.
      *
-     * @return Boolean
+     * @return boolean
      */
-    public Boolean getForceRefresh() {
+    public boolean getForceRefresh() {
         return mForceRefresh;
     }
 
     public static class Builder extends TokenParameters.Builder<AcquireTokenSilentParameters.Builder> {
 
-        private Boolean mForceRefresh;
+        private boolean mForceRefresh;
+        private SilentAuthenticationCallback mCallback;
 
-        public AcquireTokenSilentParameters.Builder forceRefresh(Boolean force) {
-            mForceRefresh = force;
+        public AcquireTokenSilentParameters.Builder forceRefresh(boolean forceRefresh) {
+            mForceRefresh = forceRefresh;
             return self();
+        }
+
+        public AcquireTokenSilentParameters.Builder withCallback(
+                final SilentAuthenticationCallback authenticationCallback) {
+            mCallback = authenticationCallback;
+            return this;
         }
 
         @Override
