@@ -15,6 +15,7 @@ Version 1.0.0
 - Support for synchronous methods from worker threads
 - Improved configuration and control of your PublicClientApplication using configuration file
 - AndroidX Compatible
+- Common version: 1.0.7
 
 
 Version 0.3.1-alpha
