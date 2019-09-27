@@ -78,6 +78,7 @@ import com.microsoft.identity.common.internal.result.ResultFuture;
 import com.microsoft.identity.msal.BuildConfig;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -230,6 +231,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @param listener             a callback to be invoked when the object is successfully created.
      *                             Cannot be null.
      * @see PublicClientApplication#create(Context, File, ApplicationCreatedListener)
+     * @see PublicClientApplication#create(Context, InputStream, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, String, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, int)
@@ -269,6 +271,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                   </p>
      * @param listener   a callback to be invoked when the object is successfully created. Cannot be null.
      * @see PublicClientApplication#create(Context, int, ApplicationCreatedListener)
+     * @see PublicClientApplication#create(Context, InputStream, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, String, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, int)
@@ -281,6 +284,46 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         create(
                 initializeConfiguration(context, configFile),
+                null, // client id
+                null, // authority
+                listener
+        );
+    }
+
+    /**
+     * {@link PublicClientApplication#create(Context, InputStream, ApplicationCreatedListener)}
+     * will read the client id and other configuration settings from the specified file.
+     *
+     * @param context    Application's {@link Context}. The sdk requires the application context to
+     *                   be passed in {@link PublicClientApplication}. Cannot be null.
+     *                   <p>
+     *                   Note: The {@link Context} should be the application context instead of the
+     *                   running activity's context, which could potentially make the sdk hold a
+     *                   strong reference to the activity, thus preventing correct garbage
+     *                   collection and causing bugs.
+     *                   </p>
+     * @param configData The stream containing the JSON configuration for the PublicClientApplication.
+     *                   Cannot be null.
+     *                   <p>
+     *                   For more information on the schema of the MSAL configuration file, please
+     *                   see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     *                   and <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     *                   </p>
+     * @param listener   a callback to be invoked when the object is successfully created. Cannot be null.
+     * @see PublicClientApplication#create(Context, int, ApplicationCreatedListener)
+     * @see PublicClientApplication#create(Context, File, ApplicationCreatedListener)
+     * @see PublicClientApplication#create(Context, String, ApplicationCreatedListener)
+     * @see PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)
+     * @see PublicClientApplication#create(Context, int)
+     */
+    public static void create(@NonNull final Context context,
+                              @Nullable final InputStream configData,
+                              @NonNull final ApplicationCreatedListener listener) {
+        validateNonNullArgument(context, "context");
+        validateNonNullArgument(listener, "listener");
+
+        create(
+                initializeConfiguration(context, configData),
                 null, // client id
                 null, // authority
                 listener
@@ -306,6 +349,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                 Cannot be null.
      * @see PublicClientApplication#create(Context, int, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, File, ApplicationCreatedListener)
+     * @see PublicClientApplication#create(Context, InputStream, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, int)
      */
@@ -343,6 +387,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                  Cannot be null.
      * @see PublicClientApplication#create(Context, int, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, File, ApplicationCreatedListener)
+     * @see PublicClientApplication#create(Context, InputStream, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, String, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, int)
      */
@@ -389,6 +434,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @throws IllegalStateException if this function is invoked on the main thread.
      * @see PublicClientApplication#create(Context, int, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, File, ApplicationCreatedListener)
+     * @see PublicClientApplication#create(Context, InputStream, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, String, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)
      */
@@ -433,8 +479,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                             </p>
      * @param listener             a callback to be invoked when the object is successfully created. Cannot be null.
      * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, File, IMultipleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, InputStream, IMultipleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, int)
      * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, File)
+     * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, InputStream)
      */
     public static void createMultipleAccountPublicClientApplication(@NonNull final Context context,
                                                                     final int configFileResourceId,
@@ -475,8 +523,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                   </p>
      * @param listener   a callback to be invoked when the object is successfully created. Cannot be null.
      * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, int, IMultipleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, InputStream, IMultipleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, int)
      * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, File)
+     * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, InputStream)
      */
     public static void createMultipleAccountPublicClientApplication(@NonNull final Context context,
                                                                     @NonNull final File configFile,
@@ -487,6 +537,50 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         createMultipleAccountPublicClientApplication(
                 initializeConfiguration(context, configFile),
+                listener
+        );
+    }
+
+    /**
+     * {@link PublicClientApplication#createMultipleAccountPublicClientApplication(Context, File, IMultipleAccountApplicationCreatedListener)}
+     * will read the client id and other configuration settings from the
+     * file included in your application resources.
+     *
+     * <p><p>This function will pass back an {@link MsalClientException} object if it is unable to
+     * return {@link IMultipleAccountPublicClientApplication}. For example, when the device is
+     * marked as 'shared' ({@link PublicClientApplication#isSharedDevice()} is set to true) </p></p>
+     *
+     * @param context    Application's {@link Context}. The sdk requires the application context to
+     *                   be passed in {@link PublicClientApplication}. Cannot be null.
+     *                   <p>
+     *                   Note: The {@link Context} should be the application context instead of the
+     *                   running activity's context, which could potentially make the sdk hold a
+     *                   strong reference to the activity, thus preventing correct garbage
+     *                   collection and causing bugs.
+     *                   </p>
+     * @param configData The stream containing the JSON configuration for the PublicClientApplication.
+     *                   Cannot be null.
+     *                   <p>
+     *                   For more information on the schema of the MSAL config json, please see
+     *                   <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     *                   and <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     *                   </p>
+     * @param listener   a callback to be invoked when the object is successfully created. Cannot be null.
+     * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, int, IMultipleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, File, IMultipleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, int)
+     * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, File)
+     * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, InputStream)
+     */
+    public static void createMultipleAccountPublicClientApplication(@NonNull final Context context,
+                                                                    @NonNull final InputStream configData,
+                                                                    @NonNull final IMultipleAccountApplicationCreatedListener listener) {
+
+        validateNonNullArgument(context, "context");
+        validateNonNullArgument(listener, "listener");
+
+        createMultipleAccountPublicClientApplication(
+                initializeConfiguration(context, configData),
                 listener
         );
     }
@@ -521,7 +615,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @throws IllegalStateException if this function is invoked on the main thread.
      * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, int, IMultipleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, File, IMultipleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, InputStream, IMultipleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, File)
+     * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, InputStream)
      */
     @WorkerThread
     @NonNull
@@ -561,7 +657,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @throws IllegalStateException if this function is invoked on the main thread.
      * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, int, IMultipleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, File, IMultipleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, InputStream, IMultipleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, int)
+     * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, InputStream)
      */
     @WorkerThread
     @NonNull
@@ -572,6 +670,49 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         return createMultipleAccountPublicClientApplication(
                 initializeConfiguration(context, configFile)
+        );
+    }
+
+    /**
+     * {@link PublicClientApplication#createMultipleAccountPublicClientApplication(Context, File)}
+     * will read the client id and other configuration settings from the
+     * file included in your application resources.
+     *
+     * <p><p>This function will pass back an {@link MsalClientException} object if it is unable
+     * to return {@link IMultipleAccountPublicClientApplication}. For example, when the device is
+     * marked as 'shared' ({@link PublicClientApplication#isSharedDevice()} is set to true) </p></p>
+     *
+     * @param context    Application's {@link Context}. The sdk requires the application context
+     *                   to be passed in {@link PublicClientApplication}. Cannot be null.
+     *                   <p>
+     *                   Note: The {@link Context} should be the application context instead of
+     *                   the running activity's context, which could potentially make the sdk hold a
+     *                   strong reference to the activity, thus preventing correct garbage
+     *                   collection and causing bugs.
+     *                   </p>
+     * @param configData The stream containing the JSON configuration for the PublicClientApplication.
+     *                   Cannot be null.
+     *                   <p>
+     *                   For more information on the schema of the MSAL configuration file, please
+     *                   see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     *                   and <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     *                   </p>
+     * @throws IllegalStateException if this function is invoked on the main thread.
+     * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, int, IMultipleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, File, IMultipleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, InputStream, IMultipleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, int)
+     * @see PublicClientApplication#createMultipleAccountPublicClientApplication(Context, File)
+     */
+    @WorkerThread
+    @NonNull
+    public static IMultipleAccountPublicClientApplication createMultipleAccountPublicClientApplication(@NonNull final Context context,
+                                                                                                       @NonNull final InputStream configData) throws InterruptedException, MsalException {
+        validateNonNullArgument(context, "context");
+        validateNonNullArgument(configData, "configData");
+
+        return createMultipleAccountPublicClientApplication(
+                initializeConfiguration(context, configData)
         );
     }
 
@@ -608,8 +749,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @param listener             a callback to be invoked when the object is successfully created.
      *                             Cannot be null.
      * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, File, ISingleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, InputStream, ISingleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, int)
      * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, File)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, InputStream)
      */
     public static void createSingleAccountPublicClientApplication(@NonNull final Context context,
                                                                   final int configFileResourceId,
@@ -650,8 +793,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                   </p>
      * @param listener   a callback to be invoked when the object is successfully created. Cannot be null.
      * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, int, ISingleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, InputStream, ISingleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, int)
      * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, File)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, InputStream)
      */
     public static void createSingleAccountPublicClientApplication(@NonNull final Context context,
                                                                   @NonNull final File configFile,
@@ -663,6 +808,51 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         createSingleAccountPublicClientApplication(
                 initializeConfiguration(context, configFile),
+                listener
+        );
+    }
+
+    /**
+     * {@link PublicClientApplication#createSingleAccountPublicClientApplication(Context, int, ISingleAccountApplicationCreatedListener)}
+     * will read the client id and other configuration settings from the file included in your
+     * application resources.
+     *
+     * <p><p>This function will pass back an {@link MsalClientException} object if it is unable to
+     * return {@link ISingleAccountApplicationCreatedListener}. For example, AccountMode in
+     * configuration is not set to single. </p></p>
+     *
+     * @param context    Application's {@link Context}. The sdk requires the application context
+     *                   to be passed in {@link PublicClientApplication}. Cannot be null.
+     *                   <p>
+     *                   Note: The {@link Context} should be the application context instead of the
+     *                   running activity's context, which could potentially make the sdk hold a
+     *                   strong reference to the activity, thus preventing correct garbage
+     *                   collection and causing bugs.
+     *                   </p>
+     * @param configData The stream containing the JSON configuration for the PublicClientApplication.
+     *                   Cannot be null.
+     *                   <p>
+     *                   For more information on the schema of the MSAL configuration file, please
+     *                   see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     *                   and <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     *                   </p>
+     * @param listener   a callback to be invoked when the object is successfully created. Cannot be null.
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, int, ISingleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, File, ISingleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, int)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, File)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, InputStream)
+     */
+    public static void createSingleAccountPublicClientApplication(@NonNull final Context context,
+                                                                  @NonNull final InputStream configData,
+                                                                  @NonNull final ISingleAccountApplicationCreatedListener listener) {
+
+        validateNonNullArgument(context, "context");
+        validateNonNullArgument(configData, "configData");
+        validateNonNullArgument(listener, "listener");
+
+        createSingleAccountPublicClientApplication(
+                initializeConfiguration(context, configData),
                 listener
         );
     }
@@ -696,7 +886,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @throws IllegalStateException if this function is invoked on the main thread.
      * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, File, ISingleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, int, ISingleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, InputStream, ISingleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, File)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, InputStream)
      */
     @WorkerThread
     @NonNull
@@ -738,7 +930,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @throws IllegalStateException if this function is invoked on the main thread.
      * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, File, ISingleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, int, ISingleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, InputStream, ISingleAccountApplicationCreatedListener)
      * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, int)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, InputStream)
      */
     @WorkerThread
     @NonNull
@@ -749,6 +943,50 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         return createSingleAccountPublicClientApplication(
                 initializeConfiguration(context, configFile)
+        );
+    }
+
+    /**
+     * {@link PublicClientApplication#createSingleAccountPublicClientApplication(Context, int)}
+     * will read the client id and other configuration settings from the file included in your
+     * applications resources.
+     *
+     * <p><p>This function will pass back an {@link MsalClientException} object if it is unable
+     * to return {@link ISingleAccountApplicationCreatedListener}. For example, AccountMode in
+     * configuration is not set to single. </p></p>
+     *
+     * @param context    Application's {@link Context}. The sdk requires the application context
+     *                   to be passed in {@link PublicClientApplication}. Cannot be null.
+     *                   <p>
+     *                   Note: The {@link Context} should be the application context instead of
+     *                   the running activity's context, which could potentially make the sdk hold a
+     *                   strong reference to the activity, thus preventing correct garbage
+     *                   collection and causing bugs.
+     *                   </p>
+     * @param configData The stream containing the JSON configuration for the PublicClientApplication.
+     *                   Cannot be null.
+     *                   <p>
+     *                   For more information on the schema of the MSAL configuration file,
+     *                   please see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     *                   and <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     *                   </p>
+     * @return An instance of ISingleAccountPublicClientApplication.
+     * @throws IllegalStateException if this function is invoked on the main thread.
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, File, ISingleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, int, ISingleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, InputStream, ISingleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, int)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, File)
+     */
+    @WorkerThread
+    @NonNull
+    public static ISingleAccountPublicClientApplication createSingleAccountPublicClientApplication(
+            @NonNull final Context context,
+            @Nullable final InputStream configData) throws InterruptedException, MsalException {
+        validateNonNullArgument(context, "context");
+
+        return createSingleAccountPublicClientApplication(
+                initializeConfiguration(context, configData)
         );
     }
     //endregion
