@@ -1,5 +1,22 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 1.0.0
+----------------------------
+- MSAL Android is now generally available with MSAL 1.0
+- Supported Authorities (Microsoft identity platform and Azure Active Directory B2C)
+- Microsoft authentication broker support
+- Supports enterprise scenarios including:
+    * Device Registration
+    * Device Management
+    * Intune App Protection
+    * Device Single Sign On
+- Introduction of Single and Multi Account Public Client Applications
+- IAccount and access to claims
+- Support for synchronous methods from worker threads
+- Improved configuration and control of your PublicClientApplication using configuration file
+- AndroidX Compatible
+
+
 Version 0.3.1-alpha
 ----------------------------
 - Picks up common@0.0.10-alpha
