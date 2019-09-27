@@ -1246,59 +1246,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         acquireToken(acquireTokenParameters);
     }
 
-    /**
-     * For the provided configuration and TokenParameters, determine the tenant id that should be
-     * used to lookup the proper AccountRecord.
-     *
-     * @param config        The application configuration to inspect if no request authority is provided.
-     * @param requestParams The request parameters to inspect for an authority.
-     * @return The tenantId **OR** a magic constant signalling that home should be used.
-     */
-    @SuppressWarnings("PMD")
-    // TODO : unused method, should this be removed?
-    private String getRequestTenantId(@NonNull final PublicClientApplicationConfiguration config,
-                                      @NonNull final TokenParameters requestParams) {
-        final String result;
-
-        // First look at the request
-        if (TextUtils.isEmpty(requestParams.getAuthority())) {
-            // Authority was not provided in the request - fallback to the default authority
-            requestParams.setAuthority(
-                    config
-                            .getDefaultAuthority()
-                            .getAuthorityUri()
-                            .toString()
-            );
-        }
-
-        final Authority authority = Authority.getAuthorityFromAuthorityUrl(requestParams.getAuthority());
-
-        if (authority instanceof AzureActiveDirectoryAuthority) {
-            final AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) authority;
-            final String tenantId = aadAuthority.getAudience().getTenantId();
-
-            if (isHomeTenantEquivalent(tenantId)) { // something like /consumers, /orgs, /common
-                result = FORCE_HOME_LOOKUP;
-            } else {
-                // Use the specific tenant
-                result = tenantId;
-            }
-        } else if (authority instanceof AzureActiveDirectoryB2CAuthority) {
-            result = FORCE_HOME_LOOKUP;
-        } else {
-            // Unrecognized authority type
-            throw new UnsupportedOperationException(
-                    "Unsupported Authority type: "
-                            + authority
-                            .getClass()
-                            .getSimpleName()
-            );
-        }
-
-        return result;
-
-    }
-
     protected void validateAcquireTokenParameters(AcquireTokenParameters parameters) throws MsalArgumentException {
         final Activity activity = parameters.getActivity();
         final List scopes = parameters.getScopes();
