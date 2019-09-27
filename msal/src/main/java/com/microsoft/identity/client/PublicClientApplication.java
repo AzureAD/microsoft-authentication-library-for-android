@@ -191,7 +191,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * Constant used to signal a home account's tenant id should be used when performing cache
      * lookups relative to creating OperationParams.
      */
-    private static final String FORCE_HOME_LOOKUP = "force_home_lookup";
 
     private static final String TSL_MSG_FAILED_TO_SAVE
             = "Failed to save FRT - see getCause() for additional Exception info";
