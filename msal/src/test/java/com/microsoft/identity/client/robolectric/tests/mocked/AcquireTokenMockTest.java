@@ -158,7 +158,7 @@ public final class AcquireTokenMockTest {
     }
 
     @Test
-     // onError won't be called as callback object is null
+    @Ignore // onError won't be called as callback object is null
     public void testAcquireTokenFailureNoCallback() {
         new AcquireTokenMockBaseTest() {
 
