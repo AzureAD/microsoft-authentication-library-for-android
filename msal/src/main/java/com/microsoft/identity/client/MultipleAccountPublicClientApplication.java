@@ -23,7 +23,6 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -72,21 +71,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     }
 
     @Override
-    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
-                                        @NonNull final IAccount account,
-                                        @NonNull final AuthenticationCallback callback) {
-        acquireTokenSilent(
-                scopes,
-                account,
-                null, // authority
-                false, // forceRefresh
-                null, // claimsRequest
-                callback
-        );
-    }
-
-
-    @Override
     public IAuthenticationResult acquireTokenSilent(@NonNull String[] scopes, @NonNull IAccount account, @NonNull String authority) throws MsalException, InterruptedException {
         return acquireTokenSilentSync(scopes, authority, account, false);
     }
@@ -95,7 +79,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final IAccount account,
                                         @NonNull final String authority,
-                                        @NonNull final AuthenticationCallback callback) {
+                                        @NonNull final SilentAuthenticationCallback callback) {
         acquireTokenSilent(
                 scopes,
                 account,
@@ -180,7 +164,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         }
 
         try {
-            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
             final LoadAccountCommand command = new LoadAccountCommand(
                     params,
                     MSALControllerFactory.getAcquireTokenSilentControllers(
@@ -248,7 +232,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         );
 
         try {
-            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
             final LoadAccountCommand command = new LoadAccountCommand(
                     params,
                     MSALControllerFactory.getAcquireTokenSilentControllers(
@@ -365,7 +349,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             return;
         }
 
-        final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+        final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
 
         // TODO Clean this up, only the cache should make these records...
         // The broker strips these properties out of this object to hit the cache

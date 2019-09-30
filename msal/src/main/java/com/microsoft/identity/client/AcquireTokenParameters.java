@@ -35,17 +35,19 @@ public class AcquireTokenParameters extends TokenParameters {
 
     private Activity mActivity;
     private String mLoginHint;
-    private UiBehavior mUiBehavior;
+    private Prompt mPrompt;
     private List<String> mExtraScopesToConsent;
     private List<Pair<String, String>> mExtraQueryStringParameters;
+    private AuthenticationCallback mCallback;
 
     public AcquireTokenParameters(AcquireTokenParameters.Builder builder) {
         super(builder);
         mActivity = builder.mActivity;
         mLoginHint = builder.mLoginHint;
-        mUiBehavior = builder.mUiBehavior;
+        mPrompt = builder.mPrompt;
         mExtraScopesToConsent = builder.mExtraScopesToConsent;
         mExtraQueryStringParameters = builder.mExtraQueryStringParameters;
+        mCallback = builder.mCallback;
     }
 
     /**
@@ -57,14 +59,6 @@ public class AcquireTokenParameters extends TokenParameters {
         return mActivity;
     }
 
-    /**
-     * Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}
-     *
-     * @param activity
-     */
-    public void setActivity(Activity activity) {
-        this.mActivity = activity;
-    }
 
     /**
      * Optional. Gets the login hint sent along with the authorization request.
@@ -80,7 +74,7 @@ public class AcquireTokenParameters extends TokenParameters {
      *
      * @param loginHint
      */
-    public void setLoginHint(String loginHint) {
+    void setLoginHint(String loginHint) {
         this.mLoginHint = loginHint;
     }
 
@@ -89,17 +83,8 @@ public class AcquireTokenParameters extends TokenParameters {
      *
      * @return
      */
-    public UiBehavior getUiBehavior() {
-        return mUiBehavior;
-    }
-
-    /**
-     * Controls the value of the prompt parameter sent along with the authorization request.
-     *
-     * @param uiBehavior
-     */
-    public void setUiBehavior(UiBehavior uiBehavior) {
-        this.mUiBehavior = uiBehavior;
+    public Prompt getPrompt() {
+        return mPrompt;
     }
 
     /**
@@ -113,16 +98,6 @@ public class AcquireTokenParameters extends TokenParameters {
     }
 
     /**
-     * These are additional scopes that you would like the user to authorize the use of, while getting consent
-     * for the first set of scopes
-     *
-     * @param extraScopesToConsent
-     */
-    public void setExtraScopesToConsent(List<String> extraScopesToConsent) {
-        this.mExtraScopesToConsent = extraScopesToConsent;
-    }
-
-    /**
      * If you've been instructed to pass additional query string parameters to the authorization endpoint.  You can get these here.
      * Otherwise... would recommend not touching.
      *
@@ -133,22 +108,28 @@ public class AcquireTokenParameters extends TokenParameters {
     }
 
     /**
-     * If you've been instructed to pass additional query string parameters to the authorization endpoint.  You can set these here.
-     * Otherwise... would recommend not touching.
+     * The Non-null {@link AuthenticationCallback} to receive the result back.
+     * 1) If user cancels the flow by pressing the device back button, the result will be sent
+     * back via {@link AuthenticationCallback#onCancel()}.
+     * 2) If the sdk successfully receives the token back, result will be sent back via
+     * {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
+     * 3) All the other errors will be sent back via
+     * {@link AuthenticationCallback#onError(com.microsoft.identity.client.exception.MsalException)}.
      *
-     * @param extraQueryStringParameters
+     * @return
      */
-    public void setExtraQueryStringParameters(List<Pair<String, String>> extraQueryStringParameters) {
-        this.mExtraQueryStringParameters = extraQueryStringParameters;
+    public AuthenticationCallback getCallback() {
+        return mCallback;
     }
 
     public static class Builder extends TokenParameters.Builder<AcquireTokenParameters.Builder> {
 
         private Activity mActivity;
         private String mLoginHint;
-        private UiBehavior mUiBehavior;
+        private Prompt mPrompt;
         private List<String> mExtraScopesToConsent;
         private List<Pair<String, String>> mExtraQueryStringParameters;
+        private AuthenticationCallback mCallback;
 
         public AcquireTokenParameters.Builder startAuthorizationFromActivity(Activity activity) {
             mActivity = activity;
@@ -160,8 +141,8 @@ public class AcquireTokenParameters extends TokenParameters {
             return self();
         }
 
-        public AcquireTokenParameters.Builder withUiBehavior(UiBehavior uiBehavior) {
-            mUiBehavior = uiBehavior;
+        public AcquireTokenParameters.Builder withPrompt(Prompt prompt) {
+            mPrompt = prompt;
             return self();
         }
 
@@ -170,8 +151,15 @@ public class AcquireTokenParameters extends TokenParameters {
             return self();
         }
 
-        public AcquireTokenParameters.Builder withAuthorizationQueryStringParameters(List<Pair<String, String>> parameters) {
+        public AcquireTokenParameters.Builder withAuthorizationQueryStringParameters(
+                List<Pair<String, String>> parameters) {
             mExtraQueryStringParameters = parameters;
+            return self();
+        }
+
+        public AcquireTokenParameters.Builder withCallback(
+                final AuthenticationCallback authenticationCallback) {
+            mCallback = authenticationCallback;
             return self();
         }
 

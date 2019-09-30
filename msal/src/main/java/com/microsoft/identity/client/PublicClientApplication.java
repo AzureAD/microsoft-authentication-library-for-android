@@ -39,16 +39,15 @@ import android.util.Pair;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
+import com.microsoft.identity.client.configuration.LoggerConfiguration;
+import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.exception.MsalUserCancelException;
 import com.microsoft.identity.client.internal.AsyncResult;
-import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
-import com.microsoft.identity.client.internal.telemetry.DefaultEvent;
-import com.microsoft.identity.client.internal.telemetry.Defaults;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ServiceException;
@@ -59,6 +58,7 @@ import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
+import com.microsoft.identity.common.internal.controllers.ExceptionAdapter;
 import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.controllers.TokenCommand;
@@ -88,6 +88,7 @@ import java.util.concurrent.Executors;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
+import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArg;
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
 import static com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter.msalExceptionFromBaseException;
 import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isAccountHomeTenant;
@@ -173,11 +174,23 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
     private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
 
+    private static class NONNULL_CONSTANTS{
+        private static final String CONTEXT = "context";
+        private static final String LISTENER = "listener";
+        private static final String CALLBACK = "callback";
+        private static final String CLIENT_ID = "client_id";
+        private static final String AUTHORITY = "authority";
+        private static final String CONFIG_FILE = "config_file";
+        private static final String ACTIVITY = "activity";
+        private static final String SCOPES = "scopes";
+        private static final String ACCOUNT = "account";
+    }
+
+
     /**
      * Constant used to signal a home account's tenant id should be used when performing cache
      * lookups relative to creating OperationParams.
      */
-    private static final String FORCE_HOME_LOOKUP = "force_home_lookup";
 
     private static final String TSL_MSG_FAILED_TO_SAVE
             = "Failed to save FRT - see getCause() for additional Exception info";
@@ -224,8 +237,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     public static void create(@NonNull final Context context,
                               final int configFileResourceId,
                               @NonNull final ApplicationCreatedListener listener) {
-        validateNonNullArgument(context, "context");
-        validateNonNullArgument(listener, "listener");
+        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
+        validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
         create(
                 initializeConfiguration(context, configFileResourceId),
@@ -263,8 +276,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     public static void create(@NonNull final Context context,
                               @Nullable final File configFile,
                               @NonNull final ApplicationCreatedListener listener) {
-        validateNonNullArgument(context, "context");
-        validateNonNullArgument(listener, "listener");
+        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
+        validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
         create(
                 initializeConfiguration(context, configFile),
@@ -299,9 +312,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     public static void create(@NonNull final Context context,
                               @NonNull final String clientId,
                               @NonNull final ApplicationCreatedListener listener) {
-        validateNonNullArgument(context, "context");
-        validateNonNullArgument(clientId, "clientId");
-        validateNonNullArgument(listener, "listener");
+        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
+        validateNonNullArgument(clientId, NONNULL_CONSTANTS.CLIENT_ID);
+        validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
         create(
                 initializeConfiguration(context),
@@ -337,10 +350,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                               @NonNull final String clientId,
                               @NonNull final String authority,
                               @NonNull final ApplicationCreatedListener listener) {
-        validateNonNullArgument(context, "context");
-        validateNonNullArgument(clientId, "clientId");
-        validateNonNullArgument(authority, "authority");
-        validateNonNullArgument(listener, "listener");
+        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
+        validateNonNullArgument(clientId, NONNULL_CONSTANTS.CLIENT_ID);
+        validateNonNullArgument(authority, NONNULL_CONSTANTS.AUTHORITY);
+        validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
         create(
                 initializeConfiguration(context),
@@ -383,7 +396,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     @NonNull
     public static IPublicClientApplication create(@NonNull final Context context,
                                                   final int configFileResourceId) throws InterruptedException, MsalException {
-        validateNonNullArgument(context, "context");
+        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
 
         return create(initializeConfiguration(context, configFileResourceId));
     }
@@ -427,8 +440,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                                                     final int configFileResourceId,
                                                                     @NonNull final IMultipleAccountApplicationCreatedListener listener) {
 
-        validateNonNullArgument(context, "context");
-        validateNonNullArgument(listener, "listener");
+        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
+        validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
         createMultipleAccountPublicClientApplication(
                 initializeConfiguration(context, configFileResourceId),
@@ -469,8 +482,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                                                     @NonNull final File configFile,
                                                                     @NonNull final IMultipleAccountApplicationCreatedListener listener) {
 
-        validateNonNullArgument(context, "context");
-        validateNonNullArgument(listener, "listener");
+        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
+        validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
         createMultipleAccountPublicClientApplication(
                 initializeConfiguration(context, configFile),
@@ -514,7 +527,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     @NonNull
     public static IMultipleAccountPublicClientApplication createMultipleAccountPublicClientApplication(@NonNull final Context context,
                                                                                                        @NonNull final int configFileResourceId) throws MsalException, InterruptedException {
-        validateNonNullArgument(context, "context");
+        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
 
         return createMultipleAccountPublicClientApplication(
                 initializeConfiguration(context, configFileResourceId)
@@ -554,7 +567,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     @NonNull
     public static IMultipleAccountPublicClientApplication createMultipleAccountPublicClientApplication(@NonNull final Context context,
                                                                                                        @NonNull final File configFile) throws InterruptedException, MsalException {
-        validateNonNullArgument(context, "context");
+        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
         validateNonNullArgument(configFile, "configFile");
 
         return createMultipleAccountPublicClientApplication(
@@ -602,8 +615,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                                                   final int configFileResourceId,
                                                                   @NonNull final ISingleAccountApplicationCreatedListener listener) {
 
-        validateNonNullArgument(context, "context");
-        validateNonNullArgument(listener, "listener");
+        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
+        validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
         createSingleAccountPublicClientApplication(
                 initializeConfiguration(context, configFileResourceId),
@@ -644,9 +657,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                                                   @NonNull final File configFile,
                                                                   @NonNull final ISingleAccountApplicationCreatedListener listener) {
 
-        validateNonNullArgument(context, "context");
-        validateNonNullArgument(configFile, "configFile");
-        validateNonNullArgument(listener, "listener");
+        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
+        validateNonNullArgument(configFile, NONNULL_CONSTANTS.CONFIG_FILE);
+        validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
         createSingleAccountPublicClientApplication(
                 initializeConfiguration(context, configFile),
@@ -690,7 +703,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     public static ISingleAccountPublicClientApplication createSingleAccountPublicClientApplication(
             @NonNull final Context context,
             final int configFileResourceId) throws InterruptedException, MsalException {
-        validateNonNullArgument(context, "context");
+        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
 
         return createSingleAccountPublicClientApplication(
                 initializeConfiguration(context, configFileResourceId)
@@ -732,7 +745,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     public static ISingleAccountPublicClientApplication createSingleAccountPublicClientApplication(
             @NonNull final Context context,
             @Nullable final File configFile) throws InterruptedException, MsalException {
-        validateNonNullArgument(context, "context");
+        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
 
         return createSingleAccountPublicClientApplication(
                 initializeConfiguration(context, configFile)
@@ -974,18 +987,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
 
         initializeHttpSettings(mPublicClientConfiguration.getHttpConfiguration());
+        initializeLoggerSettings(mPublicClientConfiguration.getLoggerConfiguration());
 
         initializeTokenSharingLibrary();
 
-        // Init Events with defaults (application-wide)
-        DefaultEvent.initializeDefaults(
-                Defaults.forApplication(
-                        context,
-                        mPublicClientConfiguration.getClientId()
-                )
-        );
-
-        checkIntentFilterAddedToAppManifest();
+        mPublicClientConfiguration.checkIntentFilterAddedToAppManifestForBrokerFlow();
 
         // Since network request is sent from the sdk, if calling app doesn't declare the internet
         // permission in the manifest, we cannot make the network call.
@@ -998,6 +1004,23 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 TAG + methodName,
                 "Create new public client application."
         );
+    }
+
+    private void initializeLoggerSettings(@Nullable final LoggerConfiguration loggerConfig) {
+        if (null != loggerConfig) {
+            final com.microsoft.identity.client.Logger.LogLevel configLogLevel = loggerConfig.getLogLevel();
+            final boolean configPiiState = loggerConfig.isPiiEnabled();
+            final boolean configLogcatState = loggerConfig.isLogcatEnabled();
+
+            final com.microsoft.identity.client.Logger logger = com.microsoft.identity.client.Logger.getInstance();
+
+            if (null != configLogLevel) {
+                logger.setLogLevel(configLogLevel);
+            }
+
+            logger.setEnablePII(configPiiState);
+            logger.setEnableLogcatLog(configLogcatState);
+        }
     }
 
     private void initializeHttpSettings(@Nullable final HttpConfiguration httpConfiguration) {
@@ -1189,21 +1212,21 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     protected void acquireToken(@NonNull final Activity activity,
                                 @NonNull final String[] scopes,
                                 @Nullable final IAccount account,
-                                @Nullable final UiBehavior uiBehavior,
+                                @Nullable final Prompt uiBehavior,
                                 @Nullable final List<Pair<String, String>> extraQueryParameters,
                                 @Nullable final String[] extraScopesToConsent,
                                 @Nullable final String authority,
                                 @NonNull final AuthenticationCallback callback,
                                 @Nullable final String loginHint,
                                 @Nullable final ClaimsRequest claimsRequest) {
-        validateNonNullArgument(activity, "Activity");
-        validateNonNullArgument(callback, "Callback");
+        validateNonNullArgument(activity, NONNULL_CONSTANTS.ACTIVITY);
+        validateNonNullArgument(callback, NONNULL_CONSTANTS.CALLBACK);
 
         AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
         AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(activity)
                 .forAccount(account)
                 .withScopes(Arrays.asList(scopes))
-                .withUiBehavior(uiBehavior)
+                .withPrompt(uiBehavior)
                 .withAuthorizationQueryStringParameters(extraQueryParameters)
                 .withOtherScopesToAuthorize(
                         Arrays.asList(
@@ -1213,7 +1236,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                         )
                 )
                 .fromAuthority(authority)
-                .callback(callback)
+                .withCallback(callback)
                 .withLoginHint(loginHint)
                 .withClaims(claimsRequest)
                 .build();
@@ -1222,69 +1245,25 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         acquireToken(acquireTokenParameters);
     }
 
-    /**
-     * For the provided configuration and TokenParameters, determine the tenant id that should be
-     * used to lookup the proper AccountRecord.
-     *
-     * @param config        The application configuration to inspect if no request authority is provided.
-     * @param requestParams The request parameters to inspect for an authority.
-     * @return The tenantId **OR** a magic constant signalling that home should be used.
-     */
-    private String getRequestTenantId(@NonNull final PublicClientApplicationConfiguration config,
-                                      @NonNull final TokenParameters requestParams) {
-        final String result;
+    protected void validateAcquireTokenParameters(AcquireTokenParameters parameters) throws MsalArgumentException {
+        final Activity activity = parameters.getActivity();
+        final List scopes = parameters.getScopes();
+        final AuthenticationCallback callback = parameters.getCallback();
 
-        // First look at the request
-        if (TextUtils.isEmpty(requestParams.getAuthority())) {
-            // Authority was not provided in the request - fallback to the default authority
-            requestParams.setAuthority(
-                    config
-                            .getDefaultAuthority()
-                            .getAuthorityUri()
-                            .toString()
-            );
-        }
-
-        final Authority authority = Authority.getAuthorityFromAuthorityUrl(requestParams.getAuthority());
-
-        if (authority instanceof AzureActiveDirectoryAuthority) {
-            final AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) authority;
-            final String tenantId = aadAuthority.getAudience().getTenantId();
-
-            if (isHomeTenantEquivalent(tenantId)) { // something like /consumers, /orgs, /common
-                result = FORCE_HOME_LOOKUP;
-            } else {
-                // Use the specific tenant
-                result = tenantId;
-            }
-        } else if (authority instanceof AzureActiveDirectoryB2CAuthority) {
-            result = FORCE_HOME_LOOKUP;
-        } else {
-            // Unrecognized authority type
-            throw new UnsupportedOperationException(
-                    "Unsupported Authority type: "
-                            + authority
-                            .getClass()
-                            .getSimpleName()
-            );
-        }
-
-        return result;
-
+        validateNonNullArg(activity, NONNULL_CONSTANTS.ACTIVITY);
+        validateNonNullArg(scopes, NONNULL_CONSTANTS.SCOPES);
+        validateNonNullArg(callback, NONNULL_CONSTANTS.CALLBACK);
     }
 
-    protected void validateAcquireTokenParameters(AcquireTokenParameters parameters) {
-        return;
-    }
-
-    protected void validateAcquireTokenSilentParameters(AcquireTokenSilentParameters parameters) {
-        if (TextUtils.isEmpty(parameters.getAuthority())) {
-            throw new IllegalArgumentException(
-                    "Authority must be specified for acquireTokenSilent"
-            );
-        }
-
-        return;
+    protected void validateAcquireTokenSilentParameters(AcquireTokenSilentParameters parameters) throws MsalArgumentException {
+        final String authority = parameters.getAuthority();
+        final IAccount account = parameters.getAccount();
+        final List scopes = parameters.getScopes();
+        final SilentAuthenticationCallback callback = parameters.getCallback();
+        validateNonNullArg(authority, NONNULL_CONSTANTS.AUTHORITY);
+        validateNonNullArg(account, NONNULL_CONSTANTS.ACCOUNT);
+        validateNonNullArg(callback, NONNULL_CONSTANTS.CALLBACK);
+        validateNonNullArg(scopes, NONNULL_CONSTANTS.SCOPES);
     }
 
     @Override
@@ -1296,8 +1275,13 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             @Override
             public void run() {
                 final ILocalAuthenticationCallback localAuthenticationCallback =
-                        getLocalAuthenticationCallback(acquireTokenParameters.getCallback());
+                        getLocalAuthenticationCallback(
+                                acquireTokenParameters.getCallback(),
+                                acquireTokenParameters
+                        );
                 try {
+                    validateAcquireTokenParameters(acquireTokenParameters);
+
                     acquireTokenParameters.setAccountRecord(
                             selectAccountRecordForTokenRequest(
                                     mPublicClientConfiguration,
@@ -1305,12 +1289,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             )
                     );
 
-                    validateAcquireTokenParameters(acquireTokenParameters);
-
                     final AcquireTokenOperationParameters params = OperationParametersAdapter.
                             createAcquireTokenOperationParameters(
                                     acquireTokenParameters,
-                                    mPublicClientConfiguration
+                                    mPublicClientConfiguration,
+                                    mPublicClientConfiguration.getOAuth2TokenCache()
                             );
 
 
@@ -1325,13 +1308,15 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     );
 
                     ApiDispatcher.beginInteractive(command);
-                } catch (final BaseException exception) {
+                } catch (final Exception exception) {
+                    // convert exception to BaseException
+                    final BaseException baseException = ExceptionAdapter.baseExceptionFromException(exception);
                     // If there is an Exception, post it to the main thread...
                     final Handler handler = new Handler(Looper.getMainLooper());
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            localAuthenticationCallback.onError(exception);
+                            localAuthenticationCallback.onError(baseException);
                         }
                     });
                 }
@@ -1344,9 +1329,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                       @NonNull final String authority,
                                       final boolean forceRefresh,
                                       @Nullable final ClaimsRequest claimsRequest,
-                                      @NonNull final AuthenticationCallback callback) {
-        validateNonNullArgument(account, "Account");
-        validateNonNullArgument(callback, "Callback");
+                                      @NonNull final SilentAuthenticationCallback callback) {
+        validateNonNullArgument(account, NONNULL_CONSTANTS.ACCOUNT);
+        validateNonNullArgument(callback, NONNULL_CONSTANTS.CALLBACK);
 
         AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
         AcquireTokenSilentParameters acquireTokenSilentParameters =
@@ -1355,7 +1340,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                         .fromAuthority(authority)
                         .forceRefresh(forceRefresh)
                         .withClaims(claimsRequest)
-                        .callback(callback)
+                        .withCallback(callback)
                         .build();
 
         acquireTokenSilentAsync(acquireTokenSilentParameters);
@@ -1368,10 +1353,13 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             @Override
             public void run() {
                 final ILocalAuthenticationCallback callback = getLocalAuthenticationCallback(
-                        acquireTokenSilentParameters.getCallback()
+                        acquireTokenSilentParameters.getCallback(),
+                        acquireTokenSilentParameters
                 );
 
                 try {
+                    validateAcquireTokenSilentParameters(acquireTokenSilentParameters);
+
                     acquireTokenSilentParameters.setAccountRecord(
                             selectAccountRecordForTokenRequest(
                                     mPublicClientConfiguration,
@@ -1379,12 +1367,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             )
                     );
 
-                    validateAcquireTokenSilentParameters(acquireTokenSilentParameters);
-
                     final AcquireTokenSilentOperationParameters params =
                             OperationParametersAdapter.createAcquireTokenSilentOperationParameters(
                                     acquireTokenSilentParameters,
-                                    mPublicClientConfiguration
+                                    mPublicClientConfiguration,
+                                    mPublicClientConfiguration.getOAuth2TokenCache()
                             );
 
 
@@ -1399,8 +1386,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     );
 
                     ApiDispatcher.submitSilent(silentTokenCommand);
-                } catch (final BaseException exception) {
-                    callback.onError(exception);
+                } catch (final Exception exception) {
+                    // convert exception to BaseException
+                    final BaseException baseException = ExceptionAdapter.baseExceptionFromException(exception);
+                    callback.onError(baseException);
                 }
             }
         });
@@ -1559,7 +1548,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         final ResultFuture<AsyncResult<IAuthenticationResult>> future = new ResultFuture<>();
 
-        acquireTokenSilentParameters.setCallback(new AuthenticationCallback() {
+        acquireTokenSilentParameters.setCallback(new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 future.setResult(new AsyncResult<>(authenticationResult, null));
@@ -1568,11 +1557,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             @Override
             public void onError(MsalException exception) {
                 future.setResult(new AsyncResult<IAuthenticationResult>(null, exception));
-            }
-
-            @Override
-            public void onCancel() {
-                future.setResult(new AsyncResult<IAuthenticationResult>(null, new MsalUserCancelException()));
             }
         });
 
@@ -1584,23 +1568,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             return result.getResult();
         } else {
             throw result.getException();
-        }
-    }
-
-    private void checkIntentFilterAddedToAppManifest() {
-        final boolean hasCustomTabRedirectActivity = MsalUtils.hasCustomTabRedirectActivity(
-                mPublicClientConfiguration.getAppContext(),
-                mPublicClientConfiguration.getRedirectUri()
-        );
-
-        if (!hasCustomTabRedirectActivity) {
-            throw new IllegalStateException(
-                    "Intent filter for: "
-                            + BrowserTabActivity.class.getSimpleName()
-                            + " is missing. Please verify that the registered redirect URI in AndroidManifest.xml is valid. "
-                            + "Please note that the leading /'//' is required for android:path. "
-                            + "For more information, please refer to the MSAL readme and https://developer.android.com/training/app-links/deep-linking."
-            );
         }
     }
 
@@ -1636,14 +1603,17 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         };
     }
 
-    protected ILocalAuthenticationCallback getLocalAuthenticationCallback(final AuthenticationCallback authenticationCallback) {
+
+    protected ILocalAuthenticationCallback getLocalAuthenticationCallback(
+            @NonNull final SilentAuthenticationCallback authenticationCallback,
+            @NonNull final TokenParameters tokenParameters) {
 
         return new ILocalAuthenticationCallback() {
 
             @Override
             public void onSuccess(ILocalAuthenticationResult localAuthenticationResult) {
-                IAuthenticationResult authenticationResult = AuthenticationResultAdapter.adapt(localAuthenticationResult);
-                authenticationCallback.onSuccess(authenticationResult);
+
+                postAuthResult(localAuthenticationResult, tokenParameters, authenticationCallback);
             }
 
             @Override
@@ -1654,9 +1624,40 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
             @Override
             public void onCancel() {
-                authenticationCallback.onCancel();
+                if (authenticationCallback instanceof AuthenticationCallback) {
+                    ((AuthenticationCallback) authenticationCallback).onCancel();
+                } else {
+                    throw new IllegalStateException("Silent requests cannot be cancelled.");
+                }
             }
         };
+    }
+
+    /**
+     * Helper method to post authentication result.
+     */
+    protected void postAuthResult(@NonNull final ILocalAuthenticationResult localAuthenticationResult,
+                                  @NonNull final TokenParameters requestParameters,
+                                  @NonNull final SilentAuthenticationCallback authenticationCallback){
+
+        // Check if any of the requested scopes are declined by the server, if yes throw a MsalDeclinedScope exception
+        final List<String> declinedScopes = AuthenticationResultAdapter.getDeclinedScopes(
+                Arrays.asList(localAuthenticationResult.getScope()),
+                requestParameters.getScopes()
+        );
+
+        if(!declinedScopes.isEmpty()){
+            final MsalDeclinedScopeException declinedScopeException =
+                    AuthenticationResultAdapter.declinedScopeExceptionFromResult(
+                            localAuthenticationResult,
+                            declinedScopes,
+                            requestParameters
+                    );
+            authenticationCallback.onError(declinedScopeException);
+        }else {
+            IAuthenticationResult authenticationResult = AuthenticationResultAdapter.adapt(localAuthenticationResult);
+            authenticationCallback.onSuccess(authenticationResult);
+        }
     }
 
     private OAuth2TokenCache<?, ?, ?> getOAuth2TokenCache() {
@@ -1778,7 +1779,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 authority, // authority
                 forceRefresh, // forceRefresh
                 null, // claimsRequest
-                new AuthenticationCallback() {
+                new SilentAuthenticationCallback() {
                     @Override
                     public void onSuccess(IAuthenticationResult authenticationResult) {
                         future.setResult(new AsyncResult<>(authenticationResult, null));
@@ -1787,11 +1788,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     @Override
                     public void onError(MsalException exception) {
                         future.setResult(new AsyncResult<IAuthenticationResult>(null, exception));
-                    }
-
-                    @Override
-                    public void onCancel() {
-                        future.setResult(new AsyncResult<IAuthenticationResult>(null, new MsalUserCancelException()));
                     }
                 }
         );

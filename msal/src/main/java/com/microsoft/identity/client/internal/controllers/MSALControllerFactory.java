@@ -120,9 +120,11 @@ public class MSALControllerFactory {
                                          @NonNull Authority authority,
                                          @NonNull PublicClientApplicationConfiguration applicationConfiguration) throws MsalClientException {
         final String methodName = ":brokerEligible";
+        final String logBrokerEligibleFalse = "Eligible to call broker? [false]";
+
         //If app has asked for Broker or if the authority is not AAD return false
         if (!applicationConfiguration.getUseBroker() || !(authority instanceof AzureActiveDirectoryAuthority)) {
-            Logger.verbose(TAG + methodName, "Eligible to call broker? [false]");
+            Logger.verbose(TAG + methodName, logBrokerEligibleFalse);
             Logger.verbose(TAG + methodName, "App does not ask for Broker or the authority is not AAD authority.");
             return false;
         }
@@ -131,14 +133,14 @@ public class MSALControllerFactory {
         AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
 
         if (azureActiveDirectoryAuthority.getAudience() instanceof AnyPersonalAccount) {
-            Logger.verbose(TAG + methodName, "Eligible to call broker? [false]");
+            Logger.verbose(TAG + methodName, logBrokerEligibleFalse);
             Logger.verbose(TAG + methodName, "The audience is MSA only.");
             return false;
         }
 
         // Check if broker installed
         if (!brokerInstalled(applicationContext)) {
-            Logger.verbose(TAG + methodName, "Eligible to call broker? [false]");
+            Logger.verbose(TAG + methodName, logBrokerEligibleFalse);
             Logger.verbose(TAG + methodName, "Broker application is not installed.");
             return false;
         }
@@ -150,12 +152,12 @@ public class MSALControllerFactory {
             return true;
         } else if (!BrokerMsalController.isMicrosoftAuthServiceSupported(applicationContext)
                 && powerOptimizationEnabled(applicationContext)) {
-            Logger.verbose(TAG + methodName, "Eligible to call broker? [false]");
+            Logger.verbose(TAG + methodName, logBrokerEligibleFalse);
             Logger.warn(TAG + methodName, "Is bound service supported? [false]");
             Logger.warn(TAG + methodName, "Is the power optimization enabled? [true]");
             throw new MsalClientException(MsalClientException.BROKER_BIND_FAILURE, "Unable to connect to the broker.");
         } else {
-            Logger.verbose(TAG + methodName, "Eligible to call broker? [false]");
+            Logger.verbose(TAG + methodName, logBrokerEligibleFalse);
             Logger.warn(TAG + methodName, "Is bound service supported? [false]");
             Logger.warn(TAG + methodName, "Is the power optimization enabled? [false]");
             Logger.warn(TAG + methodName, "Is AccountManager permission missing? [true]");

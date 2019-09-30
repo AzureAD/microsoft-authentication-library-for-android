@@ -35,7 +35,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Parcelable;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.annotation.WorkerThread;
@@ -46,7 +45,6 @@ import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
@@ -67,23 +65,21 @@ import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefre
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAccount;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
-import com.microsoft.identity.common.internal.result.ResultFuture;
 import com.microsoft.identity.common.internal.telemetry.Telemetry;
 import com.microsoft.identity.common.internal.telemetry.TelemetryEventStrings;
 import com.microsoft.identity.common.internal.telemetry.events.ApiEndEvent;
 import com.microsoft.identity.common.internal.telemetry.events.ApiStartEvent;
-import com.microsoft.identity.common.internal.telemetry.events.BrokerEndEvent;
 import com.microsoft.identity.common.internal.telemetry.events.BrokerStartEvent;
 import com.microsoft.identity.common.internal.ui.browser.Browser;
 import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 import com.microsoft.identity.common.internal.util.ICacheRecordGsonAdapter;
-import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -94,7 +90,6 @@ import java.util.concurrent.Executors;
 
 import static com.microsoft.identity.client.internal.controllers.BrokerBaseStrategy.getAcquireTokenResult;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.DEFAULT_BROWSER_PACKAGE_NAME;
-import static com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter.getHelloResultFromBundle;
 
 /**
  * The implementation of MSAL Controller for Broker
@@ -202,14 +197,6 @@ public class BrokerMsalController extends BaseController {
         return interactiveRequestIntent;
     }
 
-    private Handler getPreferredHandler() {
-        if (null != Looper.myLooper() && Looper.getMainLooper() != Looper.myLooper()) {
-            return new Handler(Looper.myLooper());
-        } else {
-            return new Handler(Looper.getMainLooper());
-        }
-    }
-
     /**
      * Get the response from the Broker captured by BrokerActivity.
      * BrokerActivity will pass along the response to the broker controller
@@ -254,7 +241,7 @@ public class BrokerMsalController extends BaseController {
             final BrokerBaseStrategy strategy = getStrategies().get(ii);
             com.microsoft.identity.common.internal.logging.Logger.verbose(
                     TAG + methodName,
-                    "Executing with strategy: "
+                    "Executing with strategy for silent : "
                             + strategy.getClass().getSimpleName()
             );
 
@@ -546,6 +533,7 @@ public class BrokerMsalController extends BaseController {
      * This only works when getBrokerAccountMode() is BROKER_ACCOUNT_MODE_SINGLE_ACCOUNT.
      */
     public void getCurrentAccount(@NonNull final PublicClientApplicationConfiguration configuration,
+                                  @NonNull final OAuth2TokenCache cache,
                                   @NonNull final TaskCompletedCallbackWithError<List<ICacheRecord>, MsalException> callback) {
         final String methodName = ":getCurrentAccount";
 
@@ -559,7 +547,7 @@ public class BrokerMsalController extends BaseController {
                                 .accountsFromBundle(
                                         service.getCurrentAccount(
                                                 BrokerAuthServiceStrategy.getRequestBundleForGetAccounts(
-                                                        OperationParametersAdapter.createOperationParameters(configuration)
+                                                        OperationParametersAdapter.createOperationParameters(configuration, cache)
                                                 )
                                         )
                                 );

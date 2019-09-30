@@ -34,6 +34,7 @@ import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IClaimable;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
+import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.claims.ClaimsRequest;
@@ -43,6 +44,7 @@ import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAu
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.oauth2.OpenIdConnectPromptParameter;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
@@ -63,10 +65,11 @@ public class OperationParametersAdapter {
     private static final String TAG = OperationParametersAdapter.class.getSimpleName();
 
     public static OperationParameters createOperationParameters(
-            @NonNull final PublicClientApplicationConfiguration configuration) {
+            @NonNull final PublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache cache) {
         final OperationParameters parameters = new OperationParameters();
         parameters.setAppContext(configuration.getAppContext());
-        parameters.setTokenCache(configuration.getOAuth2TokenCache());
+        parameters.setTokenCache(cache);
         parameters.setClientId(configuration.getClientId());
         parameters.setRedirectUri(configuration.getRedirectUri());
         parameters.setAuthority(configuration.getDefaultAuthority());
@@ -79,7 +82,8 @@ public class OperationParametersAdapter {
 
     public static AcquireTokenOperationParameters createAcquireTokenOperationParameters(
             @NonNull final AcquireTokenParameters acquireTokenParameters,
-            @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
+            @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration,
+            @NonNull final OAuth2TokenCache cache) {
 
         final String methodName = ":createAcquireTokenOperationParameters";
         final AcquireTokenOperationParameters acquireTokenOperationParameters =
@@ -153,9 +157,7 @@ public class OperationParametersAdapter {
                     acquireTokenParameters.getLoginHint()
             );
         }
-        acquireTokenOperationParameters.setTokenCache(
-                publicClientApplicationConfiguration.getOAuth2TokenCache()
-        );
+        acquireTokenOperationParameters.setTokenCache(cache);
         acquireTokenOperationParameters.setExtraQueryStringParameters(
                 acquireTokenParameters.getExtraQueryStringParameters()
         );
@@ -179,14 +181,14 @@ public class OperationParametersAdapter {
             acquireTokenOperationParameters.setAuthorizationAgent(AuthorizationAgent.DEFAULT);
         }
 
-        if (acquireTokenParameters.getUiBehavior() == null) {
+        if (acquireTokenParameters.getPrompt() == null || acquireTokenParameters.getPrompt() == Prompt.WHEN_REQUIRED) {
             acquireTokenOperationParameters.setOpenIdConnectPromptParameter(
                     OpenIdConnectPromptParameter.SELECT_ACCOUNT
             );
         } else {
             acquireTokenOperationParameters.setOpenIdConnectPromptParameter(
                     acquireTokenParameters
-                            .getUiBehavior()
+                            .getPrompt()
                             .toOpenIdConnectPromptParameter()
             );
         }
@@ -229,7 +231,8 @@ public class OperationParametersAdapter {
 
     public static AcquireTokenSilentOperationParameters createAcquireTokenSilentOperationParameters(
             @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters,
-            @NonNull final PublicClientApplicationConfiguration pcaConfig) {
+            @NonNull final PublicClientApplicationConfiguration pcaConfig,
+            @NonNull final OAuth2TokenCache cache) {
         final Context context = pcaConfig.getAppContext();
         final String requestAuthority = acquireTokenSilentParameters.getAuthority();
         final Authority authority = Authority.getAuthorityFromAuthorityUrl(requestAuthority);
@@ -240,7 +243,7 @@ public class OperationParametersAdapter {
         atsOperationParams.setAppContext(pcaConfig.getAppContext());
         atsOperationParams.setScopes(new HashSet<>(acquireTokenSilentParameters.getScopes()));
         atsOperationParams.setClientId(pcaConfig.getClientId());
-        atsOperationParams.setTokenCache(pcaConfig.getOAuth2TokenCache());
+        atsOperationParams.setTokenCache(cache);
         atsOperationParams.setAuthority(authority);
         atsOperationParams.setApplicationName(context.getPackageName());
         atsOperationParams.setApplicationVersion(getPackageVersion(context));

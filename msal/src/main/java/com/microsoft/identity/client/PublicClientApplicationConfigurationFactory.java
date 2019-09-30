@@ -30,7 +30,6 @@ import android.support.annotation.VisibleForTesting;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AuthorityDeserializer;
@@ -86,7 +85,6 @@ public class PublicClientApplicationConfigurationFactory {
             config.validateConfiguration();
         }
 
-        config.setAppContext(context);
         config.setOAuth2TokenCache(MsalOAuth2TokenCache.create(context));
         return config;
     }
@@ -97,7 +95,10 @@ public class PublicClientApplicationConfigurationFactory {
                 TAG + methodName,
                 "Loading default configuration"
         );
-        return loadConfiguration(context, R.raw.msal_default_config);
+        final PublicClientApplicationConfiguration config = loadConfiguration(context, R.raw.msal_default_config);
+        config.setAppContext(context);
+
+        return config;
     }
 
     @VisibleForTesting
