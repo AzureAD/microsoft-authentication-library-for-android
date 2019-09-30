@@ -1622,7 +1622,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             @Override
             public void onError(BaseException exception) {
                 MsalException msalException = msalExceptionFromBaseException(exception);
-                authenticationCallback.onError(msalException);
+                if (authenticationCallback == null) {
+                    throw new IllegalStateException("Callback cannot be null or empty");
+                } else {
+                    authenticationCallback.onError(msalException);
+                }
             }
 
             @Override
@@ -1642,6 +1646,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     protected void postAuthResult(@NonNull final ILocalAuthenticationResult localAuthenticationResult,
                                   @NonNull final TokenParameters requestParameters,
                                   @NonNull final SilentAuthenticationCallback authenticationCallback){
+
+        if (authenticationCallback == null) {
+            throw new IllegalStateException("Callback cannot be null or empty");
+        }
 
         // Check if any of the requested scopes are declined by the server, if yes throw a MsalDeclinedScope exception
         final List<String> declinedScopes = AuthenticationResultAdapter.getDeclinedScopes(
