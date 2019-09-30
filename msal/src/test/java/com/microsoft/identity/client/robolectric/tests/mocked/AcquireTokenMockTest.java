@@ -87,29 +87,6 @@ public final class AcquireTokenMockTest {
     }
 
     @Test
-    @Ignore // this tests is irrelevant
-    public void testAcquireTokenFailureNoLoginHint() {
-        new AcquireTokenMockBaseTest() {
-
-            @Override
-            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity) {
-
-                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                        .startAuthorizationFromActivity(activity)
-                        .withScopes(Arrays.asList(SCOPES))
-                        .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.failureInteractiveCallback())
-                        .build();
-
-                publicClientApplication.acquireToken(parameters);
-                RoboTestUtils.flushScheduler();
-            }
-
-        }.instantiatePCAthenAcquireToken();
-    }
-
-    @Test
     public void testAcquireTokenFailureNoScope() {
         new AcquireTokenMockBaseTest() {
 
@@ -157,8 +134,7 @@ public final class AcquireTokenMockTest {
         }.instantiatePCAthenAcquireToken();
     }
 
-    @Test
-    @Ignore // onError won't be called as callback object is null
+    @Test(expected = IllegalStateException.class)
     public void testAcquireTokenFailureNoCallback() {
         new AcquireTokenMockBaseTest() {
 
@@ -439,8 +415,7 @@ public final class AcquireTokenMockTest {
         }.instantiatePCAthenAcquireToken();
     }
 
-    @Test
-    @Ignore // callback will be null
+    @Test(expected = IllegalStateException.class)
     public void testAcquireTokenSilentFailureNoCallback() {
         new AcquireTokenMockBaseTest() {
 
