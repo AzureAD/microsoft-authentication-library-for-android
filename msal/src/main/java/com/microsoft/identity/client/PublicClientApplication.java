@@ -184,6 +184,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         private static final String ACTIVITY = "activity";
         private static final String SCOPES = "scopes";
         private static final String ACCOUNT = "account";
+
+        private static final String NULL_ERROR_SUFFIX = " cannot be null or empty";
     }
 
 
@@ -1623,7 +1625,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             public void onError(BaseException exception) {
                 MsalException msalException = msalExceptionFromBaseException(exception);
                 if (authenticationCallback == null) {
-                    throw new IllegalStateException("Callback cannot be null or empty");
+                    throw new IllegalStateException(NONNULL_CONSTANTS.CALLBACK + NONNULL_CONSTANTS.NULL_ERROR_SUFFIX);
                 } else {
                     authenticationCallback.onError(msalException);
                 }
@@ -1648,7 +1650,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                   @NonNull final SilentAuthenticationCallback authenticationCallback){
 
         if (authenticationCallback == null) {
-            throw new IllegalStateException("Callback cannot be null or empty");
+            throw new IllegalStateException(NONNULL_CONSTANTS.CALLBACK + NONNULL_CONSTANTS.NULL_ERROR_SUFFIX);
         }
 
         // Check if any of the requested scopes are declined by the server, if yes throw a MsalDeclinedScope exception
