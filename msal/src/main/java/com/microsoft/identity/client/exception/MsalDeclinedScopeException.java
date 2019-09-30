@@ -27,7 +27,7 @@ import com.microsoft.identity.common.exception.ErrorStrings;
 
 import java.util.List;
 
-import androidx.annotation.NonNull;
+import android.support.annotation.NonNull;
 
 /**
  * Exception class to indicate that one or more requested scopes have been declined by the server.
