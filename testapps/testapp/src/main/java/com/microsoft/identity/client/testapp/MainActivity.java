@@ -194,7 +194,7 @@ public class MainActivity extends AppCompatActivity
             final Bundle bundle = new Bundle();
             if (mAuthResult != null) {
                 bundle.putString(ResultFragment.ACCESS_TOKEN, mAuthResult.getAccessToken());
-                bundle.putString(ResultFragment.DISPLAYABLE, MsalWrapper.getPreferredUsername(mAuthResult.getAccount()));
+                bundle.putString(ResultFragment.DISPLAYABLE, mAuthResult.getAccount().getUsername());
             }
 
             fragment.setArguments(bundle);
@@ -281,7 +281,7 @@ public class MainActivity extends AppCompatActivity
                 new ArrayList<String>() {{
                     if (accounts != null) {
                         for (IAccount account : accounts)
-                            add(MsalWrapper.getPreferredUsername(account));
+                            add(account.getUsername());
                     }
                 }}
         );
