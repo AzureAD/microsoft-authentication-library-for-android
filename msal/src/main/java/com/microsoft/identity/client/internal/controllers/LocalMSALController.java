@@ -365,13 +365,10 @@ public class LocalMSALController extends BaseController {
                         .putApiId(TelemetryEventStrings.Api.LOCAL_REMOVE_ACCOUNT)
         );
 
-        final boolean deleteHomeAndGuestAccounts = true;
         String realm = null;
 
-        if (deleteHomeAndGuestAccounts) {
-            if (parameters.getAccount() != null) {
-                realm = parameters.getAccount().getRealm();
-            }
+        if (parameters.getAccount() != null) {
+            realm = parameters.getAccount().getRealm();
         }
 
         final boolean localRemoveAccountSuccess = !parameters

@@ -97,14 +97,12 @@ public final class PublicClientApplicationTest {
         );
 
         mAppContext = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext().getApplicationContext();
-        Telemetry.disableForTest(true);
     }
 
     @After
     public void tearDown() {
         HttpUrlConnectionFactory.clearMockedConnectionQueue();
         AndroidTestUtil.removeAllTokens(mAppContext);
-        Telemetry.disableForTest(false);
     }
 
 
