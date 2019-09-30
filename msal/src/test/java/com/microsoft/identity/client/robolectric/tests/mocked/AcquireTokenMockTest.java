@@ -87,6 +87,7 @@ public final class AcquireTokenMockTest {
     }
 
     @Test
+    @Ignore // this tests is irrelevant
     public void testAcquireTokenFailureNoLoginHint() {
         new AcquireTokenMockBaseTest() {
 
@@ -109,7 +110,7 @@ public final class AcquireTokenMockTest {
     }
 
     @Test
-    public void testAcquireTokenSuccessFollowedBySilentSuccess() {
+    public void testAcquireTokenFailureNoScope() {
         new AcquireTokenMockBaseTest() {
 
             @Override
@@ -121,23 +122,35 @@ public final class AcquireTokenMockTest {
                 final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
-                        .withScopes(Arrays.asList(SCOPES))
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
+                        .withCallback(AcquireTokenTestHelper.failureInteractiveCallback())
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
                 RoboTestUtils.flushScheduler();
+            }
 
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .forAccount(AcquireTokenTestHelper.getAccount())
+        }.instantiatePCAthenAcquireToken();
+    }
+
+    @Test
+    public void testAcquireTokenFailureNoActivity() {
+        new AcquireTokenMockBaseTest() {
+
+            @Override
+            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
+                                      final Activity activity) {
+
+                final String username = "fake@test.com";
+
+                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                        .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
-                        .forceRefresh(false)
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                        .withCallback(AcquireTokenTestHelper.failureInteractiveCallback())
                         .build();
 
-                publicClientApplication.acquireTokenSilentAsync(silentParameters);
+                publicClientApplication.acquireToken(parameters);
                 RoboTestUtils.flushScheduler();
             }
 
@@ -145,122 +158,24 @@ public final class AcquireTokenMockTest {
     }
 
     @Test
-    public void testAcquireTokenSilentSuccessValidCache() {
-        new AcquireTokenMockBaseTest() {
-            @Override
-            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity) {
-
-                final IAccount account = loadAccountForTest(publicClientApplication);
-
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .withScopes(Arrays.asList(SCOPES))
-                        .forceRefresh(false)
-                        .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .forAccount(account)
-                        .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
-                        .build();
-
-                publicClientApplication.acquireTokenSilentAsync(silentParameters);
-                RoboTestUtils.flushScheduler();
-            }
-
-        }.instantiatePCAthenAcquireToken();
-    }
-
-    @Test
-    public void testAcquireTokenSilentSuccessForceRefresh() {
+     // onError won't be called as callback object is null
+    public void testAcquireTokenFailureNoCallback() {
         new AcquireTokenMockBaseTest() {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
 
-                final IAccount account = loadAccountForTest(publicClientApplication);
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .withScopes(Arrays.asList(SCOPES))
-                        .forceRefresh(true)
-                        .forAccount(account)
+                final String username = "fake@test.com";
+
+                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(activity)
+                        .withLoginHint(username)
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                        .withScopes(Arrays.asList(SCOPES))
                         .build();
 
-                publicClientApplication.acquireTokenSilentAsync(silentParameters);
-                RoboTestUtils.flushScheduler();
-            }
-
-        }.instantiatePCAthenAcquireToken();
-    }
-
-    @Test
-    @Ignore
-    public void testAcquireTokenSilentFailureNoAccount() {
-        new AcquireTokenMockBaseTest() {
-
-            @Override
-            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity) {
-
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .withScopes(Arrays.asList(SCOPES))
-                        .forceRefresh(false)
-                        .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.failureSilentCallback())
-                        .build();
-
-                publicClientApplication.acquireTokenSilentAsync(silentParameters);
-                RoboTestUtils.flushScheduler();
-            }
-
-        }.instantiatePCAthenAcquireToken();
-    }
-
-    @Test
-    public void testAcquireTokenSilentFailureEmptyCache() {
-        new AcquireTokenMockBaseTest() {
-
-            @Override
-            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity) {
-
-                final IAccount account = loadAccountForTest(publicClientApplication);
-                RoboTestUtils.clearCache();
-
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .withScopes(Arrays.asList(SCOPES))
-                        .forceRefresh(false)
-                        .forAccount(account)
-                        .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.failureSilentCallback())
-                        .build();
-
-                publicClientApplication.acquireTokenSilentAsync(silentParameters);
-                RoboTestUtils.flushScheduler();
-            }
-
-        }.instantiatePCAthenAcquireToken();
-    }
-
-    @Test
-    public void testAcquireTokenSilentSuccessExpiredAccessToken() {
-        new AcquireTokenMockBaseTest() {
-
-            @Override
-            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity) {
-                ICacheRecord cacheRecord = createDataInCacheWithExpiredAccessToken(publicClientApplication);
-                final String loginHint = cacheRecord.getAccount().getUsername();
-                final IAccount account = performGetAccount(publicClientApplication, loginHint);
-
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .withScopes(Arrays.asList(SCOPES))
-                        .forceRefresh(false)
-                        .forAccount(account)
-                        .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
-                        .build();
-
-                publicClientApplication.acquireTokenSilentAsync(silentParameters);
+                publicClientApplication.acquireToken(parameters);
                 RoboTestUtils.flushScheduler();
             }
 
@@ -320,7 +235,7 @@ public final class AcquireTokenMockTest {
     }
 
     @Test
-    public void testAcquireTokenFailureNoScope() {
+    public void testAcquireTokenSuccessFollowedBySilentSuccess() {
         new AcquireTokenMockBaseTest() {
 
             @Override
@@ -332,11 +247,146 @@ public final class AcquireTokenMockTest {
                 final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
+                        .withScopes(Arrays.asList(SCOPES))
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.failureInteractiveCallback())
+                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
+                RoboTestUtils.flushScheduler();
+
+                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                        .forAccount(AcquireTokenTestHelper.getAccount())
+                        .withScopes(Arrays.asList(SCOPES))
+                        .forceRefresh(false)
+                        .fromAuthority(AAD_MOCK_AUTHORITY)
+                        .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                        .build();
+
+                publicClientApplication.acquireTokenSilentAsync(silentParameters);
+                RoboTestUtils.flushScheduler();
+            }
+
+        }.instantiatePCAthenAcquireToken();
+    }
+
+    @Test
+    public void testAcquireTokenSilentSuccessForceRefresh() {
+        new AcquireTokenMockBaseTest() {
+
+            @Override
+            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
+                                      final Activity activity) {
+
+                final IAccount account = loadAccountForTest(publicClientApplication);
+                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                        .withScopes(Arrays.asList(SCOPES))
+                        .forceRefresh(true)
+                        .forAccount(account)
+                        .fromAuthority(AAD_MOCK_AUTHORITY)
+                        .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                        .build();
+
+                publicClientApplication.acquireTokenSilentAsync(silentParameters);
+                RoboTestUtils.flushScheduler();
+            }
+
+        }.instantiatePCAthenAcquireToken();
+    }
+
+    @Test
+    public void testAcquireTokenSilentSuccessValidCache() {
+        new AcquireTokenMockBaseTest() {
+            @Override
+            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
+                                      final Activity activity) {
+
+                final IAccount account = loadAccountForTest(publicClientApplication);
+
+                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                        .withScopes(Arrays.asList(SCOPES))
+                        .forceRefresh(false)
+                        .fromAuthority(AAD_MOCK_AUTHORITY)
+                        .forAccount(account)
+                        .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                        .build();
+
+                publicClientApplication.acquireTokenSilentAsync(silentParameters);
+                RoboTestUtils.flushScheduler();
+            }
+
+        }.instantiatePCAthenAcquireToken();
+    }
+
+    @Test
+    public void testAcquireTokenSilentSuccessExpiredAccessToken() {
+        new AcquireTokenMockBaseTest() {
+
+            @Override
+            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
+                                      final Activity activity) {
+                ICacheRecord cacheRecord = createDataInCacheWithExpiredAccessToken(publicClientApplication);
+                final String loginHint = cacheRecord.getAccount().getUsername();
+                final IAccount account = performGetAccount(publicClientApplication, loginHint);
+
+                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                        .withScopes(Arrays.asList(SCOPES))
+                        .forceRefresh(false)
+                        .forAccount(account)
+                        .fromAuthority(AAD_MOCK_AUTHORITY)
+                        .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                        .build();
+
+                publicClientApplication.acquireTokenSilentAsync(silentParameters);
+                RoboTestUtils.flushScheduler();
+            }
+
+        }.instantiatePCAthenAcquireToken();
+    }
+
+    @Test
+    public void testAcquireTokenSilentFailureEmptyCache() {
+        new AcquireTokenMockBaseTest() {
+
+            @Override
+            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
+                                      final Activity activity) {
+
+                final IAccount account = loadAccountForTest(publicClientApplication);
+                RoboTestUtils.clearCache();
+
+                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                        .withScopes(Arrays.asList(SCOPES))
+                        .forceRefresh(false)
+                        .forAccount(account)
+                        .fromAuthority(AAD_MOCK_AUTHORITY)
+                        .withCallback(AcquireTokenTestHelper.failureSilentCallback())
+                        .build();
+
+                publicClientApplication.acquireTokenSilentAsync(silentParameters);
+                RoboTestUtils.flushScheduler();
+            }
+
+        }.instantiatePCAthenAcquireToken();
+    }
+
+    @Test
+    @Ignore
+    public void testAcquireTokenSilentFailureNoAccount() {
+        new AcquireTokenMockBaseTest() {
+
+            @Override
+            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
+                                      final Activity activity) {
+
+                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                        .withScopes(Arrays.asList(SCOPES))
+                        .forceRefresh(false)
+                        .fromAuthority(AAD_MOCK_AUTHORITY)
+                        .withCallback(AcquireTokenTestHelper.failureSilentCallback())
+                        .build();
+
+                publicClientApplication.acquireTokenSilentAsync(silentParameters);
                 RoboTestUtils.flushScheduler();
             }
 
