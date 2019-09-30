@@ -26,15 +26,11 @@ import android.app.Activity;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
-import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.RoboTestCacheHelper;
-import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.robolectric.shadows.ShadowAuthority;
 import com.microsoft.identity.client.robolectric.shadows.ShadowHttpRequest;
 import com.microsoft.identity.client.robolectric.shadows.ShadowMsalUtils;
@@ -44,10 +40,8 @@ import com.microsoft.identity.client.robolectric.shadows.ShadowStrategyResultUns
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
-import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.internal.testutils.MockTokenResponse;
 
-import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,7 +61,7 @@ public final class AcquireTokenMockTest {
 
     @Test
     public void canAcquireToken() {
-        new AcquireTokenBaseTest() {
+        new AcquireTokenMockBaseTest() {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
@@ -80,22 +74,7 @@ public final class AcquireTokenMockTest {
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                fail(exception.getMessage());
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
+                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
@@ -107,7 +86,7 @@ public final class AcquireTokenMockTest {
 
     @Test
     public void acquireTokenFailsIfLoginHintNotProvidedForRopc() {
-        new AcquireTokenBaseTest() {
+        new AcquireTokenMockBaseTest() {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
@@ -117,22 +96,7 @@ public final class AcquireTokenMockTest {
                         .startAuthorizationFromActivity(activity)
                         .withScopes(Arrays.asList(SCOPES))
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                fail("Unexpected Success");
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                Assert.assertTrue(exception instanceof MsalClientException);
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
+                        .withCallback(AcquireTokenTestHelper.failureInteractiveCallback())
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
@@ -144,7 +108,7 @@ public final class AcquireTokenMockTest {
 
     @Test
     public void canAcquireSilentAfterGettingToken() {
-        new AcquireTokenBaseTest() {
+        new AcquireTokenMockBaseTest() {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
@@ -152,55 +116,25 @@ public final class AcquireTokenMockTest {
 
                 final String username = "fake@test.com";
 
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .withScopes(Arrays.asList(SCOPES))
-                        .forceRefresh(false)
-                        .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                fail(exception.getMessage());
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
-                        .build();
-
                 final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                                IAccount account = authenticationResult.getAccount();
-                                silentParameters.setAccount(account);
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                fail(exception.getMessage());
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
+                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
                 RoboTestUtils.flushScheduler();
+
+                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                        .forAccount(AcquireTokenTestHelper.getAccount())
+                        .withScopes(Arrays.asList(SCOPES))
+                        .forceRefresh(false)
+                        .fromAuthority(AAD_MOCK_AUTHORITY)
+                        .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                        .build();
+
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
                 RoboTestUtils.flushScheduler();
             }
@@ -210,10 +144,11 @@ public final class AcquireTokenMockTest {
 
     @Test
     public void canAcquireSilentIfValidTokensAvailableInCache() {
-        new AcquireTokenBaseTest() {
+        new AcquireTokenMockBaseTest() {
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
+
                 final IAccount account = loadAccountForTest(publicClientApplication);
 
                 final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
@@ -221,22 +156,7 @@ public final class AcquireTokenMockTest {
                         .forceRefresh(false)
                         .fromAuthority(AAD_MOCK_AUTHORITY)
                         .forAccount(account)
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                fail(exception.getMessage());
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
+                        .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
                         .build();
 
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
@@ -248,33 +168,19 @@ public final class AcquireTokenMockTest {
 
     @Test
     public void forceRefreshWorks() {
-        new AcquireTokenBaseTest() {
+        new AcquireTokenMockBaseTest() {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
+
                 final IAccount account = loadAccountForTest(publicClientApplication);
                 final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                         .withScopes(Arrays.asList(SCOPES))
                         .forceRefresh(true)
                         .forAccount(account)
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                fail(exception.getMessage());
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
+                        .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
                         .build();
 
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
@@ -285,8 +191,9 @@ public final class AcquireTokenMockTest {
     }
 
     @Test
+    @Ignore
     public void silentCallFailsIfAccountNotProvided() {
-        new AcquireTokenBaseTest() {
+        new AcquireTokenMockBaseTest() {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
@@ -296,22 +203,7 @@ public final class AcquireTokenMockTest {
                         .withScopes(Arrays.asList(SCOPES))
                         .forceRefresh(false)
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                fail("Unexpected success");
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                Assert.assertTrue(exception instanceof MsalClientException);
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
+                        .withCallback(AcquireTokenTestHelper.failureSilentCallback())
                         .build();
 
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
@@ -323,11 +215,12 @@ public final class AcquireTokenMockTest {
 
     @Test
     public void silentCallFailsIfCacheIsEmpty() {
-        new AcquireTokenBaseTest() {
+        new AcquireTokenMockBaseTest() {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                       final Activity activity) {
+
                 final IAccount account = loadAccountForTest(publicClientApplication);
                 RoboTestUtils.clearCache();
 
@@ -336,22 +229,7 @@ public final class AcquireTokenMockTest {
                         .forceRefresh(false)
                         .forAccount(account)
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                fail("Unexpected success");
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                Assert.assertTrue(exception instanceof MsalClientException);
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
+                        .withCallback(AcquireTokenTestHelper.failureSilentCallback())
                         .build();
 
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
@@ -363,7 +241,7 @@ public final class AcquireTokenMockTest {
 
     @Test
     public void silentWorksWhenCacheHasExpiredAccessToken() {
-        new AcquireTokenBaseTest() {
+        new AcquireTokenMockBaseTest() {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
@@ -377,22 +255,7 @@ public final class AcquireTokenMockTest {
                         .forceRefresh(false)
                         .forAccount(account)
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                fail(exception.getMessage());
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
+                        .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
                         .build();
 
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
@@ -405,7 +268,7 @@ public final class AcquireTokenMockTest {
     @Test
     @Config(shadows = {ShadowStrategyResultUnsuccessful.class})
     public void acquireTokenFailsIfTokenRequestIsNotSuccessful() {
-        new AcquireTokenBaseTest() {
+        new AcquireTokenMockBaseTest() {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
@@ -418,22 +281,7 @@ public final class AcquireTokenMockTest {
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                fail("Unexpected Success");
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                Assert.assertTrue(exception instanceof MsalServiceException);
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
+                        .withCallback(AcquireTokenTestHelper.failureInteractiveCallback())
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
@@ -446,7 +294,7 @@ public final class AcquireTokenMockTest {
     @Test
     @Config(shadows = {ShadowStrategyResultServerError.class})
     public void acquireTokenFailsIfServerErrorOccurs() {
-        new AcquireTokenBaseTest() {
+        new AcquireTokenMockBaseTest() {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
@@ -459,22 +307,7 @@ public final class AcquireTokenMockTest {
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                fail("Unexpected Success");
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                Assert.assertTrue(exception instanceof MsalServiceException);
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
+                        .withCallback(AcquireTokenTestHelper.failureInteractiveCallback())
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
@@ -485,9 +318,8 @@ public final class AcquireTokenMockTest {
     }
 
     @Test
-    @Ignore
     public void acquireTokenFailsIfScopeNotProvided() {
-        new AcquireTokenBaseTest() {
+        new AcquireTokenMockBaseTest() {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
@@ -499,22 +331,7 @@ public final class AcquireTokenMockTest {
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .callback(new AuthenticationCallback() {
-                            @Override
-                            public void onSuccess(IAuthenticationResult authenticationResult) {
-                                fail("Unexpected Success");
-                            }
-
-                            @Override
-                            public void onError(MsalException exception) {
-                                Assert.assertTrue(exception instanceof MsalClientException);
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                fail("User cancelled flow");
-                            }
-                        })
+                        .withCallback(AcquireTokenTestHelper.failureInteractiveCallback())
                         .build();
 
                 publicClientApplication.acquireToken(parameters);

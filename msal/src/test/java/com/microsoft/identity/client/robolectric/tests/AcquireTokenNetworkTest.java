@@ -26,155 +26,74 @@ import android.app.Activity;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.AuthenticationCallback;
-import com.microsoft.identity.client.IAccount;
-import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IPublicClientApplication;
-import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.robolectric.shadows.ShadowAuthority;
 import com.microsoft.identity.client.robolectric.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.robolectric.shadows.ShadowStorageHelper;
-import com.microsoft.identity.common.internal.util.StringUtil;
-import com.microsoft.identity.internal.testutils.labutils.TestConfigurationHelper;
-import com.microsoft.identity.internal.testutils.labutils.TestConfigurationQuery;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
+import java.util.Collection;
 
-import static junit.framework.Assert.fail;
+import static com.microsoft.identity.client.robolectric.tests.AcquireTokenTestHelper.failureSilentCallback;
+import static com.microsoft.identity.client.robolectric.tests.AcquireTokenTestHelper.getAccount;
+import static com.microsoft.identity.client.robolectric.tests.AcquireTokenTestHelper.successfulInteractiveCallback;
+import static com.microsoft.identity.client.robolectric.tests.AcquireTokenTestHelper.successfulSilentCallback;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowMsalUtils.class})
 public final class AcquireTokenNetworkTest {
 
-    private static final String[] SCOPES = {"user.read", "openid", "offline_access", "profile"};
+    private static final String[] AAD_SCOPES = {"user.read"};
+    private static final String[] B2C_SCOPES = {"https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"};
 
-    private IAccount mAccount;
+    private static final String AAD_AUTHORITY_TYPE_STRING = "AAD";
+    private static final String B2C_AUTHORITY_TYPE_STRING = "B2C";
+
+    private String mAuthorityType;
+    private String[] mScopes;
+
+    public AcquireTokenNetworkTest(String authorityType, String[] scopes) {
+        mAuthorityType = authorityType;
+        mScopes = scopes;
+    }
+
+    @ParameterizedRobolectricTestRunner.Parameters(name = "Authority Type = {0}")
+    public static Collection data() {
+        return Arrays.asList(new Object[][]{
+                {AAD_AUTHORITY_TYPE_STRING, AAD_SCOPES},
+                {B2C_AUTHORITY_TYPE_STRING, B2C_SCOPES}
+        });
+    }
 
     @Before
     public void setup() {
-        mAccount = null;
+        AcquireTokenTestHelper.setAccount(null);
     }
 
     @After
     public void cleanup() {
-        mAccount = null;
-    }
-
-    private String getUsernameForManagedUser() {
-        final TestConfigurationQuery query = new TestConfigurationQuery();
-        query.userType = "Member";
-        query.isFederated = false;
-        query.federationProvider = "ADFSv4";
-
-        final String username = TestConfigurationHelper.getUpnForTest(query);
-        return username;
-    }
-
-    private AuthenticationCallback successfulInteractiveCallback() {
-        AuthenticationCallback callback = new AuthenticationCallback() {
-            @Override
-            public void onSuccess(IAuthenticationResult authenticationResult) {
-                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                mAccount = authenticationResult.getAccount();
-            }
-
-            @Override
-            public void onError(MsalException exception) {
-                fail(exception.getMessage());
-            }
-
-            @Override
-            public void onCancel() {
-                fail("User cancelled flow");
-            }
-        };
-
-        return callback;
-    }
-
-    private AuthenticationCallback successfulSilentCallback() {
-        AuthenticationCallback callback = new AuthenticationCallback() {
-            @Override
-            public void onSuccess(IAuthenticationResult authenticationResult) {
-                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
-            }
-
-            @Override
-            public void onError(MsalException exception) {
-                fail(exception.getMessage());
-            }
-
-            @Override
-            public void onCancel() {
-                fail("User cancelled flow");
-            }
-        };
-
-        return callback;
-    }
-
-    private AuthenticationCallback failureInteractiveCallback() {
-        AuthenticationCallback callback = new AuthenticationCallback() {
-            @Override
-            public void onSuccess(IAuthenticationResult authenticationResult) {
-                fail("Unexpected success");
-            }
-
-            @Override
-            public void onError(MsalException exception) {
-                Assert.assertTrue(true);
-            }
-
-            @Override
-            public void onCancel() {
-                fail("User cancelled flow");
-            }
-        };
-
-        return callback;
-    }
-
-    private AuthenticationCallback failureSilentCallback() {
-        AuthenticationCallback callback = new AuthenticationCallback() {
-            @Override
-            public void onSuccess(IAuthenticationResult authenticationResult) {
-                fail("Unexpected success");
-            }
-
-            @Override
-            public void onError(MsalException exception) {
-                Assert.assertTrue(true);
-            }
-
-            @Override
-            public void onCancel() {
-                fail("User cancelled flow");
-            }
-        };
-
-        return callback;
+        AcquireTokenTestHelper.setAccount(null);
     }
 
     @Test
     public void canPerformROPC() {
-        new AcquireTokenBaseTest() {
+        new AcquireTokenNetworkBaseTest() {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity) {
-                final String username = getUsernameForManagedUser();
+                                      final Activity activity,
+                                      final String username) {
                 final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
-                        .withScopes(Arrays.asList(SCOPES))
+                        .withScopes(Arrays.asList(mScopes))
                         .withCallback(successfulInteractiveCallback())
                         .build();
 
@@ -183,24 +102,23 @@ public final class AcquireTokenNetworkTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest();
+        }.performTest(mAuthorityType);
     }
 
     @Test
     public void canAcquireSilentAfterGettingToken() {
-        new AcquireTokenBaseTest() {
+        new AcquireTokenNetworkBaseTest() {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity) {
-
-                final String username = getUsernameForManagedUser();
+                                      final Activity activity,
+                                      final String username) {
                 final String authority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
 
                 final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
-                        .withScopes(Arrays.asList(SCOPES))
+                        .withScopes(Arrays.asList(mScopes))
                         .withCallback(successfulInteractiveCallback())
                         .build();
 
@@ -208,9 +126,9 @@ public final class AcquireTokenNetworkTest {
                 RoboTestUtils.flushScheduler();
 
                 final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .forAccount(mAccount)
+                        .forAccount(getAccount())
                         .fromAuthority(authority)
-                        .withScopes(Arrays.asList(SCOPES))
+                        .withScopes(Arrays.asList(mScopes))
                         .forceRefresh(false)
                         .withCallback(successfulSilentCallback())
                         .build();
@@ -219,24 +137,24 @@ public final class AcquireTokenNetworkTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest();
+        }.performTest(mAuthorityType);
     }
 
     @Test
     public void forceRefreshWorks() {
-        new AcquireTokenBaseTest() {
+        new AcquireTokenNetworkBaseTest() {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity) {
+                                      final Activity activity,
+                                      final String username) {
 
-                final String username = getUsernameForManagedUser();
                 final String authority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
 
                 final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
-                        .withScopes(Arrays.asList(SCOPES))
+                        .withScopes(Arrays.asList(mScopes))
                         .withCallback(successfulInteractiveCallback())
                         .build();
 
@@ -244,9 +162,9 @@ public final class AcquireTokenNetworkTest {
                 RoboTestUtils.flushScheduler();
 
                 final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .forAccount(mAccount)
+                        .forAccount(getAccount())
                         .fromAuthority(authority)
-                        .withScopes(Arrays.asList(SCOPES))
+                        .withScopes(Arrays.asList(mScopes))
                         .forceRefresh(true)
                         .withCallback(successfulSilentCallback())
                         .build();
@@ -255,24 +173,24 @@ public final class AcquireTokenNetworkTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest();
+        }.performTest(mAuthorityType);
     }
 
     @Test
     public void silentCallFailsIfCacheIsEmpty() {
-        new AcquireTokenBaseTest() {
+        new AcquireTokenNetworkBaseTest() {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity) {
+                                      final Activity activity,
+                                      final String username) {
 
-                final String username = getUsernameForManagedUser();
                 final String authority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
 
                 final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
-                        .withScopes(Arrays.asList(SCOPES))
+                        .withScopes(Arrays.asList(mScopes))
                         .withCallback(successfulInteractiveCallback())
                         .build();
 
@@ -283,9 +201,9 @@ public final class AcquireTokenNetworkTest {
                 RoboTestUtils.clearCache();
 
                 final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .forAccount(mAccount)
+                        .forAccount(getAccount())
                         .fromAuthority(authority)
-                        .withScopes(Arrays.asList(SCOPES))
+                        .withScopes(Arrays.asList(mScopes))
                         .forceRefresh(false)
                         .withCallback(failureSilentCallback())
                         .build();
@@ -294,24 +212,24 @@ public final class AcquireTokenNetworkTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest();
+        }.performTest(mAuthorityType);
     }
 
     @Test
     public void silentWorksWhenCacheHasNoAccessToken() {
-        new AcquireTokenBaseTest() {
+        new AcquireTokenNetworkBaseTest() {
 
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity) {
+                                      final Activity activity,
+                                      final String username) {
 
-                final String username = getUsernameForManagedUser();
                 final String authority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
 
                 final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
-                        .withScopes(Arrays.asList(SCOPES))
+                        .withScopes(Arrays.asList(mScopes))
                         .withCallback(successfulInteractiveCallback())
                         .build();
 
@@ -322,9 +240,9 @@ public final class AcquireTokenNetworkTest {
                 RoboTestUtils.removeAccessTokenFromCache();
 
                 final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .forAccount(mAccount)
+                        .forAccount(getAccount())
                         .fromAuthority(authority)
-                        .withScopes(Arrays.asList(SCOPES))
+                        .withScopes(Arrays.asList(mScopes))
                         .forceRefresh(false)
                         .withCallback(successfulSilentCallback())
                         .build();
@@ -333,8 +251,7 @@ public final class AcquireTokenNetworkTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest();
+        }.performTest(mAuthorityType);
     }
-
 
 }

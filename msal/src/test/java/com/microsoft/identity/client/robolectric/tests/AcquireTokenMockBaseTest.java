@@ -35,9 +35,9 @@ import org.mockito.Mockito;
 
 import java.io.File;
 
-public abstract class B2CBaseTest {
+public abstract class AcquireTokenMockBaseTest {
 
-    private static final String CONFIG_FILE_PATH = "src/test/res/raw/b2c_test_config.json";
+    private static final String AAD_CONFIG_FILE_PATH = "src/test/res/raw/aad_test_config.json";
 
     abstract void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
                                        final Activity activity) throws InterruptedException;
@@ -55,7 +55,7 @@ public abstract class B2CBaseTest {
         final Context context = ApplicationProvider.getApplicationContext();
         final Activity testActivity = getActivity(context);
 
-        final File configFile = new File(CONFIG_FILE_PATH);
+        final File configFile = new File(AAD_CONFIG_FILE_PATH);
 
         PublicClientApplication.create(context, configFile, new PublicClientApplication.ApplicationCreatedListener() {
             @Override
@@ -73,4 +73,5 @@ public abstract class B2CBaseTest {
             }
         });
     }
+
 }
