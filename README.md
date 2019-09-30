@@ -202,7 +202,7 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 ## Roadmap
 Date | Release | Blog post| Main features
 ------| ------- | ---------| ---------
-Coming soon | MSAL 1.0.0| | General Availability of MSAL 
+09/30/19 | MSAL 1.0.0| | General Availability of MSAL 
 
 ## Security Library
 
