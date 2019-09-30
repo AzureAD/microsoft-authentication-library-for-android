@@ -427,6 +427,7 @@ public class PublicClientApplicationConfiguration {
                 "generated with package name and signature hash. Please verify the uri in the config file and your app registration in Azure portal.");
     }
 
+    @SuppressWarnings("PMD")
     public void checkIntentFilterAddedToAppManifestForBrokerFlow() {
         if (!mUseBroker) {
             return;

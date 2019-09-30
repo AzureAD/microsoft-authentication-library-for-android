@@ -39,8 +39,6 @@ import com.microsoft.identity.common.exception.UserCancelException;
 
 public class MsalExceptionAdapter {
 
-    private static final String TAG = MsalExceptionAdapter.class.getName();
-
     public static MsalException msalExceptionFromBaseException(final BaseException e) {
         MsalException msalException = null;
 
