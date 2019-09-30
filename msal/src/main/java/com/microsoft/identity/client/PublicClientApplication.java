@@ -174,7 +174,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
     private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
 
-    private static class NONNULL_CONSTANTS{
+    private static class NONNULL_CONSTANTS {
         private static final String CONTEXT = "context";
         private static final String LISTENER = "listener";
         private static final String CALLBACK = "callback";
@@ -1394,7 +1394,14 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 } catch (final Exception exception) {
                     // convert exception to BaseException
                     final BaseException baseException = ExceptionAdapter.baseExceptionFromException(exception);
-                    callback.onError(baseException);
+
+                    // There was an error, shuttle it back to the main thread...
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onError(baseException);
+                        }
+                    });
                 }
             }
         });
@@ -1647,7 +1654,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      */
     protected void postAuthResult(@NonNull final ILocalAuthenticationResult localAuthenticationResult,
                                   @NonNull final TokenParameters requestParameters,
-                                  @NonNull final SilentAuthenticationCallback authenticationCallback){
+                                  @NonNull final SilentAuthenticationCallback authenticationCallback) {
 
         if (authenticationCallback == null) {
             throw new IllegalStateException(NONNULL_CONSTANTS.CALLBACK + NONNULL_CONSTANTS.NULL_ERROR_SUFFIX);
@@ -1659,7 +1666,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 requestParameters.getScopes()
         );
 
-        if(!declinedScopes.isEmpty()){
+        if (!declinedScopes.isEmpty()) {
             final MsalDeclinedScopeException declinedScopeException =
                     AuthenticationResultAdapter.declinedScopeExceptionFromResult(
                             localAuthenticationResult,
@@ -1667,7 +1674,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             requestParameters
                     );
             authenticationCallback.onError(declinedScopeException);
-        }else {
+        } else {
             IAuthenticationResult authenticationResult = AuthenticationResultAdapter.adapt(localAuthenticationResult);
             authenticationCallback.onSuccess(authenticationResult);
         }
