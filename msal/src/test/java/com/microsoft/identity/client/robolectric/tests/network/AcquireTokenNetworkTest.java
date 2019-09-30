@@ -85,7 +85,7 @@ public final class AcquireTokenNetworkTest {
     }
 
     @Test
-    public void canPerformROPC() {
+    public void testAcquireTokenSuccess() {
         new AcquireTokenNetworkBaseTest() {
 
             @Override
@@ -108,7 +108,7 @@ public final class AcquireTokenNetworkTest {
     }
 
     @Test
-    public void canAcquireSilentAfterGettingToken() {
+    public void testAcquireTokenSuccessFollowedBySilentSuccess() {
         new AcquireTokenNetworkBaseTest() {
 
             @Override
@@ -143,7 +143,7 @@ public final class AcquireTokenNetworkTest {
     }
 
     @Test
-    public void forceRefreshWorks() {
+    public void testAcquireTokenSilentSuccessForceRefresh() {
         new AcquireTokenNetworkBaseTest() {
 
             @Override
@@ -179,7 +179,7 @@ public final class AcquireTokenNetworkTest {
     }
 
     @Test
-    public void silentCallFailsIfCacheIsEmpty() {
+    public void testAcquireTokenSilentFailureEmptyCache() {
         new AcquireTokenNetworkBaseTest() {
 
             @Override
@@ -218,7 +218,7 @@ public final class AcquireTokenNetworkTest {
     }
 
     @Test
-    public void silentWorksWhenCacheHasNoAccessToken() {
+    public void testAcquireTokenSilentSuccessEmptyCache() {
         new AcquireTokenNetworkBaseTest() {
 
             @Override

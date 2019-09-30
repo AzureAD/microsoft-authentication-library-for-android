@@ -62,7 +62,7 @@ public final class AcquireTokenMockTest {
     private static final String AAD_MOCK_AUTHORITY = "https://test.authority/mock";
 
     @Test
-    public void canAcquireToken() {
+    public void testAcquireTokenSuccess() {
         new AcquireTokenMockBaseTest() {
 
             @Override
@@ -87,7 +87,7 @@ public final class AcquireTokenMockTest {
     }
 
     @Test
-    public void acquireTokenFailsIfLoginHintNotProvidedForRopc() {
+    public void testAcquireTokenFailureNoLoginHint() {
         new AcquireTokenMockBaseTest() {
 
             @Override
@@ -109,7 +109,7 @@ public final class AcquireTokenMockTest {
     }
 
     @Test
-    public void canAcquireSilentAfterGettingToken() {
+    public void testAcquireTokenSuccessFollowedBySilentSuccess() {
         new AcquireTokenMockBaseTest() {
 
             @Override
@@ -145,7 +145,7 @@ public final class AcquireTokenMockTest {
     }
 
     @Test
-    public void canAcquireSilentIfValidTokensAvailableInCache() {
+    public void testAcquireTokenSilentSuccessValidCache() {
         new AcquireTokenMockBaseTest() {
             @Override
             void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
@@ -169,7 +169,7 @@ public final class AcquireTokenMockTest {
     }
 
     @Test
-    public void forceRefreshWorks() {
+    public void testAcquireTokenSilentSuccessForceRefresh() {
         new AcquireTokenMockBaseTest() {
 
             @Override
@@ -194,7 +194,7 @@ public final class AcquireTokenMockTest {
 
     @Test
     @Ignore
-    public void silentCallFailsIfAccountNotProvided() {
+    public void testAcquireTokenSilentFailureNoAccount() {
         new AcquireTokenMockBaseTest() {
 
             @Override
@@ -216,7 +216,7 @@ public final class AcquireTokenMockTest {
     }
 
     @Test
-    public void silentCallFailsIfCacheIsEmpty() {
+    public void testAcquireTokenSilentFailureEmptyCache() {
         new AcquireTokenMockBaseTest() {
 
             @Override
@@ -242,7 +242,7 @@ public final class AcquireTokenMockTest {
     }
 
     @Test
-    public void silentWorksWhenCacheHasExpiredAccessToken() {
+    public void testAcquireTokenSilentSuccessExpiredAccessToken() {
         new AcquireTokenMockBaseTest() {
 
             @Override
@@ -269,7 +269,7 @@ public final class AcquireTokenMockTest {
 
     @Test
     @Config(shadows = {ShadowStrategyResultUnsuccessful.class})
-    public void acquireTokenFailsIfTokenRequestIsNotSuccessful() {
+    public void testAcquireTokenFailureUnsuccessfulTokenResult() {
         new AcquireTokenMockBaseTest() {
 
             @Override
@@ -295,7 +295,7 @@ public final class AcquireTokenMockTest {
 
     @Test
     @Config(shadows = {ShadowStrategyResultServerError.class})
-    public void acquireTokenFailsIfServerErrorOccurs() {
+    public void testAcquireTokenFailureServerError() {
         new AcquireTokenMockBaseTest() {
 
             @Override
@@ -320,7 +320,7 @@ public final class AcquireTokenMockTest {
     }
 
     @Test
-    public void acquireTokenFailsIfScopeNotProvided() {
+    public void testAcquireTokenFailureNoScope() {
         new AcquireTokenMockBaseTest() {
 
             @Override
