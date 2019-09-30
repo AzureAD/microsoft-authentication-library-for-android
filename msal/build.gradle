@@ -83,8 +83,7 @@ android {
 
     testOptions {
         unitTests.all {
-            exclude 'com/microsoft/identity/client/robolectric/tests/AcquireTokenNetworkTest.class'
-            exclude 'com/microsoft/identity/client/robolectric/tests/B2CTest.class'
+            exclude 'com/microsoft/identity/client/robolectric/tests/network/'
         }
     }
 }

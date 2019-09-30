@@ -20,7 +20,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.tests;
+package com.microsoft.identity.client.robolectric.tests.network;
 
 import android.app.Activity;
 
@@ -30,6 +30,8 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.robolectric.shadows.ShadowAuthority;
 import com.microsoft.identity.client.robolectric.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.robolectric.shadows.ShadowStorageHelper;
+import com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper;
+import com.microsoft.identity.client.robolectric.utils.RoboTestUtils;
 
 import org.junit.After;
 import org.junit.Before;
@@ -41,10 +43,10 @@ import org.robolectric.annotation.Config;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static com.microsoft.identity.client.robolectric.tests.AcquireTokenTestHelper.failureSilentCallback;
-import static com.microsoft.identity.client.robolectric.tests.AcquireTokenTestHelper.getAccount;
-import static com.microsoft.identity.client.robolectric.tests.AcquireTokenTestHelper.successfulInteractiveCallback;
-import static com.microsoft.identity.client.robolectric.tests.AcquireTokenTestHelper.successfulSilentCallback;
+import static com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper.failureSilentCallback;
+import static com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper.getAccount;
+import static com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper.successfulInteractiveCallback;
+import static com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper.successfulSilentCallback;
 
 @RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowMsalUtils.class})

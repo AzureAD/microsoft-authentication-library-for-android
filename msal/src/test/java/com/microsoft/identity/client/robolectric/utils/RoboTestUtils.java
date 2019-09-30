@@ -20,7 +20,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.tests;
+package com.microsoft.identity.client.robolectric.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -42,7 +42,7 @@ import java.util.Set;
 
 import static com.microsoft.identity.common.internal.cache.CacheKeyValueDelegate.CACHE_VALUE_SEPARATOR;
 
-class RoboTestUtils {
+public class RoboTestUtils {
 
     private static final String SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache";
 
@@ -109,14 +109,14 @@ class RoboTestUtils {
         return sharedPreferences;
     }
 
-    static void clearCache() {
+    public static void clearCache() {
         SharedPreferences sharedPreferences = getSharedPreferences();
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.clear();
         editor.commit();
     }
 
-    static void removeAccessTokenFromCache() {
+    public static void removeAccessTokenFromCache() {
         SharedPreferences sharedPreferences = getSharedPreferences();
         final Map<String, ?> cacheValues = sharedPreferences.getAll();
         final String keyToRemove = getCacheKeyForAccessToken(cacheValues);
@@ -127,7 +127,7 @@ class RoboTestUtils {
         }
     }
 
-    static void flushScheduler() {
+    public static void flushScheduler() {
         final Scheduler scheduler = RuntimeEnvironment.getMasterScheduler();
         while (!scheduler.advanceToLastPostedRunnable()) ;
     }

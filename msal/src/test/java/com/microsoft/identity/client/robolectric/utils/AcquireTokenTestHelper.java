@@ -1,4 +1,4 @@
-package com.microsoft.identity.client.robolectric.tests;
+package com.microsoft.identity.client.robolectric.utils;
 
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
@@ -15,15 +15,15 @@ public class AcquireTokenTestHelper {
 
     private static IAccount sAccount;
 
-    static IAccount getAccount() {
+    public static IAccount getAccount() {
         return sAccount;
     }
 
-    static void setAccount(IAccount account) {
+    public static void setAccount(IAccount account) {
         sAccount = account;
     }
 
-    static AuthenticationCallback successfulInteractiveCallback() {
+    public static AuthenticationCallback successfulInteractiveCallback() {
         AuthenticationCallback callback = new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -45,7 +45,7 @@ public class AcquireTokenTestHelper {
         return callback;
     }
 
-    static SilentAuthenticationCallback successfulSilentCallback() {
+    public static SilentAuthenticationCallback successfulSilentCallback() {
         SilentAuthenticationCallback callback = new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -61,7 +61,7 @@ public class AcquireTokenTestHelper {
         return callback;
     }
 
-    static AuthenticationCallback failureInteractiveCallback() {
+    public static AuthenticationCallback failureInteractiveCallback() {
         AuthenticationCallback callback = new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -82,7 +82,7 @@ public class AcquireTokenTestHelper {
         return callback;
     }
 
-    static SilentAuthenticationCallback failureSilentCallback() {
+    public static SilentAuthenticationCallback failureSilentCallback() {
         SilentAuthenticationCallback callback = new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
