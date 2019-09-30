@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.robolectric.utils;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -32,6 +33,7 @@ import androidx.test.core.app.ApplicationProvider;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.dto.CredentialType;
 
+import org.mockito.Mockito;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.util.Scheduler;
 
@@ -130,6 +132,13 @@ public class RoboTestUtils {
     public static void flushScheduler() {
         final Scheduler scheduler = RuntimeEnvironment.getMasterScheduler();
         while (!scheduler.advanceToLastPostedRunnable()) ;
+    }
+
+    public static Activity getActivity(final Context context) {
+        final Activity mockedActivity = Mockito.mock(Activity.class);
+        Mockito.when(mockedActivity.getApplicationContext()).thenReturn(context);
+
+        return mockedActivity;
     }
 
 }

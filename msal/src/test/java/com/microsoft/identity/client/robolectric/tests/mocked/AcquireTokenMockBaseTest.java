@@ -30,8 +30,7 @@ import androidx.test.core.app.ApplicationProvider;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
-
-import org.mockito.Mockito;
+import com.microsoft.identity.client.robolectric.utils.RoboTestUtils;
 
 import java.io.File;
 
@@ -43,17 +42,9 @@ public abstract class AcquireTokenMockBaseTest {
                                        final Activity activity) throws InterruptedException;
 
 
-    private Activity getActivity(final Context context) {
-        final Activity mockedActivity = Mockito.mock(Activity.class);
-        Mockito.when(mockedActivity.getApplicationContext()).thenReturn(context);
-
-        return mockedActivity;
-    }
-
-
-    public void performTest() {
+    void instantiatePCAthenAcquireToken() {
         final Context context = ApplicationProvider.getApplicationContext();
-        final Activity testActivity = getActivity(context);
+        final Activity testActivity = RoboTestUtils.getActivity(context);
 
         final File configFile = new File(AAD_CONFIG_FILE_PATH);
 

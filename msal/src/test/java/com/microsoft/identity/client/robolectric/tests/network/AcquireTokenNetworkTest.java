@@ -104,7 +104,7 @@ public final class AcquireTokenNetworkTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest(mAuthorityType);
+        }.instantiatePCAthenAcquireToken(mAuthorityType);
     }
 
     @Test
@@ -139,7 +139,7 @@ public final class AcquireTokenNetworkTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest(mAuthorityType);
+        }.instantiatePCAthenAcquireToken(mAuthorityType);
     }
 
     @Test
@@ -175,7 +175,7 @@ public final class AcquireTokenNetworkTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest(mAuthorityType);
+        }.instantiatePCAthenAcquireToken(mAuthorityType);
     }
 
     @Test
@@ -214,7 +214,7 @@ public final class AcquireTokenNetworkTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest(mAuthorityType);
+        }.instantiatePCAthenAcquireToken(mAuthorityType);
     }
 
     @Test
@@ -253,7 +253,7 @@ public final class AcquireTokenNetworkTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest(mAuthorityType);
+        }.instantiatePCAthenAcquireToken(mAuthorityType);
     }
 
 }

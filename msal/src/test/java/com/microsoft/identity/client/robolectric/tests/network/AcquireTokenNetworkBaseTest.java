@@ -30,10 +30,9 @@ import androidx.test.core.app.ApplicationProvider;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.robolectric.utils.RoboTestUtils;
 import com.microsoft.identity.internal.testutils.labutils.TestConfigurationHelper;
 import com.microsoft.identity.internal.testutils.labutils.TestConfigurationQuery;
-
-import org.mockito.Mockito;
 
 import java.io.File;
 
@@ -56,17 +55,9 @@ public abstract class AcquireTokenNetworkBaseTest {
                                        final String username) throws InterruptedException;
 
 
-    private Activity getActivity(final Context context) {
-        final Activity mockedActivity = Mockito.mock(Activity.class);
-        Mockito.when(mockedActivity.getApplicationContext()).thenReturn(context);
-
-        return mockedActivity;
-    }
-
-
-    public void performTest(String authorityType) {
+    void instantiatePCAthenAcquireToken(String authorityType) {
         final Context context = ApplicationProvider.getApplicationContext();
-        final Activity testActivity = getActivity(context);
+        final Activity testActivity = RoboTestUtils.getActivity(context);
 
         final String configFilePath = getConfigFilePath(authorityType);
         final File configFile = new File(configFilePath);

@@ -35,15 +35,15 @@ public class ShadowStrategyResultServerError {
     // overriding this method from MockTestStrategy class to return a error response in this case
     public HttpResponse makeHttpResponseFromResponseObject(final Object obj) {
         // create a tokenErrorResponse object
-        final TokenErrorResponse errorResponse = createFakeTokenErrorResponse();
+        final TokenErrorResponse errorResponse = createMockTokenErrorResponse();
         final String httpResponseBody = ObjectMapper.serializeObjectToJsonString(errorResponse);
         // create http response from error response, use 500 http code
         HttpResponse httpResponse = new HttpResponse(500, httpResponseBody, null);
         return httpResponse;
     }
 
-    // create a fake token error response
-    private TokenErrorResponse createFakeTokenErrorResponse() {
+    // create a mocked token error response
+    private TokenErrorResponse createMockTokenErrorResponse() {
         TokenErrorResponse tokenErrorResponse = new TokenErrorResponse();
         tokenErrorResponse.setError("Internal Server Error");
         tokenErrorResponse.setErrorDescription("Oops! Something went wrong :(");

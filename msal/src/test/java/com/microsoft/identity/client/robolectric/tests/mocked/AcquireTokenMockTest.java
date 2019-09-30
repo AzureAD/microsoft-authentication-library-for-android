@@ -83,7 +83,7 @@ public final class AcquireTokenMockTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest();
+        }.instantiatePCAthenAcquireToken();
     }
 
     @Test
@@ -105,7 +105,7 @@ public final class AcquireTokenMockTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest();
+        }.instantiatePCAthenAcquireToken();
     }
 
     @Test
@@ -141,7 +141,7 @@ public final class AcquireTokenMockTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest();
+        }.instantiatePCAthenAcquireToken();
     }
 
     @Test
@@ -165,7 +165,7 @@ public final class AcquireTokenMockTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest();
+        }.instantiatePCAthenAcquireToken();
     }
 
     @Test
@@ -189,7 +189,7 @@ public final class AcquireTokenMockTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest();
+        }.instantiatePCAthenAcquireToken();
     }
 
     @Test
@@ -212,7 +212,7 @@ public final class AcquireTokenMockTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest();
+        }.instantiatePCAthenAcquireToken();
     }
 
     @Test
@@ -238,7 +238,7 @@ public final class AcquireTokenMockTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest();
+        }.instantiatePCAthenAcquireToken();
     }
 
     @Test
@@ -264,7 +264,7 @@ public final class AcquireTokenMockTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest();
+        }.instantiatePCAthenAcquireToken();
     }
 
     @Test
@@ -290,7 +290,7 @@ public final class AcquireTokenMockTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest();
+        }.instantiatePCAthenAcquireToken();
     }
 
     @Test
@@ -316,7 +316,7 @@ public final class AcquireTokenMockTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest();
+        }.instantiatePCAthenAcquireToken();
     }
 
     @Test
@@ -340,7 +340,7 @@ public final class AcquireTokenMockTest {
                 RoboTestUtils.flushScheduler();
             }
 
-        }.performTest();
+        }.instantiatePCAthenAcquireToken();
     }
 
     private IAccount performGetAccount(IPublicClientApplication application, final String loginHint) {
