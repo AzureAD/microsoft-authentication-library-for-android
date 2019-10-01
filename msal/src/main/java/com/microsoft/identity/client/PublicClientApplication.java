@@ -49,6 +49,7 @@ import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
+import com.microsoft.identity.common.exception.ArgumentException;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.Authority;
@@ -1250,7 +1251,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         acquireToken(acquireTokenParameters);
     }
 
-    protected void validateAcquireTokenParameters(AcquireTokenParameters parameters) throws MsalArgumentException {
+    protected void validateAcquireTokenParameters(AcquireTokenParameters parameters) throws ArgumentException {
         final Activity activity = parameters.getActivity();
         final List scopes = parameters.getScopes();
         final AuthenticationCallback callback = parameters.getCallback();
@@ -1260,7 +1261,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArg(callback, NONNULL_CONSTANTS.CALLBACK);
     }
 
-    protected void validateAcquireTokenSilentParameters(AcquireTokenSilentParameters parameters) throws MsalArgumentException {
+    protected void validateAcquireTokenSilentParameters(AcquireTokenSilentParameters parameters) throws ArgumentException {
         final String authority = parameters.getAuthority();
         final IAccount account = parameters.getAccount();
         final List scopes = parameters.getScopes();
