@@ -42,7 +42,9 @@ public class MsalExceptionAdapter {
     public static MsalException msalExceptionFromBaseException(final BaseException e) {
         MsalException msalException = null;
 
-        if (e instanceof ClientException) {
+        if (e instanceof MsalException) {
+            msalException = (MsalException) e;
+        } else if (e instanceof ClientException) {
             final ClientException clientException = ((ClientException) e);
             msalException = new MsalClientException(
                     clientException.getErrorCode(),
@@ -60,11 +62,11 @@ public class MsalExceptionAdapter {
         } else if (e instanceof UiRequiredException) {
             final UiRequiredException uiRequiredException = ((UiRequiredException) e);
             msalException = new MsalUiRequiredException(uiRequiredException.getErrorCode(), uiRequiredException.getMessage());
-        } else if (e instanceof IntuneAppProtectionPolicyRequiredException){
+        } else if (e instanceof IntuneAppProtectionPolicyRequiredException) {
             msalException = new MsalIntuneAppProtectionPolicyRequiredException(
-                    (IntuneAppProtectionPolicyRequiredException)e
+                    (IntuneAppProtectionPolicyRequiredException) e
             );
-        }else if (e instanceof ServiceException) {
+        } else if (e instanceof ServiceException) {
             final ServiceException serviceException = ((ServiceException) e);
             msalException = new MsalServiceException(
                     serviceException.getErrorCode(),
@@ -75,6 +77,7 @@ public class MsalExceptionAdapter {
         } else if (e instanceof UserCancelException) {
             msalException = new MsalUserCancelException();
         }
+
         if (msalException == null) {
             msalException = new MsalClientException(MsalClientException.UNKNOWN_ERROR, e.getMessage(), e);
         }
