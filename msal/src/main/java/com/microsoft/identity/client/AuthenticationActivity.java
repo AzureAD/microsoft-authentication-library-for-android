@@ -28,6 +28,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+
 import androidx.browser.customtabs.CustomTabsClient;
 import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.browser.customtabs.CustomTabsServiceConnection;
@@ -35,7 +36,6 @@ import androidx.browser.customtabs.CustomTabsSession;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.internal.MsalUtils;
-import com.microsoft.identity.client.internal.telemetry.UiEvent;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.CountDownLatch;
@@ -59,7 +59,6 @@ public final class AuthenticationActivity extends Activity {
     private String mChromePackageWithCustomTabSupport;
     private CustomTabsIntent mCustomTabsIntent;
     private MsalCustomTabsServiceConnection mCustomTabsServiceConnection;
-    private UiEvent.Builder mUiEventBuilder;
     private String mTelemetryRequestId;
 
     @Override
@@ -77,7 +76,6 @@ public final class AuthenticationActivity extends Activity {
             );
             mRestarted = true;
             mTelemetryRequestId = savedInstanceState.getString(Constants.TELEMETRY_REQUEST_ID);
-            mUiEventBuilder = new UiEvent.Builder();
             return;
         }
 
@@ -104,8 +102,6 @@ public final class AuthenticationActivity extends Activity {
         }
 
         mTelemetryRequestId = data.getStringExtra(Constants.TELEMETRY_REQUEST_ID);
-        mUiEventBuilder = new UiEvent.Builder();
-        Telemetry.getInstance().startEvent(mTelemetryRequestId, mUiEventBuilder);
     }
 
     @Override
@@ -300,7 +296,6 @@ public final class AuthenticationActivity extends Activity {
                 TAG,
                 "Cancel the authentication request."
         );
-        mUiEventBuilder.setUserDidCancel();
         returnToCaller(Constants.UIResponse.CANCEL, new Intent());
     }
 
@@ -319,11 +314,6 @@ public final class AuthenticationActivity extends Activity {
                         + mRequestId
         );
         data.putExtra(Constants.REQUEST_ID, mRequestId);
-
-        if (null != mUiEventBuilder) {
-            Telemetry.getInstance().stopEvent(mTelemetryRequestId, mUiEventBuilder);
-        }
-
         setResult(resultCode, data);
         this.finish();
     }

@@ -41,6 +41,7 @@ import androidx.annotation.Nullable;
 import androidx.browser.customtabs.CustomTabsService;
 
 import com.microsoft.identity.client.BrowserTabActivity;
+import com.microsoft.identity.client.exception.MsalArgumentException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -117,6 +118,21 @@ public final class MsalUtils {
                     argName
                             + " cannot be null or empty"
             );
+        }
+    }
+
+    /**
+     * Throws MsalArgumentException if the argument is null or empty
+     * @param o
+     * @param argName
+     * @throws MsalArgumentException
+     */
+    public static void validateNonNullArg(@Nullable final Object o,
+                                          @NonNull final String argName) throws MsalArgumentException {
+        if (null == o
+                || (o instanceof CharSequence) && TextUtils.isEmpty((CharSequence) o)
+                || (o instanceof List) && ((List) o).isEmpty()) {
+            throw new MsalArgumentException(argName, argName + " cannot be null or empty");
         }
     }
 

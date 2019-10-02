@@ -23,9 +23,10 @@
 package com.microsoft.identity.client.internal.controllers;
 
 import android.content.Intent;
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
-import android.text.TextUtils;
 
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.exception.ArgumentException;
@@ -363,13 +364,10 @@ public class LocalMSALController extends BaseController {
                         .putApiId(TelemetryEventStrings.Api.LOCAL_REMOVE_ACCOUNT)
         );
 
-        final boolean deleteHomeAndGuestAccounts = true;
         String realm = null;
 
-        if (deleteHomeAndGuestAccounts) {
-            if (parameters.getAccount() != null) {
-                realm = parameters.getAccount().getRealm();
-            }
+        if (parameters.getAccount() != null) {
+            realm = parameters.getAccount().getRealm();
         }
 
         final boolean localRemoveAccountSuccess = !parameters

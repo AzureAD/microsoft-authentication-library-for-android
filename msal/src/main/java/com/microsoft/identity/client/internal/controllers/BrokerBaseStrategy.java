@@ -34,6 +34,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.RemoteException;
+
 import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
@@ -100,7 +101,6 @@ abstract class BrokerBaseStrategy {
 
     @SuppressLint("MissingPermission")
     Account getTargetAccount(final Context context, final IAccountRecord accountRecord) {
-        final String methodName = ":getTargetAccount";
         Account targetAccount = null;
         final Account[] accountList = AccountManager.get(context).getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
         if (accountList != null) {

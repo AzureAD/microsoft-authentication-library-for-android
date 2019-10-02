@@ -20,36 +20,30 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
 package com.microsoft.identity.client;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
+import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.exception.MsalServiceException;
+import com.microsoft.identity.client.exception.MsalUiRequiredException;
 
-import com.microsoft.identity.client.internal.telemetry.EventConstants;
-import com.microsoft.identity.client.internal.telemetry.UiEvent;
+public interface SilentAuthenticationCallback {
 
-import junit.framework.Assert;
+    /**
+     * Authentication finishes successfully.
+     *
+     * @param authenticationResult {@link IAuthenticationResult} that contains the success response.
+     */
+    void onSuccess(final IAuthenticationResult authenticationResult);
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+    /**
+     * Error occurs during the authentication.
+     *
+     * @param exception The {@link MsalException} contains the error code, error message and cause if applicable. The exception
+     *                  returned in the callback could be {@link MsalClientException}, {@link MsalServiceException} or
+     *                  {@link MsalUiRequiredException}.
+     */
+    void onError(final MsalException exception);
 
-@RunWith(AndroidJUnit4.class)
-public class UiEventTest {
-
-    static final String TEST_EXPECTED_EVENT_NAME = EventConstants.EventName.UI_EVENT;
-    static final boolean TEST_USER_DID_CANCEL = true;
-
-    static UiEvent getTestUiEvent() {
-        return new UiEvent.Builder()
-                .setUserDidCancel()
-                .build();
-    }
-
-    @Test
-    public void testUiEventInitializes() {
-        final UiEvent uiEvent = getTestUiEvent();
-        Assert.assertEquals(TEST_EXPECTED_EVENT_NAME, uiEvent.getEventName());
-        Assert.assertEquals(Boolean.valueOf(TEST_USER_DID_CANCEL), uiEvent.userCancelled());
-    }
 
 }

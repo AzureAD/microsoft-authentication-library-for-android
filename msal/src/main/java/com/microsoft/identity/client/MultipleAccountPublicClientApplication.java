@@ -23,7 +23,6 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -73,21 +72,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     }
 
     @Override
-    public void acquireTokenSilentAsync(@NonNull final String[] scopes,
-                                        @NonNull final IAccount account,
-                                        @NonNull final AuthenticationCallback callback) {
-        acquireTokenSilent(
-                scopes,
-                account,
-                null, // authority
-                false, // forceRefresh
-                null, // claimsRequest
-                callback
-        );
-    }
-
-
-    @Override
     public IAuthenticationResult acquireTokenSilent(@NonNull String[] scopes, @NonNull IAccount account, @NonNull String authority) throws MsalException, InterruptedException {
         return acquireTokenSilentSync(scopes, authority, account, false);
     }
@@ -96,7 +80,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final IAccount account,
                                         @NonNull final String authority,
-                                        @NonNull final AuthenticationCallback callback) {
+                                        @NonNull final SilentAuthenticationCallback callback) {
         acquireTokenSilent(
                 scopes,
                 account,
