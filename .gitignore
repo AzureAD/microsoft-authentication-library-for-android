@@ -22,3 +22,4 @@ integration_tests.properties
 .idea/
 /**/*.pom
 .settings
+.project

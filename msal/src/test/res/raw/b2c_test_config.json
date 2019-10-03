@@ -1,0 +1,11 @@
+{
+  "client_id" : "e3b9ad76-9763-4827-b088-80c7a7888f79",
+  "redirect_uri" : "msale3b9ad76-9763-4827-b088-80c7a7888f79://auth",
+  "authorities" : [
+    {
+      "type": "B2C",
+      "authority_url": "https://login.microsoftonline.com/tfp/msidlabb2c.onmicrosoft.com/b2c_1_ropc_auth/",
+      "default": true
+    }
+  ]
+}
