@@ -41,6 +41,24 @@ public class RequestedClaim {
         return mName;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RequestedClaim)) return false;
+
+        RequestedClaim that = (RequestedClaim) o;
+
+        if (!mName.equals(that.mName)) return false;
+        return mInformation != null ? mInformation.equals(that.mInformation) : that.mInformation == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = mName.hashCode();
+        result = 31 * result + (mInformation != null ? mInformation.hashCode() : 0);
+        return result;
+    }
+
     /**
      * Sets the name of the claim being requested
      *
