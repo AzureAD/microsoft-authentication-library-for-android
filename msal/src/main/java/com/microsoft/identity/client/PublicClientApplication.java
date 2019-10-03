@@ -45,6 +45,7 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.AsyncResult;
+import com.microsoft.identity.client.internal.PublicApiId;
 import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
@@ -1209,6 +1210,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
+        ServerTelemetry.emitApiId(PublicApiId.PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK);
         acquireToken(
                 activity,
                 scopes,
@@ -1291,6 +1293,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
+                ServerTelemetry.emitApiId(PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS);
                 final ILocalAuthenticationCallback localAuthenticationCallback =
                         getLocalAuthenticationCallback(
                                 acquireTokenParameters.getCallback(),
@@ -1369,6 +1372,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
+                ServerTelemetry.emitApiId(PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS);
+
                 final ILocalAuthenticationCallback callback = getLocalAuthenticationCallback(
                         acquireTokenSilentParameters.getCallback(),
                         acquireTokenSilentParameters
@@ -1565,7 +1570,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     public IAuthenticationResult acquireTokenSilent(
             @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters)
             throws InterruptedException, MsalException {
-
         if (acquireTokenSilentParameters.getCallback() != null) {
             throw new IllegalArgumentException("Do not provide callback for synchronous methods");
         }
@@ -1584,6 +1588,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             }
         });
 
+        ServerTelemetry.emitApiId(PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_WITH_PARAMETERS);
         acquireTokenSilentAsync(acquireTokenSilentParameters);
 
         AsyncResult<IAuthenticationResult> result = future.get();

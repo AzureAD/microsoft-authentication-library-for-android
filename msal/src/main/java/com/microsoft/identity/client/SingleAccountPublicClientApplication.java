@@ -30,9 +30,9 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.AsyncResult;
+import com.microsoft.identity.client.internal.PublicApiId;
 import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
@@ -51,8 +51,8 @@ import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 import com.microsoft.identity.common.internal.result.ResultFuture;
+import com.microsoft.identity.common.internal.servertelemetry.ServerTelemetry;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
@@ -95,6 +95,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     public void getCurrentAccountAsync(@NonNull final CurrentAccountCallback callback) {
         final String methodName = ":getCurrentAccount";
         final PublicClientApplicationConfiguration configuration = getConfiguration();
+        ServerTelemetry.emitApiId(PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT_ASYNC_WITH_CALLBACK);
 
 
         try {
@@ -152,6 +153,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         throwOnMainThread("getCurrentAccount");
 
         final ResultFuture<AsyncResult<CurrentAccountResult>> future = new ResultFuture<>();
+
+        ServerTelemetry.emitApiId(PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT);
 
         getCurrentAccountAsync(new CurrentAccountCallback() {
             @Override
@@ -219,6 +222,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                        @NonNull final String loginHint,
                        @NonNull final String[] scopes,
                        @NonNull final AuthenticationCallback callback) {
+        ServerTelemetry.emitApiId(PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN);
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount != null) {
             callback.onError(new MsalClientException(MsalClientException.INVALID_PARAMETER));
@@ -293,6 +297,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public void signOut(@NonNull final SignOutCallback callback) {
+        ServerTelemetry.emitApiId(PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT_WITH_CALLBACK);
         final PublicClientApplicationConfiguration configuration = getConfiguration();
 
         final MultiTenantAccount persistedCurrentAccount = getPersistedCurrentAccount();
@@ -346,6 +351,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         throwOnMainThread("signOut");
 
         final ResultFuture<AsyncResult<Boolean>> future = new ResultFuture<>();
+
+        ServerTelemetry.emitApiId(PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT);
 
         signOut(new SignOutCallback() {
             @Override
@@ -452,6 +459,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
+        ServerTelemetry.emitApiId(PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK);
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount == null) {
             callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
@@ -474,6 +482,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public void acquireToken(@NonNull final AcquireTokenParameters acquireTokenParameters) {
+        ServerTelemetry.emitApiId(PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS);
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount != null) {
             // If the account exists, overwrite Account and ignore loginHint.
@@ -488,6 +497,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final String authority,
                                         @NonNull final SilentAuthenticationCallback callback) {
+        ServerTelemetry.emitApiId(PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_SCOPES_AUTHORITY_CALLBACK);
 
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount == null) {
@@ -508,10 +518,11 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     @WorkerThread
     public IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
                                                     @NonNull final String authority) throws MsalException, InterruptedException {
-
+        ServerTelemetry.emitApiId(PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_SCOPES_AUTHORITY);
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount == null) {
-            throw new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);
+            MsalClientException exception = new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);
+            throw exception;
         }
 
         return acquireTokenSilentSync(scopes, authority, persistedAccount, false);
@@ -519,6 +530,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
+        ServerTelemetry.emitApiId(PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS);
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount == null) {
             acquireTokenSilentParameters.getCallback().onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
@@ -533,6 +545,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public IAuthenticationResult acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException {
+        ServerTelemetry.emitApiId(PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_PARAMETERS);
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount == null) {
             throw new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);
