@@ -68,7 +68,7 @@ import static com.microsoft.identity.common.internal.providers.microsoft.Microso
 public class OperationParametersAdapter {
 
     private static final String TAG = OperationParametersAdapter.class.getSimpleName();
-    private static final String CLIENT_CAPABILITIES_CLAIM = "XMS_CC";
+    public static final String CLIENT_CAPABILITIES_CLAIM = "XMS_CC";
 
     public static OperationParameters createOperationParameters(
             @NonNull final PublicClientApplicationConfiguration configuration,
@@ -135,6 +135,11 @@ public class OperationParametersAdapter {
                             mergedClaimsRequest
                     )
             );
+
+            if(acquireTokenParameters.getClaimsRequest() != null){
+                acquireTokenOperationParameters.setForceRefresh(true);
+            }
+
         }else{
             //B2C doesn't support client capabilities
             acquireTokenOperationParameters.setClaimsRequest(
@@ -218,39 +223,21 @@ public class OperationParametersAdapter {
         return acquireTokenOperationParameters;
     }
 
-    private static ClaimsRequest addClientCapabilitiesToClaimsRequest(ClaimsRequest cr, String clientCapabilities){
+    public static ClaimsRequest addClientCapabilitiesToClaimsRequest(ClaimsRequest cr, String clientCapabilities){
 
-        if(cr == null && clientCapabilities == null) {
-            //Nothing to do here
-            return null;
-        }
+        ClaimsRequest mergedClaimsRequest = null;
 
-        if(cr != null && clientCapabilities == null) {
-            //Nothing to do here
-            return cr;
-        }
+        mergedClaimsRequest = cr == null ? new ClaimsRequest() : cr;
 
-        if(cr != null && clientCapabilities != null) {
+        if(clientCapabilities != null) {
             //Add client capabilities to existing claims request
             RequestedClaimAdditionalInformation info = new RequestedClaimAdditionalInformation();
             String[] capabilities = clientCapabilities.split(",");
             info.setValues(new ArrayList<Object>(Arrays.asList(capabilities)));
-            cr.requestClaimInAccessToken(CLIENT_CAPABILITIES_CLAIM, info);
-            return cr;
+            mergedClaimsRequest.requestClaimInAccessToken(CLIENT_CAPABILITIES_CLAIM, info);
         }
 
-        if(cr == null && clientCapabilities != null){
-            //Create new claims request and add capabilities to it
-            ClaimsRequest newClaimsRequest = new ClaimsRequest();
-            RequestedClaimAdditionalInformation info = new RequestedClaimAdditionalInformation();
-            String[] capabilities = clientCapabilities.split(",");
-            info.setValues(new ArrayList<Object>(Arrays.asList(capabilities)));
-            newClaimsRequest.requestClaimInAccessToken(CLIENT_CAPABILITIES_CLAIM, info);
-            return newClaimsRequest;
-        }
-
-
-        return null;
+        return mergedClaimsRequest;
     }
 
     private static String getUsername(@NonNull final IAccount account) {

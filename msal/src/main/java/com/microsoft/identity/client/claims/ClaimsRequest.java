@@ -46,6 +46,28 @@ public class ClaimsRequest {
     private List<RequestedClaim> mAccessTokenClaimsRequested = new ArrayList<>();
     private List<RequestedClaim> mIdTokenClaimsRequested = new ArrayList<>();
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ClaimsRequest)) return false;
+
+        ClaimsRequest that = (ClaimsRequest) o;
+
+        if (mUserInfoClaimsRequested != null ? !mUserInfoClaimsRequested.equals(that.mUserInfoClaimsRequested) : that.mUserInfoClaimsRequested != null)
+            return false;
+        if (mAccessTokenClaimsRequested != null ? !mAccessTokenClaimsRequested.equals(that.mAccessTokenClaimsRequested) : that.mAccessTokenClaimsRequested != null)
+            return false;
+        return mIdTokenClaimsRequested != null ? mIdTokenClaimsRequested.equals(that.mIdTokenClaimsRequested) : that.mIdTokenClaimsRequested == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = mUserInfoClaimsRequested != null ? mUserInfoClaimsRequested.hashCode() : 0;
+        result = 31 * result + (mAccessTokenClaimsRequested != null ? mAccessTokenClaimsRequested.hashCode() : 0);
+        result = 31 * result + (mIdTokenClaimsRequested != null ? mIdTokenClaimsRequested.hashCode() : 0);
+        return result;
+    }
+
     /**
      * Return the list of requested claims for the userinfo endpoint in the claims request parameter object
      *
