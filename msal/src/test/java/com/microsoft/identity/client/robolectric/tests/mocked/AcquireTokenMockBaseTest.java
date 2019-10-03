@@ -44,7 +44,7 @@ public abstract class AcquireTokenMockBaseTest {
 
     void instantiatePCAthenAcquireToken() {
         final Context context = ApplicationProvider.getApplicationContext();
-        final Activity testActivity = RoboTestUtils.getActivity(context);
+        final Activity testActivity = RoboTestUtils.getMockActivity(context);
 
         final File configFile = new File(AAD_CONFIG_FILE_PATH);
 

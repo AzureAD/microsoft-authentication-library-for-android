@@ -57,7 +57,7 @@ public abstract class AcquireTokenNetworkBaseTest {
 
     void instantiatePCAthenAcquireToken(String authorityType) {
         final Context context = ApplicationProvider.getApplicationContext();
-        final Activity testActivity = RoboTestUtils.getActivity(context);
+        final Activity testActivity = RoboTestUtils.getMockActivity(context);
 
         final String configFilePath = getConfigFilePath(authorityType);
         final File configFile = new File(configFilePath);

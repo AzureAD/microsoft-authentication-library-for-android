@@ -134,7 +134,7 @@ public class RoboTestUtils {
         while (!scheduler.advanceToLastPostedRunnable()) ;
     }
 
-    public static Activity getActivity(final Context context) {
+    public static Activity getMockActivity(final Context context) {
         final Activity mockedActivity = Mockito.mock(Activity.class);
         Mockito.when(mockedActivity.getApplicationContext()).thenReturn(context);
 

@@ -43,9 +43,9 @@ public class RoboTestCacheHelper {
         final String clientId = application.getConfiguration().getClientId();
         final Authority authority = new MockAuthority();
         final OAuth2Strategy strategy = authority.createOAuth2Strategy();
-        final MicrosoftStsAuthorizationRequest fakeAuthRequest = Mockito.mock(MicrosoftStsAuthorizationRequest.class);
-        Mockito.when(fakeAuthRequest.getAuthority()).thenReturn(authority.getAuthorityURL());
-        Mockito.when(fakeAuthRequest.getClientId()).thenReturn(clientId);
-        return tokenCache.save(strategy, fakeAuthRequest, tokenResponse);
+        final MicrosoftStsAuthorizationRequest mockAuthRequest = Mockito.mock(MicrosoftStsAuthorizationRequest.class);
+        Mockito.when(mockAuthRequest.getAuthority()).thenReturn(authority.getAuthorityURL());
+        Mockito.when(mockAuthRequest.getClientId()).thenReturn(clientId);
+        return tokenCache.save(strategy, mockAuthRequest, tokenResponse);
     }
 }
