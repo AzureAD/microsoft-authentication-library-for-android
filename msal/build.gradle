@@ -40,6 +40,12 @@ android {
         disable 'OldTargetApi'
     }
 
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+
     flavorDimensions "main"
 
     productFlavors {
@@ -72,6 +78,12 @@ android {
         variant.outputs.all {
             def fileName = "${archivesBaseName}-${version}.aar"
             outputFileName = fileName
+        }
+    }
+
+    testOptions {
+        unitTests.all {
+            exclude 'com/microsoft/identity/client/robolectric/tests/network/'
         }
     }
 }
@@ -114,7 +126,9 @@ dependencies {
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
     // TODO the below dependency should be mockito-core but the MockMaker isn't working...
     testImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
-
+    testImplementation "org.robolectric:robolectric:$rootProject.ext.robolectricVersion"
+    testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
+    testImplementation project(':testutils')
     // instrumentation test dependencies
     androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
     // Set this dependency to use JUnit 4 rules
