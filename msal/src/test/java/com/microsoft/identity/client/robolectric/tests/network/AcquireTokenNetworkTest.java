@@ -51,6 +51,11 @@ import static com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHe
 
 @RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowMsalUtils.class})
+/**
+ * This class contains PublicClientApplication acquire token tests that hit the network and
+ * try to acquire a token. These test are parameterized and cannot be run individually,
+ * the entire class must be run together for them to work.
+ */
 public final class AcquireTokenNetworkTest {
 
     private static final String[] AAD_SCOPES = {"user.read"};
