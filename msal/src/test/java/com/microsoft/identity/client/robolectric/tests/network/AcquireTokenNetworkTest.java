@@ -31,6 +31,7 @@ import com.microsoft.identity.client.robolectric.shadows.ShadowAuthority;
 import com.microsoft.identity.client.robolectric.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.robolectric.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper;
+import com.microsoft.identity.client.robolectric.utils.ErrorCodes;
 import com.microsoft.identity.client.robolectric.utils.RoboTestUtils;
 
 import org.junit.After;
@@ -207,7 +208,7 @@ public final class AcquireTokenNetworkTest {
                         .fromAuthority(authority)
                         .withScopes(Arrays.asList(mScopes))
                         .forceRefresh(false)
-                        .withCallback(failureSilentCallback())
+                        .withCallback(failureSilentCallback(ErrorCodes.NO_ACCOUNT_FOUND_ERROR_CODE))
                         .build();
 
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);

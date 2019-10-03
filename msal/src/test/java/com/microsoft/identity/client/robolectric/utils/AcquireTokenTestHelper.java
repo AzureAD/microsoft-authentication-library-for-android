@@ -83,7 +83,7 @@ public class AcquireTokenTestHelper {
         return callback;
     }
 
-    public static AuthenticationCallback failureInteractiveCallback() {
+    public static AuthenticationCallback failureInteractiveCallback(final String errorCode) {
         AuthenticationCallback callback = new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -92,7 +92,7 @@ public class AcquireTokenTestHelper {
 
             @Override
             public void onError(MsalException exception) {
-                Assert.assertTrue(true);
+                Assert.assertEquals(errorCode, exception.getErrorCode());
             }
 
             @Override
@@ -104,7 +104,7 @@ public class AcquireTokenTestHelper {
         return callback;
     }
 
-    public static SilentAuthenticationCallback failureSilentCallback() {
+    public static SilentAuthenticationCallback failureSilentCallback(final String errorCode) {
         SilentAuthenticationCallback callback = new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -113,7 +113,7 @@ public class AcquireTokenTestHelper {
 
             @Override
             public void onError(MsalException exception) {
-                Assert.assertTrue(true);
+                Assert.assertEquals(errorCode, exception.getErrorCode());
             }
         };
 

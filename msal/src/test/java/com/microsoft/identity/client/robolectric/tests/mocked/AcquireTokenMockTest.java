@@ -38,6 +38,7 @@ import com.microsoft.identity.client.robolectric.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.robolectric.shadows.ShadowStrategyResultServerError;
 import com.microsoft.identity.client.robolectric.shadows.ShadowStrategyResultUnsuccessful;
 import com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper;
+import com.microsoft.identity.client.robolectric.utils.ErrorCodes;
 import com.microsoft.identity.client.robolectric.utils.RoboTestUtils;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
@@ -100,7 +101,7 @@ public final class AcquireTokenMockTest {
                         .startAuthorizationFromActivity(activity)
                         .withLoginHint(username)
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.failureInteractiveCallback())
+                        .withCallback(AcquireTokenTestHelper.failureInteractiveCallback(ErrorCodes.ILLEGAL_ARGUMENT_ERROR_CODE))
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
@@ -124,7 +125,7 @@ public final class AcquireTokenMockTest {
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.failureInteractiveCallback())
+                        .withCallback(AcquireTokenTestHelper.failureInteractiveCallback(ErrorCodes.ILLEGAL_ARGUMENT_ERROR_CODE))
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
@@ -174,7 +175,7 @@ public final class AcquireTokenMockTest {
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.failureInteractiveCallback())
+                        .withCallback(AcquireTokenTestHelper.failureInteractiveCallback(ErrorCodes.UNKNOWN_ERROR_CODE))
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
@@ -200,7 +201,7 @@ public final class AcquireTokenMockTest {
                         .withLoginHint(username)
                         .withScopes(Arrays.asList(SCOPES))
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.failureInteractiveCallback())
+                        .withCallback(AcquireTokenTestHelper.failureInteractiveCallback(ErrorCodes.INTERNAL_SERVER_ERROR_CODE))
                         .build();
 
                 publicClientApplication.acquireToken(parameters);
@@ -336,7 +337,7 @@ public final class AcquireTokenMockTest {
                         .forceRefresh(false)
                         .forAccount(account)
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.failureSilentCallback())
+                        .withCallback(AcquireTokenTestHelper.failureSilentCallback(ErrorCodes.NO_ACCOUNT_FOUND_ERROR_CODE))
                         .build();
 
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
@@ -360,7 +361,7 @@ public final class AcquireTokenMockTest {
                         .withScopes(Arrays.asList(SCOPES))
                         .forceRefresh(false)
                         .forAccount(account)
-                        .withCallback(AcquireTokenTestHelper.failureSilentCallback())
+                        .withCallback(AcquireTokenTestHelper.failureSilentCallback(ErrorCodes.ILLEGAL_ARGUMENT_ERROR_CODE))
                         .build();
 
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
@@ -382,7 +383,7 @@ public final class AcquireTokenMockTest {
                         .withScopes(Arrays.asList(SCOPES))
                         .forceRefresh(false)
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.failureSilentCallback())
+                        .withCallback(AcquireTokenTestHelper.failureSilentCallback(ErrorCodes.ILLEGAL_ARGUMENT_ERROR_CODE))
                         .build();
 
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);
@@ -405,7 +406,7 @@ public final class AcquireTokenMockTest {
                         .forAccount(account)
                         .forceRefresh(false)
                         .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.failureSilentCallback())
+                        .withCallback(AcquireTokenTestHelper.failureSilentCallback(ErrorCodes.ILLEGAL_ARGUMENT_ERROR_CODE))
                         .build();
 
                 publicClientApplication.acquireTokenSilentAsync(silentParameters);

@@ -45,7 +45,7 @@ public class ShadowStrategyResultServerError {
     // create a mocked token error response
     private TokenErrorResponse createMockTokenErrorResponse() {
         TokenErrorResponse tokenErrorResponse = new TokenErrorResponse();
-        tokenErrorResponse.setError("Internal Server Error");
+        tokenErrorResponse.setError("internal_server_error");
         tokenErrorResponse.setErrorDescription("Oops! Something went wrong :(");
         tokenErrorResponse.setStatusCode(500);
         return tokenErrorResponse;
