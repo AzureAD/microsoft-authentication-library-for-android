@@ -60,6 +60,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORITIES;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_USER_AGENT;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.BROWSER_SAFE_LIST;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CLIENT_CAPABILITIES;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CLIENT_ID;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ENVIRONMENT;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.HTTP;
@@ -87,6 +88,7 @@ public class PublicClientApplicationConfiguration {
         static final String TELEMETRY = "telemetry";
         static final String BROWSER_SAFE_LIST = "browser_safelist";
         static final String ACCOUNT_MODE = "account_mode";
+        static final String CLIENT_CAPABILITIES = "client_capabilities";
     }
 
     @SerializedName(CLIENT_ID)
@@ -127,6 +129,9 @@ public class PublicClientApplicationConfiguration {
 
     @SerializedName(ACCOUNT_MODE)
     AccountMode mAccountMode;
+
+    @SerializedName(CLIENT_CAPABILITIES)
+    String mClientCapabilities;
 
     transient OAuth2TokenCache mOAuth2TokenCache;
 
@@ -256,6 +261,15 @@ public class PublicClientApplicationConfiguration {
     }
 
     /**
+     * Gets the currently configured capabilities for the PublicClientApplication.
+     *
+     * @return The capabilities supported by this application.
+     */
+    public String getClientCapabilities() {
+        return this.mClientCapabilities;
+    }
+
+    /**
      * Indicates the minimum required broker protocol version number.
      *
      * @return String of broker protocol version
@@ -346,6 +360,7 @@ public class PublicClientApplicationConfiguration {
 
         // Multiple is the default mode.
         this.mAccountMode = config.mAccountMode != AccountMode.MULTIPLE ? config.mAccountMode : this.mAccountMode;
+        this.mClientCapabilities = config.mClientCapabilities == null ? this.mClientCapabilities : config.mClientCapabilities;
     }
 
     void validateConfiguration() {
