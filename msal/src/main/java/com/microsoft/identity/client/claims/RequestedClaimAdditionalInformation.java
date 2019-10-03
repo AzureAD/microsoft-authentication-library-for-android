@@ -68,4 +68,6 @@ public class RequestedClaimAdditionalInformation {
     public void setValue(Object value) {
         mValue = value;
     }
+
+    public void setValues(List<Object> values) { mValues = values;}
 }

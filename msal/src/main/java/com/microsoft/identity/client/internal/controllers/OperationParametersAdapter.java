@@ -25,6 +25,7 @@ package com.microsoft.identity.client.internal.controllers;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -39,6 +40,7 @@ import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.claims.ClaimsRequest;
+import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
@@ -53,6 +55,8 @@ import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -64,6 +68,7 @@ import static com.microsoft.identity.common.internal.providers.microsoft.Microso
 public class OperationParametersAdapter {
 
     private static final String TAG = OperationParametersAdapter.class.getSimpleName();
+    private static final String CLIENT_CAPABILITIES_CLAIM = "XMS_CC";
 
     public static OperationParameters createOperationParameters(
             @NonNull final PublicClientApplicationConfiguration configuration,
@@ -122,6 +127,21 @@ public class OperationParametersAdapter {
             aadAuthority.setMultipleCloudsSupported(
                     publicClientApplicationConfiguration.getMultipleCloudsSupported()
             );
+            //AzureActiveDirectory supports client capabilities
+            ClaimsRequest mergedClaimsRequest = addClientCapabilitiesToClaimsRequest(acquireTokenParameters.getClaimsRequest(),
+                                                    publicClientApplicationConfiguration.getClientCapabilities());
+            acquireTokenOperationParameters.setClaimsRequest(
+                    ClaimsRequest.getJsonStringFromClaimsRequest(
+                            mergedClaimsRequest
+                    )
+            );
+        }else{
+            //B2C doesn't support client capabilities
+            acquireTokenOperationParameters.setClaimsRequest(
+                    ClaimsRequest.getJsonStringFromClaimsRequest(
+                            acquireTokenParameters.getClaimsRequest()
+                    )
+            );
         }
 
         com.microsoft.identity.common.internal.logging.Logger.verbosePII(
@@ -168,11 +188,7 @@ public class OperationParametersAdapter {
         acquireTokenOperationParameters.setAppContext(
                 publicClientApplicationConfiguration.getAppContext()
         );
-        acquireTokenOperationParameters.setClaimsRequest(
-                ClaimsRequest.getJsonStringFromClaimsRequest(
-                        acquireTokenParameters.getClaimsRequest()
-                )
-        );
+
 
         if (null != publicClientApplicationConfiguration.getAuthorizationAgent()) {
             acquireTokenOperationParameters.setAuthorizationAgent(
@@ -200,6 +216,41 @@ public class OperationParametersAdapter {
         acquireTokenOperationParameters.setSdkVersion(PublicClientApplication.getSdkVersion());
 
         return acquireTokenOperationParameters;
+    }
+
+    private static ClaimsRequest addClientCapabilitiesToClaimsRequest(ClaimsRequest cr, String clientCapabilities){
+
+        if(cr == null && clientCapabilities == null) {
+            //Nothing to do here
+            return null;
+        }
+
+        if(cr != null && clientCapabilities == null) {
+            //Nothing to do here
+            return cr;
+        }
+
+        if(cr != null && clientCapabilities != null) {
+            //Add client capabilities to existing claims request
+            RequestedClaimAdditionalInformation info = new RequestedClaimAdditionalInformation();
+            String[] capabilities = clientCapabilities.split(",");
+            info.setValues(new ArrayList<Object>(Arrays.asList(capabilities)));
+            cr.requestClaimInAccessToken(CLIENT_CAPABILITIES_CLAIM, info);
+            return cr;
+        }
+
+        if(cr == null && clientCapabilities != null){
+            //Create new claims request and add capabilities to it
+            ClaimsRequest newClaimsRequest = new ClaimsRequest();
+            RequestedClaimAdditionalInformation info = new RequestedClaimAdditionalInformation();
+            String[] capabilities = clientCapabilities.split(",");
+            info.setValues(new ArrayList<Object>(Arrays.asList(capabilities)));
+            newClaimsRequest.requestClaimInAccessToken(CLIENT_CAPABILITIES_CLAIM, info);
+            return newClaimsRequest;
+        }
+
+
+        return null;
     }
 
     private static String getUsername(@NonNull final IAccount account) {
@@ -238,7 +289,7 @@ public class OperationParametersAdapter {
         final String requestAuthority = acquireTokenSilentParameters.getAuthority();
         final Authority authority = Authority.getAuthorityFromAuthorityUrl(requestAuthority);
         final ClaimsRequest claimsRequest = acquireTokenSilentParameters.getClaimsRequest();
-        final String jsonClaimsRequest = ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest);
+        String jsonClaimsRequest = ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest);
 
         final AcquireTokenSilentOperationParameters atsOperationParams = new AcquireTokenSilentOperationParameters();
         atsOperationParams.setAppContext(pcaConfig.getAppContext());
@@ -251,7 +302,6 @@ public class OperationParametersAdapter {
         atsOperationParams.setSdkVersion(PublicClientApplication.getSdkVersion());
         atsOperationParams.setForceRefresh(acquireTokenSilentParameters.getForceRefresh());
         atsOperationParams.setRedirectUri(pcaConfig.getRedirectUri());
-        atsOperationParams.setClaimsRequest(jsonClaimsRequest);
         atsOperationParams.setAccount(acquireTokenSilentParameters.getAccountRecord());
 
         if (atsOperationParams.getAuthority() instanceof AzureActiveDirectoryAuthority) {
@@ -259,7 +309,15 @@ public class OperationParametersAdapter {
                     (AzureActiveDirectoryAuthority) atsOperationParams.getAuthority();
 
             aadAuthority.setMultipleCloudsSupported(pcaConfig.getMultipleCloudsSupported());
+
+            ClaimsRequest mergedClaimsRequest = addClientCapabilitiesToClaimsRequest(claimsRequest, pcaConfig.getClientCapabilities());
+            //This business logic likely shouldn't be here, but this is the most convenient place I could find
+            if(claimsRequest != null){
+               atsOperationParams.setForceRefresh(true);
+            }
+            jsonClaimsRequest = ClaimsRequest.getJsonStringFromClaimsRequest(mergedClaimsRequest);
         }
+        atsOperationParams.setClaimsRequest(jsonClaimsRequest);
 
         return atsOperationParams;
     }
@@ -269,7 +327,7 @@ public class OperationParametersAdapter {
      * exceptions & logging.
      *
      * @param tenantId The tenantId for which claims are sought.
-     * @param claims   The claims, which may be null - if they are, an {@link IllegalStateException}
+     * @param claimable   The claims, which may be null - if they are, an {@link IllegalStateException}
      *                 is thrown.
      */
     public static void validateClaimsExistForTenant(@NonNull final String tenantId,
