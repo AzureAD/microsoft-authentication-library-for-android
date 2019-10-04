@@ -32,7 +32,6 @@ import androidx.annotation.Nullable;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.AsyncResult;
-import com.microsoft.identity.client.internal.PublicApiId;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
@@ -55,7 +54,7 @@ import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccou
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.ResultFuture;
-import com.microsoft.identity.common.internal.servertelemetry.ServerTelemetry;
+import com.microsoft.identity.common.internal.servertelemetry.PublicApiId;
 
 import java.util.HashMap;
 import java.util.List;
@@ -75,7 +74,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
     @Override
     public IAuthenticationResult acquireTokenSilent(@NonNull String[] scopes, @NonNull IAccount account, @NonNull String authority) throws MsalException, InterruptedException {
-        ServerTelemetry.emitApiId(PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_SCOPES_ACCOUNT_AUTHORITY);
         return acquireTokenSilentSync(scopes, authority, account, false);
     }
 
@@ -84,7 +82,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                                         @NonNull final IAccount account,
                                         @NonNull final String authority,
                                         @NonNull final SilentAuthenticationCallback callback) {
-        ServerTelemetry.emitApiId(PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_SCOPES_ACCOUNT_AUTHORITY_CALLBACK);
         acquireTokenSilent(
                 scopes,
                 account,
@@ -104,7 +101,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     @Override
     public void getAccounts(@NonNull final LoadAccountsCallback callback) {
         final String methodName = ":getAccounts";
-        ServerTelemetry.emitApiId(PublicApiId.MULTIPLE_ACCOUNT_PCA_GET_ACCOUNTS_WITH_CALLBACK);
         final List<ICacheRecord> accounts =
                 mPublicClientConfiguration
                         .getOAuth2TokenCache()
@@ -180,6 +176,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                     getLoadAccountsCallback(callback)
             );
 
+            command.setPublicApiId(PublicApiId.GET_ACCOUNTS);
             ApiDispatcher.getAccounts(command);
         } catch (final MsalClientException e) {
             handler.post(new Runnable() {
@@ -197,8 +194,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         throwOnMainThread("getAccounts");
 
         final ResultFuture<AsyncResult<List<IAccount>>> future = new ResultFuture<>();
-
-        ServerTelemetry.emitApiId(PublicApiId.MULTIPLE_ACCOUNT_PCA_GET_ACCOUNTS);
 
         getAccounts(new LoadAccountsCallback() {
             @Override
@@ -237,8 +232,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                 TAG + methodName,
                 "Get account with the identifier."
         );
-
-        ServerTelemetry.emitApiId(PublicApiId.MULTIPLE_ACCOUNT_PCA_GET_ACCOUNT_WITH_IDENTIFIER_CALLBACK);
 
         try {
             final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
@@ -299,6 +292,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                     }
             );
 
+            command.setPublicApiId(PublicApiId.GET_ACCOUNT);
             ApiDispatcher.getAccounts(command);
         } catch (final MsalClientException e) {
             com.microsoft.identity.common.internal.logging.Logger.error(
@@ -316,8 +310,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         throwOnMainThread("getAccount");
 
         final ResultFuture<AsyncResult<IAccount>> future = new ResultFuture<>();
-
-        ServerTelemetry.emitApiId(PublicApiId.MULTIPLE_ACCOUNT_PCA_GET_ACCOUNT_WITH_IDENTIFIER);
 
         getAccount(identifier, new GetAccountCallback() {
             @Override
@@ -344,7 +336,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     @Override
     public void removeAccount(@Nullable final IAccount account,
                               @NonNull final RemoveAccountCallback callback) {
-        ServerTelemetry.emitApiId(PublicApiId.MULTIPLE_ACCOUNT_PCA_REMOVE_ACCOUNT_WITH_ACCOUNT_CALLBACK);
 
         // First, cast the input IAccount to a MultiTenantAccount
         final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
@@ -391,6 +382,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                     }
             );
 
+            command.setPublicApiId(PublicApiId.REMOVE_ACCOUNT);
             ApiDispatcher.removeAccount(command);
 
         } catch (final MsalClientException e) {
@@ -400,7 +392,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
     @Override
     public boolean removeAccount(@Nullable IAccount account) throws MsalException, InterruptedException {
-        ServerTelemetry.emitApiId(PublicApiId.MULTIPLE_ACCOUNT_PCA_REMOVE_ACCOUNT_WITH_ACCOUNT);
 
         final ResultFuture<AsyncResult<Boolean>> future = new ResultFuture();
         removeAccount(account,
@@ -431,7 +422,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                              @NonNull final String[] scopes,
                              @Nullable final String loginHint,
                              @NonNull final AuthenticationCallback callback) {
-        ServerTelemetry.emitApiId(PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_LOGINHINT_CALLBACK);
         acquireToken(
                 activity,
                 scopes,

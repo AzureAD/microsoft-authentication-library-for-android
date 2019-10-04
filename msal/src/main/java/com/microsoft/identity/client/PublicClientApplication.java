@@ -45,7 +45,6 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.AsyncResult;
-import com.microsoft.identity.client.internal.PublicApiId;
 import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
@@ -76,6 +75,7 @@ import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperatio
 import com.microsoft.identity.common.internal.request.ILocalAuthenticationCallback;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
+import com.microsoft.identity.common.internal.servertelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.servertelemetry.ServerTelemetry;
 import com.microsoft.identity.msal.BuildConfig;
 
@@ -1082,13 +1082,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     TAG,
                     "Telemetry configuration is set. Telemetry is enabled."
             );
-            //ServerTelemetry.putCurrentTelemetryEnabled(true);
         } else {
             com.microsoft.identity.common.internal.logging.Logger.verbose(
                     TAG,
                     "Telemetry configuration is null. Telemetry is disabled."
             );
-            //ServerTelemetry.putCurrentTelemetryEnabled(false);
         }
 
         new com.microsoft.identity.common.internal.telemetry.Telemetry.Builder()
@@ -1210,7 +1208,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
-        ServerTelemetry.emitApiId(PublicApiId.PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK);
         acquireToken(
                 activity,
                 scopes,
@@ -1293,7 +1290,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
-                ServerTelemetry.emitApiId(PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS);
                 final ILocalAuthenticationCallback localAuthenticationCallback =
                         getLocalAuthenticationCallback(
                                 acquireTokenParameters.getCallback(),
@@ -1327,6 +1323,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             localAuthenticationCallback
                     );
 
+                    command.setPublicApiId(PublicApiId.LOCAL_ACQUIRE_TOKEN_INTERACTIVE);
                     ApiDispatcher.beginInteractive(command);
                 } catch (final Exception exception) {
                     // convert exception to BaseException
@@ -1372,7 +1369,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
-                ServerTelemetry.emitApiId(PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS);
 
                 final ILocalAuthenticationCallback callback = getLocalAuthenticationCallback(
                         acquireTokenSilentParameters.getCallback(),
@@ -1407,6 +1403,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             callback
                     );
 
+                    silentTokenCommand.setPublicApiId(PublicApiId.LOCAL_ACQUIRE_TOKEN_SILENT);
                     ApiDispatcher.submitSilent(silentTokenCommand);
                 } catch (final Exception exception) {
                     // convert exception to BaseException
@@ -1588,7 +1585,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             }
         });
 
-        ServerTelemetry.emitApiId(PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_WITH_PARAMETERS);
         acquireTokenSilentAsync(acquireTokenSilentParameters);
 
         AsyncResult<IAuthenticationResult> result = future.get();
