@@ -179,10 +179,12 @@ if(account != null){
     //Now that we know the account is still present in the local cache or not the device (broker authentication)
 
     //Request token silently
-    String[] newScopes = {"Calendars.Read"}
+    String[] newScopes = {"Calendars.Read"};
+    
+    String authority = mMultipleAccountApp.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
 
     //Use default authority to request token from pass null
-    IAuthenticationResult result = mMultipleAccountApp.acquireTokenSilent(newScopes, account, null);
+    IAuthenticationResult result = mMultipleAccountApp.acquireTokenSilent(newScopes, account, authority);
 }
 
 ```
