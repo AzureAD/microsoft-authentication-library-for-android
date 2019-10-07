@@ -46,6 +46,11 @@ public class ClaimsRequest {
     private List<RequestedClaim> mAccessTokenClaimsRequested = new ArrayList<>();
     private List<RequestedClaim> mIdTokenClaimsRequested = new ArrayList<>();
 
+    //CHECKSTYLE:OFF
+    // This method is generated. Checkstyle and/or PMD has been disabled.
+    // This method *must* be regenerated if the class' structural definition changes through the
+    // addition/subtraction of fields.
+    @SuppressWarnings("PMD")
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -59,7 +64,13 @@ public class ClaimsRequest {
             return false;
         return mIdTokenClaimsRequested != null ? mIdTokenClaimsRequested.equals(that.mIdTokenClaimsRequested) : that.mIdTokenClaimsRequested == null;
     }
+    //CHECKSTYLE:ON
 
+    //CHECKSTYLE:OFF
+    // This method is generated. Checkstyle and/or PMD has been disabled.
+    // This method *must* be regenerated if the class' structural definition changes through the
+    // addition/subtraction of fields.
+    @SuppressWarnings("PMD")
     @Override
     public int hashCode() {
         int result = mUserInfoClaimsRequested != null ? mUserInfoClaimsRequested.hashCode() : 0;
@@ -67,6 +78,7 @@ public class ClaimsRequest {
         result = 31 * result + (mIdTokenClaimsRequested != null ? mIdTokenClaimsRequested.hashCode() : 0);
         return result;
     }
+    //CHECKSTYLE:ON
 
     /**
      * Return the list of requested claims for the userinfo endpoint in the claims request parameter object

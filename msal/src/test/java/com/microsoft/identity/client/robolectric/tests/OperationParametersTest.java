@@ -144,7 +144,7 @@ public class OperationParametersTest {
         return parameters;
     }
 
-    private AcquireTokenSilentParameters getAcquireTokenSilentParametersWithClaims(){
+    private AcquireTokenSilentParameters getAcquireTokenSilentParametersWithClaims() {
         AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
                 .withClaims(getAccessTokenClaimsRequest("device_id", ""))
                 .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
