@@ -225,9 +225,7 @@ public class OperationParametersAdapter {
 
     public static ClaimsRequest addClientCapabilitiesToClaimsRequest(ClaimsRequest cr, String clientCapabilities){
 
-        ClaimsRequest mergedClaimsRequest = null;
-
-        mergedClaimsRequest = cr == null ? new ClaimsRequest() : cr;
+        final ClaimsRequest mergedClaimsRequest = (cr == null) ? new ClaimsRequest() : cr;
 
         if(clientCapabilities != null) {
             //Add client capabilities to existing claims request

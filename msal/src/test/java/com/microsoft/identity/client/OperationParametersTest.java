@@ -34,15 +34,12 @@ import com.microsoft.identity.common.internal.cache.IAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
-import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
-import com.microsoft.identity.common.internal.request.OperationParameters;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public final class OperationParametersTest {
 

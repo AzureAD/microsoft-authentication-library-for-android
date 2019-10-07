@@ -41,6 +41,11 @@ public class RequestedClaim {
         return mName;
     }
 
+    //CHECKSTYLE:OFF
+    // This method is generated. Checkstyle and/or PMD has been disabled.
+    // This method *must* be regenerated if the class' structural definition changes through the
+    // addition/subtraction of fields.
+    @SuppressWarnings("PMD")
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -51,13 +56,20 @@ public class RequestedClaim {
         if (!mName.equals(that.mName)) return false;
         return mInformation != null ? mInformation.equals(that.mInformation) : that.mInformation == null;
     }
+    //CHECKSTYLE:ON
 
+    //CHECKSTYLE:OFF
+    // This method is generated. Checkstyle and/or PMD has been disabled.
+    // This method *must* be regenerated if the class' structural definition changes through the
+    // addition/subtraction of fields.
+    @SuppressWarnings("PMD")
     @Override
     public int hashCode() {
         int result = mName.hashCode();
         result = 31 * result + (mInformation != null ? mInformation.hashCode() : 0);
         return result;
     }
+    //CHECKSTYLE:ON
 
     /**
      * Sets the name of the claim being requested
