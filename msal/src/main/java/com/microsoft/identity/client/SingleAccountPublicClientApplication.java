@@ -30,7 +30,6 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
@@ -41,7 +40,8 @@ import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
-import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
+import com.microsoft.identity.common.internal.controllers.CommandCallback;
+import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
 import com.microsoft.identity.common.internal.controllers.RemoveAccountCommand;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
@@ -52,7 +52,6 @@ import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
@@ -109,14 +108,14 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             );
 
             final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
-            final LoadAccountCommand command = new LoadAccountCommand(
+            final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
                     params,
                     MSALControllerFactory.getAcquireTokenController(
                             mPublicClientConfiguration.getAppContext(),
                             params.getAuthority(),
                             mPublicClientConfiguration
                     ),
-                    new TaskCompletedCallbackWithError<List<ICacheRecord>, BaseException>() {
+                    new CommandCallback<List<ICacheRecord>, BaseException>() {
                         @Override
                         public void onTaskCompleted(final List<ICacheRecord> result) {
                             // To simplify the logic, if more than one account is returned, the first account will be picked.
@@ -135,12 +134,17 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
                             callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
                         }
+
+                        @Override
+                        public void onCancel() {
+                            //Do nothing
+                        }
                     }
 
 
             );
 
-            ApiDispatcher.getAccounts(command);
+            CommandDispatcher.submitSilent(loadAccountCommand);
 
         } catch (MsalClientException clientException) {
             callback.onError(clientException);
@@ -240,13 +244,13 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     }
 
     @Override
-    protected ILocalAuthenticationCallback getLocalAuthenticationCallback(
+    protected CommandCallback<ILocalAuthenticationResult, BaseException> getCommandCallback(
             @NonNull final SilentAuthenticationCallback authenticationCallback,
             @NonNull final TokenParameters tokenParameters) {
-        return new ILocalAuthenticationCallback() {
+        return new CommandCallback<ILocalAuthenticationResult, BaseException>() {
 
             @Override
-            public void onSuccess(@NonNull final ILocalAuthenticationResult localAuthenticationResult) {
+            public void onTaskCompleted(@NonNull final ILocalAuthenticationResult localAuthenticationResult) {
                 //Get Local Authentication Result then check if the current account is set or not
                 MultiTenantAccount newAccount = getAccountFromICacheRecordList(localAuthenticationResult.getCacheRecordWithTenantProfileData());
 
@@ -313,14 +317,14 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             requestAccountRecord.setHomeAccountId(persistedCurrentAccount.getHomeAccountId());
             params.setAccount(requestAccountRecord);
 
-            final RemoveAccountCommand command = new RemoveAccountCommand(
+            final RemoveAccountCommand removeAccountCommand = new RemoveAccountCommand(
                     params,
                     MSALControllerFactory.getAcquireTokenController(
                             mPublicClientConfiguration.getAppContext(),
                             params.getAuthority(),
                             mPublicClientConfiguration
                     ),
-                    new TaskCompletedCallbackWithError<Boolean, BaseException>() {
+                    new CommandCallback<Boolean, BaseException>() {
                         @Override
                         public void onError(BaseException error) {
                             callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(error));
@@ -331,10 +335,15 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                             persistCurrentAccount(null);
                             callback.onSignOut();
                         }
+
+                        @Override
+                        public void onCancel() {
+                            //Do nothing
+                        }
                     }
             );
 
-            ApiDispatcher.removeAccount(command);
+            CommandDispatcher.submitSilent(removeAccountCommand);
         } catch (final MsalClientException clientException) {
             callback.onError(clientException);
         }

@@ -42,7 +42,9 @@ import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
-import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
+import com.microsoft.identity.common.internal.controllers.Command;
+import com.microsoft.identity.common.internal.controllers.CommandCallback;
+import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
 import com.microsoft.identity.common.internal.controllers.RemoveAccountCommand;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
@@ -165,7 +167,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
         try {
             final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
-            final LoadAccountCommand command = new LoadAccountCommand(
+            final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
                     params,
                     MSALControllerFactory.getAcquireTokenSilentControllers(
                             mPublicClientConfiguration.getAppContext(),
@@ -175,7 +177,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                     getLoadAccountsCallback(callback)
             );
 
-            ApiDispatcher.getAccounts(command);
+            CommandDispatcher.submitSilent(loadAccountCommand);
         } catch (final MsalClientException e) {
             handler.post(new Runnable() {
                 @Override
@@ -233,14 +235,14 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
         try {
             final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
-            final LoadAccountCommand command = new LoadAccountCommand(
+            final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
                     params,
                     MSALControllerFactory.getAcquireTokenSilentControllers(
                             mPublicClientConfiguration.getAppContext(),
                             params.getAuthority(),
                             mPublicClientConfiguration
                     ),
-                    new TaskCompletedCallbackWithError<List<ICacheRecord>, BaseException>() {
+                    new CommandCallback<List<ICacheRecord>, BaseException>() {
                         @Override
                         public void onTaskCompleted(final List<ICacheRecord> result) {
                             if (null == result || result.size() == 0) {
@@ -287,10 +289,15 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                             );
                             callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
                         }
+
+                        @Override
+                        public void onCancel(){
+
+                        }
                     }
             );
 
-            ApiDispatcher.getAccounts(command);
+            CommandDispatcher.submitSilent(loadAccountCommand);
         } catch (final MsalClientException e) {
             com.microsoft.identity.common.internal.logging.Logger.error(
                     TAG + methodName,
@@ -358,14 +365,14 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         params.setAccount(requestAccountRecord);
 
         try {
-            final RemoveAccountCommand command = new RemoveAccountCommand(
+            final RemoveAccountCommand removeAccountCommand = new RemoveAccountCommand(
                     params,
                     MSALControllerFactory.getAcquireTokenSilentControllers(
                             mPublicClientConfiguration.getAppContext(),
                             params.getAuthority(),
                             mPublicClientConfiguration
                     ),
-                    new TaskCompletedCallbackWithError<Boolean, BaseException>() {
+                    new CommandCallback<Boolean, BaseException>() {
                         @Override
                         public void onError(BaseException error) {
                             callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(error));
@@ -375,10 +382,15 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                         public void onTaskCompleted(Boolean success) {
                             callback.onRemoved();
                         }
+
+                        @Override
+                        public void onCancel(){
+                            //Do nothing
+                        }
                     }
             );
 
-            ApiDispatcher.removeAccount(command);
+            CommandDispatcher.submitSilent(removeAccountCommand);
 
         } catch (final MsalClientException e) {
             callback.onError(e);
