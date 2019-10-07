@@ -57,7 +57,8 @@ import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
-import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
+import com.microsoft.identity.common.internal.controllers.CommandCallback;
+import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.controllers.ExceptionAdapter;
 import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
@@ -1279,8 +1280,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
-                final ILocalAuthenticationCallback localAuthenticationCallback =
-                        getLocalAuthenticationCallback(
+                final CommandCallback localAuthenticationCallback =
+                        getCommandCallback(
                                 acquireTokenParameters.getCallback(),
                                 acquireTokenParameters
                         );
@@ -1312,7 +1313,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             localAuthenticationCallback
                     );
 
-                    ApiDispatcher.beginInteractive(command);
+                    CommandDispatcher.beginInteractive(command);
                 } catch (final Exception exception) {
                     // convert exception to BaseException
                     final BaseException baseException = ExceptionAdapter.baseExceptionFromException(exception);
@@ -1357,7 +1358,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
-                final ILocalAuthenticationCallback callback = getLocalAuthenticationCallback(
+                final CommandCallback callback = getCommandCallback(
                         acquireTokenSilentParameters.getCallback(),
                         acquireTokenSilentParameters
                 );
@@ -1390,7 +1391,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             callback
                     );
 
-                    ApiDispatcher.submitSilent(silentTokenCommand);
+                    CommandDispatcher.submitSilent(silentTokenCommand);
                 } catch (final Exception exception) {
                     // convert exception to BaseException
                     final BaseException baseException = ExceptionAdapter.baseExceptionFromException(exception);
@@ -1594,9 +1595,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-    static TaskCompletedCallbackWithError<List<ICacheRecord>, BaseException> getLoadAccountsCallback(
+    static CommandCallback<List<ICacheRecord>, BaseException> getLoadAccountsCallback(
             final LoadAccountsCallback loadAccountsCallback) {
-        return new TaskCompletedCallbackWithError<List<ICacheRecord>, BaseException>() {
+        return new CommandCallback<List<ICacheRecord>, BaseException>() {
             @Override
             public void onTaskCompleted(final List<ICacheRecord> result) {
                 if (null == result) {
@@ -1612,18 +1613,24 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             public void onError(final BaseException exception) {
                 loadAccountsCallback.onError(msalExceptionFromBaseException(exception));
             }
+
+            @Override
+            public void onCancel(){
+                //Do nothing
+            }
+
         };
     }
 
 
-    protected ILocalAuthenticationCallback getLocalAuthenticationCallback(
+    protected CommandCallback getCommandCallback(
             @NonNull final SilentAuthenticationCallback authenticationCallback,
             @NonNull final TokenParameters tokenParameters) {
 
-        return new ILocalAuthenticationCallback() {
+        return new CommandCallback<ILocalAuthenticationResult, BaseException>() {
 
             @Override
-            public void onSuccess(ILocalAuthenticationResult localAuthenticationResult) {
+            public void onTaskCompleted(ILocalAuthenticationResult localAuthenticationResult) {
 
                 postAuthResult(localAuthenticationResult, tokenParameters, authenticationCallback);
             }
