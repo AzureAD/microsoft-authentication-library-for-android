@@ -54,7 +54,7 @@ import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccou
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.ResultFuture;
-import com.microsoft.identity.common.internal.servertelemetry.PublicApiId;
+import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 
 import java.util.HashMap;
 import java.util.List;

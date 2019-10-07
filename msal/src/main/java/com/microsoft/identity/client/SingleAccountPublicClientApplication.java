@@ -50,7 +50,7 @@ import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 import com.microsoft.identity.common.internal.result.ResultFuture;
-import com.microsoft.identity.common.internal.servertelemetry.PublicApiId;
+import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 
 import java.util.List;
 

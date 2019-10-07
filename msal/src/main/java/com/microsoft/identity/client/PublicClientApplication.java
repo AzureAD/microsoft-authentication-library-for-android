@@ -75,8 +75,8 @@ import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperatio
 import com.microsoft.identity.common.internal.request.ILocalAuthenticationCallback;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
-import com.microsoft.identity.common.internal.servertelemetry.PublicApiId;
-import com.microsoft.identity.common.internal.servertelemetry.ServerTelemetry;
+import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
+import com.microsoft.identity.common.internal.eststelemetry.EstsTelemetry;
 import com.microsoft.identity.msal.BuildConfig;
 
 import java.io.File;
@@ -1068,7 +1068,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     private void setupServerSideTelemetry(Context context) {
-        ServerTelemetry.initializeServerTelemetry(context);
+        EstsTelemetry.initializeServerTelemetry(context);
         com.microsoft.identity.common.internal.logging.Logger.verbose(
                 TAG,
                 "Server side telemetry has been initialized properly."
