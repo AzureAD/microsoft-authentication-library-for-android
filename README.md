@@ -113,7 +113,7 @@ It's simplest to create your configuration file as a "raw" resource file in your
 ```Java
 
 String[] scopes = {"User.Read"};
-IMulitipleAccountPublicClientApplication mMultipleAccountApp = null;
+IMultipleAccountPublicClientApplication mMultipleAccountApp = null;
 IAccount mFirstAccount = null;
 
 PublicClientApplication.createMultipleAccountPublicClientApplication(getContext(),
