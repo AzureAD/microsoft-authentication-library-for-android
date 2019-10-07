@@ -46,6 +46,39 @@ public class RequestedClaimAdditionalInformation {
     @SerializedName(SerializedNames.VALUES)
     private List<Object> mValues = new ArrayList<>();
 
+    //CHECKSTYLE:OFF
+    // This method is generated. Checkstyle and/or PMD has been disabled.
+    // This method *must* be regenerated if the class' structural definition changes through the
+    // addition/subtraction of fields.
+    @SuppressWarnings("PMD")
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RequestedClaimAdditionalInformation)) return false;
+
+        RequestedClaimAdditionalInformation that = (RequestedClaimAdditionalInformation) o;
+
+        if (mEssential != null ? !mEssential.equals(that.mEssential) : that.mEssential != null)
+            return false;
+        if (mValues != null ? !mValues.equals(that.mValues) : that.mValues != null) return false;
+        return mValue != null ? mValue.equals(that.mValue) : that.mValue == null;
+    }
+    //CHECKSTYLE:ON
+
+    //CHECKSTYLE:OFF
+    // This method is generated. Checkstyle and/or PMD has been disabled.
+    // This method *must* be regenerated if the class' structural definition changes through the
+    // addition/subtraction of fields.
+    @SuppressWarnings("PMD")
+    @Override
+    public int hashCode() {
+        int result = mEssential != null ? mEssential.hashCode() : 0;
+        result = 31 * result + (mValues != null ? mValues.hashCode() : 0);
+        result = 31 * result + (mValue != null ? mValue.hashCode() : 0);
+        return result;
+    }
+    //CHECKSTYLE:ON
+
     @SerializedName(SerializedNames.VALUE)
     private Object mValue = null;
 
@@ -68,4 +101,6 @@ public class RequestedClaimAdditionalInformation {
     public void setValue(Object value) {
         mValue = value;
     }
+
+    public void setValues(List<Object> values) { mValues = values;}
 }
