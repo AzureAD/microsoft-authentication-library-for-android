@@ -8,5 +8,9 @@ import org.junit.runners.Suite;
         AcquireTokenNetworkAADTest.class,
         AcquireTokenNetworkB2CTest.class
 })
+/**
+ * This class runs all tests in the {@link AcquireTokenNetworkTest} class,
+ * using both AAD and B2C
+ */
 public class AcquireTokenNetworkTestSuite {
 }

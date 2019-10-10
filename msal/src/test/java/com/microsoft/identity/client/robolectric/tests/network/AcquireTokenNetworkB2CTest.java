@@ -1,5 +1,8 @@
 package com.microsoft.identity.client.robolectric.tests.network;
 
+/**
+ * Run all tests in the {@link AcquireTokenNetworkTest} class using B2C
+ */
 public class AcquireTokenNetworkB2CTest extends AcquireTokenNetworkTest {
 
     public AcquireTokenNetworkB2CTest() {

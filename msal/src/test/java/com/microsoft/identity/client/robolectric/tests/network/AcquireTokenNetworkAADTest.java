@@ -1,5 +1,8 @@
 package com.microsoft.identity.client.robolectric.tests.network;
 
+/**
+ * Run all tests in the {@link AcquireTokenNetworkTest} class using AAD
+ */
 public class AcquireTokenNetworkAADTest extends AcquireTokenNetworkTest {
 
     public AcquireTokenNetworkAADTest() {
