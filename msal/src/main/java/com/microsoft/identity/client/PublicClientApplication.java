@@ -1069,7 +1069,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     private void setupServerSideTelemetry(Context context) {
-        EstsTelemetry.initializeEstsTelemetryCache(context);
+        EstsTelemetry.getInstance().setupLastRequestTelemetryCache(context);
         com.microsoft.identity.common.internal.logging.Logger.verbose(
                 TAG,
                 "Server side telemetry cache has been initialized properly."
