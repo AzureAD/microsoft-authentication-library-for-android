@@ -95,7 +95,6 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
      *
      * @param activity  Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
      * @param scopes    The non-null array of scopes to be requested for the access token.
