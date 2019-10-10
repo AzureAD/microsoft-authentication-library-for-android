@@ -61,7 +61,6 @@ import com.microsoft.identity.common.internal.controllers.CommandCallback;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.controllers.ExceptionAdapter;
 import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
-import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.controllers.TokenCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.EstsTelemetry;
@@ -75,7 +74,6 @@ import com.microsoft.identity.common.internal.providers.oauth2.OpenIdProviderCon
 import com.microsoft.identity.common.internal.providers.oauth2.OpenIdProviderConfigurationClient;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
-import com.microsoft.identity.common.internal.request.ILocalAuthenticationCallback;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 import com.microsoft.identity.msal.BuildConfig;
@@ -986,7 +984,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         final String methodName = ":initializeApplication";
 
         final Context context = mPublicClientConfiguration.getAppContext();
-        setupServerSideTelemetry(context);
+        EstsTelemetry.getInstance().setupLastRequestTelemetryCache(context);
         setupTelemetry(context, mPublicClientConfiguration);
 
         AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
@@ -1066,14 +1064,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         } else {
             throw new IllegalStateException("TSL support mandates use of the MsalOAuth2TokenCache");
         }
-    }
-
-    private void setupServerSideTelemetry(Context context) {
-        EstsTelemetry.getInstance().setupLastRequestTelemetryCache(context);
-        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                TAG,
-                "Server side telemetry cache has been initialized properly."
-        );
     }
 
     private void setupTelemetry(@NonNull final Context context,
@@ -1627,7 +1617,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             }
 
             @Override
-            public void onCancel(){
+            public void onCancel() {
                 //Do nothing
             }
 

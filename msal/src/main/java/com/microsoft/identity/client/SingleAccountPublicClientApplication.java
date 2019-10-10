@@ -46,12 +46,11 @@ import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
 import com.microsoft.identity.common.internal.controllers.RemoveAccountCommand;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.request.ILocalAuthenticationCallback;
+import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 import com.microsoft.identity.common.internal.result.ResultFuture;
-import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 
 import java.util.List;
 
@@ -307,6 +306,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         }
 
         if (mIsSharedDevice) {
+            //TODO: need to integrate with server-side telemetry here once we refactor it to command
             removeAccountFromSharedDevice(callback, configuration);
             return;
         }
