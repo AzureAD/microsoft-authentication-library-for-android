@@ -184,6 +184,11 @@ public final class MsalClientException extends MsalException {
     public static final String CURRENT_ACCOUNT_MISMATCH = "returned_account_does_not_match_current_account";
 
     /**
+     * Duplicate command.  The same command is already be processed.
+     */
+    public static final String DUPLICATE_COMMAND = "duplicate_command";
+
+    /**
      * Temporary non-exposed error code to indicate that ADFS authority validation fails. ADFS as authority is not supported
      * for preview.
      */

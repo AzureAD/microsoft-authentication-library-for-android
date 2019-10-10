@@ -26,7 +26,9 @@ import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import org.junit.Assert;
@@ -66,6 +68,28 @@ public class AcquireTokenTestHelper {
 
         return callback;
     }
+
+    public static AuthenticationCallback failedSilentRequestDuplicateCommand() {
+        AuthenticationCallback callback = new AuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                fail("not expected for this request to succeed");
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                Assert.assertEquals(MsalClientException.DUPLICATE_COMMAND, exception.getErrorCode());
+            }
+
+            @Override
+            public void onCancel() {
+                fail("No expected to receive cancel");
+            }
+        };
+
+        return callback;
+    }
+
 
     public static SilentAuthenticationCallback successfulSilentCallback() {
         SilentAuthenticationCallback callback = new SilentAuthenticationCallback() {
