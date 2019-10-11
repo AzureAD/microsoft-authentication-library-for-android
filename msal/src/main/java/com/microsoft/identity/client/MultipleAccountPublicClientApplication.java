@@ -54,6 +54,7 @@ import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccou
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.ResultFuture;
+import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 
 import java.util.HashMap;
 import java.util.List;
@@ -186,6 +187,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                     getLoadAccountsCallback(callback)
             );
 
+            loadAccountCommand.setPublicApiId(PublicApiId.GET_ACCOUNTS);
             CommandDispatcher.submitSilent(loadAccountCommand);
         } catch (final MsalClientException e) {
             handler.post(new Runnable() {
@@ -318,6 +320,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                     }
             );
 
+            loadAccountCommand.setPublicApiId(PublicApiId.GET_ACCOUNT);
             CommandDispatcher.submitSilent(loadAccountCommand);
         } catch (final MsalClientException e) {
             com.microsoft.identity.common.internal.logging.Logger.error(
@@ -416,6 +419,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                     }
             );
 
+            removeAccountCommand.setPublicApiId(PublicApiId.REMOVE_ACCOUNT);
             CommandDispatcher.submitSilent(removeAccountCommand);
 
         } catch (final MsalClientException e) {

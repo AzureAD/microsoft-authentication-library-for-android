@@ -46,6 +46,7 @@ import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
 import com.microsoft.identity.common.internal.controllers.RemoveAccountCommand;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
@@ -98,7 +99,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         final String methodName = ":getCurrentAccount";
         final PublicClientApplicationConfiguration configuration = getConfiguration();
 
-
         try {
             if (mIsSharedDevice) {
                 getCurrentAccountFromSharedDevice(callback, configuration);
@@ -147,6 +147,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
             );
 
+            loadAccountCommand.setPublicApiId(PublicApiId.GET_CURRENT_ACCOUNT_ASYNC);
             CommandDispatcher.submitSilent(loadAccountCommand);
 
         } catch (MsalClientException clientException) {
@@ -315,6 +316,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         }
 
         if (mIsSharedDevice) {
+            //TODO: need to integrate with server-side telemetry here once we refactor it to command
             removeAccountFromSharedDevice(callback, configuration);
             return;
         }
@@ -352,6 +354,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                     }
             );
 
+            removeAccountCommand.setPublicApiId(PublicApiId.SIGN_OUT);
             CommandDispatcher.submitSilent(removeAccountCommand);
         } catch (final MsalClientException clientException) {
             callback.onError(clientException);
@@ -508,7 +511,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final String authority,
                                         @NonNull final SilentAuthenticationCallback callback) {
-
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount == null) {
             callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
@@ -530,7 +532,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     @WorkerThread
     public IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
                                                     @NonNull final String authority) throws MsalException, InterruptedException {
-
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount == null) {
             throw new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);

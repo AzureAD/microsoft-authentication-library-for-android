@@ -63,6 +63,8 @@ import com.microsoft.identity.common.internal.controllers.ExceptionAdapter;
 import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
 import com.microsoft.identity.common.internal.controllers.TokenCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.eststelemetry.EstsTelemetry;
+import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.net.HttpRequest;
 import com.microsoft.identity.common.internal.net.cache.HttpCache;
@@ -982,6 +984,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         final String methodName = ":initializeApplication";
 
         final Context context = mPublicClientConfiguration.getAppContext();
+        EstsTelemetry.getInstance().setupLastRequestTelemetryCache(context);
         setupTelemetry(context, mPublicClientConfiguration);
 
         AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
@@ -1316,6 +1319,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             localAuthenticationCallback
                     );
 
+                    command.setPublicApiId(PublicApiId.LOCAL_ACQUIRE_TOKEN_INTERACTIVE);
                     CommandDispatcher.beginInteractive(command);
                 } catch (final Exception exception) {
                     // convert exception to BaseException
@@ -1399,6 +1403,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             callback
                     );
 
+                    silentTokenCommand.setPublicApiId(PublicApiId.LOCAL_ACQUIRE_TOKEN_SILENT);
                     CommandDispatcher.submitSilent(silentTokenCommand);
                 } catch (final Exception exception) {
                     // convert exception to BaseException
@@ -1629,7 +1634,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             }
 
             @Override
-            public void onCancel(){
+            public void onCancel() {
                 //Do nothing
             }
 
