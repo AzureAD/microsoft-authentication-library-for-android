@@ -46,7 +46,6 @@ import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
 import com.microsoft.identity.common.internal.controllers.RemoveAccountCommand;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.request.ILocalAuthenticationCallback;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
@@ -92,6 +91,10 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public void getCurrentAccountAsync(@NonNull final CurrentAccountCallback callback) {
+        getCurrentAccountAsyncInternal(callback);
+    }
+
+    private void getCurrentAccountAsyncInternal(@NonNull final CurrentAccountCallback callback) {
         final String methodName = ":getCurrentAccount";
         final PublicClientApplicationConfiguration configuration = getConfiguration();
 
@@ -157,7 +160,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
         final ResultFuture<AsyncResult<CurrentAccountResult>> future = new ResultFuture<>();
 
-        getCurrentAccountAsync(new CurrentAccountCallback() {
+        getCurrentAccountAsyncInternal(new CurrentAccountCallback() {
             @Override
             public void onAccountLoaded(@Nullable IAccount activeAccount) {
                 CurrentAccountResult currentAccountResult = new CurrentAccountResult(activeAccount, null, false);
@@ -229,7 +232,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             return;
         }
 
-        acquireToken(
+        final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
                 scopes,
                 null, // account
@@ -241,6 +244,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 loginHint, // loginHint
                 null // claimsRequest
         );
+
+        acquireTokenInternal(acquireTokenParameters);
     }
 
     @Override
@@ -297,6 +302,10 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public void signOut(@NonNull final SignOutCallback callback) {
+        signOutInternal(callback);
+    }
+
+    void signOutInternal(@NonNull final SignOutCallback callback) {
         final PublicClientApplicationConfiguration configuration = getConfiguration();
 
         final MultiTenantAccount persistedCurrentAccount = getPersistedCurrentAccount();
@@ -356,7 +365,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
         final ResultFuture<AsyncResult<Boolean>> future = new ResultFuture<>();
 
-        signOut(new SignOutCallback() {
+        signOutInternal(new SignOutCallback() {
             @Override
             public void onSignOut() {
                 future.setResult(new AsyncResult<Boolean>(true, null));
@@ -467,7 +476,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             return;
         }
 
-        acquireToken(
+        final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
                 scopes,
                 getPersistedCurrentAccount(), // account, could be null.
@@ -479,6 +488,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 null, // loginHint
                 null // claimsRequest
         );
+
+        acquireTokenInternal(acquireTokenParameters);
     }
 
     @Override
@@ -490,7 +501,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             acquireTokenParameters.setLoginHint("");
         }
 
-        super.acquireToken(acquireTokenParameters);
+        acquireTokenInternal(acquireTokenParameters);
     }
 
     @Override
@@ -504,7 +515,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             return;
         }
 
-        acquireTokenSilent(
+        final AcquireTokenSilentParameters acquireTokenSilentParameters = buildAcquireTokenSilentParameters(
                 scopes,
                 persistedAccount,
                 authority,
@@ -512,6 +523,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 null, // claimsRequest
                 callback
         );
+
+        acquireTokenSilentAsyncInternal(acquireTokenSilentParameters);
     }
 
     @WorkerThread
@@ -523,7 +536,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             throw new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);
         }
 
-        return acquireTokenSilentSync(scopes, authority, persistedAccount, false);
+        return acquireTokenSilentSyncInternal(scopes, authority, persistedAccount, false);
     }
 
     @Override
@@ -537,7 +550,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         // In SingleAccount mode, always overwrite 'Account' with current account.
         acquireTokenSilentParameters.setAccount(persistedAccount);
 
-        super.acquireTokenSilentAsync(acquireTokenSilentParameters);
+        acquireTokenSilentAsyncInternal(acquireTokenSilentParameters);
     }
 
     @Override
@@ -550,6 +563,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         // In SingleAccount mode, always overwrite 'Account' with current account.
         acquireTokenSilentParameters.setAccount(persistedAccount);
 
-        return super.acquireTokenSilent(acquireTokenSilentParameters);
+        return acquireTokenSilentInternal(acquireTokenSilentParameters);
     }
 }

@@ -61,7 +61,6 @@ import com.microsoft.identity.common.internal.controllers.CommandCallback;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.controllers.ExceptionAdapter;
 import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
-import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.controllers.TokenCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
@@ -73,7 +72,6 @@ import com.microsoft.identity.common.internal.providers.oauth2.OpenIdProviderCon
 import com.microsoft.identity.common.internal.providers.oauth2.OpenIdProviderConfigurationClient;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
-import com.microsoft.identity.common.internal.request.ILocalAuthenticationCallback;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 import com.microsoft.identity.msal.BuildConfig;
@@ -1198,7 +1196,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
-        acquireToken(
+        AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
                 scopes,
                 null, // account
@@ -1210,18 +1208,20 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 null, // loginHint
                 null // claimsRequest
         );
+
+        acquireTokenInternal(acquireTokenParameters);
     }
 
-    protected void acquireToken(@NonNull final Activity activity,
-                                @NonNull final String[] scopes,
-                                @Nullable final IAccount account,
-                                @Nullable final Prompt uiBehavior,
-                                @Nullable final List<Pair<String, String>> extraQueryParameters,
-                                @Nullable final String[] extraScopesToConsent,
-                                @Nullable final String authority,
-                                @NonNull final AuthenticationCallback callback,
-                                @Nullable final String loginHint,
-                                @Nullable final ClaimsRequest claimsRequest) {
+    AcquireTokenParameters buildAcquireTokenParameters(@NonNull final Activity activity,
+                                     @NonNull final String[] scopes,
+                                     @Nullable final IAccount account,
+                                     @Nullable final Prompt uiBehavior,
+                                     @Nullable final List<Pair<String, String>> extraQueryParameters,
+                                     @Nullable final String[] extraScopesToConsent,
+                                     @Nullable final String authority,
+                                     @NonNull final AuthenticationCallback callback,
+                                     @Nullable final String loginHint,
+                                     @Nullable final ClaimsRequest claimsRequest) {
 
         validateNonNullArgument(activity, NONNULL_CONSTANTS.ACTIVITY);
         validateNonNullArgument(scopes, NONNULL_CONSTANTS.SCOPES);
@@ -1248,7 +1248,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 .build();
 
 
-        acquireToken(acquireTokenParameters);
+        return acquireTokenParameters;
     }
 
     protected void validateAcquireTokenParameters(AcquireTokenParameters parameters) throws MsalArgumentException {
@@ -1272,8 +1272,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArg(scopes, NONNULL_CONSTANTS.SCOPES);
     }
 
-    @Override
     public void acquireToken(@NonNull final AcquireTokenParameters acquireTokenParameters) {
+        acquireTokenInternal(acquireTokenParameters);
+    }
+
+    void acquireTokenInternal(@NonNull final AcquireTokenParameters acquireTokenParameters) {
         // In order to support use of named tenants (such as contoso.onmicrosoft.com), we need
         // to be able to query OpenId Provider Configuration Metadata - for this reason, we will
         // build-up the acquireTokenOperationParams on a background thread.
@@ -1330,7 +1333,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         });
     }
 
-    protected void acquireTokenSilent(@NonNull final String[] scopes,
+    protected AcquireTokenSilentParameters buildAcquireTokenSilentParameters(@NonNull final String[] scopes,
                                       @NonNull final IAccount account,
                                       @NonNull final String authority,
                                       final boolean forceRefresh,
@@ -1349,11 +1352,16 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                         .withCallback(callback)
                         .build();
 
-        acquireTokenSilentAsync(acquireTokenSilentParameters);
+        return acquireTokenSilentParameters;
     }
 
     @Override
     public void acquireTokenSilentAsync(
+            @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
+        acquireTokenSilentAsyncInternal(acquireTokenSilentParameters);
+    }
+
+    void acquireTokenSilentAsyncInternal(
             @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
         sBackgroundExecutor.submit(new Runnable() {
             @Override
@@ -1554,6 +1562,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     public IAuthenticationResult acquireTokenSilent(
             @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters)
             throws InterruptedException, MsalException {
+        return acquireTokenSilentInternal(acquireTokenSilentParameters);
+    }
+
+    IAuthenticationResult acquireTokenSilentInternal(
+            @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters)
+            throws InterruptedException, MsalException {
 
         if (acquireTokenSilentParameters.getCallback() != null) {
             throw new IllegalArgumentException("Do not provide callback for synchronous methods");
@@ -1573,7 +1587,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             }
         });
 
-        acquireTokenSilentAsync(acquireTokenSilentParameters);
+        acquireTokenSilentAsyncInternal(acquireTokenSilentParameters);
 
         AsyncResult<IAuthenticationResult> result = future.get();
 
@@ -1791,16 +1805,16 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     };
 
-    protected IAuthenticationResult acquireTokenSilentSync(@NonNull final String[] scopes,
-                                                           @NonNull final String authority,
-                                                           @NonNull final IAccount account,
-                                                           final boolean forceRefresh) throws MsalException, InterruptedException {
+    IAuthenticationResult acquireTokenSilentSyncInternal(@NonNull final String[] scopes,
+                                                         @NonNull final String authority,
+                                                         @NonNull final IAccount account,
+                                                         final boolean forceRefresh) throws MsalException, InterruptedException {
 
         throwOnMainThread("acquireTokenSilent");
 
         final ResultFuture<AsyncResult<IAuthenticationResult>> future = new ResultFuture<>();
 
-        acquireTokenSilent(
+        final AcquireTokenSilentParameters acquireTokenSilentParameters = buildAcquireTokenSilentParameters(
                 scopes,
                 account,
                 authority, // authority
@@ -1818,6 +1832,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     }
                 }
         );
+
+        acquireTokenSilentAsyncInternal(acquireTokenSilentParameters);
 
         final AsyncResult<IAuthenticationResult> result = future.get();
 

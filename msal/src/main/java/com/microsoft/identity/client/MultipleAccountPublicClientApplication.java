@@ -42,12 +42,10 @@ import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
-import com.microsoft.identity.common.internal.controllers.Command;
 import com.microsoft.identity.common.internal.controllers.CommandCallback;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
 import com.microsoft.identity.common.internal.controllers.RemoveAccountCommand;
-import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
@@ -75,7 +73,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
     @Override
     public IAuthenticationResult acquireTokenSilent(@NonNull String[] scopes, @NonNull IAccount account, @NonNull String authority) throws MsalException, InterruptedException {
-        return acquireTokenSilentSync(scopes, authority, account, false);
+        return acquireTokenSilentSyncInternal(scopes, authority, account, false);
     }
 
     @Override
@@ -83,7 +81,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                                         @NonNull final IAccount account,
                                         @NonNull final String authority,
                                         @NonNull final SilentAuthenticationCallback callback) {
-        acquireTokenSilent(
+        final AcquireTokenSilentParameters acquireTokenSilentParameters = buildAcquireTokenSilentParameters(
                 scopes,
                 account,
                 authority,
@@ -91,8 +89,9 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                 null, // claimsRequest
                 callback
         );
-    }
 
+        acquireTokenSilentAsyncInternal(acquireTokenSilentParameters);
+    }
 
     /**
      * Asynchronously returns a List of {@link IAccount} objects for which this application has RefreshTokens.
@@ -101,6 +100,16 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
      */
     @Override
     public void getAccounts(@NonNull final LoadAccountsCallback callback) {
+        getAccountsInternal(callback);
+    }
+
+
+    /**
+     * Asynchronously returns a List of {@link IAccount} objects for which this application has RefreshTokens.
+     *
+     * @param callback The callback to notify once this action has finished.
+     */
+    public void getAccountsInternal(@NonNull final LoadAccountsCallback callback) {
         final String methodName = ":getAccounts";
         final List<ICacheRecord> accounts =
                 mPublicClientConfiguration
@@ -195,7 +204,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
         final ResultFuture<AsyncResult<List<IAccount>>> future = new ResultFuture<>();
 
-        getAccounts(new LoadAccountsCallback() {
+        getAccountsInternal(new LoadAccountsCallback() {
             @Override
             public void onTaskCompleted(List<IAccount> result) {
                 future.setResult(new AsyncResult<List<IAccount>>(result, null));
@@ -225,6 +234,18 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
      */
     @Override
     public void getAccount(@NonNull final String identifier,
+                           @NonNull final GetAccountCallback callback) {
+        getAccountInternal(identifier, callback);
+    }
+
+    /**
+     * Retrieve the IAccount object matching the identifier.
+     * The identifier could be homeAccountIdentifier, localAccountIdentifier or username.
+     *
+     * @param identifier String of the identifier
+     * @param callback   The callback to notify once this action has finished.
+     */
+    private void getAccountInternal(@NonNull final String identifier,
                            @NonNull final GetAccountCallback callback) {
         final String methodName = ":getAccount";
 
@@ -315,7 +336,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
         final ResultFuture<AsyncResult<IAccount>> future = new ResultFuture<>();
 
-        getAccount(identifier, new GetAccountCallback() {
+        getAccountInternal(identifier, new GetAccountCallback() {
             @Override
             public void onTaskCompleted(IAccount result) {
                 future.setResult(new AsyncResult<IAccount>(result, null));
@@ -339,6 +360,11 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
     @Override
     public void removeAccount(@Nullable final IAccount account,
+                              @NonNull final RemoveAccountCallback callback) {
+        removeAccountInternal(account, callback);
+    }
+
+    private void removeAccountInternal(@Nullable final IAccount account,
                               @NonNull final RemoveAccountCallback callback) {
         // First, cast the input IAccount to a MultiTenantAccount
         final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
@@ -401,7 +427,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     public boolean removeAccount(@Nullable IAccount account) throws MsalException, InterruptedException {
 
         final ResultFuture<AsyncResult<Boolean>> future = new ResultFuture();
-        removeAccount(account,
+        removeAccountInternal(account,
                 new RemoveAccountCallback() {
                     @Override
                     public void onRemoved() {
@@ -429,7 +455,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                              @NonNull final String[] scopes,
                              @Nullable final String loginHint,
                              @NonNull final AuthenticationCallback callback) {
-        acquireToken(
+        final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
                 scopes,
                 null, // account
@@ -441,5 +467,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                 loginHint,
                 null // claimsRequest
         );
+
+        acquireTokenInternal(acquireTokenParameters);
     }
 }
