@@ -1212,7 +1212,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 null // claimsRequest
         );
 
-        acquireTokenInternal(acquireTokenParameters);
+        acquireTokenInternal(acquireTokenParameters, PublicApiId.PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK);
     }
 
     AcquireTokenParameters buildAcquireTokenParameters(@NonNull final Activity activity,
@@ -1276,10 +1276,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     public void acquireToken(@NonNull final AcquireTokenParameters acquireTokenParameters) {
-        acquireTokenInternal(acquireTokenParameters);
+        acquireTokenInternal(acquireTokenParameters, PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS);
     }
 
-    void acquireTokenInternal(@NonNull final AcquireTokenParameters acquireTokenParameters) {
+    void acquireTokenInternal(@NonNull final AcquireTokenParameters acquireTokenParameters, @NonNull final String publicApiId) {
         // In order to support use of named tenants (such as contoso.onmicrosoft.com), we need
         // to be able to query OpenId Provider Configuration Metadata - for this reason, we will
         // build-up the acquireTokenOperationParams on a background thread.
@@ -1319,7 +1319,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             localAuthenticationCallback
                     );
 
-                    command.setPublicApiId(PublicApiId.LOCAL_ACQUIRE_TOKEN_INTERACTIVE);
+                    command.setPublicApiId(publicApiId);
                     CommandDispatcher.beginInteractive(command);
                 } catch (final Exception exception) {
                     // convert exception to BaseException
@@ -1362,11 +1362,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     @Override
     public void acquireTokenSilentAsync(
             @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
-        acquireTokenSilentAsyncInternal(acquireTokenSilentParameters);
+        acquireTokenSilentAsyncInternal(acquireTokenSilentParameters, PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS);
     }
 
     void acquireTokenSilentAsyncInternal(
-            @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
+            @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters,
+            @NonNull final String publicApiId) {
         sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
@@ -1403,7 +1404,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             callback
                     );
 
-                    silentTokenCommand.setPublicApiId(PublicApiId.LOCAL_ACQUIRE_TOKEN_SILENT);
+                    silentTokenCommand.setPublicApiId(publicApiId);
                     CommandDispatcher.submitSilent(silentTokenCommand);
                 } catch (final Exception exception) {
                     // convert exception to BaseException
@@ -1567,11 +1568,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     public IAuthenticationResult acquireTokenSilent(
             @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters)
             throws InterruptedException, MsalException {
-        return acquireTokenSilentInternal(acquireTokenSilentParameters);
+        return acquireTokenSilentInternal(acquireTokenSilentParameters, PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_WITH_PARAMETERS);
     }
 
     IAuthenticationResult acquireTokenSilentInternal(
-            @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters)
+            @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters,
+            @NonNull final String publicApiId)
             throws InterruptedException, MsalException {
 
         if (acquireTokenSilentParameters.getCallback() != null) {
@@ -1592,7 +1594,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             }
         });
 
-        acquireTokenSilentAsyncInternal(acquireTokenSilentParameters);
+        acquireTokenSilentAsyncInternal(acquireTokenSilentParameters, publicApiId);
 
         AsyncResult<IAuthenticationResult> result = future.get();
 
@@ -1813,7 +1815,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     IAuthenticationResult acquireTokenSilentSyncInternal(@NonNull final String[] scopes,
                                                          @NonNull final String authority,
                                                          @NonNull final IAccount account,
-                                                         final boolean forceRefresh) throws MsalException, InterruptedException {
+                                                         final boolean forceRefresh,
+                                                         @NonNull final String publicApiId) throws MsalException, InterruptedException {
 
         throwOnMainThread("acquireTokenSilent");
 
@@ -1838,7 +1841,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 }
         );
 
-        acquireTokenSilentAsyncInternal(acquireTokenSilentParameters);
+        acquireTokenSilentAsyncInternal(acquireTokenSilentParameters, publicApiId);
 
         final AsyncResult<IAuthenticationResult> result = future.get();
 
