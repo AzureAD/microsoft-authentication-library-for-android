@@ -520,8 +520,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                                                     @NonNull final String authority) throws MsalException, InterruptedException {
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount == null) {
-            MsalClientException exception = new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);
-            throw exception;
+            throw new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);
         }
 
         return acquireTokenSilentSync(scopes, authority, persistedAccount, false);
