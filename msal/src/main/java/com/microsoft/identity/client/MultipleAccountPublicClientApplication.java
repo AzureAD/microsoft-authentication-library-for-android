@@ -42,12 +42,10 @@ import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
-import com.microsoft.identity.common.internal.controllers.Command;
 import com.microsoft.identity.common.internal.controllers.CommandCallback;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
 import com.microsoft.identity.common.internal.controllers.RemoveAccountCommand;
-import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
@@ -167,10 +165,10 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         }
 
         try {
-            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
+            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
             final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
                     params,
-                    MSALControllerFactory.getAcquireTokenSilentControllers(
+                    MSALControllerFactory.getAllControllers(
                             mPublicClientConfiguration.getAppContext(),
                             params.getAuthority(),
                             mPublicClientConfiguration
@@ -236,10 +234,10 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         );
 
         try {
-            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
+            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
             final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
                     params,
-                    MSALControllerFactory.getAcquireTokenSilentControllers(
+                    MSALControllerFactory.getAllControllers(
                             mPublicClientConfiguration.getAppContext(),
                             params.getAuthority(),
                             mPublicClientConfiguration
@@ -358,7 +356,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             return;
         }
 
-        final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
+        final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
 
         // TODO Clean this up, only the cache should make these records...
         // The broker strips these properties out of this object to hit the cache
@@ -371,7 +369,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         try {
             final RemoveAccountCommand removeAccountCommand = new RemoveAccountCommand(
                     params,
-                    MSALControllerFactory.getAcquireTokenSilentControllers(
+                    MSALControllerFactory.getAllControllers(
                             mPublicClientConfiguration.getAppContext(),
                             params.getAuthority(),
                             mPublicClientConfiguration

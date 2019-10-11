@@ -387,4 +387,24 @@ public class LocalMSALController extends BaseController {
 
         return localRemoveAccountSuccess;
     }
+
+    @Override
+    public boolean getDeviceMode(OperationParameters parameters) throws Exception {
+        final String methodName = ":getDeviceMode";
+
+        final String errorMessage = "LocalMSALControler is not eligible to use the broker. Do not check sharedDevice mode and return false immediately.";
+        com.microsoft.identity.common.internal.logging.Logger.error(TAG + methodName, errorMessage, null);
+
+        return false;
+    }
+
+    @Override
+    public List<ICacheRecord> getCurrentAccount(OperationParameters parameters) throws Exception {
+        return getAccounts(parameters);
+    }
+
+    @Override
+    public boolean removeCurrentAccount(OperationParameters parameters) throws Exception {
+        return removeAccount(parameters);
+    }
 }

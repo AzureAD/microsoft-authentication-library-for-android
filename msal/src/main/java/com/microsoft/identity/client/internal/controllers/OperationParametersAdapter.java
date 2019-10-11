@@ -25,7 +25,6 @@ package com.microsoft.identity.client.internal.controllers;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -71,11 +70,12 @@ public class OperationParametersAdapter {
     public static final String CLIENT_CAPABILITIES_CLAIM = "XMS_CC";
 
     public static OperationParameters createOperationParameters(
-            @NonNull final PublicClientApplicationConfiguration configuration,
-            @NonNull final OAuth2TokenCache cache) {
+            @NonNull final PublicClientApplicationConfiguration configuration) {
         final OperationParameters parameters = new OperationParameters();
         parameters.setAppContext(configuration.getAppContext());
-        parameters.setTokenCache(cache);
+        parameters.setTokenCache(configuration.getOAuth2TokenCache());
+        parameters.setBrowserSafeList(configuration.getBrowserSafeList());
+        parameters.setIsSharedDevice(configuration.getIsSharedDevice());
         parameters.setClientId(configuration.getClientId());
         parameters.setRedirectUri(configuration.getRedirectUri());
         parameters.setAuthority(configuration.getDefaultAuthority());
