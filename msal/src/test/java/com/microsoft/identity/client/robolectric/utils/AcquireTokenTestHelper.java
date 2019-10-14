@@ -69,7 +69,7 @@ public class AcquireTokenTestHelper {
         return callback;
     }
 
-    public static AuthenticationCallback failedSilentRequestDuplicateCommand() {
+    public static AuthenticationCallback failedSilentRequestDuplicateCommandCallback() {
         AuthenticationCallback callback = new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {

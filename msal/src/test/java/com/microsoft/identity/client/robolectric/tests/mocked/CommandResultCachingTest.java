@@ -26,40 +26,24 @@ import android.app.Activity;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.IAccount;
-import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
-import com.microsoft.identity.client.RoboTestCacheHelper;
 import com.microsoft.identity.client.claims.ClaimsRequest;
-import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.robolectric.shadows.ShadowAuthority;
 import com.microsoft.identity.client.robolectric.shadows.ShadowHttpRequest;
 import com.microsoft.identity.client.robolectric.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.robolectric.shadows.ShadowStorageHelper;
-import com.microsoft.identity.client.robolectric.shadows.ShadowStrategyResultServerError;
-import com.microsoft.identity.client.robolectric.shadows.ShadowStrategyResultUnsuccessful;
 import com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.robolectric.utils.CacheCountAuthenticationCallback;
-import com.microsoft.identity.client.robolectric.utils.ErrorCodes;
 import com.microsoft.identity.client.robolectric.utils.RoboTestUtils;
-import com.microsoft.identity.common.exception.ClientException;
-import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
-import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
-import com.microsoft.identity.internal.testutils.MockTokenResponse;
 
-import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.io.Console;
 import java.util.Arrays;
-
-import static junit.framework.Assert.fail;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowHttpRequest.class, ShadowMsalUtils.class})
@@ -70,7 +54,7 @@ public final class CommandResultCachingTest {
 
     @Before
     public void before(){
-        CommandDispatcher.clearCommandCache();
+        CommandDispatcherHelper.clear();
     }
 
     /**
@@ -205,8 +189,8 @@ public final class CommandResultCachingTest {
                         .forAccount(AcquireTokenTestHelper.getAccount())
                         .withScopes(Arrays.asList(SCOPES))
                         .forceRefresh(false)
-                        .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.failedSilentRequestDuplicateCommand())
+                        .fromAuthority(AAD_MOCK_DELAYED_RESPONSE_AUTHORITY)
+                        .withCallback(AcquireTokenTestHelper.failedSilentRequestDuplicateCommandCallback())
                         .build();
 
 
