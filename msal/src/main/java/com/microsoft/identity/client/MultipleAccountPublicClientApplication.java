@@ -42,12 +42,10 @@ import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
-import com.microsoft.identity.common.internal.controllers.Command;
 import com.microsoft.identity.common.internal.controllers.CommandCallback;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
 import com.microsoft.identity.common.internal.controllers.RemoveAccountCommand;
-import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
@@ -76,7 +74,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
     @Override
     public IAuthenticationResult acquireTokenSilent(@NonNull String[] scopes, @NonNull IAccount account, @NonNull String authority) throws MsalException, InterruptedException {
-        return acquireTokenSilentSync(scopes, authority, account, false);
+        return acquireTokenSilentSyncInternal(scopes, authority, account, false, PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_SCOPES_ACCOUNT_AUTHORITY);
     }
 
     @Override
@@ -84,7 +82,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                                         @NonNull final IAccount account,
                                         @NonNull final String authority,
                                         @NonNull final SilentAuthenticationCallback callback) {
-        acquireTokenSilent(
+        final AcquireTokenSilentParameters acquireTokenSilentParameters = buildAcquireTokenSilentParameters(
                 scopes,
                 account,
                 authority,
@@ -92,8 +90,9 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                 null, // claimsRequest
                 callback
         );
-    }
 
+        acquireTokenSilentAsyncInternal(acquireTokenSilentParameters, PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_SCOPES_ACCOUNT_AUTHORITY_CALLBACK);
+    }
 
     /**
      * Asynchronously returns a List of {@link IAccount} objects for which this application has RefreshTokens.
@@ -102,6 +101,17 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
      */
     @Override
     public void getAccounts(@NonNull final LoadAccountsCallback callback) {
+        getAccountsInternal(callback, PublicApiId.MULTIPLE_ACCOUNT_PCA_GET_ACCOUNTS_WITH_CALLBACK);
+    }
+
+
+    /**
+     * Asynchronously returns a List of {@link IAccount} objects for which this application has RefreshTokens.
+     *
+     * @param callback The callback to notify once this action has finished.
+     */
+    private void getAccountsInternal(@NonNull final LoadAccountsCallback callback,
+                                    @NonNull final String publicApiId) {
         final String methodName = ":getAccounts";
         final List<ICacheRecord> accounts =
                 mPublicClientConfiguration
@@ -178,7 +188,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                     getLoadAccountsCallback(callback)
             );
 
-            loadAccountCommand.setPublicApiId(PublicApiId.GET_ACCOUNTS);
+            loadAccountCommand.setPublicApiId(publicApiId);
             CommandDispatcher.submitSilent(loadAccountCommand);
         } catch (final MsalClientException e) {
             handler.post(new Runnable() {
@@ -197,7 +207,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
         final ResultFuture<AsyncResult<List<IAccount>>> future = new ResultFuture<>();
 
-        getAccounts(new LoadAccountsCallback() {
+        getAccountsInternal(new LoadAccountsCallback() {
             @Override
             public void onTaskCompleted(List<IAccount> result) {
                 future.setResult(new AsyncResult<List<IAccount>>(result, null));
@@ -207,7 +217,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             public void onError(MsalException exception) {
                 future.setResult(new AsyncResult<List<IAccount>>(null, exception));
             }
-        });
+        }, PublicApiId.MULTIPLE_ACCOUNT_PCA_GET_ACCOUNTS);
 
         final AsyncResult<List<IAccount>> result = future.get();
 
@@ -228,6 +238,19 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     @Override
     public void getAccount(@NonNull final String identifier,
                            @NonNull final GetAccountCallback callback) {
+        getAccountInternal(identifier, callback, PublicApiId.MULTIPLE_ACCOUNT_PCA_GET_ACCOUNT_WITH_IDENTIFIER_CALLBACK);
+    }
+
+    /**
+     * Retrieve the IAccount object matching the identifier.
+     * The identifier could be homeAccountIdentifier, localAccountIdentifier or username.
+     *
+     * @param identifier String of the identifier
+     * @param callback   The callback to notify once this action has finished.
+     */
+    private void getAccountInternal(@NonNull final String identifier,
+                                    @NonNull final GetAccountCallback callback,
+                                    @NonNull final String publicApiId) {
         final String methodName = ":getAccount";
 
         com.microsoft.identity.common.internal.logging.Logger.verbose(
@@ -299,7 +322,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                     }
             );
 
-            loadAccountCommand.setPublicApiId(PublicApiId.GET_ACCOUNT);
+            loadAccountCommand.setPublicApiId(publicApiId);
             CommandDispatcher.submitSilent(loadAccountCommand);
         } catch (final MsalClientException e) {
             com.microsoft.identity.common.internal.logging.Logger.error(
@@ -318,7 +341,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
         final ResultFuture<AsyncResult<IAccount>> future = new ResultFuture<>();
 
-        getAccount(identifier, new GetAccountCallback() {
+        getAccountInternal(identifier, new GetAccountCallback() {
             @Override
             public void onTaskCompleted(IAccount result) {
                 future.setResult(new AsyncResult<IAccount>(result, null));
@@ -328,7 +351,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             public void onError(MsalException exception) {
                 future.setResult(new AsyncResult<IAccount>(null, exception));
             }
-        });
+        }, PublicApiId.MULTIPLE_ACCOUNT_PCA_GET_ACCOUNT_WITH_IDENTIFIER);
 
         AsyncResult<IAccount> result = future.get();
 
@@ -343,7 +366,12 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     @Override
     public void removeAccount(@Nullable final IAccount account,
                               @NonNull final RemoveAccountCallback callback) {
+        removeAccountInternal(account, callback, PublicApiId.MULTIPLE_ACCOUNT_PCA_REMOVE_ACCOUNT_WITH_ACCOUNT_CALLBACK);
+    }
 
+    private void removeAccountInternal(@Nullable final IAccount account,
+                                       @NonNull final RemoveAccountCallback callback,
+                                       @NonNull final String publicApiId) {
         // First, cast the input IAccount to a MultiTenantAccount
         final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
 
@@ -394,7 +422,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                     }
             );
 
-            removeAccountCommand.setPublicApiId(PublicApiId.REMOVE_ACCOUNT);
+            removeAccountCommand.setPublicApiId(publicApiId);
             CommandDispatcher.submitSilent(removeAccountCommand);
 
         } catch (final MsalClientException e) {
@@ -406,7 +434,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     public boolean removeAccount(@Nullable IAccount account) throws MsalException, InterruptedException {
 
         final ResultFuture<AsyncResult<Boolean>> future = new ResultFuture();
-        removeAccount(account,
+        removeAccountInternal(account,
                 new RemoveAccountCallback() {
                     @Override
                     public void onRemoved() {
@@ -417,7 +445,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                     public void onError(@NonNull MsalException exception) {
                         future.setResult(new AsyncResult<Boolean>(false, exception));
                     }
-                });
+                }, PublicApiId.MULTIPLE_ACCOUNT_PCA_REMOVE_ACCOUNT_WITH_ACCOUNT);
 
         AsyncResult<Boolean> result = future.get();
 
@@ -434,7 +462,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                              @NonNull final String[] scopes,
                              @Nullable final String loginHint,
                              @NonNull final AuthenticationCallback callback) {
-        acquireToken(
+        final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
                 scopes,
                 null, // account
@@ -446,5 +474,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                 loginHint,
                 null // claimsRequest
         );
+
+        acquireTokenInternal(acquireTokenParameters, PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_LOGINHINT_CALLBACK);
     }
 }
