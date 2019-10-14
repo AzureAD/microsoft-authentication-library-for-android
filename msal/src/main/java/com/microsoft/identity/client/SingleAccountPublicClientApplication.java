@@ -88,7 +88,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public void getCurrentAccountAsync(@NonNull final CurrentAccountCallback callback) {
-        final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+        final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
         final BaseController controller;
         try {
             controller = MSALControllerFactory.getDefaultController(
@@ -259,7 +259,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             return;
         }
 
-        final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+        final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
         final BaseController controller;
         try {
             controller = MSALControllerFactory.getDefaultController(

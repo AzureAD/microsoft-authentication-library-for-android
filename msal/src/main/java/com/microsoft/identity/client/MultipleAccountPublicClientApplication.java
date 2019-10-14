@@ -165,7 +165,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         }
 
         try {
-            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
             final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
                     params,
                     MSALControllerFactory.getAllControllers(
@@ -234,7 +234,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         );
 
         try {
-            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
             final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
                     params,
                     MSALControllerFactory.getAllControllers(
@@ -356,7 +356,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             return;
         }
 
-        final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration);
+        final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
 
         // TODO Clean this up, only the cache should make these records...
         // The broker strips these properties out of this object to hit the cache

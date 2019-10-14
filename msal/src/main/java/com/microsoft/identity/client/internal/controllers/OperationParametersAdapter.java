@@ -70,10 +70,11 @@ public class OperationParametersAdapter {
     public static final String CLIENT_CAPABILITIES_CLAIM = "XMS_CC";
 
     public static OperationParameters createOperationParameters(
-            @NonNull final PublicClientApplicationConfiguration configuration) {
+            @NonNull final PublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache cache) {
         final OperationParameters parameters = new OperationParameters();
         parameters.setAppContext(configuration.getAppContext());
-        parameters.setTokenCache(configuration.getOAuth2TokenCache());
+        parameters.setTokenCache(cache);
         parameters.setBrowserSafeList(configuration.getBrowserSafeList());
         parameters.setIsSharedDevice(configuration.getIsSharedDevice());
         parameters.setClientId(configuration.getClientId());

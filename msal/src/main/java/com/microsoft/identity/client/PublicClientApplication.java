@@ -853,7 +853,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                @NonNull final ApplicationCreatedListener listener) {
 
 
-        final OperationParameters params = OperationParametersAdapter.createOperationParameters(config);
+        final OperationParameters params = OperationParametersAdapter.createOperationParameters(config, config.getOAuth2TokenCache());
 
         final BaseController controller;
         try {
