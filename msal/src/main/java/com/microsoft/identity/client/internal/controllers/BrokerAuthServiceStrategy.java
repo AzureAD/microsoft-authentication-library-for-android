@@ -99,9 +99,11 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     public interface AuthServiceOperation<T> {
 
         /**
-         * Performs a task in this function with the given IMicrosoftAuthService.
+         * Performs a task in this method with the given IMicrosoftAuthService.
          * If the operation doesn't return expected value, the implementer MUST thrown an exception.
          * Otherwise, this operation is considered succeeded.
+         *
+         * {@link IMicrosoftAuthService}
          */
         T perform(IMicrosoftAuthService service) throws BaseException, RemoteException;
 
@@ -204,7 +206,7 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
 
                     @Override
                     public String getOperationName() {
-                        return ":getBrokerAuthorizationIntentFromAuthService";
+                        return ":acquireTokenSilentWithAuthService";
                     }
                 });
     }
@@ -242,7 +244,6 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     @WorkerThread
     protected void removeBrokerAccount(@NonNull final OperationParameters parameters)
             throws BaseException, InterruptedException, ExecutionException, RemoteException {
-        final String methodName = ":removeBrokerAccountWithAuthService";
         performAuthServiceOperation(parameters.getAppContext(),
                 new AuthServiceOperation<Void>() {
                     @Override
@@ -257,7 +258,7 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
 
                     @Override
                     public String getOperationName() {
-                        return methodName;
+                        return ":removeBrokerAccountWithAuthService";
                     }
                 });
     }
@@ -314,7 +315,6 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
 
     @WorkerThread
     protected void signOutFromSharedDevice(@NonNull final OperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
-        final String methodName = ":signOutFromSharedDeviceWithAuthService";
         performAuthServiceOperation(parameters.getAppContext(),
                 new AuthServiceOperation<Void>() {
                     @Override
@@ -329,7 +329,7 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
 
                     @Override
                     public String getOperationName() {
-                        return methodName;
+                        return ":signOutFromSharedDeviceWithAuthService";
                     }
                 });
     }

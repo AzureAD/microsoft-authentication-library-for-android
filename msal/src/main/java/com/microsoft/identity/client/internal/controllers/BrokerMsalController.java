@@ -155,7 +155,7 @@ public class BrokerMsalController extends BaseController {
      */
     private interface BrokerOperationInfo<T extends OperationParameters, U> {
         /**
-         * Performs this broker operation in this function with the given IMicrosoftAuthService.
+         * Performs this broker operation in this method with the given IMicrosoftAuthService.
          */
         @Nullable
         U perform(BrokerBaseStrategy strategy, T parameters) throws Exception;
@@ -173,14 +173,14 @@ public class BrokerMsalController extends BaseController {
         String getTelemetryApiName();
 
         /**
-         * A function that will be invoked before the success event is emitted.
+         * A method that will be invoked before the success event is emitted.
          * If the calling operation wants to put any value in the success event, put it here.
          */
         void putValueInSuccessEvent(ApiEndEvent event, U result);
     }
 
     /**
-     * A generic function that would initialize and iterate through available strategies.
+     * A generic method that would initialize and iterate through available strategies.
      * It will return a result immediately if any of the strategy succeeds, or throw an exception if all of the strategies fails.
      */
     private <T extends OperationParameters, U> U performStrategies(@NonNull final T parameters,

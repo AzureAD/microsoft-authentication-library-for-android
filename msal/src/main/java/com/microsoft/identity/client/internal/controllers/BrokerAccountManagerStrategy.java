@@ -434,19 +434,19 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     @Override
     boolean getDeviceMode(@NonNull OperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
         // TODO
-        throw new MsalClientException("Not yet implemented");
+        throw new MsalClientException("getDeviceMode() is not yet implemented in BrokerAccountManagerStrategy()");
     }
 
     @Override
     List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull OperationParameters parameters) throws InterruptedException, ExecutionException, RemoteException, OperationCanceledException, IOException, AuthenticatorException, BaseException {
         // TODO
-        throw new MsalClientException("Not yet implemented");
+        throw new MsalClientException("getCurrentAccountInSharedDevice() is not yet implemented in BrokerAccountManagerStrategy()");
     }
 
     @Override
     void signOutFromSharedDevice(@NonNull OperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
         // TODO
-        throw new MsalClientException("Not yet implemented");
+        throw new MsalClientException("signOutFromSharedDevice() is not yet implemented in BrokerAccountManagerStrategy()");
     }
 
 }
