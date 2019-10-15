@@ -27,6 +27,7 @@ import android.app.Activity;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IPublicClientApplication;
+import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.robolectric.shadows.ShadowAuthority;
 import com.microsoft.identity.client.robolectric.shadows.ShadowHttpRequest;
@@ -42,6 +43,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLog;
 
 import java.util.Arrays;
 
@@ -56,6 +58,8 @@ public final class CommandResultCachingTest {
     @Before
     public void before(){
         CommandDispatcherHelper.clear();
+        ShadowLog.stream = System.out;
+
     }
 
     /**
@@ -225,7 +229,9 @@ public final class CommandResultCachingTest {
                         .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
                         .build();
 
+                Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
                 publicClientApplication.acquireToken(parameters);
+
                 RoboTestUtils.flushScheduler();
 
                 for (int i = 0; i < 250; i++) {
