@@ -610,8 +610,7 @@ public class BrokerMsalController extends BaseController {
                                 null
                         );
 
-                final BrokerResult brokerResult = MsalBrokerResultAdapter.brokerResultFromBundle(result.getResult());
-                if (result == null || brokerResult == null) {
+                if (result == null) {
                     return false;
                 } else {
                     return MsalBrokerResultAdapter.getHelloResultFromBundle(result.getResult());
