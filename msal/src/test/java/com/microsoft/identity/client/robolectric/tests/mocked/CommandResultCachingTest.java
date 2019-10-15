@@ -35,7 +35,7 @@ import com.microsoft.identity.client.robolectric.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.robolectric.utils.CacheCountAuthenticationCallback;
 import com.microsoft.identity.client.robolectric.utils.RoboTestUtils;
-import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
+import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -51,6 +51,7 @@ public final class CommandResultCachingTest {
 
     private static final String[] SCOPES = {"user.read"};
     private static final String AAD_MOCK_AUTHORITY = "https://test.authority/mock";
+    private static final String AAD_MOCK_DELAYED_RESPONSE_AUTHORITY = "https://test.authority/mock_with_delays";
 
     @Before
     public void before(){
