@@ -63,10 +63,9 @@ public class MSALControllerFactory {
      *
      * @return
      */
-
-    public static BaseController getAcquireTokenController(@NonNull final Context applicationContext,
-                                                           @NonNull final Authority authority,
-                                                           @NonNull final PublicClientApplicationConfiguration applicationConfiguration)
+    public static BaseController getDefaultController(@NonNull final Context applicationContext,
+                                                      @NonNull final Authority authority,
+                                                      @NonNull final PublicClientApplicationConfiguration applicationConfiguration)
             throws MsalClientException {
         if (brokerEligible(applicationContext, authority, applicationConfiguration)) {
             return new BrokerMsalController();
@@ -76,7 +75,7 @@ public class MSALControllerFactory {
     }
 
     /**
-     * Returns one or more controllers to address silent requests
+     * Returns one or more controllers to address a given request.
      * <p>
      * The order of the response matters.  The local controller should be returned first in order to
      * ensure that any local refresh tokens are preferred over the use of the broker
@@ -91,9 +90,9 @@ public class MSALControllerFactory {
      *
      * @return
      */
-    public static List<BaseController> getAcquireTokenSilentControllers(@NonNull final Context applicationContext,
-                                                                        @NonNull final Authority authority,
-                                                                        @NonNull final PublicClientApplicationConfiguration applicationConfiguration)
+    public static List<BaseController> getAllControllers(@NonNull final Context applicationContext,
+                                                         @NonNull final Authority authority,
+                                                         @NonNull final PublicClientApplicationConfiguration applicationConfiguration)
             throws MsalClientException {
         List<BaseController> controllers = new ArrayList<>();
         controllers.add(new LocalMSALController());

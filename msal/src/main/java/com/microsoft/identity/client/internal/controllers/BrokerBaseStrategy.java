@@ -40,21 +40,15 @@ import androidx.annotation.NonNull;
 import com.google.gson.Gson;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
-import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.broker.BrokerRequest;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.IAccountRecord;
-import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
-import com.microsoft.identity.common.internal.telemetry.Telemetry;
-import com.microsoft.identity.common.internal.telemetry.TelemetryEventStrings;
-import com.microsoft.identity.common.internal.telemetry.events.BrokerEndEvent;
-import com.microsoft.identity.common.internal.telemetry.events.CacheEndEvent;
 
 import java.io.IOException;
 import java.util.List;
@@ -63,13 +57,19 @@ import java.util.concurrent.ExecutionException;
 abstract class BrokerBaseStrategy {
     private static final String TAG = BrokerBaseStrategy.class.getSimpleName();
 
-    abstract Intent getBrokerAuthorizationIntent(@NonNull AcquireTokenOperationParameters parameters) throws ClientException;
+    abstract Intent getBrokerAuthorizationIntent(@NonNull AcquireTokenOperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException;
 
-    abstract AcquireTokenResult acquireTokenSilent(AcquireTokenSilentOperationParameters parameters) throws BaseException;
+    abstract AcquireTokenResult acquireTokenSilent(AcquireTokenSilentOperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException;
 
-    abstract List<ICacheRecord> getBrokerAccounts(@NonNull final OperationParameters parameters) throws InterruptedException, ExecutionException, RemoteException, OperationCanceledException, IOException, AuthenticatorException, ClientException;
+    abstract List<ICacheRecord> getBrokerAccounts(@NonNull final OperationParameters parameters) throws InterruptedException, ExecutionException, RemoteException, OperationCanceledException, IOException, AuthenticatorException, BaseException;
 
-    abstract boolean removeBrokerAccount(@NonNull final OperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException;
+    abstract void removeBrokerAccount(@NonNull final OperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException;
+
+    abstract boolean getDeviceMode(@NonNull final OperationParameters parameters)throws BaseException, InterruptedException, ExecutionException, RemoteException;
+
+    abstract List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull final OperationParameters parameters) throws InterruptedException, ExecutionException, RemoteException, OperationCanceledException, IOException, AuthenticatorException, BaseException;
+
+    abstract void signOutFromSharedDevice(@NonNull final OperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException;
 
     Handler getPreferredHandler() {
         if (null != Looper.myLooper() && Looper.getMainLooper() != Looper.myLooper()) {
@@ -115,27 +115,17 @@ abstract class BrokerBaseStrategy {
     }
 
     static AcquireTokenResult getAcquireTokenResult(@NonNull final Bundle resultBundle) throws BaseException {
-
         final MsalBrokerResultAdapter resultAdapter = new MsalBrokerResultAdapter();
-
         if (resultBundle.getBoolean(AuthenticationConstants.Broker.BROKER_REQUEST_V2_SUCCESS)) {
-            Logger.verbose(TAG, "Successful result from the broker ");
-
             final AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
             acquireTokenResult.setLocalAuthenticationResult(
                     resultAdapter.authenticationResultFromBundle(resultBundle)
             );
 
-            Telemetry.emit(new BrokerEndEvent().isSuccessful(true));
-
             return acquireTokenResult;
         }
 
-        Logger.warn(TAG, "Exception returned from broker, retrieving exception details ");
-
-        final BaseException exception = resultAdapter.baseExceptionFromBundle(resultBundle);
-        Telemetry.emit(new BrokerEndEvent().putException(exception));
-        throw exception;
+        throw resultAdapter.baseExceptionFromBundle(resultBundle);
     }
 
 }
