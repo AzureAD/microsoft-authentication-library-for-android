@@ -183,8 +183,8 @@ public class BrokerMsalController extends BaseController {
      * A generic method that would initialize and iterate through available strategies.
      * It will return a result immediately if any of the strategy succeeds, or throw an exception if all of the strategies fails.
      */
-    private <T extends OperationParameters, U> U performStrategies(@NonNull final T parameters,
-                                                                   @NonNull final BrokerOperationInfo<T, U> strategyTask)
+    private <T extends OperationParameters, U> U invokeBrokerOperation(@NonNull final T parameters,
+                                                                       @NonNull final BrokerOperationInfo<T, U> strategyTask)
             throws Exception {
 
         if (strategyTask.getTelemetryApiName() != null) {
@@ -244,7 +244,7 @@ public class BrokerMsalController extends BaseController {
      * @return
      */
     private Intent getBrokerAuthorizationIntent(@NonNull final AcquireTokenOperationParameters parameters) throws Exception {
-        return performStrategies(parameters,
+        return invokeBrokerOperation(parameters,
                 new BrokerOperationInfo<AcquireTokenOperationParameters, Intent>() {
                     @Nullable
                     @Override
@@ -298,7 +298,7 @@ public class BrokerMsalController extends BaseController {
 
     @Override
     public AcquireTokenResult acquireTokenSilent(AcquireTokenSilentOperationParameters parameters) throws Exception {
-        return performStrategies(parameters,
+        return invokeBrokerOperation(parameters,
                 new BrokerOperationInfo<AcquireTokenSilentOperationParameters, AcquireTokenResult>() {
                     @Nullable
                     @Override
@@ -333,7 +333,7 @@ public class BrokerMsalController extends BaseController {
      */
     @Override
     public List<ICacheRecord> getAccounts(@NonNull final OperationParameters parameters) throws Exception {
-        return performStrategies(parameters,
+        return invokeBrokerOperation(parameters,
                 new BrokerOperationInfo<OperationParameters, List<ICacheRecord>>() {
                     @Nullable
                     @Override
@@ -362,7 +362,7 @@ public class BrokerMsalController extends BaseController {
     @Override
     @WorkerThread
     public boolean removeAccount(@NonNull final OperationParameters parameters) throws Exception {
-        performStrategies(parameters,
+        invokeBrokerOperation(parameters,
                 new BrokerOperationInfo<OperationParameters, Void>() {
                     @Nullable
                     @Override
@@ -393,7 +393,7 @@ public class BrokerMsalController extends BaseController {
     @Override
     @WorkerThread
     public boolean getDeviceMode(@NonNull final OperationParameters parameters) throws Exception {
-        return performStrategies(parameters,
+        return invokeBrokerOperation(parameters,
                 new BrokerOperationInfo<OperationParameters, Boolean>() {
                     @Nullable
                     @Override
@@ -428,7 +428,7 @@ public class BrokerMsalController extends BaseController {
             return getAccounts(parameters);
         }
 
-        return performStrategies(parameters,
+        return invokeBrokerOperation(parameters,
                 new BrokerOperationInfo<OperationParameters, List<ICacheRecord>>() {
                     @Nullable
                     @Override
@@ -471,7 +471,7 @@ public class BrokerMsalController extends BaseController {
          * 3. Clear WebView cookies.
          * 4. Sign out from default browser.
          */
-        performStrategies(parameters,
+        invokeBrokerOperation(parameters,
                 new BrokerOperationInfo<OperationParameters, Void>() {
                     @Nullable
                     @Override
