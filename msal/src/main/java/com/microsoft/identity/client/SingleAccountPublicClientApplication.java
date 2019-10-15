@@ -42,6 +42,7 @@ import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.controllers.CommandCallback;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
+import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.controllers.GetCurrentAccountCommand;
 import com.microsoft.identity.common.internal.controllers.RemoveCurrentAccountCommand;
@@ -275,6 +276,11 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         }
 
         final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
+        final AccountRecord requestAccountRecord = new AccountRecord();
+        requestAccountRecord.setEnvironment(persistedCurrentAccount.getEnvironment());
+        requestAccountRecord.setHomeAccountId(persistedCurrentAccount.getHomeAccountId());
+        params.setAccount(requestAccountRecord);
+
         final BaseController controller;
         try {
             controller = MSALControllerFactory.getDefaultController(
