@@ -32,7 +32,6 @@ import androidx.annotation.WorkerThread;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.AsyncResult;
-import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
@@ -40,13 +39,13 @@ import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.controllers.CommandCallback;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
-import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
-import com.microsoft.identity.common.internal.controllers.RemoveAccountCommand;
-import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
+import com.microsoft.identity.common.internal.controllers.GetCurrentAccountCommand;
+import com.microsoft.identity.common.internal.controllers.RemoveCurrentAccountCommand;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
@@ -76,11 +75,9 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     protected SingleAccountPublicClientApplication(@NonNull PublicClientApplicationConfiguration config,
                                                    @Nullable final String clientId,
-                                                   @Nullable final String authority,
-                                                   @NonNull final Boolean isSharedDevice) {
+                                                   @Nullable final String authority) {
         super(config, clientId, authority);
         initializeSharedPreferenceFileManager(config.getAppContext());
-        mIsSharedDevice = isSharedDevice;
     }
 
     private void initializeSharedPreferenceFileManager(@NonNull final Context context) {
@@ -92,63 +89,51 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public void getCurrentAccountAsync(@NonNull final CurrentAccountCallback callback) {
+        getCurrentAccountAsyncInternal(callback, PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT_ASYNC);
+    }
+
+    private void getCurrentAccountAsyncInternal(@NonNull final CurrentAccountCallback callback,
+                                                @NonNull final String publicApiId) {
         final String methodName = ":getCurrentAccount";
         final PublicClientApplicationConfiguration configuration = getConfiguration();
 
+        final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
+        final BaseController controller;
         try {
-            if (mIsSharedDevice) {
-                getCurrentAccountFromSharedDevice(callback, configuration);
-                return;
-            }
+            controller = MSALControllerFactory.getDefaultController(
+                    mPublicClientConfiguration.getAppContext(),
+                    params.getAuthority(),
+                    mPublicClientConfiguration);
+        } catch (MsalClientException e) {
+            callback.onError(e);
+            return;
+        }
 
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "Getting the current account"
-            );
-
-            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
-            final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
-                    params,
-                    MSALControllerFactory.getAcquireTokenController(
-                            mPublicClientConfiguration.getAppContext(),
-                            params.getAuthority(),
-                            mPublicClientConfiguration
-                    ),
-                    new CommandCallback<List<ICacheRecord>, BaseException>() {
-                        @Override
-                        public void onTaskCompleted(final List<ICacheRecord> result) {
-                            // To simplify the logic, if more than one account is returned, the first account will be picked.
-                            // We do not support switching from MULTIPLE to SINGLE.
-                            // See getAccountFromICacheRecordList() for more details.
-                            checkCurrentAccountNotifyCallback(callback, result);
-                        }
-
-                        @Override
-                        public void onError(final BaseException exception) {
-                            com.microsoft.identity.common.internal.logging.Logger.error(
-                                    TAG + methodName,
-                                    exception.getMessage(),
-                                    exception
-                            );
-
-                            callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
-                        }
-
-                        @Override
-                        public void onCancel() {
-                            //Do nothing
-                        }
+        final GetCurrentAccountCommand command = new GetCurrentAccountCommand(
+                params,
+                controller,
+                new CommandCallback<List<ICacheRecord>, BaseException>() {
+                    @Override
+                    public void onTaskCompleted(final List<ICacheRecord> result) {
+                        // To simplify the logic, if more than one account is returned, the first account will be picked.
+                        // We do not support switching from MULTIPLE to SINGLE.
+                        // See getAccountFromICacheRecordList() for more details.
+                        checkCurrentAccountNotifyCallback(callback, result);
                     }
 
+                    @Override
+                    public void onError(final BaseException exception) {
+                        callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
+                    }
 
-            );
+                    @Override
+                    public void onCancel() {
+                        //Do nothing
+                    }
+                });
 
-            loadAccountCommand.setPublicApiId(PublicApiId.GET_CURRENT_ACCOUNT_ASYNC);
-            CommandDispatcher.submitSilent(loadAccountCommand);
-
-        } catch (MsalClientException clientException) {
-            callback.onError(clientException);
-        }
+        command.setPublicApiId(publicApiId);
+        CommandDispatcher.submitSilent(command);
     }
 
     @Override
@@ -157,7 +142,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
         final ResultFuture<AsyncResult<CurrentAccountResult>> future = new ResultFuture<>();
 
-        getCurrentAccountAsync(new CurrentAccountCallback() {
+        getCurrentAccountAsyncInternal(new CurrentAccountCallback() {
             @Override
             public void onAccountLoaded(@Nullable IAccount activeAccount) {
                 CurrentAccountResult currentAccountResult = new CurrentAccountResult(activeAccount, null, false);
@@ -174,7 +159,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             public void onError(@NonNull MsalException exception) {
                 future.setResult(new AsyncResult<CurrentAccountResult>(null, exception));
             }
-        });
+        }, PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT);
 
         AsyncResult<CurrentAccountResult> result = future.get();
 
@@ -183,26 +168,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         } else {
             throw result.getException();
         }
-    }
-
-    private void getCurrentAccountFromSharedDevice(@NonNull final CurrentAccountCallback callback,
-                                                   @NonNull final PublicClientApplicationConfiguration configuration) {
-
-        //TODO: migrate to Command.
-        new BrokerMsalController().getCurrentAccount(
-                configuration,
-                configuration.getOAuth2TokenCache(),
-                new TaskCompletedCallbackWithError<List<ICacheRecord>, MsalException>() {
-                    @Override
-                    public void onTaskCompleted(List<ICacheRecord> cacheRecords) {
-                        checkCurrentAccountNotifyCallback(callback, cacheRecords);
-                    }
-
-                    @Override
-                    public void onError(MsalException exception) {
-                        callback.onError(exception);
-                    }
-                });
     }
 
     private void checkCurrentAccountNotifyCallback(@NonNull final CurrentAccountCallback callback,
@@ -229,7 +194,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             return;
         }
 
-        acquireToken(
+        final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
                 scopes,
                 null, // account
@@ -241,6 +206,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 loginHint, // loginHint
                 null // claimsRequest
         );
+
+        acquireTokenInternal(acquireTokenParameters, PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN);
     }
 
     @Override
@@ -305,58 +272,58 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public void signOut(@NonNull final SignOutCallback callback) {
-        final PublicClientApplicationConfiguration configuration = getConfiguration();
+        signOutInternal(callback, PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT_WITH_CALLBACK);
+    }
 
+    void signOutInternal(@NonNull final SignOutCallback callback,
+                         @NonNull final String publicApiId) {
         final MultiTenantAccount persistedCurrentAccount = getPersistedCurrentAccount();
         if (persistedCurrentAccount == null) {
             callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
             return;
         }
 
-        if (mIsSharedDevice) {
-            //TODO: need to integrate with server-side telemetry here once we refactor it to command
-            removeAccountFromSharedDevice(callback, configuration);
+        final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
+        final AccountRecord requestAccountRecord = new AccountRecord();
+        requestAccountRecord.setEnvironment(persistedCurrentAccount.getEnvironment());
+        requestAccountRecord.setHomeAccountId(persistedCurrentAccount.getHomeAccountId());
+        params.setAccount(requestAccountRecord);
+
+        final BaseController controller;
+        try {
+            controller = MSALControllerFactory.getDefaultController(
+                    mPublicClientConfiguration.getAppContext(),
+                    params.getAuthority(),
+                    mPublicClientConfiguration);
+        } catch (MsalClientException e) {
+            callback.onError(e);
             return;
         }
 
-        try {
-            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
-            final AccountRecord requestAccountRecord = new AccountRecord();
-            requestAccountRecord.setEnvironment(persistedCurrentAccount.getEnvironment());
-            requestAccountRecord.setHomeAccountId(persistedCurrentAccount.getHomeAccountId());
-            params.setAccount(requestAccountRecord);
-
-            final RemoveAccountCommand removeAccountCommand = new RemoveAccountCommand(
-                    params,
-                    MSALControllerFactory.getAcquireTokenController(
-                            mPublicClientConfiguration.getAppContext(),
-                            params.getAuthority(),
-                            mPublicClientConfiguration
-                    ),
-                    new CommandCallback<Boolean, BaseException>() {
-                        @Override
-                        public void onError(BaseException error) {
-                            callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(error));
-                        }
-
-                        @Override
-                        public void onTaskCompleted(Boolean result) {
-                            persistCurrentAccount(null);
-                            callback.onSignOut();
-                        }
-
-                        @Override
-                        public void onCancel() {
-                            //Do nothing
-                        }
+        final RemoveCurrentAccountCommand command = new RemoveCurrentAccountCommand(
+                params,
+                controller,
+                new CommandCallback<Boolean, BaseException>() {
+                    @Override
+                    public void onError(BaseException error) {
+                        callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(error));
                     }
-            );
 
-            removeAccountCommand.setPublicApiId(PublicApiId.SIGN_OUT);
-            CommandDispatcher.submitSilent(removeAccountCommand);
-        } catch (final MsalClientException clientException) {
-            callback.onError(clientException);
-        }
+                    @Override
+                    public void onTaskCompleted(Boolean result) {
+                        persistCurrentAccount(null);
+                        callback.onSignOut();
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        //Do nothing
+                    }
+                }
+        );
+
+        command.setPublicApiId(publicApiId);
+        CommandDispatcher.submitSilent(command);
     }
 
     @Override
@@ -366,7 +333,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
         final ResultFuture<AsyncResult<Boolean>> future = new ResultFuture<>();
 
-        signOut(new SignOutCallback() {
+        signOutInternal(new SignOutCallback() {
             @Override
             public void onSignOut() {
                 future.setResult(new AsyncResult<Boolean>(true, null));
@@ -376,7 +343,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             public void onError(@NonNull MsalException exception) {
                 future.setResult(new AsyncResult<Boolean>(false, exception));
             }
-        });
+        }, PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT);
 
         final AsyncResult<Boolean> result = future.get();
 
@@ -385,26 +352,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         } else {
             throw result.getException();
         }
-    }
-
-    private void removeAccountFromSharedDevice(@NonNull final SignOutCallback callback,
-                                               @NonNull final PublicClientApplicationConfiguration configuration) {
-
-        //TODO: migrate to Command.
-        new BrokerMsalController().removeAccountFromSharedDevice(
-                configuration,
-                new TaskCompletedCallbackWithError<Void, MsalException>() {
-                    @Override
-                    public void onTaskCompleted(Void aVoid) {
-                        persistCurrentAccount(null);
-                        callback.onSignOut();
-                    }
-
-                    @Override
-                    public void onError(MsalException exception) {
-                        callback.onError(exception);
-                    }
-                });
     }
 
     /**
@@ -477,7 +424,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             return;
         }
 
-        acquireToken(
+        final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
                 scopes,
                 getPersistedCurrentAccount(), // account, could be null.
@@ -489,6 +436,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 null, // loginHint
                 null // claimsRequest
         );
+
+        acquireTokenInternal(acquireTokenParameters, PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK);
     }
 
     @Override
@@ -500,7 +449,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             acquireTokenParameters.setLoginHint("");
         }
 
-        super.acquireToken(acquireTokenParameters);
+        acquireTokenInternal(acquireTokenParameters, PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS);
     }
 
     @Override
@@ -513,7 +462,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             return;
         }
 
-        acquireTokenSilent(
+        final AcquireTokenSilentParameters acquireTokenSilentParameters = buildAcquireTokenSilentParameters(
                 scopes,
                 persistedAccount,
                 authority,
@@ -521,6 +470,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 null, // claimsRequest
                 callback
         );
+
+        acquireTokenSilentAsyncInternal(acquireTokenSilentParameters, PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_SCOPES_AUTHORITY_CALLBACK);
     }
 
     @WorkerThread
@@ -531,7 +482,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             throw new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);
         }
 
-        return acquireTokenSilentSync(scopes, authority, persistedAccount, false);
+        return acquireTokenSilentSyncInternal(scopes, authority, persistedAccount, false, PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_SCOPES_AUTHORITY);
     }
 
     @Override
@@ -545,7 +496,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         // In SingleAccount mode, always overwrite 'Account' with current account.
         acquireTokenSilentParameters.setAccount(persistedAccount);
 
-        super.acquireTokenSilentAsync(acquireTokenSilentParameters);
+        acquireTokenSilentAsyncInternal(acquireTokenSilentParameters, PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS);
     }
 
     @Override
@@ -558,6 +509,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         // In SingleAccount mode, always overwrite 'Account' with current account.
         acquireTokenSilentParameters.setAccount(persistedAccount);
 
-        return super.acquireTokenSilent(acquireTokenSilentParameters);
+        return acquireTokenSilentInternal(acquireTokenSilentParameters, PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_PARAMETERS);
     }
 }

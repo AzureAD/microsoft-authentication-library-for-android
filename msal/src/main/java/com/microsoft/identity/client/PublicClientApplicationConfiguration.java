@@ -133,9 +133,11 @@ public class PublicClientApplicationConfiguration {
     @SerializedName(CLIENT_CAPABILITIES)
     String mClientCapabilities;
 
-    transient OAuth2TokenCache mOAuth2TokenCache;
+    transient private OAuth2TokenCache mOAuth2TokenCache;
 
-    transient Context mAppContext;
+    transient private Context mAppContext;
+
+    transient private boolean mIsSharedDevice = false;
 
     /**
      * Sets the secret key bytes to use when encrypting/decrypting cache entries.
@@ -294,6 +296,14 @@ public class PublicClientApplicationConfiguration {
         mOAuth2TokenCache = tokenCache;
     }
 
+    public boolean getIsSharedDevice() {
+        return mIsSharedDevice;
+    }
+
+    void setIsSharedDevice(boolean isSharedDevice) {
+        mIsSharedDevice = isSharedDevice;
+    }
+
     public Authority getDefaultAuthority() {
         if (mAuthorities != null) {
             if (mAuthorities.size() > 1) {
@@ -361,6 +371,7 @@ public class PublicClientApplicationConfiguration {
         // Multiple is the default mode.
         this.mAccountMode = config.mAccountMode != AccountMode.MULTIPLE ? config.mAccountMode : this.mAccountMode;
         this.mClientCapabilities = config.mClientCapabilities == null ? this.mClientCapabilities : config.mClientCapabilities;
+        this.mIsSharedDevice = config.mIsSharedDevice == true ? this.mIsSharedDevice : config.mIsSharedDevice;
     }
 
     void validateConfiguration() {

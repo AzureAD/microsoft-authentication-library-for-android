@@ -48,14 +48,12 @@ public abstract class AcquireTokenMockBaseTest {
 
         final File configFile = new File(AAD_CONFIG_FILE_PATH);
 
+        final IPublicClientApplication[] applications = new IPublicClientApplication[1];
+
         PublicClientApplication.create(context, configFile, new PublicClientApplication.ApplicationCreatedListener() {
             @Override
             public void onCreated(IPublicClientApplication application) {
-                try {
-                    makeAcquireTokenCall(application, testActivity);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                applications[0] = application;
             }
 
             @Override
@@ -63,6 +61,16 @@ public abstract class AcquireTokenMockBaseTest {
                 exception.printStackTrace();
             }
         });
+
+        RoboTestUtils.flushScheduler();
+
+        // TODO: This is a temporary change that is needed as create() is now using command.
+        //       Will need a proper refactor at some point.
+        try {
+            makeAcquireTokenCall(applications[0], testActivity);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
 }
