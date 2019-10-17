@@ -218,6 +218,10 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
             @Override
             public void onTaskCompleted(@NonNull final ILocalAuthenticationResult localAuthenticationResult) {
+                if (authenticationCallback == null) {
+                    throw new IllegalStateException(NONNULL_CONSTANTS.CALLBACK + NONNULL_CONSTANTS.NULL_ERROR_SUFFIX);
+                }
+
                 //Get Local Authentication Result then check if the current account is set or not
                 MultiTenantAccount newAccount = getAccountFromICacheRecordList(localAuthenticationResult.getCacheRecordWithTenantProfileData());
 
@@ -239,7 +243,11 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             @Override
             public void onError(BaseException exception) {
                 MsalException msalException = MsalExceptionAdapter.msalExceptionFromBaseException(exception);
-                authenticationCallback.onError(msalException);
+                if (authenticationCallback == null) {
+                    throw new IllegalStateException(NONNULL_CONSTANTS.CALLBACK + NONNULL_CONSTANTS.NULL_ERROR_SUFFIX);
+                } else {
+                    authenticationCallback.onError(msalException);
+                }
             }
 
             @Override

@@ -178,18 +178,18 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
     private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
 
-    private static class NONNULL_CONSTANTS {
-        private static final String CONTEXT = "context";
-        private static final String LISTENER = "listener";
-        private static final String CALLBACK = "callback";
-        private static final String CLIENT_ID = "client_id";
-        private static final String AUTHORITY = "authority";
-        private static final String CONFIG_FILE = "config_file";
-        private static final String ACTIVITY = "activity";
-        private static final String SCOPES = "scopes";
-        private static final String ACCOUNT = "account";
+    static class NONNULL_CONSTANTS {
+        static final String CONTEXT = "context";
+        static final String LISTENER = "listener";
+        static final String CALLBACK = "callback";
+        static final String CLIENT_ID = "client_id";
+        static final String AUTHORITY = "authority";
+        static final String CONFIG_FILE = "config_file";
+        static final String ACTIVITY = "activity";
+        static final String SCOPES = "scopes";
+        static final String ACCOUNT = "account";
 
-        private static final String NULL_ERROR_SUFFIX = " cannot be null or empty";
+        static final String NULL_ERROR_SUFFIX = " cannot be null or empty";
     }
 
 
