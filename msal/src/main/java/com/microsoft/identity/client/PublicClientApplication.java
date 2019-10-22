@@ -45,8 +45,8 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.AsyncResult;
-import com.microsoft.identity.client.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
+import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
 import com.microsoft.identity.common.exception.BaseException;
@@ -57,9 +57,11 @@ import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
+import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.controllers.CommandCallback;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.controllers.ExceptionAdapter;
+import com.microsoft.identity.common.internal.controllers.GetDeviceModeCommand;
 import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
 import com.microsoft.identity.common.internal.controllers.TokenCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
@@ -74,6 +76,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.OpenIdProviderCon
 import com.microsoft.identity.common.internal.providers.oauth2.OpenIdProviderConfigurationClient;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
+import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 import com.microsoft.identity.msal.BuildConfig;
@@ -175,18 +178,18 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
     private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
 
-    private static class NONNULL_CONSTANTS {
-        private static final String CONTEXT = "context";
-        private static final String LISTENER = "listener";
-        private static final String CALLBACK = "callback";
-        private static final String CLIENT_ID = "client_id";
-        private static final String AUTHORITY = "authority";
-        private static final String CONFIG_FILE = "config_file";
-        private static final String ACTIVITY = "activity";
-        private static final String SCOPES = "scopes";
-        private static final String ACCOUNT = "account";
+    static class NONNULL_CONSTANTS {
+        static final String CONTEXT = "context";
+        static final String LISTENER = "listener";
+        static final String CALLBACK = "callback";
+        static final String CLIENT_ID = "client_id";
+        static final String AUTHORITY = "authority";
+        static final String CONFIG_FILE = "config_file";
+        static final String ACTIVITY = "activity";
+        static final String SCOPES = "scopes";
+        static final String ACCOUNT = "account";
 
-        private static final String NULL_ERROR_SUFFIX = " cannot be null or empty";
+        static final String NULL_ERROR_SUFFIX = " cannot be null or empty";
     }
 
 
@@ -200,8 +203,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     private static final String TSM_MSG_FAILED_TO_RETRIEVE
             = "Failed to retrieve FRT - see getCause() for additional Exception info";
-
-    protected boolean mIsSharedDevice;
 
     protected PublicClientApplicationConfiguration mPublicClientConfiguration;
     protected TokenShareUtility mTokenShareUtility;
@@ -850,34 +851,61 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                @Nullable final String clientId,
                                @Nullable final String authority,
                                @NonNull final ApplicationCreatedListener listener) {
-        new BrokerMsalController().getBrokerDeviceMode(config, new BrokerDeviceModeCallback() {
-            @Override
-            public void onGetMode(boolean isSharedDevice) {
-                if (config.getAccountMode() == AccountMode.SINGLE || isSharedDevice) {
-                    listener.onCreated(
-                            new SingleAccountPublicClientApplication(
-                                    config,
-                                    clientId,
-                                    authority,
-                                    isSharedDevice
-                            )
-                    );
-                } else {
-                    listener.onCreated(
-                            new MultipleAccountPublicClientApplication(
-                                    config,
-                                    clientId,
-                                    authority
-                            )
-                    );
-                }
-            }
 
-            @Override
-            public void onError(MsalException exception) {
-                listener.onError(exception);
-            }
-        });
+
+        final OperationParameters params = OperationParametersAdapter.createOperationParameters(config, config.getOAuth2TokenCache());
+
+        final BaseController controller;
+        try {
+            controller = MSALControllerFactory.getDefaultController(
+                    config.getAppContext(),
+                    params.getAuthority(),
+                    config);
+        } catch (MsalClientException e) {
+            listener.onError(e);
+            return;
+        }
+
+        final GetDeviceModeCommand command = new GetDeviceModeCommand(
+                params,
+                controller,
+                new CommandCallback<Boolean, BaseException>() {
+                    @Override
+                    public void onError(BaseException error) {
+                        listener.onError(MsalExceptionAdapter.msalExceptionFromBaseException(error));
+                    }
+
+                    @Override
+                    public void onTaskCompleted(Boolean isSharedDevice) {
+                        config.setIsSharedDevice(isSharedDevice);
+
+                        if (config.getAccountMode() == AccountMode.SINGLE || isSharedDevice) {
+                            listener.onCreated(
+                                    new SingleAccountPublicClientApplication(
+                                            config,
+                                            clientId,
+                                            authority
+                                    )
+                            );
+                        } else {
+                            listener.onCreated(
+                                    new MultipleAccountPublicClientApplication(
+                                            config,
+                                            clientId,
+                                            authority
+                                    )
+                            );
+                        }
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        // Should not be reached.
+                    }
+                }
+        );
+
+        CommandDispatcher.submitSilent(command);
     }
 
     private static void createMultipleAccountPublicClientApplication(
@@ -1192,7 +1220,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     @Override
     public boolean isSharedDevice() {
-        return mIsSharedDevice;
+        return mPublicClientConfiguration.getIsSharedDevice();
     }
 
     @Override
@@ -1311,7 +1339,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
                     final InteractiveTokenCommand command = new InteractiveTokenCommand(
                             params,
-                            MSALControllerFactory.getAcquireTokenController(
+                            MSALControllerFactory.getDefaultController(
                                     mPublicClientConfiguration.getAppContext(),
                                     params.getAuthority(),
                                     mPublicClientConfiguration
@@ -1396,7 +1424,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
                     final TokenCommand silentTokenCommand = new TokenCommand(
                             params,
-                            MSALControllerFactory.getAcquireTokenSilentControllers(
+                            MSALControllerFactory.getAllControllers(
                                     mPublicClientConfiguration.getAppContext(),
                                     params.getAuthority(),
                                     mPublicClientConfiguration

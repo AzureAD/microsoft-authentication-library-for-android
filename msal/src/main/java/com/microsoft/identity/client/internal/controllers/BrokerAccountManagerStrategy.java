@@ -31,11 +31,13 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.RemoteException;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 
 import com.google.gson.Gson;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
@@ -57,6 +59,7 @@ import com.microsoft.identity.common.internal.telemetry.events.BrokerStartEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_HOME_ACCOUNT_ID;
@@ -321,7 +324,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     @SuppressWarnings("PMD")
     @SuppressLint("MissingPermission")
     protected List<ICacheRecord> getBrokerAccounts(@NonNull final OperationParameters parameters)
-            throws OperationCanceledException, IOException, AuthenticatorException, ClientException {
+            throws OperationCanceledException, IOException, AuthenticatorException, BaseException {
         final String methodName = ":getBrokerAccountsFromAccountManager";
         Telemetry.emit(
                 new BrokerStartEvent()
@@ -384,7 +387,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     @WorkerThread
     @SuppressWarnings("PMD")
     @SuppressLint("MissingPermission")
-    protected boolean removeBrokerAccount(@NonNull final OperationParameters parameters) {
+    protected void removeBrokerAccount(@NonNull final OperationParameters parameters) {
         final String methodName = ":removeBrokerAccountFromAccountManager";
         Telemetry.emit(
                 new BrokerStartEvent()
@@ -426,8 +429,24 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                         .putAction(methodName)
                         .isSuccessful(true)
         );
+    }
 
-        return true;
+    @Override
+    boolean getDeviceMode(@NonNull OperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
+        // TODO
+        throw new MsalClientException("getDeviceMode() is not yet implemented in BrokerAccountManagerStrategy()");
+    }
+
+    @Override
+    List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull OperationParameters parameters) throws InterruptedException, ExecutionException, RemoteException, OperationCanceledException, IOException, AuthenticatorException, BaseException {
+        // TODO
+        throw new MsalClientException("getCurrentAccountInSharedDevice() is not yet implemented in BrokerAccountManagerStrategy()");
+    }
+
+    @Override
+    void signOutFromSharedDevice(@NonNull OperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
+        // TODO
+        throw new MsalClientException("signOutFromSharedDevice() is not yet implemented in BrokerAccountManagerStrategy()");
     }
 
 }

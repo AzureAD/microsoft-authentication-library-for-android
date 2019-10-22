@@ -24,12 +24,12 @@ package com.microsoft.identity.client.robolectric.shadows;
 
 import android.net.Uri;
 
-import com.microsoft.identity.internal.testutils.authorities.AADTestAuthority;
 import com.microsoft.identity.common.internal.authorities.Authority;
+import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
+import com.microsoft.identity.internal.testutils.authorities.AADTestAuthority;
 import com.microsoft.identity.internal.testutils.authorities.B2CTestAuthority;
 import com.microsoft.identity.internal.testutils.authorities.MockAuthority;
-import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
-import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.internal.testutils.authorities.MockDelayedResponseAuthority;
 
 import org.robolectric.annotation.Implements;
 
@@ -49,6 +49,7 @@ public class ShadowAuthority {
 
     private static final String AAD_MOCK_PATH_SEGMENT = "mock";
     private static final String B2C_TEST_PATH_SEGMENT = "tfp";
+    private static final String AAD_MOCK_DELAYED_PATH_SEGMENT = "mock_with_delays";
 
     /**
      * Returns an Authority based on an authority url.  This method works in similar way to the actual
@@ -86,6 +87,9 @@ public class ShadowAuthority {
             case AAD_MOCK_PATH_SEGMENT:
                 //Return new AAD MOCK Authority
                 authority = new MockAuthority();
+                break;
+            case AAD_MOCK_DELAYED_PATH_SEGMENT:
+                authority = new MockDelayedResponseAuthority();
                 break;
             case B2C_TEST_PATH_SEGMENT:
                 //Return new B2C TEST Authority
