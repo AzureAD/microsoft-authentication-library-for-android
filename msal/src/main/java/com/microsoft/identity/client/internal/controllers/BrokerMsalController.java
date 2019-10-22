@@ -704,11 +704,12 @@ public class BrokerMsalController extends BaseController {
         final String methodName = ":helloBroker";
         final List<BrokerBaseStrategy> strategies = new ArrayList<>();
 
-        //check if account manager available
-        if (BrokerMsalController.helloWithAccountManager(parameters.getAppContext(), parameters)) {
-            Logger.verbose(TAG + methodName, "Add the account manager strategy.");
-            strategies.add(new BrokerAccountManagerStrategy());
-        }
+        // Commenting out AccountManager, as we're shipping a new one soon.
+//        //check if account manager available
+//        if (BrokerMsalController.helloWithAccountManager(parameters.getAppContext(), parameters)) {
+//            Logger.verbose(TAG + methodName, "Add the account manager strategy.");
+//            strategies.add(new BrokerAccountManagerStrategy());
+//        }
 
         //check if bound service available
         if (BrokerMsalController.helloWithMicrosoftAuthService(parameters.getAppContext(), parameters)) {
