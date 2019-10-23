@@ -164,14 +164,14 @@ public class OperationParametersTest {
     }
 
     private OAuth2TokenCache getCache() {
-        return new TestOAuthTokenCache(mContext, null, null);
+        return new TestOAuth2TokenCache(mContext, null, null);
     }
 
     private File getConfigFile(String path) {
         return new File(path);
     }
 
-    private class TestOAuthTokenCache extends MsalOAuth2TokenCache {
+    private class TestOAuth2TokenCache extends MsalOAuth2TokenCache {
 
         /**
          * Constructor of MsalOAuth2TokenCache.
@@ -180,7 +180,7 @@ public class OperationParametersTest {
          * @param accountCredentialCache   IAccountCredentialCache
          * @param accountCredentialAdapter IAccountCredentialAdapter
          */
-        public TestOAuthTokenCache(Context context, IAccountCredentialCache accountCredentialCache, IAccountCredentialAdapter accountCredentialAdapter) {
+        public TestOAuth2TokenCache(Context context, IAccountCredentialCache accountCredentialCache, IAccountCredentialAdapter accountCredentialAdapter) {
             super(context, accountCredentialCache, accountCredentialAdapter);
         }
     }
