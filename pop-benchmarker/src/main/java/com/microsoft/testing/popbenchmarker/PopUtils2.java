@@ -1,3 +1,25 @@
+//  Copyright (c) Microsoft Corporation.
+//  All rights reserved.
+//
+//  This code is licensed under the MIT License.
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files(the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions :
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
 package com.microsoft.testing.popbenchmarker;
 
 import android.content.Context;
@@ -32,6 +54,14 @@ import javax.security.auth.x500.X500Principal;
 
 public class PopUtils2 {
 
+    public static class KeyPairGeneratorAlgorithms {
+        static final String
+                DH = "DiffieHellman", // note: key.getAlgorithm() returns 'DH'
+                DSA = "DSA", // Generates keypairs for the Digital Signature Algorithm.
+                RSA = "RSA", // Generates keypairs for the RSA algorithm (Signature/Cipher).
+                EC = "EC"; // Generates keypairs for the Elliptic Curve algorithm.
+    }
+
     static final String ANDROID_KEYSTORE = "AndroidKeyStore";
     static final String KEYSTORE_ALIAS = "Device-PoP";
 
@@ -42,7 +72,7 @@ public class PopUtils2 {
 
     public static KeyPairGenerator getInitializedRsaKeyPairGenerator(final Context context)
             throws UnsupportedOperationException {
-        final String alg = PoPUtils.KeyPairGeneratorAlgorithms.RSA;
+        final String alg = KeyPairGeneratorAlgorithms.RSA;
         final int keySize = 2048;
 
         KeyPairGenerator keyPairGenerator;
