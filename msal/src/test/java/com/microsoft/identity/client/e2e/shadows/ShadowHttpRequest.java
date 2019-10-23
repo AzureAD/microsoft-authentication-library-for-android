@@ -20,14 +20,25 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.tests.mocked;
+package com.microsoft.identity.client.e2e.shadows;
 
-public class SingleAccountAcquireTokenMockTest extends AcquireTokenMockTest {
+import com.microsoft.identity.common.internal.net.HttpRequest;
+import com.microsoft.identity.common.internal.net.HttpResponse;
 
-    public SingleAccountAcquireTokenMockTest() {
-        mApplicationMode = SINGLE_ACCOUNT_APPLICATION_MODE;
+import org.robolectric.annotation.Implements;
+
+import java.io.IOException;
+import java.net.URL;
+import java.util.Map;
+
+@Implements(HttpRequest.class)
+public class ShadowHttpRequest {
+
+    // mocking this to avoid accidentally sending malformed requests to the server
+    public static HttpResponse sendPost(final URL requestUrl, final Map<String, String> requestHeaders,
+                                        final byte[] requestContent, final String requestContentType)
+            throws IOException {
+
+        throw new IOException("Sending requests to server has been disabled for mocked unit tests");
     }
-
-    //TODO: add Single Account specific tests
-
 }

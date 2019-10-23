@@ -20,22 +20,27 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.shadows;
-
-import android.content.Context;
+package com.microsoft.identity.client.e2e.shadows;
 
 import androidx.annotation.NonNull;
 
-import com.microsoft.identity.client.internal.MsalUtils;
+import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 
 import org.robolectric.annotation.Implements;
 
-@Implements(MsalUtils.class)
-public class ShadowMsalUtils {
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
-    // mocking this to assume we have custom tab redirect activity during tests
-    public static boolean hasCustomTabRedirectActivity(@NonNull final Context context,
-                                                       @NonNull final String url) {
-        return true;
+import javax.crypto.SecretKey;
+
+@Implements(StorageHelper.class)
+public class ShadowStorageHelper {
+
+    /**
+     * Fake saving key to key store as Android Key Store is not available in Robolectric
+     */
+    public void saveKeyStoreEncryptedKey(@NonNull SecretKey unencryptedKey) throws GeneralSecurityException, IOException {
+        return;
     }
+
 }

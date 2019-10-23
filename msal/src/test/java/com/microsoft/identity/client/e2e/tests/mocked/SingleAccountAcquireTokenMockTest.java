@@ -20,20 +20,14 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.shadows;
+package com.microsoft.identity.client.e2e.tests.mocked;
 
-import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
-import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
-import com.microsoft.identity.internal.testutils.strategies.MockTestStrategy;
+public class SingleAccountAcquireTokenMockTest extends AcquireTokenMockTest {
 
-import org.robolectric.annotation.Implements;
-
-@Implements(MockTestStrategy.class)
-public class ShadowStrategyResultUnsuccessful {
-
-    public TokenResult getTokenResult() {
-        TokenResult tokenResult = new TokenResult((TokenResponse) null);
-        return tokenResult;
+    public SingleAccountAcquireTokenMockTest() {
+        mApplicationMode = SINGLE_ACCOUNT_APPLICATION_MODE;
     }
+
+    //TODO: add Single Account specific tests
 
 }

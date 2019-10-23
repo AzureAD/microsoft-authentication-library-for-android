@@ -20,25 +20,15 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.shadows;
+package com.microsoft.identity.client.e2e.tests.network;
 
-import com.microsoft.identity.common.internal.net.HttpRequest;
-import com.microsoft.identity.common.internal.net.HttpResponse;
+/**
+ * Run all tests in the {@link AcquireTokenNetworkTest} class using B2C
+ */
+public class AcquireTokenNetworkB2CTest extends AcquireTokenNetworkTest {
 
-import org.robolectric.annotation.Implements;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.Map;
-
-@Implements(HttpRequest.class)
-public class ShadowHttpRequest {
-
-    // mocking this to avoid accidentally sending malformed requests to the server
-    public static HttpResponse sendPost(final URL requestUrl, final Map<String, String> requestHeaders,
-                                        final byte[] requestContent, final String requestContentType)
-            throws IOException {
-
-        throw new IOException("Sending requests to server has been disabled for mocked unit tests");
+    public AcquireTokenNetworkB2CTest() {
+        this.mAuthorityType = B2C_AUTHORITY_TYPE_STRING;
+        this.mScopes = B2C_SCOPES;
     }
 }

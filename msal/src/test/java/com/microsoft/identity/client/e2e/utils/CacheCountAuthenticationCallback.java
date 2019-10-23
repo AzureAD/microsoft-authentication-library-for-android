@@ -1,4 +1,4 @@
-package com.microsoft.identity.client.robolectric.utils;
+package com.microsoft.identity.client.e2e.utils;
 
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAuthenticationResult;

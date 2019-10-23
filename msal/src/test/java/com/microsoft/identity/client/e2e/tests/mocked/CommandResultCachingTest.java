@@ -20,20 +20,20 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.tests.mocked;
+package com.microsoft.identity.client.e2e.tests.mocked;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.claims.ClaimsRequest;
-import com.microsoft.identity.client.robolectric.shadows.ShadowAuthority;
-import com.microsoft.identity.client.robolectric.shadows.ShadowHttpRequest;
-import com.microsoft.identity.client.robolectric.shadows.ShadowMsalUtils;
-import com.microsoft.identity.client.robolectric.shadows.ShadowStorageHelper;
-import com.microsoft.identity.client.robolectric.tests.PublicClientApplicationAbstractTest;
-import com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper;
-import com.microsoft.identity.client.robolectric.utils.CacheCountAuthenticationCallback;
-import com.microsoft.identity.client.robolectric.utils.RoboTestUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
+import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequest;
+import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
+import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
+import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
+import com.microsoft.identity.client.e2e.utils.CacheCountAuthenticationCallback;
+import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
 
 import org.junit.Before;

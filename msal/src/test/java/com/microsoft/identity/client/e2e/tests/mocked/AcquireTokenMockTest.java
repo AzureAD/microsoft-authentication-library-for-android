@@ -20,7 +20,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.tests.mocked;
+package com.microsoft.identity.client.e2e.tests.mocked;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -33,16 +33,16 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.RoboTestCacheHelper;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.robolectric.shadows.ShadowAuthority;
-import com.microsoft.identity.client.robolectric.shadows.ShadowHttpRequest;
-import com.microsoft.identity.client.robolectric.shadows.ShadowMsalUtils;
-import com.microsoft.identity.client.robolectric.shadows.ShadowStorageHelper;
-import com.microsoft.identity.client.robolectric.shadows.ShadowStrategyResultServerError;
-import com.microsoft.identity.client.robolectric.shadows.ShadowStrategyResultUnsuccessful;
-import com.microsoft.identity.client.robolectric.tests.PublicClientApplicationAbstractTest;
-import com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper;
-import com.microsoft.identity.client.robolectric.utils.ErrorCodes;
-import com.microsoft.identity.client.robolectric.utils.RoboTestUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
+import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequest;
+import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
+import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultServerError;
+import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultUnsuccessful;
+import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
+import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
+import com.microsoft.identity.client.e2e.utils.ErrorCodes;
+import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;

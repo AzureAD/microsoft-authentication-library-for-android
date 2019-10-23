@@ -20,15 +20,15 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.tests.network;
+package com.microsoft.identity.client.e2e.tests.network;
 
 /**
- * Run all tests in the {@link AcquireTokenNetworkTest} class using B2C
+ * Run all tests in the {@link AcquireTokenNetworkTest} class using AAD
  */
-public class AcquireTokenNetworkB2CTest extends AcquireTokenNetworkTest {
+public class AcquireTokenNetworkAADTest extends AcquireTokenNetworkTest {
 
-    public AcquireTokenNetworkB2CTest() {
-        this.mAuthorityType = B2C_AUTHORITY_TYPE_STRING;
-        this.mScopes = B2C_SCOPES;
+    public AcquireTokenNetworkAADTest() {
+        this.mAuthorityType = AAD_AUTHORITY_TYPE_STRING;
+        this.mScopes = AAD_SCOPES;
     }
 }

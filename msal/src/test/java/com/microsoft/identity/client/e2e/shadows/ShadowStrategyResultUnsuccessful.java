@@ -20,15 +20,20 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.tests.network;
+package com.microsoft.identity.client.e2e.shadows;
 
-/**
- * Run all tests in the {@link AcquireTokenNetworkTest} class using AAD
- */
-public class AcquireTokenNetworkAADTest extends AcquireTokenNetworkTest {
+import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
+import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
+import com.microsoft.identity.internal.testutils.strategies.MockTestStrategy;
 
-    public AcquireTokenNetworkAADTest() {
-        this.mAuthorityType = AAD_AUTHORITY_TYPE_STRING;
-        this.mScopes = AAD_SCOPES;
+import org.robolectric.annotation.Implements;
+
+@Implements(MockTestStrategy.class)
+public class ShadowStrategyResultUnsuccessful {
+
+    public TokenResult getTokenResult() {
+        TokenResult tokenResult = new TokenResult((TokenResponse) null);
+        return tokenResult;
     }
+
 }

@@ -20,19 +20,19 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.tests.network;
+package com.microsoft.identity.client.e2e.tests.network;
 
 import android.app.Activity;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IPublicClientApplication;
-import com.microsoft.identity.client.robolectric.shadows.ShadowAuthority;
-import com.microsoft.identity.client.robolectric.shadows.ShadowMsalUtils;
-import com.microsoft.identity.client.robolectric.shadows.ShadowStorageHelper;
-import com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper;
-import com.microsoft.identity.client.robolectric.utils.ErrorCodes;
-import com.microsoft.identity.client.robolectric.utils.RoboTestUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
+import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
+import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
+import com.microsoft.identity.client.e2e.utils.ErrorCodes;
+import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.common.internal.logging.Logger;
 
 import org.junit.After;
@@ -44,10 +44,10 @@ import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
 
-import static com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper.failureSilentCallback;
-import static com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper.getAccount;
-import static com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper.successfulInteractiveCallback;
-import static com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper.successfulSilentCallback;
+import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.failureSilentCallback;
+import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.getAccount;
+import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulInteractiveCallback;
+import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulSilentCallback;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowMsalUtils.class})

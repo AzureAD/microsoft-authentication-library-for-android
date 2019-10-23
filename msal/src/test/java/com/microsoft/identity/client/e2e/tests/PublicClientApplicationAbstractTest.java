@@ -20,7 +20,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.tests.mocked;
+package com.microsoft.identity.client.e2e.tests;
 
 import android.app.Activity;
 import android.content.Context;
@@ -30,46 +30,59 @@ import androidx.test.core.app.ApplicationProvider;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.robolectric.utils.RoboTestUtils;
+import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
+
+import org.junit.Before;
 
 import java.io.File;
 
-public abstract class AcquireTokenMockBaseTest {
+import static org.junit.Assert.fail;
 
-    private static final String AAD_CONFIG_FILE_PATH = "src/test/res/raw/aad_test_config.json";
+public abstract class PublicClientApplicationAbstractTest {
 
-    abstract void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                       final Activity activity) throws InterruptedException;
+    protected static final String MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH = "src/test/res/raw/aad_test_config.json";
+    protected static final String SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH = "src/test/res/raw/single_account_aad_test_config.json";
 
+    protected static final String SINGLE_ACCOUNT_APPLICATION_MODE = "single";
+    protected static final String MULTIPLE_ACCOUNT_APPLICATION_MODE = "multiple";
 
-    void instantiatePCAthenAcquireToken() {
-        final Context context = ApplicationProvider.getApplicationContext();
-        final Activity testActivity = RoboTestUtils.getMockActivity(context);
+    protected Context mContext;
+    protected Activity mActivity;
+    protected IPublicClientApplication mApplication;
 
-        final File configFile = new File(AAD_CONFIG_FILE_PATH);
+    protected String mApplicationMode = SINGLE_ACCOUNT_APPLICATION_MODE; //Default
 
-        final IPublicClientApplication[] applications = new IPublicClientApplication[1];
+    @Before
+    public void setup() {
+        mContext = ApplicationProvider.getApplicationContext();
+        mActivity = RoboTestUtils.getMockActivity(mContext);
+        setupPCA();
+    }
 
-        PublicClientApplication.create(context, configFile, new PublicClientApplication.ApplicationCreatedListener() {
+    void setupPCA() {
+        final File configFile = new File(getConfigFilePath());
+
+        PublicClientApplication.create(mContext, configFile, new PublicClientApplication.ApplicationCreatedListener() {
             @Override
             public void onCreated(IPublicClientApplication application) {
-                applications[0] = application;
+                mApplication = application;
             }
 
             @Override
             public void onError(MsalException exception) {
-                exception.printStackTrace();
+                fail(exception.getMessage());
             }
         });
 
         RoboTestUtils.flushScheduler();
+    }
 
-        // TODO: This is a temporary change that is needed as create() is now using command.
-        //       Will need a proper refactor at some point.
-        try {
-            makeAcquireTokenCall(applications[0], testActivity);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    // can be overridden or more cases can be added here
+    protected String getConfigFilePath() {
+        if (mApplicationMode.equals(MULTIPLE_ACCOUNT_APPLICATION_MODE)) {
+            return MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+        } else {
+            return SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
         }
     }
 

@@ -20,7 +20,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.tests.network;
+package com.microsoft.identity.client.e2e.tests.network;
 
 import android.app.Activity;
 import android.content.Context;
@@ -30,7 +30,7 @@ import androidx.test.core.app.ApplicationProvider;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.robolectric.utils.RoboTestUtils;
+import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.internal.testutils.labutils.TestConfigurationHelper;
 import com.microsoft.identity.internal.testutils.labutils.TestConfigurationQuery;
 

@@ -20,13 +20,19 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.utils;
+package com.microsoft.identity.client.e2e.tests.network;
 
-public class ErrorCodes {
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
-    public static final String ILLEGAL_ARGUMENT_ERROR_CODE = "illegal_argument_exception";
-    public static final String UNKNOWN_ERROR_CODE = "unknown_error";
-    public static final String NO_ACCOUNT_FOUND_ERROR_CODE = "no_account_found";
-    public static final String NO_CURRENT_ACCOUNT_ERROR_CODE = "no_current_account";
-    public static final String INTERNAL_SERVER_ERROR_CODE = "internal_server_error";
+@RunWith(Suite.class)
+@Suite.SuiteClasses({
+        AcquireTokenNetworkAADTest.class,
+        AcquireTokenNetworkB2CTest.class
+})
+/**
+ * This class runs all tests in the {@link AcquireTokenNetworkTest} class,
+ * using both AAD and B2C
+ */
+public class AcquireTokenNetworkTestSuite {
 }
