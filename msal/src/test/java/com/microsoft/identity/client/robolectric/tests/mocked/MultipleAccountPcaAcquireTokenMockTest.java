@@ -20,13 +20,11 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.utils;
+package com.microsoft.identity.client.robolectric.tests.mocked;
 
-public class ErrorCodes {
+public class MultipleAccountPcaAcquireTokenMockTest extends PcaAcquireTokenMockTest {
 
-    public static final String ILLEGAL_ARGUMENT_ERROR_CODE = "illegal_argument_exception";
-    public static final String UNKNOWN_ERROR_CODE = "unknown_error";
-    public static final String NO_ACCOUNT_FOUND_ERROR_CODE = "no_account_found";
-    public static final String NO_CURRENT_ACCOUNT_ERROR_CODE = "no_current_account";
-    public static final String INTERNAL_SERVER_ERROR_CODE = "internal_server_error";
+    public MultipleAccountPcaAcquireTokenMockTest() {
+        mApplicationMode = MULTIPLE_ACCOUNT_APPLICATION_MODE;
+    }
 }

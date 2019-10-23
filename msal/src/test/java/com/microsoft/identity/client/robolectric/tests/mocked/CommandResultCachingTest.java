@@ -22,17 +22,15 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.robolectric.tests.mocked;
 
-import android.app.Activity;
-
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.robolectric.shadows.ShadowAuthority;
 import com.microsoft.identity.client.robolectric.shadows.ShadowHttpRequest;
 import com.microsoft.identity.client.robolectric.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.robolectric.shadows.ShadowStorageHelper;
+import com.microsoft.identity.client.robolectric.tests.PublicClientApplicationAbstractTest;
 import com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.robolectric.utils.CacheCountAuthenticationCallback;
 import com.microsoft.identity.client.robolectric.utils.RoboTestUtils;
@@ -50,113 +48,98 @@ import java.util.Arrays;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowHttpRequest.class, ShadowMsalUtils.class})
-public final class CommandResultCachingTest {
+public final class CommandResultCachingTest extends PublicClientApplicationAbstractTest {
 
     private static final String[] SCOPES = {"user.read"};
     private static final String AAD_MOCK_AUTHORITY = "https://test.authority/mock";
     private static final String AAD_MOCK_DELAYED_RESPONSE_AUTHORITY = "https://test.authority/mock_with_delays";
 
     @Before
-    public void before(){
+    public void before() {
         CommandDispatcherHelper.clear();
         ShadowLog.stream = System.out;
 
+    }
+
+    public CommandResultCachingTest() {
+        mApplicationMode = MULTIPLE_ACCOUNT_APPLICATION_MODE;
     }
 
     /**
      * verifies that two different commands result in 2 cache entries
      */
     @Test
-    public void testAcquireTokenCache2DifferentRequests() {
-        new AcquireTokenMockBaseTest() {
+    public void testAcquireTokenCache2DifferentRequests() throws InterruptedException {
+        final String username = "fake@test.com";
 
-            @Override
-            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity) throws InterruptedException {
+        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withLoginHint(username)
+                .withScopes(Arrays.asList(SCOPES))
+                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
+                .build();
 
-                final String username = "fake@test.com";
+        mApplication.acquireToken(parameters);
+        RoboTestUtils.flushScheduler();
 
-                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                        .startAuthorizationFromActivity(activity)
-                        .withLoginHint(username)
-                        .withScopes(Arrays.asList(SCOPES))
-                        .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
-                        .build();
+        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .forAccount(AcquireTokenTestHelper.getAccount())
+                .withScopes(Arrays.asList(SCOPES))
+                .forceRefresh(false)
+                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .withCallback(new CacheCountAuthenticationCallback(1))
+                .build();
 
-                publicClientApplication.acquireToken(parameters);
-                RoboTestUtils.flushScheduler();
+        ClaimsRequest cr = new ClaimsRequest();
+        cr.requestClaimInAccessToken("device_id", null);
 
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .forAccount(AcquireTokenTestHelper.getAccount())
-                        .withScopes(Arrays.asList(SCOPES))
-                        .forceRefresh(false)
-                        .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(new CacheCountAuthenticationCallback(1))
-                        .build();
+        final AcquireTokenSilentParameters modifiedSilentParameters = new AcquireTokenSilentParameters.Builder()
+                .forAccount(AcquireTokenTestHelper.getAccount())
+                .withScopes(Arrays.asList(SCOPES))
+                .forceRefresh(false)
+                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .withClaims(cr)
+                .withCallback(new CacheCountAuthenticationCallback(2))
+                .build();
 
-                ClaimsRequest cr = new ClaimsRequest();
-                cr.requestClaimInAccessToken("device_id", null);
+        mApplication.acquireTokenSilentAsync(silentParameters);
+        Thread.sleep(500);
+        mApplication.acquireTokenSilentAsync(modifiedSilentParameters);
 
-                final AcquireTokenSilentParameters modifiedSilentParameters = new AcquireTokenSilentParameters.Builder()
-                        .forAccount(AcquireTokenTestHelper.getAccount())
-                        .withScopes(Arrays.asList(SCOPES))
-                        .forceRefresh(false)
-                        .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withClaims(cr)
-                        .withCallback(new CacheCountAuthenticationCallback(2))
-                        .build();
-
-                publicClientApplication.acquireTokenSilentAsync(silentParameters);
-                Thread.sleep(500);
-                publicClientApplication.acquireTokenSilentAsync(modifiedSilentParameters);
-
-                RoboTestUtils.flushScheduler();
-            }
-
-        }.instantiatePCAthenAcquireToken();
+        RoboTestUtils.flushScheduler();
     }
 
     /**
      * Second silent request is expected to be retrieved from the cache.
      */
     @Test
-    public void testAcquireTokenCache2IdenticalRequests() {
-        new AcquireTokenMockBaseTest() {
+    public void testAcquireTokenCache2IdenticalRequests() throws InterruptedException {
+        final String username = "fake@test.com";
 
-            @Override
-            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity) throws InterruptedException {
+        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withLoginHint(username)
+                .withScopes(Arrays.asList(SCOPES))
+                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
+                .build();
 
-                final String username = "fake@test.com";
+        mApplication.acquireToken(parameters);
+        RoboTestUtils.flushScheduler();
 
-                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                        .startAuthorizationFromActivity(activity)
-                        .withLoginHint(username)
-                        .withScopes(Arrays.asList(SCOPES))
-                        .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
-                        .build();
+        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .forAccount(AcquireTokenTestHelper.getAccount())
+                .withScopes(Arrays.asList(SCOPES))
+                .forceRefresh(false)
+                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .withCallback(new CacheCountAuthenticationCallback(1))
+                .build();
 
-                publicClientApplication.acquireToken(parameters);
-                RoboTestUtils.flushScheduler();
-
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .forAccount(AcquireTokenTestHelper.getAccount())
-                        .withScopes(Arrays.asList(SCOPES))
-                        .forceRefresh(false)
-                        .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(new CacheCountAuthenticationCallback(1))
-                        .build();
-
-                publicClientApplication.acquireTokenSilentAsync(silentParameters);
-                Thread.sleep(200);
-                publicClientApplication.acquireTokenSilentAsync(silentParameters);
-
-                RoboTestUtils.flushScheduler();
-            }
-
-        }.instantiatePCAthenAcquireToken();
+        mApplication.acquireTokenSilentAsync(silentParameters);
+        Thread.sleep(200);
+        mApplication.acquireTokenSilentAsync(silentParameters);
+        RoboTestUtils.flushScheduler();
     }
 
     /**
@@ -165,116 +148,98 @@ public final class CommandResultCachingTest {
     @Ignore
     @Test
     public void testAcquireTokenCache2IdenticalRequestsConcurrent() {
-        new AcquireTokenMockBaseTest() {
+        final String username = "fake@test.com";
 
-            @Override
-            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity) throws InterruptedException {
+        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withLoginHint(username)
+                .withScopes(Arrays.asList(SCOPES))
+                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
+                .build();
 
-                final String username = "fake@test.com";
+        mApplication.acquireToken(parameters);
+        RoboTestUtils.flushScheduler();
 
-                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                        .startAuthorizationFromActivity(activity)
-                        .withLoginHint(username)
-                        .withScopes(Arrays.asList(SCOPES))
-                        .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
-                        .build();
+        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .forAccount(AcquireTokenTestHelper.getAccount())
+                .withScopes(Arrays.asList(SCOPES))
+                .forceRefresh(false)
+                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .withCallback(new CacheCountAuthenticationCallback(1))
+                .build();
 
-                publicClientApplication.acquireToken(parameters);
-                RoboTestUtils.flushScheduler();
-
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .forAccount(AcquireTokenTestHelper.getAccount())
-                        .withScopes(Arrays.asList(SCOPES))
-                        .forceRefresh(false)
-                        .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(new CacheCountAuthenticationCallback(1))
-                        .build();
-
-                final AcquireTokenSilentParameters silentParameters1 = new AcquireTokenSilentParameters.Builder()
-                        .forAccount(AcquireTokenTestHelper.getAccount())
-                        .withScopes(Arrays.asList(SCOPES))
-                        .forceRefresh(false)
-                        .fromAuthority(AAD_MOCK_DELAYED_RESPONSE_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.failedSilentRequestDuplicateCommandCallback())
-                        .build();
+        final AcquireTokenSilentParameters silentParameters1 = new AcquireTokenSilentParameters.Builder()
+                .forAccount(AcquireTokenTestHelper.getAccount())
+                .withScopes(Arrays.asList(SCOPES))
+                .forceRefresh(false)
+                .fromAuthority(AAD_MOCK_DELAYED_RESPONSE_AUTHORITY)
+                .withCallback(AcquireTokenTestHelper.failedSilentRequestDuplicateCommandCallback())
+                .build();
 
 
-                publicClientApplication.acquireTokenSilentAsync(silentParameters);
-                publicClientApplication.acquireTokenSilentAsync(silentParameters1);
+        mApplication.acquireTokenSilentAsync(silentParameters);
+        mApplication.acquireTokenSilentAsync(silentParameters1);
 
-                RoboTestUtils.flushScheduler();
-            }
-
-        }.instantiatePCAthenAcquireToken();
+        RoboTestUtils.flushScheduler();
     }
 
     /**
      * NOTE: This runs a bit longer
      */
     @Test
-    public void testAcquireTokenExceedCacheMaxItems() {
-        new AcquireTokenMockBaseTest() {
+    public void testAcquireTokenExceedCacheMaxItems() throws InterruptedException {
+        final String username = "fake@test.com";
 
-            @Override
-            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity) throws InterruptedException {
+        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withLoginHint(username)
+                .withScopes(Arrays.asList(SCOPES))
+                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
+                .build();
 
-                final String username = "fake@test.com";
+        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
+        mApplication.acquireToken(parameters);
 
-                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                        .startAuthorizationFromActivity(activity)
-                        .withLoginHint(username)
-                        .withScopes(Arrays.asList(SCOPES))
-                        .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
-                        .build();
+        RoboTestUtils.flushScheduler();
 
-                Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
-                publicClientApplication.acquireToken(parameters);
+        for (int i = 0; i < 250; i++) {
 
-                RoboTestUtils.flushScheduler();
+            ClaimsRequest cr = new ClaimsRequest();
+            cr.requestClaimInAccessToken("device_" + Integer.toString(i), null);
 
-                for (int i = 0; i < 250; i++) {
+            final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                    .forAccount(AcquireTokenTestHelper.getAccount())
+                    .withScopes(Arrays.asList(SCOPES))
+                    .forceRefresh(false)
+                    .fromAuthority(AAD_MOCK_AUTHORITY)
+                    .withClaims(cr)
+                    .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                    .build();
 
-                    ClaimsRequest cr = new ClaimsRequest();
-                    cr.requestClaimInAccessToken("device_" + Integer.toString(i), null );
+            mApplication.acquireTokenSilentAsync(silentParameters);
+            Thread.sleep(100);
+        }
 
-                    final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                            .forAccount(AcquireTokenTestHelper.getAccount())
-                            .withScopes(Arrays.asList(SCOPES))
-                            .forceRefresh(false)
-                            .fromAuthority(AAD_MOCK_AUTHORITY)
-                            .withClaims(cr)
-                            .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
-                            .build();
+        Thread.sleep(1000);
+        ClaimsRequest cr = new ClaimsRequest();
+        cr.requestClaimInAccessToken("device_10", null);
 
-                    publicClientApplication.acquireTokenSilentAsync(silentParameters);
-                    Thread.sleep(100);
-                }
+        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .forAccount(AcquireTokenTestHelper.getAccount())
+                .withScopes(Arrays.asList(SCOPES))
+                .forceRefresh(false)
+                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .withClaims(cr)
+                .withCallback(new CacheCountAuthenticationCallback(250))
+                .build();
 
-                Thread.sleep(1000);
-                ClaimsRequest cr = new ClaimsRequest();
-                cr.requestClaimInAccessToken("device_10", null);
+        RoboTestUtils.flushScheduler();
 
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .forAccount(AcquireTokenTestHelper.getAccount())
-                        .withScopes(Arrays.asList(SCOPES))
-                        .forceRefresh(false)
-                        .fromAuthority(AAD_MOCK_AUTHORITY)
-                        .withClaims(cr)
-                        .withCallback(new CacheCountAuthenticationCallback(250))
-                        .build();
+        mApplication.acquireTokenSilentAsync(silentParameters);
 
-                RoboTestUtils.flushScheduler();
-
-                publicClientApplication.acquireTokenSilentAsync(silentParameters);
-
-                RoboTestUtils.flushScheduler();
-            }
-
-        }.instantiatePCAthenAcquireToken();
+        RoboTestUtils.flushScheduler();
     }
 
 }

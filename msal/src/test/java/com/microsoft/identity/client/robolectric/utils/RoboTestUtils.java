@@ -130,8 +130,24 @@ public class RoboTestUtils {
     }
 
     public static void flushScheduler() {
-        final Scheduler scheduler = RuntimeEnvironment.getMasterScheduler();
-        while (!scheduler.advanceToLastPostedRunnable()) ;
+        // wait until all runnables have finished executing
+        while (!RuntimeEnvironment.getMasterScheduler().advanceToLastPostedRunnable()) ;
+    }
+
+    public static void flushSchedulerWithDelay(@NonNull final long sleepTime) {
+        try {
+            // just wait a little for runnables to enter the queue
+            Thread.sleep(sleepTime);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // if there are no runnables after the delay, then we can just return
+        if (RuntimeEnvironment.getMasterScheduler().size() == 0) {
+            return;
+        }
+
+        flushScheduler();
     }
 
     public static Activity getMockActivity(final Context context) {
