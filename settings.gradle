@@ -1,4 +1,4 @@
-include ':msal', ':common', ':keyvault', ':labapi', ':testutils'
+include ':msal', ':common', ':keyvault', ':labapi', ':testutils', ':pop-benchmarker'
 project(':common').projectDir = new File('common/common')
 project(':keyvault').projectDir = new File('common/keyvault')
 project(':labapi').projectDir = new File('common/labapi')
