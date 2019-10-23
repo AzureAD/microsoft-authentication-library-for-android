@@ -52,7 +52,7 @@ import java.util.UUID;
 
 import javax.security.auth.x500.X500Principal;
 
-public class PopUtils2 {
+public class PopUtils {
 
     public static class KeyPairGeneratorAlgorithms {
         static final String

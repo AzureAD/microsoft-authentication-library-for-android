@@ -46,10 +46,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static com.microsoft.testing.popbenchmarker.PopUtils2.ANDROID_KEYSTORE;
-import static com.microsoft.testing.popbenchmarker.PopUtils2.KEYSTORE_ALIAS;
-import static com.microsoft.testing.popbenchmarker.PopUtils2.getInitializedRsaKeyPairGenerator;
-import static com.microsoft.testing.popbenchmarker.PopUtils2.isInsideSecureHardware;
+import static com.microsoft.testing.popbenchmarker.PopUtils.ANDROID_KEYSTORE;
+import static com.microsoft.testing.popbenchmarker.PopUtils.KEYSTORE_ALIAS;
+import static com.microsoft.testing.popbenchmarker.PopUtils.getInitializedRsaKeyPairGenerator;
+import static com.microsoft.testing.popbenchmarker.PopUtils.isInsideSecureHardware;
 
 
 public class MainActivity extends AppCompatActivity {
