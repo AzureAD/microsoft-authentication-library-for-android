@@ -22,9 +22,9 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.robolectric.tests.mocked;
 
-public class SingleAccountPcaAcquireTokenMockTest extends PcaAcquireTokenMockTest {
+public class SingleAccountAcquireTokenMockTest extends AcquireTokenMockTest {
 
-    public SingleAccountPcaAcquireTokenMockTest() {
+    public SingleAccountAcquireTokenMockTest() {
         mApplicationMode = SINGLE_ACCOUNT_APPLICATION_MODE;
     }
 

@@ -59,12 +59,12 @@ import static org.junit.Assert.fail;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowHttpRequest.class, ShadowMsalUtils.class})
-public class PcaAcquireTokenMockTest extends PublicClientApplicationAbstractTest {
+public class AcquireTokenMockTest extends PublicClientApplicationAbstractTest {
 
     private static final String[] SCOPES = {"user.read"};
     private static final String AAD_MOCK_AUTHORITY = "https://test.authority/mock";
 
-    public PcaAcquireTokenMockTest() {
+    public AcquireTokenMockTest() {
         mApplicationMode = MULTIPLE_ACCOUNT_APPLICATION_MODE; //default
     }
 
