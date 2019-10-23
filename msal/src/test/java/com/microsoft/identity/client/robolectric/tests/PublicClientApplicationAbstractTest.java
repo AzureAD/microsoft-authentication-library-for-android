@@ -57,7 +57,6 @@ public abstract class PublicClientApplicationAbstractTest {
         mContext = ApplicationProvider.getApplicationContext();
         mActivity = RoboTestUtils.getMockActivity(mContext);
         setupPCA();
-        RoboTestUtils.flushScheduler();
     }
 
     void setupPCA() {
@@ -74,9 +73,11 @@ public abstract class PublicClientApplicationAbstractTest {
                 fail(exception.getMessage());
             }
         });
+
+        RoboTestUtils.flushScheduler();
     }
 
-    // can be overriden or more cases can be added here
+    // can be overridden or more cases can be added here
     protected String getConfigFilePath() {
         if (mApplicationMode.equals(MULTIPLE_ACCOUNT_APPLICATION_MODE)) {
             return MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
