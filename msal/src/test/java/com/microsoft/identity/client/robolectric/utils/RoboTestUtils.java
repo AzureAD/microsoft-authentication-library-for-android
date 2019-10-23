@@ -35,7 +35,6 @@ import com.microsoft.identity.common.internal.dto.CredentialType;
 
 import org.mockito.Mockito;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.util.Scheduler;
 
 import java.util.HashSet;
 import java.util.Locale;
@@ -130,19 +129,19 @@ public class RoboTestUtils {
     }
 
     public static void flushScheduler() {
-        // wait until all runnables have finished executing
+        // wait until all runnable(s) have finished executing
         while (!RuntimeEnvironment.getMasterScheduler().advanceToLastPostedRunnable()) ;
     }
 
     public static void flushSchedulerWithDelay(@NonNull final long sleepTime) {
         try {
-            // just wait a little for runnables to enter the queue
+            // just wait a little for runnable(s) to enter the queue
             Thread.sleep(sleepTime);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        // if there are no runnables after the delay, then we can just return
+        // if there are no runnable(s) after the delay, then we can just return
         if (RuntimeEnvironment.getMasterScheduler().size() == 0) {
             return;
         }
