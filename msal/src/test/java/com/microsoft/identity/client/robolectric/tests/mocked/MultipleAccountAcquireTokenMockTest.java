@@ -27,4 +27,6 @@ public class MultipleAccountAcquireTokenMockTest extends AcquireTokenMockTest {
     public MultipleAccountAcquireTokenMockTest() {
         mApplicationMode = MULTIPLE_ACCOUNT_APPLICATION_MODE;
     }
+
+    //TODO: add Multiple Account specific tests
 }

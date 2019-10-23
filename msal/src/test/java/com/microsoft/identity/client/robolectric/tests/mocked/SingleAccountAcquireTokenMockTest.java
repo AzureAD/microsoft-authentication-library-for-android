@@ -28,4 +28,6 @@ public class SingleAccountAcquireTokenMockTest extends AcquireTokenMockTest {
         mApplicationMode = SINGLE_ACCOUNT_APPLICATION_MODE;
     }
 
+    //TODO: add Single Account specific tests
+
 }
