@@ -30,8 +30,7 @@ import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequest;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
-import com.microsoft.identity.client.e2e.tests.IAcquireTokenTest;
-import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
+import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.CacheCountAuthenticationCallback;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
@@ -47,15 +46,14 @@ import org.robolectric.shadows.ShadowLog;
 
 import java.util.Arrays;
 
+import static com.microsoft.identity.client.e2e.utils.TestConstants.Authorities.AAD_MOCK_AUTHORITY;
+import static com.microsoft.identity.client.e2e.utils.TestConstants.Authorities.AAD_MOCK_DELAYED_RESPONSE_AUTHORITY;
 import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.USER_READ_SCOPE;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowHttpRequest.class, ShadowMsalUtils.class})
-public final class CommandResultCachingTest extends PublicClientApplicationAbstractTest implements IAcquireTokenTest {
-
-    private static final String[] SCOPES = {"user.read"};
-    private static final String AAD_MOCK_AUTHORITY = "https://test.authority/mock";
-    private static final String AAD_MOCK_DELAYED_RESPONSE_AUTHORITY = "https://test.authority/mock_with_delays";
+public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
 
     @Before
     public void before() {
@@ -74,7 +72,7 @@ public final class CommandResultCachingTest extends PublicClientApplicationAbstr
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(username)
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .fromAuthority(AAD_MOCK_AUTHORITY)
                 .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
                 .build();
@@ -84,7 +82,7 @@ public final class CommandResultCachingTest extends PublicClientApplicationAbstr
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(AcquireTokenTestHelper.getAccount())
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .fromAuthority(AAD_MOCK_AUTHORITY)
                 .withCallback(new CacheCountAuthenticationCallback(1))
@@ -95,7 +93,7 @@ public final class CommandResultCachingTest extends PublicClientApplicationAbstr
 
         final AcquireTokenSilentParameters modifiedSilentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(AcquireTokenTestHelper.getAccount())
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .fromAuthority(AAD_MOCK_AUTHORITY)
                 .withClaims(cr)
@@ -119,7 +117,7 @@ public final class CommandResultCachingTest extends PublicClientApplicationAbstr
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(username)
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .fromAuthority(AAD_MOCK_AUTHORITY)
                 .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
                 .build();
@@ -129,7 +127,7 @@ public final class CommandResultCachingTest extends PublicClientApplicationAbstr
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(AcquireTokenTestHelper.getAccount())
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .fromAuthority(AAD_MOCK_AUTHORITY)
                 .withCallback(new CacheCountAuthenticationCallback(1))
@@ -152,7 +150,7 @@ public final class CommandResultCachingTest extends PublicClientApplicationAbstr
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(username)
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .fromAuthority(AAD_MOCK_AUTHORITY)
                 .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
                 .build();
@@ -162,7 +160,7 @@ public final class CommandResultCachingTest extends PublicClientApplicationAbstr
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(AcquireTokenTestHelper.getAccount())
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .fromAuthority(AAD_MOCK_AUTHORITY)
                 .withCallback(new CacheCountAuthenticationCallback(1))
@@ -170,7 +168,7 @@ public final class CommandResultCachingTest extends PublicClientApplicationAbstr
 
         final AcquireTokenSilentParameters silentParameters1 = new AcquireTokenSilentParameters.Builder()
                 .forAccount(AcquireTokenTestHelper.getAccount())
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .fromAuthority(AAD_MOCK_DELAYED_RESPONSE_AUTHORITY)
                 .withCallback(AcquireTokenTestHelper.failedSilentRequestDuplicateCommandCallback())
@@ -193,7 +191,7 @@ public final class CommandResultCachingTest extends PublicClientApplicationAbstr
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(username)
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .fromAuthority(AAD_MOCK_AUTHORITY)
                 .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
                 .build();
@@ -210,7 +208,7 @@ public final class CommandResultCachingTest extends PublicClientApplicationAbstr
 
             final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                     .forAccount(AcquireTokenTestHelper.getAccount())
-                    .withScopes(Arrays.asList(SCOPES))
+                    .withScopes(Arrays.asList(mScopes))
                     .forceRefresh(false)
                     .fromAuthority(AAD_MOCK_AUTHORITY)
                     .withClaims(cr)
@@ -227,7 +225,7 @@ public final class CommandResultCachingTest extends PublicClientApplicationAbstr
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(AcquireTokenTestHelper.getAccount())
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .fromAuthority(AAD_MOCK_AUTHORITY)
                 .withClaims(cr)
@@ -248,6 +246,6 @@ public final class CommandResultCachingTest extends PublicClientApplicationAbstr
 
     @Override
     public String[] getScopes() {
-        return SCOPES;
+        return USER_READ_SCOPE;
     }
 }

@@ -57,7 +57,7 @@ import static org.junit.Assert.fail;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowHttpRequest.class, ShadowMsalUtils.class})
-public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest implements IAcquireTokenTest {
+public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
 
     @Override
     public String[] getScopes() {

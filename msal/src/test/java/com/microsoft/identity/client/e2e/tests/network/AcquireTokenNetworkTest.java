@@ -50,14 +50,6 @@ import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.suc
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowMsalUtils.class})
-/**
- * This class contains PublicClientApplication acquire token tests that hit the network and
- * try to acquire a token. These tests will operate by being passed an authority and scopes parameters.
- * These parameters will change based on whether we want run test that use AAD or B2C.
- * To run all of these test using AAD see {@link AcquireTokenNetworkAADTest}
- * To run all of these test using B2C see {@link AcquireTokenNetworkB2CTest}
- * To run all of these test using both AAD & B2C, see {@link AcquireTokenNetworkTestSuite}
- */
 public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest implements IAcquireTokenNetworkTest {
 
     private String mUsername;

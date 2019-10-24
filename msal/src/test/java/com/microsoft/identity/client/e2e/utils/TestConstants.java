@@ -15,6 +15,7 @@ public class TestConstants {
 
     public static class Authorities {
         public static final String AAD_MOCK_AUTHORITY = "https://test.authority/mock";
+        public static final String AAD_MOCK_DELAYED_RESPONSE_AUTHORITY = "https://test.authority/mock_with_delays";
     }
 
 }
