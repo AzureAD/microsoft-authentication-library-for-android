@@ -20,15 +20,21 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.e2e.tests.network;
+package com.microsoft.identity.client.e2e.suites;
 
-import com.microsoft.identity.client.e2e.tests.IAcquireTokenTest;
-import com.microsoft.identity.internal.testutils.labutils.TestConfigurationQuery;
+import com.microsoft.identity.client.e2e.tests.mocked.CommandResultCachingTest;
+import com.microsoft.identity.client.e2e.tests.mocked.MultipleAccountAcquireTokenMockTest;
+import com.microsoft.identity.client.e2e.tests.mocked.SingleAccountAcquireTokenMockTest;
 
-public interface IAcquireTokenNetworkTest extends IAcquireTokenTest {
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
-    TestConfigurationQuery getTestConfigurationQuery();
+@RunWith(Suite.class)
+@Suite.SuiteClasses({
+        CommandResultCachingTest.class,
+        SingleAccountAcquireTokenMockTest.class,
+        MultipleAccountAcquireTokenMockTest.class
+})
 
+public class AcquireTokenMockTestSuite {
 }
-
-
