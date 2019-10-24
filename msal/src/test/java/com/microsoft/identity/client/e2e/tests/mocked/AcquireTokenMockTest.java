@@ -35,7 +35,6 @@ import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultServerError;
 import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultUnsuccessful;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
-import com.microsoft.identity.client.e2e.tests.IAcquireTokenTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
