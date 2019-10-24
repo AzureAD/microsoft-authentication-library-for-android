@@ -22,13 +22,30 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.network;
 
+import com.microsoft.identity.internal.testutils.labutils.TestConfigurationQuery;
+
+import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.B2C_CONFIG_FILE_PATH;
+import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.B2C_SCOPE;
+
 /**
  * Run all tests in the {@link AcquireTokenNetworkTest} class using B2C
  */
 public class AcquireTokenNetworkB2CTest extends AcquireTokenNetworkTest {
 
-    public AcquireTokenNetworkB2CTest() {
-        this.mAuthorityType = B2C_AUTHORITY_TYPE_STRING;
-        this.mScopes = B2C_SCOPES;
+    @Override
+    public TestConfigurationQuery getTestConfigurationQuery() {
+        final TestConfigurationQuery query = new TestConfigurationQuery();
+        query.b2cProvider = "Local";
+        return query;
+    }
+
+    @Override
+    public String getConfigFilePath() {
+        return B2C_CONFIG_FILE_PATH;
+    }
+
+    @Override
+    public String[] getScopes() {
+        return B2C_SCOPE;
     }
 }

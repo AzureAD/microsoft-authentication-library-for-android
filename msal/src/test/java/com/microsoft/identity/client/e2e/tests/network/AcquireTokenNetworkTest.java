@@ -22,18 +22,17 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.network;
 
-import android.app.Activity;
-
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
+import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
-import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.internal.testutils.labutils.TestConfigurationHelper;
+import com.microsoft.identity.internal.testutils.labutils.TestConfigurationQuery;
 
 import org.junit.After;
 import org.junit.Before;
@@ -59,26 +58,16 @@ import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.suc
  * To run all of these test using B2C see {@link AcquireTokenNetworkB2CTest}
  * To run all of these test using both AAD & B2C, see {@link AcquireTokenNetworkTestSuite}
  */
-public class AcquireTokenNetworkTest {
+public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest implements IAcquireTokenNetworkTest {
 
-    static final String TAG = AcquireTokenNetworkTest.class.getSimpleName();
-
-    static final String[] AAD_SCOPES = {"user.read"};
-    static final String[] B2C_SCOPES = {"https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"};
-
-    static final String AAD_AUTHORITY_TYPE_STRING = "AAD";
-    static final String B2C_AUTHORITY_TYPE_STRING = "B2C";
-
-    // The tests need to passed an authority (could be AAD or B2C)
-    // The tests also need scopes
-    // These are the default authorities and scopes and can be changed if needed
-    String mAuthorityType = B2C_AUTHORITY_TYPE_STRING; //default
-    String[] mScopes = B2C_SCOPES; //default
+    private String mUsername;
 
     @Before
     public void setup() {
-        Logger.info(TAG, "Authority type = " + mAuthorityType);
         AcquireTokenTestHelper.setAccount(null);
+        final TestConfigurationQuery query = getTestConfigurationQuery();
+        mUsername = TestConfigurationHelper.getUpnForTest(query);
+        super.setup();
     }
 
     @After
@@ -88,174 +77,125 @@ public class AcquireTokenNetworkTest {
 
     @Test
     public void testAcquireTokenSuccess() {
-        new AcquireTokenNetworkBaseTest() {
-
-            @Override
-            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity,
-                                      final String username) {
-                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                        .startAuthorizationFromActivity(activity)
-                        .withLoginHint(username)
-                        .withScopes(Arrays.asList(mScopes))
-                        .withCallback(successfulInteractiveCallback())
-                        .build();
+        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(successfulInteractiveCallback())
+                .build();
 
 
-                publicClientApplication.acquireToken(parameters);
-                RoboTestUtils.flushScheduler();
-            }
-
-        }.instantiatePCAthenAcquireToken(mAuthorityType);
+        mApplication.acquireToken(parameters);
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
     public void testAcquireTokenSuccessFollowedBySilentSuccess() {
-        new AcquireTokenNetworkBaseTest() {
+        final String authority = mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
 
-            @Override
-            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity,
-                                      final String username) {
-                final String authority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
+        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(successfulInteractiveCallback())
+                .build();
 
-                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                        .startAuthorizationFromActivity(activity)
-                        .withLoginHint(username)
-                        .withScopes(Arrays.asList(mScopes))
-                        .withCallback(successfulInteractiveCallback())
-                        .build();
+        mApplication.acquireToken(parameters);
+        RoboTestUtils.flushScheduler();
 
-                publicClientApplication.acquireToken(parameters);
-                RoboTestUtils.flushScheduler();
+        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .forAccount(getAccount())
+                .fromAuthority(authority)
+                .withScopes(Arrays.asList(mScopes))
+                .forceRefresh(false)
+                .withCallback(successfulSilentCallback())
+                .build();
 
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .forAccount(getAccount())
-                        .fromAuthority(authority)
-                        .withScopes(Arrays.asList(mScopes))
-                        .forceRefresh(false)
-                        .withCallback(successfulSilentCallback())
-                        .build();
-
-                publicClientApplication.acquireTokenSilentAsync(silentParameters);
-                RoboTestUtils.flushScheduler();
-            }
-
-        }.instantiatePCAthenAcquireToken(mAuthorityType);
+        mApplication.acquireTokenSilentAsync(silentParameters);
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
     public void testAcquireTokenSilentSuccessForceRefresh() {
-        new AcquireTokenNetworkBaseTest() {
+        final String authority = mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
 
-            @Override
-            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity,
-                                      final String username) {
+        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(successfulInteractiveCallback())
+                .build();
 
-                final String authority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
+        mApplication.acquireToken(parameters);
+        RoboTestUtils.flushScheduler();
 
-                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                        .startAuthorizationFromActivity(activity)
-                        .withLoginHint(username)
-                        .withScopes(Arrays.asList(mScopes))
-                        .withCallback(successfulInteractiveCallback())
-                        .build();
+        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .forAccount(getAccount())
+                .fromAuthority(authority)
+                .withScopes(Arrays.asList(mScopes))
+                .forceRefresh(true)
+                .withCallback(successfulSilentCallback())
+                .build();
 
-                publicClientApplication.acquireToken(parameters);
-                RoboTestUtils.flushScheduler();
-
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .forAccount(getAccount())
-                        .fromAuthority(authority)
-                        .withScopes(Arrays.asList(mScopes))
-                        .forceRefresh(true)
-                        .withCallback(successfulSilentCallback())
-                        .build();
-
-                publicClientApplication.acquireTokenSilentAsync(silentParameters);
-                RoboTestUtils.flushScheduler();
-            }
-
-        }.instantiatePCAthenAcquireToken(mAuthorityType);
+        mApplication.acquireTokenSilentAsync(silentParameters);
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
     public void testAcquireTokenSilentFailureEmptyCache() {
-        new AcquireTokenNetworkBaseTest() {
+        final String authority = mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
 
-            @Override
-            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity,
-                                      final String username) {
+        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(successfulInteractiveCallback())
+                .build();
 
-                final String authority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
+        mApplication.acquireToken(parameters);
+        RoboTestUtils.flushScheduler();
 
-                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                        .startAuthorizationFromActivity(activity)
-                        .withLoginHint(username)
-                        .withScopes(Arrays.asList(mScopes))
-                        .withCallback(successfulInteractiveCallback())
-                        .build();
+        // clear the cache now
+        RoboTestUtils.clearCache();
 
-                publicClientApplication.acquireToken(parameters);
-                RoboTestUtils.flushScheduler();
+        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .forAccount(getAccount())
+                .fromAuthority(authority)
+                .withScopes(Arrays.asList(mScopes))
+                .forceRefresh(false)
+                .withCallback(failureSilentCallback(ErrorCodes.NO_ACCOUNT_FOUND_ERROR_CODE))
+                .build();
 
-                // clear the cache now
-                RoboTestUtils.clearCache();
-
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .forAccount(getAccount())
-                        .fromAuthority(authority)
-                        .withScopes(Arrays.asList(mScopes))
-                        .forceRefresh(false)
-                        .withCallback(failureSilentCallback(ErrorCodes.NO_ACCOUNT_FOUND_ERROR_CODE))
-                        .build();
-
-                publicClientApplication.acquireTokenSilentAsync(silentParameters);
-                RoboTestUtils.flushScheduler();
-            }
-
-        }.instantiatePCAthenAcquireToken(mAuthorityType);
+        mApplication.acquireTokenSilentAsync(silentParameters);
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
     public void testAcquireTokenSilentSuccessCacheWithNoAccessToken() {
-        new AcquireTokenNetworkBaseTest() {
+        final String authority = mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
 
-            @Override
-            void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                      final Activity activity,
-                                      final String username) {
+        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(successfulInteractiveCallback())
+                .build();
 
-                final String authority = publicClientApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
+        mApplication.acquireToken(parameters);
+        RoboTestUtils.flushScheduler();
 
-                final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                        .startAuthorizationFromActivity(activity)
-                        .withLoginHint(username)
-                        .withScopes(Arrays.asList(mScopes))
-                        .withCallback(successfulInteractiveCallback())
-                        .build();
+        // remove the access token from cache
+        RoboTestUtils.removeAccessTokenFromCache();
 
-                publicClientApplication.acquireToken(parameters);
-                RoboTestUtils.flushScheduler();
+        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .forAccount(getAccount())
+                .fromAuthority(authority)
+                .withScopes(Arrays.asList(mScopes))
+                .forceRefresh(false)
+                .withCallback(successfulSilentCallback())
+                .build();
 
-                // remove the access token from cache
-                RoboTestUtils.removeAccessTokenFromCache();
-
-                final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                        .forAccount(getAccount())
-                        .fromAuthority(authority)
-                        .withScopes(Arrays.asList(mScopes))
-                        .forceRefresh(false)
-                        .withCallback(successfulSilentCallback())
-                        .build();
-
-                publicClientApplication.acquireTokenSilentAsync(silentParameters);
-                RoboTestUtils.flushScheduler();
-            }
-
-        }.instantiatePCAthenAcquireToken(mAuthorityType);
+        mApplication.acquireTokenSilentAsync(silentParameters);
+        RoboTestUtils.flushScheduler();
     }
-
 }

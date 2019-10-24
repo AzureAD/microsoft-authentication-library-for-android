@@ -22,27 +22,24 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.mocked;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
-import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.RoboTestCacheHelper;
-import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequest;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultServerError;
 import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultUnsuccessful;
-import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
+import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
+import com.microsoft.identity.client.e2e.tests.IAcquireTokenTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
+import com.microsoft.identity.client.e2e.utils.TestConstants;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
@@ -55,17 +52,16 @@ import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
 
+import static com.microsoft.identity.client.e2e.utils.TestConstants.Authorities.AAD_MOCK_AUTHORITY;
 import static org.junit.Assert.fail;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowHttpRequest.class, ShadowMsalUtils.class})
-public class AcquireTokenMockTest extends PublicClientApplicationAbstractTest {
+public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest implements IAcquireTokenTest {
 
-    private static final String[] SCOPES = {"user.read"};
-    private static final String AAD_MOCK_AUTHORITY = "https://test.authority/mock";
-
-    public AcquireTokenMockTest() {
-        mApplicationMode = MULTIPLE_ACCOUNT_APPLICATION_MODE; //default
+    @Override
+    public String[] getScopes() {
+        return TestConstants.Scopes.USER_READ_SCOPE;
     }
 
     @Test
@@ -75,7 +71,7 @@ public class AcquireTokenMockTest extends PublicClientApplicationAbstractTest {
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(username)
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .fromAuthority(AAD_MOCK_AUTHORITY)
                 .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
                 .build();
@@ -106,7 +102,7 @@ public class AcquireTokenMockTest extends PublicClientApplicationAbstractTest {
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .withLoginHint(username)
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .fromAuthority(AAD_MOCK_AUTHORITY)
                 .withCallback(AcquireTokenTestHelper.failureInteractiveCallback(ErrorCodes.ILLEGAL_ARGUMENT_ERROR_CODE))
                 .build();
@@ -123,7 +119,7 @@ public class AcquireTokenMockTest extends PublicClientApplicationAbstractTest {
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(username)
                 .fromAuthority(AAD_MOCK_AUTHORITY)
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .build();
 
         mApplication.acquireToken(parameters);
@@ -138,7 +134,7 @@ public class AcquireTokenMockTest extends PublicClientApplicationAbstractTest {
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(username)
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .fromAuthority(AAD_MOCK_AUTHORITY)
                 .withCallback(AcquireTokenTestHelper.failureInteractiveCallback(ErrorCodes.UNKNOWN_ERROR_CODE))
                 .build();
@@ -155,7 +151,7 @@ public class AcquireTokenMockTest extends PublicClientApplicationAbstractTest {
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(username)
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .fromAuthority(AAD_MOCK_AUTHORITY)
                 .withCallback(AcquireTokenTestHelper.failureInteractiveCallback(ErrorCodes.INTERNAL_SERVER_ERROR_CODE))
                 .build();
@@ -171,7 +167,7 @@ public class AcquireTokenMockTest extends PublicClientApplicationAbstractTest {
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(username)
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .fromAuthority(AAD_MOCK_AUTHORITY)
                 .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
                 .build();
@@ -181,7 +177,7 @@ public class AcquireTokenMockTest extends PublicClientApplicationAbstractTest {
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(AcquireTokenTestHelper.getAccount())
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .fromAuthority(AAD_MOCK_AUTHORITY)
                 .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
@@ -196,7 +192,7 @@ public class AcquireTokenMockTest extends PublicClientApplicationAbstractTest {
         final IAccount account = loadAccountForTest(mApplication);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(true)
                 .forAccount(account)
                 .fromAuthority(AAD_MOCK_AUTHORITY)
@@ -212,7 +208,7 @@ public class AcquireTokenMockTest extends PublicClientApplicationAbstractTest {
         final IAccount account = loadAccountForTest(mApplication);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .fromAuthority(AAD_MOCK_AUTHORITY)
                 .forAccount(account)
@@ -230,7 +226,7 @@ public class AcquireTokenMockTest extends PublicClientApplicationAbstractTest {
         final IAccount account = performGetAccount(mApplication, loginHint);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .forAccount(account)
                 .fromAuthority(AAD_MOCK_AUTHORITY)
@@ -247,7 +243,7 @@ public class AcquireTokenMockTest extends PublicClientApplicationAbstractTest {
         RoboTestUtils.clearCache();
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .forAccount(account)
                 .fromAuthority(AAD_MOCK_AUTHORITY)
@@ -263,7 +259,7 @@ public class AcquireTokenMockTest extends PublicClientApplicationAbstractTest {
         final IAccount account = loadAccountForTest(mApplication);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .forAccount(account)
                 .withCallback(AcquireTokenTestHelper.failureSilentCallback(ErrorCodes.ILLEGAL_ARGUMENT_ERROR_CODE))
@@ -284,7 +280,7 @@ public class AcquireTokenMockTest extends PublicClientApplicationAbstractTest {
         }
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .fromAuthority(AAD_MOCK_AUTHORITY)
                 .withCallback(AcquireTokenTestHelper.failureSilentCallback(noAccountErrorCode))
@@ -314,7 +310,7 @@ public class AcquireTokenMockTest extends PublicClientApplicationAbstractTest {
         final IAccount account = loadAccountForTest(mApplication);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(Arrays.asList(SCOPES))
+                .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .fromAuthority(AAD_MOCK_AUTHORITY)
                 .forAccount(account)
@@ -324,68 +320,7 @@ public class AcquireTokenMockTest extends PublicClientApplicationAbstractTest {
         RoboTestUtils.flushScheduler();
     }
 
-    IAccount performGetAccount(IPublicClientApplication application, final String loginHint) {
-        if (mApplication instanceof IMultipleAccountPublicClientApplication) {
-            return performGetAccountMultiple(application, loginHint);
-        } else {
-            return performGetAccountSingle(application, loginHint);
-        }
-    }
-
-    private IAccount performGetAccountMultiple(IPublicClientApplication application, final String loginHint) {
-        final IAccount[] requestedAccount = {null};
-        final IMultipleAccountPublicClientApplication multipleAcctApp = (IMultipleAccountPublicClientApplication) application;
-        multipleAcctApp.getAccount(
-                loginHint.trim(),
-                new IMultipleAccountPublicClientApplication.GetAccountCallback() {
-                    @Override
-                    public void onTaskCompleted(final IAccount account) {
-                        if (account != null) {
-                            requestedAccount[0] = account;
-                        } else {
-                            fail("No account found matching identifier");
-                        }
-                    }
-
-                    @Override
-                    public void onError(final MsalException exception) {
-                        fail("No account found matching identifier");
-                    }
-                });
-        RoboTestUtils.flushScheduler();
-        return requestedAccount[0];
-    }
-
-    private IAccount performGetAccountSingle(IPublicClientApplication application, final String loginHint) {
-        final IAccount[] requestedAccount = {null};
-        final ISingleAccountPublicClientApplication singleAcctApp = (ISingleAccountPublicClientApplication) application;
-        singleAcctApp.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
-            @Override
-            public void onAccountLoaded(@Nullable IAccount activeAccount) {
-                if (activeAccount != null) {
-                    requestedAccount[0] = activeAccount;
-                } else {
-                    fail("No account found");
-                }
-            }
-
-            @Override
-            public void onAccountChanged(@Nullable IAccount priorAccount, @Nullable IAccount currentAccount) {
-                if (currentAccount != null) {
-                    requestedAccount[0] = currentAccount;
-                } else {
-                    fail("No account found");
-                }
-            }
-
-            @Override
-            public void onError(@NonNull MsalException exception) {
-                fail("No current account found.");
-            }
-        });
-        RoboTestUtils.flushScheduler();
-        return requestedAccount[0];
-    }
+    abstract IAccount performGetAccount(IPublicClientApplication application, final String loginHint);
 
     private ICacheRecord createDataInCache(IPublicClientApplication application) {
         ICacheRecord cacheRecord = null;

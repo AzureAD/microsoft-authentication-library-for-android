@@ -22,10 +22,55 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.mocked;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.IPublicClientApplication;
+import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
+import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
+import com.microsoft.identity.client.exception.MsalException;
+
+import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+import static org.junit.Assert.fail;
+
 public class SingleAccountAcquireTokenMockTest extends AcquireTokenMockTest {
 
-    public SingleAccountAcquireTokenMockTest() {
-        mApplicationMode = SINGLE_ACCOUNT_APPLICATION_MODE;
+    @Override
+    public String getConfigFilePath() {
+        return SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+    }
+
+    @Override
+    IAccount performGetAccount(IPublicClientApplication application, String loginHint) {
+        final IAccount[] requestedAccount = {null};
+        final ISingleAccountPublicClientApplication singleAcctApp = (ISingleAccountPublicClientApplication) application;
+        singleAcctApp.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
+            @Override
+            public void onAccountLoaded(@Nullable IAccount activeAccount) {
+                if (activeAccount != null) {
+                    requestedAccount[0] = activeAccount;
+                } else {
+                    fail("No account found");
+                }
+            }
+
+            @Override
+            public void onAccountChanged(@Nullable IAccount priorAccount, @Nullable IAccount currentAccount) {
+                if (currentAccount != null) {
+                    requestedAccount[0] = currentAccount;
+                } else {
+                    fail("No account found");
+                }
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                fail("No current account found.");
+            }
+        });
+        RoboTestUtils.flushScheduler();
+        return requestedAccount[0];
     }
 
     //TODO: add Single Account specific tests

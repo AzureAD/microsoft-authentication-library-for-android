@@ -29,8 +29,8 @@ import androidx.test.core.app.ApplicationProvider;
 
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
+import com.microsoft.identity.client.exception.MsalException;
 
 import org.junit.Before;
 
@@ -38,19 +38,11 @@ import java.io.File;
 
 import static org.junit.Assert.fail;
 
-public abstract class PublicClientApplicationAbstractTest {
-
-    protected static final String MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH = "src/test/res/raw/aad_test_config.json";
-    protected static final String SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH = "src/test/res/raw/single_account_aad_test_config.json";
-
-    protected static final String SINGLE_ACCOUNT_APPLICATION_MODE = "single";
-    protected static final String MULTIPLE_ACCOUNT_APPLICATION_MODE = "multiple";
+public abstract class PublicClientApplicationAbstractTest implements IPublicClientApplicationTest {
 
     protected Context mContext;
     protected Activity mActivity;
     protected IPublicClientApplication mApplication;
-
-    protected String mApplicationMode = SINGLE_ACCOUNT_APPLICATION_MODE; //Default
 
     @Before
     public void setup() {
@@ -59,7 +51,7 @@ public abstract class PublicClientApplicationAbstractTest {
         setupPCA();
     }
 
-    void setupPCA() {
+    private void setupPCA() {
         final File configFile = new File(getConfigFilePath());
 
         PublicClientApplication.create(mContext, configFile, new PublicClientApplication.ApplicationCreatedListener() {
@@ -75,15 +67,6 @@ public abstract class PublicClientApplicationAbstractTest {
         });
 
         RoboTestUtils.flushScheduler();
-    }
-
-    // can be overridden or more cases can be added here
-    protected String getConfigFilePath() {
-        if (mApplicationMode.equals(MULTIPLE_ACCOUNT_APPLICATION_MODE)) {
-            return MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
-        } else {
-            return SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
-        }
     }
 
 }

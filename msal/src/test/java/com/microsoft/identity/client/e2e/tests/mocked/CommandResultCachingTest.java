@@ -30,6 +30,7 @@ import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequest;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
+import com.microsoft.identity.client.e2e.tests.IAcquireTokenTest;
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.CacheCountAuthenticationCallback;
@@ -46,9 +47,11 @@ import org.robolectric.shadows.ShadowLog;
 
 import java.util.Arrays;
 
+import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowHttpRequest.class, ShadowMsalUtils.class})
-public final class CommandResultCachingTest extends PublicClientApplicationAbstractTest {
+public final class CommandResultCachingTest extends PublicClientApplicationAbstractTest implements IAcquireTokenTest {
 
     private static final String[] SCOPES = {"user.read"};
     private static final String AAD_MOCK_AUTHORITY = "https://test.authority/mock";
@@ -59,10 +62,6 @@ public final class CommandResultCachingTest extends PublicClientApplicationAbstr
         CommandDispatcherHelper.clear();
         ShadowLog.stream = System.out;
 
-    }
-
-    public CommandResultCachingTest() {
-        mApplicationMode = MULTIPLE_ACCOUNT_APPLICATION_MODE;
     }
 
     /**
@@ -242,4 +241,13 @@ public final class CommandResultCachingTest extends PublicClientApplicationAbstr
         RoboTestUtils.flushScheduler();
     }
 
+    @Override
+    public String getConfigFilePath() {
+        return MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+    }
+
+    @Override
+    public String[] getScopes() {
+        return SCOPES;
+    }
 }

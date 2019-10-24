@@ -22,10 +22,45 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.mocked;
 
+import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
+import com.microsoft.identity.client.IPublicClientApplication;
+import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
+import com.microsoft.identity.client.exception.MsalException;
+
+import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+import static org.junit.Assert.fail;
+
 public class MultipleAccountAcquireTokenMockTest extends AcquireTokenMockTest {
 
-    public MultipleAccountAcquireTokenMockTest() {
-        mApplicationMode = MULTIPLE_ACCOUNT_APPLICATION_MODE;
+    @Override
+    public String getConfigFilePath() {
+        return MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+    }
+
+    @Override
+    IAccount performGetAccount(IPublicClientApplication application, String loginHint) {
+        final IAccount[] requestedAccount = {null};
+        final IMultipleAccountPublicClientApplication multipleAcctApp = (IMultipleAccountPublicClientApplication) application;
+        multipleAcctApp.getAccount(
+                loginHint.trim(),
+                new IMultipleAccountPublicClientApplication.GetAccountCallback() {
+                    @Override
+                    public void onTaskCompleted(final IAccount account) {
+                        if (account != null) {
+                            requestedAccount[0] = account;
+                        } else {
+                            fail("No account found matching identifier");
+                        }
+                    }
+
+                    @Override
+                    public void onError(final MsalException exception) {
+                        fail("No account found matching identifier");
+                    }
+                });
+        RoboTestUtils.flushScheduler();
+        return requestedAccount[0];
     }
 
     //TODO: add Multiple Account specific tests
