@@ -204,13 +204,9 @@ public class MainActivity extends AppCompatActivity {
 
             final KeyStore.Entry entry = keyStore.getEntry(KEYSTORE_ALIAS, null);
             final PrivateKey privateKey = ((KeyStore.PrivateKeyEntry) entry).getPrivateKey();
-            //final PublicKey publicKey = keyStore.getCertificate(KEYSTORE_ALIAS).getPublicKey();
-            //final KeyPair restoredKeyPair = new KeyPair(publicKey, privateKey);
-            //final RSAKey key = getRsaKey(restoredKeyPair);
 
             final RSASSASigner signer = new RSASSASigner(privateKey);
-            //signer.getJCAContext().setProvider(keyStore.getProvider());
-            //
+
             final SignedJWT signedJWT = new SignedJWT(
                     new JWSHeader.Builder(JWSAlgorithm.RS256)
                             //.keyID(key.getKeyID())
@@ -268,7 +264,7 @@ public class MainActivity extends AppCompatActivity {
                         // Check that the generated thumbprint size is 2048, if it is not, retry...
                         final int length = RSAKeyUtils.keyBitLength(kp.getPrivate());
 
-                        if (length >= 2048) {
+                        if (length >= 2048 || length < 0) {
                             break;
                         }
                     }
