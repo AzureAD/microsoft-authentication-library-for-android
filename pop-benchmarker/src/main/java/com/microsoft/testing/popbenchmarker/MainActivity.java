@@ -25,6 +25,7 @@ package com.microsoft.testing.popbenchmarker;
 import android.os.Build;
 import android.os.Bundle;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -45,6 +46,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Semaphore;
 
 import static com.microsoft.testing.popbenchmarker.PopUtils.ANDROID_KEYSTORE;
 import static com.microsoft.testing.popbenchmarker.PopUtils.KEYSTORE_ALIAS;
@@ -81,14 +83,35 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        int iterations = 100;
+        setText(mTv_Manufacturer, Build.MANUFACTURER);
+        setText(mTv_Model, Build.MODEL);
+        setText(mTv_OsVer, Build.VERSION.RELEASE);
+        setText(mTv_ApiLevel, Build.VERSION.SDK_INT);
 
-        while (iterations > 1) {
-            populateViews();
-            iterations--;
-        }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final int iterations = 100;
+                int thisIteration = iterations;
 
-        computeAverages();
+                while (thisIteration > 1) {
+                    showToast("Iteration: " + thisIteration + " of: " + iterations);
+                    populateViews();
+                    thisIteration--;
+                }
+
+                computeAverages();
+            }
+        }).start();
+    }
+
+    private void showToast(@NonNull final String msg) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void computeAverages() {
@@ -121,12 +144,14 @@ public class MainActivity extends AppCompatActivity {
         mTv_HardwareIsolated = findViewById(R.id.disp_hardware_iso);
     }
 
-    private void populateViews() {
-        setText(mTv_Manufacturer, Build.MANUFACTURER);
-        setText(mTv_Model, Build.MODEL);
-        setText(mTv_OsVer, Build.VERSION.RELEASE);
-        setText(mTv_ApiLevel, Build.VERSION.SDK_INT);
+    private static final Semaphore sLOCK = new Semaphore(1);
 
+    private void populateViews() {
+        try {
+            sLOCK.acquire();
+        } catch (InterruptedException e) {
+            crash(e);
+        }
         final LinkedList<Runnable> tasks = new LinkedList<>();
         tasks.add(new Runnable() {
             @Override
@@ -134,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
                 getKeyLoadTiming(new AsyncResultCallback<String>() {
                     @Override
                     public void onDone(String result) {
-                        setText(mTv_KeyLoad, result);
+                        //setText(mTv_KeyLoad, result);
                         tasks.remove().run();
                     }
                 });
@@ -147,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
                 getSigningTiming(new AsyncResultCallback<String>() {
                     @Override
                     public void onDone(String result) {
-                        setText(mTv_Signing, result);
+                        //setText(mTv_Signing, result);
                         tasks.remove().run();
                     }
                 });
@@ -162,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onDone(String result) {
                         setText(mTv_HardwareIsolated, result);
                         // Done!
+                        sLOCK.release();
                     }
                 });
             }
@@ -170,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
         getKeyGenerationTiming(new AsyncResultCallback<String>() {
             @Override
             public void onDone(String result) {
-                setText(mTv_KeyGen, result);
+                //setText(mTv_KeyGen, result);
                 tasks.remove().run();
             }
         });
@@ -287,7 +313,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void setText(@NonNull final TextView textView,
                          @NonNull final Object result) {
-        textView.setText(result.toString());
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                textView.setText(result.toString());
+            }
+        });
     }
 
     interface AsyncResultCallback<T> {
