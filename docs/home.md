@@ -40,3 +40,4 @@ The following component diagram illustrates the components of the library and th
 - [Token Cache](tokencache.md)
 - [Logging](logging.md)
 - [Telemetry](telemetry.md)
+- [Unit and Integration Tests with Robolectric](testing.md)
