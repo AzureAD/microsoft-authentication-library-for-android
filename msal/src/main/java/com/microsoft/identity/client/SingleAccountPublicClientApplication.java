@@ -36,6 +36,7 @@ import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.adal.internal.util.JsonExtensions;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
@@ -365,7 +366,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             return null;
         }
 
-        final List<ICacheRecord> cacheRecordList = MsalBrokerResultAdapter.getICacheRecordListFromJsonString(currentAccountJsonString);
+        final List<ICacheRecord> cacheRecordList = JsonExtensions.getICacheRecordListFromJsonString(currentAccountJsonString);
         return getAccountFromICacheRecordList(cacheRecordList);
     }
 
@@ -384,7 +385,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             return;
         }
 
-        String currentAccountJsonString = MsalBrokerResultAdapter.getJsonStringFromICacheRecordList(cacheRecords);
+        String currentAccountJsonString = JsonExtensions.getJsonStringFromICacheRecordList(cacheRecords);
         sharedPreferencesFileManager.putString(CURRENT_ACCOUNT_SHARED_PREFERENCE_KEY, currentAccountJsonString);
     }
 
