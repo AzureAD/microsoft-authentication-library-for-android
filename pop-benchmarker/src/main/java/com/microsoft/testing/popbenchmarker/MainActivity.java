@@ -24,6 +24,8 @@ package com.microsoft.testing.popbenchmarker;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private List<Long> mKeyGenerationTimings = new ArrayList<>();
     private List<Long> mKeyLoadTimings = new ArrayList<>();
     private List<Long> mSigningTimings = new ArrayList<>();
+    //private boolean mAlreadyExecuted = false;
 
     private TextView
             mTv_Manufacturer,
@@ -72,35 +75,54 @@ public class MainActivity extends AppCompatActivity {
             mTv_Signing,
             mTv_HardwareIsolated;
 
+    private Button mBtn_Restart;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initializeViews();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
         setText(mTv_Manufacturer, Build.MANUFACTURER);
         setText(mTv_Model, Build.MODEL);
         setText(mTv_OsVer, Build.VERSION.RELEASE);
         setText(mTv_ApiLevel, Build.VERSION.SDK_INT);
 
+        executeBenchmarks();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    private void executeBenchmarks() {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                final int iterations = 100;
+                final int iterations = 20;
                 int thisIteration = iterations;
 
                 while (thisIteration > 1) {
-                    showToast("Iteration: " + thisIteration + " of: " + iterations);
+                    final int finalThisIteration = thisIteration;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mBtn_Restart.setText("Iteration: " + finalThisIteration + " of: " + iterations);
+                        }
+                    });
                     populateViews();
                     thisIteration--;
                 }
 
                 computeAverages();
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mBtn_Restart.setText("Restart");
+                        mBtn_Restart.setEnabled(true);
+                    }
+                });
             }
         }).start();
     }
@@ -142,6 +164,32 @@ public class MainActivity extends AppCompatActivity {
         mTv_KeyLoad = findViewById(R.id.disp_key_load);
         mTv_Signing = findViewById(R.id.disp_signing);
         mTv_HardwareIsolated = findViewById(R.id.disp_hardware_iso);
+        mBtn_Restart = findViewById(R.id.btn_restart);
+        mBtn_Restart.setEnabled(false);
+        mBtn_Restart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (v.isEnabled()) {
+                    v.setEnabled(false);
+
+                    restartBenchmarks();
+                }
+            }
+        });
+    }
+
+    private void restartBenchmarks() {
+        mKeyGenerationTimings.clear();
+        mKeyLoadTimings.clear();
+        mSigningTimings.clear();
+
+        final String calculating = "Calculating...";
+
+        setText(mTv_KeyGen, calculating);
+        setText(mTv_KeyLoad, calculating);
+        setText(mTv_Signing, calculating);
+
+        executeBenchmarks();
     }
 
     private static final Semaphore sLOCK = new Semaphore(1);
@@ -159,7 +207,6 @@ public class MainActivity extends AppCompatActivity {
                 getKeyLoadTiming(new AsyncResultCallback<String>() {
                     @Override
                     public void onDone(String result) {
-                        //setText(mTv_KeyLoad, result);
                         tasks.remove().run();
                     }
                 });
@@ -172,7 +219,6 @@ public class MainActivity extends AppCompatActivity {
                 getSigningTiming(new AsyncResultCallback<String>() {
                     @Override
                     public void onDone(String result) {
-                        //setText(mTv_Signing, result);
                         tasks.remove().run();
                     }
                 });
