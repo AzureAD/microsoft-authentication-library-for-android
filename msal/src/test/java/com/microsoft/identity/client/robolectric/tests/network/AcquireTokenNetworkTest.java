@@ -33,55 +33,51 @@ import com.microsoft.identity.client.robolectric.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.robolectric.utils.ErrorCodes;
 import com.microsoft.identity.client.robolectric.utils.RoboTestUtils;
+import com.microsoft.identity.common.internal.logging.Logger;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.ParameterizedRobolectricTestRunner;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
-import java.util.Collection;
 
 import static com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper.failureSilentCallback;
 import static com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper.getAccount;
 import static com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper.successfulInteractiveCallback;
 import static com.microsoft.identity.client.robolectric.utils.AcquireTokenTestHelper.successfulSilentCallback;
 
-@RunWith(ParameterizedRobolectricTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowMsalUtils.class})
 /**
  * This class contains PublicClientApplication acquire token tests that hit the network and
- * try to acquire a token. These test are parameterized and cannot be run individually,
- * the entire class must be run together for them to work.
+ * try to acquire a token. These tests will operate by being passed an authority and scopes parameters.
+ * These parameters will change based on whether we want run test that use AAD or B2C.
+ * To run all of these test using AAD see {@link AcquireTokenNetworkAADTest}
+ * To run all of these test using B2C see {@link AcquireTokenNetworkB2CTest}
+ * To run all of these test using both AAD & B2C, see {@link AcquireTokenNetworkTestSuite}
  */
-public final class AcquireTokenNetworkTest {
+public class AcquireTokenNetworkTest {
 
-    private static final String[] AAD_SCOPES = {"user.read"};
-    private static final String[] B2C_SCOPES = {"https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"};
+    static final String TAG = AcquireTokenNetworkTest.class.getSimpleName();
 
-    private static final String AAD_AUTHORITY_TYPE_STRING = "AAD";
-    private static final String B2C_AUTHORITY_TYPE_STRING = "B2C";
+    static final String[] AAD_SCOPES = {"user.read"};
+    static final String[] B2C_SCOPES = {"https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"};
 
-    private String mAuthorityType;
-    private String[] mScopes;
+    static final String AAD_AUTHORITY_TYPE_STRING = "AAD";
+    static final String B2C_AUTHORITY_TYPE_STRING = "B2C";
 
-    public AcquireTokenNetworkTest(String authorityType, String[] scopes) {
-        mAuthorityType = authorityType;
-        mScopes = scopes;
-    }
-
-    @ParameterizedRobolectricTestRunner.Parameters(name = "Authority Type = {0}")
-    public static Collection data() {
-        return Arrays.asList(new Object[][]{
-                {AAD_AUTHORITY_TYPE_STRING, AAD_SCOPES},
-                {B2C_AUTHORITY_TYPE_STRING, B2C_SCOPES}
-        });
-    }
+    // The tests need to passed an authority (could be AAD or B2C)
+    // The tests also need scopes
+    // These are the default authorities and scopes and can be changed if needed
+    String mAuthorityType = B2C_AUTHORITY_TYPE_STRING; //default
+    String[] mScopes = B2C_SCOPES; //default
 
     @Before
     public void setup() {
+        Logger.info(TAG, "Authority type = " + mAuthorityType);
         AcquireTokenTestHelper.setAccount(null);
     }
 
@@ -224,7 +220,7 @@ public final class AcquireTokenNetworkTest {
     }
 
     @Test
-    public void testAcquireTokenSilentSuccessEmptyCache() {
+    public void testAcquireTokenSilentSuccessCacheWithNoAccessToken() {
         new AcquireTokenNetworkBaseTest() {
 
             @Override
