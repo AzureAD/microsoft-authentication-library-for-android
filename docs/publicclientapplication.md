@@ -4,10 +4,12 @@
 
 The primary interface for using the Microsoft Authentication Library (MSAL) is the PublicClientApplication.  The name comes directly from the OAuth2 specification and refers to clients that cannot securely keep secrets.  All mobile applications are considered public clients from an oAuth perspective.  
 
-MSAL Android divides public client application into 2 sub-types:
+MSAL Android divides public client applications into 2 sub-types:
 
 - Single Account Public Client Application - Which is intended to be used by applications that only expect one account to be in use at a time
+  - For example: Line of business applications
 - Multiple Account Public Client Applications - Which is intended to be used by applications that expect there user to have multiple accounts and to want to use multiple accounts at the same time.
+  - For example: Email clients
 
 ## Factory Methods
 
@@ -36,10 +38,12 @@ PublicClientApplication includes a number of static methods for constructing dif
 - [CurrentAccountCallback](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/1763b1cc08b503a99da0875c8c6bf20f5b940f79/msal/src/main/java/com/microsoft/identity/client/ISingleAccountPublicClientApplication.java)
 - [SignOutCallback](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/1763b1cc08b503a99da0875c8c6bf20f5b940f79/msal/src/main/java/com/microsoft/identity/client/ISingleAccountPublicClientApplication.java)
 
-## Interaction Diagram
+## Classes
 
-> PENDING
+- [PublicClientApplication](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/msal/src/main/java/com/microsoft/identity/client/PublicClientApplication.java)
+- [SingleAccountPublicClientApplication](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/msal/src/main/java/com/microsoft/identity/client/SingleAccountPublicClientApplication.java)
+- [MultipleAccountPublicClientApplication](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/msal/src/main/java/com/microsoft/identity/client/MultipleAccountPublicClientApplication.java)
+- 
 
-## Links to Code
 
-> PENDING
+
