@@ -64,14 +64,14 @@ public class MainActivity extends AppCompatActivity {
     private List<Long> mSigningTimings = new ArrayList<>();
 
     private TextView
-            mTv_Manufacturer,
-            mTv_Model,
-            mTv_OsVer,
-            mTv_ApiLevel,
-            mTv_KeyGen,
-            mTv_KeyLoad,
-            mTv_Signing,
-            mTv_HardwareIsolated;
+            mTvManufacturer,
+            mTvModel,
+            mTvOsVer,
+            mTvApiLevel,
+            mTvKeyGen,
+            mTvKeyLoad,
+            mTvSigning,
+            mTvHardwareIsolated;
 
     private Button mBtn_Restart;
 
@@ -80,10 +80,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initializeViews();
-        setText(mTv_Manufacturer, Build.MANUFACTURER);
-        setText(mTv_Model, Build.MODEL);
-        setText(mTv_OsVer, Build.VERSION.RELEASE);
-        setText(mTv_ApiLevel, Build.VERSION.SDK_INT);
+        setText(mTvManufacturer, Build.MANUFACTURER);
+        setText(mTvModel, Build.MODEL);
+        setText(mTvOsVer, Build.VERSION.RELEASE);
+        setText(mTvApiLevel, Build.VERSION.SDK_INT);
 
         executeBenchmarks();
     }
@@ -129,9 +129,9 @@ public class MainActivity extends AppCompatActivity {
         final long avgKeyGen = computeAvg(mKeyGenerationTimings);
         final long avgKeyLoad = computeAvg(mKeyLoadTimings);
         final long avgSign = computeAvg(mSigningTimings);
-        setText(mTv_KeyGen, String.valueOf(avgKeyGen));
-        setText(mTv_KeyLoad, String.valueOf(avgKeyLoad));
-        setText(mTv_Signing, String.valueOf(avgSign));
+        setText(mTvKeyGen, String.valueOf(avgKeyGen));
+        setText(mTvKeyLoad, String.valueOf(avgKeyLoad));
+        setText(mTvSigning, String.valueOf(avgSign));
     }
 
     private long computeAvg(List<Long> list) {
@@ -145,14 +145,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeViews() {
-        mTv_Manufacturer = findViewById(R.id.disp_manf);
-        mTv_Model = findViewById(R.id.disp_model);
-        mTv_OsVer = findViewById(R.id.disp_osver);
-        mTv_ApiLevel = findViewById(R.id.disp_api_lvl);
-        mTv_KeyGen = findViewById(R.id.disp_key_gen);
-        mTv_KeyLoad = findViewById(R.id.disp_key_load);
-        mTv_Signing = findViewById(R.id.disp_signing);
-        mTv_HardwareIsolated = findViewById(R.id.disp_hardware_iso);
+        mTvManufacturer = findViewById(R.id.disp_manf);
+        mTvModel = findViewById(R.id.disp_model);
+        mTvOsVer = findViewById(R.id.disp_osver);
+        mTvApiLevel = findViewById(R.id.disp_api_lvl);
+        mTvKeyGen = findViewById(R.id.disp_key_gen);
+        mTvKeyLoad = findViewById(R.id.disp_key_load);
+        mTvSigning = findViewById(R.id.disp_signing);
+        mTvHardwareIsolated = findViewById(R.id.disp_hardware_iso);
         mBtn_Restart = findViewById(R.id.btn_restart);
         mBtn_Restart.setEnabled(false);
         mBtn_Restart.setOnClickListener(new View.OnClickListener() {
@@ -174,9 +174,9 @@ public class MainActivity extends AppCompatActivity {
 
         final String calculating = "Calculating...";
 
-        setText(mTv_KeyGen, calculating);
-        setText(mTv_KeyLoad, calculating);
-        setText(mTv_Signing, calculating);
+        setText(mTvKeyGen, calculating);
+        setText(mTvKeyLoad, calculating);
+        setText(mTvSigning, calculating);
 
         executeBenchmarks();
     }
@@ -220,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
                 getIsHardwareIsolated(new AsyncResultCallback<String>() {
                     @Override
                     public void onDone(String result) {
-                        setText(mTv_HardwareIsolated, result);
+                        setText(mTvHardwareIsolated, result);
                         // Done!
                         sLOCK.release();
                     }
