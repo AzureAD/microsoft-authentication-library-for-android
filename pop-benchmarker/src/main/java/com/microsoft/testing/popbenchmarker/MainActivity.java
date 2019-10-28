@@ -102,12 +102,12 @@ public class MainActivity extends AppCompatActivity {
                 final int iterations = 20;
                 int thisIteration = iterations;
 
-                while (thisIteration > 1) {
+                while (thisIteration >= 1) {
                     final int finalThisIteration = thisIteration;
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            mBtn_Restart.setText("Iteration: " + finalThisIteration + " of: " + iterations);
+                            mBtn_Restart.setText("Remaining iterations: " + finalThisIteration + " of: " + iterations);
                         }
                     });
                     populateViews();
