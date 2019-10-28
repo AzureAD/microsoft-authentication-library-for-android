@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
     private ListView mListView;
     private PackageManager mPackageManager;
-    private List<ApplicationInfo> mPackages;
+    private List<ApplicationInfo> mApplications;
 
     @Override
     @SuppressLint("PackageManagerGetSignatures")
@@ -60,8 +60,8 @@ public class MainActivity extends AppCompatActivity {
         mListView = findViewById(R.id.lv_apps);
 
         mPackageManager = getPackageManager();
-        mPackages = mPackageManager.getInstalledApplications(PackageManager.GET_META_DATA);
-        Collections.sort(mPackages, new Comparator<ApplicationInfo>() {
+        mApplications = mPackageManager.getInstalledApplications(PackageManager.GET_META_DATA);
+        Collections.sort(mApplications, new Comparator<ApplicationInfo>() {
             @Override
             public int compare(@NonNull final ApplicationInfo info1,
                                @NonNull final ApplicationInfo info2) {
@@ -69,9 +69,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        final List<String> packageNames = new ArrayList<>(mPackages.size());
+        final List<String> packageNames = new ArrayList<>(mApplications.size());
 
-        for (final ApplicationInfo applicationInfo : mPackages) {
+        for (final ApplicationInfo applicationInfo : mApplications) {
             packageNames.add(applicationInfo.packageName);
         }
 
@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                final ApplicationInfo clickedAppInfo = mPackages.get(position);
+                final ApplicationInfo clickedAppInfo = mApplications.get(position);
                 try {
                     final PackageInfo packageInfo = mPackageManager.getPackageInfo(
                             clickedAppInfo.packageName,
