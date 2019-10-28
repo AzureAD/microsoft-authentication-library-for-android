@@ -21,7 +21,7 @@ Where MSAL depends on common for definition of abstractions and of the identity 
 
 The following component diagram illustrates the components of the library and the dependencies between them.  Abstract components are marked as with the "abstract" annotation.  Each component and group of components will be covered in more detail in separate documents linked below.
 
-![MSAL Component Diagram](./images/MSAL_Components.png)
+![MSAL Component Diagram](https://www.lucidchart.com/publicSegments/view/88a1bca3-18ab-4eac-aa4f-ba85d4d214f6/image.png)
 
 ## Component Detailed Documentation
 
