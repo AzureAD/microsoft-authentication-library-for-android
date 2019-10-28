@@ -54,7 +54,6 @@ The command dispatcher is responsible for:
 
 ![Command dispatcher class diagram](https://www.lucidchart.com/publicSegments/view/5895956d-b887-42dc-8603-26aff8f59489/image.png)
 
-
 ## Interaction Diagram
 
 Below is an example of the public client application making a silent token request to the command dispatcher.

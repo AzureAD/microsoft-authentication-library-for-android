@@ -15,11 +15,11 @@ MSAL consists of 2 Android Libraries/Packages:
 - com.microsoft.identity.common
   - github: [https://github.com/AzureAD/microsoft-authentication-library-common-for-android](https://github.com/AzureAD/microsoft-authentication-library-common-for-android)
 
-Where MSAL depends on common for definition of abstractions and implementation identity provider specific implementation.  
+Where MSAL depends on common for definition of abstractions and of the identity provider specific implementation.
 
 ## Component Overview Diagram
 
-The following component diagram illustrates the components of the library and the dependencies between them.  Abstract components are marked as with the "abstract" annotation.  Each components and groups of components will be covered in more details in separate documents linked to below.
+The following component diagram illustrates the components of the library and the dependencies between them.  Abstract components are marked as with the "abstract" annotation.  Each component and group of components will be covered in more detail in separate documents linked below.
 
 ![MSAL Component Diagram](./images/MSAL_Components.png)
 
