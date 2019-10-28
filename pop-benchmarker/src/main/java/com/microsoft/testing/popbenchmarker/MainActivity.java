@@ -27,7 +27,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -63,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
     private List<Long> mKeyGenerationTimings = new ArrayList<>();
     private List<Long> mKeyLoadTimings = new ArrayList<>();
     private List<Long> mSigningTimings = new ArrayList<>();
-    //private boolean mAlreadyExecuted = false;
 
     private TextView
             mTv_Manufacturer,
@@ -127,15 +125,6 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void showToast(@NonNull final String msg) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
     private void computeAverages() {
         final long avgKeyGen = computeAvg(mKeyGenerationTimings);
         final long avgKeyLoad = computeAvg(mKeyLoadTimings);
@@ -148,8 +137,8 @@ public class MainActivity extends AppCompatActivity {
     private long computeAvg(List<Long> list) {
         long sum = 0L;
 
-        for (final Long timing : list) {
-            sum += timing;
+        for (final Long value : list) {
+            sum += value;
         }
 
         return sum / list.size();
@@ -242,7 +231,6 @@ public class MainActivity extends AppCompatActivity {
         getKeyGenerationTiming(new AsyncResultCallback<String>() {
             @Override
             public void onDone(String result) {
-                //setText(mTv_KeyGen, result);
                 tasks.remove().run();
             }
         });
@@ -298,7 +286,7 @@ public class MainActivity extends AppCompatActivity {
                     // maXlS9DhN0nUk_hGI3amEjkKd0BWYCB8vfUbUv0XGjQip78AI4z1PrFRNidm7
                     // -jPDm5Iq0SZnjKjCNS5Q15fokXZc8u0A
                     final String signed = signedJWT.serialize();
-                    //
+
                     return null;
                 }
             });
