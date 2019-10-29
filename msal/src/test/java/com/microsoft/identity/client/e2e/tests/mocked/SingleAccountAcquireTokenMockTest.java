@@ -58,7 +58,7 @@ public class SingleAccountAcquireTokenMockTest extends AcquireTokenMockTest {
             @Override
             public void onAccountChanged(@Nullable IAccount priorAccount, @Nullable IAccount currentAccount) {
                 if (currentAccount != null) {
-                    requestedAccount[0] = currentAccount;
+                    fail("Account was not expected to change");
                 } else {
                     fail("No account found");
                 }
