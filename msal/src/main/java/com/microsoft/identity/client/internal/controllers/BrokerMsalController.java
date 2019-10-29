@@ -186,18 +186,17 @@ public class BrokerMsalController extends BaseController {
         U result = null;
         for (int ii = 0; ii < strategies.size(); ii++) {
             final BrokerBaseStrategy strategy = strategies.get(ii);
-
-            if (!strategy.hello(parameters)) {
-                continue;
-            }
-
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + strategyTask.getMethodName(),
-                    "Executing with strategy: "
-                            + strategy.getClass().getSimpleName()
-            );
-
             try {
+                if (!strategy.hello(parameters)) {
+                    continue;
+                }
+
+                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                        TAG + strategyTask.getMethodName(),
+                        "Executing with strategy: "
+                                + strategy.getClass().getSimpleName()
+                );
+
                 result = strategyTask.perform(strategy, parameters);
                 if (result != null) {
                     break;
