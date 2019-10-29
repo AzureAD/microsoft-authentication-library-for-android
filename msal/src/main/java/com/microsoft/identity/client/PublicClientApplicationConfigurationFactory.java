@@ -24,6 +24,7 @@
 package com.microsoft.identity.client;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -151,6 +152,9 @@ public class PublicClientApplicationConfigurationFactory {
         }
 
         final String config = new String(buffer);
+
+        Log.w(TAG, "ConfigFile loaded: " + config);
+
         final Gson gson = getGsonForLoadingConfiguration();
 
         return gson.fromJson(config, PublicClientApplicationConfiguration.class);

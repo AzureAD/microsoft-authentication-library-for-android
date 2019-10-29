@@ -24,6 +24,7 @@ package com.microsoft.identity.client;
 
 import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -75,11 +76,19 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     private SharedPreferencesFileManager sharedPreferencesFileManager;
 
+
+    void logToLogcat(String message){
+        Log.w(TAG, "[thread-id:" + Thread.currentThread().getId() + "] - " + message);
+    }
+
     protected SingleAccountPublicClientApplication(@NonNull PublicClientApplicationConfiguration config,
                                                    @Nullable final String clientId,
                                                    @Nullable final String authority,
                                                    @NonNull final Boolean isSharedDevice) {
         super(config, clientId, authority);
+
+        logToLogcat("SingleAccountPublicClientApplication initialized. isSharedDevice: " + mIsSharedDevice);
+
         initializeSharedPreferenceFileManager(config.getAppContext());
         mIsSharedDevice = isSharedDevice;
     }
@@ -96,12 +105,16 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         final String methodName = ":getCurrentAccount";
         final PublicClientApplicationConfiguration configuration = getConfiguration();
 
+        logToLogcat(":getCurrentAccountAsync");
+
 
         try {
             if (mIsSharedDevice) {
                 getCurrentAccountFromSharedDevice(callback, configuration);
                 return;
             }
+
+            logToLogcat("Get current account async in non-shared mode");
 
             com.microsoft.identity.common.internal.logging.Logger.verbose(
                     TAG + methodName,
@@ -149,6 +162,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public ICurrentAccountResult getCurrentAccount() throws InterruptedException, MsalException {
+        logToLogcat(":getCurrentAccount");
+
         throwOnMainThread("getCurrentAccount");
 
         final ResultFuture<AsyncResult<CurrentAccountResult>> future = new ResultFuture<>();
@@ -184,6 +199,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     private void getCurrentAccountFromSharedDevice(@NonNull final CurrentAccountCallback callback,
                                                    @NonNull final PublicClientApplicationConfiguration configuration) {
 
+        logToLogcat(":getCurrentAccountFromSharedDevice");
+
         //TODO: migrate to Command.
         new BrokerMsalController().getCurrentAccount(
                 configuration,
@@ -191,26 +208,57 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 new TaskCompletedCallbackWithError<List<ICacheRecord>, MsalException>() {
                     @Override
                     public void onTaskCompleted(List<ICacheRecord> cacheRecords) {
+                        String currentAccountJsonString = cacheRecords == null ? "null" : MsalBrokerResultAdapter.getJsonStringFromICacheRecordList(cacheRecords);
+                        logToLogcat("Obtained cacheRecords from Broker: " + currentAccountJsonString);
+
                         checkCurrentAccountNotifyCallback(callback, cacheRecords);
                     }
 
                     @Override
                     public void onError(MsalException exception) {
+                        logToLogcat("Failed to get current account async in non-shared mode. Exception: " + exception.getMessage());
                         callback.onError(exception);
                     }
                 });
     }
 
+    private String printMultiTenantAccount(MultiTenantAccount account){
+        if (account == null){
+            return null;
+        }
+
+        StringBuilder builder = new StringBuilder();
+
+        builder.append("\tUsername: " + account.getUsername() + "\n");
+        builder.append("\tId: " + account.getId() + "\n");
+        builder.append("\tTenantId: " + account.getTenantId() + "\n");
+        builder.append("\tHomeAccountId: " + account.getHomeAccountId() + "\n");
+        builder.append("\tEnvironment: " + account.getEnvironment() + "\n");
+        builder.append("\tTenantProfiles: " + account.getTenantProfiles()+ "\n");
+        builder.append("\tClaims: " + account.getClaims() + "\n");
+
+        return builder.toString();
+    }
+
+
     private void checkCurrentAccountNotifyCallback(@NonNull final CurrentAccountCallback callback,
                                                    @Nullable final List<ICacheRecord> newAccountRecords) {
+        logToLogcat(":checkCurrentAccountNotifyCallback");
+
         MultiTenantAccount localAccount = getPersistedCurrentAccount();
         MultiTenantAccount newAccount = newAccountRecords == null ? null : getAccountFromICacheRecordList(newAccountRecords);
 
+        logToLogcat("Successfully obtained the current account." + "\n" +
+                "saved account:\n" + printMultiTenantAccount(localAccount) + "\n" +
+                "account obtained from broker:\n" + printMultiTenantAccount(newAccount) + "\n"
+        );
+
         if (didCurrentAccountChange(newAccount)) {
+            logToLogcat("HomeAccountId are different. Trigger OnAccountChanged.");
             callback.onAccountChanged(localAccount, newAccount);
         }
 
-        persistCurrentAccount(newAccountRecords);
+        persistCurrentAccount(newAccountRecords, ":checkCurrentAccountNotifyCallback");
         callback.onAccountLoaded(newAccount);
     }
 
@@ -219,8 +267,11 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                        @NonNull final String loginHint,
                        @NonNull final String[] scopes,
                        @NonNull final AuthenticationCallback callback) {
+        logToLogcat(":signIn");
+
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount != null) {
+            logToLogcat("Persisted account is not null. Can't invoke signIn.");
             callback.onError(new MsalClientException(MsalClientException.INVALID_PARAMETER));
             return;
         }
@@ -247,18 +298,30 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
             @Override
             public void onSuccess(@NonNull final ILocalAuthenticationResult localAuthenticationResult) {
+                logToLogcat(":getLocalAuthenticationCallback:onSuccess");
+
+
                 //Get Local Authentication Result then check if the current account is set or not
+                MultiTenantAccount localAccount = getPersistedCurrentAccount();
                 MultiTenantAccount newAccount = getAccountFromICacheRecordList(localAuthenticationResult.getCacheRecordWithTenantProfileData());
 
+                logToLogcat("Successfully acquired token." + "\n" +
+                        "saved account:\n" + printMultiTenantAccount(localAccount) + "\n" +
+                        "account obtained from broker:\n" + printMultiTenantAccount(newAccount) + "\n"
+                );
+
+
                 if (didCurrentAccountChange(newAccount)) {
+                    logToLogcat("persisted account and the newly obtained account is different.");
                     if (getPersistedCurrentAccount() != null) {
+                        logToLogcat("persisted account is not null. This is unexpected.");
                         authenticationCallback.onError(new MsalClientException(MsalClientException.CURRENT_ACCOUNT_MISMATCH));
                         return;
                     } else {
-                        persistCurrentAccount(localAuthenticationResult.getCacheRecordWithTenantProfileData());
+                        persistCurrentAccount(localAuthenticationResult.getCacheRecordWithTenantProfileData(), ":getLocalAuthenticationCallback.onSuccess()");
                     }
                 } else {
-                    persistCurrentAccount(localAuthenticationResult.getCacheRecordWithTenantProfileData());
+                    persistCurrentAccount(localAuthenticationResult.getCacheRecordWithTenantProfileData(), ":getLocalAuthenticationCallback.onSuccess()");
                 }
 
                 postAuthResult(localAuthenticationResult, tokenParameters, authenticationCallback);
@@ -267,6 +330,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
             @Override
             public void onError(BaseException exception) {
+                logToLogcat("Failed to acquire token. Exception: " + exception.getMessage());
+
                 MsalException msalException = MsalExceptionAdapter.msalExceptionFromBaseException(exception);
                 authenticationCallback.onError(msalException);
             }
@@ -293,10 +358,12 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public void signOut(@NonNull final SignOutCallback callback) {
+        logToLogcat(":signOut");
         final PublicClientApplicationConfiguration configuration = getConfiguration();
 
         final MultiTenantAccount persistedCurrentAccount = getPersistedCurrentAccount();
         if (persistedCurrentAccount == null) {
+            logToLogcat("Persisted account is null. Can't invoke signOut.");
             callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
             return;
         }
@@ -328,7 +395,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
                         @Override
                         public void onTaskCompleted(Boolean result) {
-                            persistCurrentAccount(null);
+                            persistCurrentAccount(null, ":signOut");
                             callback.onSignOut();
                         }
                     }
@@ -342,6 +409,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public boolean signOut() throws MsalException, InterruptedException {
+        logToLogcat(":signOut");
 
         throwOnMainThread("signOut");
 
@@ -370,6 +438,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     private void removeAccountFromSharedDevice(@NonNull final SignOutCallback callback,
                                                @NonNull final PublicClientApplicationConfiguration configuration) {
+        logToLogcat(":removeAccountFromSharedDevice");
 
         //TODO: migrate to Command.
         new BrokerMsalController().removeAccountFromSharedDevice(
@@ -377,7 +446,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                 new TaskCompletedCallbackWithError<Void, MsalException>() {
                     @Override
                     public void onTaskCompleted(Void aVoid) {
-                        persistCurrentAccount(null);
+                        persistCurrentAccount(null, ":removeAccountFromSharedDevice");
                         callback.onSignOut();
                     }
 
@@ -409,17 +478,21 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
      * @param cacheRecords list of cache record that belongs to an account.
      *                     Please note that this layer will not verify if the list ubelongs to a single account or not.
      */
-    private void persistCurrentAccount(@Nullable final List<ICacheRecord> cacheRecords) {
+    private void persistCurrentAccount(@Nullable final List<ICacheRecord> cacheRecords, String caller) {
+        logToLogcat(":persistCurrentAccount. Called by " + caller);
 
         sharedPreferencesFileManager.clear();
+        logToLogcat("sharedPref is cleared.");
 
         if (cacheRecords == null || cacheRecords.size() == 0) {
             // Do nothing.
+            logToLogcat("No account to save. Return.");
             return;
         }
 
         String currentAccountJsonString = MsalBrokerResultAdapter.getJsonStringFromICacheRecordList(cacheRecords);
         sharedPreferencesFileManager.putString(CURRENT_ACCOUNT_SHARED_PREFERENCE_KEY, currentAccountJsonString);
+        logToLogcat("current account persisted: " + currentAccountJsonString);
     }
 
     /**
@@ -452,8 +525,11 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
+        logToLogcat(":acquireToken(Activity,Scopes,Callback)");
+
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount == null) {
+            logToLogcat("persistedAccount is null. Cannot invoke acquireToken");
             callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
             return;
         }
@@ -474,6 +550,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public void acquireToken(@NonNull final AcquireTokenParameters acquireTokenParameters) {
+        logToLogcat(":acquireToken(AcquireTokenParameters)");
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount != null) {
             // If the account exists, overwrite Account and ignore loginHint.
@@ -488,9 +565,11 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final String authority,
                                         @NonNull final SilentAuthenticationCallback callback) {
+        logToLogcat(":acquireTokenSilentAsync(SCOPES,AUTHORITY,CALLBACK)");
 
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount == null) {
+            logToLogcat("persistedAccount is null. Cannot invoke acquireTokenSilentAsync(SCOPES,AUTHORITY,CALLBACK)");
             callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
             return;
         }
@@ -508,9 +587,11 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     @WorkerThread
     public IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
                                                     @NonNull final String authority) throws MsalException, InterruptedException {
+        logToLogcat(":acquireTokenSilent(SCOPES,AUTHORITY)");
 
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount == null) {
+            logToLogcat("persistedAccount is null. Cannot invoke acquireTokenSilent(SCOPES,AUTHORITY)");
             throw new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);
         }
 
@@ -519,8 +600,11 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
+        logToLogcat(":acquireTokenSilentAsync(AcquireTokenSilentParameters)");
+
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount == null) {
+            logToLogcat("persistedAccount is null. Cannot invoke acquireTokenSilentAsync(AcquireTokenSilentParameters)");
             acquireTokenSilentParameters.getCallback().onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
             return;
         }
@@ -533,8 +617,11 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public IAuthenticationResult acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException {
+        logToLogcat(":acquireTokenSilent(AcquireTokenSilentParameters)");
+
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount == null) {
+            logToLogcat("persistedAccount is null. Cannot invoke acquireTokenSilent(AcquireTokenSilentParameters)");
             throw new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT);
         }
 
