@@ -22,43 +22,98 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client;
 
-
+import android.app.Activity;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.test.core.app.ApplicationProvider;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
+import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
+import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public final class OperationParametersTest {
+@RunWith(RobolectricTestRunner.class)
+public class OperationParametersTest {
 
-    public final static String CP1_CAPABILITY = "CP1";
+    private static final String AAD_CP1_CONFIG_FILE = "src/test/res/raw/aad_capabilities_cp1.json";
+    private static final String AAD_NONE_CONFIG_FILE = "src/test/res/raw/aad_capabilities_none.json";
 
+    private Context mContext;
+    private Activity mActivity;
 
-    @Test
-    public void testAddClientCapabilitiesMatching() {
-        ClaimsRequest clientCapabilities = OperationParametersAdapter.addClientCapabilitiesToClaimsRequest(null, "CP1");
-        Assert.assertEquals(clientCapabilities, getAccessTokenClaimsRequest(OperationParametersAdapter.CLIENT_CAPABILITIES_CLAIM, CP1_CAPABILITY));
+    @Before
+    public void setup() {
+        mContext = ApplicationProvider.getApplicationContext();
+        mActivity = RoboTestUtils.getMockActivity(mContext);
     }
 
     @Test
-    public void testAddClientCapabilitiesNotMatching() {
-        ClaimsRequest clientCapabilities = OperationParametersAdapter.addClientCapabilitiesToClaimsRequest(null, "CP2");
-        Assert.assertNotEquals(clientCapabilities, getAccessTokenClaimsRequest(OperationParametersAdapter.CLIENT_CAPABILITIES_CLAIM, CP1_CAPABILITY));
+    public void testAcquireTokenOperationWithClaimsWithCapabilities() {
+        AcquireTokenOperationParameters operationParameters = OperationParametersAdapter.createAcquireTokenOperationParameters(getAcquireTokenParametersWithClaims(), getConfiguration(AAD_CP1_CONFIG_FILE), getCache());
+        Assert.assertEquals(true, operationParameters.getForceRefresh());
     }
 
-    private ClaimsRequest getAccessTokenClaimsRequest(@NonNull String claimName, @NonNull String claimValue){
+    @Test
+    public void testAcquireTokenOperationWithClaimsWithoutCapabilities() {
+        AcquireTokenOperationParameters operationParameters = OperationParametersAdapter.createAcquireTokenOperationParameters(getAcquireTokenParametersWithClaims(), getConfiguration(AAD_NONE_CONFIG_FILE), getCache());
+        Assert.assertEquals(true, operationParameters.getForceRefresh());
+    }
+
+    @Test
+    public void testAcquireTokenOperationWithoutClaimsWithCapabilities() {
+        AcquireTokenOperationParameters operationParameters = OperationParametersAdapter.createAcquireTokenOperationParameters(getAcquireTokenParametersWithoutClaims(), getConfiguration(AAD_CP1_CONFIG_FILE), getCache());
+        Assert.assertEquals(false, operationParameters.getForceRefresh());
+    }
+
+    @Test
+    public void testAcquireTokenOperationWithoutClaimsWithoutCapabilities() {
+        AcquireTokenOperationParameters operationParameters = OperationParametersAdapter.createAcquireTokenOperationParameters(getAcquireTokenParametersWithoutClaims(), getConfiguration(AAD_NONE_CONFIG_FILE), getCache());
+        Assert.assertEquals(false, operationParameters.getForceRefresh());
+    }
+
+    @Test
+    public void testAcquireTokenSilentOperationWithClaimsWithCapabilities() {
+        AcquireTokenSilentOperationParameters operationParameters = OperationParametersAdapter.createAcquireTokenSilentOperationParameters(getAcquireTokenSilentParametersWithClaims(), getConfiguration(AAD_CP1_CONFIG_FILE), getCache());
+        Assert.assertEquals(true, operationParameters.getForceRefresh());
+    }
+
+    @Test
+    public void testAcquireTokenSilentOperationWithClaimsWithoutCapabilities() {
+        AcquireTokenSilentOperationParameters operationParameters = OperationParametersAdapter.createAcquireTokenSilentOperationParameters(getAcquireTokenSilentParametersWithClaims(), getConfiguration(AAD_NONE_CONFIG_FILE), getCache());
+        Assert.assertEquals(true, operationParameters.getForceRefresh());
+    }
+
+    @Test
+    public void testAcquireTokenSilentOperationWithoutClaimsWithCapabilities() {
+        AcquireTokenSilentOperationParameters operationParameters = OperationParametersAdapter.createAcquireTokenSilentOperationParameters(getAcquireTokenSilentParametersWithoutClaims(), getConfiguration(AAD_CP1_CONFIG_FILE), getCache());
+        Assert.assertEquals(false, operationParameters.getForceRefresh());
+    }
+
+    @Test
+    public void testAcquireTokenSilentOperationWithoutClaimsWithoutCapabilities() {
+        AcquireTokenSilentOperationParameters operationParameters = OperationParametersAdapter.createAcquireTokenSilentOperationParameters(getAcquireTokenSilentParametersWithoutClaims(), getConfiguration(AAD_NONE_CONFIG_FILE), getCache());
+
+        Assert.assertEquals(false, operationParameters.getForceRefresh());
+    }
+
+    private ClaimsRequest getAccessTokenClaimsRequest(@NonNull String claimName, @NonNull String claimValue) {
         ClaimsRequest cp1ClaimsRequest = new ClaimsRequest();
         RequestedClaimAdditionalInformation info = new RequestedClaimAdditionalInformation();
         info.setValues(new ArrayList<Object>(Arrays.asList(claimValue)));
@@ -66,26 +121,57 @@ public final class OperationParametersTest {
         return cp1ClaimsRequest;
     }
 
-    private AcquireTokenParameters getAcquireTokenParameters(){
+    private AcquireTokenParameters getAcquireTokenParametersWithClaims() {
         AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .withClaims(getAccessTokenClaimsRequest("device_id", ""))
-                .fromAuthority("https://login.microsoftonline.com/")
+                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                .startAuthorizationFromActivity(mActivity)
                 .build();
 
         return parameters;
     }
 
-    private PublicClientApplicationConfiguration getConfiguration(){
-        PublicClientApplicationConfiguration config = new PublicClientApplicationConfiguration();
-        config.mClientCapabilities = "CP1";
-        return config;
+    private AcquireTokenParameters getAcquireTokenParametersWithoutClaims() {
+        AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                .startAuthorizationFromActivity(mActivity)
+                .build();
+
+        return parameters;
     }
 
-    private OAuth2TokenCache getCache(){
-        return new TestOAuthTokenCachen(null, null, null);
+    private AcquireTokenSilentParameters getAcquireTokenSilentParametersWithClaims() {
+        AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
+                .withClaims(getAccessTokenClaimsRequest("device_id", ""))
+                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                .fromAuthority("https://login.microsoftonline.com/common")
+                .build();
+
+        return parameters;
     }
 
-    private class TestOAuthTokenCachen extends MsalOAuth2TokenCache {
+    private AcquireTokenSilentParameters getAcquireTokenSilentParametersWithoutClaims() {
+        AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
+                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                .fromAuthority("https://login.microsoftonline.com/common")
+                .build();
+
+        return parameters;
+    }
+
+    private PublicClientApplicationConfiguration getConfiguration(String path) {
+        return PublicClientApplicationConfigurationFactory.initializeConfiguration(mContext, getConfigFile(path));
+    }
+
+    private OAuth2TokenCache getCache() {
+        return new TestOAuth2TokenCache(mContext, null, null);
+    }
+
+    private File getConfigFile(String path) {
+        return new File(path);
+    }
+
+    private class TestOAuth2TokenCache extends MsalOAuth2TokenCache {
 
         /**
          * Constructor of MsalOAuth2TokenCache.
@@ -94,7 +180,7 @@ public final class OperationParametersTest {
          * @param accountCredentialCache   IAccountCredentialCache
          * @param accountCredentialAdapter IAccountCredentialAdapter
          */
-        public TestOAuthTokenCachen(Context context, IAccountCredentialCache accountCredentialCache, IAccountCredentialAdapter accountCredentialAdapter) {
+        public TestOAuth2TokenCache(Context context, IAccountCredentialCache accountCredentialCache, IAccountCredentialAdapter accountCredentialAdapter) {
             super(context, accountCredentialCache, accountCredentialAdapter);
         }
     }

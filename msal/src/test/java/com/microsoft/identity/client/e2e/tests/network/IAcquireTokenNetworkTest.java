@@ -20,19 +20,15 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.tests.network;
+package com.microsoft.identity.client.e2e.tests.network;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import com.microsoft.identity.client.e2e.tests.IAcquireTokenTest;
+import com.microsoft.identity.internal.testutils.labutils.TestConfigurationQuery;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses({
-        AcquireTokenNetworkAADTest.class,
-        AcquireTokenNetworkB2CTest.class
-})
-/**
- * This class runs all tests in the {@link AcquireTokenNetworkTest} class,
- * using both AAD and B2C
- */
-public class AcquireTokenNetworkTestSuite {
+public interface IAcquireTokenNetworkTest extends IAcquireTokenTest {
+
+    TestConfigurationQuery getTestConfigurationQuery();
+
 }
+
+

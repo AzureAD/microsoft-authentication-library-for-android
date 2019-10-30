@@ -83,7 +83,8 @@ android {
 
     testOptions {
         unitTests.all {
-            exclude 'com/microsoft/identity/client/robolectric/tests/network/'
+            // Disabling individual e2e tests, as tests will be run from the e2e/suites package
+            exclude 'com/microsoft/identity/client/e2e/tests/'
         }
     }
 }

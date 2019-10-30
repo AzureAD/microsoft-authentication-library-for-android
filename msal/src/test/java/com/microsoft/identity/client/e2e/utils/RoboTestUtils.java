@@ -20,7 +20,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.utils;
+package com.microsoft.identity.client.e2e.utils;
 
 import android.app.Activity;
 import android.content.Context;
@@ -35,7 +35,6 @@ import com.microsoft.identity.common.internal.dto.CredentialType;
 
 import org.mockito.Mockito;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.util.Scheduler;
 
 import java.util.HashSet;
 import java.util.Locale;
@@ -130,8 +129,24 @@ public class RoboTestUtils {
     }
 
     public static void flushScheduler() {
-        final Scheduler scheduler = RuntimeEnvironment.getMasterScheduler();
-        while (!scheduler.advanceToLastPostedRunnable()) ;
+        // wait until all runnable(s) have finished executing
+        while (!RuntimeEnvironment.getMasterScheduler().advanceToLastPostedRunnable()) ;
+    }
+
+    public static void flushSchedulerWithDelay(@NonNull final long sleepTime) {
+        try {
+            // just wait a little for runnable(s) to enter the queue
+            Thread.sleep(sleepTime);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // if there are no runnable(s) after the delay, then we can just return
+        if (RuntimeEnvironment.getMasterScheduler().size() == 0) {
+            return;
+        }
+
+        flushScheduler();
     }
 
     public static Activity getMockActivity(final Context context) {

@@ -20,27 +20,34 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.shadows;
+package com.microsoft.identity.client.e2e.tests.network;
 
-import androidx.annotation.NonNull;
+import com.microsoft.identity.internal.testutils.labutils.TestConfigurationQuery;
 
-import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.USER_READ_SCOPE;
 
-import org.robolectric.annotation.Implements;
+/**
+ * Run all tests in the {@link AcquireTokenNetworkTest} class using AAD
+ */
+public class AcquireTokenNetworkAADTest extends AcquireTokenNetworkTest {
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-
-import javax.crypto.SecretKey;
-
-@Implements(StorageHelper.class)
-public class ShadowStorageHelper {
-
-    /**
-     * Fake saving key to key store as Android Key Store is not available in Robolectric
-     */
-    public void saveKeyStoreEncryptedKey(@NonNull SecretKey unencryptedKey) throws GeneralSecurityException, IOException {
-        return;
+    @Override
+    public TestConfigurationQuery getTestConfigurationQuery() {
+        final TestConfigurationQuery query = new TestConfigurationQuery();
+        query.userType = "Member";
+        query.isFederated = false;
+        query.federationProvider = "ADFSv4";
+        return query;
     }
 
+    @Override
+    public String getConfigFilePath() {
+        return MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+    }
+
+    @Override
+    public String[] getScopes() {
+        return USER_READ_SCOPE;
+    }
 }

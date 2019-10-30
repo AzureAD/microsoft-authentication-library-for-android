@@ -20,15 +20,21 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.tests.network;
+package com.microsoft.identity.client.e2e.suites;
 
-/**
- * Run all tests in the {@link AcquireTokenNetworkTest} class using B2C
- */
-public class AcquireTokenNetworkB2CTest extends AcquireTokenNetworkTest {
+import com.microsoft.identity.client.e2e.tests.mocked.CommandResultCachingTest;
+import com.microsoft.identity.client.e2e.tests.mocked.MultipleAccountAcquireTokenMockTest;
+import com.microsoft.identity.client.e2e.tests.mocked.SingleAccountAcquireTokenMockTest;
 
-    public AcquireTokenNetworkB2CTest() {
-        this.mAuthorityType = B2C_AUTHORITY_TYPE_STRING;
-        this.mScopes = B2C_SCOPES;
-    }
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+
+@RunWith(Suite.class)
+@Suite.SuiteClasses({
+        CommandResultCachingTest.class,
+        SingleAccountAcquireTokenMockTest.class,
+        MultipleAccountAcquireTokenMockTest.class
+})
+
+public class AcquireTokenMockTestSuite {
 }

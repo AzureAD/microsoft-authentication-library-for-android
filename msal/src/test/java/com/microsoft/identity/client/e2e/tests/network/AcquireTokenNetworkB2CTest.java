@@ -20,25 +20,32 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.shadows;
+package com.microsoft.identity.client.e2e.tests.network;
 
-import com.microsoft.identity.common.internal.net.HttpRequest;
-import com.microsoft.identity.common.internal.net.HttpResponse;
+import com.microsoft.identity.internal.testutils.labutils.TestConfigurationQuery;
 
-import org.robolectric.annotation.Implements;
+import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.B2C_CONFIG_FILE_PATH;
+import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.B2C_SCOPE;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.Map;
+/**
+ * Run all tests in the {@link AcquireTokenNetworkTest} class using B2C
+ */
+public class AcquireTokenNetworkB2CTest extends AcquireTokenNetworkTest {
 
-@Implements(HttpRequest.class)
-public class ShadowHttpRequest {
+    @Override
+    public TestConfigurationQuery getTestConfigurationQuery() {
+        final TestConfigurationQuery query = new TestConfigurationQuery();
+        query.b2cProvider = "Local";
+        return query;
+    }
 
-    // mocking this to avoid accidentally sending malformed requests to the server
-    public static HttpResponse sendPost(final URL requestUrl, final Map<String, String> requestHeaders,
-                                        final byte[] requestContent, final String requestContentType)
-            throws IOException {
+    @Override
+    public String getConfigFilePath() {
+        return B2C_CONFIG_FILE_PATH;
+    }
 
-        throw new IOException("Sending requests to server has been disabled for mocked unit tests");
+    @Override
+    public String[] getScopes() {
+        return B2C_SCOPE;
     }
 }

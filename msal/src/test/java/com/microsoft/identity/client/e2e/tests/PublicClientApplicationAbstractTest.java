@@ -20,7 +20,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.robolectric.tests.mocked;
+package com.microsoft.identity.client.e2e.tests;
 
 import android.app.Activity;
 import android.content.Context;
@@ -29,48 +29,44 @@ import androidx.test.core.app.ApplicationProvider;
 
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.robolectric.utils.RoboTestUtils;
+
+import org.junit.Before;
 
 import java.io.File;
 
-public abstract class AcquireTokenMockBaseTest {
+import static org.junit.Assert.fail;
 
-    private static final String AAD_CONFIG_FILE_PATH = "src/test/res/raw/aad_test_config.json";
+public abstract class PublicClientApplicationAbstractTest implements IPublicClientApplicationTest {
 
-    abstract void makeAcquireTokenCall(final IPublicClientApplication publicClientApplication,
-                                       final Activity activity) throws InterruptedException;
+    protected Context mContext;
+    protected Activity mActivity;
+    protected IPublicClientApplication mApplication;
 
+    @Before
+    public void setup() {
+        mContext = ApplicationProvider.getApplicationContext();
+        mActivity = RoboTestUtils.getMockActivity(mContext);
+        setupPCA();
+    }
 
-    void instantiatePCAthenAcquireToken() {
-        final Context context = ApplicationProvider.getApplicationContext();
-        final Activity testActivity = RoboTestUtils.getMockActivity(context);
+    private void setupPCA() {
+        final File configFile = new File(getConfigFilePath());
 
-        final File configFile = new File(AAD_CONFIG_FILE_PATH);
-
-        final IPublicClientApplication[] applications = new IPublicClientApplication[1];
-
-        PublicClientApplication.create(context, configFile, new PublicClientApplication.ApplicationCreatedListener() {
+        PublicClientApplication.create(mContext, configFile, new PublicClientApplication.ApplicationCreatedListener() {
             @Override
             public void onCreated(IPublicClientApplication application) {
-                applications[0] = application;
+                mApplication = application;
             }
 
             @Override
             public void onError(MsalException exception) {
-                exception.printStackTrace();
+                fail(exception.getMessage());
             }
         });
 
         RoboTestUtils.flushScheduler();
-
-        // TODO: This is a temporary change that is needed as create() is now using command.
-        //       Will need a proper refactor at some point.
-        try {
-            makeAcquireTokenCall(applications[0], testActivity);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
 }
