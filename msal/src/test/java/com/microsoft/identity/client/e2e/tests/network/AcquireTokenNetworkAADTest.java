@@ -22,7 +22,8 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.network;
 
-import com.microsoft.identity.internal.testutils.labutils.TestConfigurationQuery;
+import com.microsoft.identity.internal.testutils.labutils.LabConstants;
+import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
 import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.USER_READ_SCOPE;
@@ -33,15 +34,6 @@ import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.USER_
 public class AcquireTokenNetworkAADTest extends AcquireTokenNetworkTest {
 
     @Override
-    public TestConfigurationQuery getTestConfigurationQuery() {
-        final TestConfigurationQuery query = new TestConfigurationQuery();
-        query.userType = "Member";
-        query.isFederated = false;
-        query.federationProvider = "ADFSv4";
-        return query;
-    }
-
-    @Override
     public String getConfigFilePath() {
         return MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
     }
@@ -49,5 +41,12 @@ public class AcquireTokenNetworkAADTest extends AcquireTokenNetworkTest {
     @Override
     public String[] getScopes() {
         return USER_READ_SCOPE;
+    }
+
+    @Override
+    public LabUserQuery getLabUserQuery() {
+        final LabUserQuery query = new LabUserQuery();
+        query.userType = LabConstants.UserType.CLOUD;
+        return query;
     }
 }
