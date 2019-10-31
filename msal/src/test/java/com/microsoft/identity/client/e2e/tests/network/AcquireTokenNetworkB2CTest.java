@@ -22,7 +22,8 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.network;
 
-import com.microsoft.identity.internal.testutils.labutils.TestConfigurationQuery;
+import com.microsoft.identity.internal.testutils.labutils.LabConstants;
+import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.B2C_CONFIG_FILE_PATH;
 import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.B2C_SCOPE;
@@ -33,9 +34,10 @@ import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.B2C_S
 public class AcquireTokenNetworkB2CTest extends AcquireTokenNetworkTest {
 
     @Override
-    public TestConfigurationQuery getTestConfigurationQuery() {
-        final TestConfigurationQuery query = new TestConfigurationQuery();
-        query.b2cProvider = "Local";
+    public LabUserQuery getLabUserQuery() {
+        final LabUserQuery query = new LabUserQuery();
+        query.userType = LabConstants.UserType.B2C;
+        query.b2cProvider = LabConstants.B2CProvider.LOCAL;
         return query;
     }
 
