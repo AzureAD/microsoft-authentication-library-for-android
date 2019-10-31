@@ -31,28 +31,20 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.crypto.RSASSASigner;
-import com.nimbusds.jose.crypto.impl.RSAKeyUtils;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.KeyStore;
-import java.security.PrivateKey;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Semaphore;
-
-import static com.microsoft.testing.popbenchmarker.PopUtils.ANDROID_KEYSTORE;
-import static com.microsoft.testing.popbenchmarker.PopUtils.KEYSTORE_ALIAS;
-import static com.microsoft.testing.popbenchmarker.PopUtils.getInitializedRsaKeyPairGenerator;
-import static com.microsoft.testing.popbenchmarker.PopUtils.isInsideSecureHardware;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -240,53 +232,43 @@ public class MainActivity extends AppCompatActivity {
         final Timer.TimerResult<Boolean> result = Timer.execute(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEYSTORE);
-                keyStore.load(null);
-                final KeyStore.Entry entry = keyStore.getEntry(KEYSTORE_ALIAS, null);
-                PrivateKey privateKey = ((KeyStore.PrivateKeyEntry) entry).getPrivateKey();
-                return isInsideSecureHardware(privateKey);
+                return false;
             }
         });
         mThreadMarshaller.postResult(result.mResult.toString(), callback);
     }
 
     private void getSigningTiming(@NonNull final AsyncResultCallback<String> callback) {
+        RSAKey key = null;
+        JWSSigner signer = null;
         try {
-            // Prepare JWT with claims set
-            final JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                    .subject("test")
-                    .issuer("https://login.microsoftonline.com")
-                    .expirationTime(new Date(new Date().getTime() + 60 * 1000))
-                    .build();
-
-            final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEYSTORE);
-            keyStore.load(null);
-
-            final KeyStore.Entry entry = keyStore.getEntry(KEYSTORE_ALIAS, null);
-            final PrivateKey privateKey = ((KeyStore.PrivateKeyEntry) entry).getPrivateKey();
-
-            final RSASSASigner signer = new RSASSASigner(privateKey);
-
-            final SignedJWT signedJWT = new SignedJWT(
-                    new JWSHeader.Builder(JWSAlgorithm.RS256)
-                            //.keyID(key.getKeyID())
-                            .build(),
-                    claimsSet
+            key = RSAKey.parse(
+                    NimbusPoPUtils.readSecurePref(
+                            MainActivity.this,
+                            "pop-rsakey"
+                    )
             );
-
+            signer = NimbusPoPUtils.getSigner(key);
+        } catch (ParseException | JOSEException e) {
+            e.printStackTrace();
+        }
+        // Prepare JWT with claims set
+        final JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("test")
+                .issuer("https://login.microsoftonline.com")
+                .expirationTime(new Date(new Date().getTime() + 60 * 1000))
+                .build();
+        try {
+            final RSAKey finalKey = key;
+            final JWSSigner finalSigner = signer;
             final Timer.TimerResult<Void> result = Timer.execute(new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
-                    // Compute the RSA signature
-                    signedJWT.sign(signer);
-
-                    // To serialize to compact form, produces something like
-                    // eyJhbGciOiJSUzI1NiJ9.SW4gUlNBIHdlIHRydXN0IQ.IRMQENi4nJyp4er2L
-                    // mZq3ivwoAjqa1uUkSBKFIX7ATndFF5ivnt-m8uApHO4kfIFOrW7w2Ezmlg3Qd
-                    // maXlS9DhN0nUk_hGI3amEjkKd0BWYCB8vfUbUv0XGjQip78AI4z1PrFRNidm7
-                    // -jPDm5Iq0SZnjKjCNS5Q15fokXZc8u0A
-                    final String signed = signedJWT.serialize();
-
+                    final SignedJWT signedJWT = NimbusPoPUtils.getSignedJwt(
+                            finalSigner,
+                            claimsSet,
+                            UUID.randomUUID().toString()
+                    );
                     return null;
                 }
             });
@@ -301,9 +283,12 @@ public class MainActivity extends AppCompatActivity {
         final Timer.TimerResult<Void> result = Timer.execute(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEYSTORE);
-                keyStore.load(null);
-                keyStore.getEntry(KEYSTORE_ALIAS, null);
+                final RSAKey key = RSAKey.parse(
+                        NimbusPoPUtils.readSecurePref(
+                                MainActivity.this,
+                                "pop-rsakey"
+                        )
+                );
                 return null;
             }
         });
@@ -315,24 +300,25 @@ public class MainActivity extends AppCompatActivity {
         final Timer.TimerResult<Void> result = Timer.execute(new Callable<Void>() {
             @Override
             public Void call() {
-                KeyPairGenerator kpg;
-
                 try {
-                    while (true) {
-                        kpg = getInitializedRsaKeyPairGenerator(MainActivity.this);
-                        final KeyPair kp = kpg.generateKeyPair();
-                        // Check that the generated thumbprint size is 2048, if it is not, retry...
-                        final int length = RSAKeyUtils.keyBitLength(kp.getPrivate());
+                    final RSAKey rsaKey = NimbusPoPUtils.generateRsaKeyPair(
+                            NimbusPoPUtils.MINIMUM_RSA_COMPLEXITY,
+                            null,
+                            null, // TODO can I set the AndroidKeyStore here?
+                            null,
+                            null
+                    );
 
-                        if (length >= 2048 || length < 0) {
-                            break;
-                        }
-                    }
+                    // Write the values for later....
+                    NimbusPoPUtils.writeSecurePref(
+                            MainActivity.this,
+                            "pop-rsakey",
+                            rsaKey.toJSONString()
+                    );
 
-                } catch (UnsupportedOperationException e) {
-                    crash(e);
+                } catch (JOSEException e) {
+                    e.printStackTrace();
                 }
-
                 return null;
             }
         });
