@@ -185,6 +185,7 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
      * NOTE: This runs a bit longer
      */
     @Test
+    @Ignore
     public void testAcquireTokenExceedCacheMaxItems() throws InterruptedException {
         final String username = "fake@test.com";
 
