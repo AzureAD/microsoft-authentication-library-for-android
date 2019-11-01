@@ -488,7 +488,7 @@ public class PublicClientApplicationConfiguration {
                             "\t\t" + "<category android:name=\"android.intent.category.BROWSABLE\" />" + "\n" +
                             "\t\t" + "<data" + "\n" +
                             "\t\t\t" + "android:host=\"" + redirectUri.getHost() + "\"" + "\n" +
-                            "\t\t\t" + "android:path=\'" + redirectUri.getPath() + "\"" + "\n" +
+                            "\t\t\t" + "android:path=\"" + redirectUri.getPath() + "\"" + "\n" +
                             "\t\t\t" + "android:scheme=\"" + redirectUri.getScheme() + "\" />" + "\n" +
                             "\t" + "</intent-filter>" + "\n" +
                             "</activity>" + "\n");
