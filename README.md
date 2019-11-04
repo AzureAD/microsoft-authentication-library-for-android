@@ -140,7 +140,7 @@ mMultipleAccountApp.acquireToken(this, SCOPES, getAuthInteractiveCallback());
 private AuthenticationCallback getAuthInteractiveCallback() {
     return new AuthenticationCallback() {
         @Override
-        public void onSuccess(AuthenticationResult authenticationResult) {
+        public void onSuccess(IAuthenticationResult authenticationResult) {
             /* Successfully got a token, use it to call a protected resource */
             String accessToken = authenticationResult.getAccessToken();
             // Record account used to acquire token
