@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
         mListView = findViewById(R.id.lv_apps);
 
         mPackageManager = getPackageManager();
-        populateAuthenticatorsLookupMap(AccountManager.get(this));
+        populateAuthenticatorsLookup(AccountManager.get(this));
         mApplications = mPackageManager.getInstalledApplications(PackageManager.GET_META_DATA);
         Collections.sort(mApplications, new Comparator<ApplicationInfo>() {
             @Override
@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         for (final ApplicationInfo applicationInfo : mApplications) {
             String packageDisplayName = applicationInfo.packageName;
 
-            if (isAnAuthenticatorApp(applicationInfo)) {
+            if (isAnAuthenticatorApp(applicationInfo.packageName)) {
                 packageDisplayName = packageDisplayName + "**";
             }
 
@@ -118,8 +118,8 @@ public class MainActivity extends AppCompatActivity {
 
                     String msg = "Certificate hash:\n" + packageSigningSha;
 
-                    if (isAnAuthenticatorApp(clickedAppInfo)) {
-                        msg += "\n\n" + getAuthenticatorAppMetadata(clickedAppInfo);
+                    if (isAnAuthenticatorApp(clickedAppInfo.packageName)) {
+                        msg += "\n\n" + getAuthenticatorAppMetadata(clickedAppInfo.packageName);
                     }
 
                     new AlertDialog.Builder(MainActivity.this)
@@ -141,20 +141,21 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void populateAuthenticatorsLookupMap(@NonNull final AccountManager accountManager) {
+    private void populateAuthenticatorsLookup(@NonNull final AccountManager accountManager) {
         final AuthenticatorDescription[] authenticatorDescriptions = accountManager.getAuthenticatorTypes();
+
         for (final AuthenticatorDescription description : authenticatorDescriptions) {
             mPkgAuthenticators.put(description.packageName, description.type);
         }
     }
 
-    private String getAuthenticatorAppMetadata(@NonNull final ApplicationInfo appInfo) {
+    private String getAuthenticatorAppMetadata(@NonNull final String pkgName) {
         return "App has account type affinity: "
                 + "\n"
-                + mPkgAuthenticators.get(appInfo.packageName);
+                + mPkgAuthenticators.get(pkgName);
     }
 
-    private boolean isAnAuthenticatorApp(@NonNull final ApplicationInfo appInfo) {
-        return mPkgAuthenticators.containsKey(appInfo.packageName);
+    private boolean isAnAuthenticatorApp(@NonNull final String pkgName) {
+        return mPkgAuthenticators.containsKey(pkgName);
     }
 }
