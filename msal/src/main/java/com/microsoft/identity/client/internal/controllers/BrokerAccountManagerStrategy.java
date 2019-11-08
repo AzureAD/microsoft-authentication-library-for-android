@@ -94,7 +94,6 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                             null,
                             getPreferredHandler());
 
-            // Making blocking request here
             Logger.verbose(TAG + methodName, "Received result from broker");
             result = operationInfo.getResultFromBundle(resultBundle.getResult());
         } catch (final Exception e) {
