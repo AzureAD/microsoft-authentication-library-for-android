@@ -102,7 +102,6 @@ abstract class BrokerBaseStrategy {
                         mRequestAdapter.brokerRequestFromAcquireTokenParameters(parameters),
                         BrokerRequest.class)
         );
-        interactiveRequestIntent.putExtra(AuthenticationConstants.Broker.ACCOUNT_NAME, parameters.getLoginHint());
 
         return interactiveRequestIntent;
     }
