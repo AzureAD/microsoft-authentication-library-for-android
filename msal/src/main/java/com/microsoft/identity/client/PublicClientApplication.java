@@ -63,7 +63,7 @@ import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.controllers.ExceptionAdapter;
 import com.microsoft.identity.common.internal.controllers.GetDeviceModeCommand;
 import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
-import com.microsoft.identity.common.internal.controllers.TokenCommand;
+import com.microsoft.identity.common.internal.controllers.SilentTokenCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.EstsTelemetry;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
@@ -1422,7 +1422,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             );
 
 
-                    final TokenCommand silentTokenCommand = new TokenCommand(
+                    final SilentTokenCommand silentTokenCommand = new SilentTokenCommand(
                             params,
                             MSALControllerFactory.getAllControllers(
                                     mPublicClientConfiguration.getAppContext(),

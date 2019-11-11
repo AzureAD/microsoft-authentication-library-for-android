@@ -34,6 +34,7 @@ import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.controllers.BaseController;
+import com.microsoft.identity.common.internal.controllers.RemoveAccountCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
@@ -47,6 +48,20 @@ import com.microsoft.identity.common.internal.request.AcquireTokenOperationParam
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.request.SdkType;
+import com.microsoft.identity.common.internal.request.generated.GetCurrentAccountCommandContext;
+import com.microsoft.identity.common.internal.request.generated.GetCurrentAccountCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.GetDeviceModeCommandContext;
+import com.microsoft.identity.common.internal.request.generated.GetDeviceModeCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandContext;
+import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.LoadAccountCommandContext;
+import com.microsoft.identity.common.internal.request.generated.LoadAccountCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.RemoveAccountCommandContext;
+import com.microsoft.identity.common.internal.request.generated.RemoveAccountCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.RemoveCurrentAccountCommandContext;
+import com.microsoft.identity.common.internal.request.generated.RemoveCurrentAccountCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.SilentTokenCommandContext;
+import com.microsoft.identity.common.internal.request.generated.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.telemetry.Telemetry;
@@ -62,7 +77,8 @@ import java.util.concurrent.Future;
 
 import static com.microsoft.identity.common.adal.internal.net.HttpWebRequest.throwIfNetworkNotAvailable;
 
-public class LocalMSALController extends BaseController {
+public class LocalMSALController extends BaseController<InteractiveTokenCommandParameters,
+        SilentTokenCommandParameters> {
 
     private static final String TAG = LocalMSALController.class.getSimpleName();
 
@@ -70,7 +86,9 @@ public class LocalMSALController extends BaseController {
     private AuthorizationRequest mAuthorizationRequest = null;
 
     @Override
-    public AcquireTokenResult acquireToken(@NonNull final AcquireTokenOperationParameters parameters)
+    public AcquireTokenResult acquireToken(
+            @NonNull final InteractiveTokenCommandContext context,
+            @NonNull final InteractiveTokenCommandParameters parameters)
             throws ExecutionException, InterruptedException, ClientException, IOException, ArgumentException {
         final String methodName = ":acquireToken";
 
@@ -163,7 +181,7 @@ public class LocalMSALController extends BaseController {
     }
 
     private AuthorizationResult performAuthorizationRequest(@NonNull final OAuth2Strategy strategy,
-                                                            @NonNull final AcquireTokenOperationParameters parameters)
+                                                            @NonNull final InteractiveTokenCommandParameters parameters)
             throws ExecutionException, InterruptedException, ClientException {
 
         throwIfNetworkNotAvailable(parameters.getAppContext());
@@ -211,7 +229,8 @@ public class LocalMSALController extends BaseController {
 
     @Override
     public AcquireTokenResult acquireTokenSilent(
-            @NonNull final AcquireTokenSilentOperationParameters parameters)
+            @NonNull final SilentTokenCommandContext context,
+            @NonNull final SilentTokenCommandParameters parameters)
             throws IOException, ClientException, ArgumentException {
         final String methodName = ":acquireTokenSilent";
         Logger.verbose(
@@ -219,29 +238,28 @@ public class LocalMSALController extends BaseController {
                 "Acquiring token silently..."
         );
 
+        /*
         Telemetry.emit(
                 new ApiStartEvent()
                         .putProperties(parameters)
                         .putApiId(TelemetryEventStrings.Api.LOCAL_ACQUIRE_TOKEN_SILENT)
         );
 
+         */
+
         final AcquireTokenResult acquireTokenSilentResult = new AcquireTokenResult();
 
-        //Validate MSAL Parameters
-        parameters.validate();
-
-        // Add default scopes
-        addDefaultScopes(parameters);
-
-        final OAuth2TokenCache tokenCache = parameters.getTokenCache();
+        final OAuth2TokenCache tokenCache = context.tokenCache();
 
         final AccountRecord targetAccount = getCachedAccountRecord(parameters);
 
-        final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy();
+        final OAuth2Strategy strategy = parameters.authority().createOAuth2Strategy();
+
+        final SilentTokenCommandParameters parametersWithDefaultScopesAdded = parameters.addDefaultScopes(strategy.getDefaultScopes());
 
         final List<ICacheRecord> cacheRecords = tokenCache.loadWithAggregatedAccountData(
-                parameters.getClientId(),
-                TextUtils.join(" ", parameters.getScopes()),
+                parameters.clientId(),
+                TextUtils.join(" ", parametersWithDefaultScopesAdded.scopes()),
                 targetAccount
         );
 
@@ -253,7 +271,7 @@ public class LocalMSALController extends BaseController {
 
         if (accessTokenIsNull(fullCacheRecord)
                 || refreshTokenIsNull(fullCacheRecord)
-                || parameters.getForceRefresh()) {
+                || parametersWithDefaultScopesAdded.forceRefresh()) {
             if (!refreshTokenIsNull(fullCacheRecord)) {
                 // No AT found, but the RT checks out, so we'll use it
                 Logger.verbose(
@@ -262,7 +280,7 @@ public class LocalMSALController extends BaseController {
                 );
 
                 renewAccessToken(
-                        parameters,
+                        parametersWithDefaultScopesAdded,
                         acquireTokenSilentResult,
                         tokenCache,
                         strategy,
@@ -298,7 +316,7 @@ public class LocalMSALController extends BaseController {
             );
             // Request a new AT
             renewAccessToken(
-                    parameters,
+                    parametersWithDefaultScopesAdded,
                     acquireTokenSilentResult,
                     tokenCache,
                     strategy,
@@ -330,19 +348,22 @@ public class LocalMSALController extends BaseController {
 
     @Override
     @WorkerThread
-    public List<ICacheRecord> getAccounts(@NonNull final OperationParameters parameters) {
+    public List<ICacheRecord> getAccounts(
+            @NonNull final LoadAccountCommandContext context,
+            @NonNull final LoadAccountCommandParameters parameters) {
+        /*
         Telemetry.emit(
                 new ApiStartEvent()
                         .putProperties(parameters)
                         .putApiId(TelemetryEventStrings.Api.LOCAL_GET_ACCOUNTS)
         );
+        */
 
         final List<ICacheRecord> accountsInCache =
-                parameters
-                        .getTokenCache()
+                context.tokenCache()
                         .getAccountsWithAggregatedAccountData(
                                 null, // * wildcard
-                                parameters.getClientId()
+                                parameters.clientId()
                         );
 
         Telemetry.emit(
@@ -357,25 +378,29 @@ public class LocalMSALController extends BaseController {
 
     @Override
     @WorkerThread
-    public boolean removeAccount(@NonNull final OperationParameters parameters) {
+    public boolean removeAccount(
+            @NonNull final RemoveAccountCommandContext context,
+            @NonNull final RemoveAccountCommandParameters parameters) {
+        /*
         Telemetry.emit(
                 new ApiStartEvent()
                         .putProperties(parameters)
                         .putApiId(TelemetryEventStrings.Api.LOCAL_REMOVE_ACCOUNT)
         );
+         */
 
         String realm = null;
 
-        if (parameters.getAccount() != null) {
-            realm = parameters.getAccount().getRealm();
+        if (parameters != null) {
+            realm = parameters.accountRecord().getRealm();
         }
 
-        final boolean localRemoveAccountSuccess = !parameters
-                .getTokenCache()
+        final boolean localRemoveAccountSuccess = !context
+                .tokenCache()
                 .removeAccount(
-                        parameters.getAccount() == null ? null : parameters.getAccount().getEnvironment(),
-                        parameters.getClientId(),
-                        parameters.getAccount() == null ? null : parameters.getAccount().getHomeAccountId(),
+                        parameters.accountRecord() == null ? null : parameters.accountRecord().getEnvironment(),
+                        parameters.clientId(),
+                        parameters.accountRecord() == null ? null : parameters.accountRecord().getHomeAccountId(),
                         realm
                 ).isEmpty();
 
@@ -389,7 +414,9 @@ public class LocalMSALController extends BaseController {
     }
 
     @Override
-    public boolean getDeviceMode(OperationParameters parameters) throws Exception {
+    public boolean getDeviceMode(
+            @NonNull final GetDeviceModeCommandContext context,
+            @NonNull final GetDeviceModeCommandParameters parameters) throws Exception {
         final String methodName = ":getDeviceMode";
 
         final String errorMessage = "LocalMSALControler is not eligible to use the broker. Do not check sharedDevice mode and return false immediately.";
@@ -399,12 +426,22 @@ public class LocalMSALController extends BaseController {
     }
 
     @Override
-    public List<ICacheRecord> getCurrentAccount(OperationParameters parameters) throws Exception {
-        return getAccounts(parameters);
+    public List<ICacheRecord> getCurrentAccount(
+            @NonNull final GetCurrentAccountCommandContext context,
+            @NonNull final GetCurrentAccountCommandParameters parameters) throws Exception {
+        //TODO: Need to convert 1 context to another...
+        //return getAccounts(parameters);
+        return null;
     }
 
     @Override
-    public boolean removeCurrentAccount(OperationParameters parameters) throws Exception {
-        return removeAccount(parameters);
+    public boolean removeCurrentAccount(
+            @NonNull final RemoveCurrentAccountCommandContext context,
+            @NonNull final RemoveCurrentAccountCommandParameters parameters) throws Exception {
+
+        //TODO: Need to convert 1 context to another
+        //return removeAccount(parameters);
+        return false;
+
     }
 }
