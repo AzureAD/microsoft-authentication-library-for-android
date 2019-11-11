@@ -190,7 +190,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
 
                     @Override
                     public String getMethodName() {
-                        return ":acquireTokenSilentWithAccountManager";
+                        return methodName;
                     }
 
                     @Override

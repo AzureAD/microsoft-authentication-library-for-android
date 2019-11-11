@@ -385,7 +385,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             return;
         }
 
-        String currentAccountJsonString = JsonExtensions.getJsonStringFromICacheRecordList(cacheRecords);
+        final String currentAccountJsonString = JsonExtensions.getJsonStringFromICacheRecordList(cacheRecords);
         sharedPreferencesFileManager.putString(CURRENT_ACCOUNT_SHARED_PREFERENCE_KEY, currentAccountJsonString);
     }
 
