@@ -30,39 +30,25 @@ import android.os.RemoteException;
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 
-import com.google.gson.Gson;
 import com.microsoft.identity.client.IMicrosoftAuthService;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
-import com.microsoft.identity.common.internal.broker.BrokerRequest;
-import com.microsoft.identity.common.internal.broker.BrokerResult;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthServiceFuture;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
-import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
-import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 import com.microsoft.identity.common.internal.telemetry.Telemetry;
 import com.microsoft.identity.common.internal.telemetry.TelemetryEventStrings;
 import com.microsoft.identity.common.internal.telemetry.events.BrokerEndEvent;
 import com.microsoft.identity.common.internal.telemetry.events.BrokerStartEvent;
-import com.microsoft.identity.common.internal.ui.browser.Browser;
-import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_HOME_ACCOUNT_ID;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_REDIRECT;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.DEFAULT_BROWSER_PACKAGE_NAME;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ENVIRONMENT;
 
 public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     private static final String TAG = BrokerAuthServiceStrategy.class.getSimpleName();
@@ -80,17 +66,7 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
         Logger.verbose(TAG + methodName, "Get the broker authorization intent from auth service.");
         Intent interactiveRequestIntent;
         interactiveRequestIntent = getBrokerAuthorizationIntentFromAuthService(parameters);
-        final MsalBrokerRequestAdapter msalBrokerRequestAdapter = new MsalBrokerRequestAdapter();
-        interactiveRequestIntent.putExtra(
-                AuthenticationConstants.Broker.BROKER_REQUEST_V2,
-                new Gson().toJson(
-                        msalBrokerRequestAdapter.brokerRequestFromAcquireTokenParameters(parameters),
-                        BrokerRequest.class)
-        );
-        interactiveRequestIntent.putExtra(AuthenticationConstants.Broker.ACCOUNT_NAME, parameters.getLoginHint());
-
-
-        return interactiveRequestIntent;
+        return completeInteractiveRequestIntent(interactiveRequestIntent, parameters);
     }
 
     /**
@@ -176,6 +152,25 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
         return result;
     }
 
+    @WorkerThread
+    boolean hello(@NonNull final OperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
+        return performAuthServiceOperation(parameters.getAppContext(),
+                new AuthServiceOperation<Boolean>() {
+                    @Override
+                    public Boolean perform(IMicrosoftAuthService service) throws RemoteException, ClientException {
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForHello(parameters);
+                        return mResultAdapter.getHelloFromResultBundle(
+                                service.hello(requestBundle)
+                        );
+                    }
+
+                    @Override
+                    public String getOperationName() {
+                        return ":helloWithMicrosoftAuthService";
+                    }
+                });
+    }
+
     private Intent getBrokerAuthorizationIntentFromAuthService(@NonNull final AcquireTokenOperationParameters parameters)
             throws BaseException, InterruptedException, ExecutionException, RemoteException {
         return performAuthServiceOperation(parameters.getAppContext(),
@@ -199,9 +194,10 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                 new AuthServiceOperation<AcquireTokenResult>() {
                     @Override
                     public AcquireTokenResult perform(IMicrosoftAuthService service) throws RemoteException, BaseException {
-                        final Bundle requestBundle = getSilentBrokerRequestBundle(parameters);
-                        final Bundle resultBundle = service.acquireTokenSilently(requestBundle);
-                        return getAcquireTokenResult(resultBundle);
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForAcquireTokenSilent(parameters);
+                        return mResultAdapter.getAcquireTokenResultFromResultBundle(
+                                service.acquireTokenSilently(requestBundle)
+                        );
                     }
 
                     @Override
@@ -218,9 +214,8 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                 new AuthServiceOperation<List<ICacheRecord>>() {
                     @Override
                     public List<ICacheRecord> perform(IMicrosoftAuthService service) throws RemoteException, BaseException {
-                        final Bundle requestBundle = getRequestBundleForGetAccounts(parameters);
-                        return MsalBrokerResultAdapter
-                                .accountsFromBundle(
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForGetAccounts(parameters);
+                        return mResultAdapter.getAccountsFromResultBundle(
                                         service.getAccounts(requestBundle)
                                 );
 
@@ -233,14 +228,6 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                 });
     }
 
-    static Bundle getRequestBundleForGetAccounts(@NonNull final OperationParameters parameters) {
-        final Bundle requestBundle = new Bundle();
-        requestBundle.putString(ACCOUNT_CLIENTID_KEY, parameters.getClientId());
-        requestBundle.putString(ACCOUNT_REDIRECT, parameters.getRedirectUri());
-        //Disable the environment and tenantID. Just return all accounts belong to this clientID.
-        return requestBundle;
-    }
-
     @WorkerThread
     protected void removeBrokerAccount(@NonNull final OperationParameters parameters)
             throws BaseException, InterruptedException, ExecutionException, RemoteException {
@@ -248,8 +235,8 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                 new AuthServiceOperation<Void>() {
                     @Override
                     public Void perform(IMicrosoftAuthService service) throws RemoteException, BaseException {
-                        final Bundle requestBundle = getRequestBundleForRemoveAccount(parameters);
-                        MsalBrokerResultAdapter.verifyRemoveAccountResultFromBundle(
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForRemoveAccount(parameters);
+                        mResultAdapter.verifyRemoveAccountResultFromBundle(
                                 service.removeAccount(requestBundle)
                         );
 
@@ -263,27 +250,15 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                 });
     }
 
-    static Bundle getRequestBundleForRemoveAccount(@NonNull final OperationParameters parameters) {
-        final Bundle requestBundle = new Bundle();
-        requestBundle.putString(ACCOUNT_CLIENTID_KEY, parameters.getClientId());
-        if (null != parameters.getAccount()) {
-            requestBundle.putString(ENVIRONMENT, parameters.getAccount().getEnvironment());
-            requestBundle.putString(ACCOUNT_HOME_ACCOUNT_ID, parameters.getAccount().getHomeAccountId());
-        }
-
-        return requestBundle;
-    }
-
     @WorkerThread
     protected boolean getDeviceMode(@NonNull OperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
         return performAuthServiceOperation(parameters.getAppContext(),
                 new AuthServiceOperation<Boolean>() {
                     @Override
                     public Boolean perform(IMicrosoftAuthService service) throws BaseException, RemoteException {
-                        return MsalBrokerResultAdapter
-                                .deviceModeFromBundle(
-                                        service.getDeviceMode()
-                                );
+                        return mResultAdapter.getDeviceModeFromResultBundle(
+                                service.getDeviceMode()
+                        );
                     }
 
                     @Override
@@ -299,11 +274,10 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                 new AuthServiceOperation<List<ICacheRecord>>() {
                     @Override
                     public List<ICacheRecord> perform(IMicrosoftAuthService service) throws RemoteException, BaseException {
-                        return MsalBrokerResultAdapter
-                                .accountsFromBundle(
-                                        service.getCurrentAccount(
-                                                BrokerAuthServiceStrategy.getRequestBundleForGetAccounts(parameters)
-                                        ));
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForGetAccounts(parameters);
+                        return mResultAdapter.getAccountsFromResultBundle(
+                                service.getCurrentAccount(requestBundle)
+                        );
                     }
 
                     @Override
@@ -319,8 +293,8 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                 new AuthServiceOperation<Void>() {
                     @Override
                     public Void perform(IMicrosoftAuthService service) throws RemoteException, BaseException {
-                        final Bundle requestBundle = getRequestBundleForRemoveAccountFromSharedDevice(parameters);
-                        MsalBrokerResultAdapter.verifyRemoveAccountResultFromBundle(
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForRemoveAccountFromSharedDevice(parameters);
+                        mResultAdapter.verifyRemoveAccountResultFromBundle(
                                 service.removeAccountFromSharedDevice(requestBundle)
                         );
 
@@ -332,19 +306,5 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                         return ":signOutFromSharedDeviceWithAuthService";
                     }
                 });
-    }
-
-    private Bundle getRequestBundleForRemoveAccountFromSharedDevice(@NonNull final OperationParameters parameters) {
-        final Bundle requestBundle = new Bundle();
-
-        try {
-            Browser browser = BrowserSelector.select(parameters.getAppContext(), parameters.getBrowserSafeList());
-            requestBundle.putString(DEFAULT_BROWSER_PACKAGE_NAME, browser.getPackageName());
-        } catch (ClientException e) {
-            // Best effort. If none is passed to broker, then it will let the OS decide.
-            Logger.error(TAG, e.getErrorCode(), e);
-        }
-
-        return requestBundle;
     }
 }
