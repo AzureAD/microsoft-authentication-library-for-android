@@ -117,7 +117,6 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
      * Perform an operation with Broker's MicrosoftAuthService on a background thread.
      *
      * @param appContext           app context.
-     * @param callback             a callback function to be invoked to return result/error of the performed task.
      * @param authServiceOperation the task to be performed.
      */
     private <T> T performAuthServiceOperation(@NonNull final Context appContext,

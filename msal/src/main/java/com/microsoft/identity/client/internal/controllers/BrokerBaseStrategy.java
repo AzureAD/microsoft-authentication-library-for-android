@@ -47,6 +47,20 @@ import com.microsoft.identity.common.internal.request.AcquireTokenOperationParam
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
 import com.microsoft.identity.common.internal.request.OperationParameters;
+import com.microsoft.identity.common.internal.request.generated.GetCurrentAccountCommandContext;
+import com.microsoft.identity.common.internal.request.generated.GetCurrentAccountCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.GetDeviceModeCommandContext;
+import com.microsoft.identity.common.internal.request.generated.GetDeviceModeCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandContext;
+import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.LoadAccountCommandContext;
+import com.microsoft.identity.common.internal.request.generated.LoadAccountCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.RemoveAccountCommandContext;
+import com.microsoft.identity.common.internal.request.generated.RemoveAccountCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.RemoveCurrentAccountCommandContext;
+import com.microsoft.identity.common.internal.request.generated.RemoveCurrentAccountCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.SilentTokenCommandContext;
+import com.microsoft.identity.common.internal.request.generated.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 
@@ -57,19 +71,33 @@ import java.util.concurrent.ExecutionException;
 abstract class BrokerBaseStrategy {
     private static final String TAG = BrokerBaseStrategy.class.getSimpleName();
 
-    abstract Intent getBrokerAuthorizationIntent(@NonNull AcquireTokenOperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException;
+    abstract Intent getBrokerAuthorizationIntent(
+            @NonNull final InteractiveTokenCommandContext context,
+            @NonNull final InteractiveTokenCommandParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException;
 
-    abstract AcquireTokenResult acquireTokenSilent(AcquireTokenSilentOperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException;
+    abstract AcquireTokenResult acquireTokenSilent(
+            @NonNull final SilentTokenCommandContext context,
+            @NonNull final SilentTokenCommandParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException;
 
-    abstract List<ICacheRecord> getBrokerAccounts(@NonNull final OperationParameters parameters) throws InterruptedException, ExecutionException, RemoteException, OperationCanceledException, IOException, AuthenticatorException, BaseException;
+    abstract List<ICacheRecord> getBrokerAccounts(
+            @NonNull final LoadAccountCommandContext context,
+            @NonNull final LoadAccountCommandParameters parameters) throws InterruptedException, ExecutionException, RemoteException, OperationCanceledException, IOException, AuthenticatorException, BaseException;
 
-    abstract void removeBrokerAccount(@NonNull final OperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException;
+    abstract void removeBrokerAccount(
+            @NonNull final RemoveAccountCommandContext context,
+            @NonNull final RemoveAccountCommandParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException;
 
-    abstract boolean getDeviceMode(@NonNull final OperationParameters parameters)throws BaseException, InterruptedException, ExecutionException, RemoteException;
+    abstract boolean getDeviceMode(
+            @NonNull final GetDeviceModeCommandContext context,
+            @NonNull final GetDeviceModeCommandParameters parameters)throws BaseException, InterruptedException, ExecutionException, RemoteException;
 
-    abstract List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull final OperationParameters parameters) throws InterruptedException, ExecutionException, RemoteException, OperationCanceledException, IOException, AuthenticatorException, BaseException;
+    abstract List<ICacheRecord> getCurrentAccountInSharedDevice(
+            @NonNull final GetCurrentAccountCommandContext context,
+            @NonNull final GetCurrentAccountCommandParameters parameters) throws InterruptedException, ExecutionException, RemoteException, OperationCanceledException, IOException, AuthenticatorException, BaseException;
 
-    abstract void signOutFromSharedDevice(@NonNull final OperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException;
+    abstract void signOutFromSharedDevice(
+            @NonNull final RemoveCurrentAccountCommandContext context,
+            @NonNull final RemoveCurrentAccountCommandParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException;
 
     Handler getPreferredHandler() {
         if (null != Looper.myLooper() && Looper.getMainLooper() != Looper.myLooper()) {
