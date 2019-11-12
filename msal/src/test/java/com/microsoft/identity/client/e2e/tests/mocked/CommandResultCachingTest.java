@@ -62,6 +62,11 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
 
     }
 
+    @Override
+    public String getAuthority() {
+        return AAD_MOCK_AUTHORITY;
+    }
+
     /**
      * verifies that two different commands result in 2 cache entries
      */

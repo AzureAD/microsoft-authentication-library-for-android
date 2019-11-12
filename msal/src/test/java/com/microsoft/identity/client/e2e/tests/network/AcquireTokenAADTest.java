@@ -22,16 +22,18 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.network;
 
+import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_MOONCAKE_CONFIG_FILE_PATH;
 import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.USER_READ_SCOPE;
 
 /**
  * Run all tests in the {@link AcquireTokenNetworkTest} class using AAD
  */
-public class AcquireTokenNetworkAADTest extends AcquireTokenNetworkTest {
+public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
 
     @Override
     public String getConfigFilePath() {
@@ -44,9 +46,48 @@ public class AcquireTokenNetworkAADTest extends AcquireTokenNetworkTest {
     }
 
     @Override
-    public LabUserQuery getLabUserQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.userType = LabConstants.UserType.CLOUD;
-        return query;
+    public String getAuthority() {
+        return (String) AcquireTokenTestHelper.getAccount().getClaims().get("iss");
+    }
+
+    public static class AzureWorldWideCloudUser extends AcquireTokenAADTest {
+        @Override
+        public LabUserQuery getLabUserQuery() {
+            final LabUserQuery query = new LabUserQuery();
+            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
+            return query;
+        }
+    }
+
+    public static class AzureUsGovCloudUser extends AcquireTokenAADTest {
+        @Override
+        public LabUserQuery getLabUserQuery() {
+            final LabUserQuery query = new LabUserQuery();
+            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
+            return query;
+        }
+    }
+
+    public static class AzureChinaCloudUser extends AcquireTokenAADTest {
+        @Override
+        public String getConfigFilePath() {
+            return MULTIPLE_ACCOUNT_MODE_AAD_MOONCAKE_CONFIG_FILE_PATH;
+        }
+
+        @Override
+        public LabUserQuery getLabUserQuery() {
+            final LabUserQuery query = new LabUserQuery();
+            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CHINA_CLOUD;
+            return query;
+        }
+    }
+
+    public static class AzureGermanyCloudUser extends AcquireTokenAADTest {
+        @Override
+        public LabUserQuery getLabUserQuery() {
+            final LabUserQuery query = new LabUserQuery();
+            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_GERMANY_CLOUD;
+            return query;
+        }
     }
 }

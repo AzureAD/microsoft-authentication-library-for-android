@@ -24,7 +24,10 @@ package com.microsoft.identity.client.e2e.shadows;
 
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.common.internal.authorities.Authority;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
 import com.microsoft.identity.internal.testutils.authorities.AADTestAuthority;
 import com.microsoft.identity.internal.testutils.authorities.B2CTestAuthority;
@@ -97,11 +100,31 @@ public class ShadowAuthority {
                 break;
             default:
                 // return new AAD Test Authority
-                authority = new AADTestAuthority();
+                authority = createAadAuthority(authorityUri, pathSegments);
                 break;
         }
 
         return authority;
+    }
+
+    private static Authority createAadAuthority(@NonNull final Uri authorityUri,
+                                                @NonNull final List<String> pathSegments) {
+        AzureActiveDirectoryAudience audience = AzureActiveDirectoryAudience.getAzureActiveDirectoryAudience(
+                authorityUri.getScheme() + "://" + authorityUri.getHost(),
+                getPathForRopc(pathSegments)
+        );
+
+        return new AADTestAuthority(audience);
+    }
+
+    private static String getPathForRopc(@NonNull final List<String> pathSegments) {
+        final String providedPath = pathSegments.get(0);
+        if (providedPath.equals(AzureActiveDirectoryAudience.ALL) ||
+                providedPath.equals(AzureActiveDirectoryAudience.CONSUMERS)) {
+            return AzureActiveDirectoryAudience.ORGANIZATIONS;
+        } else {
+            return providedPath;
+        }
     }
 
 
