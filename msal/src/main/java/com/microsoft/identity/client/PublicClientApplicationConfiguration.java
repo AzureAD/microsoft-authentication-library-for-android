@@ -372,6 +372,7 @@ public class PublicClientApplicationConfiguration {
         this.mAccountMode = config.mAccountMode != AccountMode.MULTIPLE ? config.mAccountMode : this.mAccountMode;
         this.mClientCapabilities = config.mClientCapabilities == null ? this.mClientCapabilities : config.mClientCapabilities;
         this.mIsSharedDevice = config.mIsSharedDevice == true ? this.mIsSharedDevice : config.mIsSharedDevice;
+        this.mLoggerConfiguration = config.mLoggerConfiguration == null ? this.mLoggerConfiguration : config.mLoggerConfiguration;
     }
 
     void validateConfiguration() {
@@ -488,7 +489,7 @@ public class PublicClientApplicationConfiguration {
                             "\t\t" + "<category android:name=\"android.intent.category.BROWSABLE\" />" + "\n" +
                             "\t\t" + "<data" + "\n" +
                             "\t\t\t" + "android:host=\"" + redirectUri.getHost() + "\"" + "\n" +
-                            "\t\t\t" + "android:path=\'" + redirectUri.getPath() + "\"" + "\n" +
+                            "\t\t\t" + "android:path=\"" + redirectUri.getPath() + "\"" + "\n" +
                             "\t\t\t" + "android:scheme=\"" + redirectUri.getScheme() + "\" />" + "\n" +
                             "\t" + "</intent-filter>" + "\n" +
                             "</activity>" + "\n");

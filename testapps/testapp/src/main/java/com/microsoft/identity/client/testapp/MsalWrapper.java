@@ -203,6 +203,7 @@ public class MsalWrapper {
                                 AcquireTokenSilentParameters acquireTokenSilentParameters =
                                         builder.withResource(requestOptions.getScopes().toLowerCase().trim())
                                                 .forAccount(account)
+                                                .fromAuthority(mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString())
                                                 .forceRefresh(requestOptions.forceRefresh())
                                                 .withCallback(getAuthenticationCallback(notifyCallback))
                                                 .build();

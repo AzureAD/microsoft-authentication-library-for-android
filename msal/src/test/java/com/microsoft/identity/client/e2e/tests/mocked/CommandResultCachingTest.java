@@ -51,6 +51,7 @@ import static com.microsoft.identity.client.e2e.utils.TestConstants.Authorities.
 import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
 import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.USER_READ_SCOPE;
 
+@Ignore
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowHttpRequest.class, ShadowMsalUtils.class})
 public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
@@ -71,6 +72,7 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
      * verifies that two different commands result in 2 cache entries
      */
     @Test
+    @Ignore
     public void testAcquireTokenCache2DifferentRequests() throws InterruptedException {
         final String username = "fake@test.com";
 
@@ -116,6 +118,7 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
      * Second silent request is expected to be retrieved from the cache.
      */
     @Test
+    @Ignore
     public void testAcquireTokenCache2IdenticalRequests() throws InterruptedException {
         final String username = "fake@test.com";
 
@@ -190,6 +193,7 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
      * NOTE: This runs a bit longer
      */
     @Test
+    @Ignore
     public void testAcquireTokenExceedCacheMaxItems() throws InterruptedException {
         final String username = "fake@test.com";
 
