@@ -54,6 +54,7 @@ import com.microsoft.identity.common.internal.broker.MicrosoftAuthServiceFuture;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.controllers.BaseController;
+import com.microsoft.identity.common.internal.controllers.RemoveCurrentAccountCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.dto.RefreshTokenRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
@@ -372,7 +373,7 @@ public class BrokerMsalController extends BaseController<InteractiveTokenCommand
     public List<ICacheRecord> getAccounts(
             @NonNull final LoadAccountCommandContext context,
             @NonNull final LoadAccountCommandParameters parameters) throws Exception {
-        return invokeBrokerOperation(parameters,
+        return invokeBrokerOperation(context, parameters,
                 new BrokerOperationInfo<LoadAccountCommandContext,LoadAccountCommandParameters, List<ICacheRecord>>() {
                     @Nullable
                     @Override
@@ -403,12 +404,12 @@ public class BrokerMsalController extends BaseController<InteractiveTokenCommand
     public boolean removeAccount(
             @NonNull final RemoveAccountCommandContext context,
             @NonNull final RemoveAccountCommandParameters parameters) throws Exception {
-        invokeBrokerOperation(parameters,
-                new BrokerOperationInfo<OperationParameters, Void>() {
+        invokeBrokerOperation(context,parameters,
+                new BrokerOperationInfo<RemoveAccountCommandContext, RemoveAccountCommandParameters, Boolean>() {
                     @Nullable
                     @Override
-                    public Void perform(BrokerBaseStrategy strategy, OperationParameters parameters) throws InterruptedException, ExecutionException, BaseException, RemoteException {
-                        strategy.removeBrokerAccount(parameters);
+                    public Boolean perform(BrokerBaseStrategy strategy, RemoveAccountCommandContext context, RemoveAccountCommandParameters parameters) throws InterruptedException, ExecutionException, BaseException, RemoteException {
+                        strategy.removeBrokerAccount(context,parameters);
                         return null;
                     }
 
@@ -424,8 +425,11 @@ public class BrokerMsalController extends BaseController<InteractiveTokenCommand
                     }
 
                     @Override
-                    public void putValueInSuccessEvent(ApiEndEvent event, Void result) {
+                    public void putValueInSuccessEvent(ApiEndEvent event, Boolean result) {
+
                     }
+
+
                 });
 
         return true;
@@ -436,12 +440,12 @@ public class BrokerMsalController extends BaseController<InteractiveTokenCommand
     public boolean getDeviceMode(
             @NonNull final GetDeviceModeCommandContext context,
             @NonNull final GetDeviceModeCommandParameters parameters) throws Exception {
-        return invokeBrokerOperation(parameters,
-                new BrokerOperationInfo<OperationParameters, Boolean>() {
+        return invokeBrokerOperation(context,parameters,
+                new BrokerOperationInfo<GetDeviceModeCommandContext, GetDeviceModeCommandParameters, Boolean>() {
                     @Nullable
                     @Override
-                    public Boolean perform(BrokerBaseStrategy strategy, OperationParameters parameters) throws Exception {
-                        return strategy.getDeviceMode(parameters);
+                    public Boolean perform(BrokerBaseStrategy strategy, GetDeviceModeCommandContext context, GetDeviceModeCommandParameters parameters) throws Exception {
+                        return strategy.getDeviceMode(context,parameters);
                     }
 
                     @Override
@@ -468,17 +472,18 @@ public class BrokerMsalController extends BaseController<InteractiveTokenCommand
             @NonNull final GetCurrentAccountCommandParameters parameters) throws Exception {
         final String methodName = ":getCurrentAccount";
 
-        if (!parameters.getIsSharedDevice()) {
+        if (!context.isSharedDevice()) {
             Logger.verbose(TAG + methodName, "Not a shared device, invoke getAccounts() instead of getCurrentAccount()");
-            return getAccounts(parameters);
+            //TODO: We need to convert to LoadAccountParameters and Context
+            return getAccounts(context.toLoadAccountCommandContext(), parameters.toLoadAccountAccountCommandParameters());
         }
 
-        return invokeBrokerOperation(parameters,
-                new BrokerOperationInfo<OperationParameters, List<ICacheRecord>>() {
+        return invokeBrokerOperation(context, parameters,
+                new BrokerOperationInfo<GetCurrentAccountCommandContext, GetCurrentAccountCommandParameters, List<ICacheRecord>>() {
                     @Nullable
                     @Override
-                    public List<ICacheRecord> perform(BrokerBaseStrategy strategy, OperationParameters parameters) throws Exception {
-                        return strategy.getCurrentAccountInSharedDevice(parameters);
+                    public List<ICacheRecord> perform(BrokerBaseStrategy strategy, GetCurrentAccountCommandContext context, GetCurrentAccountCommandParameters  parameters) throws Exception {
+                        return strategy.getCurrentAccountInSharedDevice(context, parameters);
                     }
 
                     @Override
@@ -505,9 +510,9 @@ public class BrokerMsalController extends BaseController<InteractiveTokenCommand
             @NonNull final RemoveCurrentAccountCommandParameters parameters) throws Exception {
         final String methodName = ":removeCurrentAccount";
 
-        if (!parameters.getIsSharedDevice()) {
+        if (!context.isSharedDevice()) {
             Logger.verbose(TAG + methodName, "Not a shared device, invoke removeAccount() instead of removeCurrentAccount()");
-            return removeAccount(parameters);
+            return removeAccount(context.toRemoveAccountCommandContext(), parameters.toRemoveAccountCommandParameters());
         }
 
         /**
@@ -518,12 +523,12 @@ public class BrokerMsalController extends BaseController<InteractiveTokenCommand
          * 3. Clear WebView cookies.
          * 4. Sign out from default browser.
          */
-        invokeBrokerOperation(parameters,
-                new BrokerOperationInfo<OperationParameters, Void>() {
+        invokeBrokerOperation(context,parameters,
+                new BrokerOperationInfo<RemoveCurrentAccountCommandContext, RemoveCurrentAccountCommandParameters, Void>() {
                     @Nullable
                     @Override
-                    public Void perform(BrokerBaseStrategy strategy, OperationParameters parameters) throws InterruptedException, ExecutionException, BaseException, RemoteException {
-                        strategy.signOutFromSharedDevice(parameters);
+                    public Void perform(BrokerBaseStrategy strategy, RemoveCurrentAccountCommandContext context, RemoveCurrentAccountCommandParameters parameters) throws Exception {
+                        strategy.signOutFromSharedDevice(context, parameters);
                         return null;
                     }
 

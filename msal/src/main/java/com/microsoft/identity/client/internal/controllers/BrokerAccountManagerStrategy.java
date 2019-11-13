@@ -45,10 +45,21 @@ import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.broker.BrokerRequest;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
-import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
-import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
-import com.microsoft.identity.common.internal.request.OperationParameters;
+import com.microsoft.identity.common.internal.request.generated.GetCurrentAccountCommandContext;
+import com.microsoft.identity.common.internal.request.generated.GetCurrentAccountCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.GetDeviceModeCommandContext;
+import com.microsoft.identity.common.internal.request.generated.GetDeviceModeCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandContext;
+import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.LoadAccountCommandContext;
+import com.microsoft.identity.common.internal.request.generated.LoadAccountCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.RemoveAccountCommandContext;
+import com.microsoft.identity.common.internal.request.generated.RemoveAccountCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.RemoveCurrentAccountCommandContext;
+import com.microsoft.identity.common.internal.request.generated.RemoveCurrentAccountCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.SilentTokenCommandContext;
+import com.microsoft.identity.common.internal.request.generated.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 import com.microsoft.identity.common.internal.telemetry.Telemetry;
@@ -77,15 +88,19 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
      * @return
      */
     @WorkerThread
-    Intent getBrokerAuthorizationIntent(@NonNull final AcquireTokenOperationParameters parameters) throws ClientException {
+    Intent getBrokerAuthorizationIntent(
+            @NonNull final InteractiveTokenCommandContext context,
+            @NonNull final InteractiveTokenCommandParameters parameters) throws ClientException {
         final String methodName = ":getBrokerAuthorizationIntent";
         Logger.verbose(TAG + methodName, "Get the broker authorization intent from Account Manager.");
-        return getBrokerAuthorizationIntentFromAccountManager(parameters);
+        return getBrokerAuthorizationIntentFromAccountManager(context,parameters);
     }
 
     @SuppressWarnings("PMD")
     @SuppressLint("MissingPermission")
-    private Intent getBrokerAuthorizationIntentFromAccountManager(@NonNull final AcquireTokenOperationParameters parameters) throws ClientException {
+    private Intent getBrokerAuthorizationIntentFromAccountManager(
+            @NonNull final InteractiveTokenCommandContext context,
+            @NonNull final InteractiveTokenCommandParameters parameters) throws ClientException {
         final String methodName = ":getBrokerAuthorizationIntentFromAccountManager";
         Telemetry.emit(
                 new BrokerStartEvent()
@@ -99,7 +114,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
 
             final Bundle requestBundle = new Bundle();
             final BrokerRequest brokerRequest = msalBrokerRequestAdapter.
-                    brokerRequestFromAcquireTokenParameters(parameters);
+                    brokerRequestFromAcquireTokenParameters(context, parameters);
             requestBundle.putInt(
                     AuthenticationConstants.Broker.CALLER_INFO_UID,
                     Binder.getCallingUid()
@@ -109,7 +124,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                     new Gson().toJson(brokerRequest, BrokerRequest.class)
             );
 
-            final AccountManager accountManager = AccountManager.get(parameters.getAppContext());
+            final AccountManager accountManager = AccountManager.get(context.androidApplicationContext());
             final AccountManagerFuture<Bundle> result =
                     accountManager.addAccount(
                             AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
@@ -212,7 +227,9 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     @WorkerThread
     @SuppressWarnings("PMD")
     @SuppressLint("MissingPermission")
-    AcquireTokenResult acquireTokenSilent(final AcquireTokenSilentOperationParameters parameters)
+    AcquireTokenResult acquireTokenSilent(
+            @NonNull final SilentTokenCommandContext context,
+            @NonNull final SilentTokenCommandParameters parameters)
             throws BaseException {
         // if there is not any user added to account, it returns empty
         final String methodName = ":acquireTokenSilentWithAccountManager";
@@ -223,20 +240,20 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
         );
 
         Bundle bundleResult = null;
-        if (parameters.getAccount() != null) {
+        if (parameters.account() != null) {
             // blocking call to get token from cache or refresh request in
             // background at Authenticator
             try {
 
-                final Bundle requestBundle = getSilentBrokerRequestBundle(parameters);
+                final Bundle requestBundle = getSilentBrokerRequestBundle(context, parameters);
 
                 // It does not expect activity to be launched.
                 // AuthenticatorService is handling the request at
                 // AccountManager.
-                final AccountManager accountManager = AccountManager.get(parameters.getAppContext());
+                final AccountManager accountManager = AccountManager.get(context.androidApplicationContext());
                 final AccountManagerFuture<Bundle> result =
                         accountManager.getAuthToken(
-                                getTargetAccount(parameters.getAppContext(), parameters.getAccount()),
+                                getTargetAccount(context.androidApplicationContext(), parameters.account()),
                                 AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
                                 requestBundle,
                                 false,
@@ -323,7 +340,9 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     @WorkerThread
     @SuppressWarnings("PMD")
     @SuppressLint("MissingPermission")
-    protected List<ICacheRecord> getBrokerAccounts(@NonNull final OperationParameters parameters)
+    protected List<ICacheRecord> getBrokerAccounts(
+            @NonNull final LoadAccountCommandContext context,
+            @NonNull final LoadAccountCommandParameters parameters)
             throws OperationCanceledException, IOException, AuthenticatorException, BaseException {
         final String methodName = ":getBrokerAccountsFromAccountManager";
         Telemetry.emit(
@@ -332,7 +351,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                         .putStrategy(TelemetryEventStrings.Value.ACCOUNT_MANAGER)
         );
 
-        final Account[] accountList = AccountManager.get(parameters.getAppContext()).getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+        final Account[] accountList = AccountManager.get(context.androidApplicationContext()).getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
         final List<ICacheRecord> cacheRecords = new ArrayList<>();
         Logger.verbose(
                 TAG + methodName,
@@ -353,12 +372,12 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
             bundle.putBoolean(DATA_CACHE_RECORD, true);
             bundle.putInt(AuthenticationConstants.Broker.CALLER_INFO_UID,
                     Binder.getCallingUid());
-            bundle.putString(ACCOUNT_CLIENTID_KEY, parameters.getClientId());
+            bundle.putString(ACCOUNT_CLIENTID_KEY, parameters.clientId());
 
             for (final Account eachAccount : accountList) {
                 // Use AccountManager Api method to get extended user info
 
-                final AccountManagerFuture<Bundle> result = AccountManager.get(parameters.getAppContext())
+                final AccountManagerFuture<Bundle> result = AccountManager.get(context.androidApplicationContext())
                         .updateCredentials(
                                 eachAccount,
                                 AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
@@ -387,7 +406,9 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     @WorkerThread
     @SuppressWarnings("PMD")
     @SuppressLint("MissingPermission")
-    protected void removeBrokerAccount(@NonNull final OperationParameters parameters) {
+    protected void removeBrokerAccount(
+            @NonNull final RemoveAccountCommandContext context,
+            @NonNull final RemoveAccountCommandParameters parameters) {
         final String methodName = ":removeBrokerAccountFromAccountManager";
         Telemetry.emit(
                 new BrokerStartEvent()
@@ -399,20 +420,20 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
 
         //If account is null, remove all accounts from broker
         //Otherwise, get the target account and remove it from broker
-        Account[] accountList = AccountManager.get(parameters.getAppContext()).getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+        Account[] accountList = AccountManager.get(context.androidApplicationContext()).getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
         if (accountList != null && accountList.length > 0) {
             for (final Account eachAccount : accountList) {
-                if (parameters.getAccount() == null || eachAccount.name.equalsIgnoreCase(parameters.getAccount().getUsername())) {
+                if (parameters.accountRecord() == null || eachAccount.name.equalsIgnoreCase(parameters.accountRecord().getUsername())) {
                     //create remove request bundle
                     Bundle brokerOptions = new Bundle();
-                    brokerOptions.putString(ACCOUNT_CLIENTID_KEY, parameters.getClientId());
-                    brokerOptions.putString(ENVIRONMENT, parameters.getAccount().getEnvironment());
+                    brokerOptions.putString(ACCOUNT_CLIENTID_KEY, parameters.clientId());
+                    brokerOptions.putString(ENVIRONMENT, parameters.accountRecord().getEnvironment());
                     brokerOptions.putInt(AuthenticationConstants.Broker.CALLER_INFO_UID,
                             Binder.getCallingUid());
-                    brokerOptions.putString(ACCOUNT_HOME_ACCOUNT_ID, parameters.getAccount().getHomeAccountId());
+                    brokerOptions.putString(ACCOUNT_HOME_ACCOUNT_ID, parameters.accountRecord().getHomeAccountId());
                     brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS,
                             AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS_VALUE);
-                    AccountManager.get(parameters.getAppContext()).getAuthToken(
+                    AccountManager.get(context.androidApplicationContext()).getAuthToken(
                             eachAccount,
                             AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
                             brokerOptions,
@@ -432,19 +453,25 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     }
 
     @Override
-    boolean getDeviceMode(@NonNull OperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
+    boolean getDeviceMode(
+            @NonNull GetDeviceModeCommandContext context,
+            @NonNull GetDeviceModeCommandParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
         // TODO
         throw new MsalClientException("getDeviceMode() is not yet implemented in BrokerAccountManagerStrategy()");
     }
 
     @Override
-    List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull OperationParameters parameters) throws InterruptedException, ExecutionException, RemoteException, OperationCanceledException, IOException, AuthenticatorException, BaseException {
+    List<ICacheRecord> getCurrentAccountInSharedDevice(
+            @NonNull GetCurrentAccountCommandContext context,
+            @NonNull GetCurrentAccountCommandParameters parameters) throws InterruptedException, ExecutionException, RemoteException, OperationCanceledException, IOException, AuthenticatorException, BaseException {
         // TODO
         throw new MsalClientException("getCurrentAccountInSharedDevice() is not yet implemented in BrokerAccountManagerStrategy()");
     }
 
     @Override
-    void signOutFromSharedDevice(@NonNull OperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
+    void signOutFromSharedDevice(
+            @NonNull RemoveCurrentAccountCommandContext context,
+            @NonNull RemoveCurrentAccountCommandParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
         // TODO
         throw new MsalClientException("signOutFromSharedDevice() is not yet implemented in BrokerAccountManagerStrategy()");
     }

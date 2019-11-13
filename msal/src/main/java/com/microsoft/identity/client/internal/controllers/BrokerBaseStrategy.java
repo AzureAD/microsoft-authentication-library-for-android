@@ -43,10 +43,7 @@ import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.internal.broker.BrokerRequest;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.IAccountRecord;
-import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
-import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
-import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.request.generated.GetCurrentAccountCommandContext;
 import com.microsoft.identity.common.internal.request.generated.GetCurrentAccountCommandParameters;
 import com.microsoft.identity.common.internal.request.generated.GetDeviceModeCommandContext;
@@ -107,12 +104,14 @@ abstract class BrokerBaseStrategy {
         }
     }
 
-    Bundle getSilentBrokerRequestBundle(final AcquireTokenSilentOperationParameters parameters) {
+    Bundle getSilentBrokerRequestBundle(
+            final SilentTokenCommandContext context,
+            final SilentTokenCommandParameters parameters) {
         final MsalBrokerRequestAdapter msalBrokerRequestAdapter = new MsalBrokerRequestAdapter();
 
         final Bundle requestBundle = new Bundle();
         final BrokerRequest brokerRequest = msalBrokerRequestAdapter.
-                brokerRequestFromSilentOperationParameters(parameters);
+                brokerRequestFromSilentOperationParameters(context,parameters);
 
         requestBundle.putString(
                 AuthenticationConstants.Broker.BROKER_REQUEST_V2,
