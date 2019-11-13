@@ -41,6 +41,7 @@ import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.internal.IntuneAcquireTokenParameters;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
@@ -202,6 +203,14 @@ public class OperationParametersAdapter {
             );
         } else {
             acquireTokenOperationParameters.setAuthorizationAgent(AuthorizationAgent.DEFAULT);
+        }
+
+        // Special case only for Intune COBO app, where they use IntuneAcquireTokenParameters (an internal class)
+        // to set browser support in broker to share SSO from System WebView login.
+        if(acquireTokenParameters instanceof IntuneAcquireTokenParameters){
+            acquireTokenOperationParameters.setBrokerBrowserSupportEnabled(
+                    ((IntuneAcquireTokenParameters) acquireTokenParameters).isBrokerBrowserSupportEnabled()
+            );
         }
 
         if (acquireTokenParameters.getPrompt() == null || acquireTokenParameters.getPrompt() == Prompt.WHEN_REQUIRED) {
