@@ -1,4 +1,3 @@
-//  Copyright (c) Microsoft Corporation.
 //  All rights reserved.
 //
 //  This code is licensed under the MIT License.
@@ -20,27 +19,10 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client;
+package com.microsoft.identity.client;//  Copyright (c) Microsoft Corporation.
 
-/**
- * The Bearer AuthenticationScheme.
- *
- * @see <a href="https://tools.ietf.org/html/rfc6750">RFC-6750</a>
- */
-public class BearerAuthenticationScheme extends TokenAuthenticationScheme {
+import com.microsoft.identity.common.internal.authscheme.BearerAuthenticationSchemeInternal;
 
-    private static final String SCHEME_BEARER = "Bearer";
-
-    /**
-     * Constructs a new BearerAuthenticationScheme.
-     */
-    public BearerAuthenticationScheme() {
-        super(SCHEME_BEARER);
-    }
-
-    @Override
-    String getAuthorizationRequestHeader() {
-        return getName() + " " + getAccessToken();
-    }
-
+public class BearerAuthenticationScheme extends BearerAuthenticationSchemeInternal {
+    // Empty class
 }

@@ -1,4 +1,3 @@
-//  Copyright (c) Microsoft Corporation.
 //  All rights reserved.
 //
 //  This code is licensed under the MIT License.
@@ -24,43 +23,31 @@ package com.microsoft.identity.client;
 
 import androidx.annotation.NonNull;
 
+import com.microsoft.identity.common.internal.authscheme.PopAuthenticationSchemeInternal;
+
 import java.net.URL;
 import java.util.UUID;
 
-public class PopAuthenticationScheme extends TokenAuthenticationScheme {
+public class PopAuthenticationScheme extends PopAuthenticationSchemeInternal {
 
-    private static final String SCHEME_POP = "PoP";
-
-    private HttpMethod mMethod;
-    private URL mUrl;
-    private String mNonce;
-    //private IDevicePopManager mPopManager;
-
-    public PopAuthenticationScheme(@NonNull final HttpMethod method,
+    public PopAuthenticationScheme(@NonNull final String httpMethod,
                                    @NonNull final URL url) {
-        this(method, url, UUID.randomUUID().toString());
+        this(httpMethod, url, UUID.randomUUID().toString());
     }
 
-    private PopAuthenticationScheme(@NonNull final HttpMethod method,
+    private PopAuthenticationScheme(@NonNull final String httpMethod,
                                     @NonNull final URL url,
                                     @NonNull final String nonce) {
-        super(SCHEME_POP);
-        mMethod = method;
-        mUrl = url;
-        mNonce = nonce;
+        super(httpMethod, url, nonce);
     }
-
-//    void setDevicePopManager(@NonNull final IDevicePopManager popManager) {
-//        mPopManager = popManager;
-//    }
 
     public static class Builder {
 
-        private HttpMethod mMethod;
+        private String mMethod;
         private URL mUrl;
         private String mNonce;
 
-        public Builder(@NonNull final HttpMethod method,
+        public Builder(@NonNull final String method,
                        @NonNull final URL url) {
             mMethod = method;
             mUrl = url;
@@ -76,18 +63,4 @@ public class PopAuthenticationScheme extends TokenAuthenticationScheme {
             return new PopAuthenticationScheme(mMethod, mUrl, mNonce);
         }
     }
-
-    @Override
-    String getAuthorizationRequestHeader() {
-        return null;
-//        return getName()
-//                + " "
-//                + mDevicePopManager.getAuthorizationHeaderValue(
-//                mMethod.name(),
-//                requestUrl,
-//                getAccessToken(),
-//                mNonce
-//        );
-    }
-
 }
