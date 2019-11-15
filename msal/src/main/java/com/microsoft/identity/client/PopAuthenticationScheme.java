@@ -30,24 +30,24 @@ import java.util.UUID;
 
 public class PopAuthenticationScheme extends PopAuthenticationSchemeInternal {
 
-    public PopAuthenticationScheme(@NonNull final String httpMethod,
+    public PopAuthenticationScheme(@NonNull final HttpMethod httpMethod,
                                    @NonNull final URL url) {
         this(httpMethod, url, UUID.randomUUID().toString());
     }
 
-    private PopAuthenticationScheme(@NonNull final String httpMethod,
+    private PopAuthenticationScheme(@NonNull final HttpMethod httpMethod,
                                     @NonNull final URL url,
                                     @NonNull final String nonce) {
-        super(httpMethod, url, nonce);
+        super(httpMethod.name(), url, nonce);
     }
 
     public static class Builder {
 
-        private String mMethod;
+        private HttpMethod mMethod;
         private URL mUrl;
         private String mNonce;
 
-        public Builder(@NonNull final String method,
+        public Builder(@NonNull final HttpMethod method,
                        @NonNull final URL url) {
             mMethod = method;
             mUrl = url;
