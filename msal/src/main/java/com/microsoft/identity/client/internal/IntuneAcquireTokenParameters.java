@@ -50,6 +50,14 @@ public class IntuneAcquireTokenParameters extends AcquireTokenParameters {
             return this;
         }
 
+        @Override
+        public IntuneAcquireTokenParameters build() {
+            return new IntuneAcquireTokenParameters(this);
+        }
 
+        @Override
+        public AcquireTokenParameters.Builder self() {
+            return this;
+        }
     }
 }

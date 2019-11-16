@@ -12,12 +12,15 @@ import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.claims.ClaimsRequest;
+import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
+import com.microsoft.identity.client.internal.IntuneAcquireTokenParameters;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -172,13 +175,21 @@ public class MsalWrapper {
             return;
         }
 
-        AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
-        AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(activity)
-                .withResource(requestOptions.getScopes().toLowerCase().trim())
+        final ClaimsRequest claimsRequest = new ClaimsRequest();
+        RequestedClaimAdditionalInformation additionalInformation = new RequestedClaimAdditionalInformation();
+        additionalInformation.setEssential(true);
+        claimsRequest.requestClaimInAccessToken("deviceid", additionalInformation);
+
+        IntuneAcquireTokenParameters.Builder builder = new IntuneAcquireTokenParameters.Builder();
+        IntuneAcquireTokenParameters acquireTokenParameters = (IntuneAcquireTokenParameters) builder
+                .brokerBrowserSupportEnabled(true)
+                .startAuthorizationFromActivity(activity)
                 .withPrompt(requestOptions.getPrompt())
+                .withResource(requestOptions.getScopes().toLowerCase().trim())
                 .withAuthorizationQueryStringParameters(null)
                 .withCallback(getAuthenticationCallback(notifyCallback))
                 .withLoginHint(requestOptions.getLoginHint())
+                .withClaims(claimsRequest)
                 .build();
 
         mApplication.acquireToken(acquireTokenParameters);
