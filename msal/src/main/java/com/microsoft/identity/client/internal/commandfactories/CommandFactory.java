@@ -23,13 +23,14 @@ import com.microsoft.identity.common.internal.request.generated.CommandParameter
  */
 public abstract class CommandFactory<
         GenericCommandContext extends CommandContext,
-        GenericCommandParameters extends CommandParameters> {
+        GenericCommandParameters extends CommandParameters,
+        GenericParameters extends Object>{
 
-    public abstract BaseCommand createCommand(@NonNull final Object parameters,
+    public abstract BaseCommand createCommand(@NonNull final GenericParameters parameters,
                                               @NonNull final CommandCallback callback,
                                               @NonNull final PublicClientApplicationConfiguration config) throws MsalClientException;
-    protected abstract GenericCommandParameters createCommandParameters();
-    protected abstract GenericCommandContext createCommandContext();
+    protected abstract GenericCommandParameters createCommandParameters(GenericParameters parameters);
+    protected abstract GenericCommandContext createCommandContext(PublicClientApplicationConfiguration config);
 
     public static BaseCommand createCommand(@NonNull final Class clz,
                                             @NonNull final Object parameters,
