@@ -20,11 +20,9 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
 package com.microsoft.identity.client;
 
 import android.app.Activity;
-import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
@@ -38,7 +36,7 @@ public interface IPublicClientApplication {
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
+     * Default value for {@link Prompt} is {@link Prompt#SELECT_ACCOUNT}.
      *
      * @param activity Non-null {@link Activity} that is used as the parent activity for launching the {@link AuthenticationActivity}.
      * @param scopes   The non-null array of scopes to be requested for the access token.
@@ -58,7 +56,7 @@ public interface IPublicClientApplication {
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link UiBehavior} is {@link UiBehavior#SELECT_ACCOUNT}.
+     * Default value for {@link Prompt} is {@link Prompt#SELECT_ACCOUNT}.
      * <p>
      * Convey parameters via the AquireTokenParameters object
      *
@@ -87,17 +85,16 @@ public interface IPublicClientApplication {
     IAuthenticationResult acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException;
 
     /**
-     * Returns the PublicClientConfiguration for this instance of PublicClientApplication
-     * Configuration is based on the defaults established for MSAl and can be overridden by creating the
-     * PublicClientApplication using {@link PublicClientApplication#PublicClientApplication(Context, PublicClientApplicationConfiguration)}
+     * Returns the PublicClientConfiguration for this instance of PublicClientApplication.
      *
-     * @return
+     * @return The PublicClientApplicationConfiguration.
      */
     PublicClientApplicationConfiguration getConfiguration();
 
     /**
      * Returns whether the application is being run on a device that is marked as a shared.
      * Only SingleAccountPublicClientApplications may be used on shared devices
+     *
      * @return
      */
     boolean isSharedDevice();

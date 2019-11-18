@@ -20,18 +20,15 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.common.internal.providers.oauth2.OpenIdConnectPromptParameter;
 import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.providers.oauth2.OpenIdConnectPromptParameter;
 
 /**
  * The UI options that developer can pass during interactive token acquisition requests.
  */
 public enum Prompt {
-
-
 
     /**
      * acquireToken will send prompt=select_account to the authorize endpoint. Shows a list of users from which can be
