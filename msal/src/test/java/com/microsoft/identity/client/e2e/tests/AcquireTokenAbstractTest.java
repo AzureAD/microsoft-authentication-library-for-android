@@ -22,6 +22,10 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests;
 
+import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
+import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
+
+import org.junit.After;
 import org.junit.Before;
 
 public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAbstractTest implements IAcquireTokenTest {
@@ -32,5 +36,12 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
     public void setup() {
         mScopes = getScopes();
         super.setup();
+    }
+
+    @After
+    public void cleanup() {
+        AcquireTokenTestHelper.setAccount(null);
+        // remove everything from cache after test ends
+        RoboTestUtils.clearCache();
     }
 }

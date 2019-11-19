@@ -119,7 +119,7 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
 
         // perform interactive call for each account
         for (int i = 0; i < queries.length; i++) {
-            final String username = LabUserHelper.getUpnForTest(queries[i]);
+            final String username = LabUserHelper.loadUserForTest(queries[i]);
             performInteractiveAcquireTokenCall(username);
             accounts[i] = getAccount();
         }
@@ -135,7 +135,7 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
     public void testAcquireTokenSilentUsingMrrtSuccess() {
         final LabUserQuery query = new AcquireTokenAADTest.AzureWorldWideCloudUser().getLabUserQuery();
 
-        final String username = LabUserHelper.getUpnForTest(query);
+        final String username = LabUserHelper.loadUserForTest(query);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
