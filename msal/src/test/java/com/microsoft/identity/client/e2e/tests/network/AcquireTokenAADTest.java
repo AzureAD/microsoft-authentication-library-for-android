@@ -28,6 +28,8 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
 import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_MOONCAKE_CONFIG_FILE_PATH;
+import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.AD_GRAPH_USER_READ_SCOPE;
+import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.OFFICE_USER_READ_SCOPE;
 import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.USER_READ_SCOPE;
 
 /**
@@ -87,6 +89,34 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
         public LabUserQuery getLabUserQuery() {
             final LabUserQuery query = new LabUserQuery();
             query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_GERMANY_CLOUD;
+            return query;
+        }
+    }
+
+    public static class MamUserAadGraphResource extends AcquireTokenAADTest {
+        @Override
+        public String[] getScopes() {
+            return AD_GRAPH_USER_READ_SCOPE;
+        }
+
+        @Override
+        public LabUserQuery getLabUserQuery() {
+            final LabUserQuery query = new LabUserQuery();
+            query.protectionPolicy = LabConstants.ProtectionPolicy.MAM_CA;
+            return query;
+        }
+    }
+
+    public static class MfaOnSpoUserOfficeResource extends AcquireTokenAADTest {
+        @Override
+        public String[] getScopes() {
+            return OFFICE_USER_READ_SCOPE;
+        }
+
+        @Override
+        public LabUserQuery getLabUserQuery() {
+            final LabUserQuery query = new LabUserQuery();
+            query.protectionPolicy = LabConstants.ProtectionPolicy.MAM_SPO;
             return query;
         }
     }

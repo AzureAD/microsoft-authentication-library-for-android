@@ -24,6 +24,7 @@ package com.microsoft.identity.client.e2e.tests.network;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
+import com.microsoft.identity.client.e2e.shadows.ShadowAccessTokenRecord;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
@@ -36,6 +37,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -182,4 +184,38 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
         mApplication.acquireTokenSilentAsync(silentParameters);
         RoboTestUtils.flushScheduler();
     }
+
+    @Test
+    @Ignore
+    public void testExpireTokens() throws InterruptedException {
+        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(successfulInteractiveCallback())
+                .build();
+
+        mApplication.acquireToken(parameters);
+        RoboTestUtils.flushScheduler();
+
+        LabUserHelper.resetPassword(mUsername);
+
+        Thread.sleep(50000);
+
+        // remove the access token from cache
+        RoboTestUtils.removeAccessTokenFromCache();
+
+        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .forAccount(getAccount())
+                .fromAuthority(getAuthority())
+                .withScopes(Arrays.asList(mScopes))
+                .forceRefresh(false)
+                .withCallback(successfulSilentCallback())
+                .build();
+
+        mApplication.acquireTokenSilentAsync(silentParameters);
+        RoboTestUtils.flushScheduler();
+    }
+
+
 }
