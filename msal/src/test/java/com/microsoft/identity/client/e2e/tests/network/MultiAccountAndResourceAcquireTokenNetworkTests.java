@@ -52,7 +52,7 @@ import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.USER_
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowMsalUtils.class})
-public class AdvancedNetworkTests extends AcquireTokenAbstractTest {
+public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireTokenAbstractTest {
     @Override
     public String[] getScopes() {
         return USER_READ_SCOPE;
@@ -108,7 +108,7 @@ public class AdvancedNetworkTests extends AcquireTokenAbstractTest {
     }
 
     @Test
-    public void testAcquireTokenSuccess() {
+    public void testAcquireTokenAndSilentWithMultipleCloudAccountsSuccess() {
 
         final LabUserQuery[] queries = new LabUserQuery[]{
                 new AcquireTokenAADTest.AzureWorldWideCloudUser().getLabUserQuery(),
@@ -132,7 +132,7 @@ public class AdvancedNetworkTests extends AcquireTokenAbstractTest {
     }
 
     @Test
-    public void testAcquireTokenSilentDifferentScopes() {
+    public void testAcquireTokenSilentUsingMrrtSuccess() {
         final LabUserQuery query = new AcquireTokenAADTest.AzureWorldWideCloudUser().getLabUserQuery();
 
         final String username = LabUserHelper.getUpnForTest(query);
