@@ -93,7 +93,7 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
         }
     }
 
-    public static class MamUserAadGraphResource extends AcquireTokenAADTest {
+    public static class MamCaUserAadGraphResource extends AcquireTokenAADTest {
         @Override
         public String[] getScopes() {
             return AD_GRAPH_USER_READ_SCOPE;
@@ -107,7 +107,7 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
         }
     }
 
-    public static class MfaOnSpoUserOfficeResource extends AcquireTokenAADTest {
+    public static class MamOnSpoUserOfficeResource extends AcquireTokenAADTest {
         @Override
         public String[] getScopes() {
             return OFFICE_USER_READ_SCOPE;
