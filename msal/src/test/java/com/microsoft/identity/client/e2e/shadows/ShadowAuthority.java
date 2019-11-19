@@ -107,6 +107,12 @@ public class ShadowAuthority {
         return authority;
     }
 
+    /**
+     * copied from {@link Authority class}
+     * @param authorityUri the uri from which to derive authority
+     * @param pathSegments determines the audience
+     * @return
+     */
     private static Authority createAadAuthority(@NonNull final Uri authorityUri,
                                                 @NonNull final List<String> pathSegments) {
         AzureActiveDirectoryAudience audience = AzureActiveDirectoryAudience.getAzureActiveDirectoryAudience(
@@ -117,6 +123,13 @@ public class ShadowAuthority {
         return new AADTestAuthority(audience);
     }
 
+    /**
+     * Get ROPC compatible audience from path segments.
+     * Changes ALL / Consumers to Organizations as all/consumers don't support ropc
+     * If specific tenant id is passed then just returns that tenant id as audience
+     * @param pathSegments
+     * @return
+     */
     private static String getPathForRopc(@NonNull final List<String> pathSegments) {
         final String providedPath = pathSegments.get(0);
         if (providedPath.equals(AzureActiveDirectoryAudience.ALL) ||

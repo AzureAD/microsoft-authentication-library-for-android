@@ -107,7 +107,7 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
         RoboTestUtils.flushScheduler();
     }
 
-    @Test
+    @Test // test that accounts belonging to multiple clouds can live together in the app
     public void testAcquireTokenAndSilentWithMultipleCloudAccountsSuccess() {
 
         final LabUserQuery[] queries = new LabUserQuery[]{
@@ -131,7 +131,7 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
         }
     }
 
-    @Test
+    @Test // test that we can use mrrt to get a token silently for OFFICE
     public void testAcquireTokenSilentUsingMrrtSuccess() {
         final LabUserQuery query = new AcquireTokenAADTest.AzureWorldWideCloudUser().getLabUserQuery();
 
