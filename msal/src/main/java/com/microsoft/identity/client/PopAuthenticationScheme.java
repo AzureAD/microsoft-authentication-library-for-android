@@ -1,3 +1,4 @@
+//  Copyright (c) Microsoft Corporation.
 //  All rights reserved.
 //
 //  This code is licensed under the MIT License.
@@ -23,44 +24,96 @@ package com.microsoft.identity.client;
 
 import androidx.annotation.NonNull;
 
+import com.microsoft.identity.common.internal.authscheme.IPoPAuthenticationSchemeParams;
 import com.microsoft.identity.common.internal.authscheme.PopAuthenticationSchemeInternal;
 
 import java.net.URL;
 import java.util.UUID;
 
-public class PopAuthenticationScheme extends PopAuthenticationSchemeInternal {
+import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
 
+public class PopAuthenticationScheme
+        extends AuthenticationScheme
+        implements IPoPAuthenticationSchemeParams {
+
+    private static final String ARG_HTTP_METHOD = "httpMethod";
+    private static final String ARG_URL = "url";
+    private static final String ARG_NONCE = "nonce";
+
+    private String mHttpMethod;
+    private URL mUrl;
+    private String mNonce;
+
+    /**
+     * Constructs a new PopAuthenticationScheme.
+     */
     public PopAuthenticationScheme(@NonNull final HttpMethod httpMethod,
                                    @NonNull final URL url) {
-        this(httpMethod, url, UUID.randomUUID().toString());
+        super(PopAuthenticationSchemeInternal.SCHEME_POP);
+
+        // Validate args
+        validateNonNullArgument(httpMethod, ARG_HTTP_METHOD);
+        validateNonNullArgument(url, ARG_URL);
+
+        mHttpMethod = httpMethod.name();
+        mUrl = url;
+        mNonce = UUID.randomUUID().toString();
     }
 
     private PopAuthenticationScheme(@NonNull final HttpMethod httpMethod,
                                     @NonNull final URL url,
                                     @NonNull final String nonce) {
-        super(httpMethod.name(), url, nonce);
+        super(PopAuthenticationSchemeInternal.SCHEME_POP);
+        mHttpMethod = httpMethod.name();
+        mUrl = url;
+        mNonce = nonce;
+    }
+
+    @Override
+    public String getHttpMethod() {
+        return mHttpMethod;
+    }
+
+    @Override
+    public URL getUrl() {
+        return mUrl;
+    }
+
+    @Override
+    public String getNonce() {
+        return mNonce;
     }
 
     public static class Builder {
 
-        private HttpMethod mMethod;
+        private HttpMethod mHttpMethod;
         private URL mUrl;
         private String mNonce;
 
-        public Builder(@NonNull final HttpMethod method,
+        public Builder(@NonNull final HttpMethod httpMethod,
                        @NonNull final URL url) {
-            mMethod = method;
+            // Validate args
+            validateNonNullArgument(httpMethod, ARG_HTTP_METHOD);
+            validateNonNullArgument(url, ARG_URL);
+
+            mHttpMethod = httpMethod;
             mUrl = url;
         }
 
         @NonNull
         public Builder withNonce(@NonNull final String nonce) {
+            validateNonNullArgument(nonce, ARG_NONCE);
             mNonce = nonce;
             return this;
         }
 
+        @NonNull
         public PopAuthenticationScheme build() {
-            return new PopAuthenticationScheme(mMethod, mUrl, mNonce);
+            return new PopAuthenticationScheme(
+                    mHttpMethod,
+                    mUrl,
+                    mNonce
+            );
         }
     }
 }

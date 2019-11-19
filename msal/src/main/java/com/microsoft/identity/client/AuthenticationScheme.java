@@ -22,14 +22,18 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.common.internal.authscheme.BearerAuthenticationSchemeInternal;
+import androidx.annotation.NonNull;
 
-public class BearerAuthenticationScheme extends AuthenticationScheme {
+import com.microsoft.identity.common.internal.authscheme.AbstractAuthenticationScheme;
+
+public abstract class AuthenticationScheme extends AbstractAuthenticationScheme {
 
     /**
-     * Constructs a new BearerAuthenticationScheme.
+     * Constructs a new AbstractAuthenticationScheme.
+     *
+     * @param name The name of this scheme.
      */
-    public BearerAuthenticationScheme() {
-        super(BearerAuthenticationSchemeInternal.SCHEME_BEARER);
+    AuthenticationScheme(@NonNull String name) {
+        super(name);
     }
 }
