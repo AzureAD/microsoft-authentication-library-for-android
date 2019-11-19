@@ -1422,6 +1422,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             );
 
 
+                    /*
                     final SilentTokenCommand silentTokenCommand = new SilentTokenCommand(
                             params,
                             MSALControllerFactory.getAllControllers(
@@ -1431,6 +1432,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             ),
                             callback
                     );
+
+                     */
 
                     silentTokenCommand.setPublicApiId(publicApiId);
                     CommandDispatcher.submitSilent(silentTokenCommand);
