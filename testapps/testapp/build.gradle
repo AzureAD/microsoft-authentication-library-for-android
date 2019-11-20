@@ -64,7 +64,7 @@ android {
             resValue("string", "application_name", "msal-dist")
         }
         prod {
-            applicationIdSuffix ".prod"
+            applicationIdSuffix ".local"
             versionNameSuffix "-prod"
             resValue("string", "application_name", "msal-prod")
         }
