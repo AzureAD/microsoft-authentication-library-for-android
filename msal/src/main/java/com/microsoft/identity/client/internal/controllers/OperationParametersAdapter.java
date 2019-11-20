@@ -208,9 +208,13 @@ public class OperationParametersAdapter {
         // Special case only for Intune COBO app, where they use IntuneAcquireTokenParameters (an internal class)
         // to set browser support in broker to share SSO from System WebView login.
         if(acquireTokenParameters instanceof IntuneAcquireTokenParameters){
-            acquireTokenOperationParameters.setBrokerBrowserSupportEnabled(
-                    ((IntuneAcquireTokenParameters) acquireTokenParameters).isBrokerBrowserSupportEnabled()
+            boolean brokerBrowserEnabled = ((IntuneAcquireTokenParameters) acquireTokenParameters)
+                    .isBrokerBrowserSupportEnabled();
+            Logger.info(TAG + methodName,
+                    " IntuneAcquireTokenParameters instance, broker browser enabled : "
+                            + brokerBrowserEnabled
             );
+            acquireTokenOperationParameters.setBrokerBrowserSupportEnabled(brokerBrowserEnabled);
         }
 
         if (acquireTokenParameters.getPrompt() == null || acquireTokenParameters.getPrompt() == Prompt.WHEN_REQUIRED) {
