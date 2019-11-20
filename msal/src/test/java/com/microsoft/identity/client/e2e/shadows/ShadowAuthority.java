@@ -108,7 +108,7 @@ public class ShadowAuthority {
     }
 
     /**
-     * copied from {@link Authority class}
+     * Similar to createAadAuthority method in {@link Authority} class
      * @param authorityUri the uri from which to derive authority
      * @param pathSegments determines the audience
      * @return
