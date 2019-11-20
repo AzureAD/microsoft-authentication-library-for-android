@@ -130,18 +130,18 @@ public class OperationParametersAdapter {
             );
             //AzureActiveDirectory supports client capabilities
             ClaimsRequest mergedClaimsRequest = addClientCapabilitiesToClaimsRequest(acquireTokenParameters.getClaimsRequest(),
-                                                    publicClientApplicationConfiguration.getClientCapabilities());
+                    publicClientApplicationConfiguration.getClientCapabilities());
             acquireTokenOperationParameters.setClaimsRequest(
                     ClaimsRequest.getJsonStringFromClaimsRequest(
                             mergedClaimsRequest
                     )
             );
 
-            if(acquireTokenParameters.getClaimsRequest() != null){
+            if (acquireTokenParameters.getClaimsRequest() != null) {
                 acquireTokenOperationParameters.setForceRefresh(true);
             }
 
-        }else{
+        } else {
             //B2C doesn't support client capabilities
             acquireTokenOperationParameters.setClaimsRequest(
                     ClaimsRequest.getJsonStringFromClaimsRequest(
@@ -224,11 +224,11 @@ public class OperationParametersAdapter {
         return acquireTokenOperationParameters;
     }
 
-    public static ClaimsRequest addClientCapabilitiesToClaimsRequest(ClaimsRequest cr, String clientCapabilities){
+    public static ClaimsRequest addClientCapabilitiesToClaimsRequest(ClaimsRequest cr, String clientCapabilities) {
 
         final ClaimsRequest mergedClaimsRequest = (cr == null) ? new ClaimsRequest() : cr;
 
-        if(clientCapabilities != null) {
+        if (clientCapabilities != null) {
             //Add client capabilities to existing claims request
             RequestedClaimAdditionalInformation info = new RequestedClaimAdditionalInformation();
             String[] capabilities = clientCapabilities.split(",");
@@ -298,8 +298,8 @@ public class OperationParametersAdapter {
 
             ClaimsRequest mergedClaimsRequest = addClientCapabilitiesToClaimsRequest(claimsRequest, pcaConfig.getClientCapabilities());
             //This business logic likely shouldn't be here, but this is the most convenient place I could find
-            if(claimsRequest != null){
-               atsOperationParams.setForceRefresh(true);
+            if (claimsRequest != null) {
+                atsOperationParams.setForceRefresh(true);
             }
             jsonClaimsRequest = ClaimsRequest.getJsonStringFromClaimsRequest(mergedClaimsRequest);
         }
@@ -312,9 +312,9 @@ public class OperationParametersAdapter {
      * For a tenant, assert that claims exist for it. This is a convenience function for throwing
      * exceptions & logging.
      *
-     * @param tenantId The tenantId for which claims are sought.
-     * @param claimable   The claims, which may be null - if they are, an {@link IllegalStateException}
-     *                 is thrown.
+     * @param tenantId  The tenantId for which claims are sought.
+     * @param claimable The claims, which may be null - if they are, an {@link IllegalStateException}
+     *                  is thrown.
      */
     public static void validateClaimsExistForTenant(@NonNull final String tenantId,
                                                     @Nullable final IClaimable claimable)
