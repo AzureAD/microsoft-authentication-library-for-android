@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.client;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.util.StringUtil;
@@ -40,12 +42,14 @@ public abstract class TokenParameters {
     private String mAuthority;
     private ClaimsRequest mClaimsRequest;
     private AccountRecord mAccountRecord;
+    private AuthenticationScheme mAuthenticationScheme;
 
     protected TokenParameters(final TokenParameters.Builder builder) {
         mAccount = builder.mAccount;
         mAuthority = builder.mAuthority;
         mClaimsRequest = builder.mClaimsRequest;
         mScopes = builder.mScopes;
+        mAuthenticationScheme = builder.mAuthenticationScheme;
     }
 
 
@@ -65,7 +69,7 @@ public abstract class TokenParameters {
      *
      * @param scopes
      */
-    void setScopes(final List<String> scopes){
+    void setScopes(final List<String> scopes) {
         mScopes = scopes;
     }
 
@@ -136,6 +140,14 @@ public abstract class TokenParameters {
         private IAccount mAccount;
         private String mAuthority;
         private ClaimsRequest mClaimsRequest;
+
+        // Default to Bearer scheme
+        private AuthenticationScheme mAuthenticationScheme = new BearerAuthenticationScheme();
+
+        public B withAuthenticationScheme(@NonNull final AuthenticationScheme authenticationScheme) {
+            mAuthenticationScheme = authenticationScheme;
+            return self();
+        }
 
         public B withScopes(List<String> scopes) {
             if (null != mScopes) {
