@@ -31,7 +31,7 @@ public class IntuneAcquireTokenParameters extends AcquireTokenParameters {
 
     private boolean mBrokerBrowserSupportEnabled;
 
-    public IntuneAcquireTokenParameters(final Builder builder) {
+    private IntuneAcquireTokenParameters(final Builder builder) {
         super(builder);
         mBrokerBrowserSupportEnabled = builder.mBrokerBrowserSupportEnabled;
     }
@@ -51,13 +51,13 @@ public class IntuneAcquireTokenParameters extends AcquireTokenParameters {
         }
 
         @Override
-        public IntuneAcquireTokenParameters build() {
-            return new IntuneAcquireTokenParameters(this);
+        public IntuneAcquireTokenParameters.Builder self() {
+            return this;
         }
 
         @Override
-        public AcquireTokenParameters.Builder self() {
-            return this;
+        public IntuneAcquireTokenParameters build() {
+            return new IntuneAcquireTokenParameters(this);
         }
     }
 }
