@@ -26,7 +26,6 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
@@ -50,6 +49,8 @@ import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
 import com.microsoft.identity.common.exception.BaseException;
+import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
@@ -72,8 +73,6 @@ import com.microsoft.identity.common.internal.net.HttpRequest;
 import com.microsoft.identity.common.internal.net.cache.HttpCache;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
-import com.microsoft.identity.common.internal.providers.oauth2.OpenIdProviderConfiguration;
-import com.microsoft.identity.common.internal.providers.oauth2.OpenIdProviderConfigurationClient;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.OperationParameters;
@@ -86,7 +85,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -97,7 +95,6 @@ import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullAr
 import static com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter.msalExceptionFromBaseException;
 import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isAccountHomeTenant;
 import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isHomeTenantEquivalent;
-import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.validateClaimsExistForTenant;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_MSA_PERSISTENCE_ERROR;
@@ -111,6 +108,7 @@ import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUN
 import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE;
 import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
 import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
+import static com.microsoft.identity.common.internal.util.StringUtil.isUuid;
 
 /**
  * <p>
@@ -1454,7 +1452,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private AccountRecord selectAccountRecordForTokenRequest(
             @NonNull final PublicClientApplicationConfiguration pcaConfig,
             @NonNull final TokenParameters tokenParameters)
-            throws ServiceException, MsalClientException {
+            throws ServiceException, ClientException {
         // If not authority was provided in the request, fallback to the default authority...
         if (TextUtils.isEmpty(tokenParameters.getAuthority())) {
             tokenParameters.setAuthority(
@@ -1500,57 +1498,57 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             // If the account is named like <tenant_name>.onmicrosoft.com we need to query the OpenId
             // Provider Configuration Metadata in order to get the tenant id. Once we have the
             // tenant id, we must then select the appropriate home or profile.
-            String tenantIdNameOrAlias = aadAuthority.getAudience().getTenantId();
+            String tenantId = aadAuthority.getAudience().getTenantId();
 
             // The AccountRecord we'll use to request a token...
             final AccountRecord accountRecord = new AccountRecord();
             accountRecord.setEnvironment(multiTenantAccount.getEnvironment());
             accountRecord.setHomeAccountId(multiTenantAccount.getHomeAccountId());
 
-            final boolean isUuid = isUuid(tenantIdNameOrAlias);
+            final boolean isUuid = isUuid(tenantId);
 
-            if (!isUuid && !isHomeTenantEquivalent(tenantIdNameOrAlias)) {
-                final OpenIdProviderConfiguration providerConfiguration =
-                        loadOpenIdProviderConfigurationMetadata(requestAuthority);
-
-                final String issuer = providerConfiguration.getIssuer();
-                final Uri issuerUri = Uri.parse(issuer);
-                final List<String> paths = issuerUri.getPathSegments();
-
-                if (paths.isEmpty()) {
-                    final String errMsg = "OpenId Metadata did not contain a path to the tenant";
-
-                    com.microsoft.identity.common.internal.logging.Logger.error(
-                            TAG,
-                            errMsg,
-                            null
-                    );
-
-                    throw new MsalClientException(errMsg);
-                }
-
-                tenantIdNameOrAlias = paths.get(0);
+            if (!isUuid && !isHomeTenantEquivalent(tenantId)) {
+                tenantId = ((AzureActiveDirectoryAuthority) authority).getAudience().getTenantUuidForAlias();
             }
 
-            final IAccount accountForRequest;
+            IAccount accountForRequest;
 
-            if (isHomeTenantEquivalent(tenantIdNameOrAlias)
-                    || isAccountHomeTenant(multiTenantAccount.getClaims(), tenantIdNameOrAlias)) {
+            if (isHomeTenantEquivalent(tenantId)
+                    || isAccountHomeTenant(multiTenantAccount.getClaims(), tenantId)) {
                 accountForRequest = multiTenantAccount;
             } else {
-                accountForRequest = multiTenantAccount.getTenantProfiles().get(tenantIdNameOrAlias);
+                accountForRequest = multiTenantAccount.getTenantProfiles().get(tenantId);
             }
 
+            // If we are not able to get the AccountRecord for the requested tenanted authority,
+            // it means the user is attempting to get a token for a new tenant for the existing IAccount.
+            // For silent request, use home account if available or any of the tenant profiles and pass it
+            // along as accountForRequest. Controllers will use this account to get refresh token and acquire
+            // a new access token for the requested tenant.
             if (null == accountForRequest) { // We did not find a profile to use
                 final boolean isSilent = tokenParameters instanceof AcquireTokenSilentParameters;
-
                 if (isSilent) {
-                    validateClaimsExistForTenant(tenantIdNameOrAlias, null);
-                } else {
-                    // We didn't find an Account but the request is interactive so we'll
-                    // return null and let the user sort it out.
-                    return null;
+                    if(rootAccount.getClaims() != null){
+                        accountForRequest = rootAccount;
+                    }else {
+                        for(ITenantProfile tenantProfile : multiTenantAccount.getTenantProfiles().values()){
+                            if(tenantProfile.getClaims() != null){
+                                accountForRequest = tenantProfile;
+                                break;
+                            }
+                        }
+                    }
                 }
+            }
+            // We should never hit this flow as IAccount should home profile or atleast one tenant profile on it.
+            if(accountForRequest ==  null){
+                Logger.warnPII(TAG,
+                        "No account record found for IAccount with request tenantId: " + tenantId
+                );
+                throw new ClientException(
+                        ErrorStrings.NO_ACCOUNT_FOUND,
+                        "No account record found for IAccount"
+                );
             }
 
             accountRecord.setLocalAccountId(accountForRequest.getId());
@@ -1568,29 +1566,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-    private OpenIdProviderConfiguration loadOpenIdProviderConfigurationMetadata(
-            @NonNull final String requestAuthority) throws ServiceException {
-        final String methodName = ":loadOpenIdProviderConfigurationMetadata";
-
-        com.microsoft.identity.common.internal.logging.Logger.info(
-                TAG + methodName,
-                "Loading OpenId Provider Metadata..."
-        );
-
-        final OpenIdProviderConfigurationClient client =
-                new OpenIdProviderConfigurationClient(requestAuthority);
-
-        return client.loadOpenIdProviderConfiguration();
-    }
-
-    private static boolean isUuid(@NonNull final String tenantIdNameOrAlias) {
-        try {
-            UUID.fromString(tenantIdNameOrAlias);
-            return true;
-        } catch (final IllegalArgumentException e) {
-            return false;
-        }
-    }
 
     @Override
     public IAuthenticationResult acquireTokenSilent(
