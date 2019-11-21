@@ -94,7 +94,7 @@ import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullAr
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
 import static com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter.msalExceptionFromBaseException;
 import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isAccountHomeTenant;
-import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isHomeTenantEquivalent;
+import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isHomeTenantAlias;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_MSA_PERSISTENCE_ERROR;
@@ -1507,13 +1507,13 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
             final boolean isUuid = isUuid(tenantId);
 
-            if (!isUuid && !isHomeTenantEquivalent(tenantId)) {
+            if (!isUuid && !isHomeTenantAlias(tenantId)) {
                 tenantId = ((AzureActiveDirectoryAuthority) authority).getAudience().getTenantUuidForAlias();
             }
 
             IAccount accountForRequest;
 
-            if (isHomeTenantEquivalent(tenantId)
+            if (isHomeTenantAlias(tenantId)
                     || isAccountHomeTenant(multiTenantAccount.getClaims(), tenantId)) {
                 accountForRequest = multiTenantAccount;
             } else {
