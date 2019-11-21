@@ -24,6 +24,8 @@ package com.microsoft.identity.client.e2e.shadows;
 
 import android.net.Uri;
 
+import com.microsoft.identity.client.e2e.utils.TestConstants;
+import com.microsoft.identity.common.internal.authorities.AccountsInOneOrganization;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
 import com.microsoft.identity.internal.testutils.authorities.AADTestAuthority;
@@ -86,7 +88,10 @@ public class ShadowAuthority {
             // more cases can be added here in the future
             case AAD_MOCK_PATH_SEGMENT:
                 //Return new AAD MOCK Authority
-                authority = new MockAuthority();
+                authority = new MockAuthority(new AccountsInOneOrganization(
+                        TestConstants.Authorities.AAD_MOCK_AUTHORITY,
+                        TestConstants.Authorities.AAD_MOCK_AUTHORITY_TENANT)
+                );
                 break;
             case AAD_MOCK_DELAYED_PATH_SEGMENT:
                 authority = new MockDelayedResponseAuthority();
