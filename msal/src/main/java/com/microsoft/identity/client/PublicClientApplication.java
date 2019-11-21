@@ -1540,7 +1540,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     }
                 }
             }
-            // We should never hit this flow as IAccount should home profile or atleast one tenant profile on it.
+            // We should never hit this flow as IAccount should always have a home profile or at least one tenant profile on it.
             if(accountForRequest ==  null){
                 Logger.warnPII(TAG,
                         "No account record found for IAccount with request tenantId: " + tenantId
