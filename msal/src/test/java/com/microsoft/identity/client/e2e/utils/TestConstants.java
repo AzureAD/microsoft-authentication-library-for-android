@@ -40,7 +40,7 @@ public class TestConstants {
 
     public static class Authorities {
         public static final String AAD_MOCK_AUTHORITY_TENANT = "61137f02-8854-4e46-8813-664098dc9f91";
-        public static final String AAD_MOCK_AUTHORITY = "https://test.authority/" + AAD_MOCK_AUTHORITY_TENANT ;
+        public static final String AAD_MOCK_AUTHORITY = "https://login.microsoftonline.com/" + AAD_MOCK_AUTHORITY_TENANT ;
         public static final String AAD_MOCK_DELAYED_RESPONSE_AUTHORITY = "https://test.authority/mock_with_delays";
     }
 
