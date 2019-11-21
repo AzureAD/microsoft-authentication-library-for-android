@@ -236,7 +236,6 @@ public class LocalMSALController extends BaseController {
         final OAuth2TokenCache tokenCache = parameters.getTokenCache();
 
         final AccountRecord targetAccount = getCachedAccountRecord(parameters);
-
         final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy();
 
         final List<ICacheRecord> cacheRecords = tokenCache.loadWithAggregatedAccountData(

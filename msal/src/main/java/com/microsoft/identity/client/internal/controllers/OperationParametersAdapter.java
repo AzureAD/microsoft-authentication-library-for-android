@@ -44,6 +44,7 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
+import com.microsoft.identity.common.internal.authscheme.AuthenticatonSchemeFactory;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
@@ -95,6 +96,12 @@ public class OperationParametersAdapter {
         final String methodName = ":createAcquireTokenOperationParameters";
         final AcquireTokenOperationParameters acquireTokenOperationParameters =
                 new AcquireTokenOperationParameters();
+
+        acquireTokenOperationParameters.setAuthenticationScheme(
+                AuthenticatonSchemeFactory.createScheme(
+                        acquireTokenOperationParameters.getAuthenticationScheme()
+                )
+        );
 
         if (StringUtil.isEmpty(acquireTokenParameters.getAuthority())) {
             if (acquireTokenParameters.getAccount() != null) {

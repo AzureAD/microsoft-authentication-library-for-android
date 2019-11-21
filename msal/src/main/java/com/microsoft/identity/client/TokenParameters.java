@@ -52,6 +52,18 @@ public abstract class TokenParameters {
         mAuthenticationScheme = builder.mAuthenticationScheme;
     }
 
+    /**
+     * Gets the AuthenticationScheme.
+     *
+     * @return The AuthenticationScheme to get.
+     */
+    public AuthenticationScheme getAuthenticationScheme() {
+        return mAuthenticationScheme;
+    }
+
+    void setAuthenticationScheme(@NonNull final AuthenticationScheme scheme) {
+        mAuthenticationScheme = scheme;
+    }
 
     /**
      * The non-null array of scopes to be requested for the access token.

@@ -188,6 +188,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         static final String ACTIVITY = "activity";
         static final String SCOPES = "scopes";
         static final String ACCOUNT = "account";
+        static final String AUTH_SCHEME = "authentication_scheme";
 
         static final String NULL_ERROR_SUFFIX = " cannot be null or empty";
     }
@@ -1244,15 +1245,15 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     AcquireTokenParameters buildAcquireTokenParameters(@NonNull final Activity activity,
-                                     @NonNull final String[] scopes,
-                                     @Nullable final IAccount account,
-                                     @Nullable final Prompt uiBehavior,
-                                     @Nullable final List<Pair<String, String>> extraQueryParameters,
-                                     @Nullable final String[] extraScopesToConsent,
-                                     @Nullable final String authority,
-                                     @NonNull final AuthenticationCallback callback,
-                                     @Nullable final String loginHint,
-                                     @Nullable final ClaimsRequest claimsRequest) {
+                                                       @NonNull final String[] scopes,
+                                                       @Nullable final IAccount account,
+                                                       @Nullable final Prompt uiBehavior,
+                                                       @Nullable final List<Pair<String, String>> extraQueryParameters,
+                                                       @Nullable final String[] extraScopesToConsent,
+                                                       @Nullable final String authority,
+                                                       @NonNull final AuthenticationCallback callback,
+                                                       @Nullable final String loginHint,
+                                                       @Nullable final ClaimsRequest claimsRequest) {
 
         validateNonNullArgument(activity, NONNULL_CONSTANTS.ACTIVITY);
         validateNonNullArgument(scopes, NONNULL_CONSTANTS.SCOPES);
@@ -1286,10 +1287,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         final Activity activity = parameters.getActivity();
         final List scopes = parameters.getScopes();
         final AuthenticationCallback callback = parameters.getCallback();
+        final AuthenticationScheme authenticationScheme = parameters.getAuthenticationScheme();
 
         validateNonNullArg(activity, NONNULL_CONSTANTS.ACTIVITY);
         validateNonNullArg(scopes, NONNULL_CONSTANTS.SCOPES);
         validateNonNullArg(callback, NONNULL_CONSTANTS.CALLBACK);
+        validateNonNullArg(authenticationScheme, NONNULL_CONSTANTS.AUTH_SCHEME);
     }
 
     protected void validateAcquireTokenSilentParameters(AcquireTokenSilentParameters parameters) throws MsalArgumentException {
@@ -1366,11 +1369,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     protected AcquireTokenSilentParameters buildAcquireTokenSilentParameters(@NonNull final String[] scopes,
-                                      @NonNull final IAccount account,
-                                      @NonNull final String authority,
-                                      final boolean forceRefresh,
-                                      @Nullable final ClaimsRequest claimsRequest,
-                                      @NonNull final SilentAuthenticationCallback callback) {
+                                                                             @NonNull final IAccount account,
+                                                                             @NonNull final String authority,
+                                                                             final boolean forceRefresh,
+                                                                             @Nullable final ClaimsRequest claimsRequest,
+                                                                             @NonNull final SilentAuthenticationCallback callback) {
         validateNonNullArgument(account, NONNULL_CONSTANTS.ACCOUNT);
         validateNonNullArgument(callback, NONNULL_CONSTANTS.CALLBACK);
 
