@@ -205,12 +205,15 @@ public class OperationParametersAdapter {
             acquireTokenOperationParameters.setAuthorizationAgent(AuthorizationAgent.DEFAULT);
         }
 
+        Logger.warn(TAG + methodName,  "Acquire token parameters is of intune instance ? : "
+                + (acquireTokenParameters instanceof  IntuneAcquireTokenParameters));
+
         // Special case only for Intune COBO app, where they use IntuneAcquireTokenParameters (an internal class)
         // to set browser support in broker to share SSO from System WebView login.
         if(acquireTokenParameters instanceof IntuneAcquireTokenParameters){
             boolean brokerBrowserEnabled = ((IntuneAcquireTokenParameters) acquireTokenParameters)
                     .isBrokerBrowserSupportEnabled();
-            Logger.info(TAG + methodName,
+            Logger.warn(TAG + methodName,
                     " IntuneAcquireTokenParameters instance, broker browser enabled : "
                             + brokerBrowserEnabled
             );
