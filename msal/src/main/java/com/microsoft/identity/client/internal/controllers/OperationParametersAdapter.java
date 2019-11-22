@@ -346,11 +346,7 @@ public class OperationParametersAdapter {
         return isAccountHomeTenant;
     }
 
-    public static boolean isHomeTenantAlias(@NonNull final String tenantId) {
-        return tenantId.equalsIgnoreCase(ALL_ACCOUNTS_TENANT_ID)
-                || tenantId.equalsIgnoreCase(ANY_PERSONAL_ACCOUNT_TENANT_ID)
-                || tenantId.equalsIgnoreCase(ORGANIZATIONS);
-    }
+
 
     private static Authority getRequestAuthority(
             @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
