@@ -22,7 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import com.microsoft.identity.client.e2e.utils.TestConstants;
 import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.internal.authorities.AccountsInOneOrganization;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
@@ -41,7 +43,10 @@ public class RoboTestCacheHelper {
     public static ICacheRecord saveTokens(TokenResponse tokenResponse, IPublicClientApplication application) throws ClientException {
         final OAuth2TokenCache tokenCache = application.getConfiguration().getOAuth2TokenCache();
         final String clientId = application.getConfiguration().getClientId();
-        final Authority authority = new MockAuthority();
+        final Authority authority = new MockAuthority(new AccountsInOneOrganization(
+                TestConstants.Authorities.AAD_MOCK_AUTHORITY,
+                TestConstants.Authorities.AAD_MOCK_AUTHORITY_TENANT)
+        );
         final OAuth2Strategy strategy = authority.createOAuth2Strategy();
         final MicrosoftStsAuthorizationRequest mockAuthRequest = Mockito.mock(MicrosoftStsAuthorizationRequest.class);
         Mockito.when(mockAuthRequest.getAuthority()).thenReturn(authority.getAuthorityURL());

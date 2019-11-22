@@ -45,11 +45,11 @@ import java.util.List;
 // instead we are only shadowing the particular method that is implemented in the shadow
 // so in this case, the only thing that we are shadowing is the getAuthorityFromAuthorityUrl method in the Authority class
 @Implements(Authority.class)
-public class ShadowAuthority {
+public class ShadowMockAuthority {
 
-    private static final String TAG = ShadowAuthority.class.getSimpleName();
+    private static final String TAG = ShadowMockAuthority.class.getSimpleName();
 
-    private static final String AAD_MOCK_PATH_SEGMENT = "mock";
+    private static final String AAD_MOCK_PATH_SEGMENT = TestConstants.Authorities.AAD_MOCK_AUTHORITY_TENANT;
     private static final String B2C_TEST_PATH_SEGMENT = "tfp";
     private static final String AAD_MOCK_DELAYED_PATH_SEGMENT = "mock_with_delays";
 
@@ -90,7 +90,8 @@ public class ShadowAuthority {
                 //Return new AAD MOCK Authority
                 authority = new MockAuthority(new AccountsInOneOrganization(
                         TestConstants.Authorities.AAD_MOCK_AUTHORITY,
-                        TestConstants.Authorities.AAD_MOCK_AUTHORITY_TENANT)
+                        TestConstants.Authorities.AAD_MOCK_AUTHORITY_TENANT
+                )
                 );
                 break;
             case AAD_MOCK_DELAYED_PATH_SEGMENT:
@@ -107,6 +108,10 @@ public class ShadowAuthority {
         }
 
         return authority;
+    }
+
+    public static boolean isKnownAuthority(Authority authority) {
+        return true;
     }
 
 
