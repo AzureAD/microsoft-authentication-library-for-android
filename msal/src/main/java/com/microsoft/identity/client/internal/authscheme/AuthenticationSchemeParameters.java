@@ -20,20 +20,23 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client;
+package com.microsoft.identity.client.internal.authscheme;
 
 import androidx.annotation.NonNull;
 
-import com.microsoft.identity.common.internal.authscheme.AbstractAuthenticationScheme;
+import com.microsoft.identity.common.internal.authscheme.INameable;
 
-public abstract class AuthenticationScheme extends AbstractAuthenticationScheme {
+public abstract class AuthenticationSchemeParameters implements INameable {
 
-    /**
-     * Constructs a new AbstractAuthenticationScheme.
-     *
-     * @param name The name of this scheme.
-     */
-    AuthenticationScheme(@NonNull String name) {
-        super(name);
+    private final String mName;
+
+    public AuthenticationSchemeParameters(@NonNull final String name) {
+        mName = name;
     }
+
+    @Override
+    public final String getName() {
+        return mName;
+    }
+
 }

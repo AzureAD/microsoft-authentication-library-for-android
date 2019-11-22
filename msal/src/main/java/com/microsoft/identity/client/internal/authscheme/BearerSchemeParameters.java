@@ -20,16 +20,13 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client;
+package com.microsoft.identity.client.internal.authscheme;
 
 import com.microsoft.identity.common.internal.authscheme.BearerAuthenticationSchemeInternal;
 
-public class BearerAuthenticationScheme extends AuthenticationScheme {
+public class BearerSchemeParameters extends AuthenticationSchemeParameters {
 
-    /**
-     * Constructs a new BearerAuthenticationScheme.
-     */
-    public BearerAuthenticationScheme() {
+    public BearerSchemeParameters() {
         super(BearerAuthenticationSchemeInternal.SCHEME_BEARER);
     }
 }

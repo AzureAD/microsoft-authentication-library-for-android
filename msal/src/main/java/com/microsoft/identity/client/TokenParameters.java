@@ -26,6 +26,8 @@ package com.microsoft.identity.client;
 import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
+import com.microsoft.identity.client.internal.authscheme.AuthenticationSchemeParameters;
+import com.microsoft.identity.client.internal.authscheme.BearerSchemeParameters;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
@@ -42,27 +44,32 @@ public abstract class TokenParameters {
     private String mAuthority;
     private ClaimsRequest mClaimsRequest;
     private AccountRecord mAccountRecord;
-    private AuthenticationScheme mAuthenticationScheme;
+    private AuthenticationSchemeParameters mAuthSchemeParams;
 
-    protected TokenParameters(final TokenParameters.Builder builder) {
+    protected TokenParameters(@NonNull final TokenParameters.Builder builder) {
         mAccount = builder.mAccount;
         mAuthority = builder.mAuthority;
         mClaimsRequest = builder.mClaimsRequest;
         mScopes = builder.mScopes;
-        mAuthenticationScheme = builder.mAuthenticationScheme;
+
+        // In the future, if more scheme are added, some conditional logic will need to be
+        // introduced here.
+        if (null != builder.mProofOfPossessionParameters) {
+            mAuthSchemeParams = builder.mProofOfPossessionParameters;
+        } else {
+            // Fall back to Bearer
+            mAuthSchemeParams = new BearerSchemeParameters();
+        }
     }
 
     /**
-     * Gets the AuthenticationScheme.
+     * Gets the ProofOfPossessionParameters.
      *
-     * @return The AuthenticationScheme to get.
+     * @return The ProofOfPossessionParameters to get.
      */
-    public AuthenticationScheme getAuthenticationScheme() {
-        return mAuthenticationScheme;
-    }
-
-    void setAuthenticationScheme(@NonNull final AuthenticationScheme scheme) {
-        mAuthenticationScheme = scheme;
+    @NonNull
+    public AuthenticationSchemeParameters getAuthenticationSchemeParameters() {
+        return mAuthSchemeParams;
     }
 
     /**
@@ -152,12 +159,10 @@ public abstract class TokenParameters {
         private IAccount mAccount;
         private String mAuthority;
         private ClaimsRequest mClaimsRequest;
+        private ProofOfPossessionParameters mProofOfPossessionParameters;
 
-        // Default to Bearer scheme
-        private AuthenticationScheme mAuthenticationScheme = new BearerAuthenticationScheme();
-
-        public B withAuthenticationScheme(@NonNull final AuthenticationScheme authenticationScheme) {
-            mAuthenticationScheme = authenticationScheme;
+        public B withProofOfPossessionParameters(@NonNull final ProofOfPossessionParameters params) {
+            mProofOfPossessionParameters = params;
             return self();
         }
 

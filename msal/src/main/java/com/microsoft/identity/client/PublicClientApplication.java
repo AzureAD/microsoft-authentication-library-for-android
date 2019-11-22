@@ -1287,12 +1287,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         final Activity activity = parameters.getActivity();
         final List scopes = parameters.getScopes();
         final AuthenticationCallback callback = parameters.getCallback();
-        final AuthenticationScheme authenticationScheme = parameters.getAuthenticationScheme();
 
         validateNonNullArg(activity, NONNULL_CONSTANTS.ACTIVITY);
         validateNonNullArg(scopes, NONNULL_CONSTANTS.SCOPES);
         validateNonNullArg(callback, NONNULL_CONSTANTS.CALLBACK);
-        validateNonNullArg(authenticationScheme, NONNULL_CONSTANTS.AUTH_SCHEME);
     }
 
     protected void validateAcquireTokenSilentParameters(AcquireTokenSilentParameters parameters) throws MsalArgumentException {

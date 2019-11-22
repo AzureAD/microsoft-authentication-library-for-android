@@ -44,7 +44,7 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
-import com.microsoft.identity.common.internal.authscheme.AuthenticatonSchemeFactory;
+import com.microsoft.identity.common.internal.authscheme.AuthenticationSchemeFactory;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
@@ -98,8 +98,8 @@ public class OperationParametersAdapter {
                 new AcquireTokenOperationParameters();
 
         acquireTokenOperationParameters.setAuthenticationScheme(
-                AuthenticatonSchemeFactory.createScheme(
-                        acquireTokenOperationParameters.getAuthenticationScheme()
+                AuthenticationSchemeFactory.createScheme(
+                        acquireTokenParameters.getAuthenticationSchemeParameters()
                 )
         );
 
@@ -296,6 +296,11 @@ public class OperationParametersAdapter {
         atsOperationParams.setForceRefresh(acquireTokenSilentParameters.getForceRefresh());
         atsOperationParams.setRedirectUri(pcaConfig.getRedirectUri());
         atsOperationParams.setAccount(acquireTokenSilentParameters.getAccountRecord());
+        atsOperationParams.setAuthenticationScheme(
+                AuthenticationSchemeFactory.createScheme(
+                        acquireTokenSilentParameters.getAuthenticationSchemeParameters()
+                )
+        );
 
         if (atsOperationParams.getAuthority() instanceof AzureActiveDirectoryAuthority) {
             AzureActiveDirectoryAuthority aadAuthority =
