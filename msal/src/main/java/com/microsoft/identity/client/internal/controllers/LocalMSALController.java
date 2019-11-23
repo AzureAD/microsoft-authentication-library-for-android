@@ -41,6 +41,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResu
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStatus;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2StrategyOptions;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
@@ -110,8 +111,15 @@ public class LocalMSALController extends BaseController {
             throw authorityResult.getClientException();
         }
 
+        // Build up params for Strategy construction
+        final OAuth2StrategyOptions strategyOptions = new OAuth2StrategyOptions();
+        strategyOptions.setAuthenticationScheme(parameters.getAuthenticationScheme());
+
         //1) Get oAuth2Strategy for Authority Type
-        final OAuth2Strategy oAuth2Strategy = parameters.getAuthority().createOAuth2Strategy();
+        final OAuth2Strategy oAuth2Strategy = parameters
+                .getAuthority()
+                .createOAuth2Strategy(strategyOptions);
+
 
         //2) Request authorization interactively
         final AuthorizationResult result = performAuthorizationRequest(oAuth2Strategy, parameters);
@@ -236,6 +244,8 @@ public class LocalMSALController extends BaseController {
         final OAuth2TokenCache tokenCache = parameters.getTokenCache();
 
         final AccountRecord targetAccount = getCachedAccountRecord(parameters);
+
+        // TODO add support for OAuth2StrategyOptions...
         final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy();
 
         final List<ICacheRecord> cacheRecords = tokenCache.loadWithAggregatedAccountData(
