@@ -31,10 +31,6 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Pair;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.WorkerThread;
-
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
@@ -88,13 +84,16 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
+
 import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArg;
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
 import static com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter.msalExceptionFromBaseException;
 import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isAccountHomeTenant;
-import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isHomeTenantAlias;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_MSA_PERSISTENCE_ERROR;
@@ -108,6 +107,7 @@ import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUN
 import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE;
 import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
 import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
+import static com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience.isHomeTenantAlias;
 import static com.microsoft.identity.common.internal.util.StringUtil.isUuid;
 
 /**
@@ -1508,14 +1508,18 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             final boolean isUuid = isUuid(tenantId);
 
             if (!isUuid && !isHomeTenantAlias(tenantId)) {
-                tenantId = ((AzureActiveDirectoryAuthority) authority).getAudience().getTenantUuidForAlias();
+                tenantId = ((AzureActiveDirectoryAuthority) authority)
+                        .getAudience()
+                        .getTenantUuidForAlias(
+                                authority.getAuthorityURL().toString()
+                        );
             }
 
             IAccount accountForRequest;
 
             if (isHomeTenantAlias(tenantId)
                     || isAccountHomeTenant(multiTenantAccount.getClaims(), tenantId)) {
-                accountForRequest = multiTenantAccount;
+                accountForRequest = (multiTenantAccount.getClaims() != null) ? multiTenantAccount : null;
             } else {
                 accountForRequest = multiTenantAccount.getTenantProfiles().get(tenantId);
             }
