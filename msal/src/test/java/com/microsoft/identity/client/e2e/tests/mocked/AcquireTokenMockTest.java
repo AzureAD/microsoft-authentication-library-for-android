@@ -28,8 +28,8 @@ import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.RoboTestCacheHelper;
-import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequest;
+import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultServerError;
@@ -56,7 +56,7 @@ import static com.microsoft.identity.client.e2e.utils.TestConstants.Authorities.
 import static org.junit.Assert.fail;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowHttpRequest.class, ShadowMsalUtils.class})
+@Config(shadows = {ShadowStorageHelper.class, ShadowMockAuthority.class, ShadowHttpRequest.class, ShadowMsalUtils.class})
 public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
 
     @Override
