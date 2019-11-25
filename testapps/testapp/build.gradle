@@ -63,19 +63,13 @@ android {
             versionNameSuffix "-dist"
             resValue("string", "application_name", "msal-dist")
         }
-        prod {
-            applicationIdSuffix ".local"
-            versionNameSuffix "-prod"
-            resValue("string", "application_name", "msal-prod")
-        }
     }
 }
 
 dependencies {
     // Compile Dependency
     localImplementation project(':msal')
-    distImplementation project(':msal')
-    prodImplementation 'com.microsoft.identity.client:msal:1.0.+'
+    distImplementation 'com.microsoft.identity.client:msal:1.0.+'
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
