@@ -114,6 +114,7 @@ public class ShadowAuthority {
 
     /**
      * Similar to createAadAuthority method in {@link Authority} class
+     *
      * @param authorityUri the uri from which to derive authority
      * @param pathSegments determines the audience
      * @return
@@ -132,6 +133,7 @@ public class ShadowAuthority {
      * Get ROPC compatible audience from path segments.
      * Changes ALL / Consumers to Organizations as all/consumers don't support ropc
      * If specific tenant id is passed then just returns that tenant id as audience
+     *
      * @param pathSegments
      * @return
      */
