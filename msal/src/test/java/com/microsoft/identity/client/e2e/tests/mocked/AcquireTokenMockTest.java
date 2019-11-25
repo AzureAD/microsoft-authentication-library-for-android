@@ -64,6 +64,11 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
         return TestConstants.Scopes.USER_READ_SCOPE;
     }
 
+    @Override
+    public String getAuthority() {
+        return AAD_MOCK_AUTHORITY;
+    }
+
     @Test
     public void testAcquireTokenSuccess() {
         final String username = "fake@test.com";

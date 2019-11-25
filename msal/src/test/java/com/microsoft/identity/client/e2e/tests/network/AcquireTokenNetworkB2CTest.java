@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.network;
 
+import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
@@ -32,6 +33,11 @@ import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.B2C_S
  * Run all tests in the {@link AcquireTokenNetworkTest} class using B2C
  */
 public class AcquireTokenNetworkB2CTest extends AcquireTokenNetworkTest {
+
+    @Override
+    public String getAuthority() {
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
+    }
 
     @Override
     public LabUserQuery getLabUserQuery() {

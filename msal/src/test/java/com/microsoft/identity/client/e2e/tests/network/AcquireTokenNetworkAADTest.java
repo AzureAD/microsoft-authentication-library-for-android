@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.network;
 
+import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
@@ -32,6 +33,11 @@ import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.USER_
  * Run all tests in the {@link AcquireTokenNetworkTest} class using AAD
  */
 public class AcquireTokenNetworkAADTest extends AcquireTokenNetworkTest {
+
+    @Override
+    public String getAuthority() {
+        return AcquireTokenTestHelper.getAccount().getAuthority();
+    }
 
     @Override
     public String getConfigFilePath() {

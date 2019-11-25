@@ -83,8 +83,6 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
 
     @Test
     public void testAcquireTokenSuccessFollowedBySilentSuccess() {
-        final String authority = mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
-
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(mUsername)
@@ -97,7 +95,7 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(getAccount())
-                .fromAuthority(authority)
+                .fromAuthority(getAuthority())
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .withCallback(successfulSilentCallback())
@@ -109,8 +107,6 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
 
     @Test
     public void testAcquireTokenSilentSuccessForceRefresh() {
-        final String authority = mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
-
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(mUsername)
@@ -123,7 +119,7 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(getAccount())
-                .fromAuthority(authority)
+                .fromAuthority(getAuthority())
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(true)
                 .withCallback(successfulSilentCallback())
@@ -135,8 +131,6 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
 
     @Test
     public void testAcquireTokenSilentFailureEmptyCache() {
-        final String authority = mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
-
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(mUsername)
@@ -152,7 +146,7 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(getAccount())
-                .fromAuthority(authority)
+                .fromAuthority(getAuthority())
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .withCallback(failureSilentCallback(ErrorCodes.NO_ACCOUNT_FOUND_ERROR_CODE))
@@ -164,8 +158,6 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
 
     @Test
     public void testAcquireTokenSilentSuccessCacheWithNoAccessToken() {
-        final String authority = mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
-
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(mUsername)
@@ -181,7 +173,7 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(getAccount())
-                .fromAuthority(authority)
+                .fromAuthority(getAuthority())
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .withCallback(successfulSilentCallback())
