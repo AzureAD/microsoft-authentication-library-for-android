@@ -3,14 +3,19 @@ package com.microsoft.identity.client.testapp;
 import android.app.Activity;
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
+import com.microsoft.identity.client.HttpMethod;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
+import com.microsoft.identity.client.ProofOfPossessionParameters;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
@@ -19,13 +24,12 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 public class MsalWrapper {
     private static String PostMsalApplicationLoadedKey = "MsalWrapper_PostMsalApplicationLoaded";
@@ -148,13 +152,39 @@ public class MsalWrapper {
             return;
         }
 
-        AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(activity)
+        boolean usePoP = true;
+
+        final AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
+        builder.startAuthorizationFromActivity(activity)
                 .withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")))
                 .withLoginHint(requestOptions.getLoginHint())
                 .withPrompt(requestOptions.getPrompt())
-                .withOtherScopesToAuthorize(Arrays.asList(requestOptions.getExtraScopesToConsent().toLowerCase().split(" ")))
-                .withCallback(getAuthenticationCallback(notifyCallback))
+                .withOtherScopesToAuthorize(
+                        Arrays.asList(
+                                requestOptions
+                                        .getExtraScopesToConsent()
+                                        .toLowerCase()
+                                        .split(" ")
+                        )
+                )
+                .withCallback(getAuthenticationCallback(notifyCallback));
+
+        if (usePoP) {
+            try {
+                builder.withProofOfPossessionParameters(
+                        new ProofOfPossessionParameters(
+                                HttpMethod.GET,
+                                new URL("https://signedhttprequest.azurewebsites.net/api/validateSHR")
+                        )
+                );
+            } catch (MalformedURLException e) {
+
+            }
+        }
+
+
+        AcquireTokenParameters parameters = builder
+
                 .build();
 
         mApplication.acquireToken(parameters);
@@ -313,7 +343,7 @@ public class MsalWrapper {
                     // This explicitly indicates that developer needs to prompt the user, it could be refresh token is expired, revoked
                     // or user changes the password; or it could be that no token was found in the token cache.
                     notifyCallback.notify(exception.getMessage());
-                } else if(exception instanceof MsalDeclinedScopeException){
+                } else if (exception instanceof MsalDeclinedScopeException) {
                     // Declined scope implies that not all scopes requested have been granted.
                     // Developer can either continue with Authentication by calling acquireTokenSilent
                     // using the AcquireTokenSilentParameters in the MsalDeclinedScopeException or fail the authentication

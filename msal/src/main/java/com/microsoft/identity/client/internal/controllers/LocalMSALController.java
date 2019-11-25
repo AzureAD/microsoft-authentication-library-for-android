@@ -113,6 +113,7 @@ public class LocalMSALController extends BaseController {
 
         // Build up params for Strategy construction
         final OAuth2StrategyOptions strategyOptions = new OAuth2StrategyOptions();
+        strategyOptions.setContext(parameters.getAppContext());
         strategyOptions.setAuthenticationScheme(parameters.getAuthenticationScheme());
 
         //1) Get oAuth2Strategy for Authority Type
@@ -247,6 +248,7 @@ public class LocalMSALController extends BaseController {
 
         // Build up params for Strategy construction
         final OAuth2StrategyOptions strategyOptions = new OAuth2StrategyOptions();
+        strategyOptions.setContext(parameters.getAppContext());
         strategyOptions.setAuthenticationScheme(parameters.getAuthenticationScheme());
 
         final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy(strategyOptions);
