@@ -58,4 +58,17 @@ public class AcquireTokenNetworkB2CTest extends AcquireTokenNetworkTest {
     public String[] getScopes() {
         return B2C_SCOPE;
     }
+
+    public static class B2CLocalUser extends AcquireTokenB2CTest {
+
+        @Override
+        public LabUserQuery getLabUserQuery() {
+            final LabUserQuery query = new LabUserQuery();
+            query.userType = LabConstants.UserType.B2C;
+            query.b2cProvider = LabConstants.B2CProvider.LOCAL;
+            return query;
+        }
+
+    }
+
 }

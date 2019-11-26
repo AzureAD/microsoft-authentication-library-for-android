@@ -77,7 +77,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(username)
                 .withScopes(Arrays.asList(mScopes))
-                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .fromAuthority(getAuthority())
                 .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
                 .build();
 
@@ -93,7 +93,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(username)
-                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .fromAuthority(getAuthority())
                 .withCallback(AcquireTokenTestHelper.failureInteractiveCallback(ErrorCodes.ILLEGAL_ARGUMENT_ERROR_CODE))
                 .build();
 
@@ -108,7 +108,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .withLoginHint(username)
                 .withScopes(Arrays.asList(mScopes))
-                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .fromAuthority(getAuthority())
                 .withCallback(AcquireTokenTestHelper.failureInteractiveCallback(ErrorCodes.ILLEGAL_ARGUMENT_ERROR_CODE))
                 .build();
 
@@ -123,7 +123,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(username)
-                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .fromAuthority(getAuthority())
                 .withScopes(Arrays.asList(mScopes))
                 .build();
 
@@ -140,7 +140,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(username)
                 .withScopes(Arrays.asList(mScopes))
-                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .fromAuthority(getAuthority())
                 .withCallback(AcquireTokenTestHelper.failureInteractiveCallback(ErrorCodes.UNKNOWN_ERROR_CODE))
                 .build();
 
@@ -157,7 +157,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(username)
                 .withScopes(Arrays.asList(mScopes))
-                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .fromAuthority(getAuthority())
                 .withCallback(AcquireTokenTestHelper.failureInteractiveCallback(ErrorCodes.INTERNAL_SERVER_ERROR_CODE))
                 .build();
 
@@ -173,7 +173,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(username)
                 .withScopes(Arrays.asList(mScopes))
-                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .fromAuthority(getAuthority())
                 .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
                 .build();
 
@@ -184,7 +184,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .forAccount(AcquireTokenTestHelper.getAccount())
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
-                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .fromAuthority(getAuthority())
                 .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
                 .build();
 
@@ -200,7 +200,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(true)
                 .forAccount(account)
-                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .fromAuthority(getAuthority())
                 .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
                 .build();
 
@@ -215,7 +215,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
-                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .fromAuthority(getAuthority())
                 .forAccount(account)
                 .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
                 .build();
@@ -234,7 +234,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .forAccount(account)
-                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .fromAuthority(getAuthority())
                 .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
                 .build();
 
@@ -251,7 +251,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .forAccount(account)
-                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .fromAuthority(getAuthority())
                 .withCallback(AcquireTokenTestHelper.failureSilentCallback(ErrorCodes.NO_ACCOUNT_FOUND_ERROR_CODE))
                 .build();
 
@@ -288,7 +288,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
-                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .fromAuthority(getAuthority())
                 .withCallback(AcquireTokenTestHelper.failureSilentCallback(noAccountErrorCode))
                 .build();
 
@@ -303,7 +303,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(account)
                 .forceRefresh(false)
-                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .fromAuthority(getAuthority())
                 .withCallback(AcquireTokenTestHelper.failureSilentCallback(ErrorCodes.ILLEGAL_ARGUMENT_ERROR_CODE))
                 .build();
 
@@ -318,7 +318,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
-                .fromAuthority(AAD_MOCK_AUTHORITY)
+                .fromAuthority(getAuthority())
                 .forAccount(account)
                 .build();
 

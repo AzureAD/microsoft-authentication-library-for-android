@@ -27,8 +27,8 @@ import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-        AcquireTokenNetworkAADTest.class,
-        AcquireTokenNetworkB2CTest.class
+        AcquireTokenAADTest.class,
+        AcquireTokenB2CTest.class
 })
 /**
  * This class runs all tests in the {@link AcquireTokenNetworkTest} class,

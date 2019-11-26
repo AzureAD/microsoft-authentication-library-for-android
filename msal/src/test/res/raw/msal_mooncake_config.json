@@ -1,0 +1,16 @@
+{
+  "client_id" : "952de729-a67a-471e-9717-45f407cb4fd7",
+  "authorization_user_agent" : "DEFAULT",
+  "redirect_uri" : "msauth://com.microsoft.identity.client.sample.local/L8kGVGYgNOaxbhn9Y7vR%2F6LIEG8%3D",
+  "multiple_clouds_supported":true,
+  "broker_redirect_uri_registered": true,
+  "account_mode": "MULTIPLE",
+  "authorities" : [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADandPersonalMicrosoftAccount"
+      }
+    }
+  ]
+}

@@ -31,14 +31,14 @@ import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
 
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.SINGLE_ACCOUNT_MODE_MOCK_TEST_CONFIG_FILE_PATH;
 import static org.junit.Assert.fail;
 
 public class SingleAccountAcquireTokenMockTest extends AcquireTokenMockTest {
 
     @Override
     public String getConfigFilePath() {
-        return SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+        return SINGLE_ACCOUNT_MODE_MOCK_TEST_CONFIG_FILE_PATH;
     }
 
     @Override
