@@ -55,6 +55,13 @@ public final class AuthenticationResult implements IAuthenticationResult {
         return mAccessToken.getSecret();
     }
 
+    @NonNull
+    @Override
+    public String getAuthorizationHeader() {
+        // TODO implement
+        return null;
+    }
+
     @Override
     @NonNull
     public Date getExpiresOn() {

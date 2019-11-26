@@ -36,6 +36,16 @@ public interface IAuthenticationResult {
     String getAccessToken();
 
     /**
+     * Gets the fully-formed Authorization header value. Includes the Authentication scheme.
+     * <p>
+     * Example: Bearer eyJ1aWQiOiJj.......
+     *
+     * @return The Authorization header value.
+     */
+    @NonNull
+    String getAuthorizationHeader();
+
+    /**
      * @return The expiration time of the access token returned in the Token property.
      * This value is calculated based on current UTC time measured locally and the value expiresIn returned from the
      * service.

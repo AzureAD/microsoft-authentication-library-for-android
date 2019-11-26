@@ -1681,7 +1681,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
             @Override
             public void onTaskCompleted(ILocalAuthenticationResult localAuthenticationResult) {
-
                 postAuthResult(localAuthenticationResult, tokenParameters, authenticationCallback);
             }
 
