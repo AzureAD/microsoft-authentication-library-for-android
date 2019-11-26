@@ -1,5 +1,9 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 1.0.0-hf1
+----------------------------
+- Logging fixes in common.
+
 Version 1.0.0
 ----------------------------
 - MSAL Android is now generally available with MSAL 1.0
