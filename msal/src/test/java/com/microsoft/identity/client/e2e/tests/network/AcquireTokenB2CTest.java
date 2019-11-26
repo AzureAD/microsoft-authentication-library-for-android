@@ -35,8 +35,8 @@ public abstract class AcquireTokenB2CTest extends AcquireTokenNetworkTest {
 
     @Override
     public String getAuthority() {
-        // TODO: We need to refactor this to get the authority from account we fix the getAuthority
-        //  logic for the case of B2C. For details see {@link Account#getAuthority()}
+        // TODO: We need to refactor this to get the authority from account once we fix the
+        //  getAuthority logic for the case of B2C. For details see {@link Account#getAuthority()}
         return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
     }
 
