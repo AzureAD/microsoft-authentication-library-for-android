@@ -257,9 +257,4 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
     public String[] getScopes() {
         return USER_READ_SCOPE;
     }
-
-    @Override
-    public String getAuthority() {
-        return AAD_MOCK_AUTHORITY;
-    }
 }
