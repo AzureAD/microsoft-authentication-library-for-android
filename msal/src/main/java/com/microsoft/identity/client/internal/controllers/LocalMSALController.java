@@ -156,7 +156,8 @@ public class LocalMSALController extends BaseController {
                         new LocalAuthenticationResult(
                                 newestRecord,
                                 records,
-                                SdkType.MSAL
+                                SdkType.MSAL,
+                                parameters.getAuthenticationScheme()
                         )
                 );
             }
@@ -329,7 +330,8 @@ public class LocalMSALController extends BaseController {
                     new LocalAuthenticationResult(
                             fullCacheRecord,
                             cacheRecords,
-                            SdkType.MSAL
+                            SdkType.MSAL,
+                            parameters.getAuthenticationScheme()
                     )
             );
         }

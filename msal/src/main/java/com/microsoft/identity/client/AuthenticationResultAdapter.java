@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
@@ -32,15 +34,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import androidx.annotation.NonNull;
-
 class AuthenticationResultAdapter {
 
     private static final String TAG = AuthenticationResultAdapter.class.getName();
 
     static IAuthenticationResult adapt(@NonNull final ILocalAuthenticationResult localAuthenticationResult) {
         final IAuthenticationResult authenticationResult = new AuthenticationResult(
-                localAuthenticationResult.getCacheRecordWithTenantProfileData()
+                localAuthenticationResult.getCacheRecordWithTenantProfileData(),
+                localAuthenticationResult.getAuthenticationScheme()
         );
         return authenticationResult;
     }

@@ -25,6 +25,9 @@ package com.microsoft.identity.client;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.internal.authscheme.AbstractAuthenticationScheme;
+import com.microsoft.identity.common.internal.authscheme.TokenAuthenticationScheme;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccessTokenRecord;
 
@@ -41,12 +44,24 @@ public final class AuthenticationResult implements IAuthenticationResult {
     private final String mTenantId;
     private final AccessTokenRecord mAccessToken;
     private final IAccount mAccount;
+    private final TokenAuthenticationScheme mAuthenticationScheme;
 
-    public AuthenticationResult(@NonNull final List<ICacheRecord> cacheRecords) {
+    AuthenticationResult(@NonNull final List<ICacheRecord> cacheRecords,
+                         @NonNull final AbstractAuthenticationScheme authScheme) {
         final ICacheRecord mostRecentlyAuthorized = cacheRecords.get(0);
         mAccessToken = mostRecentlyAuthorized.getAccessToken();
         mTenantId = mostRecentlyAuthorized.getAccount().getRealm();
         mAccount = AccountAdapter.adapt(cacheRecords).get(0);
+
+        // TODO Can this be refactored out?
+        if (authScheme instanceof TokenAuthenticationScheme) {
+            mAuthenticationScheme = (TokenAuthenticationScheme) authScheme;
+            mAuthenticationScheme.setAccessToken(getAccessToken());
+        } else {
+            throw new UnsupportedOperationException(
+                    "Unknown/unrecognized Authentication Scheme " + authScheme.getName()
+            );
+        }
     }
 
     @Override
@@ -58,8 +73,13 @@ public final class AuthenticationResult implements IAuthenticationResult {
     @NonNull
     @Override
     public String getAuthorizationHeader() {
-        // TODO implement
-        return null;
+        try {
+            return mAuthenticationScheme.getAuthorizationRequestHeader();
+        } catch (ClientException e) {
+            e.printStackTrace();
+            // TODO handle this error!
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
