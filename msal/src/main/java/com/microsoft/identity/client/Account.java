@@ -151,8 +151,10 @@ public class Account implements IAccount {
     @Override
     @NonNull
     public String getAuthority() {
+        // TODO: The below logic only works for the case of AAD. We need to refactor this once we
+        //  make a proper fix for B2C
         if (null != getClaims()) {
-            final String iss = (String) getClaims().get(IDToken.ISSUER);
+            final String iss = (String) getClaims().get("iss");
             if (!StringUtil.isEmpty(iss)) {
                 return iss;
             }
