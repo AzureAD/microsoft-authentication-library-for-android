@@ -35,6 +35,7 @@ public class MsalWrapper {
     private static String PostMsalApplicationLoadedKey = "MsalWrapper_PostMsalApplicationLoaded";
 
     private static MsalWrapper mSharedInstance;
+    private static final boolean USE_POP = true;
 
     public static MsalWrapper getInstance() {
         if (mSharedInstance == null) {
@@ -152,8 +153,6 @@ public class MsalWrapper {
             return;
         }
 
-        boolean usePoP = true;
-
         final AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
         builder.startAuthorizationFromActivity(activity)
                 .withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")))
@@ -169,7 +168,7 @@ public class MsalWrapper {
                 )
                 .withCallback(getAuthenticationCallback(notifyCallback));
 
-        if (usePoP) {
+        if (USE_POP) {
             try {
                 builder.withProofOfPossessionParameters(
                         new ProofOfPossessionParameters(
@@ -178,14 +177,11 @@ public class MsalWrapper {
                         )
                 );
             } catch (MalformedURLException e) {
-
+                throw new RuntimeException(e);
             }
         }
 
-
-        AcquireTokenParameters parameters = builder
-
-                .build();
+        AcquireTokenParameters parameters = builder.build();
 
         mApplication.acquireToken(parameters);
     }
@@ -283,13 +279,27 @@ public class MsalWrapper {
                         @Override
                         public void onTaskCompleted(final IAccount account) {
                             if (account != null) {
-                                AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
-                                        .withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")))
+                                final AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
+                                builder.withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")))
                                         .forAccount(account)
                                         .fromAuthority(mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString())
                                         .forceRefresh(requestOptions.forceRefresh())
-                                        .withCallback(getAuthenticationCallback(notifyCallback))
-                                        .build();
+                                        .withCallback(getAuthenticationCallback(notifyCallback));
+
+                                if (USE_POP) {
+                                    try {
+                                        builder.withProofOfPossessionParameters(
+                                                new ProofOfPossessionParameters(
+                                                        HttpMethod.GET,
+                                                        new URL("https://signedhttprequest.azurewebsites.net/api/validateSHR")
+                                                )
+                                        );
+                                    } catch (MalformedURLException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }
+
+                                final AcquireTokenSilentParameters parameters = builder.build();
                                 mApplication.acquireTokenSilentAsync(parameters);
                             } else {
                                 notifyCallback.notify("No account found matching identifier");
