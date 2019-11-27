@@ -24,9 +24,12 @@ package com.microsoft.identity.client.e2e.shadows;
 
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.e2e.utils.TestConstants;
 import com.microsoft.identity.common.internal.authorities.AccountsInOneOrganization;
 import com.microsoft.identity.common.internal.authorities.Authority;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
 import com.microsoft.identity.internal.testutils.authorities.AADTestAuthority;
 import com.microsoft.identity.internal.testutils.authorities.B2CTestAuthority;
@@ -50,7 +53,8 @@ public class ShadowAuthority {
     private static final String TAG = ShadowAuthority.class.getSimpleName();
 
     private static final String AAD_MOCK_PATH_SEGMENT = "mock";
-    private static final String B2C_TEST_PATH_SEGMENT = "tfp";
+    private static final String B2C_PATH_SEGMENT = "tfp";
+    private static final String B2C_PATH_SEGMENT_ALT = "te";
     private static final String AAD_MOCK_DELAYED_PATH_SEGMENT = "mock_with_delays";
 
     /**
@@ -96,17 +100,53 @@ public class ShadowAuthority {
             case AAD_MOCK_DELAYED_PATH_SEGMENT:
                 authority = new MockDelayedResponseAuthority();
                 break;
-            case B2C_TEST_PATH_SEGMENT:
+            case B2C_PATH_SEGMENT:
+            case B2C_PATH_SEGMENT_ALT:
                 //Return new B2C TEST Authority
                 authority = new B2CTestAuthority(authorityUrl);
                 break;
             default:
                 // return new AAD Test Authority
-                authority = new AADTestAuthority();
+                authority = createAadAuthority(authorityUri, pathSegments);
                 break;
         }
 
         return authority;
+    }
+
+    /**
+     * Similar to createAadAuthority method in {@link Authority} class
+     *
+     * @param authorityUri the uri from which to derive authority
+     * @param pathSegments determines the audience
+     * @return
+     */
+    private static Authority createAadAuthority(@NonNull final Uri authorityUri,
+                                                @NonNull final List<String> pathSegments) {
+        AzureActiveDirectoryAudience audience = AzureActiveDirectoryAudience.getAzureActiveDirectoryAudience(
+                authorityUri.getScheme() + "://" + authorityUri.getHost(),
+                getPathForRopc(pathSegments)
+        );
+
+        return new AADTestAuthority(audience);
+    }
+
+    /**
+     * Get ROPC compatible audience from path segments.
+     * Changes ALL / Consumers to Organizations as all/consumers don't support ropc
+     * If specific tenant id is passed then just returns that tenant id as audience
+     *
+     * @param pathSegments
+     * @return
+     */
+    private static String getPathForRopc(@NonNull final List<String> pathSegments) {
+        final String providedPath = pathSegments.get(0);
+        if (providedPath.equals(AzureActiveDirectoryAudience.ALL) ||
+                providedPath.equals(AzureActiveDirectoryAudience.CONSUMERS)) {
+            return AzureActiveDirectoryAudience.ORGANIZATIONS;
+        } else {
+            return providedPath;
+        }
     }
 
 
