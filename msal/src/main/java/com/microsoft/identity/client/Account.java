@@ -30,6 +30,7 @@ import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryIdToken;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.util.Map;
 
@@ -141,6 +142,21 @@ public class Account implements IAccount {
             final String upn = (String) getClaims().get(AzureActiveDirectoryIdToken.UPN);
             if (null != upn) {
                 return upn;
+            }
+        }
+
+        return MISSING_FROM_THE_TOKEN_RESPONSE;
+    }
+
+    @Override
+    @NonNull
+    public String getAuthority() {
+        // TODO: The below logic only works for the case of AAD. We need to refactor this once we
+        //  make a proper fix for B2C
+        if (null != getClaims()) {
+            final String iss = (String) getClaims().get("iss");
+            if (!StringUtil.isEmpty(iss)) {
+                return iss;
             }
         }
 
