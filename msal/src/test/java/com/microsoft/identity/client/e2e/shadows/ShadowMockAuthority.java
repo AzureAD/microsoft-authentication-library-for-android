@@ -24,12 +24,9 @@ package com.microsoft.identity.client.e2e.shadows;
 
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
-
 import com.microsoft.identity.client.e2e.utils.TestConstants;
 import com.microsoft.identity.common.internal.authorities.AccountsInOneOrganization;
 import com.microsoft.identity.common.internal.authorities.Authority;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
 import com.microsoft.identity.internal.testutils.authorities.AADTestAuthority;
 import com.microsoft.identity.internal.testutils.authorities.B2CTestAuthority;
@@ -48,11 +45,11 @@ import java.util.List;
 // instead we are only shadowing the particular method that is implemented in the shadow
 // so in this case, the only thing that we are shadowing is the getAuthorityFromAuthorityUrl method in the Authority class
 @Implements(Authority.class)
-public class ShadowAuthority {
+public class ShadowMockAuthority {
 
-    private static final String TAG = ShadowAuthority.class.getSimpleName();
+    private static final String TAG = ShadowMockAuthority.class.getSimpleName();
 
-    private static final String AAD_MOCK_PATH_SEGMENT = "mock";
+    private static final String AAD_MOCK_PATH_SEGMENT = TestConstants.Authorities.AAD_MOCK_AUTHORITY_TENANT;
     private static final String B2C_TEST_PATH_SEGMENT = "tfp";
     private static final String AAD_MOCK_DELAYED_PATH_SEGMENT = "mock_with_delays";
 
@@ -93,7 +90,8 @@ public class ShadowAuthority {
                 //Return new AAD MOCK Authority
                 authority = new MockAuthority(new AccountsInOneOrganization(
                         TestConstants.Authorities.AAD_MOCK_AUTHORITY,
-                        TestConstants.Authorities.AAD_MOCK_AUTHORITY_TENANT)
+                        TestConstants.Authorities.AAD_MOCK_AUTHORITY_TENANT
+                )
                 );
                 break;
             case AAD_MOCK_DELAYED_PATH_SEGMENT:
@@ -105,46 +103,15 @@ public class ShadowAuthority {
                 break;
             default:
                 // return new AAD Test Authority
-                authority = createAadAuthority(authorityUri, pathSegments);
+                authority = new AADTestAuthority();
                 break;
         }
 
         return authority;
     }
 
-    /**
-     * Similar to createAadAuthority method in {@link Authority} class
-     *
-     * @param authorityUri the uri from which to derive authority
-     * @param pathSegments determines the audience
-     * @return
-     */
-    private static Authority createAadAuthority(@NonNull final Uri authorityUri,
-                                                @NonNull final List<String> pathSegments) {
-        AzureActiveDirectoryAudience audience = AzureActiveDirectoryAudience.getAzureActiveDirectoryAudience(
-                authorityUri.getScheme() + "://" + authorityUri.getHost(),
-                getPathForRopc(pathSegments)
-        );
-
-        return new AADTestAuthority(audience);
-    }
-
-    /**
-     * Get ROPC compatible audience from path segments.
-     * Changes ALL / Consumers to Organizations as all/consumers don't support ropc
-     * If specific tenant id is passed then just returns that tenant id as audience
-     *
-     * @param pathSegments
-     * @return
-     */
-    private static String getPathForRopc(@NonNull final List<String> pathSegments) {
-        final String providedPath = pathSegments.get(0);
-        if (providedPath.equals(AzureActiveDirectoryAudience.ALL) ||
-                providedPath.equals(AzureActiveDirectoryAudience.CONSUMERS)) {
-            return AzureActiveDirectoryAudience.ORGANIZATIONS;
-        } else {
-            return providedPath;
-        }
+    public static boolean isKnownAuthority(Authority authority) {
+        return true;
     }
 
 
