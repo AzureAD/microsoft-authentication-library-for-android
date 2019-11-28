@@ -37,4 +37,7 @@ public interface IAccount extends Serializable, IClaimable {
      */
     @NonNull
     String getId();
+
+    @NonNull
+    String getAuthority();
 }

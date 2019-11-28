@@ -31,14 +31,13 @@ import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.B2C_S
 /**
  * Run all tests in the {@link AcquireTokenNetworkTest} class using B2C
  */
-public class AcquireTokenNetworkB2CTest extends AcquireTokenNetworkTest {
+public abstract class AcquireTokenB2CTest extends AcquireTokenNetworkTest {
 
     @Override
-    public LabUserQuery getLabUserQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.userType = LabConstants.UserType.B2C;
-        query.b2cProvider = LabConstants.B2CProvider.LOCAL;
-        return query;
+    public String getAuthority() {
+        // TODO: We need to refactor this to get the authority from account once we fix the
+        //  getAuthority logic for the case of B2C. For details see {@link Account#getAuthority()}
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
     }
 
     @Override
@@ -50,4 +49,17 @@ public class AcquireTokenNetworkB2CTest extends AcquireTokenNetworkTest {
     public String[] getScopes() {
         return B2C_SCOPE;
     }
+
+    public static class B2CLocalUser extends AcquireTokenB2CTest {
+
+        @Override
+        public LabUserQuery getLabUserQuery() {
+            final LabUserQuery query = new LabUserQuery();
+            query.userType = LabConstants.UserType.B2C;
+            query.b2cProvider = LabConstants.B2CProvider.LOCAL;
+            return query;
+        }
+
+    }
+
 }

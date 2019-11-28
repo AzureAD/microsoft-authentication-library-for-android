@@ -31,6 +31,7 @@ import androidx.annotation.WorkerThread;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.exception.ArgumentException;
 import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.controllers.BaseController;
@@ -222,7 +223,7 @@ public class LocalMSALController extends BaseController {
     @Override
     public AcquireTokenResult acquireTokenSilent(
             @NonNull final AcquireTokenSilentOperationParameters parameters)
-            throws IOException, ClientException, ArgumentException {
+            throws IOException, ClientException, ArgumentException, ServiceException {
         final String methodName = ":acquireTokenSilent";
         Logger.verbose(
                 TAG + methodName,
@@ -269,7 +270,8 @@ public class LocalMSALController extends BaseController {
 
         if (accessTokenIsNull(fullCacheRecord)
                 || refreshTokenIsNull(fullCacheRecord)
-                || parameters.getForceRefresh()) {
+                || parameters.getForceRefresh()
+                || !isRequestAuthorityRealmSameAsATRealm(parameters.getAuthority(), fullCacheRecord.getAccessToken())) {
             if (!refreshTokenIsNull(fullCacheRecord)) {
                 // No AT found, but the RT checks out, so we'll use it
                 Logger.verbose(
