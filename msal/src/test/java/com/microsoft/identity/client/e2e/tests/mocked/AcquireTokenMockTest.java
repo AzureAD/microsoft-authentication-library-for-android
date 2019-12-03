@@ -28,21 +28,22 @@ import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.RoboTestCacheHelper;
-import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequest;
-import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
+import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
+import com.microsoft.identity.internal.testutils.shadows.ShadowHttpRequest;
+import com.microsoft.identity.internal.testutils.shadows.ShadowMockAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
-import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
-import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultServerError;
-import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultUnsuccessful;
+import com.microsoft.identity.internal.testutils.shadows.ShadowStorageHelper;
+import com.microsoft.identity.internal.testutils.shadows.ShadowStrategyResultServerError;
+import com.microsoft.identity.internal.testutils.shadows.ShadowStrategyResultUnsuccessful;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
-import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
-import com.microsoft.identity.client.e2e.utils.TestConstants;
+import com.microsoft.identity.internal.testutils.RoboTestUtils;
+import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
-import com.microsoft.identity.internal.testutils.MockTokenResponse;
+import com.microsoft.identity.internal.testutils.mocks.MockTokenResponse;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -52,7 +53,7 @@ import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
 
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Authorities.AAD_MOCK_AUTHORITY;
+import static com.microsoft.identity.internal.testutils.TestConstants.Authorities.AAD_MOCK_AUTHORITY;
 import static org.junit.Assert.fail;
 
 @RunWith(RobolectricTestRunner.class)
@@ -245,7 +246,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     @Test
     public void testAcquireTokenSilentFailureEmptyCache() {
         final IAccount account = loadAccountForTest(mApplication);
-        RoboTestUtils.clearCache();
+        RoboTestUtils.clearCache(SHARED_PREFERENCES_NAME);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .withScopes(Arrays.asList(mScopes))

@@ -26,14 +26,14 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.claims.ClaimsRequest;
-import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
-import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequest;
+import com.microsoft.identity.internal.testutils.shadows.ShadowAuthority;
+import com.microsoft.identity.internal.testutils.shadows.ShadowHttpRequest;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
-import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
+import com.microsoft.identity.internal.testutils.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.CacheCountAuthenticationCallback;
-import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
+import com.microsoft.identity.internal.testutils.RoboTestUtils;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
 
 import org.junit.Before;
@@ -46,10 +46,10 @@ import org.robolectric.shadows.ShadowLog;
 
 import java.util.Arrays;
 
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Authorities.AAD_MOCK_AUTHORITY;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Authorities.AAD_MOCK_DELAYED_RESPONSE_AUTHORITY;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.USER_READ_SCOPE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Authorities.AAD_MOCK_AUTHORITY;
+import static com.microsoft.identity.internal.testutils.TestConstants.Authorities.AAD_MOCK_DELAYED_RESPONSE_AUTHORITY;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 
 @Ignore
 @RunWith(RobolectricTestRunner.class)

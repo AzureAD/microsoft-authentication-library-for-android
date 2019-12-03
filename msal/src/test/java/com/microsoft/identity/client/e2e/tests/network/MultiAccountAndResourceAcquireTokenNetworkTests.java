@@ -25,12 +25,12 @@ package com.microsoft.identity.client.e2e.tests.network;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
-import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
+import com.microsoft.identity.internal.testutils.shadows.ShadowAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
-import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
+import com.microsoft.identity.internal.testutils.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
-import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
+import com.microsoft.identity.internal.testutils.RoboTestUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
@@ -44,11 +44,11 @@ import java.util.Arrays;
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.getAccount;
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulInteractiveCallback;
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulSilentCallback;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.AD_GRAPH_USER_READ_SCOPE;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.MS_GRAPH_USER_READ_SCOPE;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.OFFICE_USER_READ_SCOPE;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.USER_READ_SCOPE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.AD_GRAPH_USER_READ_SCOPE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.MS_GRAPH_USER_READ_SCOPE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.OFFICE_USER_READ_SCOPE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowMsalUtils.class})

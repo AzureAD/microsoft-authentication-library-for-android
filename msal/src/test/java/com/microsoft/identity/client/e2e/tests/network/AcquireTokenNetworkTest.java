@@ -24,15 +24,15 @@ package com.microsoft.identity.client.e2e.tests.network;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
-import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
-import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
+import com.microsoft.identity.internal.testutils.RoboTestUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.internal.testutils.shadows.ShadowAuthority;
+import com.microsoft.identity.internal.testutils.shadows.ShadowStorageHelper;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -136,7 +136,7 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
         RoboTestUtils.flushScheduler();
 
         // clear the cache now
-        RoboTestUtils.clearCache();
+        RoboTestUtils.clearCache(SHARED_PREFERENCES_NAME);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(getAccount())
@@ -163,7 +163,7 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
         RoboTestUtils.flushScheduler();
 
         // remove the access token from cache
-        RoboTestUtils.removeAccessTokenFromCache();
+        RoboTestUtils.removeAccessTokenFromCache(SHARED_PREFERENCES_NAME);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(getAccount())

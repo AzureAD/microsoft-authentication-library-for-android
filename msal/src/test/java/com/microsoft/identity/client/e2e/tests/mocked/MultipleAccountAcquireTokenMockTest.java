@@ -25,10 +25,10 @@ package com.microsoft.identity.client.e2e.tests.mocked;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
-import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
+import com.microsoft.identity.internal.testutils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
 
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_MOCK_TEST_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_MOCK_TEST_CONFIG_FILE_PATH;
 import static org.junit.Assert.fail;
 
 public class MultipleAccountAcquireTokenMockTest extends AcquireTokenMockTest {
