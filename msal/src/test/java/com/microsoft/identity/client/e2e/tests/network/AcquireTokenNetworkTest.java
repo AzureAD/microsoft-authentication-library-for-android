@@ -22,6 +22,8 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.network;
 
+import androidx.test.core.app.ApplicationProvider;
+
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
@@ -31,14 +33,17 @@ import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
+import com.microsoft.identity.common.internal.eststelemetry.EstsTelemetry;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLog;
 
 import java.util.Arrays;
 
@@ -55,10 +60,18 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
 
     @Before
     public void setup() {
+        ShadowLog.stream = System.out;
+        EstsTelemetry.getInstance().setupLastRequestTelemetryCache(ApplicationProvider.getApplicationContext());
         AcquireTokenTestHelper.setAccount(null);
         final LabUserQuery query = getLabUserQuery();
         mUsername = LabUserHelper.loadUserForTest(query);
         super.setup();
+    }
+
+    @After
+    public void cleanup() {
+        AcquireTokenTestHelper.setAccount(null);
+        EstsTelemetry.getInstance().printHistory();
     }
 
     @Test

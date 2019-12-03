@@ -36,6 +36,7 @@ import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.internal.eststelemetry.EstsTelemetry;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
@@ -319,6 +320,8 @@ public class LocalMSALController extends BaseController {
                             SdkType.MSAL
                     )
             );
+
+            EstsTelemetry.getInstance().getCurrentRequestTelemetry().setReturningFromCache(true);
         }
 
         Telemetry.emit(
