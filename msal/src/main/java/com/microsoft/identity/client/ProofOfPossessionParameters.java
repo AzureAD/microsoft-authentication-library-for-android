@@ -34,7 +34,7 @@ import java.util.UUID;
 /**
  * Required Params for a Proof-of-Possession protected request.
  */
-public class ProofOfPossessionParameters
+class ProofOfPossessionParameters
         extends AuthenticationSchemeParameters
         implements IPoPAuthenticationSchemeParams {
 
@@ -48,11 +48,11 @@ public class ProofOfPossessionParameters
      * @param method The HTTP method of the resource request.
      * @param url    The URL of PoP token recipient (resource).
      */
-    public ProofOfPossessionParameters(@NonNull final HttpMethod method,
-                                       @NonNull final URL url) {
+    ProofOfPossessionParameters(@NonNull final URL url,
+                                @NonNull final HttpMethod method) {
         super(PopAuthenticationSchemeInternal.SCHEME_POP);
-        mHttpMethod = method.name();
         mUrl = url;
+        mHttpMethod = method.name();
         mNonce = UUID.randomUUID().toString();
     }
 

@@ -15,7 +15,6 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
-import com.microsoft.identity.client.ProofOfPossessionParameters;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
@@ -170,11 +169,9 @@ public class MsalWrapper {
 
         if (USE_POP) {
             try {
-                builder.withProofOfPossessionParameters(
-                        new ProofOfPossessionParameters(
-                                HttpMethod.GET,
-                                new URL("https://signedhttprequest.azurewebsites.net/api/validateSHR")
-                        )
+                builder.withProofOfPossession(
+                        new URL("https://signedhttprequest.azurewebsites.net/api/validateSHR"),
+                        HttpMethod.GET
                 );
             } catch (MalformedURLException e) {
                 throw new RuntimeException(e);
@@ -288,11 +285,9 @@ public class MsalWrapper {
 
                                 if (USE_POP) {
                                     try {
-                                        builder.withProofOfPossessionParameters(
-                                                new ProofOfPossessionParameters(
-                                                        HttpMethod.GET,
-                                                        new URL("https://signedhttprequest.azurewebsites.net/api/validateSHR")
-                                                )
+                                        builder.withProofOfPossession(
+                                                new URL("https://signedhttprequest.azurewebsites.net/api/validateSHR"),
+                                                HttpMethod.GET
                                         );
                                     } catch (MalformedURLException e) {
                                         throw new RuntimeException(e);

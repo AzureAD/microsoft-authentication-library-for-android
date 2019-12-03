@@ -31,6 +31,7 @@ import com.microsoft.identity.client.internal.authscheme.BearerSchemeParameters;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -161,8 +162,8 @@ public abstract class TokenParameters {
         private ClaimsRequest mClaimsRequest;
         private ProofOfPossessionParameters mProofOfPossessionParameters;
 
-        public B withProofOfPossessionParameters(@NonNull final ProofOfPossessionParameters params) {
-            mProofOfPossessionParameters = params;
+        public B withProofOfPossession(@NonNull final URL url, @NonNull final HttpMethod method) {
+            mProofOfPossessionParameters = new ProofOfPossessionParameters(url, method);
             return self();
         }
 
