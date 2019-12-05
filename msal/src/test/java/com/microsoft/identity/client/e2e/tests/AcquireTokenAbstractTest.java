@@ -24,9 +24,11 @@ package com.microsoft.identity.client.e2e.tests;
 
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
+import com.microsoft.identity.common.internal.eststelemetry.EstsTelemetry;
 
 import org.junit.After;
 import org.junit.Before;
+import org.robolectric.shadows.ShadowLog;
 
 public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAbstractTest implements IAcquireTokenTest {
 
@@ -34,6 +36,7 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
 
     @Before
     public void setup() {
+        ShadowLog.stream = System.out;
         mScopes = getScopes();
         super.setup();
     }
@@ -43,5 +46,6 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
         AcquireTokenTestHelper.setAccount(null);
         // remove everything from cache after test ends
         RoboTestUtils.clearCache();
+        EstsTelemetry.getInstance().printHistory();
     }
 }

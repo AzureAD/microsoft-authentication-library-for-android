@@ -151,6 +151,9 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
         performSilentAcquireTokenCall(MS_GRAPH_USER_READ_SCOPE);
         performSilentAcquireTokenCall(OFFICE_USER_READ_SCOPE);
         performSilentAcquireTokenCall(AD_GRAPH_USER_READ_SCOPE);
+
+        mApplication.acquireToken(parameters);
+        RoboTestUtils.flushScheduler();
     }
 
 }

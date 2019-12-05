@@ -60,7 +60,6 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
 
     @Before
     public void setup() {
-        ShadowLog.stream = System.out;
         EstsTelemetry.getInstance().setupLastRequestTelemetryCache(ApplicationProvider.getApplicationContext());
         AcquireTokenTestHelper.setAccount(null);
         final LabUserQuery query = getLabUserQuery();
@@ -71,7 +70,6 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
     @After
     public void cleanup() {
         AcquireTokenTestHelper.setAccount(null);
-        EstsTelemetry.getInstance().printHistory();
     }
 
     @Test
