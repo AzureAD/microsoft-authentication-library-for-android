@@ -20,28 +20,20 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.e2e.tests;
+package com.microsoft.identity.client.e2e.shadows;
 
-import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
-import com.microsoft.identity.internal.testutils.Utils;
+import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
+import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
+import com.microsoft.identity.internal.testutils.strategies.MockTestStrategy;
 
-import org.junit.After;
-import org.junit.Before;
+import org.robolectric.annotation.Implements;
 
-public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAbstractTest implements IAcquireTokenTest {
+@Implements(MockTestStrategy.class)
+public class ShadowStrategyResultUnsuccessful {
 
-    protected String[] mScopes;
-
-    @Before
-    public void setup() {
-        mScopes = getScopes();
-        super.setup();
+    public TokenResult getTokenResult() {
+        TokenResult tokenResult = new TokenResult((TokenResponse) null);
+        return tokenResult;
     }
 
-    @After
-    public void cleanup() {
-        AcquireTokenTestHelper.setAccount(null);
-        // remove everything from cache after test ends
-        Utils.clearCache(SHARED_PREFERENCES_NAME);
-    }
 }

@@ -20,28 +20,27 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.e2e.tests;
+package com.microsoft.identity.client.e2e.shadows;
 
-import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
-import com.microsoft.identity.internal.testutils.Utils;
+import androidx.annotation.NonNull;
 
-import org.junit.After;
-import org.junit.Before;
+import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 
-public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAbstractTest implements IAcquireTokenTest {
+import org.robolectric.annotation.Implements;
 
-    protected String[] mScopes;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
-    @Before
-    public void setup() {
-        mScopes = getScopes();
-        super.setup();
+import javax.crypto.SecretKey;
+
+@Implements(StorageHelper.class)
+public class ShadowStorageHelper {
+
+    /**
+     * Fake saving key to key store as Android Key Store is not available in Robolectric
+     */
+    public void saveKeyStoreEncryptedKey(@NonNull SecretKey unencryptedKey) throws GeneralSecurityException, IOException {
+        return;
     }
 
-    @After
-    public void cleanup() {
-        AcquireTokenTestHelper.setAccount(null);
-        // remove everything from cache after test ends
-        Utils.clearCache(SHARED_PREFERENCES_NAME);
-    }
 }

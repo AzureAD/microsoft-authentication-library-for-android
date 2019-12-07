@@ -20,28 +20,25 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.e2e.tests;
+package com.microsoft.identity.client.e2e.shadows;
 
-import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
-import com.microsoft.identity.internal.testutils.Utils;
+import com.microsoft.identity.common.internal.net.HttpRequest;
+import com.microsoft.identity.common.internal.net.HttpResponse;
 
-import org.junit.After;
-import org.junit.Before;
+import org.robolectric.annotation.Implements;
 
-public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAbstractTest implements IAcquireTokenTest {
+import java.io.IOException;
+import java.net.URL;
+import java.util.Map;
 
-    protected String[] mScopes;
+@Implements(HttpRequest.class)
+public class ShadowHttpRequest {
 
-    @Before
-    public void setup() {
-        mScopes = getScopes();
-        super.setup();
-    }
+    // mocking this to avoid accidentally sending malformed requests to the server
+    public static HttpResponse sendPost(final URL requestUrl, final Map<String, String> requestHeaders,
+                                        final byte[] requestContent, final String requestContentType)
+            throws IOException {
 
-    @After
-    public void cleanup() {
-        AcquireTokenTestHelper.setAccount(null);
-        // remove everything from cache after test ends
-        Utils.clearCache(SHARED_PREFERENCES_NAME);
+        throw new IOException("Sending requests to server has been disabled for mocked unit tests");
     }
 }
