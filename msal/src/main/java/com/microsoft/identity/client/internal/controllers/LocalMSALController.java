@@ -33,6 +33,7 @@ import com.microsoft.identity.common.exception.ArgumentException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.Authority;
+import com.microsoft.identity.common.internal.authscheme.AbstractAuthenticationScheme;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
@@ -249,9 +250,10 @@ public class LocalMSALController extends BaseController {
         final AccountRecord targetAccount = getCachedAccountRecord(parameters);
 
         // Build up params for Strategy construction
+        final AbstractAuthenticationScheme authScheme = parameters.getAuthenticationScheme();
         final OAuth2StrategyOptions strategyOptions = new OAuth2StrategyOptions();
         strategyOptions.setContext(parameters.getAppContext());
-        strategyOptions.setAuthenticationScheme(parameters.getAuthenticationScheme());
+        strategyOptions.setAuthenticationScheme(authScheme);
 
         final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy(strategyOptions);
 
@@ -259,7 +261,8 @@ public class LocalMSALController extends BaseController {
         final List<ICacheRecord> cacheRecords = tokenCache.loadWithAggregatedAccountData(
                 parameters.getClientId(),
                 TextUtils.join(" ", parameters.getScopes()),
-                targetAccount
+                targetAccount,
+                authScheme
         );
 
         // The first element is the 'fully-loaded' CacheRecord which may contain the AccountRecord,
