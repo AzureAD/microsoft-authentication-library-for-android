@@ -257,7 +257,6 @@ public class LocalMSALController extends BaseController {
 
         final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy(strategyOptions);
 
-        // TODO Does the lookup need to change to support PoP vs not?
         final List<ICacheRecord> cacheRecords = tokenCache.loadWithAggregatedAccountData(
                 parameters.getClientId(),
                 TextUtils.join(" ", parameters.getScopes()),
