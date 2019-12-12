@@ -23,7 +23,7 @@
 package com.microsoft.identity.client.e2e.tests;
 
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
-import com.microsoft.identity.internal.testutils.Utils;
+import com.microsoft.identity.internal.testutils.TestUtils;
 
 import org.junit.After;
 import org.junit.Before;
@@ -42,6 +42,6 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
     public void cleanup() {
         AcquireTokenTestHelper.setAccount(null);
         // remove everything from cache after test ends
-        Utils.clearCache(SHARED_PREFERENCES_NAME);
+        TestUtils.clearCache(SHARED_PREFERENCES_NAME);
     }
 }

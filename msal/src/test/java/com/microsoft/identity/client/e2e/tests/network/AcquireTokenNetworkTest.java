@@ -30,7 +30,7 @@ import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
-import com.microsoft.identity.internal.testutils.Utils;
+import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
@@ -137,7 +137,7 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
         flushScheduler();
 
         // clear the cache now
-        Utils.clearCache(SHARED_PREFERENCES_NAME);
+        TestUtils.clearCache(SHARED_PREFERENCES_NAME);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(getAccount())
@@ -164,7 +164,7 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
         flushScheduler();
 
         // remove the access token from cache
-        Utils.removeAccessTokenFromCache(SHARED_PREFERENCES_NAME);
+        TestUtils.removeAccessTokenFromCache(SHARED_PREFERENCES_NAME);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(getAccount())

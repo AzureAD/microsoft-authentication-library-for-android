@@ -41,7 +41,7 @@ import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
 import com.microsoft.identity.internal.testutils.TestConstants;
-import com.microsoft.identity.internal.testutils.Utils;
+import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.internal.testutils.mocks.MockTokenResponse;
 
 import org.junit.Ignore;
@@ -247,7 +247,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     @Test
     public void testAcquireTokenSilentFailureEmptyCache() {
         final IAccount account = loadAccountForTest(mApplication);
-        Utils.clearCache(SHARED_PREFERENCES_NAME);
+        TestUtils.clearCache(SHARED_PREFERENCES_NAME);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .withScopes(Arrays.asList(mScopes))
