@@ -1770,7 +1770,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
                 if (null != tenantProfiles && !tenantProfiles.isEmpty()) {
                     for (final Map.Entry<String, ITenantProfile> profileEntry : tenantProfiles.entrySet()) {
-                        if (localAccountId.contains(profileEntry.getValue().getId())) {
+                        if (!TextUtils.isEmpty(profileEntry.getValue().getId()) &&
+                                localAccountId.contains(profileEntry.getValue().getId())) {
                             return true;
                         }
                     }
