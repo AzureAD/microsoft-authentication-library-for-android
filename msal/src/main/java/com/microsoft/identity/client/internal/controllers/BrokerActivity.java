@@ -27,7 +27,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
+import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.logging.Logger;
 
 public final class BrokerActivity extends Activity {
@@ -101,7 +101,7 @@ public final class BrokerActivity extends Activity {
                 || resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR) {
 
             Logger.verbose(TAG + methodName, "Completing interactive request ");
-            ApiDispatcher.completeInteractive(requestCode, resultCode, data);
+            CommandDispatcher.completeInteractive(requestCode, resultCode, data);
         }
         finish();
     }

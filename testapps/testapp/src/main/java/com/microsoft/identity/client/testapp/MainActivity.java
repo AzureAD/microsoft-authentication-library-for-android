@@ -26,6 +26,8 @@ package com.microsoft.identity.client.testapp;
 import android.os.Bundle;
 import android.os.Handler;
 import com.google.android.material.navigation.NavigationView;
+
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -45,7 +47,9 @@ import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.ILoggerCallback;
+import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.Logger;
+import com.microsoft.identity.client.MultiTenantAccount;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
@@ -194,7 +198,10 @@ public class MainActivity extends AppCompatActivity
             final Bundle bundle = new Bundle();
             if (mAuthResult != null) {
                 bundle.putString(ResultFragment.ACCESS_TOKEN, mAuthResult.getAccessToken());
-                bundle.putString(ResultFragment.DISPLAYABLE, mAuthResult.getAccount().getUsername());
+                bundle.putString(
+                        ResultFragment.DISPLAYABLE,
+                        getUsernameFromIAccount(mAuthResult.getAccount())
+                );
             }
 
             fragment.setArguments(bundle);
@@ -280,13 +287,28 @@ public class MainActivity extends AppCompatActivity
                 getApplicationContext(), android.R.layout.simple_spinner_item,
                 new ArrayList<String>() {{
                     if (accounts != null) {
-                        for (IAccount account : accounts)
-                            add(account.getUsername());
+                        for (IAccount account : accounts) {
+                            add(getUsernameFromIAccount(account));
+                        }
                     }
                 }}
         );
         userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         selectUser.setAdapter(userAdapter);
+    }
+
+    private String getUsernameFromIAccount(@NonNull IAccount account){
+        String username = account.getUsername();
+        if(account.getClaims() == null && account instanceof MultiTenantAccount){
+            // parse tenant profiles to get the account name
+            for(ITenantProfile profile : ((MultiTenantAccount) account).getTenantProfiles().values()){
+                if(profile.getClaims() != null){
+                    username = profile.getUsername();
+                    break;
+                }
+            }
+        }
+        return username;
     }
 
     void loadMsalApplicationFromRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions,

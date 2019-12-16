@@ -12,6 +12,7 @@ ext {
     androidMavenGradlePluginVersion = "1.4.1"
 
     // Libraries
+    androidxTestCoreVersion = "1.2.0"
     androidxJunitVersion = "1.1.1"
     annotationVersion = "1.0.0"
     appCompatVersion = "1.0.2"
@@ -26,9 +27,10 @@ ext {
     mockitoAndroidVersion = "2.18.3"
     multidexVersion = "2.0.1"
     powerMockVersion = "1.6.6"
-    nimbusVersion = "5.7"
+    nimbusVersion = "8.2"
     runnerVersion = "1.2.0"
     rulesVersion = "1.2.0"
+    robolectricVersion = "4.0"
 
     // TODO: adal automation test app.
     supportLibraryVersion = "27.1.+"

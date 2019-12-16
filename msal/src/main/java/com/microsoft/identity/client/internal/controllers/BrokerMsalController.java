@@ -22,30 +22,20 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
-import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.RemoteException;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import com.google.gson.GsonBuilder;
-import com.microsoft.identity.client.IMicrosoftAuthService;
-import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.PublicClientApplicationConfiguration;
-import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
@@ -55,21 +45,16 @@ import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAu
 import com.microsoft.identity.common.internal.broker.BrokerResult;
 import com.microsoft.identity.common.internal.broker.BrokerResultFuture;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
-import com.microsoft.identity.common.internal.broker.MicrosoftAuthServiceFuture;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.controllers.BaseController;
-import com.microsoft.identity.common.internal.controllers.ExceptionAdapter;
-import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAccount;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
-import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
@@ -77,9 +62,6 @@ import com.microsoft.identity.common.internal.telemetry.Telemetry;
 import com.microsoft.identity.common.internal.telemetry.TelemetryEventStrings;
 import com.microsoft.identity.common.internal.telemetry.events.ApiEndEvent;
 import com.microsoft.identity.common.internal.telemetry.events.ApiStartEvent;
-import com.microsoft.identity.common.internal.telemetry.events.BrokerStartEvent;
-import com.microsoft.identity.common.internal.ui.browser.Browser;
-import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 import com.microsoft.identity.common.internal.util.ICacheRecordGsonAdapter;
 
 import java.io.IOException;
@@ -89,9 +71,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.microsoft.identity.client.internal.controllers.BrokerBaseStrategy.getAcquireTokenResult;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.DEFAULT_BROWSER_PACKAGE_NAME;
-
 /**
  * The implementation of MSAL Controller for Broker
  */
@@ -99,34 +78,18 @@ public class BrokerMsalController extends BaseController {
 
     private static final String TAG = BrokerMsalController.class.getSimpleName();
 
-    private List<BrokerBaseStrategy> mStrategies = new ArrayList<>();
-
     private static final String MANIFEST_PERMISSION_GET_ACCOUNTS = "android.permission.GET_ACCOUNTS";
     private static final String MANIFEST_PERMISSION_MANAGE_ACCOUNTS = "android.permission.MANAGE_ACCOUNTS";
     private static final String MANIFEST_PERMISSION_USE_CREDENTIALS = "android.permission.USE_CREDENTIALS";
 
     private BrokerResultFuture mBrokerResultFuture;
 
-    List<BrokerBaseStrategy> getStrategies() {
-        return mStrategies;
-    }
-
-    void addBrokerStrategy(@NonNull final BrokerBaseStrategy strategy) {
-        mStrategies.add(strategy);
-    }
-
-    /**
-     * ExecutorService to handle background computation.
-     */
-    private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
-
     @Override
-    public AcquireTokenResult acquireToken(AcquireTokenOperationParameters parameters)
-            throws InterruptedException, BaseException {
+    public AcquireTokenResult acquireToken(AcquireTokenOperationParameters parameters) throws Exception {
         Telemetry.emit(
                 new ApiStartEvent()
                         .putProperties(parameters)
-                        .putApiId(TelemetryEventStrings.Api.BROKER_GET_ACCOUNTS)
+                        .putApiId(TelemetryEventStrings.Api.BROKER_ACQUIRE_TOKEN_INTERACTIVE)
         );
 
         //Create BrokerResultFuture to block on response from the broker... response will be return as an activity result
@@ -151,15 +114,126 @@ public class BrokerMsalController extends BaseController {
         // For MSA Accounts Broker doesn't save the accounts, instead it just passes the result along,
         // MSAL needs to save this account locally for future token calls.
         saveMsaAccountToCache(resultBundle, (MsalOAuth2TokenCache) parameters.getTokenCache());
-        final AcquireTokenResult result = getAcquireTokenResult(resultBundle);
+
+        final AcquireTokenResult result;
+        try {
+            result = new MsalBrokerResultAdapter().getAcquireTokenResultFromResultBundle(resultBundle);
+        } catch (BaseException e) {
+            Telemetry.emit(
+                    new ApiEndEvent()
+                            .putException(e)
+                            .putApiId(TelemetryEventStrings.Api.BROKER_ACQUIRE_TOKEN_INTERACTIVE)
+            );
+            throw e;
+        }
 
         Telemetry.emit(
                 new ApiEndEvent()
                         .putResult(result)
-                        .putApiId(TelemetryEventStrings.Api.BROKER_GET_ACCOUNTS)
+                        .putApiId(TelemetryEventStrings.Api.BROKER_ACQUIRE_TOKEN_INTERACTIVE)
         );
 
         return result;
+    }
+
+    /**
+     * Info of a broker operation to be performed with available strategies.
+     */
+    private interface BrokerOperationInfo<T extends OperationParameters, U> {
+        /**
+         * Performs this broker operation in this method with the given IMicrosoftAuthService.
+         */
+        @Nullable
+        U perform(BrokerBaseStrategy strategy, T parameters) throws Exception;
+
+        /**
+         * Name of the task (for logging purposes).
+         */
+        String getMethodName();
+
+        /**
+         * Name of the telemetry API event associated to this strategy task.
+         * If this value returns null, no telemetry event will be emitted.
+         */
+        @Nullable
+        String getTelemetryApiName();
+
+        /**
+         * A method that will be invoked before the success event is emitted.
+         * If the calling operation wants to put any value in the success event, put it here.
+         */
+        void putValueInSuccessEvent(ApiEndEvent event, U result);
+    }
+
+    /**
+     * A generic method that would initialize and iterate through available strategies.
+     * It will return a result immediately if any of the strategy succeeds, or throw an exception if all of the strategies fails.
+     */
+    private <T extends OperationParameters, U> U invokeBrokerOperation(@NonNull final T parameters,
+                                                                       @NonNull final BrokerOperationInfo<T, U> strategyTask)
+            throws Exception {
+
+        if (strategyTask.getTelemetryApiName() != null) {
+            Telemetry.emit(
+                    new ApiStartEvent()
+                            .putProperties(parameters)
+                            .putApiId(strategyTask.getTelemetryApiName())
+            );
+        }
+
+        final List<BrokerBaseStrategy> strategies = getStrategies();
+
+        U result = null;
+        for (int ii = 0; ii < strategies.size(); ii++) {
+            final BrokerBaseStrategy strategy = strategies.get(ii);
+            try {
+                if (!strategy.hello(parameters)) {
+                    continue;
+                }
+
+                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                        TAG + strategyTask.getMethodName(),
+                        "Executing with strategy: "
+                                + strategy.getClass().getSimpleName()
+                );
+
+                result = strategyTask.perform(strategy, parameters);
+                if (result != null) {
+                    break;
+                }
+            } catch (final Exception exception) {
+                if (ii == (strategies.size() - 1)) {
+                    //throw the exception for the last trying of strategies.
+                    if (strategyTask.getTelemetryApiName() != null) {
+                        Telemetry.emit(
+                                new ApiEndEvent()
+                                        .putException(exception)
+                                        .putApiId(strategyTask.getTelemetryApiName())
+                        );
+                    }
+                    throw exception;
+                }
+            }
+        }
+
+        if (strategyTask.getTelemetryApiName() != null) {
+            final ApiEndEvent successEvent = new ApiEndEvent()
+                    .putApiId(strategyTask.getTelemetryApiName())
+                    .isApiCallSuccessful(Boolean.TRUE);
+            strategyTask.putValueInSuccessEvent(successEvent, result);
+            Telemetry.emit(successEvent);
+        }
+
+        return result;
+    }
+
+
+    // The order matters.
+    private List<BrokerBaseStrategy> getStrategies() {
+        final List<BrokerBaseStrategy> strategies = new ArrayList<>();
+        strategies.add(new BrokerAuthServiceStrategy());
+        strategies.add(new BrokerAccountManagerStrategy());
+        return strategies;
     }
 
     /**
@@ -168,34 +242,30 @@ public class BrokerMsalController extends BaseController {
      * @param parameters
      * @return
      */
-    private Intent getBrokerAuthorizationIntent(@NonNull final AcquireTokenOperationParameters parameters) throws ClientException {
-        final String methodName = ":getBrokerAuthorizationIntent";
-        helloBroker(parameters);
+    private Intent getBrokerAuthorizationIntent(@NonNull final AcquireTokenOperationParameters parameters) throws Exception {
+        return invokeBrokerOperation(parameters,
+                new BrokerOperationInfo<AcquireTokenOperationParameters, Intent>() {
+                    @Nullable
+                    @Override
+                    public Intent perform(BrokerBaseStrategy strategy, AcquireTokenOperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
+                        return strategy.getBrokerAuthorizationIntent(parameters);
+                    }
 
-        Intent interactiveRequestIntent = null;
+                    @Override
+                    public String getMethodName() {
+                        return ":getBrokerAuthorizationIntent";
+                    }
 
-        for (int ii = 0; ii < getStrategies().size(); ii++) {
-            final BrokerBaseStrategy strategy = getStrategies().get(ii);
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "Executing with strategy: "
-                            + strategy.getClass().getSimpleName()
-            );
+                    @Nullable
+                    @Override
+                    public String getTelemetryApiName() {
+                        return null;
+                    }
 
-            try {
-                interactiveRequestIntent = strategy.getBrokerAuthorizationIntent(parameters);
-                if (interactiveRequestIntent != null) {
-                    break;
-                }
-            } catch (final Exception exception) {
-                if (ii == (getStrategies().size() - 1)) {
-                    //throw the exception for the last trying of strategies.
-                    throw exception;
-                }
-            }
-        }
-
-        return interactiveRequestIntent;
+                    @Override
+                    public void putValueInSuccessEvent(ApiEndEvent event, Intent result) {
+                    }
+                });
     }
 
     /**
@@ -226,48 +296,32 @@ public class BrokerMsalController extends BaseController {
     }
 
     @Override
-    public AcquireTokenResult acquireTokenSilent(AcquireTokenSilentOperationParameters parameters) throws BaseException {
-        final String methodName = ":acquireTokenSilent";
-        helloBroker(parameters);
+    public AcquireTokenResult acquireTokenSilent(AcquireTokenSilentOperationParameters parameters) throws Exception {
+        return invokeBrokerOperation(parameters,
+                new BrokerOperationInfo<AcquireTokenSilentOperationParameters, AcquireTokenResult>() {
+                    @Nullable
+                    @Override
+                    public AcquireTokenResult perform(BrokerBaseStrategy strategy, AcquireTokenSilentOperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
+                        return strategy.acquireTokenSilent(parameters);
+                    }
 
-        Telemetry.emit(
-                new ApiStartEvent()
-                        .putProperties(parameters)
-                        .putApiId(TelemetryEventStrings.Api.BROKER_ACQUIRE_TOKEN_SILENT)
-        );
+                    @Override
+                    public String getMethodName() {
+                        return ":acquireTokenSilent";
+                    }
 
-        AcquireTokenResult acquireTokenResult = null;
+                    @Nullable
+                    @Override
+                    public String getTelemetryApiName() {
+                        return TelemetryEventStrings.Api.BROKER_ACQUIRE_TOKEN_SILENT;
+                    }
 
-        for (int ii = 0; ii < getStrategies().size(); ii++) {
-            final BrokerBaseStrategy strategy = getStrategies().get(ii);
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "Executing with strategy for silent : "
-                            + strategy.getClass().getSimpleName()
-            );
-
-            try {
-                acquireTokenResult = strategy.acquireTokenSilent(parameters);
-                if (acquireTokenResult != null) {
-                    break;
-                }
-            } catch (final Exception exception) {
-                if (ii == (getStrategies().size() - 1)) {
-                    //throw the exception for the last trying of strategies.
-                    throw exception;
-                }
-            }
-        }
-
-        Telemetry.emit(
-                new ApiEndEvent()
-                        .putResult(acquireTokenResult)
-                        .putApiId(TelemetryEventStrings.Api.BROKER_ACQUIRE_TOKEN_SILENT)
-        );
-
-        return acquireTokenResult;
+                    @Override
+                    public void putValueInSuccessEvent(ApiEndEvent event, AcquireTokenResult result) {
+                        event.putResult(result);
+                    }
+                });
     }
-
 
     /**
      * Returns list of accounts that has previously been used to acquire token with broker through the calling app.
@@ -277,136 +331,169 @@ public class BrokerMsalController extends BaseController {
      * this needs to be called on background thread.
      */
     @Override
-    public List<ICacheRecord> getAccounts(@NonNull final OperationParameters parameters)
-            throws ClientException, InterruptedException, ExecutionException, RemoteException, OperationCanceledException, IOException, AuthenticatorException {
-        final String methodName = ":getBrokerAccounts";
-        helloBroker(parameters);
-        List<ICacheRecord> result = null;
+    public List<ICacheRecord> getAccounts(@NonNull final OperationParameters parameters) throws Exception {
+        return invokeBrokerOperation(parameters,
+                new BrokerOperationInfo<OperationParameters, List<ICacheRecord>>() {
+                    @Nullable
+                    @Override
+                    public List<ICacheRecord> perform(BrokerBaseStrategy strategy, OperationParameters parameters) throws RemoteException, InterruptedException, ExecutionException, AuthenticatorException, IOException, OperationCanceledException, BaseException {
+                        return strategy.getBrokerAccounts(parameters);
+                    }
 
-        for (int ii = 0; ii < getStrategies().size(); ii++) {
-            final BrokerBaseStrategy strategy = getStrategies().get(ii);
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "Executing with strategy: "
-                            + strategy.getClass().getSimpleName()
-            );
+                    @Override
+                    public String getMethodName() {
+                        return ":getBrokerAccounts";
+                    }
 
-            try {
-                result = strategy.getBrokerAccounts(parameters);
-                if (!result.isEmpty()) {
-                    break;
-                }
-            } catch (final Exception exception) {
-                if (ii == (getStrategies().size() - 1)) {
-                    //throw the exception for the last trying of strategies.
-                    throw exception;
-                }
-            }
-        }
+                    @Nullable
+                    @Override
+                    public String getTelemetryApiName() {
+                        return TelemetryEventStrings.Api.BROKER_GET_ACCOUNTS;
+                    }
 
-        return result;
+                    @Override
+                    public void putValueInSuccessEvent(ApiEndEvent event, List<ICacheRecord> result) {
+                        event.put(TelemetryEventStrings.Key.ACCOUNTS_NUMBER, Integer.toString(result.size()));
+                    }
+                });
     }
-
 
     @Override
     @WorkerThread
-    public boolean removeAccount(@NonNull final OperationParameters parameters)
-            throws BaseException, InterruptedException, ExecutionException, RemoteException {
-        final String methodName = ":removeBrokerAccount";
-        helloBroker(parameters);
-        boolean result = false;
+    public boolean removeAccount(@NonNull final OperationParameters parameters) throws Exception {
+        return invokeBrokerOperation(parameters,
+                new BrokerOperationInfo<OperationParameters, Boolean>() {
+                    @Nullable
+                    @Override
+                    public Boolean perform(BrokerBaseStrategy strategy, OperationParameters parameters) throws InterruptedException, ExecutionException, BaseException, RemoteException {
+                        strategy.removeBrokerAccount(parameters);
+                        return true;
+                    }
 
+                    @Override
+                    public String getMethodName() {
+                        return ":removeAccount";
+                    }
 
-        for (int ii = 0; ii < getStrategies().size(); ii++) {
-            final BrokerBaseStrategy strategy = getStrategies().get(ii);
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG + methodName,
-                    "Executing with strategy: "
-                            + strategy.getClass().getSimpleName()
-            );
+                    @Nullable
+                    @Override
+                    public String getTelemetryApiName() {
+                        return TelemetryEventStrings.Api.BROKER_REMOVE_ACCOUNT;
+                    }
 
-            try {
-                result = strategy.removeBrokerAccount(parameters);
-            } catch (final Exception exception) {
-                if (ii == (getStrategies().size() - 1)) {
-                    //throw the exception for the last trying of strategies.
-                    throw exception;
-                }
-            }
-        }
-
-        return result;
+                    @Override
+                    public void putValueInSuccessEvent(ApiEndEvent event, Boolean result) {
+                    }
+                });
     }
 
-    /**
-     * Get device mode from Broker.
-     */
-    public void getBrokerDeviceMode(final PublicClientApplicationConfiguration configuration,
-                                    final PublicClientApplication.BrokerDeviceModeCallback callback) {
-        final String methodName = ":getBrokerDeviceMode";
+    @Override
+    @WorkerThread
+    public boolean getDeviceMode(@NonNull final OperationParameters parameters) throws Exception {
+        return invokeBrokerOperation(parameters,
+                new BrokerOperationInfo<OperationParameters, Boolean>() {
+                    @Nullable
+                    @Override
+                    public Boolean perform(BrokerBaseStrategy strategy, OperationParameters parameters) throws Exception {
+                        return strategy.getDeviceMode(parameters);
+                    }
 
-        try {
-            if (!MSALControllerFactory.brokerEligible(
-                    configuration.getAppContext(),
-                    configuration.getDefaultAuthority(),
-                    configuration)) {
+                    @Override
+                    public String getMethodName() {
+                        return ":getDeviceMode";
+                    }
 
-                final String errorMessage = "This request is not eligible to use the broker. Do not check sharedDevice mode and return false immediately.";
-                com.microsoft.identity.common.internal.logging.Logger.error(TAG + methodName, errorMessage, null);
-                callback.onGetMode(false);
-                return;
-            }
-        } catch (MsalClientException e) {
-            com.microsoft.identity.common.internal.logging.Logger.error(TAG + methodName, e.toString(), null);
-            callback.onGetMode(false);
-            return;
+                    @Nullable
+                    @Override
+                    public String getTelemetryApiName() {
+                        return TelemetryEventStrings.Api.GET_BROKER_DEVICE_MODE;
+                    }
+
+                    @Override
+                    public void putValueInSuccessEvent(ApiEndEvent event, Boolean result) {
+                        event.put(TelemetryEventStrings.Key.IS_DEVICE_SHARED, Boolean.toString(result));
+                    }
+                });
+    }
+
+    @Override
+    public List<ICacheRecord> getCurrentAccount(OperationParameters parameters) throws Exception {
+        final String methodName = ":getCurrentAccount";
+
+        if (!parameters.getIsSharedDevice()) {
+            Logger.verbose(TAG + methodName, "Not a shared device, invoke getAccounts() instead of getCurrentAccount()");
+            return getAccounts(parameters);
         }
 
-        Telemetry.emit(
-                new BrokerStartEvent()
-                        .putAction(methodName)
-        );
+        return invokeBrokerOperation(parameters,
+                new BrokerOperationInfo<OperationParameters, List<ICacheRecord>>() {
+                    @Nullable
+                    @Override
+                    public List<ICacheRecord> perform(BrokerBaseStrategy strategy, OperationParameters parameters) throws Exception {
+                        return strategy.getCurrentAccountInSharedDevice(parameters);
+                    }
 
-        final Handler handler = new Handler(Looper.getMainLooper());
-        sBackgroundExecutor.submit(new Runnable() {
-            @Override
-            public void run() {
-                IMicrosoftAuthService service;
-                final MicrosoftAuthClient client = new MicrosoftAuthClient(configuration.getAppContext());
-                try {
-                    final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
+                    @Override
+                    public String getMethodName() {
+                        return methodName;
+                    }
 
-                    service = authServiceFuture.get();
+                    @Nullable
+                    @Override
+                    public String getTelemetryApiName() {
+                        return TelemetryEventStrings.Api.BROKER_GET_CURRENT_ACCOUNT;
+                    }
 
-                    final boolean mode =
-                            MsalBrokerResultAdapter
-                                    .deviceModeFromBundle(
-                                            service.getDeviceMode()
-                                    );
+                    @Override
+                    public void putValueInSuccessEvent(ApiEndEvent event, List<ICacheRecord> result) {
+                        event.put(TelemetryEventStrings.Key.ACCOUNTS_NUMBER, Integer.toString(result.size()));
+                    }
+                });
+    }
 
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            callback.onGetMode(mode);
-                        }
-                    });
-                } catch (final ClientException | InterruptedException | ExecutionException | RemoteException e) {
-                    final String errorMessage = "Exception is thrown when trying to get current mode from Broker";
-                    com.microsoft.identity.common.internal.logging.Logger.error(
-                            TAG + methodName,
-                            errorMessage,
-                            e);
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            callback.onError(new MsalClientException(MsalClientException.IO_ERROR, errorMessage, e));
-                        }
-                    });
-                } finally {
-                    client.disconnect();
-                }
-            }
-        });
+    @Override
+    public boolean removeCurrentAccount(OperationParameters parameters) throws Exception {
+        final String methodName = ":removeCurrentAccount";
+
+        if (!parameters.getIsSharedDevice()) {
+            Logger.verbose(TAG + methodName, "Not a shared device, invoke removeAccount() instead of removeCurrentAccount()");
+            return removeAccount(parameters);
+        }
+
+        /**
+         * Given an account, perform a global sign-out from this shared device (End my shift capability).
+         * This will invoke Broker and
+         * 1. Remove account from token cache.
+         * 2. Remove account from AccountManager.
+         * 3. Clear WebView cookies.
+         *
+         * If everything succeeds on the broker side, it will then
+         * 4. Sign out from default browser.
+         */
+        return invokeBrokerOperation(parameters,
+                new BrokerOperationInfo<OperationParameters, Boolean>() {
+                    @Nullable
+                    @Override
+                    public Boolean perform(BrokerBaseStrategy strategy, OperationParameters parameters) throws InterruptedException, ExecutionException, BaseException, RemoteException {
+                        strategy.signOutFromSharedDevice(parameters);
+                        return true;
+                    }
+
+                    @Override
+                    public String getMethodName() {
+                        return methodName;
+                    }
+
+                    @Nullable
+                    @Override
+                    public String getTelemetryApiName() {
+                        return TelemetryEventStrings.Api.BROKER_REMOVE_ACCOUNT_FROM_SHARED_DEVICE;
+                    }
+
+                    @Override
+                    public void putValueInSuccessEvent(ApiEndEvent event, Boolean result) {
+                    }
+                });
     }
 
     /**
@@ -464,269 +551,6 @@ public class BrokerMsalController extends BaseController {
 
     }
 
-    /**
-     * A broker task to be performed. Use in conjunction with performBrokerTask()
-     */
-    public interface BrokerTask<T> {
-
-        /**
-         * Performs a task in this function with the given IMicrosoftAuthService.
-         */
-        T perform(IMicrosoftAuthService service) throws BaseException, RemoteException;
-
-        /**
-         * Name of the task (for logging purposes).
-         */
-        String getOperationName();
-    }
-
-    /**
-     * Perform an operation with Broker's MicrosoftAuthService on a background thread.
-     *
-     * @param appContext app context.
-     * @param callback   a callback function to be invoked to return result/error of the performed task.
-     * @param brokerTask the task to be performed.
-     */
-    private <T> void performBrokerTask(@NonNull final Context appContext,
-                                       @NonNull final TaskCompletedCallbackWithError<T, MsalException> callback,
-                                       @NonNull final BrokerTask<T> brokerTask) {
-
-        final Handler handler = new Handler(Looper.getMainLooper());
-
-        sBackgroundExecutor.submit(new Runnable() {
-            @Override
-            public void run() {
-                IMicrosoftAuthService service;
-                final MicrosoftAuthClient client = new MicrosoftAuthClient(appContext);
-                try {
-                    final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
-                    service = authServiceFuture.get();
-                    final T result = brokerTask.perform(service);
-
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            callback.onTaskCompleted(result);
-                        }
-                    });
-                } catch (final BaseException | InterruptedException | ExecutionException | RemoteException e) {
-                    com.microsoft.identity.common.internal.logging.Logger.error(
-                            TAG + brokerTask.getOperationName(),
-                            "Exception is thrown when trying to perform a broker operation:"
-                                    + e.getMessage(),
-                            e);
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            BaseException baseException = ExceptionAdapter.baseExceptionFromException(e);
-                            callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(baseException));
-                        }
-                    });
-                } finally {
-                    client.disconnect();
-                }
-            }
-        });
-    }
-
-    /**
-     * Get the currently signed-in account, if there's any.
-     * This only works when getBrokerAccountMode() is BROKER_ACCOUNT_MODE_SINGLE_ACCOUNT.
-     */
-    public void getCurrentAccount(@NonNull final PublicClientApplicationConfiguration configuration,
-                                  @NonNull final OAuth2TokenCache cache,
-                                  @NonNull final TaskCompletedCallbackWithError<List<ICacheRecord>, MsalException> callback) {
-        final String methodName = ":getCurrentAccount";
-
-        performBrokerTask(
-                configuration.getAppContext(),
-                callback,
-                new BrokerTask<List<ICacheRecord>>() {
-                    @Override
-                    public List<ICacheRecord> perform(IMicrosoftAuthService service) throws ClientException, RemoteException {
-                        return MsalBrokerResultAdapter
-                                .accountsFromBundle(
-                                        service.getCurrentAccount(
-                                                BrokerAuthServiceStrategy.getRequestBundleForGetAccounts(
-                                                        OperationParametersAdapter.createOperationParameters(configuration, cache)
-                                                )
-                                        )
-                                );
-                    }
-
-                    @Override
-                    public String getOperationName() {
-                        return methodName;
-                    }
-                });
-    }
-
-    /**
-     * Given an account, perform a global sign-out from this shared device (End my shift capability).
-     * This will invoke Broker and
-     * 1. Remove account from token cache.
-     * 2. Remove account from AccountManager.
-     * 3. Clear WebView cookies.
-     * 4. Sign out from default browser.
-     */
-    public void removeAccountFromSharedDevice(@NonNull final PublicClientApplicationConfiguration configuration,
-                                              @NonNull final TaskCompletedCallbackWithError<Void, MsalException> callback) {
-        final String methodName = ":removeAccountFromSharedDevice";
-
-        performBrokerTask(
-                configuration.getAppContext(),
-                callback,
-                new BrokerTask<Void>() {
-                    @Override
-                    public Void perform(IMicrosoftAuthService service) throws BaseException, RemoteException {
-                        final Bundle resultBundle = service.removeAccountFromSharedDevice(
-                                getRequestBundleForRemoveAccountFromSharedDevice(configuration)
-                        );
-
-                        if (resultBundle == null) {
-                            return null;
-                        } else {
-                            final BrokerResult brokerResult = MsalBrokerResultAdapter.brokerResultFromBundle(resultBundle);
-                            com.microsoft.identity.common.internal.logging.Logger.error(
-                                    TAG,
-                                    "Failed to perform global sign-out."
-                                            + brokerResult.getErrorMessage(),
-                                    null);
-
-                            throw new MsalClientException(
-                                    MsalClientException.UNKNOWN_ERROR,
-                                    brokerResult.getErrorMessage());
-                        }
-                    }
-
-                    @Override
-                    public String getOperationName() {
-                        return methodName;
-                    }
-                });
-    }
-
-    private Bundle getRequestBundleForRemoveAccountFromSharedDevice(PublicClientApplicationConfiguration configuration) {
-        final Bundle requestBundle = new Bundle();
-
-        try {
-            Browser browser = BrowserSelector.select(configuration.getAppContext(), configuration.getBrowserSafeList());
-            requestBundle.putString(DEFAULT_BROWSER_PACKAGE_NAME, browser.getPackageName());
-        } catch (ClientException e) {
-            // Best effort. If none is passed to broker, then it will let the OS decide.
-            Logger.error(TAG, e.getErrorCode(), e);
-        }
-
-        return requestBundle;
-    }
-
-    @WorkerThread
-    static boolean helloWithMicrosoftAuthService(@NonNull final Context applicationContext, @NonNull final OperationParameters parameters) throws ClientException {
-        final String methodName = ":helloWithMicrosoftAuthService";
-        IMicrosoftAuthService service;
-        final MicrosoftAuthClient client = new MicrosoftAuthClient(applicationContext);
-
-        try {
-            final MicrosoftAuthServiceFuture authServiceFuture = client.connect();
-            service = authServiceFuture.get();
-            final Bundle requestBundle = MsalBrokerRequestAdapter.getBrokerHelloBundle(parameters);
-            return MsalBrokerResultAdapter.getHelloResultFromBundle(service.hello(requestBundle));
-        } catch (final InterruptedException | ExecutionException | RemoteException e) {
-            com.microsoft.identity.common.internal.logging.Logger.error(
-                    TAG + methodName,
-                    "Exception is thrown when trying to verify the broker protocol version."
-                            + e.getMessage(),
-                    ErrorStrings.IO_ERROR,
-                    e);
-            throw new ClientException(
-                    ErrorStrings.IO_ERROR,
-                    e.getMessage(),
-                    e
-            );
-        } finally {
-            client.disconnect();
-        }
-    }
-
-    @WorkerThread
-    @SuppressLint("MissingPermission")
-    static boolean helloWithAccountManager(@NonNull final Context applicationContext, @NonNull final OperationParameters parameters)
-            throws ClientException {
-        final String methodName = ":helloWithAccountManager";
-        final String DATA_HELLO = "com.microsoft.workaccount.hello";
-
-        if (!BrokerMsalController.isAccountManagerPermissionsGranted(parameters.getAppContext())) {
-            //If the account manager permissions are not granted, return false.
-            return false;
-        }
-
-        try {
-            Account[] accountList = AccountManager.get(applicationContext).getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-            //get result bundle
-            if (accountList.length > 0) {
-                final Bundle requestBundle = MsalBrokerRequestAdapter.getBrokerHelloBundle(parameters);
-                requestBundle.putString(DATA_HELLO, "true");
-                final AccountManagerFuture<Bundle> result = AccountManager.get(parameters.getAppContext())
-                        .updateCredentials(
-                                accountList[0],
-                                AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
-                                requestBundle,
-                                null,
-                                null,
-                                null
-                        );
-
-                if (result == null) {
-                    return false;
-                } else {
-                    return MsalBrokerResultAdapter.getHelloResultFromBundle(result.getResult());
-                }
-            } else {
-                return false;
-            }
-        } catch (final OperationCanceledException e) {
-            Logger.error(
-                    TAG + methodName,
-                    ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "Exception thrown when talking to account manager. The broker request cancelled.",
-                    e
-            );
-
-            throw new ClientException(
-                    ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "OperationCanceledException thrown when talking to account manager. The broker request cancelled.",
-                    e
-            );
-        } catch (final AuthenticatorException e) {
-            Logger.error(
-                    TAG + methodName,
-                    ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "AuthenticatorException thrown when talking to account manager. The broker request cancelled.",
-                    e
-            );
-
-            throw new ClientException(
-                    ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "AuthenticatorException thrown when talking to account manager. The broker request cancelled.",
-                    e
-            );
-        } catch (final IOException e) {
-            // Authenticator gets problem from webrequest or file read/write
-            Logger.error(
-                    TAG + methodName,
-                    ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "IOException thrown when talking to account manager. The broker request cancelled.",
-                    e
-            );
-
-            throw new ClientException(
-                    ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "IOException thrown when talking to account manager. The broker request cancelled.",
-                    e
-            );
-        }
-    }
-
     static boolean isMicrosoftAuthServiceSupported(@NonNull final Context context) {
         final MicrosoftAuthClient client = new MicrosoftAuthClient(context);
         final Intent microsoftAuthServiceIntent = client.getIntentForAuthService(context);
@@ -739,18 +563,16 @@ public class BrokerMsalController extends BaseController {
      * Beginning in Android 6.0 (API level 23), the run-time permission GET_ACCOUNTS is required
      * which need to be requested in the runtime by the calling app.
      * <p>
-     * Before Android 6.0, the GET_ACCOUNTS, MANAGE_ACCOUNTS and USE_CREDENTIALS permission is
+     * Before Android 6.0, the MANAGE_ACCOUNTS permission is
      * required in the app's manifest xml file.
      *
      * @return true if all required permissions are granted, otherwise return false.
      */
     static boolean isAccountManagerPermissionsGranted(@NonNull final Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return isPermissionGranted(context, MANIFEST_PERMISSION_GET_ACCOUNTS);
+            return true;
         } else {
-            return isPermissionGranted(context, MANIFEST_PERMISSION_GET_ACCOUNTS)
-                    && isPermissionGranted(context, MANIFEST_PERMISSION_MANAGE_ACCOUNTS)
-                    && isPermissionGranted(context, MANIFEST_PERMISSION_USE_CREDENTIALS);
+            return isPermissionGranted(context, MANIFEST_PERMISSION_MANAGE_ACCOUNTS);
         }
     }
 
@@ -762,32 +584,5 @@ public class BrokerMsalController extends BaseController {
                 == PackageManager.PERMISSION_GRANTED;
         Logger.verbose(TAG + methodName, "is " + permissionName + " granted? [" + isGranted + "]");
         return isGranted;
-    }
-
-    private void helloBroker(@NonNull final OperationParameters parameters)
-            throws ClientException {
-        final String methodName = ":initializeBrokerMsalController";
-        if (!getStrategies().isEmpty()) {
-            mStrategies = new ArrayList<>();
-        }
-
-        //check if bound service available
-        if (BrokerMsalController.helloWithMicrosoftAuthService(parameters.getAppContext(), parameters)) {
-            Logger.verbose(TAG + methodName, "Add the broker AuthService strategy.");
-            this.addBrokerStrategy(new BrokerAuthServiceStrategy());
-        }
-
-        //check if account manager available
-        if (BrokerMsalController.helloWithAccountManager(parameters.getAppContext(), parameters)) {
-            Logger.verbose(TAG + methodName, "Add the account manager strategy.");
-            this.addBrokerStrategy(new BrokerAccountManagerStrategy());
-        }
-
-        if (getStrategies().isEmpty()) {
-            throw new ClientException(
-                    ErrorStrings.UNSUPPORTED_BROKER_VERSION,
-                    "The protocol versions between the MSAL client app and broker are not compatible."
-            );
-        }
     }
 }

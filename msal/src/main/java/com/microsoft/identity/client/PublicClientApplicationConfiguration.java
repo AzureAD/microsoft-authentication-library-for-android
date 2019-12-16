@@ -60,6 +60,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORITIES;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_USER_AGENT;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.BROWSER_SAFE_LIST;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CLIENT_CAPABILITIES;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CLIENT_ID;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ENVIRONMENT;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.HTTP;
@@ -87,6 +88,7 @@ public class PublicClientApplicationConfiguration {
         static final String TELEMETRY = "telemetry";
         static final String BROWSER_SAFE_LIST = "browser_safelist";
         static final String ACCOUNT_MODE = "account_mode";
+        static final String CLIENT_CAPABILITIES = "client_capabilities";
     }
 
     @SerializedName(CLIENT_ID)
@@ -128,9 +130,14 @@ public class PublicClientApplicationConfiguration {
     @SerializedName(ACCOUNT_MODE)
     AccountMode mAccountMode;
 
-    transient OAuth2TokenCache mOAuth2TokenCache;
+    @SerializedName(CLIENT_CAPABILITIES)
+    String mClientCapabilities;
 
-    transient Context mAppContext;
+    transient private OAuth2TokenCache mOAuth2TokenCache;
+
+    transient private Context mAppContext;
+
+    transient private boolean mIsSharedDevice = false;
 
     /**
      * Sets the secret key bytes to use when encrypting/decrypting cache entries.
@@ -256,6 +263,15 @@ public class PublicClientApplicationConfiguration {
     }
 
     /**
+     * Gets the currently configured capabilities for the PublicClientApplication.
+     *
+     * @return The capabilities supported by this application.
+     */
+    public String getClientCapabilities() {
+        return this.mClientCapabilities;
+    }
+
+    /**
      * Indicates the minimum required broker protocol version number.
      *
      * @return String of broker protocol version
@@ -278,6 +294,14 @@ public class PublicClientApplicationConfiguration {
 
     void setOAuth2TokenCache(OAuth2TokenCache tokenCache) {
         mOAuth2TokenCache = tokenCache;
+    }
+
+    public boolean getIsSharedDevice() {
+        return mIsSharedDevice;
+    }
+
+    void setIsSharedDevice(boolean isSharedDevice) {
+        mIsSharedDevice = isSharedDevice;
     }
 
     public Authority getDefaultAuthority() {
@@ -346,6 +370,9 @@ public class PublicClientApplicationConfiguration {
 
         // Multiple is the default mode.
         this.mAccountMode = config.mAccountMode != AccountMode.MULTIPLE ? config.mAccountMode : this.mAccountMode;
+        this.mClientCapabilities = config.mClientCapabilities == null ? this.mClientCapabilities : config.mClientCapabilities;
+        this.mIsSharedDevice = config.mIsSharedDevice == true ? this.mIsSharedDevice : config.mIsSharedDevice;
+        this.mLoggerConfiguration = config.mLoggerConfiguration == null ? this.mLoggerConfiguration : config.mLoggerConfiguration;
     }
 
     void validateConfiguration() {
@@ -462,7 +489,7 @@ public class PublicClientApplicationConfiguration {
                             "\t\t" + "<category android:name=\"android.intent.category.BROWSABLE\" />" + "\n" +
                             "\t\t" + "<data" + "\n" +
                             "\t\t\t" + "android:host=\"" + redirectUri.getHost() + "\"" + "\n" +
-                            "\t\t\t" + "android:path=\'" + redirectUri.getPath() + "\"" + "\n" +
+                            "\t\t\t" + "android:path=\"" + redirectUri.getPath() + "\"" + "\n" +
                             "\t\t\t" + "android:scheme=\"" + redirectUri.getScheme() + "\" />" + "\n" +
                             "\t" + "</intent-filter>" + "\n" +
                             "</activity>" + "\n");

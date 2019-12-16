@@ -31,6 +31,7 @@ import androidx.annotation.WorkerThread;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.exception.ArgumentException;
 import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.controllers.BaseController;
@@ -101,6 +102,12 @@ public class LocalMSALController extends BaseController {
 
         //0.1 If not known throw resulting exception
         if (!authorityResult.getKnown()) {
+            Telemetry.emit(
+                    new ApiEndEvent()
+                            .putException(authorityResult.getClientException())
+                            .putApiId(TelemetryEventStrings.Api.LOCAL_ACQUIRE_TOKEN_INTERACTIVE)
+            );
+
             throw authorityResult.getClientException();
         }
 
@@ -196,12 +203,17 @@ public class LocalMSALController extends BaseController {
         );
 
         mAuthorizationStrategy.completeAuthorization(requestCode, resultCode, data);
+
+        Telemetry.emit(
+                new ApiEndEvent()
+                        .putApiId(TelemetryEventStrings.Api.LOCAL_COMPLETE_ACQUIRE_TOKEN_INTERACTIVE)
+        );
     }
 
     @Override
     public AcquireTokenResult acquireTokenSilent(
             @NonNull final AcquireTokenSilentOperationParameters parameters)
-            throws IOException, ClientException, ArgumentException {
+            throws IOException, ClientException, ArgumentException, ServiceException {
         final String methodName = ":acquireTokenSilent";
         Logger.verbose(
                 TAG + methodName,
@@ -242,13 +254,15 @@ public class LocalMSALController extends BaseController {
 
         if (accessTokenIsNull(fullCacheRecord)
                 || refreshTokenIsNull(fullCacheRecord)
-                || parameters.getForceRefresh()) {
+                || parameters.getForceRefresh()
+                || !isRequestAuthorityRealmSameAsATRealm(parameters.getAuthority(), fullCacheRecord.getAccessToken())) {
             if (!refreshTokenIsNull(fullCacheRecord)) {
                 // No AT found, but the RT checks out, so we'll use it
                 Logger.verbose(
                         TAG + methodName,
                         "No access token found, but RT is available."
                 );
+
                 renewAccessToken(
                         parameters,
                         acquireTokenSilentResult,
@@ -259,10 +273,18 @@ public class LocalMSALController extends BaseController {
             } else {
                 //TODO need the refactor, should just throw the ui required exception, rather than
                 // wrap the exception later in the exception wrapper.
-                throw new ClientException(
+                final ClientException exception = new ClientException(
                         MsalUiRequiredException.NO_TOKENS_FOUND,
                         "No refresh token was found. "
                 );
+
+                Telemetry.emit(
+                        new ApiEndEvent()
+                                .putException(exception)
+                                .putApiId(TelemetryEventStrings.Api.LOCAL_ACQUIRE_TOKEN_SILENT)
+                );
+
+                throw exception;
             }
         } else if (fullCacheRecord.getAccessToken().isExpired()) {
             Logger.warn(
@@ -328,6 +350,7 @@ public class LocalMSALController extends BaseController {
         Telemetry.emit(
                 new ApiEndEvent()
                         .putApiId(TelemetryEventStrings.Api.LOCAL_GET_ACCOUNTS)
+                        .put(TelemetryEventStrings.Key.ACCOUNTS_NUMBER, Integer.toString(accountsInCache.size()))
                         .put(TelemetryEventStrings.Key.IS_SUCCESSFUL, TelemetryEventStrings.Value.TRUE)
         );
 
@@ -365,5 +388,25 @@ public class LocalMSALController extends BaseController {
         );
 
         return localRemoveAccountSuccess;
+    }
+
+    @Override
+    public boolean getDeviceMode(OperationParameters parameters) throws Exception {
+        final String methodName = ":getDeviceMode";
+
+        final String errorMessage = "LocalMSALControler is not eligible to use the broker. Do not check sharedDevice mode and return false immediately.";
+        com.microsoft.identity.common.internal.logging.Logger.error(TAG + methodName, errorMessage, null);
+
+        return false;
+    }
+
+    @Override
+    public List<ICacheRecord> getCurrentAccount(OperationParameters parameters) throws Exception {
+        return getAccounts(parameters);
+    }
+
+    @Override
+    public boolean removeCurrentAccount(OperationParameters parameters) throws Exception {
+        return removeAccount(parameters);
     }
 }

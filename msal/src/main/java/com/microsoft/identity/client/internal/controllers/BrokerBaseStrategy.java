@@ -22,14 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
-import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
-import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -39,11 +34,12 @@ import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.util.JsonExtensions;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.broker.BrokerRequest;
+import com.microsoft.identity.common.internal.broker.BrokerResult;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.dto.IAccountRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
@@ -51,21 +47,44 @@ import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
+import com.microsoft.identity.common.internal.ui.browser.Browser;
+import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_HOME_ACCOUNT_ID;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_REDIRECT;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.BROKER_ACCOUNTS;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.BROKER_DEVICE_MODE;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.DEFAULT_BROWSER_PACKAGE_NAME;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ENVIRONMENT;
+
 abstract class BrokerBaseStrategy {
-    private static final String TAG = BrokerBaseStrategy.class.getSimpleName();
+    private static final String TAG = BrokerBaseStrategy.class.getName();
 
-    abstract Intent getBrokerAuthorizationIntent(@NonNull AcquireTokenOperationParameters parameters) throws ClientException;
+    protected final MsalBrokerRequestAdapter mRequestAdapter = new MsalBrokerRequestAdapter();
 
-    abstract AcquireTokenResult acquireTokenSilent(AcquireTokenSilentOperationParameters parameters) throws BaseException;
+    protected final MsalBrokerResultAdapter mResultAdapter = new MsalBrokerResultAdapter();
 
-    abstract List<ICacheRecord> getBrokerAccounts(@NonNull final OperationParameters parameters) throws InterruptedException, ExecutionException, RemoteException, OperationCanceledException, IOException, AuthenticatorException, ClientException;
+    abstract boolean hello(@NonNull final OperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException;
 
-    abstract boolean removeBrokerAccount(@NonNull final OperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException;
+    abstract Intent getBrokerAuthorizationIntent(@NonNull AcquireTokenOperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException;
+
+    abstract AcquireTokenResult acquireTokenSilent(AcquireTokenSilentOperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException;
+
+    abstract List<ICacheRecord> getBrokerAccounts(@NonNull final OperationParameters parameters) throws InterruptedException, ExecutionException, RemoteException, OperationCanceledException, IOException, AuthenticatorException, BaseException;
+
+    abstract void removeBrokerAccount(@NonNull final OperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException;
+
+    abstract boolean getDeviceMode(@NonNull final OperationParameters parameters)throws BaseException, InterruptedException, ExecutionException, RemoteException;
+
+    abstract List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull final OperationParameters parameters) throws InterruptedException, ExecutionException, RemoteException, OperationCanceledException, IOException, AuthenticatorException, BaseException;
+
+    abstract void signOutFromSharedDevice(@NonNull final OperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException;
 
     Handler getPreferredHandler() {
         if (null != Looper.myLooper() && Looper.getMainLooper() != Looper.myLooper()) {
@@ -75,59 +94,15 @@ abstract class BrokerBaseStrategy {
         }
     }
 
-    Bundle getSilentBrokerRequestBundle(final AcquireTokenSilentOperationParameters parameters) {
-        final MsalBrokerRequestAdapter msalBrokerRequestAdapter = new MsalBrokerRequestAdapter();
-
-        final Bundle requestBundle = new Bundle();
-        final BrokerRequest brokerRequest = msalBrokerRequestAdapter.
-                brokerRequestFromSilentOperationParameters(parameters);
-
-        requestBundle.putString(
+    protected Intent completeInteractiveRequestIntent(@NonNull final Intent interactiveRequestIntent,
+                                                      @NonNull final AcquireTokenOperationParameters parameters){
+        interactiveRequestIntent.putExtra(
                 AuthenticationConstants.Broker.BROKER_REQUEST_V2,
-                new Gson().toJson(brokerRequest, BrokerRequest.class)
+                new Gson().toJson(
+                        mRequestAdapter.brokerRequestFromAcquireTokenParameters(parameters),
+                        BrokerRequest.class)
         );
 
-        requestBundle.putInt(
-                AuthenticationConstants.Broker.CALLER_INFO_UID,
-                Binder.getCallingUid()
-        );
-
-        return requestBundle;
+        return interactiveRequestIntent;
     }
-
-    @SuppressLint("MissingPermission")
-    Account getTargetAccount(final Context context, final IAccountRecord accountRecord) {
-        Account targetAccount = null;
-        final Account[] accountList = AccountManager.get(context).getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-        if (accountList != null) {
-            for (Account account : accountList) {
-                if (account != null && account.name != null && account.name.equalsIgnoreCase(accountRecord.getUsername())) {
-                    targetAccount = account;
-                }
-            }
-        }
-
-        return targetAccount;
-    }
-
-    static AcquireTokenResult getAcquireTokenResult(@NonNull final Bundle resultBundle) throws BaseException {
-
-        final MsalBrokerResultAdapter resultAdapter = new MsalBrokerResultAdapter();
-
-        if (resultBundle.getBoolean(AuthenticationConstants.Broker.BROKER_REQUEST_V2_SUCCESS)) {
-            Logger.verbose(TAG, "Successful result from the broker ");
-
-            final AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
-            acquireTokenResult.setLocalAuthenticationResult(
-                    resultAdapter.authenticationResultFromBundle(resultBundle)
-            );
-
-            return acquireTokenResult;
-        }
-
-        Logger.warn(TAG, "Exception returned from broker, retrieving exception details ");
-
-        throw resultAdapter.baseExceptionFromBundle(resultBundle);
-    }
-
 }

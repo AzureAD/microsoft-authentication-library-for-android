@@ -1,5 +1,8 @@
-include ':msal', ':common'
+include ':msal', ':common', ':keyvault', ':labapi', ':testutils', ':pop-benchmarker', ':package-inspector'
 project(':common').projectDir = new File('common/common')
+project(':keyvault').projectDir = new File('common/keyvault')
+project(':labapi').projectDir = new File('common/labapi')
+project(':testutils').projectDir = new File('common/testutils')
 
 // test apps
 include ':testapps:sample'

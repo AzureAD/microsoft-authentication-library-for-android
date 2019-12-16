@@ -26,7 +26,7 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 import android.os.Bundle;
 
-import com.microsoft.identity.common.internal.controllers.ApiDispatcher;
+import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.util.StringUtil;
@@ -73,7 +73,7 @@ public final class BrowserTabActivity extends Activity {
         super.onResume();
         if (getIntent() != null
                 && getIntent().hasExtra(AuthorizationStrategy.RESULT_CODE)) {
-            ApiDispatcher.completeInteractive(
+            CommandDispatcher.completeInteractive(
                     getIntent().getIntExtra(AuthorizationStrategy.REQUEST_CODE, 0),
                     getIntent().getIntExtra(AuthorizationStrategy.RESULT_CODE, 0),
                     getIntent());
