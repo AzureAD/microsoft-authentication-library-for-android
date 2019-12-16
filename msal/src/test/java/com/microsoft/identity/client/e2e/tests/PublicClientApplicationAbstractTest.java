@@ -24,6 +24,7 @@ package com.microsoft.identity.client.e2e.tests;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Build;
 
 import androidx.test.core.app.ApplicationProvider;
 
@@ -33,12 +34,28 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.internal.testutils.TestUtils;
 
 import org.junit.Before;
+import org.robolectric.annotation.Config;
 
 import java.io.File;
 
 import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
 import static org.junit.Assert.fail;
 
+@Config(sdk = {
+        Build.VERSION_CODES.JELLY_BEAN,
+        Build.VERSION_CODES.JELLY_BEAN_MR1,
+        Build.VERSION_CODES.JELLY_BEAN_MR2,
+        Build.VERSION_CODES.KITKAT,
+        //Build.VERSION_CODES.KITKAT_WATCH, // robolectric does not support API level 20
+        Build.VERSION_CODES.LOLLIPOP,
+        Build.VERSION_CODES.LOLLIPOP_MR1,
+        Build.VERSION_CODES.M,
+        Build.VERSION_CODES.N,
+        Build.VERSION_CODES.N_MR1,
+        Build.VERSION_CODES.O,
+        Build.VERSION_CODES.O_MR1,
+        Build.VERSION_CODES.P
+})
 public abstract class PublicClientApplicationAbstractTest implements IPublicClientApplicationTest {
 
     protected final String SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache";
