@@ -30,6 +30,15 @@ import java.util.Map;
 public interface IClaimable {
 
     /**
+     * Gets the IdToken associated with this IClaimable.
+     *
+     * Note: MSAL does not validate the JWT token
+     * @return
+     */
+    @Nullable
+    String getIdToken();
+
+    /**
      * Gets the claims associated with this IClaimable's IdToken.
      *
      * @return A Map of claims.
