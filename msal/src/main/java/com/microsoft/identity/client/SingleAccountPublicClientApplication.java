@@ -95,9 +95,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     private void getCurrentAccountAsyncInternal(@NonNull final CurrentAccountCallback callback,
                                                 @NonNull final String publicApiId) {
-        final String methodName = ":getCurrentAccount";
-        final PublicClientApplicationConfiguration configuration = getConfiguration();
-
         final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
         final BaseController controller;
         try {
