@@ -26,11 +26,11 @@ import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_MOONCAKE_CONFIG_FILE_PATH;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.AD_GRAPH_USER_READ_SCOPE;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.OFFICE_USER_READ_SCOPE;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.USER_READ_SCOPE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_MOONCAKE_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.AD_GRAPH_USER_READ_SCOPE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.OFFICE_USER_READ_SCOPE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 
 /**
  * Run all tests in the {@link AcquireTokenNetworkTest} class using AAD

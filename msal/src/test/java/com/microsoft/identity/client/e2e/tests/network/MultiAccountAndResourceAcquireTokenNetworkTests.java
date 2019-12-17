@@ -30,7 +30,6 @@ import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
-import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
@@ -44,11 +43,12 @@ import java.util.Arrays;
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.getAccount;
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulInteractiveCallback;
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulSilentCallback;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.AD_GRAPH_USER_READ_SCOPE;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.MS_GRAPH_USER_READ_SCOPE;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.OFFICE_USER_READ_SCOPE;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.USER_READ_SCOPE;
+import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.AD_GRAPH_USER_READ_SCOPE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.MS_GRAPH_USER_READ_SCOPE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.OFFICE_USER_READ_SCOPE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowMsalUtils.class})
@@ -78,7 +78,7 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
 
 
         mApplication.acquireToken(parameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     public void performSilentAcquireTokenCall(final IAccount account, final String authority) {
@@ -91,7 +91,7 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     public void performSilentAcquireTokenCall(final String[] scopes) {
@@ -104,7 +104,7 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     @Test // test that accounts belonging to multiple clouds can live together in the app
@@ -145,7 +145,7 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
                 .build();
 
         mApplication.acquireToken(parameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
 
         performSilentAcquireTokenCall(USER_READ_SCOPE);
         performSilentAcquireTokenCall(MS_GRAPH_USER_READ_SCOPE);
