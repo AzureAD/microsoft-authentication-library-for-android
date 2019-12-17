@@ -30,10 +30,13 @@ import java.util.Map;
 public interface IClaimable {
 
     /**
-     * Gets the IdToken associated with this IClaimable.
+     * Gets the JWT format id_token corresponding to this IClaimable. This value conforms to
+     * <a href="https://tools.ietf.org/html/rfc7519">RFC-7519</a> and is further specified according
+     * to <a href="https://openid.net/specs/openid-connect-core-1_0.html#IDToken">OpenID Connect Core</a>.
+     * <p>
+     * Note: MSAL does not validate the JWT token.
      *
-     * Note: MSAL does not validate the JWT token
-     * @return
+     * @return The raw id_token.
      */
     @Nullable
     String getIdToken();
