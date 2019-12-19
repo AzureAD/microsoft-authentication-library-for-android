@@ -41,6 +41,7 @@ public class Account implements IAccount {
     private static final String TAG = Account.class.getSimpleName();
 
     private final Map<String, ?> mIdTokenClaims;
+    private final String mRawIdToken;
     private String mClientInfo;
     private String mHomeOid;
     private String mHomeTenantId;
@@ -53,8 +54,10 @@ public class Account implements IAccount {
 
         if (null != homeTenantIdToken) {
             mIdTokenClaims = homeTenantIdToken.getTokenClaims();
+            mRawIdToken = homeTenantIdToken.getRawIDToken();
         } else {
             mIdTokenClaims = null;
+            mRawIdToken = null;
         }
     }
 
@@ -114,6 +117,12 @@ public class Account implements IAccount {
     @NonNull
     String getEnvironment() {
         return mEnvironment;
+    }
+
+    @Nullable
+    @Override
+    public String getIdToken() {
+        return mRawIdToken;
     }
 
     /**
