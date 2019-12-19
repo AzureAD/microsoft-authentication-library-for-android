@@ -64,8 +64,6 @@ import static com.microsoft.identity.common.adal.internal.AuthenticationConstant
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ENVIRONMENT;
 
 abstract class BrokerBaseStrategy {
-    private static final String TAG = BrokerBaseStrategy.class.getName();
-
     protected final MsalBrokerRequestAdapter mRequestAdapter = new MsalBrokerRequestAdapter();
 
     protected final MsalBrokerResultAdapter mResultAdapter = new MsalBrokerResultAdapter();

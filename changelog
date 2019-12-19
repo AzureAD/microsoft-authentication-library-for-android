@@ -1,5 +1,20 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 1.1.0
+----------------------------
+- Expose id_token (raw) via IAccount/ITenantProfile from AuthenticationResult (#850)
+
+Version 1.0.1
+----------------------------
+- Fix issue  #785, #786, #805, #806, #807, #816, #828, #855, #859
+- Fixed multiple cloud support in MSAL with Broker.
+- Added support for client capabilities to config.
+- Added Server Side Telemetry to MSAL.
+- Added authority to account object.
+- Added support to silently acquire token for a another tenant for an already authorized user for different tenant.
+- Added Broker BrowserSupport for COBO.
+- Enabled MSAL-Broker communication via AccountManager.
+
 Version 1.0.0-hf1
 ----------------------------
 - Logging fixes in common.

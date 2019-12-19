@@ -59,7 +59,8 @@ android {
             resValue("string", "application_name", "msal-local")
         }
         dist {
-            applicationIdSuffix ".dist"
+            // Keep .local because the redirect url we registered on the portal contains .local, not .dist
+            applicationIdSuffix ".local"
             versionNameSuffix "-dist"
             resValue("string", "application_name", "msal-dist")
         }
