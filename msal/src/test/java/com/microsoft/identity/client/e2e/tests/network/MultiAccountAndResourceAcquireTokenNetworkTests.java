@@ -23,23 +23,15 @@
 package com.microsoft.identity.client.e2e.tests.network;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
-import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
-import com.microsoft.identity.client.MultiTenantAccount;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabGuest;
-import com.microsoft.identity.internal.testutils.labutils.LabGuestAccountHelper;
-import com.microsoft.identity.internal.testutils.labutils.LabHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -49,7 +41,6 @@ import java.util.Arrays;
 
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.getAccount;
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulInteractiveCallback;
-import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulSilentCallback;
 import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.AD_GRAPH_USER_READ_SCOPE;
@@ -67,78 +58,12 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
 
     @Override
     public String getAuthority() {
-        return (String) AcquireTokenTestHelper.getAccount().getAuthority();
+        return AcquireTokenTestHelper.getAccount().getAuthority();
     }
 
     @Override
     public String getConfigFilePath() {
         return MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
-    }
-
-    public void performInteractiveAcquireTokenCall(final String username) {
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(username)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback())
-                .build();
-
-
-        mApplication.acquireToken(parameters);
-        flushScheduler();
-    }
-
-    public void performInteractiveAcquireTokenCall(final String username, final String authority) {
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(username)
-                .withScopes(Arrays.asList(mScopes))
-                .fromAuthority(authority)
-                .withCallback(successfulInteractiveCallback())
-                .build();
-
-
-        mApplication.acquireToken(parameters);
-        flushScheduler();
-    }
-
-    public void performSilentAcquireTokenCall(final String[] scopes) {
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(getAccount())
-                .fromAuthority(getAuthority())
-                .withScopes(Arrays.asList(scopes))
-                .forceRefresh(false)
-                .withCallback(successfulSilentCallback())
-                .build();
-
-        mApplication.acquireTokenSilentAsync(silentParameters);
-        flushScheduler();
-    }
-
-    public void performSilentAcquireTokenCall(final IAccount account) {
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(account)
-                .fromAuthority(account.getAuthority())
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(false)
-                .withCallback(successfulSilentCallback())
-                .build();
-
-        mApplication.acquireTokenSilentAsync(silentParameters);
-        flushScheduler();
-    }
-
-    public void performSilentAcquireTokenCall(final IAccount account, final String authority) {
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(account)
-                .fromAuthority(authority)
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(false)
-                .withCallback(successfulSilentCallback())
-                .build();
-
-        mApplication.acquireTokenSilentAsync(silentParameters);
-        flushScheduler();
     }
 
     @Test // test that accounts belonging to multiple clouds can live together in the app
@@ -164,7 +89,7 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
         }
     }
 
-    @Test // test that we can use mrrt to get a token silently for OFFICE
+    @Test // test that we can use mrrt to get a token silently for other resources
     public void testAcquireTokenSilentUsingMrrtSuccess() {
         final LabUserQuery query = new AcquireTokenAADTest.AzureWorldWideCloudUser().getLabUserQuery();
 
@@ -184,96 +109,6 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
         performSilentAcquireTokenCall(MS_GRAPH_USER_READ_SCOPE);
         performSilentAcquireTokenCall(OFFICE_USER_READ_SCOPE);
         performSilentAcquireTokenCall(AD_GRAPH_USER_READ_SCOPE);
-    }
-
-    @Test // test that we can use mrrt to get a token silently for guest accounts
-    public void testGetTokenSilentlyForEachGuestTenantSuccess() {
-        final String authorityPrefix = "https://login.microsoftonline.com/";
-
-        final LabUserQuery query = new LabUserQuery();
-        query.userType = LabConstants.UserType.GUEST;
-        query.guestHomedIn = LabConstants.GuestHomedIn.HOST_AZURE_AD;
-
-        final LabGuest labGuest = LabGuestAccountHelper.loadGuestAccountFromLab(query);
-
-        // sanity check - make sure that lab api provided a guest account that is part of at least
-        // one guest tenant
-        Assert.assertTrue(labGuest.getGuestLabTenants().size() > 0);
-
-        // get a token interactively for home tenant
-        performInteractiveAcquireTokenCall(labGuest.getHomeUpn());
-
-        // get token silently for home tenant
-        performSilentAcquireTokenCall(getAccount(), authorityPrefix + labGuest.getHomeTenantId());
-
-        Assert.assertTrue(labGuest.getGuestLabTenants() != null && labGuest.getGuestLabTenants().size() > 0);
-
-        // get a token silently for each guest tenant
-        for (LabGuest.GuestLabTenant guestLabTenant : labGuest.getGuestLabTenants()) {
-            // just making sure that it is indeed guest tenant by comparing against home tenant
-            Assert.assertNotSame(labGuest.getHomeTenantId(), guestLabTenant.getTenantId());
-            // create authority from guest tenant id and use to obtain a token silently for guest tenant
-            performSilentAcquireTokenCall(getAccount(), authorityPrefix + guestLabTenant.getTenantId());
-        }
-
-        Assert.assertTrue(getAccount() instanceof MultiTenantAccount);
-
-        final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) getAccount();
-
-        // we should have as many tenant profiles as the amount of guest tenants we requested tokens for
-        Assert.assertSame(labGuest.getGuestLabTenants().size(), multiTenantAccount.getTenantProfiles().size());
-
-        // make sure that we have a tenant profile for each guest tenant
-        for(LabGuest.GuestLabTenant guestLabTenant : labGuest.getGuestLabTenants()) {
-            Assert.assertTrue(multiTenantAccount.getTenantProfiles().containsKey(guestLabTenant.getTenantId()));
-        }
-    }
-
-    @Test
-    public void testGuestSignInDirectlyIntoGuestTenantSuccess() {
-        final String authorityPrefix = "https://login.microsoftonline.com/";
-
-        final LabUserQuery query = new LabUserQuery();
-        query.userType = LabConstants.UserType.GUEST;
-        query.guestHomedIn = LabConstants.GuestHomedIn.HOST_AZURE_AD;
-
-        final LabGuest labGuest = LabGuestAccountHelper.loadGuestAccountFromLab(query);
-
-        // sanity check - make sure that lab api provided a guest account that is part of at least
-        // one guest tenant
-        Assert.assertTrue(labGuest.getGuestLabTenants().size() > 0);
-        
-        // get a token interactively for each guest tenant
-        for (LabGuest.GuestLabTenant guestLabTenant : labGuest.getGuestLabTenants()) {
-            // just making sure that it is indeed guest tenant by comparing against home tenant
-            Assert.assertNotSame(labGuest.getHomeTenantId(), guestLabTenant.getTenantId());
-            // create authority from guest tenant id and use to obtain a token interactively for guest tenant
-            performInteractiveAcquireTokenCall(labGuest.getHomeUpn(), authorityPrefix + guestLabTenant.getTenantId());
-        }
-
-        Assert.assertTrue(getAccount() instanceof MultiTenantAccount);
-
-        MultiTenantAccount multiTenantAccount = (MultiTenantAccount) getAccount();
-
-        // we should not have claims for root account as we didn't acquire a token for it
-        Assert.assertNull(multiTenantAccount.getClaims());
-
-        // we should have as many tenant profiles as the amount of guest tenants we requested tokens for
-        Assert.assertSame(labGuest.getGuestLabTenants().size(), multiTenantAccount.getTenantProfiles().size());
-
-        // make sure that we have a tenant profile for each guest tenant
-        for(LabGuest.GuestLabTenant guestLabTenant : labGuest.getGuestLabTenants()) {
-            Assert.assertTrue(multiTenantAccount.getTenantProfiles().containsKey(guestLabTenant.getTenantId()));
-        }
-
-        // now get a token silently for home tenant
-        performSilentAcquireTokenCall(multiTenantAccount, authorityPrefix + labGuest.getHomeTenantId());
-
-        multiTenantAccount = (MultiTenantAccount) getAccount();
-
-        // we should now have claims for root account as we just acquired a token for it
-        Assert.assertNotNull(multiTenantAccount.getClaims());
-
     }
 
 }
