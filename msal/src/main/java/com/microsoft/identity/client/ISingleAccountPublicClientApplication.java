@@ -28,6 +28,7 @@ import android.app.Activity;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
+import androidx.fragment.app.Fragment;
 
 import com.microsoft.identity.client.exception.MsalException;
 
@@ -69,7 +70,7 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * Note: The authority used to make the sign in request will be either the MSAL default: https://login.microsoftonline.com/common
      * or the default authority specified by you in your configuration
      *
-     * @param activity  Non-null {@link Activity} that is used as the parent activity for launching the {@link AuthenticationActivity}.
+     * @param activity  Non-null {@link Activity} that is used as the parent activity for launching the {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity}.
      * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
      *                  which will have the UPN pre-populated.
      * @param scopes    The non-null array of scopes to be consented to during sign in.
@@ -81,6 +82,33 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * @link AuthenticationCallback#onError(MsalException)}.
      */
     void signIn(@NonNull final Activity activity,
+                @NonNull final String loginHint,
+                @NonNull final String[] scopes,
+                @NonNull final AuthenticationCallback callback);
+
+
+    /**
+     * Allows a user to sign in to your application with one of their accounts.
+     * <p>
+     * Note: The authority used to make the sign in request will be either the MSAL default: https://login.microsoftonline.com/common
+     * or the default authority specified by you in your configuration
+     *
+     * @param fragment  Non-null {@link Fragment} that will be replaced by {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationFragment}.
+     *                  NOTE: Only when the following conditions in the config file are satisfied, MSAL UI will be displayed as a fragment.
+     *                  1. "broker_redirect_uri_registered" : "FALSE"
+     *                  2. "authorization_user_agent" : "WEBVIEW"
+     *                  Otherwise, it will be displayed as an {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity}.
+     * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
+     *                  which will have the UPN pre-populated.
+     * @param scopes    The non-null array of scopes to be consented to during sign in.
+     *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     *                  The access token returned is for MS Graph and will allow you to query for additional information about the signed in account.
+     * @param callback  {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                  sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     *                  Failure case will be sent back via {
+     * @link AuthenticationCallback#onError(MsalException)}.
+     */
+    void signIn(@NonNull final Fragment fragment,
                 @NonNull final String loginHint,
                 @NonNull final String[] scopes,
                 @NonNull final AuthenticationCallback callback);

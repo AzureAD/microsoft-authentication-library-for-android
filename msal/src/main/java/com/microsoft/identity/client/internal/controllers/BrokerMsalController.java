@@ -34,6 +34,8 @@ import android.os.RemoteException;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.google.gson.GsonBuilder;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
@@ -52,6 +54,7 @@ import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAccount;
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationFragment;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
@@ -68,8 +71,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * The implementation of MSAL Controller for Broker
@@ -103,7 +104,9 @@ public class BrokerMsalController extends BaseController {
         brokerActivityIntent.putExtra(BrokerActivity.BROKER_INTENT, interactiveRequestIntent);
 
         mBrokerResultFuture = new BrokerResultFuture();
+
         //Start the BrokerActivity
+        // TODO add fragment support to AccountChooserActivity.
         parameters.getActivity().startActivity(brokerActivityIntent);
 
         //Wait to be notified of the result being returned... we could add a timeout here if we want to

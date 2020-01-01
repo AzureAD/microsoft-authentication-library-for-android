@@ -28,6 +28,7 @@ import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
@@ -111,7 +112,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
      * @param callback The callback to notify once this action has finished.
      */
     private void getAccountsInternal(@NonNull final LoadAccountsCallback callback,
-                                    @NonNull final String publicApiId) {
+                                     @NonNull final String publicApiId) {
         final String methodName = ":getAccounts";
         final List<ICacheRecord> accounts =
                 mPublicClientConfiguration
@@ -316,7 +317,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                         }
 
                         @Override
-                        public void onCancel(){
+                        public void onCancel() {
 
                         }
                     }
@@ -416,7 +417,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                         }
 
                         @Override
-                        public void onCancel(){
+                        public void onCancel() {
                             //Do nothing
                         }
                     }
@@ -454,7 +455,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         } else {
             throw result.getException();
         }
-
     }
 
     @Override
@@ -462,8 +462,35 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                              @NonNull final String[] scopes,
                              @Nullable final String loginHint,
                              @NonNull final AuthenticationCallback callback) {
+        acquireToken(
+                activity,
+                null,
+                scopes,
+                loginHint,
+                callback);
+    }
+
+    @Override
+    public void acquireToken(@NonNull Fragment fragment,
+                             @NonNull String[] scopes,
+                             @Nullable String loginHint,
+                             @NonNull AuthenticationCallback callback) {
+        acquireToken(
+                fragment.getActivity(),
+                fragment,
+                scopes,
+                loginHint,
+                callback);
+    }
+
+    private void acquireToken(@NonNull final Activity activity,
+                              @Nullable Fragment fragment,
+                              @NonNull String[] scopes,
+                              @Nullable String loginHint,
+                              @NonNull AuthenticationCallback callback) {
         final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
+                fragment,
                 scopes,
                 null, // account
                 null, // uiBehavior

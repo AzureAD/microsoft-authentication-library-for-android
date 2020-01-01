@@ -27,6 +27,7 @@ import android.app.Activity;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
+import androidx.fragment.app.Fragment;
 
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
@@ -96,7 +97,7 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
      *
-     * @param activity  Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}.
+     * @param activity  Non-null {@link Activity} that will be used as the parent activity for launching the {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity}.
      * @param scopes    The non-null array of scopes to be requested for the access token.
      *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
      * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
@@ -110,6 +111,31 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      *                  {@link AuthenticationCallback#onError(MsalException)}.
      */
     void acquireToken(@NonNull final Activity activity,
+                      @NonNull final String[] scopes,
+                      @Nullable final String loginHint,
+                      @NonNull final AuthenticationCallback callback
+    );
+
+    /**
+     * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
+     * Default value for {@link Prompt} is {@link Prompt#SELECT_ACCOUNT}.
+     *
+     * @param fragment Non-null {@link Fragment} that will be replaced by {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationFragment}.
+     *                 NOTE: Only when the following conditions in the config file are satisfied, MSAL UI will be displayed as a fragment.
+     *                 1. "broker_redirect_uri_registered" : "FALSE"
+     *                 2. "authorization_user_agent" : "WEBVIEW"
+     *                 Otherwise, it will be displayed as an {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity}.
+     * @param scopes   The non-null array of scopes to be requested for the access token.
+     *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param callback The {@link AuthenticationCallback} to receive the result back.
+     *                 1) If user cancels the flow by pressing the device back button, the result will be sent
+     *                 back via {@link AuthenticationCallback#onCancel()}.
+     *                 2) If the sdk successfully receives the token back, result will be sent back via
+     *                 {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
+     *                 3) All the other errors will be sent back via
+     *                 {@link AuthenticationCallback#onError(MsalException)}.
+     */
+    void acquireToken(@NonNull final Fragment fragment,
                       @NonNull final String[] scopes,
                       @Nullable final String loginHint,
                       @NonNull final AuthenticationCallback callback
