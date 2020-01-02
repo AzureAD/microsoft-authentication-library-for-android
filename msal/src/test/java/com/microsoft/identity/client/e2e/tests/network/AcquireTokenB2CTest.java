@@ -26,6 +26,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.B2C_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.B2C_CUSTOM_DOMAIN_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.B2C_SCOPE;
 
 /**
@@ -41,16 +42,33 @@ public abstract class AcquireTokenB2CTest extends AcquireTokenNetworkTest {
     }
 
     @Override
-    public String getConfigFilePath() {
-        return B2C_CONFIG_FILE_PATH;
-    }
-
-    @Override
     public String[] getScopes() {
         return B2C_SCOPE;
     }
 
-    public static class B2CLocalUser extends AcquireTokenB2CTest {
+    public static class B2CLocalUserGlobalMsftDomain extends AcquireTokenB2CTest {
+
+        @Override
+        public String getConfigFilePath() {
+            return B2C_CONFIG_FILE_PATH;
+        }
+
+        @Override
+        public LabUserQuery getLabUserQuery() {
+            final LabUserQuery query = new LabUserQuery();
+            query.userType = LabConstants.UserType.B2C;
+            query.b2cProvider = LabConstants.B2CProvider.LOCAL;
+            return query;
+        }
+
+    }
+
+    public static class B2CLocalUserCustomDomain extends AcquireTokenB2CTest {
+
+        @Override
+        public String getConfigFilePath() {
+            return B2C_CUSTOM_DOMAIN_CONFIG_FILE_PATH;
+        }
 
         @Override
         public LabUserQuery getLabUserQuery() {
