@@ -51,15 +51,13 @@ public class GuestAccountAcquireTokenNetworkTests extends AcquireTokenAbstractTe
 
         // sanity check - make sure that lab api provided a guest account that is part of at least
         // one guest tenant
-        Assert.assertTrue(labGuest.getGuestLabTenants().size() > 0);
+        Assert.assertTrue(labGuest.getGuestLabTenants() != null && labGuest.getGuestLabTenants().size() > 0);
 
         // get a token interactively for home tenant
         performInteractiveAcquireTokenCall(labGuest.getHomeUpn());
 
         // get token silently for home tenant
         performSilentAcquireTokenCall(getAccount(), authorityPrefix + labGuest.getHomeTenantId());
-
-        Assert.assertTrue(labGuest.getGuestLabTenants() != null && labGuest.getGuestLabTenants().size() > 0);
 
         // get a token silently for each guest tenant
         for (LabGuest.GuestLabTenant guestLabTenant : labGuest.getGuestLabTenants()) {
@@ -94,7 +92,7 @@ public class GuestAccountAcquireTokenNetworkTests extends AcquireTokenAbstractTe
 
         // sanity check - make sure that lab api provided a guest account that is part of at least
         // one guest tenant
-        Assert.assertTrue(labGuest.getGuestLabTenants().size() > 0);
+        Assert.assertTrue(labGuest.getGuestLabTenants() != null && labGuest.getGuestLabTenants().size() > 0);
 
         // get a token interactively for each guest tenant
         for (LabGuest.GuestLabTenant guestLabTenant : labGuest.getGuestLabTenants()) {
@@ -108,7 +106,7 @@ public class GuestAccountAcquireTokenNetworkTests extends AcquireTokenAbstractTe
 
         MultiTenantAccount multiTenantAccount = (MultiTenantAccount) getAccount();
 
-        // we should not have claims for root account as we didn't acquire a token for it
+        // we should NOT have claims for root account as we didn't acquire a token for it
         Assert.assertNull(multiTenantAccount.getClaims());
 
         // we should have as many tenant profiles as the amount of guest tenants we requested tokens for
