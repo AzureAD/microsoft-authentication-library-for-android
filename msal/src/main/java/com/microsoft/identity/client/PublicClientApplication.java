@@ -1226,32 +1226,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
-        acquireToken(
-                activity,
-                null,
-                scopes,
-                callback
-        );
-    }
-
-    @Override
-    public void acquireToken(@NonNull Fragment fragment,
-                             @NonNull String[] scopes,
-                             @NonNull AuthenticationCallback callback) {
-        acquireToken(
-                fragment.getActivity(),
-                fragment,
-                scopes,
-                callback);
-    }
-
-    private void acquireToken(@NonNull Activity activity,
-                              @Nullable Fragment fragment,
-                              @NonNull String[] scopes,
-                              @NonNull AuthenticationCallback callback) {
         AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
-                fragment,
+                null,
                 scopes,
                 null, // account
                 null, // uiBehavior

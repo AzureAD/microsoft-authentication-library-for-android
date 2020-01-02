@@ -462,35 +462,9 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                              @NonNull final String[] scopes,
                              @Nullable final String loginHint,
                              @NonNull final AuthenticationCallback callback) {
-        acquireToken(
-                activity,
-                null,
-                scopes,
-                loginHint,
-                callback);
-    }
-
-    @Override
-    public void acquireToken(@NonNull Fragment fragment,
-                             @NonNull String[] scopes,
-                             @Nullable String loginHint,
-                             @NonNull AuthenticationCallback callback) {
-        acquireToken(
-                fragment.getActivity(),
-                fragment,
-                scopes,
-                loginHint,
-                callback);
-    }
-
-    private void acquireToken(@NonNull final Activity activity,
-                              @Nullable Fragment fragment,
-                              @NonNull String[] scopes,
-                              @Nullable String loginHint,
-                              @NonNull AuthenticationCallback callback) {
         final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
-                fragment,
+                null,
                 scopes,
                 null, // account
                 null, // uiBehavior

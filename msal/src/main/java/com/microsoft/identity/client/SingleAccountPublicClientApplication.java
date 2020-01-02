@@ -186,32 +186,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                        @NonNull final String loginHint,
                        @NonNull final String[] scopes,
                        @NonNull final AuthenticationCallback callback) {
-        this.signIn(
-                activity,
-                null,
-                loginHint,
-                scopes,
-                callback);
-    }
-
-    @Override
-    public void signIn(@NonNull Fragment fragment,
-                       @NonNull String loginHint,
-                       @NonNull String[] scopes,
-                       @NonNull AuthenticationCallback callback) {
-        this.signIn(
-                fragment.getActivity(),
-                fragment,
-                loginHint,
-                scopes,
-                callback);
-    }
-
-    private void signIn(@NonNull Activity activity,
-                        @NonNull Fragment fragment,
-                        @NonNull String loginHint,
-                        @NonNull String[] scopes,
-                        @NonNull AuthenticationCallback callback) {
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount != null) {
             callback.onError(new MsalClientException(MsalClientException.INVALID_PARAMETER));
@@ -219,8 +193,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         }
 
         final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
-                fragment.getActivity(),
-                fragment,
+                activity,
+                null,
                 scopes,
                 null, // account
                 null, // uiBehavior
@@ -443,30 +417,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
-        acquireToken(
-                activity,
-                null,
-                scopes,
-                callback);
-    }
-
-    @Override
-    public void acquireToken(@NonNull final Fragment fragment,
-                             @NonNull final String[] scopes,
-                             @NonNull final AuthenticationCallback callback) {
-        acquireToken(
-                fragment.getActivity(),
-                fragment,
-                scopes,
-                callback
-        );
-
-    }
-
-    private void acquireToken(@NonNull final Activity activity,
-                              @Nullable final Fragment fragment,
-                              @NonNull final String[] scopes,
-                              @NonNull final AuthenticationCallback callback) {
         final IAccount persistedAccount = getPersistedCurrentAccount();
         if (persistedAccount == null) {
             callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT));
@@ -475,7 +425,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
         final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
-                fragment,
+                null,
                 scopes,
                 getPersistedCurrentAccount(), // account, could be null.
                 null, // uiBehavior

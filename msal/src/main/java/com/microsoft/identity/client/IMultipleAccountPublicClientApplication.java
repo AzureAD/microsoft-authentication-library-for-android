@@ -117,31 +117,6 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
     );
 
     /**
-     * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link Prompt} is {@link Prompt#SELECT_ACCOUNT}.
-     *
-     * @param fragment Non-null {@link Fragment} that will be replaced by {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationFragment}.
-     *                 NOTE: Only when the following conditions in the config file are satisfied, MSAL UI will be displayed as a fragment.
-     *                 1. "broker_redirect_uri_registered" : "FALSE"
-     *                 2. "authorization_user_agent" : "WEBVIEW"
-     *                 Otherwise, it will be displayed as an {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity}.
-     * @param scopes   The non-null array of scopes to be requested for the access token.
-     *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param callback The {@link AuthenticationCallback} to receive the result back.
-     *                 1) If user cancels the flow by pressing the device back button, the result will be sent
-     *                 back via {@link AuthenticationCallback#onCancel()}.
-     *                 2) If the sdk successfully receives the token back, result will be sent back via
-     *                 {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
-     *                 3) All the other errors will be sent back via
-     *                 {@link AuthenticationCallback#onError(MsalException)}.
-     */
-    void acquireToken(@NonNull final Fragment fragment,
-                      @NonNull final String[] scopes,
-                      @Nullable final String loginHint,
-                      @NonNull final AuthenticationCallback callback
-    );
-
-    /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
      * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
      * or it fails the refresh, exception will be sent back via callback.
