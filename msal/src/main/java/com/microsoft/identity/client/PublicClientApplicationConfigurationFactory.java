@@ -76,6 +76,16 @@ public class PublicClientApplicationConfigurationFactory {
         return initializeConfigurationInternal(context, loadConfiguration(configFile));
     }
 
+    /**
+     * Initalizes a PublicClientApplicationConfiguration from the given stream, if there is any,
+     * and merge it to the default config object.
+     **/
+    public static PublicClientApplicationConfiguration initializeConfiguration(@NonNull final Context context,
+                                                                               @NonNull final InputStream configData) {
+        validateNonNullArgument(configData, "configData");
+        return initializeConfigurationInternal(context, loadConfiguration(configData, false));
+    }
+
     private static PublicClientApplicationConfiguration initializeConfigurationInternal(@NonNull final Context context,
                                                                                         @Nullable final PublicClientApplicationConfiguration developerConfig) {
         validateNonNullArgument(context, "context");
