@@ -273,7 +273,8 @@ public class LocalMSALController extends BaseController {
         if (accessTokenIsNull(fullCacheRecord)
                 || refreshTokenIsNull(fullCacheRecord)
                 || parameters.getForceRefresh()
-                || !isRequestAuthorityRealmSameAsATRealm(parameters.getAuthority(), fullCacheRecord.getAccessToken())) {
+                || !isRequestAuthorityRealmSameAsATRealm(parameters.getAuthority(), fullCacheRecord.getAccessToken())
+                || !strategy.validateCachedResult(fullCacheRecord)) {
             if (!refreshTokenIsNull(fullCacheRecord)) {
                 // No AT found, but the RT checks out, so we'll use it
                 Logger.verbose(
