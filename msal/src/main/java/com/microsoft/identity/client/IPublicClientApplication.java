@@ -26,6 +26,7 @@ import android.app.Activity;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
+import androidx.fragment.app.Fragment;
 
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
@@ -38,7 +39,7 @@ public interface IPublicClientApplication {
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
      * Default value for {@link Prompt} is {@link Prompt#SELECT_ACCOUNT}.
      *
-     * @param activity Non-null {@link Activity} that is used as the parent activity for launching the {@link AuthenticationActivity}.
+     * @param activity Non-null {@link Activity} that is used as the parent activity for launching the {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity}.
      * @param scopes   The non-null array of scopes to be requested for the access token.
      *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
      * @param callback The {@link AuthenticationCallback} to receive the result back.
