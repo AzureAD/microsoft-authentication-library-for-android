@@ -28,6 +28,7 @@ import android.app.Activity;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
+import androidx.fragment.app.Fragment;
 
 import com.microsoft.identity.client.exception.MsalException;
 
@@ -69,7 +70,7 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * Note: The authority used to make the sign in request will be either the MSAL default: https://login.microsoftonline.com/common
      * or the default authority specified by you in your configuration
      *
-     * @param activity  Non-null {@link Activity} that is used as the parent activity for launching the {@link AuthenticationActivity}.
+     * @param activity  Non-null {@link Activity} that is used as the parent activity for launching the {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity}.
      * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
      *                  which will have the UPN pre-populated.
      * @param scopes    The non-null array of scopes to be consented to during sign in.
