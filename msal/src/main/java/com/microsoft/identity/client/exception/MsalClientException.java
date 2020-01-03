@@ -23,7 +23,6 @@
 
 package com.microsoft.identity.client.exception;
 
-import com.microsoft.identity.client.AuthenticationActivity;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
 
@@ -44,8 +43,6 @@ import com.microsoft.identity.common.exception.ErrorStrings;
  * <li>invalid_jwt: JWT returned by the server is not valid, empty or malformed. </li>
  * <li>state_mismatch: State from authorization response did not match the state in the authorization request.
  * For authorization requests, the sdk will verify the state returned from redirect and the one sent in the request. </li>
- * <li>unresolvable_intent: The intent to launch {@link AuthenticationActivity} is not resolvable by the OS or the intent
- * doesn't contain the required data. </li>
  * <li>unsupported_url: Unsupported url, cannot perform ADFS authority validation. </li>
  * <li>authority_validation_not_supported: The authority is not supported for authority validation. The sdk supports
  * b2c authorities, but doesn't support b2c authority validation. Only well-known host will be supported. </li>
@@ -119,11 +116,6 @@ public final class MsalClientException extends MsalException {
      * For authorization requests, the sdk will verify the state returned from redirect and the one sent in the request.
      */
     public static final String STATE_MISMATCH = ClientException.STATE_MISMATCH;
-
-    /**
-     * The intent to launch {@link AuthenticationActivity} is not resolvable by the OS or the intent doesn't contain the required data.
-     */
-    public static final String UNRESOLVABLE_INTENT = "unresolvable_intent";
 
     /**
      * Unsupported url, cannot perform adfs authority validation.

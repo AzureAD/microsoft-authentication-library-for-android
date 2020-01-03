@@ -31,6 +31,11 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Pair;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
+import androidx.fragment.app.Fragment;
+
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
@@ -83,10 +88,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.WorkerThread;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
@@ -1228,6 +1229,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                              @NonNull final AuthenticationCallback callback) {
         AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
+                null,
                 scopes,
                 null, // account
                 null, // uiBehavior
@@ -1242,16 +1244,18 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         acquireTokenInternal(acquireTokenParameters, PublicApiId.PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK);
     }
 
-    AcquireTokenParameters buildAcquireTokenParameters(@NonNull final Activity activity,
-                                                       @NonNull final String[] scopes,
-                                                       @Nullable final IAccount account,
-                                                       @Nullable final Prompt uiBehavior,
-                                                       @Nullable final List<Pair<String, String>> extraQueryParameters,
-                                                       @Nullable final String[] extraScopesToConsent,
-                                                       @Nullable final String authority,
-                                                       @NonNull final AuthenticationCallback callback,
-                                                       @Nullable final String loginHint,
-                                                       @Nullable final ClaimsRequest claimsRequest) {
+    AcquireTokenParameters buildAcquireTokenParameters(
+            @NonNull final Activity activity,
+            @Nullable final Fragment fragment,
+            @NonNull final String[] scopes,
+            @Nullable final IAccount account,
+            @Nullable final Prompt uiBehavior,
+            @Nullable final List<Pair<String, String>> extraQueryParameters,
+            @Nullable final String[] extraScopesToConsent,
+            @Nullable final String authority,
+            @NonNull final AuthenticationCallback callback,
+            @Nullable final String loginHint,
+            @Nullable final ClaimsRequest claimsRequest) {
 
         validateNonNullArgument(activity, NONNULL_CONSTANTS.ACTIVITY);
         validateNonNullArgument(scopes, NONNULL_CONSTANTS.SCOPES);
@@ -1260,6 +1264,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
         AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(activity)
+                .withFragment(fragment)
                 .forAccount(account)
                 .withScopes(Arrays.asList(scopes))
                 .withPrompt(uiBehavior)
@@ -1276,7 +1281,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 .withLoginHint(loginHint)
                 .withClaims(claimsRequest)
                 .build();
-
 
         return acquireTokenParameters;
     }
@@ -1533,11 +1537,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             if (null == accountForRequest) { // We did not find a profile to use
                 final boolean isSilent = tokenParameters instanceof AcquireTokenSilentParameters;
                 if (isSilent) {
-                    if(rootAccount.getClaims() != null){
+                    if (rootAccount.getClaims() != null) {
                         accountForRequest = rootAccount;
-                    }else {
-                        for(ITenantProfile tenantProfile : multiTenantAccount.getTenantProfiles().values()){
-                            if(tenantProfile.getClaims() != null){
+                    } else {
+                        for (ITenantProfile tenantProfile : multiTenantAccount.getTenantProfiles().values()) {
+                            if (tenantProfile.getClaims() != null) {
                                 accountForRequest = tenantProfile;
                                 break;
                             }
@@ -1546,7 +1550,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 }
             }
             // We should never hit this flow as IAccount should always have a home profile or at least one tenant profile on it.
-            if(accountForRequest ==  null){
+            if (accountForRequest == null) {
                 Logger.warnPII(TAG,
                         "No account record found for IAccount with request tenantId: " + tenantId
                 );
