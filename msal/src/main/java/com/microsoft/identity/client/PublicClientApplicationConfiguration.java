@@ -35,6 +35,7 @@ import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.internal.authorities.Authority;
@@ -455,7 +456,7 @@ public class PublicClientApplicationConfiguration {
     }
 
     @SuppressWarnings("PMD")
-    public void checkIntentFilterAddedToAppManifestForBrokerFlow() {
+    public void checkIntentFilterAddedToAppManifestForBrokerFlow() throws MsalClientException {
         if (!mUseBroker) {
             return;
         }
@@ -477,7 +478,8 @@ public class PublicClientApplicationConfiguration {
 
         if (!hasCustomTabRedirectActivity) {
             final Uri redirectUri = Uri.parse(mRedirectUri);
-            throw new IllegalStateException(
+            throw new MsalClientException(
+                    MsalClientException.APP_MANIFEST_VALIDATION_ERROR,
                     "Intent filter for: " +
                             BrowserTabActivity.class.getSimpleName() +
                             " is missing. " +

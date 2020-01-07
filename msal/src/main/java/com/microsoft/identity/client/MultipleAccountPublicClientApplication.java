@@ -69,7 +69,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
     protected MultipleAccountPublicClientApplication(@NonNull PublicClientApplicationConfiguration config,
                                                      @Nullable final String clientId,
-                                                     @Nullable final String authority) {
+                                                     @Nullable final String authority) throws MsalClientException {
         super(config, clientId, authority);
     }
 
