@@ -1,13 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
-
+    compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        applicationId "com.microsoft.identity.client.msal.automationapp"
-        minSdkVersion 16
-        targetSdkVersion 28
+        applicationId "com.microsoft.identity.client.sample"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
 
@@ -20,15 +19,33 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    lintOptions {
+        abortOnError false
+    }
+    flavorDimensions "main"
+    productFlavors {
+        local {
+            applicationIdSuffix ".local"
+            versionNameSuffix "-local"
+            resValue("string", "application_name", "msal-local")
+        }
+        dist {
+            // Keep .local because the redirect url we registered on the portal contains .local, not .dist
+            applicationIdSuffix ".local"
+            versionNameSuffix "-dist"
+            resValue("string", "application_name", "msal-dist")
+        }
+    }
 
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-
-    implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    // Compile Dependency
+    localImplementation project(':msal')
+    distImplementation 'com.microsoft.identity.client:msal:1.0.+'
+    implementation "androidx.constraintlayout:constraintlayout:1.1.3"
+    implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
+    implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
+    implementation "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
+    implementation "com.google.android.material:material:$rootProject.ext.materialVersion"
 }
