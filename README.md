@@ -73,6 +73,8 @@ It's simplest to create your configuration file as a "raw" resource file in your
 }
 ```
 
+>NOTE: In the `redirect_uri`, the part `<YOUR_PACKAGE_NAME>` refers to the package name returned by the `context.getPackageName()` method. This package name is the same as the [`application_id`](https://developer.android.com/studio/build/application-id) defined in your `build.gradle` file.
+
 >NOTE: This is the minimum required configuration.  MSAL relies on the defaults that ship with the library for all other settings.  Please refer to the [configuration file documentation](https://docs.microsoft.com/azure/active-directory/develop/msal-configuration) to understand the library defaults.
 
 ### Step 3: Configure the AndroidManifest.xml

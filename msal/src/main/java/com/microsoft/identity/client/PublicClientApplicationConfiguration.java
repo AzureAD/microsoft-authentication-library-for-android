@@ -457,26 +457,14 @@ public class PublicClientApplicationConfiguration {
 
     @SuppressWarnings("PMD")
     public void checkIntentFilterAddedToAppManifestForBrokerFlow() throws MsalClientException {
-        if (!mUseBroker) {
-            return;
-        }
-
-        if (!isBrokerRedirectUri()) {
-            // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
-            // If this is the case, we can assume that the user doesn't need Broker support.
-            Logger.info(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth.");
-            mUseBroker = false;
-            return;
-        }
-
-        verifyRedirectUriWithAppSignature();
-
         final boolean hasCustomTabRedirectActivity = MsalUtils.hasCustomTabRedirectActivity(
                 mAppContext,
                 mRedirectUri
         );
 
-        if (!hasCustomTabRedirectActivity) {
+        if ((getAuthorizationAgent() == AuthorizationAgent.DEFAULT
+                || getAuthorizationAgent() == AuthorizationAgent.BROWSER)
+                && !hasCustomTabRedirectActivity) {
             final Uri redirectUri = Uri.parse(mRedirectUri);
             throw new MsalClientException(
                     MsalClientException.APP_MANIFEST_VALIDATION_ERROR,
@@ -496,6 +484,20 @@ public class PublicClientApplicationConfiguration {
                             "\t" + "</intent-filter>" + "\n" +
                             "</activity>" + "\n");
         }
+
+        if (!mUseBroker) {
+            return;
+        }
+
+        if (!isBrokerRedirectUri()) {
+            // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
+            // If this is the case, we can assume that the user doesn't need Broker support.
+            Logger.info(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth.");
+            mUseBroker = false;
+            return;
+        }
+
+        verifyRedirectUriWithAppSignature();
     }
 
 }
