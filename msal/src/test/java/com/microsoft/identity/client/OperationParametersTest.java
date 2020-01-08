@@ -30,7 +30,7 @@ import androidx.test.core.app.ApplicationProvider;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
-import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
+import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
@@ -61,7 +61,7 @@ public class OperationParametersTest {
     @Before
     public void setup() {
         mContext = ApplicationProvider.getApplicationContext();
-        mActivity = RoboTestUtils.getMockActivity(mContext);
+        mActivity = TestUtils.getMockActivity(mContext);
     }
 
     @Test

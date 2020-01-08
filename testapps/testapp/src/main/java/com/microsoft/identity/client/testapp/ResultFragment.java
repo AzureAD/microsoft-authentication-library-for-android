@@ -38,6 +38,7 @@ public class ResultFragment extends Fragment {
 
     static final String ACCESS_TOKEN = "access_token";
     static final String DISPLAYABLE = "displayable";
+    static String previousAccessToken = "";
 
     private TextView mTextView;
 
@@ -54,8 +55,20 @@ public class ResultFragment extends Fragment {
         final String accessToken = (String) bundle.get(ACCESS_TOKEN);
         final String displayable = (String) bundle.get(DISPLAYABLE);
 
-        mTextView.setText(ACCESS_TOKEN + ": " + accessToken + '\n' + DISPLAYABLE + ": " + displayable);
+        String output = "";
+
+        // Only display this when the app has acquired an access token at least once in this session.
+        if(!previousAccessToken.isEmpty()){
+            final boolean isTokenChanged = !accessToken.equalsIgnoreCase(previousAccessToken);
+            output += "Is access token changed? " + ": " + isTokenChanged + '\n';
+        }
+
+        output += ACCESS_TOKEN + ": " + accessToken + '\n' + DISPLAYABLE + ": " + displayable;
+
+        mTextView.setText(output);
         mTextView.setMovementMethod(new ScrollingMovementMethod());
+
+        previousAccessToken = accessToken;
         return view;
     }
 

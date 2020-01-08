@@ -26,11 +26,11 @@ import android.net.Uri;
 
 import androidx.annotation.NonNull;
 
-import com.microsoft.identity.client.e2e.utils.TestConstants;
 import com.microsoft.identity.common.internal.authorities.AccountsInOneOrganization;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
+import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.authorities.AADTestAuthority;
 import com.microsoft.identity.internal.testutils.authorities.B2CTestAuthority;
 import com.microsoft.identity.internal.testutils.authorities.MockAuthority;

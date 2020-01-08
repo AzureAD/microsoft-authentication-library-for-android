@@ -87,6 +87,7 @@ import java.util.concurrent.Executors;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
+import androidx.fragment.app.Fragment;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
@@ -877,22 +878,26 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     public void onTaskCompleted(Boolean isSharedDevice) {
                         config.setIsSharedDevice(isSharedDevice);
 
-                        if (config.getAccountMode() == AccountMode.SINGLE || isSharedDevice) {
-                            listener.onCreated(
-                                    new SingleAccountPublicClientApplication(
-                                            config,
-                                            clientId,
-                                            authority
-                                    )
-                            );
-                        } else {
-                            listener.onCreated(
-                                    new MultipleAccountPublicClientApplication(
-                                            config,
-                                            clientId,
-                                            authority
-                                    )
-                            );
+                        try {
+                            if (config.getAccountMode() == AccountMode.SINGLE || isSharedDevice) {
+                                listener.onCreated(
+                                        new SingleAccountPublicClientApplication(
+                                                config,
+                                                clientId,
+                                                authority
+                                        )
+                                );
+                            } else {
+                                listener.onCreated(
+                                        new MultipleAccountPublicClientApplication(
+                                                config,
+                                                clientId,
+                                                authority
+                                        )
+                                );
+                            }
+                        } catch (final MsalClientException e) {
+                            listener.onError(e);
                         }
                     }
 
@@ -987,7 +992,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     protected PublicClientApplication(@NonNull final PublicClientApplicationConfiguration configFile,
                                       @Nullable final String clientId,
-                                      @Nullable final String authority) {
+                                      @Nullable final String authority) throws MsalClientException {
 
         mPublicClientConfiguration = configFile;
 
@@ -1006,7 +1011,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         initializeApplication();
     }
 
-    private void initializeApplication() {
+    private void initializeApplication() throws MsalClientException {
         final String methodName = ":initializeApplication";
 
         final Context context = mPublicClientConfiguration.getAppContext();
@@ -1227,6 +1232,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                              @NonNull final AuthenticationCallback callback) {
         AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
+                null,
                 scopes,
                 null, // account
                 null, // uiBehavior
@@ -1241,16 +1247,18 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         acquireTokenInternal(acquireTokenParameters, PublicApiId.PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK);
     }
 
-    AcquireTokenParameters buildAcquireTokenParameters(@NonNull final Activity activity,
-                                     @NonNull final String[] scopes,
-                                     @Nullable final IAccount account,
-                                     @Nullable final Prompt uiBehavior,
-                                     @Nullable final List<Pair<String, String>> extraQueryParameters,
-                                     @Nullable final String[] extraScopesToConsent,
-                                     @Nullable final String authority,
-                                     @NonNull final AuthenticationCallback callback,
-                                     @Nullable final String loginHint,
-                                     @Nullable final ClaimsRequest claimsRequest) {
+    AcquireTokenParameters buildAcquireTokenParameters(
+            @NonNull final Activity activity,
+            @Nullable final Fragment fragment,
+            @NonNull final String[] scopes,
+            @Nullable final IAccount account,
+            @Nullable final Prompt uiBehavior,
+            @Nullable final List<Pair<String, String>> extraQueryParameters,
+            @Nullable final String[] extraScopesToConsent,
+            @Nullable final String authority,
+            @NonNull final AuthenticationCallback callback,
+            @Nullable final String loginHint,
+            @Nullable final ClaimsRequest claimsRequest) {
 
         validateNonNullArgument(activity, NONNULL_CONSTANTS.ACTIVITY);
         validateNonNullArgument(scopes, NONNULL_CONSTANTS.SCOPES);
@@ -1259,6 +1267,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
         AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(activity)
+                .withFragment(fragment)
                 .forAccount(account)
                 .withScopes(Arrays.asList(scopes))
                 .withPrompt(uiBehavior)
@@ -1275,7 +1284,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 .withLoginHint(loginHint)
                 .withClaims(claimsRequest)
                 .build();
-
 
         return acquireTokenParameters;
     }
@@ -1364,11 +1372,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     protected AcquireTokenSilentParameters buildAcquireTokenSilentParameters(@NonNull final String[] scopes,
-                                      @NonNull final IAccount account,
-                                      @NonNull final String authority,
-                                      final boolean forceRefresh,
-                                      @Nullable final ClaimsRequest claimsRequest,
-                                      @NonNull final SilentAuthenticationCallback callback) {
+                                                                             @NonNull final IAccount account,
+                                                                             @NonNull final String authority,
+                                                                             final boolean forceRefresh,
+                                                                             @Nullable final ClaimsRequest claimsRequest,
+                                                                             @NonNull final SilentAuthenticationCallback callback) {
         validateNonNullArgument(account, NONNULL_CONSTANTS.ACCOUNT);
         validateNonNullArgument(callback, NONNULL_CONSTANTS.CALLBACK);
 
@@ -1532,11 +1540,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             if (null == accountForRequest) { // We did not find a profile to use
                 final boolean isSilent = tokenParameters instanceof AcquireTokenSilentParameters;
                 if (isSilent) {
-                    if(rootAccount.getClaims() != null){
+                    if (rootAccount.getClaims() != null) {
                         accountForRequest = rootAccount;
-                    }else {
-                        for(ITenantProfile tenantProfile : multiTenantAccount.getTenantProfiles().values()){
-                            if(tenantProfile.getClaims() != null){
+                    } else {
+                        for (ITenantProfile tenantProfile : multiTenantAccount.getTenantProfiles().values()) {
+                            if (tenantProfile.getClaims() != null) {
                                 accountForRequest = tenantProfile;
                                 break;
                             }
@@ -1545,7 +1553,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 }
             }
             // We should never hit this flow as IAccount should always have a home profile or at least one tenant profile on it.
-            if(accountForRequest ==  null){
+            if (accountForRequest == null) {
                 Logger.warnPII(TAG,
                         "No account record found for IAccount with request tenantId: " + tenantId
                 );

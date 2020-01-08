@@ -37,6 +37,7 @@ import android.os.Bundle;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
@@ -217,7 +218,7 @@ public final class PublicClientApplicationTest {
      * Verify correct exception is thrown if callback is not provided.
      */
     @Test(expected = IllegalArgumentException.class)
-    public void testCallBackEmpty() throws PackageManager.NameNotFoundException {
+    public void testCallBackEmpty() throws PackageManager.NameNotFoundException, MsalClientException {
         final Context context = new MockContext(mAppContext);
         mockPackageManagerWithClientId(context, null, CLIENT_ID);
         mockHasCustomTabRedirect(context);
@@ -230,7 +231,7 @@ public final class PublicClientApplicationTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void testInternetPermissionMissing() throws PackageManager.NameNotFoundException {
+    public void testInternetPermissionMissing() throws PackageManager.NameNotFoundException, MsalClientException {
         final Context context = new MockContext(mAppContext);
         final PackageManager packageManager = context.getPackageManager();
         mockPackageManagerWithClientId(context, null, CLIENT_ID);
@@ -300,7 +301,7 @@ public final class PublicClientApplicationTest {
     }
 
     @Test
-    public void testSecretKeysAreSet() throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public void testSecretKeysAreSet() throws NoSuchAlgorithmException, InvalidKeySpecException, MsalClientException {
         final Context context = new MockContext(mAppContext);
         mockHasCustomTabRedirect(context);
         mockPackageManagerWithDefaultFlag(context);

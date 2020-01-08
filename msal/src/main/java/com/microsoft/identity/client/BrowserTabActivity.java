@@ -28,6 +28,7 @@ import android.os.Bundle;
 
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity;
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationFragment;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
@@ -63,7 +64,7 @@ public final class BrowserTabActivity extends Activity {
         if (savedInstanceState == null
                 && getIntent() != null
                 && !StringUtil.isEmpty(getIntent().getDataString())) {
-            startActivity(AuthorizationActivity.createCustomTabResponseIntent(this, getIntent().getDataString()));
+            startActivity(AuthorizationFragment.createCustomTabResponseIntent(this, getIntent().getDataString()));
             finish();
         }
     }
