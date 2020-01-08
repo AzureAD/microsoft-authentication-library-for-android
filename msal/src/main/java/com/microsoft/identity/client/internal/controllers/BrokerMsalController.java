@@ -34,12 +34,11 @@ import android.os.RemoteException;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.google.gson.GsonBuilder;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
+import com.microsoft.identity.common.exception.BrokerCommunicationException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.exception.ServiceException;
@@ -54,7 +53,6 @@ import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAccount;
-import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationFragment;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
@@ -188,33 +186,42 @@ public class BrokerMsalController extends BaseController {
         for (int ii = 0; ii < strategies.size(); ii++) {
             final BrokerBaseStrategy strategy = strategies.get(ii);
             try {
-                if (!strategy.hello(parameters)) {
-                    continue;
-                }
-
-                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                com.microsoft.identity.common.internal.logging.Logger.info(
                         TAG + strategyTask.getMethodName(),
                         "Executing with strategy: "
                                 + strategy.getClass().getSimpleName()
                 );
 
+                strategy.hello(parameters);
                 result = strategyTask.perform(strategy, parameters);
                 if (result != null) {
                     break;
                 }
-            } catch (final Exception exception) {
-                if (ii == (strategies.size() - 1)) {
-                    //throw the exception for the last trying of strategies.
-                    if (strategyTask.getTelemetryApiName() != null) {
-                        Telemetry.emit(
-                                new ApiEndEvent()
-                                        .putException(exception)
-                                        .putApiId(strategyTask.getTelemetryApiName())
-                        );
-                    }
-                    throw exception;
+            } catch (final BrokerCommunicationException exception){
+                // continue
+            } catch (final Exception exception){
+                if (strategyTask.getTelemetryApiName() != null) {
+                    Telemetry.emit(
+                            new ApiEndEvent()
+                                    .putException(exception)
+                                    .putApiId(strategyTask.getTelemetryApiName())
+                    );
                 }
+                throw exception;
             }
+        }
+
+        // This means that we've tried every strategies...
+        if (result == null) {
+            final BrokerCommunicationException exception = new BrokerCommunicationException("MSAL failed to communicate to Broker.");
+            if (strategyTask.getTelemetryApiName() != null) {
+                Telemetry.emit(
+                        new ApiEndEvent()
+                                .putException(exception)
+                                .putApiId(strategyTask.getTelemetryApiName())
+                );
+            }
+            throw exception;
         }
 
         if (strategyTask.getTelemetryApiName() != null) {
