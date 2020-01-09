@@ -878,22 +878,26 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     public void onTaskCompleted(Boolean isSharedDevice) {
                         config.setIsSharedDevice(isSharedDevice);
 
-                        if (config.getAccountMode() == AccountMode.SINGLE || isSharedDevice) {
-                            listener.onCreated(
-                                    new SingleAccountPublicClientApplication(
-                                            config,
-                                            clientId,
-                                            authority
-                                    )
-                            );
-                        } else {
-                            listener.onCreated(
-                                    new MultipleAccountPublicClientApplication(
-                                            config,
-                                            clientId,
-                                            authority
-                                    )
-                            );
+                        try {
+                            if (config.getAccountMode() == AccountMode.SINGLE || isSharedDevice) {
+                                listener.onCreated(
+                                        new SingleAccountPublicClientApplication(
+                                                config,
+                                                clientId,
+                                                authority
+                                        )
+                                );
+                            } else {
+                                listener.onCreated(
+                                        new MultipleAccountPublicClientApplication(
+                                                config,
+                                                clientId,
+                                                authority
+                                        )
+                                );
+                            }
+                        } catch (final MsalClientException e) {
+                            listener.onError(e);
                         }
                     }
 
@@ -988,7 +992,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     protected PublicClientApplication(@NonNull final PublicClientApplicationConfiguration configFile,
                                       @Nullable final String clientId,
-                                      @Nullable final String authority) {
+                                      @Nullable final String authority) throws MsalClientException {
 
         mPublicClientConfiguration = configFile;
 
@@ -1007,7 +1011,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         initializeApplication();
     }
 
-    private void initializeApplication() {
+    private void initializeApplication() throws MsalClientException {
         final String methodName = ":initializeApplication";
 
         final Context context = mPublicClientConfiguration.getAppContext();

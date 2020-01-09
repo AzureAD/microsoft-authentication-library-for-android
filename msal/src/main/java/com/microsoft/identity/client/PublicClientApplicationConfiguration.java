@@ -35,6 +35,7 @@ import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.internal.authorities.Authority;
@@ -455,29 +456,18 @@ public class PublicClientApplicationConfiguration {
     }
 
     @SuppressWarnings("PMD")
-    public void checkIntentFilterAddedToAppManifestForBrokerFlow() {
-        if (!mUseBroker) {
-            return;
-        }
-
-        if (!isBrokerRedirectUri()) {
-            // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
-            // If this is the case, we can assume that the user doesn't need Broker support.
-            Logger.info(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth.");
-            mUseBroker = false;
-            return;
-        }
-
-        verifyRedirectUriWithAppSignature();
-
+    public void checkIntentFilterAddedToAppManifestForBrokerFlow() throws MsalClientException {
         final boolean hasCustomTabRedirectActivity = MsalUtils.hasCustomTabRedirectActivity(
                 mAppContext,
                 mRedirectUri
         );
 
-        if (!hasCustomTabRedirectActivity) {
+        if ((getAuthorizationAgent() == AuthorizationAgent.DEFAULT
+                || getAuthorizationAgent() == AuthorizationAgent.BROWSER)
+                && !hasCustomTabRedirectActivity) {
             final Uri redirectUri = Uri.parse(mRedirectUri);
-            throw new IllegalStateException(
+            throw new MsalClientException(
+                    MsalClientException.APP_MANIFEST_VALIDATION_ERROR,
                     "Intent filter for: " +
                             BrowserTabActivity.class.getSimpleName() +
                             " is missing. " +
@@ -494,6 +484,20 @@ public class PublicClientApplicationConfiguration {
                             "\t" + "</intent-filter>" + "\n" +
                             "</activity>" + "\n");
         }
+
+        if (!mUseBroker) {
+            return;
+        }
+
+        if (!isBrokerRedirectUri()) {
+            // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
+            // If this is the case, we can assume that the user doesn't need Broker support.
+            Logger.info(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth.");
+            mUseBroker = false;
+            return;
+        }
+
+        verifyRedirectUriWithAppSignature();
     }
 
 }

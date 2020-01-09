@@ -181,11 +181,15 @@ public final class MsalClientException extends MsalException {
     public static final String DUPLICATE_COMMAND = "duplicate_command";
 
     /**
+     * Developer error. Application manifest is not properly configured to support MSAL.
+     */
+    public static final String APP_MANIFEST_VALIDATION_ERROR = "app_manifest_validation_error";
+
+    /**
      * Temporary non-exposed error code to indicate that ADFS authority validation fails. ADFS as authority is not supported
      * for preview.
      */
     static final String ADFS_AUTHORITY_VALIDATION_FAILED = "adfs_authority_validation_failed";
-
     public MsalClientException(final String errorCode) {
         super(errorCode);
     }
