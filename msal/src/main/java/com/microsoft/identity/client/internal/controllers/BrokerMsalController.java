@@ -155,7 +155,7 @@ public class BrokerMsalController extends BaseController {
          * If this value returns null, no telemetry event will be emitted.
          */
         @Nullable
-        String getTelemetryApiName();
+        String getTelemetryApiId();
 
         /**
          * A method that will be invoked before the success event is emitted.
@@ -172,11 +172,11 @@ public class BrokerMsalController extends BaseController {
                                                                        @NonNull final BrokerOperationInfo<T, U> strategyTask)
             throws Exception {
 
-        if (strategyTask.getTelemetryApiName() != null) {
+        if (strategyTask.getTelemetryApiId() != null) {
             Telemetry.emit(
                     new ApiStartEvent()
                             .putProperties(parameters)
-                            .putApiId(strategyTask.getTelemetryApiName())
+                            .putApiId(strategyTask.getTelemetryApiId())
             );
         }
 
@@ -200,11 +200,11 @@ public class BrokerMsalController extends BaseController {
             } catch (final BrokerCommunicationException exception){
                 // continue
             } catch (final Exception exception){
-                if (strategyTask.getTelemetryApiName() != null) {
+                if (strategyTask.getTelemetryApiId() != null) {
                     Telemetry.emit(
                             new ApiEndEvent()
                                     .putException(exception)
-                                    .putApiId(strategyTask.getTelemetryApiName())
+                                    .putApiId(strategyTask.getTelemetryApiId())
                     );
                 }
                 throw exception;
@@ -214,19 +214,19 @@ public class BrokerMsalController extends BaseController {
         // This means that we've tried every strategies...
         if (result == null) {
             final BrokerCommunicationException exception = new BrokerCommunicationException("MSAL failed to communicate to Broker.");
-            if (strategyTask.getTelemetryApiName() != null) {
+            if (strategyTask.getTelemetryApiId() != null) {
                 Telemetry.emit(
                         new ApiEndEvent()
                                 .putException(exception)
-                                .putApiId(strategyTask.getTelemetryApiName())
+                                .putApiId(strategyTask.getTelemetryApiId())
                 );
             }
             throw exception;
         }
 
-        if (strategyTask.getTelemetryApiName() != null) {
+        if (strategyTask.getTelemetryApiId() != null) {
             final ApiEndEvent successEvent = new ApiEndEvent()
-                    .putApiId(strategyTask.getTelemetryApiName())
+                    .putApiId(strategyTask.getTelemetryApiId())
                     .isApiCallSuccessful(Boolean.TRUE);
             strategyTask.putValueInSuccessEvent(successEvent, result);
             Telemetry.emit(successEvent);
@@ -266,7 +266,7 @@ public class BrokerMsalController extends BaseController {
 
                     @Nullable
                     @Override
-                    public String getTelemetryApiName() {
+                    public String getTelemetryApiId() {
                         return null;
                     }
 
@@ -320,7 +320,7 @@ public class BrokerMsalController extends BaseController {
 
                     @Nullable
                     @Override
-                    public String getTelemetryApiName() {
+                    public String getTelemetryApiId() {
                         return TelemetryEventStrings.Api.BROKER_ACQUIRE_TOKEN_SILENT;
                     }
 
@@ -355,7 +355,7 @@ public class BrokerMsalController extends BaseController {
 
                     @Nullable
                     @Override
-                    public String getTelemetryApiName() {
+                    public String getTelemetryApiId() {
                         return TelemetryEventStrings.Api.BROKER_GET_ACCOUNTS;
                     }
 
@@ -385,7 +385,7 @@ public class BrokerMsalController extends BaseController {
 
                     @Nullable
                     @Override
-                    public String getTelemetryApiName() {
+                    public String getTelemetryApiId() {
                         return TelemetryEventStrings.Api.BROKER_REMOVE_ACCOUNT;
                     }
 
@@ -413,7 +413,7 @@ public class BrokerMsalController extends BaseController {
 
                     @Nullable
                     @Override
-                    public String getTelemetryApiName() {
+                    public String getTelemetryApiId() {
                         return TelemetryEventStrings.Api.GET_BROKER_DEVICE_MODE;
                     }
 
@@ -448,7 +448,7 @@ public class BrokerMsalController extends BaseController {
 
                     @Nullable
                     @Override
-                    public String getTelemetryApiName() {
+                    public String getTelemetryApiId() {
                         return TelemetryEventStrings.Api.BROKER_GET_CURRENT_ACCOUNT;
                     }
 
@@ -494,7 +494,7 @@ public class BrokerMsalController extends BaseController {
 
                     @Nullable
                     @Override
-                    public String getTelemetryApiName() {
+                    public String getTelemetryApiId() {
                         return TelemetryEventStrings.Api.BROKER_REMOVE_ACCOUNT_FROM_SHARED_DEVICE;
                     }
 
