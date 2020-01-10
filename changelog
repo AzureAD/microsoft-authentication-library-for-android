@@ -1,5 +1,8 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 1.1.0-hf1
+- Fix issue #882
+
 Version 1.1.0
 ----------------------------
 - Expose id_token (raw) via IAccount/ITenantProfile from AuthenticationResult (#850)
