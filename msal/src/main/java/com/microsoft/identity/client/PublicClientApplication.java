@@ -247,7 +247,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 initializeConfiguration(context, configFileResourceId),
                 null, // client id
                 null, // authority
-                null,
+                null, // redirect uri
                 listener
         );
     }
@@ -285,8 +285,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         create(
                 initializeConfiguration(context, configFile),
                 null, // client id
-                null, // authority,
-                null,
+                null, // authority
+                null, // redirect uri
                 listener
         );
     }
@@ -733,8 +733,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         final ResultFuture<AsyncResult<IPublicClientApplication>> future = new ResultFuture<>();
         create(configuration,
                 null, // client id
-                null,
                 null, // authority
+                null, // redirectUri
                 new ApplicationCreatedListener() {
                     @Override
                     public void onCreated(final IPublicClientApplication application) {
