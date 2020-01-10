@@ -151,7 +151,7 @@ public class BrokerMsalController extends BaseController {
         String getMethodName();
 
         /**
-         * Name of the telemetry API event associated to this strategy task.
+         * ID of the telemetry API event associated to this strategy task.
          * If this value returns null, no telemetry event will be emitted.
          */
         @Nullable
