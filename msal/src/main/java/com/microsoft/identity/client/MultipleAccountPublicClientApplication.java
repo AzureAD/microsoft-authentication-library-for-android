@@ -67,10 +67,8 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         implements IMultipleAccountPublicClientApplication {
     private static final String TAG = MultipleAccountPublicClientApplication.class.getSimpleName();
 
-    protected MultipleAccountPublicClientApplication(@NonNull PublicClientApplicationConfiguration config,
-                                                     @Nullable final String clientId,
-                                                     @Nullable final String authority) throws MsalClientException {
-        super(config, clientId, authority);
+    protected MultipleAccountPublicClientApplication(@NonNull PublicClientApplicationConfiguration config) throws MsalClientException {
+        super(config);
     }
 
     @Override
@@ -145,8 +143,8 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
             final Map<String, String> redirects = new HashMap<>();
             redirects.put(
-                    mPublicClientConfiguration.mClientId, // Our client id
-                    mPublicClientConfiguration.mRedirectUri // Our redirect uri
+                    mPublicClientConfiguration.getClientId(), // Our client id
+                    mPublicClientConfiguration.getRedirectUri() // Our redirect uri
             );
 
             new TokenMigrationUtility<MicrosoftAccount, MicrosoftRefreshToken>()._import(

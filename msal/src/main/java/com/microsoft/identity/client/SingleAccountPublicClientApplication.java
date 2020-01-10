@@ -74,10 +74,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     private SharedPreferencesFileManager sharedPreferencesFileManager;
 
-    protected SingleAccountPublicClientApplication(@NonNull PublicClientApplicationConfiguration config,
-                                                   @Nullable final String clientId,
-                                                   @Nullable final String authority) throws MsalClientException {
-        super(config, clientId, authority);
+    protected SingleAccountPublicClientApplication(@NonNull PublicClientApplicationConfiguration config) throws MsalClientException {
+        super(config);
         initializeSharedPreferenceFileManager(config.getAppContext());
     }
 
