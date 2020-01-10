@@ -183,6 +183,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         static final String CALLBACK = "callback";
         static final String CLIENT_ID = "client_id";
         static final String AUTHORITY = "authority";
+        static final String REDIRECT_URI = "redirect_uri";
         static final String CONFIG_FILE = "config_file";
         static final String ACTIVITY = "activity";
         static final String SCOPES = "scopes";
@@ -233,8 +234,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @param listener             a callback to be invoked when the object is successfully created.
      *                             Cannot be null.
      * @see PublicClientApplication#create(Context, File, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)
+     * @see PublicClientApplication#create(Context, String, String, String, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, int)
      */
     public static void create(@NonNull final Context context,
@@ -247,6 +247,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 initializeConfiguration(context, configFileResourceId),
                 null, // client id
                 null, // authority
+                null,
                 listener
         );
     }
@@ -272,8 +273,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                   </p>
      * @param listener   a callback to be invoked when the object is successfully created. Cannot be null.
      * @see PublicClientApplication#create(Context, int, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)
+     * @see PublicClientApplication#create(Context, String, String, String, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, int)
      */
     public static void create(@NonNull final Context context,
@@ -285,44 +285,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         create(
                 initializeConfiguration(context, configFile),
                 null, // client id
-                null, // authority
-                listener
-        );
-    }
-
-    /**
-     * {@link PublicClientApplication#create(Context, String, ApplicationCreatedListener)} allows
-     * the client id to be passed instead of providing through the AndroidManifest metadata.
-     * If this constructor is called, the default authority https://login.microsoftonline.com/common
-     * will be used.
-     *
-     * @param context  Application's {@link Context}. The sdk requires the application context to
-     *                 be passed in {@link PublicClientApplication}. Cannot be null.
-     *                 <p>
-     *                 Note: The {@link Context} should be the application context instead of the
-     *                 running activity's context, which could potentially make the sdk hold a
-     *                 strong reference to the activity, thus preventing correct garbage collection
-     *                 and causing bugs.
-     *                 </p>
-     * @param clientId The application's client id. Cannot be null.
-     * @param listener a callback to be invoked when the object is successfully created.
-     *                 Cannot be null.
-     * @see PublicClientApplication#create(Context, int, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, File, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, int)
-     */
-    public static void create(@NonNull final Context context,
-                              @NonNull final String clientId,
-                              @NonNull final ApplicationCreatedListener listener) {
-        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
-        validateNonNullArgument(clientId, NONNULL_CONSTANTS.CLIENT_ID);
-        validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
-
-        create(
-                initializeConfiguration(context),
-                clientId,
-                null, // authority
+                null, // authority,
+                null,
                 listener
         );
     }
@@ -331,37 +295,39 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * {@link PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)}
      * allows the client id and authority to be passed instead of providing them through metadata.
      *
-     * @param context   Application's {@link Context}. The sdk requires the application context to
-     *                  be passed in
-     *                  {@link PublicClientApplication}. Cannot be null.
-     *                  <p>
-     *                  Note: The {@link Context} should be the application context instead of
-     *                  an running activity's context, which could potentially make the sdk hold a
-     *                  strong reference to the activity, thus preventing correct garbage
-     *                  collection and causing bugs.
-     *                  </p>
-     * @param clientId  The application client id. Cannot be null.
-     * @param authority The default authority to be used for the authority. Cannot be null.
-     * @param listener  a callback to be invoked when the object is successfully created.
-     *                  Cannot be null.
+     * @param context     Application's {@link Context}. The sdk requires the application context to
+     *                    be passed in
+     *                    {@link PublicClientApplication}. Cannot be null.
+     *                    <p>
+     *                    Note: The {@link Context} should be the application context instead of
+     *                    an running activity's context, which could potentially make the sdk hold a
+     *                    strong reference to the activity, thus preventing correct garbage
+     *                    collection and causing bugs.
+     *                    </p>
+     * @param clientId    The application client id. Cannot be null.
+     * @param authority   The default authority to be used for the authority. If this is null, the default authority will be used.
+     * @param redirectUri The redirect URI of the application.
+     * @param listener    a callback to be invoked when the object is successfully created.
+     *                    Cannot be null.
      * @see PublicClientApplication#create(Context, int, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, File, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, int)
      */
     public static void create(@NonNull final Context context,
                               @NonNull final String clientId,
-                              @NonNull final String authority,
+                              @Nullable final String authority,
+                              @NonNull final String redirectUri,
                               @NonNull final ApplicationCreatedListener listener) {
         validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
         validateNonNullArgument(clientId, NONNULL_CONSTANTS.CLIENT_ID);
-        validateNonNullArgument(authority, NONNULL_CONSTANTS.AUTHORITY);
+        validateNonNullArgument(redirectUri, NONNULL_CONSTANTS.REDIRECT_URI);
         validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
         create(
                 initializeConfiguration(context),
                 clientId,
                 authority,
+                redirectUri,
                 listener
         );
     }
@@ -392,8 +358,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @throws IllegalStateException if this function is invoked on the main thread.
      * @see PublicClientApplication#create(Context, int, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, File, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)
+     * @see PublicClientApplication#create(Context, String, String, String, ApplicationCreatedListener)
      */
     @WorkerThread
     @NonNull
@@ -768,6 +733,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         final ResultFuture<AsyncResult<IPublicClientApplication>> future = new ResultFuture<>();
         create(configuration,
                 null, // client id
+                null,
                 null, // authority
                 new ApplicationCreatedListener() {
                     @Override
@@ -798,7 +764,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private static IMultipleAccountPublicClientApplication createMultipleAccountPublicClientApplication(
             @NonNull final PublicClientApplicationConfiguration configuration)
             throws InterruptedException, MsalException {
-        if (configuration.mAccountMode != AccountMode.MULTIPLE) {
+        if (configuration.getAccountMode() != AccountMode.MULTIPLE) {
             throw new MsalClientException(
                     MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE,
                     MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE
@@ -810,7 +776,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         if (application instanceof IMultipleAccountPublicClientApplication) {
             return (IMultipleAccountPublicClientApplication) application;
         } else {
-            if (configuration.mAccountMode == AccountMode.MULTIPLE && application.isSharedDevice()) {
+            if (configuration.getAccountMode() == AccountMode.MULTIPLE && application.isSharedDevice()) {
                 throw new MsalClientException(
                         MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_CODE,
                         MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_MESSAGE
@@ -833,7 +799,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         if (application instanceof ISingleAccountPublicClientApplication) {
             return (ISingleAccountPublicClientApplication) application;
         } else {
-            if (configuration.mAccountMode != AccountMode.SINGLE) {
+            if (configuration.getAccountMode() != AccountMode.SINGLE) {
                 throw new MsalClientException(
                         SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE,
                         SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE
@@ -849,8 +815,23 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private static void create(@NonNull final PublicClientApplicationConfiguration config,
                                @Nullable final String clientId,
                                @Nullable final String authority,
+                               @Nullable final String redirectUri,
                                @NonNull final ApplicationCreatedListener listener) {
+        if (clientId != null) {
+            config.setClientId(clientId);
+        }
 
+        if (authority != null) {
+            config.getAuthorities().clear();
+
+            final Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority);
+            authorityObject.setDefault(true);
+            config.getAuthorities().add(authorityObject);
+        }
+
+        if (redirectUri != null) {
+            config.setRedirectUri(redirectUri);
+        }
 
         final OperationParameters params = OperationParametersAdapter.createOperationParameters(config, config.getOAuth2TokenCache());
 
@@ -880,21 +861,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
                         try {
                             if (config.getAccountMode() == AccountMode.SINGLE || isSharedDevice) {
-                                listener.onCreated(
-                                        new SingleAccountPublicClientApplication(
-                                                config,
-                                                clientId,
-                                                authority
-                                        )
-                                );
+                                listener.onCreated(new SingleAccountPublicClientApplication(config));
                             } else {
-                                listener.onCreated(
-                                        new MultipleAccountPublicClientApplication(
-                                                config,
-                                                clientId,
-                                                authority
-                                        )
-                                );
+                                listener.onCreated(new MultipleAccountPublicClientApplication(config));
                             }
                         } catch (final MsalClientException e) {
                             listener.onError(e);
@@ -915,15 +884,16 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             @NonNull final PublicClientApplicationConfiguration configuration,
             @NonNull final IMultipleAccountApplicationCreatedListener listener) {
         create(configuration,
-                null,
-                null,
+                null, // client id
+                null, // authority
+                null, // redirect uri
                 new ApplicationCreatedListener() {
                     @Override
                     public void onCreated(@NonNull final IPublicClientApplication application) {
                         if (application instanceof IMultipleAccountPublicClientApplication) {
                             listener.onCreated((IMultipleAccountPublicClientApplication) application);
                         } else {
-                            if (application.getConfiguration().mAccountMode == AccountMode.MULTIPLE
+                            if (application.getConfiguration().getAccountMode() == AccountMode.MULTIPLE
                                     && application.isSharedDevice()) {
                                 listener.onError(
                                         new MsalClientException(
@@ -957,13 +927,14 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 configuration,
                 null, // client id
                 null, // authority
+                null, // redirect uri
                 new ApplicationCreatedListener() {
                     @Override
                     public void onCreated(final IPublicClientApplication application) {
                         if (application instanceof ISingleAccountPublicClientApplication) {
                             listener.onCreated((ISingleAccountPublicClientApplication) application);
                         } else {
-                            if (application.getConfiguration().mAccountMode != AccountMode.SINGLE) {
+                            if (application.getConfiguration().getAccountMode() != AccountMode.SINGLE) {
                                 listener.onError(
                                         new MsalClientException(
                                                 SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE,
@@ -990,24 +961,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
     //endregion
 
-    protected PublicClientApplication(@NonNull final PublicClientApplicationConfiguration configFile,
-                                      @Nullable final String clientId,
-                                      @Nullable final String authority) throws MsalClientException {
-
+    protected PublicClientApplication(@NonNull final PublicClientApplicationConfiguration configFile) throws MsalClientException {
         mPublicClientConfiguration = configFile;
-
-        if (clientId != null) {
-            mPublicClientConfiguration.mClientId = clientId;
-        }
-
-        if (authority != null) {
-            mPublicClientConfiguration.getAuthorities().clear();
-
-            Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority);
-            authorityObject.setDefault(true);
-            mPublicClientConfiguration.getAuthorities().add(authorityObject);
-        }
-
         initializeApplication();
     }
 
