@@ -26,8 +26,9 @@ package com.microsoft.identity.client;
 import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
-import com.microsoft.identity.client.internal.authscheme.AuthenticationSchemeParameters;
-import com.microsoft.identity.client.internal.authscheme.BearerSchemeParameters;
+import com.microsoft.identity.common.internal.authscheme.AuthenticationSchemeParameters;
+import com.microsoft.identity.common.internal.authscheme.BearerSchemeParameters;
+import com.microsoft.identity.common.internal.authscheme.ProofOfPossessionParameters;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
@@ -163,7 +164,7 @@ public abstract class TokenParameters {
         private ProofOfPossessionParameters mProofOfPossessionParameters;
 
         public B withProofOfPossession(@NonNull final URL url, @NonNull final HttpMethod method) {
-            mProofOfPossessionParameters = new ProofOfPossessionParameters(url, method);
+            mProofOfPossessionParameters = new ProofOfPossessionParameters(url, method.name());
             return self();
         }
 
