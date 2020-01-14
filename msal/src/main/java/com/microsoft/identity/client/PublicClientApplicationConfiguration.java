@@ -93,46 +93,46 @@ public class PublicClientApplicationConfiguration {
     }
 
     @SerializedName(CLIENT_ID)
-    String mClientId;
+    private String mClientId;
 
     @SerializedName(REDIRECT_URI)
-    String mRedirectUri;
+    private String mRedirectUri;
 
     @SerializedName(AUTHORITIES)
-    List<Authority> mAuthorities;
+    private List<Authority> mAuthorities;
 
     @SerializedName(AUTHORIZATION_USER_AGENT)
-    AuthorizationAgent mAuthorizationAgent;
+    private AuthorizationAgent mAuthorizationAgent;
 
     @SerializedName(HTTP)
-    HttpConfiguration mHttpConfiguration;
+    private HttpConfiguration mHttpConfiguration;
 
     @SerializedName(LOGGING)
-    LoggerConfiguration mLoggerConfiguration;
+    private LoggerConfiguration mLoggerConfiguration;
 
     @SerializedName(MULTIPLE_CLOUDS_SUPPORTED)
-    Boolean mMultipleCloudsSupported;
+    private Boolean mMultipleCloudsSupported;
 
     @SerializedName(USE_BROKER)
-    Boolean mUseBroker;
+    private Boolean mUseBroker;
 
     @SerializedName(ENVIRONMENT)
-    Environment mEnvironment;
+    private Environment mEnvironment;
 
     @SerializedName(REQUIRED_BROKER_PROTOCOL_VERSION)
-    String mRequiredBrokerProtocolVersion;
+    private String mRequiredBrokerProtocolVersion;
 
     @SerializedName(BROWSER_SAFE_LIST)
-    List<BrowserDescriptor> mBrowserSafeList;
+    private List<BrowserDescriptor> mBrowserSafeList;
 
     @SerializedName(TELEMETRY)
-    TelemetryConfiguration mTelemetryConfiguration;
+    private TelemetryConfiguration mTelemetryConfiguration;
 
     @SerializedName(ACCOUNT_MODE)
-    AccountMode mAccountMode;
+    private AccountMode mAccountMode;
 
     @SerializedName(CLIENT_CAPABILITIES)
-    String mClientCapabilities;
+    private String mClientCapabilities;
 
     transient private OAuth2TokenCache mOAuth2TokenCache;
 
@@ -167,6 +167,15 @@ public class PublicClientApplicationConfiguration {
      */
     public String getClientId() {
         return mClientId;
+    }
+
+    /**
+     * Sets the configured client id for the PublicClientApplication.
+     *
+     * @@param  The configured clientId.
+     */
+    public void setClientId(final String clientId){
+        mClientId = clientId;
     }
 
     /**
@@ -222,6 +231,15 @@ public class PublicClientApplicationConfiguration {
      */
     public String getRedirectUri() {
         return this.mRedirectUri;
+    }
+
+    /**
+     * Sets the configured redirect uri for the PublicClientApplication.
+     *
+     * @param redirectUri The redirectUri to use.
+     */
+    public void setRedirectUri(@NonNull final String redirectUri) {
+        this.mRedirectUri = redirectUri;
     }
 
     /**
