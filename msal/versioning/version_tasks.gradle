@@ -14,11 +14,11 @@ private String getVersionNamePatch() {
 }
 
 private Integer getVersionNameMinor() {
-    return (getVersionProps()['versionName'] =~ /[^.]/)[1].toInteger()
+    return (getVersionProps()['versionName'] =~ /[\d+]/)[1].toInteger()
 }
 
 private Integer getVersionNameMajor() {
-    return (getVersionProps()['versionName'] =~ /[^.]/)[0].toInteger()
+    return (getVersionProps()['versionName'] =~ /[\d+]/)[0].toInteger()
 }
 
 ext.getAppVersionCode = {
