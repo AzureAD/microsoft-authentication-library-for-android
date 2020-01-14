@@ -25,8 +25,8 @@ package com.microsoft.identity.client.e2e.tests.network;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
-import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.B2C_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.B2C_CUSTOM_DOMAIN_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.B2C_GLOBAL_DOMAIN_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.B2C_SCOPE;
 
 /**
@@ -50,7 +50,7 @@ public abstract class AcquireTokenB2CTest extends AcquireTokenNetworkTest {
 
         @Override
         public String getConfigFilePath() {
-            return B2C_CONFIG_FILE_PATH;
+            return B2C_GLOBAL_DOMAIN_CONFIG_FILE_PATH;
         }
 
         @Override
