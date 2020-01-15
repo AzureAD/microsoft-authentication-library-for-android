@@ -121,7 +121,7 @@ public final class AuthorityTest {
         }
 
         @Override
-        public OAuth2Strategy createOAuth2Strategy(OAuth2StrategyOptions options) {
+        public OAuth2Strategy createOAuth2Strategy(final OAuth2StrategyOptions options) {
             return null; // Unimplemented...
         }
     }
