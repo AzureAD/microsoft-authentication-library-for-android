@@ -2,6 +2,12 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 Version 1.2.0
 ------------
+- API change
+    * Replaced the following PublicClientApplication#create methods.
+        - create(context, clientId, listener)
+        - create(context, clientId, authority, listener)
+      with 
+        - create(context, clientId, authority, redirectUri, listener)
 - Fixed issue #850, #890.
 - Fixed issue #770 in common.
 - Return AndroidManifest config error in onError() instead of throwing a runtime exception.
