@@ -170,6 +170,9 @@ public class OperationParametersAdapter {
         acquireTokenOperationParameters.setActivity(
                 acquireTokenParameters.getActivity()
         );
+        acquireTokenOperationParameters.setFragment(
+                acquireTokenParameters.getFragment()
+        );
 
         if (acquireTokenParameters.getAccount() != null) {
             final IAccount account = acquireTokenParameters.getAccount();
@@ -229,7 +232,7 @@ public class OperationParametersAdapter {
             );
         }
 
-        final Context context = acquireTokenParameters.getActivity().getApplicationContext();
+        final Context context = publicClientApplicationConfiguration.getAppContext();
         acquireTokenOperationParameters.setApplicationName(context.getPackageName());
         acquireTokenOperationParameters.setApplicationVersion(getPackageVersion(context));
         acquireTokenOperationParameters.setSdkVersion(PublicClientApplication.getSdkVersion());

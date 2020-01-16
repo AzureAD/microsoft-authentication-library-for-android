@@ -25,8 +25,8 @@ package com.microsoft.identity.client.e2e.tests.network;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.B2C_CONFIG_FILE_PATH;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.B2C_SCOPE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.B2C_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.B2C_SCOPE;
 
 /**
  * Run all tests in the {@link AcquireTokenNetworkTest} class using B2C

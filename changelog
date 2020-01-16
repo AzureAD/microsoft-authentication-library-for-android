@@ -1,11 +1,25 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 1.2.0
+------------
+- API change
+    * Replaced the following PublicClientApplication#create methods.
+        - create(context, clientId, listener)
+        - create(context, clientId, authority, listener)
+      with 
+        - create(context, clientId, authority, redirectUri, listener)
+- Fixed issue #850, #890.
+- Fixed issue #770 in common.
+- Return AndroidManifest config error in onError() instead of throwing a runtime exception.
+- Added Fragment support in WebView flow.
+
 Version 1.1.0-hf1
-- Fix issue #882
+------------
+- Fix issue #882.
 
 Version 1.1.0
 ----------------------------
-- Expose id_token (raw) via IAccount/ITenantProfile from AuthenticationResult (#850)
+- Expose id_token (raw) via IAccount/ITenantProfile from AuthenticationResult (#850).
 
 Version 1.0.1
 ----------------------------

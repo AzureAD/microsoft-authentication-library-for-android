@@ -29,16 +29,19 @@ import androidx.test.core.app.ApplicationProvider;
 
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.internal.testutils.TestUtils;
 
 import org.junit.Before;
 
 import java.io.File;
 
+import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
 import static org.junit.Assert.fail;
 
 public abstract class PublicClientApplicationAbstractTest implements IPublicClientApplicationTest {
+
+    protected final String SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache";
 
     protected Context mContext;
     protected Activity mActivity;
@@ -47,7 +50,7 @@ public abstract class PublicClientApplicationAbstractTest implements IPublicClie
     @Before
     public void setup() {
         mContext = ApplicationProvider.getApplicationContext();
-        mActivity = RoboTestUtils.getMockActivity(mContext);
+        mActivity = TestUtils.getMockActivity(mContext);
         setupPCA();
     }
 
@@ -66,7 +69,7 @@ public abstract class PublicClientApplicationAbstractTest implements IPublicClie
             }
         });
 
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
 }

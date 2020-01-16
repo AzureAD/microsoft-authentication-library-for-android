@@ -33,7 +33,6 @@ import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.CacheCountAuthenticationCallback;
-import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
 
 import org.junit.Before;
@@ -46,10 +45,11 @@ import org.robolectric.shadows.ShadowLog;
 
 import java.util.Arrays;
 
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Authorities.AAD_MOCK_AUTHORITY;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Authorities.AAD_MOCK_DELAYED_RESPONSE_AUTHORITY;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Scopes.USER_READ_SCOPE;
+import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
+import static com.microsoft.identity.internal.testutils.TestConstants.Authorities.AAD_MOCK_AUTHORITY;
+import static com.microsoft.identity.internal.testutils.TestConstants.Authorities.AAD_MOCK_DELAYED_RESPONSE_AUTHORITY;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 
 @Ignore
 @RunWith(RobolectricTestRunner.class)
@@ -85,7 +85,7 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireToken(parameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(AcquireTokenTestHelper.getAccount())
@@ -111,7 +111,7 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
         Thread.sleep(500);
         mApplication.acquireTokenSilentAsync(modifiedSilentParameters);
 
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     /**
@@ -131,7 +131,7 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireToken(parameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(AcquireTokenTestHelper.getAccount())
@@ -144,7 +144,7 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
         mApplication.acquireTokenSilentAsync(silentParameters);
         Thread.sleep(200);
         mApplication.acquireTokenSilentAsync(silentParameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     /**
@@ -164,7 +164,7 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireToken(parameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(AcquireTokenTestHelper.getAccount())
@@ -186,7 +186,7 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
         mApplication.acquireTokenSilentAsync(silentParameters);
         mApplication.acquireTokenSilentAsync(silentParameters1);
 
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     /**
@@ -208,7 +208,7 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
         mApplication.acquireToken(parameters);
 
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
 
         for (int i = 0; i < 250; i++) {
 
@@ -241,11 +241,11 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
                 .withCallback(new CacheCountAuthenticationCallback(250))
                 .build();
 
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
 
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     @Override

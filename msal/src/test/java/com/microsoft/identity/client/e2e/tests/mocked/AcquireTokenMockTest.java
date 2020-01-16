@@ -37,12 +37,12 @@ import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultUnsuccessfu
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
-import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
-import com.microsoft.identity.client.e2e.utils.TestConstants;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
-import com.microsoft.identity.internal.testutils.MockTokenResponse;
+import com.microsoft.identity.internal.testutils.TestConstants;
+import com.microsoft.identity.internal.testutils.TestUtils;
+import com.microsoft.identity.internal.testutils.mocks.MockTokenResponse;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -52,7 +52,9 @@ import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
 
-import static com.microsoft.identity.client.e2e.utils.TestConstants.Authorities.AAD_MOCK_AUTHORITY;
+import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
+import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushSchedulerWithDelay;
+import static com.microsoft.identity.internal.testutils.TestConstants.Authorities.AAD_MOCK_AUTHORITY;
 import static org.junit.Assert.fail;
 
 @RunWith(RobolectricTestRunner.class)
@@ -82,7 +84,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireToken(parameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
 
@@ -98,7 +100,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireToken(parameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     @Test
@@ -113,7 +115,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireToken(parameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     @Test(expected = IllegalStateException.class)
@@ -128,7 +130,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireToken(parameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     @Test
@@ -145,7 +147,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireToken(parameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     @Test
@@ -162,7 +164,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireToken(parameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     @Test
@@ -178,7 +180,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireToken(parameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(AcquireTokenTestHelper.getAccount())
@@ -189,7 +191,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     @Test
@@ -205,7 +207,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     @Test
@@ -221,7 +223,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     @Test
@@ -239,13 +241,13 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     @Test
     public void testAcquireTokenSilentFailureEmptyCache() {
         final IAccount account = loadAccountForTest(mApplication);
-        RoboTestUtils.clearCache();
+        TestUtils.clearCache(SHARED_PREFERENCES_NAME);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .withScopes(Arrays.asList(mScopes))
@@ -256,7 +258,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     @Test
@@ -271,7 +273,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     @Test
@@ -293,7 +295,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
-        RoboTestUtils.flushSchedulerWithDelay(500);
+        flushSchedulerWithDelay(500);
     }
 
     @Test
@@ -308,7 +310,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     @Test(expected = IllegalStateException.class)
@@ -323,7 +325,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     abstract IAccount performGetAccount(IPublicClientApplication application, final String loginHint);

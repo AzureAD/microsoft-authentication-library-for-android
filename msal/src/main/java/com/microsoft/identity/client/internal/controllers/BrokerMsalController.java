@@ -38,6 +38,7 @@ import androidx.annotation.WorkerThread;
 import com.google.gson.GsonBuilder;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
+import com.microsoft.identity.common.exception.BrokerCommunicationException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.exception.ServiceException;
@@ -68,8 +69,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * The implementation of MSAL Controller for Broker
@@ -103,7 +102,9 @@ public class BrokerMsalController extends BaseController {
         brokerActivityIntent.putExtra(BrokerActivity.BROKER_INTENT, interactiveRequestIntent);
 
         mBrokerResultFuture = new BrokerResultFuture();
+
         //Start the BrokerActivity
+        // TODO add fragment support to AccountChooserActivity.
         parameters.getActivity().startActivity(brokerActivityIntent);
 
         //Wait to be notified of the result being returned... we could add a timeout here if we want to
@@ -150,11 +151,11 @@ public class BrokerMsalController extends BaseController {
         String getMethodName();
 
         /**
-         * Name of the telemetry API event associated to this strategy task.
+         * ID of the telemetry API event associated to this strategy task.
          * If this value returns null, no telemetry event will be emitted.
          */
         @Nullable
-        String getTelemetryApiName();
+        String getTelemetryApiId();
 
         /**
          * A method that will be invoked before the success event is emitted.
@@ -171,11 +172,11 @@ public class BrokerMsalController extends BaseController {
                                                                        @NonNull final BrokerOperationInfo<T, U> strategyTask)
             throws Exception {
 
-        if (strategyTask.getTelemetryApiName() != null) {
+        if (strategyTask.getTelemetryApiId() != null) {
             Telemetry.emit(
                     new ApiStartEvent()
                             .putProperties(parameters)
-                            .putApiId(strategyTask.getTelemetryApiName())
+                            .putApiId(strategyTask.getTelemetryApiId())
             );
         }
 
@@ -185,38 +186,47 @@ public class BrokerMsalController extends BaseController {
         for (int ii = 0; ii < strategies.size(); ii++) {
             final BrokerBaseStrategy strategy = strategies.get(ii);
             try {
-                if (!strategy.hello(parameters)) {
-                    continue;
-                }
-
-                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                com.microsoft.identity.common.internal.logging.Logger.info(
                         TAG + strategyTask.getMethodName(),
                         "Executing with strategy: "
                                 + strategy.getClass().getSimpleName()
                 );
 
+                strategy.hello(parameters);
                 result = strategyTask.perform(strategy, parameters);
                 if (result != null) {
                     break;
                 }
-            } catch (final Exception exception) {
-                if (ii == (strategies.size() - 1)) {
-                    //throw the exception for the last trying of strategies.
-                    if (strategyTask.getTelemetryApiName() != null) {
-                        Telemetry.emit(
-                                new ApiEndEvent()
-                                        .putException(exception)
-                                        .putApiId(strategyTask.getTelemetryApiName())
-                        );
-                    }
-                    throw exception;
+            } catch (final BrokerCommunicationException exception){
+                // continue
+            } catch (final Exception exception){
+                if (strategyTask.getTelemetryApiId() != null) {
+                    Telemetry.emit(
+                            new ApiEndEvent()
+                                    .putException(exception)
+                                    .putApiId(strategyTask.getTelemetryApiId())
+                    );
                 }
+                throw exception;
             }
         }
 
-        if (strategyTask.getTelemetryApiName() != null) {
+        // This means that we've tried every strategies...
+        if (result == null) {
+            final BrokerCommunicationException exception = new BrokerCommunicationException("MSAL failed to communicate to Broker.");
+            if (strategyTask.getTelemetryApiId() != null) {
+                Telemetry.emit(
+                        new ApiEndEvent()
+                                .putException(exception)
+                                .putApiId(strategyTask.getTelemetryApiId())
+                );
+            }
+            throw exception;
+        }
+
+        if (strategyTask.getTelemetryApiId() != null) {
             final ApiEndEvent successEvent = new ApiEndEvent()
-                    .putApiId(strategyTask.getTelemetryApiName())
+                    .putApiId(strategyTask.getTelemetryApiId())
                     .isApiCallSuccessful(Boolean.TRUE);
             strategyTask.putValueInSuccessEvent(successEvent, result);
             Telemetry.emit(successEvent);
@@ -256,7 +266,7 @@ public class BrokerMsalController extends BaseController {
 
                     @Nullable
                     @Override
-                    public String getTelemetryApiName() {
+                    public String getTelemetryApiId() {
                         return null;
                     }
 
@@ -310,7 +320,7 @@ public class BrokerMsalController extends BaseController {
 
                     @Nullable
                     @Override
-                    public String getTelemetryApiName() {
+                    public String getTelemetryApiId() {
                         return TelemetryEventStrings.Api.BROKER_ACQUIRE_TOKEN_SILENT;
                     }
 
@@ -345,7 +355,7 @@ public class BrokerMsalController extends BaseController {
 
                     @Nullable
                     @Override
-                    public String getTelemetryApiName() {
+                    public String getTelemetryApiId() {
                         return TelemetryEventStrings.Api.BROKER_GET_ACCOUNTS;
                     }
 
@@ -375,7 +385,7 @@ public class BrokerMsalController extends BaseController {
 
                     @Nullable
                     @Override
-                    public String getTelemetryApiName() {
+                    public String getTelemetryApiId() {
                         return TelemetryEventStrings.Api.BROKER_REMOVE_ACCOUNT;
                     }
 
@@ -403,7 +413,7 @@ public class BrokerMsalController extends BaseController {
 
                     @Nullable
                     @Override
-                    public String getTelemetryApiName() {
+                    public String getTelemetryApiId() {
                         return TelemetryEventStrings.Api.GET_BROKER_DEVICE_MODE;
                     }
 
@@ -438,7 +448,7 @@ public class BrokerMsalController extends BaseController {
 
                     @Nullable
                     @Override
-                    public String getTelemetryApiName() {
+                    public String getTelemetryApiId() {
                         return TelemetryEventStrings.Api.BROKER_GET_CURRENT_ACCOUNT;
                     }
 
@@ -484,7 +494,7 @@ public class BrokerMsalController extends BaseController {
 
                     @Nullable
                     @Override
-                    public String getTelemetryApiName() {
+                    public String getTelemetryApiId() {
                         return TelemetryEventStrings.Api.BROKER_REMOVE_ACCOUNT_FROM_SHARED_DEVICE;
                     }
 

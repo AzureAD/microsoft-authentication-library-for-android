@@ -16,9 +16,6 @@
         android:allowBackup="false">
         <uses-library android:name="android.test.runner" />
 
-        <activity
-            android:name="com.microsoft.identity.client.AuthenticationActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize" />
         <activity android:name="com.microsoft.identity.client.TestActivity" />
 
         <activity android:name="com.microsoft.identity.client.BrowserTabActivity">
