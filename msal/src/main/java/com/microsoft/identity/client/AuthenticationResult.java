@@ -32,11 +32,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.microsoft.identity.common.internal.authscheme.PopAuthenticationSchemeInternal.SCHEME_POP;
+
 /**
  * MSAL successful authentication result. When auth succeeds, token will be wrapped into the
  * {@link AuthenticationResult} and passed back through the {@link AuthenticationCallback}.
  */
 public final class AuthenticationResult implements IAuthenticationResult {
+
+    private static final String SCHEME_DELIMITER = " ";
 
     private final String mTenantId;
     private final AccessTokenRecord mAccessToken;
@@ -55,6 +59,10 @@ public final class AuthenticationResult implements IAuthenticationResult {
     @Override
     @NonNull
     public String getAccessToken() {
+        if (mAuthorizationHeader.startsWith(SCHEME_POP + SCHEME_DELIMITER)) {
+            return mAuthorizationHeader.split(SCHEME_DELIMITER)[1];
+        }
+
         return mAccessToken.getSecret();
     }
 
