@@ -61,9 +61,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 
-import static com.microsoft.identity.common.internal.authorities.AllAccounts.ALL_ACCOUNTS_TENANT_ID;
-import static com.microsoft.identity.common.internal.authorities.AnyPersonalAccount.ANY_PERSONAL_ACCOUNT_TENANT_ID;
-import static com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience.ORGANIZATIONS;
 import static com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken.TENANT_ID;
 
 public class OperationParametersAdapter {
@@ -100,7 +97,7 @@ public class OperationParametersAdapter {
 
         acquireTokenOperationParameters.setAuthenticationScheme(
                 AuthenticationSchemeFactory.createScheme(
-                        acquireTokenParameters.getAuthenticationSchemeParameters()
+                        acquireTokenParameters.getAuthenticationScheme()
                 )
         );
 
@@ -217,7 +214,7 @@ public class OperationParametersAdapter {
 
         // Special case only for Intune COBO app, where they use IntuneAcquireTokenParameters (an internal class)
         // to set browser support in broker to share SSO from System WebView login.
-        if(acquireTokenParameters instanceof IntuneAcquireTokenParameters){
+        if (acquireTokenParameters instanceof IntuneAcquireTokenParameters) {
             boolean brokerBrowserEnabled = ((IntuneAcquireTokenParameters) acquireTokenParameters)
                     .isBrokerBrowserSupportEnabled();
             Logger.info(TAG + methodName,
@@ -314,7 +311,7 @@ public class OperationParametersAdapter {
         atsOperationParams.setAccount(acquireTokenSilentParameters.getAccountRecord());
         atsOperationParams.setAuthenticationScheme(
                 AuthenticationSchemeFactory.createScheme(
-                        acquireTokenSilentParameters.getAuthenticationSchemeParameters()
+                        acquireTokenSilentParameters.getAuthenticationScheme()
                 )
         );
 
@@ -373,7 +370,6 @@ public class OperationParametersAdapter {
 
         return isAccountHomeTenant;
     }
-
 
 
     private static Authority getRequestAuthority(

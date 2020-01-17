@@ -20,19 +20,14 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
 package com.microsoft.identity.client;
 
 import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
-import com.microsoft.identity.common.internal.authscheme.AuthenticationSchemeParameters;
-import com.microsoft.identity.common.internal.authscheme.BearerSchemeParameters;
-import com.microsoft.identity.common.internal.authscheme.ProofOfPossessionParameters;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,7 +41,7 @@ public abstract class TokenParameters {
     private String mAuthority;
     private ClaimsRequest mClaimsRequest;
     private AccountRecord mAccountRecord;
-    private AuthenticationSchemeParameters mAuthSchemeParams;
+    private AuthenticationScheme mAuthenticationScheme;
 
     protected TokenParameters(@NonNull final TokenParameters.Builder builder) {
         mAccount = builder.mAccount;
@@ -56,22 +51,22 @@ public abstract class TokenParameters {
 
         // In the future, if more scheme are added, some conditional logic will need to be
         // introduced here.
-        if (null != builder.mProofOfPossessionParameters) {
-            mAuthSchemeParams = builder.mProofOfPossessionParameters;
+        if (null != builder.mAuthenticationScheme) {
+            mAuthenticationScheme = builder.mAuthenticationScheme;
         } else {
             // Fall back to Bearer
-            mAuthSchemeParams = new BearerSchemeParameters();
+            mAuthenticationScheme = new BearerAuthenticationScheme();
         }
     }
 
     /**
-     * Gets the ProofOfPossessionParameters.
+     * Gets the {@link AuthenticationScheme}.
      *
-     * @return The ProofOfPossessionParameters to get.
+     * @return The AuthenticationScheme to get.
      */
     @NonNull
-    public AuthenticationSchemeParameters getAuthenticationSchemeParameters() {
-        return mAuthSchemeParams;
+    public AuthenticationScheme getAuthenticationScheme() {
+        return mAuthenticationScheme;
     }
 
     /**
@@ -161,10 +156,10 @@ public abstract class TokenParameters {
         private IAccount mAccount;
         private String mAuthority;
         private ClaimsRequest mClaimsRequest;
-        private ProofOfPossessionParameters mProofOfPossessionParameters;
+        private AuthenticationScheme mAuthenticationScheme;
 
-        public B withProofOfPossession(@NonNull final URL url, @NonNull final HttpMethod method) {
-            mProofOfPossessionParameters = new ProofOfPossessionParameters(url, method.name());
+        public B withAuthenticationScheme(@NonNull final AuthenticationScheme scheme) {
+            mAuthenticationScheme = scheme;
             return self();
         }
 
