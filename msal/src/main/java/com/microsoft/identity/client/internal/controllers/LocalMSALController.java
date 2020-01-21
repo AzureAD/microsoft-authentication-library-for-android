@@ -117,7 +117,6 @@ public class LocalMSALController extends BaseController {
         // Build up params for Strategy construction
         final OAuth2StrategyParameters strategyOptions = new OAuth2StrategyParameters();
         strategyOptions.setContext(parameters.getAppContext());
-        strategyOptions.setAuthenticationScheme(parameters.getAuthenticationScheme());
 
         //1) Get oAuth2Strategy for Authority Type
         final OAuth2Strategy oAuth2Strategy = parameters
@@ -160,7 +159,10 @@ public class LocalMSALController extends BaseController {
                                 newestRecord,
                                 records,
                                 SdkType.MSAL,
-                                oAuth2Strategy.getAuthorizationHeader(tokenResult.getTokenResponse())
+                                oAuth2Strategy.getAuthorizationHeader(
+                                        parameters.getAuthenticationScheme(),
+                                        tokenResult.getTokenResponse()
+                                )
                         )
                 );
             }
@@ -254,7 +256,6 @@ public class LocalMSALController extends BaseController {
         final AbstractAuthenticationScheme authScheme = parameters.getAuthenticationScheme();
         final OAuth2StrategyParameters strategyOptions = new OAuth2StrategyParameters();
         strategyOptions.setContext(parameters.getAppContext());
-        strategyOptions.setAuthenticationScheme(authScheme);
 
         final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy(strategyOptions);
 
@@ -275,7 +276,7 @@ public class LocalMSALController extends BaseController {
                 || refreshTokenIsNull(fullCacheRecord)
                 || parameters.getForceRefresh()
                 || !isRequestAuthorityRealmSameAsATRealm(parameters.getAuthority(), fullCacheRecord.getAccessToken())
-                || !strategy.validateCachedResult(fullCacheRecord)) {
+                || !strategy.validateCachedResult(authScheme, fullCacheRecord)) {
             if (!refreshTokenIsNull(fullCacheRecord)) {
                 // No AT found, but the RT checks out, so we'll use it
                 Logger.verbose(
@@ -337,9 +338,11 @@ public class LocalMSALController extends BaseController {
                             fullCacheRecord,
                             cacheRecords,
                             SdkType.MSAL,
-                            strategy.getAuthorizationHeader(new TokenResponse() {{
-                                setAccessToken(fullCacheRecord.getAccessToken().getSecret());
-                            }}) // TODO this is a workaround
+                            strategy.getAuthorizationHeader(
+                                    parameters.getAuthenticationScheme(),
+                                    new TokenResponse() {{
+                                        setAccessToken(fullCacheRecord.getAccessToken().getSecret());
+                                    }}) // TODO this is a workaround
                     )
             );
         }
