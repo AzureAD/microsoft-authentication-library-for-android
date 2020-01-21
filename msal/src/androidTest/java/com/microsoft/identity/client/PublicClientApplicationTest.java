@@ -76,7 +76,7 @@ public final class PublicClientApplicationTest {
     private Context mAppContext;
     private static final String CLIENT_ID = "client-id";
     private static final String[] SCOPE = {"scope1", "scope2"};
-    public static final String TEST_AUTHORITY = "msauth://com.microsoft.identity.client.sample.local/signature";
+    public static final String TEST_REDIRECT_URI = "msauth://com.microsoft.identity.client.sample.local/signature";
 
     @Before
     public void setUp() {
@@ -225,8 +225,9 @@ public final class PublicClientApplicationTest {
         mockPackageManagerWithDefaultFlag(context);
 
         final PublicClientApplicationConfiguration config = PublicClientApplicationConfigurationFactory.initializeConfiguration(context);
-        config.mRedirectUri = TEST_AUTHORITY;
-        final PublicClientApplication application = new PublicClientApplication(config, CLIENT_ID, null);
+        config.setRedirectUri(TEST_REDIRECT_URI);
+        config.setClientId(CLIENT_ID);
+        final PublicClientApplication application = new PublicClientApplication(config);
         application.acquireToken(getActivity(context), SCOPE, null);
     }
 
@@ -242,10 +243,10 @@ public final class PublicClientApplicationTest {
                 Mockito.refEq(mAppContext.getPackageName()))).thenReturn(PackageManager.PERMISSION_DENIED);
 
         PublicClientApplicationConfiguration config = PublicClientApplicationConfigurationFactory.initializeConfiguration(context);
-        config.mTelemetryConfiguration = null;
-        config.mRedirectUri = TEST_AUTHORITY;
+        config.setRedirectUri(TEST_REDIRECT_URI);
+        config.setClientId(CLIENT_ID);
 
-        new PublicClientApplication(config, CLIENT_ID, null);
+        new PublicClientApplication(config);
     }
 
     @Test
@@ -307,8 +308,9 @@ public final class PublicClientApplicationTest {
         mockPackageManagerWithDefaultFlag(context);
 
         final PublicClientApplicationConfiguration config = PublicClientApplicationConfigurationFactory.initializeConfiguration(context);
-        config.mRedirectUri = TEST_AUTHORITY;
-        final PublicClientApplication pca = new PublicClientApplication(config, CLIENT_ID, null);
+        config.setRedirectUri(TEST_REDIRECT_URI);
+        config.setClientId(CLIENT_ID);
+        final PublicClientApplication pca = new PublicClientApplication(config);
         final PublicClientApplicationConfiguration appConfig = pca.getConfiguration();
 
         SecretKeyFactory keyFactory = SecretKeyFactory
