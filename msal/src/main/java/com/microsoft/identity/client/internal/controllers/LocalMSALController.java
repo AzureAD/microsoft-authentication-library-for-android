@@ -43,7 +43,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResu
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStatus;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2StrategyOptions;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2StrategyParameters;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
@@ -115,7 +115,7 @@ public class LocalMSALController extends BaseController {
         }
 
         // Build up params for Strategy construction
-        final OAuth2StrategyOptions strategyOptions = new OAuth2StrategyOptions();
+        final OAuth2StrategyParameters strategyOptions = new OAuth2StrategyParameters();
         strategyOptions.setContext(parameters.getAppContext());
         strategyOptions.setAuthenticationScheme(parameters.getAuthenticationScheme());
 
@@ -252,7 +252,7 @@ public class LocalMSALController extends BaseController {
 
         // Build up params for Strategy construction
         final AbstractAuthenticationScheme authScheme = parameters.getAuthenticationScheme();
-        final OAuth2StrategyOptions strategyOptions = new OAuth2StrategyOptions();
+        final OAuth2StrategyParameters strategyOptions = new OAuth2StrategyParameters();
         strategyOptions.setContext(parameters.getAppContext());
         strategyOptions.setAuthenticationScheme(authScheme);
 
