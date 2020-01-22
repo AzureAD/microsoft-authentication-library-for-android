@@ -159,7 +159,6 @@ public class LocalMSALController extends BaseController {
                                 newestRecord,
                                 records,
                                 SdkType.MSAL,
-                                parameters.getAuthenticationScheme().getName(),
                                 oAuth2Strategy.getAuthorizationHeader(
                                         parameters.getAuthenticationScheme(),
                                         tokenResult.getTokenResponse()
@@ -339,7 +338,6 @@ public class LocalMSALController extends BaseController {
                             fullCacheRecord,
                             cacheRecords,
                             SdkType.MSAL,
-                            parameters.getAuthenticationScheme().getName(),
                             strategy.getAuthorizationHeader(
                                     parameters.getAuthenticationScheme(),
                                     new TokenResponse() {{
