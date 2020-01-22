@@ -36,7 +36,6 @@ import androidx.annotation.WorkerThread;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.BrokerCommunicationException;
-import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
@@ -107,7 +106,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                             .putErrorCode(ErrorStrings.IO_ERROR)
                             .putErrorDescription(e.getMessage()));
 
-            throw new BrokerCommunicationException("Failed to connect to AccountManager");
+            throw new BrokerCommunicationException("Failed to connect to AccountManager", e);
         } catch (final BaseException e) {
             Logger.error(TAG + methodName, e.getMessage(), e);
             Telemetry.emit(
@@ -135,7 +134,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
             throws BaseException {
 
         if (!BrokerMsalController.isAccountManagerPermissionsGranted(parameters.getAppContext())) {
-            throw new BrokerCommunicationException("Account manager permissions are not granted");
+            throw new BrokerCommunicationException("Account manager permissions are not granted", null);
         }
 
         invokeBrokerAccountManagerOperation(parameters, new OperationInfo<OperationParameters, Void>() {

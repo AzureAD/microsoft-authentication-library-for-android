@@ -133,7 +133,7 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                             .putErrorCode(ErrorStrings.IO_ERROR)
                             .putErrorDescription(e.getMessage()));
 
-            throw new BrokerCommunicationException(errorDescription);
+            throw new BrokerCommunicationException(errorDescription, e);
         } catch (final BaseException e) {
             Logger.error(TAG + methodName, e.getMessage(), e);
             Telemetry.emit(
@@ -142,7 +142,6 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                             .isSuccessful(false)
                             .putErrorCode(e.getErrorCode())
                             .putErrorDescription(e.getMessage()));
-
             throw e;
         } finally {
             client.disconnect();
