@@ -22,9 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
-
 import androidx.annotation.NonNull;
+
+import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 
 /**
  * Class to adapt between AcquireTokenSilentParameters and AcquireTokenParameters.
