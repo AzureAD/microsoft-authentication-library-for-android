@@ -56,7 +56,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
 
     public interface OperationInfo<T extends OperationParameters, U> {
         /**
-         * Performs this account manager operation in this method with the given IMicrosoftAuthService.
+         * Performs this AccountManager operation in this method with the given IMicrosoftAuthService.
          */
         Bundle getRequestBundle(T parameters);
 
@@ -134,7 +134,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
             throws BaseException {
 
         if (!BrokerMsalController.isAccountManagerPermissionsGranted(parameters.getAppContext())) {
-            throw new BrokerCommunicationException("Account manager permissions are not granted", null);
+            throw new BrokerCommunicationException("AccountManager permissions are not granted", null);
         }
 
         invokeBrokerAccountManagerOperation(parameters, new OperationInfo<OperationParameters, Void>() {
@@ -168,7 +168,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     @WorkerThread
     Intent getBrokerAuthorizationIntent(@NonNull final AcquireTokenOperationParameters parameters) throws BaseException {
         final String methodName = ":getBrokerAuthorizationIntent";
-        Logger.verbose(TAG + methodName, "Get the broker authorization intent from Account Manager.");
+        Logger.verbose(TAG + methodName, "Get the broker authorization intent from AccountManager.");
 
         return invokeBrokerAccountManagerOperation(parameters,
                 new OperationInfo<AcquireTokenOperationParameters, Intent>() {
