@@ -77,6 +77,14 @@ import com.microsoft.identity.common.internal.providers.oauth2.OpenIdProviderCon
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.OperationParameters;
+import com.microsoft.identity.common.internal.request.generated.CommandParameters;
+import com.microsoft.identity.common.internal.request.generated.GetCurrentAccountCommandContext;
+import com.microsoft.identity.common.internal.request.generated.GetDeviceModeCommandContext;
+import com.microsoft.identity.common.internal.request.generated.GetDeviceModeCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandContext;
+import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.SilentTokenCommandContext;
+import com.microsoft.identity.common.internal.request.generated.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 import com.microsoft.identity.msal.BuildConfig;
@@ -866,44 +874,61 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             return;
         }
 
-        final GetDeviceModeCommand command = new GetDeviceModeCommand(
-                params,
-                controller,
-                new CommandCallback<Boolean, BaseException>() {
-                    @Override
-                    public void onError(BaseException error) {
-                        listener.onError(MsalExceptionAdapter.msalExceptionFromBaseException(error));
-                    }
+        GetDeviceModeCommandParameters commandParameters = GetDeviceModeCommandParameters.builder()
+                .setClientId(params.getClientId())
+                .setRedirectUri(params.getRedirectUri())
+                .build();
 
-                    @Override
-                    public void onTaskCompleted(Boolean isSharedDevice) {
-                        config.setIsSharedDevice(isSharedDevice);
+        final GetDeviceModeCommandContext commandContext = GetDeviceModeCommandContext.builder()
+                .setAndroidApplicationContext(params.getAppContext())
+                .setApplicationName(params.getApplicationName())
+                .setApplicationVersion(params.getApplicationVersion())
+                .setCorrelationId(params.getCorrelationId())
+                .setRequiredBrokerProtocolVersion(params.getRequiredBrokerProtocolVersion())
+                .setSdkType(params.getSdkType())
+                .setSdkVersion(params.getSdkVersion())
+                .build();
 
-                        if (config.getAccountMode() == AccountMode.SINGLE || isSharedDevice) {
-                            listener.onCreated(
-                                    new SingleAccountPublicClientApplication(
-                                            config,
-                                            clientId,
-                                            authority
-                                    )
-                            );
-                        } else {
-                            listener.onCreated(
-                                    new MultipleAccountPublicClientApplication(
-                                            config,
-                                            clientId,
-                                            authority
-                                    )
-                            );
-                        }
-                    }
+        final CommandCallback callback = new CommandCallback<Boolean, BaseException>() {
+            @Override
+            public void onError(BaseException error) {
+                listener.onError(MsalExceptionAdapter.msalExceptionFromBaseException(error));
+            }
 
-                    @Override
-                    public void onCancel() {
-                        // Should not be reached.
-                    }
+            @Override
+            public void onTaskCompleted(Boolean isSharedDevice) {
+                config.setIsSharedDevice(isSharedDevice);
+
+                if (config.getAccountMode() == AccountMode.SINGLE || isSharedDevice) {
+                    listener.onCreated(
+                            new SingleAccountPublicClientApplication(
+                                    config,
+                                    clientId,
+                                    authority
+                            )
+                    );
+                } else {
+                    listener.onCreated(
+                            new MultipleAccountPublicClientApplication(
+                                    config,
+                                    clientId,
+                                    authority
+                            )
+                    );
                 }
-        );
+            }
+
+            @Override
+            public void onCancel() {
+                // Should not be reached.
+            }
+        };
+
+        final GetDeviceModeCommand command = new GetDeviceModeCommand(
+                commandContext,
+                commandParameters,
+                controller,
+                callback);
 
         CommandDispatcher.submitSilent(command);
     }
@@ -1336,16 +1361,40 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                     mPublicClientConfiguration.getOAuth2TokenCache()
                             );
 
+                    final InteractiveTokenCommandParameters commandParameters = InteractiveTokenCommandParameters.builder()
+                            .setAuthority(params.getAuthority())
+                            .setClaimsRequestJson(params.getClaimsRequestJson())
+                            .setClientId(params.getClientId())
+                            .setRedirectUri(params.getRedirectUri())
+                            .setScopes(params.getScopes())
+                            .setAccountRecord(params.getAccount())
+                            .setAuthorizationAgent(params.getAuthorizationAgent())
+                            .setExtraQueryStringParameters(params.getExtraQueryStringParameters())
+                            .setExtraScopesToConsent(params.getExtraScopesToConsent())
+                            .setPrompt(params.getOpenIdConnectPromptParameter())
+                            .setRequestHeaders(params.getRequestHeaders())
+                            .build();
 
-                    final InteractiveTokenCommand command = new InteractiveTokenCommand(
-                            params,
-                            MSALControllerFactory.getDefaultController(
-                                    mPublicClientConfiguration.getAppContext(),
-                                    params.getAuthority(),
-                                    mPublicClientConfiguration
-                            ),
-                            localAuthenticationCallback
+                    final InteractiveTokenCommandContext commandContext = InteractiveTokenCommandContext.builder()
+                            .setAndroidApplicationContext(params.getAppContext())
+                            .setApplicationName(params.getApplicationName())
+                            .setApplicationVersion(params.getApplicationVersion())
+                            .setCorrelationId(params.getCorrelationId())
+                            .setOAuth2TokenCache(params.getTokenCache())
+                            .setRequiredBrokerProtocolVersion(params.getRequiredBrokerProtocolVersion())
+                            .setSdkType(params.getSdkType())
+                            .setSdkVersion(params.getSdkVersion())
+                            .setActivity(params.getActivity())
+                            .setBrowserSafeList(params.getBrowserSafeList())
+                            .build();
+
+                    BaseController controller = MSALControllerFactory.getDefaultController(
+                            mPublicClientConfiguration.getAppContext(),
+                            params.getAuthority(),
+                            mPublicClientConfiguration
                     );
+
+                    final InteractiveTokenCommand command = new InteractiveTokenCommand(commandContext, commandParameters, controller, localAuthenticationCallback);
 
                     command.setPublicApiId(publicApiId);
                     CommandDispatcher.beginInteractive(command);
@@ -1422,21 +1471,37 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             );
 
 
-                    /*
-                    final SilentTokenCommand silentTokenCommand = new SilentTokenCommand(
-                            params,
-                            MSALControllerFactory.getAllControllers(
-                                    mPublicClientConfiguration.getAppContext(),
-                                    params.getAuthority(),
-                                    mPublicClientConfiguration
-                            ),
-                            callback
+                    final SilentTokenCommandParameters commandParameters = SilentTokenCommandParameters.builder()
+                            .setAccount(params.getAccount())
+                            .setAuthority(params.getAuthority())
+                            .setClaimsRequestJson(params.getClaimsRequestJson())
+                            .setClientId(params.getClientId())
+                            .setForceRefresh(params.getForceRefresh())
+                            .setScopes(params.getScopes())
+                            .setRedirectUri(params.getRedirectUri())
+                            .build();
+
+                    final SilentTokenCommandContext commandContext = SilentTokenCommandContext.builder()
+                            .setAndroidApplicationContext(params.getAppContext())
+                            .setApplicationName(params.getApplicationName())
+                            .setApplicationVersion(params.getApplicationVersion())
+                            .setCorrelationId(params.getCorrelationId())
+                            .setOAuth2TokenCache(params.getTokenCache())
+                            .setRequiredBrokerProtocolVersion(params.getRequiredBrokerProtocolVersion())
+                            .setSdkType(params.getSdkType())
+                            .setSdkVersion(params.getSdkVersion())
+                            .build();
+
+                    List<BaseController> controllers = MSALControllerFactory.getAllControllers(
+                            mPublicClientConfiguration.getAppContext(),
+                            params.getAuthority(),
+                            mPublicClientConfiguration
                     );
 
-                     */
+                    final SilentTokenCommand command = new SilentTokenCommand(commandContext, commandParameters, controllers, callback);
 
-                    silentTokenCommand.setPublicApiId(publicApiId);
-                    CommandDispatcher.submitSilent(silentTokenCommand);
+                    command.setPublicApiId(publicApiId);
+                    CommandDispatcher.submitSilent(command);
                 } catch (final Exception exception) {
                     // convert exception to BaseException
                     final BaseException baseException = ExceptionAdapter.baseExceptionFromException(exception);

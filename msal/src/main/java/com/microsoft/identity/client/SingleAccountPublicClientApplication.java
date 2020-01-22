@@ -42,11 +42,15 @@ import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.controllers.CommandCallback;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
+import com.microsoft.identity.common.internal.controllers.GetCurrentAccountCommand;
+import com.microsoft.identity.common.internal.controllers.RemoveAccountCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
-import com.microsoft.identity.common.internal.controllers.GetCurrentAccountCommand;
-import com.microsoft.identity.common.internal.controllers.RemoveCurrentAccountCommand;
 import com.microsoft.identity.common.internal.request.OperationParameters;
+import com.microsoft.identity.common.internal.request.generated.GetCurrentAccountCommandContext;
+import com.microsoft.identity.common.internal.request.generated.GetCurrentAccountCommandParameters;
+import com.microsoft.identity.common.internal.request.generated.RemoveAccountCommandContext;
+import com.microsoft.identity.common.internal.request.generated.RemoveAccountCommandParameters;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 import com.microsoft.identity.common.internal.result.ResultFuture;
@@ -109,28 +113,49 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             return;
         }
 
+        final GetCurrentAccountCommandParameters commandParameters = GetCurrentAccountCommandParameters.builder()
+                .setClientId(params.getClientId())
+                .setRedirectUri(params.getRedirectUri())
+                .build();
+
+        final GetCurrentAccountCommandContext commandContext = GetCurrentAccountCommandContext.builder()
+                .setAndroidApplicationContext(params.getAppContext())
+                .setApplicationName(params.getApplicationName())
+                .setApplicationVersion(params.getApplicationVersion())
+                .setCorrelationId(params.getCorrelationId())
+                .setRequiredBrokerProtocolVersion(params.getRequiredBrokerProtocolVersion())
+                .setSdkType(params.getSdkType())
+                .setSdkVersion(params.getSdkVersion())
+                .setTokenCache(params.getTokenCache())
+                .setIsSharedDevice(params.getIsSharedDevice())
+                .build();
+
+        final CommandCallback commandCallback = new CommandCallback<List<ICacheRecord>, BaseException>() {
+            @Override
+            public void onTaskCompleted(final List<ICacheRecord> result) {
+                // To simplify the logic, if more than one account is returned, the first account will be picked.
+                // We do not support switching from MULTIPLE to SINGLE.
+                // See getAccountFromICacheRecordList() for more details.
+                checkCurrentAccountNotifyCallback(callback, result);
+            }
+
+            @Override
+            public void onError(final BaseException exception) {
+                callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
+            }
+
+            @Override
+            public void onCancel() {
+                //Do nothing
+            }
+        };
+
         final GetCurrentAccountCommand command = new GetCurrentAccountCommand(
-                params,
+                commandContext,
+                commandParameters,
                 controller,
-                new CommandCallback<List<ICacheRecord>, BaseException>() {
-                    @Override
-                    public void onTaskCompleted(final List<ICacheRecord> result) {
-                        // To simplify the logic, if more than one account is returned, the first account will be picked.
-                        // We do not support switching from MULTIPLE to SINGLE.
-                        // See getAccountFromICacheRecordList() for more details.
-                        checkCurrentAccountNotifyCallback(callback, result);
-                    }
-
-                    @Override
-                    public void onError(final BaseException exception) {
-                        callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
-                    }
-
-                    @Override
-                    public void onCancel() {
-                        //Do nothing
-                    }
-                });
+                commandCallback
+        );
 
         command.setPublicApiId(publicApiId);
         CommandDispatcher.submitSilent(command);
@@ -300,26 +325,46 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             return;
         }
 
-        final RemoveCurrentAccountCommand command = new RemoveCurrentAccountCommand(
-                params,
+        final RemoveAccountCommandParameters commandParameters = RemoveAccountCommandParameters.builder()
+                .setClientId(params.getClientId())
+                .setRedirectUri(params.getRedirectUri())
+                .setAccountRecord(requestAccountRecord)
+                .build();
+
+        final RemoveAccountCommandContext commandContext = RemoveAccountCommandContext.builder()
+                .setAndroidApplicationContext(params.getAppContext())
+                .setApplicationName(params.getApplicationName())
+                .setApplicationVersion(params.getApplicationVersion())
+                .setCorrelationId(params.getCorrelationId())
+                .setOAuth2TokenCache(params.getTokenCache())
+                .setRequiredBrokerProtocolVersion(params.getRequiredBrokerProtocolVersion())
+                .setSdkType(params.getSdkType())
+                .setSdkVersion(params.getSdkVersion())
+                .build();
+
+        final CommandCallback commandCallback = new CommandCallback<Boolean, BaseException>() {
+            @Override
+            public void onError(BaseException error) {
+                callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(error));
+            }
+
+            @Override
+            public void onTaskCompleted(Boolean result) {
+                persistCurrentAccount(null);
+                callback.onSignOut();
+            }
+
+            @Override
+            public void onCancel() {
+                //Do nothing
+            }
+        };
+
+        final RemoveAccountCommand command = new RemoveAccountCommand(
+                commandContext,
+                commandParameters,
                 controller,
-                new CommandCallback<Boolean, BaseException>() {
-                    @Override
-                    public void onError(BaseException error) {
-                        callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(error));
-                    }
-
-                    @Override
-                    public void onTaskCompleted(Boolean result) {
-                        persistCurrentAccount(null);
-                        callback.onSignOut();
-                    }
-
-                    @Override
-                    public void onCancel() {
-                        //Do nothing
-                    }
-                }
+                commandCallback
         );
 
         command.setPublicApiId(publicApiId);
