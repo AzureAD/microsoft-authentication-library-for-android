@@ -46,6 +46,14 @@ public interface IAuthenticationResult {
     String getAuthorizationHeader();
 
     /**
+     * Gets the authentication scheme (Bearer, PoP, etc)....
+     *
+     * @return The authentication scheme name.
+     */
+    @NonNull
+    String getAuthenticationScheme();
+
+    /**
      * @return The expiration time of the access token returned in the Token property.
      * This value is calculated based on current UTC time measured locally and the value expiresIn returned from the
      * service.

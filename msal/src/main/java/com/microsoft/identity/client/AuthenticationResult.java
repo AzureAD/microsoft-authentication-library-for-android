@@ -45,14 +45,17 @@ public final class AuthenticationResult implements IAuthenticationResult {
     private final String mTenantId;
     private final AccessTokenRecord mAccessToken;
     private final IAccount mAccount;
+    private final String mAuthenticationSchemeName;
     private final String mAuthorizationHeader;
 
     AuthenticationResult(@NonNull final List<ICacheRecord> cacheRecords,
+                         @NonNull final String authSchemeName,
                          @NonNull final String authHeader) {
         final ICacheRecord mostRecentlyAuthorized = cacheRecords.get(0);
         mAccessToken = mostRecentlyAuthorized.getAccessToken();
         mTenantId = mostRecentlyAuthorized.getAccount().getRealm();
         mAccount = AccountAdapter.adapt(cacheRecords).get(0);
+        mAuthenticationSchemeName = authSchemeName;
         mAuthorizationHeader = authHeader;
     }
 
@@ -70,6 +73,12 @@ public final class AuthenticationResult implements IAuthenticationResult {
     @Override
     public String getAuthorizationHeader() {
         return mAuthorizationHeader;
+    }
+
+    @NonNull
+    @Override
+    public String getAuthenticationScheme() {
+        return mAuthenticationSchemeName;
     }
 
     @Override
