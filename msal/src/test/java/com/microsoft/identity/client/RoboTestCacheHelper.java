@@ -51,7 +51,6 @@ public class RoboTestCacheHelper {
         );
         final OAuth2StrategyParameters strategyOptions = new OAuth2StrategyParameters();
         strategyOptions.setContext(application.getConfiguration().getAppContext());
-        strategyOptions.setAuthenticationScheme(new BearerAuthenticationSchemeInternal());
         final OAuth2Strategy strategy = authority.createOAuth2Strategy(strategyOptions);
         final MicrosoftStsAuthorizationRequest mockAuthRequest = Mockito.mock(MicrosoftStsAuthorizationRequest.class);
         Mockito.when(mockAuthRequest.getAuthority()).thenReturn(authority.getAuthorityURL());
