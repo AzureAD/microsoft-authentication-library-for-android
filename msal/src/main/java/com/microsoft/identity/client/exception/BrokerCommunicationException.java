@@ -20,24 +20,24 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client;
 
-import androidx.annotation.NonNull;
+package com.microsoft.identity.client.exception;
 
-import java.io.Serializable;
+import com.microsoft.identity.common.exception.BaseException;
+import com.microsoft.identity.common.exception.ErrorStrings;
 
-public interface IAccount extends Serializable, IClaimable {
+/**
+ * An exception that represents an error where MSAL cannot reach Broker (i.e. through Bind Service or AccountManager).
+ */
+public class BrokerCommunicationException extends BaseException {
 
     /**
-     * Gets the id of the account.
-     * <p>
-     * For the Microsoft Identity Platform: the OID of the account in its home tenant.
+     * Initiates the {@link com.microsoft.identity.common.exception.BrokerCommunicationException} with error message and throwable.
      *
-     * @return The id.
+     * @param errorMessage The error message contained in the exception.
+     * @param throwable    The {@link Throwable} contains the cause for the exception.
      */
-    @NonNull
-    String getId();
-
-    @NonNull
-    String getAuthority();
+    public BrokerCommunicationException(final String errorMessage, final Throwable throwable) {
+        super(ErrorStrings.IO_ERROR, errorMessage, throwable);
+    }
 }

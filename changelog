@@ -1,5 +1,41 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 1.2.0
+------------
+- API change
+    * Replaced the following PublicClientApplication#create methods.
+        - create(context, clientId, listener)
+        - create(context, clientId, authority, listener)
+      with 
+        - create(context, clientId, authority, redirectUri, listener)
+- Fixed issue #850, #890.
+- Fixed issue #770 in common.
+- Return AndroidManifest config error in onError() instead of throwing a runtime exception.
+- Added Fragment support in WebView flow.
+
+Version 1.1.0-hf1
+------------
+- Fix issue #882.
+
+Version 1.1.0
+----------------------------
+- Expose id_token (raw) via IAccount/ITenantProfile from AuthenticationResult (#850).
+
+Version 1.0.1
+----------------------------
+- Fix issue  #785, #786, #805, #806, #807, #816, #828, #855, #859
+- Fixed multiple cloud support in MSAL with Broker.
+- Added support for client capabilities to config.
+- Added Server Side Telemetry to MSAL.
+- Added authority to account object.
+- Added support to silently acquire token for a another tenant for an already authorized user for different tenant.
+- Added Broker BrowserSupport for COBO.
+- Enabled MSAL-Broker communication via AccountManager.
+
+Version 1.0.0-hf1
+----------------------------
+- Logging fixes in common.
+
 Version 1.0.0
 ----------------------------
 - MSAL Android is now generally available with MSAL 1.0

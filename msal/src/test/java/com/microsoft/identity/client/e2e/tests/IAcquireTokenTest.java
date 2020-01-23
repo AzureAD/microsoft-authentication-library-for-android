@@ -26,4 +26,6 @@ public interface IAcquireTokenTest {
 
     String[] getScopes();
 
+    String getAuthority();
+
 }

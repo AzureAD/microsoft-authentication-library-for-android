@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.inspector;
 
+import android.accounts.AccountManager;
+import android.accounts.AuthenticatorDescription;
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.pm.ApplicationInfo;
@@ -44,13 +46,17 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
     private ListView mListView;
     private PackageManager mPackageManager;
     private List<ApplicationInfo> mApplications;
+
+    private Map<String, String> mPkgAuthenticators = new HashMap<>();
 
     @Override
     @SuppressLint("PackageManagerGetSignatures")
@@ -60,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
         mListView = findViewById(R.id.lv_apps);
 
         mPackageManager = getPackageManager();
+        populateAuthenticatorsLookup(AccountManager.get(this));
         mApplications = mPackageManager.getInstalledApplications(PackageManager.GET_META_DATA);
         Collections.sort(mApplications, new Comparator<ApplicationInfo>() {
             @Override
@@ -72,7 +79,13 @@ public class MainActivity extends AppCompatActivity {
         final List<String> packageNames = new ArrayList<>(mApplications.size());
 
         for (final ApplicationInfo applicationInfo : mApplications) {
-            packageNames.add(applicationInfo.packageName);
+            String packageDisplayName = applicationInfo.packageName;
+
+            if (isAnAuthenticatorApp(applicationInfo.packageName)) {
+                packageDisplayName = packageDisplayName + "**";
+            }
+
+            packageNames.add(packageDisplayName);
         }
 
         final ArrayAdapter<String> appAdapter = new ArrayAdapter<>(
@@ -103,9 +116,15 @@ public class MainActivity extends AppCompatActivity {
                         packageSigningSha = Base64.encodeToString(digest.digest(), Base64.NO_WRAP);
                     }
 
+                    String msg = "Certificate hash:\n" + packageSigningSha;
+
+                    if (isAnAuthenticatorApp(clickedAppInfo.packageName)) {
+                        msg += "\n\n" + getAuthenticatorAppMetadata(clickedAppInfo.packageName);
+                    }
+
                     new AlertDialog.Builder(MainActivity.this)
                             .setTitle(clickedAppInfo.packageName)
-                            .setMessage("Certificate hash:\n" + packageSigningSha)
+                            .setMessage(msg)
                             .setPositiveButton(
                                     MainActivity.this.getString(R.string.dismiss),
                                     new DialogInterface.OnClickListener() {
@@ -120,5 +139,23 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void populateAuthenticatorsLookup(@NonNull final AccountManager accountManager) {
+        final AuthenticatorDescription[] authenticatorDescriptions = accountManager.getAuthenticatorTypes();
+
+        for (final AuthenticatorDescription description : authenticatorDescriptions) {
+            mPkgAuthenticators.put(description.packageName, description.type);
+        }
+    }
+
+    private String getAuthenticatorAppMetadata(@NonNull final String pkgName) {
+        return "App has account type affinity: "
+                + "\n"
+                + mPkgAuthenticators.get(pkgName);
+    }
+
+    private boolean isAnAuthenticatorApp(@NonNull final String pkgName) {
+        return mPkgAuthenticators.containsKey(pkgName);
     }
 }

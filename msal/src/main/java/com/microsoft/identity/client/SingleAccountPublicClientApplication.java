@@ -28,6 +28,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
+import androidx.fragment.app.Fragment;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
@@ -36,6 +37,7 @@ import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.adal.internal.util.JsonExtensions;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
@@ -52,7 +54,6 @@ import com.microsoft.identity.common.internal.request.generated.GetCurrentAccoun
 import com.microsoft.identity.common.internal.request.generated.RemoveAccountCommandContext;
 import com.microsoft.identity.common.internal.request.generated.RemoveAccountCommandParameters;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
-import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 
 import java.util.List;
@@ -77,10 +78,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     private SharedPreferencesFileManager sharedPreferencesFileManager;
 
-    protected SingleAccountPublicClientApplication(@NonNull PublicClientApplicationConfiguration config,
-                                                   @Nullable final String clientId,
-                                                   @Nullable final String authority) {
-        super(config, clientId, authority);
+    protected SingleAccountPublicClientApplication(@NonNull PublicClientApplicationConfiguration config) throws MsalClientException {
+        super(config);
         initializeSharedPreferenceFileManager(config.getAppContext());
     }
 
@@ -98,9 +97,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     private void getCurrentAccountAsyncInternal(@NonNull final CurrentAccountCallback callback,
                                                 @NonNull final String publicApiId) {
-        final String methodName = ":getCurrentAccount";
-        final PublicClientApplicationConfiguration configuration = getConfiguration();
-
         final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
         final BaseController controller;
         try {
@@ -221,6 +217,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
         final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
+                null,
                 scopes,
                 null, // account
                 null, // uiBehavior
@@ -410,7 +407,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             return null;
         }
 
-        final List<ICacheRecord> cacheRecordList = MsalBrokerResultAdapter.getICacheRecordListFromJsonString(currentAccountJsonString);
+        final List<ICacheRecord> cacheRecordList = JsonExtensions.getICacheRecordListFromJsonString(currentAccountJsonString);
         return getAccountFromICacheRecordList(cacheRecordList);
     }
 
@@ -429,7 +426,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             return;
         }
 
-        String currentAccountJsonString = MsalBrokerResultAdapter.getJsonStringFromICacheRecordList(cacheRecords);
+        final String currentAccountJsonString = JsonExtensions.getJsonStringFromICacheRecordList(cacheRecords);
         sharedPreferencesFileManager.putString(CURRENT_ACCOUNT_SHARED_PREFERENCE_KEY, currentAccountJsonString);
     }
 
@@ -471,6 +468,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
         final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
+                null,
                 scopes,
                 getPersistedCurrentAccount(), // account, could be null.
                 null, // uiBehavior

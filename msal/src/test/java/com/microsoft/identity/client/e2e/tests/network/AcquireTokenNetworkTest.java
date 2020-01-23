@@ -30,11 +30,10 @@ import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
-import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
+import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,6 +46,7 @@ import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.fai
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.getAccount;
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulInteractiveCallback;
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulSilentCallback;
+import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowMsalUtils.class})
@@ -58,13 +58,8 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
     public void setup() {
         AcquireTokenTestHelper.setAccount(null);
         final LabUserQuery query = getLabUserQuery();
-        mUsername = LabUserHelper.getUpnForTest(query);
+        mUsername = LabUserHelper.loadUserForTest(query);
         super.setup();
-    }
-
-    @After
-    public void cleanup() {
-        AcquireTokenTestHelper.setAccount(null);
     }
 
     @Test
@@ -78,13 +73,11 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
 
 
         mApplication.acquireToken(parameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     @Test
     public void testAcquireTokenSuccessFollowedBySilentSuccess() {
-        final String authority = mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
-
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(mUsername)
@@ -93,24 +86,22 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
                 .build();
 
         mApplication.acquireToken(parameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(getAccount())
-                .fromAuthority(authority)
+                .fromAuthority(getAuthority())
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .withCallback(successfulSilentCallback())
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     @Test
     public void testAcquireTokenSilentSuccessForceRefresh() {
-        final String authority = mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
-
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(mUsername)
@@ -119,24 +110,22 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
                 .build();
 
         mApplication.acquireToken(parameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(getAccount())
-                .fromAuthority(authority)
+                .fromAuthority(getAuthority())
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(true)
                 .withCallback(successfulSilentCallback())
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     @Test
     public void testAcquireTokenSilentFailureEmptyCache() {
-        final String authority = mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
-
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(mUsername)
@@ -145,27 +134,25 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
                 .build();
 
         mApplication.acquireToken(parameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
 
         // clear the cache now
-        RoboTestUtils.clearCache();
+        TestUtils.clearCache(SHARED_PREFERENCES_NAME);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(getAccount())
-                .fromAuthority(authority)
+                .fromAuthority(getAuthority())
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .withCallback(failureSilentCallback(ErrorCodes.NO_ACCOUNT_FOUND_ERROR_CODE))
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
 
     @Test
     public void testAcquireTokenSilentSuccessCacheWithNoAccessToken() {
-        final String authority = mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
-
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(mUsername)
@@ -174,20 +161,21 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
                 .build();
 
         mApplication.acquireToken(parameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
 
         // remove the access token from cache
-        RoboTestUtils.removeAccessTokenFromCache();
+        TestUtils.removeAccessTokenFromCache(SHARED_PREFERENCES_NAME);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(getAccount())
-                .fromAuthority(authority)
+                .fromAuthority(getAuthority())
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .withCallback(successfulSilentCallback())
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
-        RoboTestUtils.flushScheduler();
+        flushScheduler();
     }
+
 }

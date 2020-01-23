@@ -26,6 +26,8 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 import android.util.Pair;
 
+import androidx.fragment.app.Fragment;
+
 import java.util.List;
 
 /**
@@ -34,6 +36,7 @@ import java.util.List;
 public class AcquireTokenParameters extends TokenParameters {
 
     private Activity mActivity;
+    private Fragment mFragment;
     private String mLoginHint;
     private Prompt mPrompt;
     private List<String> mExtraScopesToConsent;
@@ -43,6 +46,7 @@ public class AcquireTokenParameters extends TokenParameters {
     public AcquireTokenParameters(AcquireTokenParameters.Builder builder) {
         super(builder);
         mActivity = builder.mActivity;
+        mFragment = builder.mFragment;
         mLoginHint = builder.mLoginHint;
         mPrompt = builder.mPrompt;
         mExtraScopesToConsent = builder.mExtraScopesToConsent;
@@ -51,14 +55,18 @@ public class AcquireTokenParameters extends TokenParameters {
     }
 
     /**
-     * Non-null {@link Activity} that will be used as the parent activity for launching the {@link AuthenticationActivity}
-     *
-     * @return
+     * Non-null {@link Activity} that will be used as the parent activity for launching the {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity}
      */
     public Activity getActivity() {
         return mActivity;
     }
 
+    /**
+     * Optional {@link Fragment} that will be replaced by {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationFragment}
+     */
+    public Fragment getFragment() {
+        return mFragment;
+    }
 
     /**
      * Optional. Gets the login hint sent along with the authorization request.
@@ -125,14 +133,20 @@ public class AcquireTokenParameters extends TokenParameters {
     public static class Builder extends TokenParameters.Builder<AcquireTokenParameters.Builder> {
 
         private Activity mActivity;
+        private Fragment mFragment;
         private String mLoginHint;
         private Prompt mPrompt;
         private List<String> mExtraScopesToConsent;
         private List<Pair<String, String>> mExtraQueryStringParameters;
         private AuthenticationCallback mCallback;
 
-        public AcquireTokenParameters.Builder startAuthorizationFromActivity(Activity activity) {
+        public AcquireTokenParameters.Builder startAuthorizationFromActivity(final Activity activity) {
             mActivity = activity;
+            return self();
+        }
+
+        public AcquireTokenParameters.Builder withFragment(Fragment fragment) {
+            mFragment = fragment;
             return self();
         }
 

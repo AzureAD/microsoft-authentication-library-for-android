@@ -26,15 +26,10 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Pair;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.configuration.AccountMode;
@@ -50,6 +45,8 @@ import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
 import com.microsoft.identity.common.exception.BaseException;
+import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
@@ -72,8 +69,6 @@ import com.microsoft.identity.common.internal.net.HttpRequest;
 import com.microsoft.identity.common.internal.net.cache.HttpCache;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
-import com.microsoft.identity.common.internal.providers.oauth2.OpenIdProviderConfiguration;
-import com.microsoft.identity.common.internal.providers.oauth2.OpenIdProviderConfigurationClient;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.OperationParameters;
@@ -94,9 +89,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
+import androidx.fragment.app.Fragment;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
@@ -104,8 +103,6 @@ import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullAr
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
 import static com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter.msalExceptionFromBaseException;
 import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isAccountHomeTenant;
-import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isHomeTenantEquivalent;
-import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.validateClaimsExistForTenant;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_MSA_PERSISTENCE_ERROR;
@@ -119,6 +116,8 @@ import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUN
 import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE;
 import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
 import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
+import static com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience.isHomeTenantAlias;
+import static com.microsoft.identity.common.internal.util.StringUtil.isUuid;
 
 /**
  * <p>
@@ -192,6 +191,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         static final String CALLBACK = "callback";
         static final String CLIENT_ID = "client_id";
         static final String AUTHORITY = "authority";
+        static final String REDIRECT_URI = "redirect_uri";
         static final String CONFIG_FILE = "config_file";
         static final String ACTIVITY = "activity";
         static final String SCOPES = "scopes";
@@ -242,8 +242,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @param listener             a callback to be invoked when the object is successfully created.
      *                             Cannot be null.
      * @see PublicClientApplication#create(Context, File, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)
+     * @see PublicClientApplication#create(Context, String, String, String, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, int)
      */
     public static void create(@NonNull final Context context,
@@ -256,6 +255,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 initializeConfiguration(context, configFileResourceId),
                 null, // client id
                 null, // authority
+                null, // redirect uri
                 listener
         );
     }
@@ -281,8 +281,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                   </p>
      * @param listener   a callback to be invoked when the object is successfully created. Cannot be null.
      * @see PublicClientApplication#create(Context, int, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)
+     * @see PublicClientApplication#create(Context, String, String, String, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, int)
      */
     public static void create(@NonNull final Context context,
@@ -295,43 +294,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 initializeConfiguration(context, configFile),
                 null, // client id
                 null, // authority
-                listener
-        );
-    }
-
-    /**
-     * {@link PublicClientApplication#create(Context, String, ApplicationCreatedListener)} allows
-     * the client id to be passed instead of providing through the AndroidManifest metadata.
-     * If this constructor is called, the default authority https://login.microsoftonline.com/common
-     * will be used.
-     *
-     * @param context  Application's {@link Context}. The sdk requires the application context to
-     *                 be passed in {@link PublicClientApplication}. Cannot be null.
-     *                 <p>
-     *                 Note: The {@link Context} should be the application context instead of the
-     *                 running activity's context, which could potentially make the sdk hold a
-     *                 strong reference to the activity, thus preventing correct garbage collection
-     *                 and causing bugs.
-     *                 </p>
-     * @param clientId The application's client id. Cannot be null.
-     * @param listener a callback to be invoked when the object is successfully created.
-     *                 Cannot be null.
-     * @see PublicClientApplication#create(Context, int, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, File, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, int)
-     */
-    public static void create(@NonNull final Context context,
-                              @NonNull final String clientId,
-                              @NonNull final ApplicationCreatedListener listener) {
-        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
-        validateNonNullArgument(clientId, NONNULL_CONSTANTS.CLIENT_ID);
-        validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
-
-        create(
-                initializeConfiguration(context),
-                clientId,
-                null, // authority
+                null, // redirect uri
                 listener
         );
     }
@@ -340,37 +303,39 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * {@link PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)}
      * allows the client id and authority to be passed instead of providing them through metadata.
      *
-     * @param context   Application's {@link Context}. The sdk requires the application context to
-     *                  be passed in
-     *                  {@link PublicClientApplication}. Cannot be null.
-     *                  <p>
-     *                  Note: The {@link Context} should be the application context instead of
-     *                  an running activity's context, which could potentially make the sdk hold a
-     *                  strong reference to the activity, thus preventing correct garbage
-     *                  collection and causing bugs.
-     *                  </p>
-     * @param clientId  The application client id. Cannot be null.
-     * @param authority The default authority to be used for the authority. Cannot be null.
-     * @param listener  a callback to be invoked when the object is successfully created.
-     *                  Cannot be null.
+     * @param context     Application's {@link Context}. The sdk requires the application context to
+     *                    be passed in
+     *                    {@link PublicClientApplication}. Cannot be null.
+     *                    <p>
+     *                    Note: The {@link Context} should be the application context instead of
+     *                    an running activity's context, which could potentially make the sdk hold a
+     *                    strong reference to the activity, thus preventing correct garbage
+     *                    collection and causing bugs.
+     *                    </p>
+     * @param clientId    The application client id. Cannot be null.
+     * @param authority   The default authority to be used for the authority. If this is null, the default authority will be used.
+     * @param redirectUri The redirect URI of the application.
+     * @param listener    a callback to be invoked when the object is successfully created.
+     *                    Cannot be null.
      * @see PublicClientApplication#create(Context, int, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, File, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, int)
      */
     public static void create(@NonNull final Context context,
                               @NonNull final String clientId,
-                              @NonNull final String authority,
+                              @Nullable final String authority,
+                              @NonNull final String redirectUri,
                               @NonNull final ApplicationCreatedListener listener) {
         validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
         validateNonNullArgument(clientId, NONNULL_CONSTANTS.CLIENT_ID);
-        validateNonNullArgument(authority, NONNULL_CONSTANTS.AUTHORITY);
+        validateNonNullArgument(redirectUri, NONNULL_CONSTANTS.REDIRECT_URI);
         validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
         create(
                 initializeConfiguration(context),
                 clientId,
                 authority,
+                redirectUri,
                 listener
         );
     }
@@ -401,8 +366,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @throws IllegalStateException if this function is invoked on the main thread.
      * @see PublicClientApplication#create(Context, int, ApplicationCreatedListener)
      * @see PublicClientApplication#create(Context, File, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, ApplicationCreatedListener)
-     * @see PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)
+     * @see PublicClientApplication#create(Context, String, String, String, ApplicationCreatedListener)
      */
     @WorkerThread
     @NonNull
@@ -778,6 +742,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         create(configuration,
                 null, // client id
                 null, // authority
+                null, // redirectUri
                 new ApplicationCreatedListener() {
                     @Override
                     public void onCreated(final IPublicClientApplication application) {
@@ -807,7 +772,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private static IMultipleAccountPublicClientApplication createMultipleAccountPublicClientApplication(
             @NonNull final PublicClientApplicationConfiguration configuration)
             throws InterruptedException, MsalException {
-        if (configuration.mAccountMode != AccountMode.MULTIPLE) {
+        if (configuration.getAccountMode() != AccountMode.MULTIPLE) {
             throw new MsalClientException(
                     MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE,
                     MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE
@@ -819,7 +784,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         if (application instanceof IMultipleAccountPublicClientApplication) {
             return (IMultipleAccountPublicClientApplication) application;
         } else {
-            if (configuration.mAccountMode == AccountMode.MULTIPLE && application.isSharedDevice()) {
+            if (configuration.getAccountMode() == AccountMode.MULTIPLE && application.isSharedDevice()) {
                 throw new MsalClientException(
                         MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_CODE,
                         MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_MESSAGE
@@ -842,7 +807,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         if (application instanceof ISingleAccountPublicClientApplication) {
             return (ISingleAccountPublicClientApplication) application;
         } else {
-            if (configuration.mAccountMode != AccountMode.SINGLE) {
+            if (configuration.getAccountMode() != AccountMode.SINGLE) {
                 throw new MsalClientException(
                         SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE,
                         SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE
@@ -858,8 +823,23 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private static void create(@NonNull final PublicClientApplicationConfiguration config,
                                @Nullable final String clientId,
                                @Nullable final String authority,
+                               @Nullable final String redirectUri,
                                @NonNull final ApplicationCreatedListener listener) {
+        if (clientId != null) {
+            config.setClientId(clientId);
+        }
 
+        if (authority != null) {
+            config.getAuthorities().clear();
+
+            final Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority);
+            authorityObject.setDefault(true);
+            config.getAuthorities().add(authorityObject);
+        }
+
+        if (redirectUri != null) {
+            config.setRedirectUri(redirectUri);
+        }
 
         final OperationParameters params = OperationParametersAdapter.createOperationParameters(config, config.getOAuth2TokenCache());
 
@@ -937,15 +917,16 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             @NonNull final PublicClientApplicationConfiguration configuration,
             @NonNull final IMultipleAccountApplicationCreatedListener listener) {
         create(configuration,
-                null,
-                null,
+                null, // client id
+                null, // authority
+                null, // redirect uri
                 new ApplicationCreatedListener() {
                     @Override
                     public void onCreated(@NonNull final IPublicClientApplication application) {
                         if (application instanceof IMultipleAccountPublicClientApplication) {
                             listener.onCreated((IMultipleAccountPublicClientApplication) application);
                         } else {
-                            if (application.getConfiguration().mAccountMode == AccountMode.MULTIPLE
+                            if (application.getConfiguration().getAccountMode() == AccountMode.MULTIPLE
                                     && application.isSharedDevice()) {
                                 listener.onError(
                                         new MsalClientException(
@@ -979,13 +960,14 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 configuration,
                 null, // client id
                 null, // authority
+                null, // redirect uri
                 new ApplicationCreatedListener() {
                     @Override
                     public void onCreated(final IPublicClientApplication application) {
                         if (application instanceof ISingleAccountPublicClientApplication) {
                             listener.onCreated((ISingleAccountPublicClientApplication) application);
                         } else {
-                            if (application.getConfiguration().mAccountMode != AccountMode.SINGLE) {
+                            if (application.getConfiguration().getAccountMode() != AccountMode.SINGLE) {
                                 listener.onError(
                                         new MsalClientException(
                                                 SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE,
@@ -1012,28 +994,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
     //endregion
 
-    protected PublicClientApplication(@NonNull final PublicClientApplicationConfiguration configFile,
-                                      @Nullable final String clientId,
-                                      @Nullable final String authority) {
-
+    protected PublicClientApplication(@NonNull final PublicClientApplicationConfiguration configFile) throws MsalClientException {
         mPublicClientConfiguration = configFile;
-
-        if (clientId != null) {
-            mPublicClientConfiguration.mClientId = clientId;
-        }
-
-        if (authority != null) {
-            mPublicClientConfiguration.getAuthorities().clear();
-
-            Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority);
-            authorityObject.setDefault(true);
-            mPublicClientConfiguration.getAuthorities().add(authorityObject);
-        }
-
         initializeApplication();
     }
 
-    private void initializeApplication() {
+    private void initializeApplication() throws MsalClientException {
         final String methodName = ":initializeApplication";
 
         final Context context = mPublicClientConfiguration.getAppContext();
@@ -1254,6 +1220,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                              @NonNull final AuthenticationCallback callback) {
         AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
+                null,
                 scopes,
                 null, // account
                 null, // uiBehavior
@@ -1268,16 +1235,18 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         acquireTokenInternal(acquireTokenParameters, PublicApiId.PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK);
     }
 
-    AcquireTokenParameters buildAcquireTokenParameters(@NonNull final Activity activity,
-                                     @NonNull final String[] scopes,
-                                     @Nullable final IAccount account,
-                                     @Nullable final Prompt uiBehavior,
-                                     @Nullable final List<Pair<String, String>> extraQueryParameters,
-                                     @Nullable final String[] extraScopesToConsent,
-                                     @Nullable final String authority,
-                                     @NonNull final AuthenticationCallback callback,
-                                     @Nullable final String loginHint,
-                                     @Nullable final ClaimsRequest claimsRequest) {
+    AcquireTokenParameters buildAcquireTokenParameters(
+            @NonNull final Activity activity,
+            @Nullable final Fragment fragment,
+            @NonNull final String[] scopes,
+            @Nullable final IAccount account,
+            @Nullable final Prompt uiBehavior,
+            @Nullable final List<Pair<String, String>> extraQueryParameters,
+            @Nullable final String[] extraScopesToConsent,
+            @Nullable final String authority,
+            @NonNull final AuthenticationCallback callback,
+            @Nullable final String loginHint,
+            @Nullable final ClaimsRequest claimsRequest) {
 
         validateNonNullArgument(activity, NONNULL_CONSTANTS.ACTIVITY);
         validateNonNullArgument(scopes, NONNULL_CONSTANTS.SCOPES);
@@ -1286,6 +1255,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
         AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(activity)
+                .withFragment(fragment)
                 .forAccount(account)
                 .withScopes(Arrays.asList(scopes))
                 .withPrompt(uiBehavior)
@@ -1302,7 +1272,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 .withLoginHint(loginHint)
                 .withClaims(claimsRequest)
                 .build();
-
 
         return acquireTokenParameters;
     }
@@ -1415,11 +1384,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     protected AcquireTokenSilentParameters buildAcquireTokenSilentParameters(@NonNull final String[] scopes,
-                                      @NonNull final IAccount account,
-                                      @NonNull final String authority,
-                                      final boolean forceRefresh,
-                                      @Nullable final ClaimsRequest claimsRequest,
-                                      @NonNull final SilentAuthenticationCallback callback) {
+                                                                             @NonNull final IAccount account,
+                                                                             @NonNull final String authority,
+                                                                             final boolean forceRefresh,
+                                                                             @Nullable final ClaimsRequest claimsRequest,
+                                                                             @NonNull final SilentAuthenticationCallback callback) {
         validateNonNullArgument(account, NONNULL_CONSTANTS.ACCOUNT);
         validateNonNullArgument(callback, NONNULL_CONSTANTS.CALLBACK);
 
@@ -1522,7 +1491,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private AccountRecord selectAccountRecordForTokenRequest(
             @NonNull final PublicClientApplicationConfiguration pcaConfig,
             @NonNull final TokenParameters tokenParameters)
-            throws ServiceException, MsalClientException {
+            throws ServiceException, ClientException {
         // If not authority was provided in the request, fallback to the default authority...
         if (TextUtils.isEmpty(tokenParameters.getAuthority())) {
             tokenParameters.setAuthority(
@@ -1568,57 +1537,61 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             // If the account is named like <tenant_name>.onmicrosoft.com we need to query the OpenId
             // Provider Configuration Metadata in order to get the tenant id. Once we have the
             // tenant id, we must then select the appropriate home or profile.
-            String tenantIdNameOrAlias = aadAuthority.getAudience().getTenantId();
+            String tenantId = aadAuthority.getAudience().getTenantId();
 
             // The AccountRecord we'll use to request a token...
             final AccountRecord accountRecord = new AccountRecord();
             accountRecord.setEnvironment(multiTenantAccount.getEnvironment());
             accountRecord.setHomeAccountId(multiTenantAccount.getHomeAccountId());
 
-            final boolean isUuid = isUuid(tenantIdNameOrAlias);
+            final boolean isUuid = isUuid(tenantId);
 
-            if (!isUuid && !isHomeTenantEquivalent(tenantIdNameOrAlias)) {
-                final OpenIdProviderConfiguration providerConfiguration =
-                        loadOpenIdProviderConfigurationMetadata(requestAuthority);
-
-                final String issuer = providerConfiguration.getIssuer();
-                final Uri issuerUri = Uri.parse(issuer);
-                final List<String> paths = issuerUri.getPathSegments();
-
-                if (paths.isEmpty()) {
-                    final String errMsg = "OpenId Metadata did not contain a path to the tenant";
-
-                    com.microsoft.identity.common.internal.logging.Logger.error(
-                            TAG,
-                            errMsg,
-                            null
-                    );
-
-                    throw new MsalClientException(errMsg);
-                }
-
-                tenantIdNameOrAlias = paths.get(0);
+            if (!isUuid && !isHomeTenantAlias(tenantId)) {
+                tenantId = ((AzureActiveDirectoryAuthority) authority)
+                        .getAudience()
+                        .getTenantUuidForAlias(
+                                authority.getAuthorityURL().toString()
+                        );
             }
 
-            final IAccount accountForRequest;
+            IAccount accountForRequest;
 
-            if (isHomeTenantEquivalent(tenantIdNameOrAlias)
-                    || isAccountHomeTenant(multiTenantAccount.getClaims(), tenantIdNameOrAlias)) {
-                accountForRequest = multiTenantAccount;
+            if (isHomeTenantAlias(tenantId)
+                    || isAccountHomeTenant(multiTenantAccount.getClaims(), tenantId)) {
+                accountForRequest = (multiTenantAccount.getClaims() != null) ? multiTenantAccount : null;
             } else {
-                accountForRequest = multiTenantAccount.getTenantProfiles().get(tenantIdNameOrAlias);
+                accountForRequest = multiTenantAccount.getTenantProfiles().get(tenantId);
             }
 
+            // If we are not able to get the AccountRecord for the requested tenanted authority,
+            // it means the user is attempting to get a token for a new tenant for the existing IAccount.
+            // For silent request, use home account if available or any of the tenant profiles and pass it
+            // along as accountForRequest. Controllers will use this account to get refresh token and acquire
+            // a new access token for the requested tenant.
             if (null == accountForRequest) { // We did not find a profile to use
                 final boolean isSilent = tokenParameters instanceof AcquireTokenSilentParameters;
-
                 if (isSilent) {
-                    validateClaimsExistForTenant(tenantIdNameOrAlias, null);
-                } else {
-                    // We didn't find an Account but the request is interactive so we'll
-                    // return null and let the user sort it out.
-                    return null;
+                    if (rootAccount.getClaims() != null) {
+                        accountForRequest = rootAccount;
+                    } else {
+                        for (ITenantProfile tenantProfile : multiTenantAccount.getTenantProfiles().values()) {
+                            if (tenantProfile.getClaims() != null) {
+                                accountForRequest = tenantProfile;
+                                break;
+                            }
+                        }
+                    }
                 }
+            }
+            // We should never hit this flow as IAccount should always have a home profile or at least one tenant profile on it.
+            if (accountForRequest == null) {
+                Logger.warnPII(TAG,
+                        "No account record found for IAccount with request tenantId: " + tenantId
+                );
+                throw new ClientException(
+                        ErrorStrings.NO_ACCOUNT_FOUND,
+                        "No account record found for IAccount"
+                );
             }
 
             accountRecord.setLocalAccountId(accountForRequest.getId());
@@ -1636,29 +1609,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-    private OpenIdProviderConfiguration loadOpenIdProviderConfigurationMetadata(
-            @NonNull final String requestAuthority) throws ServiceException {
-        final String methodName = ":loadOpenIdProviderConfigurationMetadata";
-
-        com.microsoft.identity.common.internal.logging.Logger.info(
-                TAG + methodName,
-                "Loading OpenId Provider Metadata..."
-        );
-
-        final OpenIdProviderConfigurationClient client =
-                new OpenIdProviderConfigurationClient(requestAuthority);
-
-        return client.loadOpenIdProviderConfiguration();
-    }
-
-    private static boolean isUuid(@NonNull final String tenantIdNameOrAlias) {
-        try {
-            UUID.fromString(tenantIdNameOrAlias);
-            return true;
-        } catch (final IllegalArgumentException e) {
-            return false;
-        }
-    }
 
     @Override
     public IAuthenticationResult acquireTokenSilent(
@@ -1859,7 +1809,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
                 if (null != tenantProfiles && !tenantProfiles.isEmpty()) {
                     for (final Map.Entry<String, ITenantProfile> profileEntry : tenantProfiles.entrySet()) {
-                        if (localAccountId.contains(profileEntry.getValue().getId())) {
+                        if (!TextUtils.isEmpty(profileEntry.getValue().getId()) &&
+                                localAccountId.contains(profileEntry.getValue().getId())) {
                             return true;
                         }
                     }

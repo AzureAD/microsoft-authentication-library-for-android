@@ -95,6 +95,7 @@ public class AcquireTokenTestHelper {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                sAccount = authenticationResult.getAccount();
             }
 
             @Override

@@ -34,6 +34,7 @@ import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.exception.ArgumentException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
@@ -291,6 +292,8 @@ public class LocalMSALController extends BaseController<InteractiveTokenCommandP
         if (accessTokenIsNull(fullCacheRecord)
                 || refreshTokenIsNull(fullCacheRecord)
                 || parametersWithDefaultScopesAdded.forceRefresh()) {
+                || parameters.getForceRefresh()
+                || !isRequestAuthorityRealmSameAsATRealm(parameters.getAuthority(), fullCacheRecord.getAccessToken())) {
             if (!refreshTokenIsNull(fullCacheRecord)) {
                 // No AT found, but the RT checks out, so we'll use it
                 Logger.verbose(
@@ -442,8 +445,8 @@ public class LocalMSALController extends BaseController<InteractiveTokenCommandP
             @NonNull final GetDeviceModeCommandParameters parameters) throws Exception {
         final String methodName = ":getDeviceMode";
 
-        final String errorMessage = "LocalMSALControler is not eligible to use the broker. Do not check sharedDevice mode and return false immediately.";
-        com.microsoft.identity.common.internal.logging.Logger.error(TAG + methodName, errorMessage, null);
+        final String errorMessage = "LocalMSALController is not eligible to use the broker. Do not check sharedDevice mode and return false immediately.";
+        com.microsoft.identity.common.internal.logging.Logger.warn(TAG + methodName, errorMessage);
 
         return false;
     }

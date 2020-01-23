@@ -22,64 +22,144 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
-import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.os.Binder;
 import android.os.Bundle;
-import android.os.RemoteException;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 
-import com.google.gson.Gson;
-import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.exception.BrokerCommunicationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
-import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
-import com.microsoft.identity.common.internal.broker.BrokerRequest;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
-import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
-import com.microsoft.identity.common.internal.request.generated.GetCurrentAccountCommandContext;
-import com.microsoft.identity.common.internal.request.generated.GetCurrentAccountCommandParameters;
-import com.microsoft.identity.common.internal.request.generated.GetDeviceModeCommandContext;
-import com.microsoft.identity.common.internal.request.generated.GetDeviceModeCommandParameters;
+import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
+import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
+import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandContext;
 import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandParameters;
-import com.microsoft.identity.common.internal.request.generated.LoadAccountCommandContext;
-import com.microsoft.identity.common.internal.request.generated.LoadAccountCommandParameters;
-import com.microsoft.identity.common.internal.request.generated.RemoveAccountCommandContext;
-import com.microsoft.identity.common.internal.request.generated.RemoveAccountCommandParameters;
-import com.microsoft.identity.common.internal.request.generated.RemoveCurrentAccountCommandContext;
-import com.microsoft.identity.common.internal.request.generated.RemoveCurrentAccountCommandParameters;
-import com.microsoft.identity.common.internal.request.generated.SilentTokenCommandContext;
-import com.microsoft.identity.common.internal.request.generated.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
-import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 import com.microsoft.identity.common.internal.telemetry.Telemetry;
 import com.microsoft.identity.common.internal.telemetry.TelemetryEventStrings;
 import com.microsoft.identity.common.internal.telemetry.events.BrokerEndEvent;
 import com.microsoft.identity.common.internal.telemetry.events.BrokerStartEvent;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ACCOUNT_HOME_ACCOUNT_ID;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.ENVIRONMENT;
 
 public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     private static final String TAG = BrokerAccountManagerStrategy.class.getSimpleName();
 
-    private static final String DATA_CACHE_RECORD = "com.microsoft.workaccount.cache.record";
+    public interface OperationInfo<T extends OperationParameters, U> {
+        /**
+         * Performs this AccountManager operation in this method with the given IMicrosoftAuthService.
+         */
+        Bundle getRequestBundle(T parameters);
+
+        /**
+         * Name of the task (for logging purposes).
+         */
+        String getMethodName();
+
+        /**
+         * Extracts result from the given bundle.
+         */
+        U getResultFromBundle(Bundle bundle) throws BaseException;
+    }
+
+    @SuppressLint("MissingPermission")
+    public <T extends OperationParameters, U> U invokeBrokerAccountManagerOperation(final T parameters,
+                                                                                    final OperationInfo<T, U> operationInfo) throws BaseException {
+        final String methodName = operationInfo.getMethodName();
+
+        Telemetry.emit(
+                new BrokerStartEvent()
+                        .putAction(methodName)
+                        .putStrategy(TelemetryEventStrings.Value.ACCOUNT_MANAGER)
+        );
+
+        final U result;
+        try {
+            final AccountManager accountManager = AccountManager.get(parameters.getAppContext());
+            final AccountManagerFuture<Bundle> resultBundle =
+                    accountManager.addAccount(
+                            AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+                            AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
+                            null,
+                            operationInfo.getRequestBundle(parameters),
+                            null,
+                            null,
+                            getPreferredHandler());
+
+            Logger.verbose(TAG + methodName, "Received result from broker");
+            result = operationInfo.getResultFromBundle(resultBundle.getResult());
+        } catch (final AuthenticatorException | IOException | OperationCanceledException e) {
+            Logger.error(TAG + methodName, e.getMessage(), e);
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(false)
+                            .putErrorCode(ErrorStrings.IO_ERROR)
+                            .putErrorDescription(e.getMessage()));
+
+            throw new BrokerCommunicationException("Failed to connect to AccountManager", e);
+        } catch (final BaseException e) {
+            Logger.error(TAG + methodName, e.getMessage(), e);
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(false)
+                            .putErrorCode(e.getErrorCode())
+                            .putErrorDescription(e.getMessage()));
+
+            throw e;
+        }
+
+        Telemetry.emit(
+                new BrokerEndEvent()
+                        .putAction(methodName)
+                        .isSuccessful(true)
+        );
+
+        return result;
+    }
+
+    @WorkerThread
+    @SuppressLint("MissingPermission")
+    void hello(@NonNull final OperationParameters parameters)
+            throws BaseException {
+
+        if (!BrokerMsalController.isAccountManagerPermissionsGranted(parameters.getAppContext())) {
+            throw new BrokerCommunicationException("AccountManager permissions are not granted", null);
+        }
+
+        invokeBrokerAccountManagerOperation(parameters, new OperationInfo<OperationParameters, Void>() {
+            @Override
+            public Bundle getRequestBundle(OperationParameters parameters) {
+                final Bundle requestBundle = mRequestAdapter.getRequestBundleForHello(parameters);
+                requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
+                        AuthenticationConstants.BrokerAccountManagerOperation.HELLO);
+                return requestBundle;
+            }
+
+            @Override
+            public String getMethodName() {
+                return ":helloWithAccountManager";
+            }
+
+            @Override
+            public Void getResultFromBundle(Bundle bundle) throws BaseException {
+                mResultAdapter.verifyHelloFromResultBundle(bundle);
+                return null;
+            }
+        });
+    }
 
     /**
      * Get the intent for the broker interactive request
@@ -88,392 +168,180 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
      * @return
      */
     @WorkerThread
-    Intent getBrokerAuthorizationIntent(
-            @NonNull final InteractiveTokenCommandContext context,
-            @NonNull final InteractiveTokenCommandParameters parameters) throws ClientException {
+    Intent getBrokerAuthorizationIntent(@NonNull final InteractiveTokenCommandContext context,
+                                        @NonNull final InteractiveTokenCommandParameters parameters) throws BaseException {
         final String methodName = ":getBrokerAuthorizationIntent";
-        Logger.verbose(TAG + methodName, "Get the broker authorization intent from Account Manager.");
-        return getBrokerAuthorizationIntentFromAccountManager(context,parameters);
-    }
+        Logger.verbose(TAG + methodName, "Get the broker authorization intent from AccountManager.");
 
-    @SuppressWarnings("PMD")
-    @SuppressLint("MissingPermission")
-    private Intent getBrokerAuthorizationIntentFromAccountManager(
-            @NonNull final InteractiveTokenCommandContext context,
-            @NonNull final InteractiveTokenCommandParameters parameters) throws ClientException {
-        final String methodName = ":getBrokerAuthorizationIntentFromAccountManager";
-        Telemetry.emit(
-                new BrokerStartEvent()
-                        .putAction(methodName)
-                        .putStrategy(TelemetryEventStrings.Value.ACCOUNT_MANAGER)
-        );
+        return invokeBrokerAccountManagerOperation(parameters,
+                new OperationInfo<AcquireTokenOperationParameters, Intent>() {
+                    @Override
+                    public Bundle getRequestBundle(AcquireTokenOperationParameters parameters) {
+                        final Bundle requestBundle = new Bundle();
+                        requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
+                                AuthenticationConstants.BrokerAccountManagerOperation.GET_INTENT_FOR_INTERACTIVE_REQUEST);
+                        return requestBundle;
+                    }
 
-        Intent intent;
-        try {
-            final MsalBrokerRequestAdapter msalBrokerRequestAdapter = new MsalBrokerRequestAdapter();
+                    @Override
+                    public String getMethodName() {
+                        return methodName;
+                    }
 
-            final Bundle requestBundle = new Bundle();
-            final BrokerRequest brokerRequest = msalBrokerRequestAdapter.
-                    brokerRequestFromAcquireTokenParameters(context, parameters);
-            requestBundle.putInt(
-                    AuthenticationConstants.Broker.CALLER_INFO_UID,
-                    Binder.getCallingUid()
-            );
-            requestBundle.putString(
-                    AuthenticationConstants.Broker.BROKER_REQUEST_V2,
-                    new Gson().toJson(brokerRequest, BrokerRequest.class)
-            );
+                    @Override
+                    public Intent getResultFromBundle(Bundle bundle) {
+                        final Intent interactiveRequestIntent = bundle.getParcelable(AccountManager.KEY_INTENT);
+                        return completeInteractiveRequestIntent(interactiveRequestIntent, parameters);
 
-            final AccountManager accountManager = AccountManager.get(context.androidApplicationContext());
-            final AccountManagerFuture<Bundle> result =
-                    accountManager.addAccount(
-                            AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
-                            AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
-                            null,
-                            requestBundle,
-                            null,
-                            null,
-                            getPreferredHandler()
-                    );
-
-            // Making blocking request here
-            Bundle bundleResult = result.getResult();
-            // Authenticator should throw OperationCanceledException if
-            // token is not available
-            intent = bundleResult.getParcelable(AccountManager.KEY_INTENT);
-            intent.putExtra(
-                    AuthenticationConstants.Broker.CALLER_INFO_UID,
-                    Binder.getCallingUid()
-            );
-
-            Telemetry.emit(
-                    new BrokerEndEvent()
-                            .putAction(methodName)
-                            .isSuccessful(true)
-            );
-        } catch (final OperationCanceledException e) {
-            final String errorMessage = "OperationCanceledException thrown when talking to account manager. The broker request cancelled.";
-            Logger.error(
-                    TAG + methodName,
-                    ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    errorMessage,
-                    e
-            );
-
-            Telemetry.emit(
-                    new BrokerEndEvent()
-                            .putAction(methodName)
-                            .isSuccessful(false)
-                            .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
-                            .putErrorDescription(errorMessage)
-            );
-
-            throw new ClientException(
-                    ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    errorMessage,
-                    e
-            );
-        } catch (final AuthenticatorException e) {
-            final String errorMessage = "AuthenticatorException thrown when talking to account manager. The broker request cancelled.";
-
-            Logger.error(
-                    TAG + methodName,
-                    ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    errorMessage,
-                    e
-            );
-
-            Telemetry.emit(
-                    new BrokerEndEvent()
-                            .putAction(methodName)
-                            .isSuccessful(false)
-                            .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
-                            .putErrorDescription(errorMessage)
-            );
-
-            throw new ClientException(
-                    ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    errorMessage,
-                    e
-            );
-        } catch (final IOException e) {
-            final String errorMessage = "IOException thrown when talking to account manager. The broker request cancelled.";
-            // Authenticator gets problem from webrequest or file read/write
-            Logger.error(
-                    TAG + methodName,
-                    ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    errorMessage,
-                    e
-            );
-
-            Telemetry.emit(
-                    new BrokerEndEvent()
-                            .putAction(methodName)
-                            .isSuccessful(false)
-                            .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
-                            .putErrorDescription(errorMessage)
-            );
-
-            throw new ClientException(
-                    ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    errorMessage,
-                    e
-            );
-        }
-
-        return intent;
+                    }
+                });
     }
 
     @WorkerThread
-    @SuppressWarnings("PMD")
-    @SuppressLint("MissingPermission")
-    AcquireTokenResult acquireTokenSilent(
-            @NonNull final SilentTokenCommandContext context,
-            @NonNull final SilentTokenCommandParameters parameters)
+    AcquireTokenResult acquireTokenSilent(final AcquireTokenSilentOperationParameters parameters)
             throws BaseException {
-        // if there is not any user added to account, it returns empty
-        final String methodName = ":acquireTokenSilentWithAccountManager";
-        Telemetry.emit(
-                new BrokerStartEvent()
-                        .putAction(methodName)
-                        .putStrategy(TelemetryEventStrings.Value.ACCOUNT_MANAGER)
-        );
+        return invokeBrokerAccountManagerOperation(parameters,
+                new OperationInfo<AcquireTokenSilentOperationParameters, AcquireTokenResult>() {
+                    @Override
+                    public Bundle getRequestBundle(AcquireTokenSilentOperationParameters parameters) {
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForAcquireTokenSilent(parameters);
+                        requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
+                                AuthenticationConstants.BrokerAccountManagerOperation.ACQUIRE_TOKEN_SILENT);
+                        return requestBundle;
+                    }
 
-        Bundle bundleResult = null;
-        if (parameters.account() != null) {
-            // blocking call to get token from cache or refresh request in
-            // background at Authenticator
-            try {
+                    @Override
+                    public String getMethodName() {
+                        return ":acquireTokenSilentWithAccountManager";
+                    }
 
-                final Bundle requestBundle = getSilentBrokerRequestBundle(context, parameters);
-
-                // It does not expect activity to be launched.
-                // AuthenticatorService is handling the request at
-                // AccountManager.
-                final AccountManager accountManager = AccountManager.get(context.androidApplicationContext());
-                final AccountManagerFuture<Bundle> result =
-                        accountManager.getAuthToken(
-                                getTargetAccount(context.androidApplicationContext(), parameters.account()),
-                                AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
-                                requestBundle,
-                                false,
-                                null, //set to null to avoid callback
-                                getPreferredHandler()
-                        );
-
-                // Making blocking request here
-                Logger.verbose(TAG + methodName, "Received result from broker");
-                bundleResult = result.getResult();
-            } catch (final OperationCanceledException e) {
-                final String errorMsg = "OperationCanceledException thrown when talking to account manager. The broker request cancelled.";
-                Logger.error(
-                        TAG + methodName,
-                        ErrorStrings.BROKER_REQUEST_CANCELLED,
-                        errorMsg,
-                        e
-                );
-
-                Telemetry.emit(
-                        new BrokerEndEvent()
-                                .putAction(methodName)
-                                .isSuccessful(false)
-                                .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
-                                .putErrorDescription(errorMsg)
-                );
-
-                throw new ClientException(
-                        ErrorStrings.BROKER_REQUEST_CANCELLED,
-                        errorMsg,
-                        e
-                );
-            } catch (final AuthenticatorException e) {
-                final String errorMsg = "AuthenticatorException thrown when talking to account manager. The broker request cancelled.";
-                Logger.error(
-                        TAG + methodName,
-                        ErrorStrings.BROKER_REQUEST_CANCELLED,
-                        errorMsg,
-                        e
-                );
-
-                Telemetry.emit(
-                        new BrokerEndEvent()
-                                .putAction(methodName)
-                                .isSuccessful(false)
-                                .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
-                                .putErrorDescription(errorMsg)
-                );
-
-                throw new ClientException(
-                        ErrorStrings.BROKER_REQUEST_CANCELLED,
-                        errorMsg,
-                        e
-                );
-            } catch (final IOException e) {
-                final String errorMsg = "IOException thrown when talking to account manager. The broker request cancelled.";
-                // Authenticator gets problem from webrequest or file read/write
-                Logger.error(
-                        TAG + methodName,
-                        ErrorStrings.BROKER_REQUEST_CANCELLED,
-                        errorMsg,
-                        e
-                );
-
-                Telemetry.emit(
-                        new BrokerEndEvent()
-                                .putAction(methodName)
-                                .isSuccessful(false)
-                                .putErrorCode(ErrorStrings.BROKER_REQUEST_CANCELLED)
-                                .putErrorDescription(errorMsg)
-                );
-
-                throw new ClientException(
-                        ErrorStrings.BROKER_REQUEST_CANCELLED,
-                        errorMsg,
-                        e
-                );
-            }
-        }
-
-        return getAcquireTokenResult(bundleResult);
+                    @Override
+                    public AcquireTokenResult getResultFromBundle(Bundle bundle) throws BaseException {
+                        return mResultAdapter.getAcquireTokenResultFromResultBundle(bundle);
+                    }
+                });
     }
 
     @WorkerThread
-    @SuppressWarnings("PMD")
-    @SuppressLint("MissingPermission")
-    protected List<ICacheRecord> getBrokerAccounts(
-            @NonNull final LoadAccountCommandContext context,
-            @NonNull final LoadAccountCommandParameters parameters)
-            throws OperationCanceledException, IOException, AuthenticatorException, BaseException {
-        final String methodName = ":getBrokerAccountsFromAccountManager";
-        Telemetry.emit(
-                new BrokerStartEvent()
-                        .putAction(methodName)
-                        .putStrategy(TelemetryEventStrings.Value.ACCOUNT_MANAGER)
-        );
+    protected List<ICacheRecord> getBrokerAccounts(@NonNull final OperationParameters parameters) throws BaseException {
+        return invokeBrokerAccountManagerOperation(parameters,
+                new OperationInfo<OperationParameters, List<ICacheRecord>>() {
+                    @Override
+                    public Bundle getRequestBundle(OperationParameters parameters) {
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForGetAccounts(parameters);
+                        requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
+                                AuthenticationConstants.BrokerAccountManagerOperation.GET_ACCOUNTS);
+                        return requestBundle;
+                    }
 
-        final Account[] accountList = AccountManager.get(context.androidApplicationContext()).getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-        final List<ICacheRecord> cacheRecords = new ArrayList<>();
-        Logger.verbose(
-                TAG + methodName,
-                "Retrieve all the accounts from account manager with broker account type, "
-                        + "and the account length is: " + accountList.length
-        );
+                    @Override
+                    public String getMethodName() {
+                        return ":getBrokerAccountsWithAccountManager";
+                    }
 
-        if (accountList == null || accountList.length == 0) {
-            Telemetry.emit(
-                    new BrokerEndEvent()
-                            .putAction(methodName)
-                            .isSuccessful(false)
-                            .putErrorCode(ErrorStrings.NO_ACCOUNT_FOUND)
-            );
-            return cacheRecords;
-        } else {
-            final Bundle bundle = new Bundle();
-            bundle.putBoolean(DATA_CACHE_RECORD, true);
-            bundle.putInt(AuthenticationConstants.Broker.CALLER_INFO_UID,
-                    Binder.getCallingUid());
-            bundle.putString(ACCOUNT_CLIENTID_KEY, parameters.clientId());
-
-            for (final Account eachAccount : accountList) {
-                // Use AccountManager Api method to get extended user info
-
-                final AccountManagerFuture<Bundle> result = AccountManager.get(context.androidApplicationContext())
-                        .updateCredentials(
-                                eachAccount,
-                                AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
-                                bundle,
-                                null,
-                                null,
-                                null
-                        );
-
-                final Bundle userInfoBundle = result.getResult();
-                cacheRecords.addAll(
-                        MsalBrokerResultAdapter.accountsFromBundle(userInfoBundle)
-                );
-            }
-
-            Telemetry.emit(
-                    new BrokerEndEvent()
-                            .putAction(methodName)
-                            .isSuccessful(true)
-            );
-
-            return cacheRecords;
-        }
+                    @Override
+                    public List<ICacheRecord> getResultFromBundle(Bundle bundle) throws BaseException {
+                        return mResultAdapter.getAccountsFromResultBundle(bundle);
+                    }
+                });
     }
 
     @WorkerThread
-    @SuppressWarnings("PMD")
-    @SuppressLint("MissingPermission")
-    protected void removeBrokerAccount(
-            @NonNull final RemoveAccountCommandContext context,
-            @NonNull final RemoveAccountCommandParameters parameters) {
-        final String methodName = ":removeBrokerAccountFromAccountManager";
-        Telemetry.emit(
-                new BrokerStartEvent()
-                        .putAction(methodName)
-                        .putStrategy(TelemetryEventStrings.Value.ACCOUNT_MANAGER)
-        );
-        // getAuthToken call will execute in async as well
-        Logger.verbose(TAG + methodName, "Try to remove account from account manager.");
+    protected void removeBrokerAccount(@NonNull final OperationParameters parameters) throws BaseException {
+        invokeBrokerAccountManagerOperation(parameters,
+                new OperationInfo<OperationParameters, Void>() {
+                    @Override
+                    public Bundle getRequestBundle(OperationParameters parameters) {
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForRemoveAccount(parameters);
+                        requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
+                                AuthenticationConstants.BrokerAccountManagerOperation.REMOVE_ACCOUNT);
+                        return requestBundle;
+                    }
 
-        //If account is null, remove all accounts from broker
-        //Otherwise, get the target account and remove it from broker
-        Account[] accountList = AccountManager.get(context.androidApplicationContext()).getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-        if (accountList != null && accountList.length > 0) {
-            for (final Account eachAccount : accountList) {
-                if (parameters.accountRecord() == null || eachAccount.name.equalsIgnoreCase(parameters.accountRecord().getUsername())) {
-                    //create remove request bundle
-                    Bundle brokerOptions = new Bundle();
-                    brokerOptions.putString(ACCOUNT_CLIENTID_KEY, parameters.clientId());
-                    brokerOptions.putString(ENVIRONMENT, parameters.accountRecord().getEnvironment());
-                    brokerOptions.putInt(AuthenticationConstants.Broker.CALLER_INFO_UID,
-                            Binder.getCallingUid());
-                    brokerOptions.putString(ACCOUNT_HOME_ACCOUNT_ID, parameters.accountRecord().getHomeAccountId());
-                    brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS,
-                            AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS_VALUE);
-                    AccountManager.get(context.androidApplicationContext()).getAuthToken(
-                            eachAccount,
-                            AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
-                            brokerOptions,
-                            false,
-                            null, //set to null to avoid callback
-                            getPreferredHandler()
-                    );
-                }
-            }
-        }
+                    @Override
+                    public String getMethodName() {
+                        return ":removeBrokerAccountWithAccountManager";
+                    }
 
-        Telemetry.emit(
-                new BrokerEndEvent()
-                        .putAction(methodName)
-                        .isSuccessful(true)
-        );
+                    @Override
+                    public Void getResultFromBundle(Bundle bundle) throws BaseException {
+                        mResultAdapter.verifyRemoveAccountResultFromBundle(bundle);
+                        return null;
+                    }
+                });
     }
 
     @Override
-    boolean getDeviceMode(
-            @NonNull GetDeviceModeCommandContext context,
-            @NonNull GetDeviceModeCommandParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
-        // TODO
-        throw new MsalClientException("getDeviceMode() is not yet implemented in BrokerAccountManagerStrategy()");
+    boolean getDeviceMode(@NonNull OperationParameters parameters) throws BaseException {
+        return invokeBrokerAccountManagerOperation(parameters,
+                new OperationInfo<OperationParameters, Boolean>() {
+                    @Override
+                    public Bundle getRequestBundle(OperationParameters parameters) {
+                        final Bundle requestBundle = new Bundle();
+                        requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
+                                AuthenticationConstants.BrokerAccountManagerOperation.GET_DEVICE_MODE);
+                        return requestBundle;
+                    }
+
+                    @Override
+                    public String getMethodName() {
+                        return ":getDeviceModeWithAccountManager";
+                    }
+
+                    @Override
+                    public Boolean getResultFromBundle(Bundle bundle) throws BaseException {
+                        return mResultAdapter.getDeviceModeFromResultBundle(bundle);
+                    }
+                });
     }
 
     @Override
-    List<ICacheRecord> getCurrentAccountInSharedDevice(
-            @NonNull GetCurrentAccountCommandContext context,
-            @NonNull GetCurrentAccountCommandParameters parameters) throws InterruptedException, ExecutionException, RemoteException, OperationCanceledException, IOException, AuthenticatorException, BaseException {
-        // TODO
-        throw new MsalClientException("getCurrentAccountInSharedDevice() is not yet implemented in BrokerAccountManagerStrategy()");
+    List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull OperationParameters parameters) throws BaseException {
+        return invokeBrokerAccountManagerOperation(parameters,
+                new OperationInfo<OperationParameters, List<ICacheRecord>>() {
+                    @Override
+                    public Bundle getRequestBundle(OperationParameters parameters) {
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForGetAccounts(parameters);
+                        requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
+                                AuthenticationConstants.BrokerAccountManagerOperation.GET_CURRENT_ACCOUNT);
+                        return requestBundle;
+                    }
+
+                    @Override
+                    public String getMethodName() {
+                        return ":getCurrentAccountInSharedDeviceWithAccountManager";
+                    }
+
+                    @Override
+                    public List<ICacheRecord> getResultFromBundle(Bundle bundle) throws BaseException {
+                        return mResultAdapter.getAccountsFromResultBundle(bundle);
+                    }
+                });
     }
 
     @Override
-    void signOutFromSharedDevice(
-            @NonNull RemoveCurrentAccountCommandContext context,
-            @NonNull RemoveCurrentAccountCommandParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
-        // TODO
-        throw new MsalClientException("signOutFromSharedDevice() is not yet implemented in BrokerAccountManagerStrategy()");
+    void signOutFromSharedDevice(@NonNull OperationParameters parameters) throws BaseException {
+        invokeBrokerAccountManagerOperation(parameters,
+                new OperationInfo<OperationParameters, Void>() {
+                    @Override
+                    public Bundle getRequestBundle(OperationParameters parameters) {
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForRemoveAccountFromSharedDevice(parameters);
+                        requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
+                                AuthenticationConstants.BrokerAccountManagerOperation.REMOVE_ACCOUNT_FROM_SHARED_DEVICE);
+                        return requestBundle;
+                    }
+
+                    @Override
+                    public String getMethodName() {
+                        return ":signOutFromSharedDeviceWithAccountManager";
+                    }
+
+                    @Override
+                    public Void getResultFromBundle(Bundle bundle) throws BaseException {
+                        mResultAdapter.verifyRemoveAccountResultFromBundle(bundle);
+                        return null;
+                    }
+                });
     }
 
 }
