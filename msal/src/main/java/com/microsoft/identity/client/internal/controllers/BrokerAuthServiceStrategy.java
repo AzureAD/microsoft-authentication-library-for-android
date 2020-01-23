@@ -31,8 +31,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.IMicrosoftAuthService;
+import com.microsoft.identity.client.exception.BrokerCommunicationException;
 import com.microsoft.identity.common.exception.BaseException;
-import com.microsoft.identity.common.exception.BrokerCommunicationException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
@@ -133,7 +133,7 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                             .putErrorCode(ErrorStrings.IO_ERROR)
                             .putErrorDescription(e.getMessage()));
 
-            throw new BrokerCommunicationException(errorDescription);
+            throw new BrokerCommunicationException(errorDescription, e);
         } catch (final BaseException e) {
             Logger.error(TAG + methodName, e.getMessage(), e);
             Telemetry.emit(
@@ -142,7 +142,6 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                             .isSuccessful(false)
                             .putErrorCode(e.getErrorCode())
                             .putErrorDescription(e.getMessage()));
-
             throw e;
         } finally {
             client.disconnect();
