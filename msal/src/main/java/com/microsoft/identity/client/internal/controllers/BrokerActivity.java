@@ -26,9 +26,14 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.logging.Logger;
+
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.AuthorizationIntentAction.RETURN_INTERACTIVE_REQUEST_RESULT;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.AuthorizationIntentKey.REQUEST_CODE;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.AuthorizationIntentKey.RESULT_CODE;
 
 public final class BrokerActivity extends Activity {
 
@@ -101,7 +106,12 @@ public final class BrokerActivity extends Activity {
                 || resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR) {
 
             Logger.verbose(TAG + methodName, "Completing interactive request ");
-            CommandDispatcher.completeInteractive(requestCode, resultCode, data);
+
+            data.setAction(RETURN_INTERACTIVE_REQUEST_RESULT);
+            data.putExtra(REQUEST_CODE, AuthenticationConstants.UIRequest.BROWSER_FLOW);
+            data.putExtra(RESULT_CODE, resultCode);
+
+            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(data);
         }
         finish();
     }
