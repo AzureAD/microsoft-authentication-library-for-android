@@ -200,6 +200,7 @@ public class BrokerMsalController extends BaseController {
                 }
             } catch (final BaseException exception) {
                 if (exception instanceof  BrokerCommunicationException) {
+                    lastCaughtException = exception;
                     continue;
                 }
 
