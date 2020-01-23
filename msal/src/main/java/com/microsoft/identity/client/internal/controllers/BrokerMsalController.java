@@ -703,11 +703,7 @@ public class BrokerMsalController extends BaseController {
                     e
             );
 
-            throw new ClientException(
-                    ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "OperationCanceledException thrown when talking to account manager. The broker request cancelled.",
-                    e
-            );
+            return false;
         } catch (final AuthenticatorException e) {
             Logger.error(
                     TAG + methodName,
@@ -716,11 +712,7 @@ public class BrokerMsalController extends BaseController {
                     e
             );
 
-            throw new ClientException(
-                    ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "AuthenticatorException thrown when talking to account manager. The broker request cancelled.",
-                    e
-            );
+            return false;
         } catch (final IOException e) {
             // Authenticator gets problem from webrequest or file read/write
             Logger.error(
@@ -730,11 +722,7 @@ public class BrokerMsalController extends BaseController {
                     e
             );
 
-            throw new ClientException(
-                    ErrorStrings.BROKER_REQUEST_CANCELLED,
-                    "IOException thrown when talking to account manager. The broker request cancelled.",
-                    e
-            );
+            return false;
         }
     }
 
@@ -788,11 +776,11 @@ public class BrokerMsalController extends BaseController {
             this.addBrokerStrategy(new BrokerAuthServiceStrategy());
         }
 
-        //check if account manager available
-        if (BrokerMsalController.helloWithAccountManager(parameters.getAppContext(), parameters)) {
-            Logger.verbose(TAG + methodName, "Add the account manager strategy.");
-            this.addBrokerStrategy(new BrokerAccountManagerStrategy());
-        }
+//        //check if account manager available
+//        if (BrokerMsalController.helloWithAccountManager(parameters.getAppContext(), parameters)) {
+//            Logger.verbose(TAG + methodName, "Add the account manager strategy.");
+//            this.addBrokerStrategy(new BrokerAccountManagerStrategy());
+//        }
 
         if (getStrategies().isEmpty()) {
             throw new ClientException(
