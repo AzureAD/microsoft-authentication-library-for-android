@@ -83,8 +83,12 @@ android {
 
     testOptions {
         unitTests.all {
-            // Disabling individual e2e tests, as tests will be run from the e2e/suites package
-            exclude 'com/microsoft/identity/client/e2e/tests/'
+            if (!project.hasProperty('labtest')) {
+                // Disabling network based e2e tests if labtest not specified in build
+                // to turn on pass labtest as build param
+                // example: ./gradlew testLocalDebugUnitTest -Plabtest
+                exclude 'com/microsoft/identity/client/e2e/tests/network'
+            }
         }
     }
 }
@@ -140,9 +144,9 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '1.0.9-SNAPSHOT', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '1.0.14-SNAPSHOT', changing: true)
 
-    distApi("com.microsoft.identity:common:1.0.7") {
+    distApi("com.microsoft.identity:common:1.0.14") {
         transitive = false
     }
 }

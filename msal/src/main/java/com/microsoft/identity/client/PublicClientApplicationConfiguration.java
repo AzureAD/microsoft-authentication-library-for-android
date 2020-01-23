@@ -35,6 +35,7 @@ import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.internal.authorities.Authority;
@@ -92,46 +93,46 @@ public class PublicClientApplicationConfiguration {
     }
 
     @SerializedName(CLIENT_ID)
-    String mClientId;
+    private String mClientId;
 
     @SerializedName(REDIRECT_URI)
-    String mRedirectUri;
+    private String mRedirectUri;
 
     @SerializedName(AUTHORITIES)
-    List<Authority> mAuthorities;
+    private List<Authority> mAuthorities;
 
     @SerializedName(AUTHORIZATION_USER_AGENT)
-    AuthorizationAgent mAuthorizationAgent;
+    private AuthorizationAgent mAuthorizationAgent;
 
     @SerializedName(HTTP)
-    HttpConfiguration mHttpConfiguration;
+    private HttpConfiguration mHttpConfiguration;
 
     @SerializedName(LOGGING)
-    LoggerConfiguration mLoggerConfiguration;
+    private LoggerConfiguration mLoggerConfiguration;
 
     @SerializedName(MULTIPLE_CLOUDS_SUPPORTED)
-    Boolean mMultipleCloudsSupported;
+    private Boolean mMultipleCloudsSupported;
 
     @SerializedName(USE_BROKER)
-    Boolean mUseBroker;
+    private Boolean mUseBroker;
 
     @SerializedName(ENVIRONMENT)
-    Environment mEnvironment;
+    private Environment mEnvironment;
 
     @SerializedName(REQUIRED_BROKER_PROTOCOL_VERSION)
-    String mRequiredBrokerProtocolVersion;
+    private String mRequiredBrokerProtocolVersion;
 
     @SerializedName(BROWSER_SAFE_LIST)
-    List<BrowserDescriptor> mBrowserSafeList;
+    private List<BrowserDescriptor> mBrowserSafeList;
 
     @SerializedName(TELEMETRY)
-    TelemetryConfiguration mTelemetryConfiguration;
+    private TelemetryConfiguration mTelemetryConfiguration;
 
     @SerializedName(ACCOUNT_MODE)
-    AccountMode mAccountMode;
+    private AccountMode mAccountMode;
 
     @SerializedName(CLIENT_CAPABILITIES)
-    String mClientCapabilities;
+    private String mClientCapabilities;
 
     transient private OAuth2TokenCache mOAuth2TokenCache;
 
@@ -166,6 +167,15 @@ public class PublicClientApplicationConfiguration {
      */
     public String getClientId() {
         return mClientId;
+    }
+
+    /**
+     * Sets the configured client id for the PublicClientApplication.
+     *
+     * @@param The configured clientId.
+     */
+    public void setClientId(final String clientId) {
+        mClientId = clientId;
     }
 
     /**
@@ -221,6 +231,15 @@ public class PublicClientApplicationConfiguration {
      */
     public String getRedirectUri() {
         return this.mRedirectUri;
+    }
+
+    /**
+     * Sets the configured redirect uri for the PublicClientApplication.
+     *
+     * @param redirectUri The redirectUri to use.
+     */
+    public void setRedirectUri(@NonNull final String redirectUri) {
+        this.mRedirectUri = redirectUri;
     }
 
     /**
@@ -426,7 +445,7 @@ public class PublicClientApplicationConfiguration {
     }
 
     // Verifies broker redirect URI against the app's signature, to make sure that this is legit.
-    private void verifyRedirectUriWithAppSignature() {
+    private void verifyRedirectUriWithAppSignature() throws MsalClientException {
         final String packageName = mAppContext.getPackageName();
         try {
             final PackageInfo info = mAppContext.getPackageManager().getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
@@ -450,34 +469,25 @@ public class PublicClientApplicationConfiguration {
             Logger.error(TAG, "Unexpected error in verifyRedirectUriWithAppSignature()", e);
         }
 
-        throw new IllegalStateException("The redirect URI in the configuration file doesn't match with the one " +
-                "generated with package name and signature hash. Please verify the uri in the config file and your app registration in Azure portal.");
+        throw new MsalClientException(
+                MsalClientException.REDIRECT_URI_VALIDATION_ERROR,
+                "The redirect URI in the configuration file doesn't match with the one " +
+                        "generated with package name and signature hash. Please verify the uri in the config file and your app registration in Azure portal.");
     }
 
     @SuppressWarnings("PMD")
-    public void checkIntentFilterAddedToAppManifestForBrokerFlow() {
-        if (!mUseBroker) {
-            return;
-        }
-
-        if (!isBrokerRedirectUri()) {
-            // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
-            // If this is the case, we can assume that the user doesn't need Broker support.
-            Logger.info(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth.");
-            mUseBroker = false;
-            return;
-        }
-
-        verifyRedirectUriWithAppSignature();
-
+    public void checkIntentFilterAddedToAppManifestForBrokerFlow() throws MsalClientException {
         final boolean hasCustomTabRedirectActivity = MsalUtils.hasCustomTabRedirectActivity(
                 mAppContext,
                 mRedirectUri
         );
 
-        if (!hasCustomTabRedirectActivity) {
+        if ((getAuthorizationAgent() == AuthorizationAgent.DEFAULT
+                || getAuthorizationAgent() == AuthorizationAgent.BROWSER)
+                && !hasCustomTabRedirectActivity) {
             final Uri redirectUri = Uri.parse(mRedirectUri);
-            throw new IllegalStateException(
+            throw new MsalClientException(
+                    MsalClientException.APP_MANIFEST_VALIDATION_ERROR,
                     "Intent filter for: " +
                             BrowserTabActivity.class.getSimpleName() +
                             " is missing. " +
@@ -494,6 +504,20 @@ public class PublicClientApplicationConfiguration {
                             "\t" + "</intent-filter>" + "\n" +
                             "</activity>" + "\n");
         }
+
+        if (!mUseBroker) {
+            return;
+        }
+
+        if (!isBrokerRedirectUri()) {
+            // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
+            // If this is the case, we can assume that the user doesn't need Broker support.
+            Logger.info(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth.");
+            mUseBroker = false;
+            return;
+        }
+
+        verifyRedirectUriWithAppSignature();
     }
 
 }

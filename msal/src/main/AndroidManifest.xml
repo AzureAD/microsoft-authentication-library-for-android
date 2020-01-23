@@ -8,10 +8,6 @@
     <application>
         <!-- MSAL activity that will be used to process all the auth related logic  -->
         <activity
-            android:name="com.microsoft.identity.client.AuthenticationActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize" />
-
-        <activity
             android:name="com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:exported="false"

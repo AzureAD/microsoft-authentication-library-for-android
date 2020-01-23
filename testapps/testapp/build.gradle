@@ -34,6 +34,14 @@ android {
         versionCode 1
         versionName "1.0"
     }
+    signingConfigs {
+        debug {
+            storeFile file("./debug.keystore")
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
@@ -51,7 +59,8 @@ android {
             resValue("string", "application_name", "msal-local")
         }
         dist {
-            applicationIdSuffix ".dist"
+            // Keep .local because the redirect url we registered on the portal contains .local, not .dist
+            applicationIdSuffix ".local"
             versionNameSuffix "-dist"
             resValue("string", "application_name", "msal-dist")
         }
@@ -60,7 +69,8 @@ android {
 
 dependencies {
     // Compile Dependency
-    implementation project(':msal')
+    localImplementation project(':msal')
+    distImplementation 'com.microsoft.identity.client:msal:1.0.+'
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"

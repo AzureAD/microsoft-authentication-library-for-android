@@ -41,6 +41,7 @@ import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.internal.IntuneAcquireTokenParameters;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
@@ -169,6 +170,9 @@ public class OperationParametersAdapter {
         acquireTokenOperationParameters.setActivity(
                 acquireTokenParameters.getActivity()
         );
+        acquireTokenOperationParameters.setFragment(
+                acquireTokenParameters.getFragment()
+        );
 
         if (acquireTokenParameters.getAccount() != null) {
             final IAccount account = acquireTokenParameters.getAccount();
@@ -204,6 +208,18 @@ public class OperationParametersAdapter {
             acquireTokenOperationParameters.setAuthorizationAgent(AuthorizationAgent.DEFAULT);
         }
 
+        // Special case only for Intune COBO app, where they use IntuneAcquireTokenParameters (an internal class)
+        // to set browser support in broker to share SSO from System WebView login.
+        if(acquireTokenParameters instanceof IntuneAcquireTokenParameters){
+            boolean brokerBrowserEnabled = ((IntuneAcquireTokenParameters) acquireTokenParameters)
+                    .isBrokerBrowserSupportEnabled();
+            Logger.info(TAG + methodName,
+                    " IntuneAcquireTokenParameters instance, broker browser enabled : "
+                            + brokerBrowserEnabled
+            );
+            acquireTokenOperationParameters.setBrokerBrowserSupportEnabled(brokerBrowserEnabled);
+        }
+
         if (acquireTokenParameters.getPrompt() == null || acquireTokenParameters.getPrompt() == Prompt.WHEN_REQUIRED) {
             acquireTokenOperationParameters.setOpenIdConnectPromptParameter(
                     OpenIdConnectPromptParameter.SELECT_ACCOUNT
@@ -216,7 +232,7 @@ public class OperationParametersAdapter {
             );
         }
 
-        final Context context = acquireTokenParameters.getActivity().getApplicationContext();
+        final Context context = publicClientApplicationConfiguration.getAppContext();
         acquireTokenOperationParameters.setApplicationName(context.getPackageName());
         acquireTokenOperationParameters.setApplicationVersion(getPackageVersion(context));
         acquireTokenOperationParameters.setSdkVersion(PublicClientApplication.getSdkVersion());

@@ -24,6 +24,8 @@ package com.microsoft.identity.client.internal.controllers;
 
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
@@ -31,23 +33,22 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 
+import com.microsoft.identity.client.exception.BrokerCommunicationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
-import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
-import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
-import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 import com.microsoft.identity.common.internal.telemetry.Telemetry;
 import com.microsoft.identity.common.internal.telemetry.TelemetryEventStrings;
 import com.microsoft.identity.common.internal.telemetry.events.BrokerEndEvent;
 import com.microsoft.identity.common.internal.telemetry.events.BrokerStartEvent;
 
+import java.io.IOException;
 import java.util.List;
 
 public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
@@ -55,7 +56,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
 
     public interface OperationInfo<T extends OperationParameters, U> {
         /**
-         * Performs this account manager operation in this method with the given IMicrosoftAuthService.
+         * Performs this AccountManager operation in this method with the given IMicrosoftAuthService.
          */
         Bundle getRequestBundle(T parameters);
 
@@ -96,23 +97,26 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
 
             Logger.verbose(TAG + methodName, "Received result from broker");
             result = operationInfo.getResultFromBundle(resultBundle.getResult());
-        } catch (final Exception e) {
-            final BaseException baseException = getBaseExceptionFromException(e);
-
-            Logger.error(
-                    TAG + methodName,
-                    e.getMessage(),
-                    e
-            );
-
+        } catch (final AuthenticatorException | IOException | OperationCanceledException e) {
+            Logger.error(TAG + methodName, e.getMessage(), e);
             Telemetry.emit(
                     new BrokerEndEvent()
                             .putAction(methodName)
                             .isSuccessful(false)
-                            .putErrorCode(baseException.getErrorCode())
-                            .putErrorDescription(baseException.getMessage()));
+                            .putErrorCode(ErrorStrings.IO_ERROR)
+                            .putErrorDescription(e.getMessage()));
 
-            throw baseException;
+            throw new BrokerCommunicationException("Failed to connect to AccountManager", e);
+        } catch (final BaseException e) {
+            Logger.error(TAG + methodName, e.getMessage(), e);
+            Telemetry.emit(
+                    new BrokerEndEvent()
+                            .putAction(methodName)
+                            .isSuccessful(false)
+                            .putErrorCode(e.getErrorCode())
+                            .putErrorDescription(e.getMessage()));
+
+            throw e;
         }
 
         Telemetry.emit(
@@ -124,29 +128,16 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
         return result;
     }
 
-    private static BaseException getBaseExceptionFromException(final Exception e) {
-        if (e instanceof BaseException) {
-            return (BaseException) e;
-        }
-
-        return new ClientException(
-                ErrorStrings.BROKER_REQUEST_CANCELLED,
-                e.getClass().getSimpleName() + " thrown when talking to account manager.",
-                e
-        );
-    }
-
     @WorkerThread
     @SuppressLint("MissingPermission")
-    boolean hello(@NonNull final OperationParameters parameters)
+    void hello(@NonNull final OperationParameters parameters)
             throws BaseException {
 
         if (!BrokerMsalController.isAccountManagerPermissionsGranted(parameters.getAppContext())) {
-            //If the account manager permissions are not granted, return false.
-            return false;
+            throw new BrokerCommunicationException("AccountManager permissions are not granted", null);
         }
 
-        return invokeBrokerAccountManagerOperation(parameters, new OperationInfo<OperationParameters, Boolean>() {
+        invokeBrokerAccountManagerOperation(parameters, new OperationInfo<OperationParameters, Void>() {
             @Override
             public Bundle getRequestBundle(OperationParameters parameters) {
                 final Bundle requestBundle = mRequestAdapter.getRequestBundleForHello(parameters);
@@ -161,8 +152,9 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
             }
 
             @Override
-            public Boolean getResultFromBundle(Bundle bundle) throws BaseException {
-                return mResultAdapter.getHelloFromResultBundle(bundle);
+            public Void getResultFromBundle(Bundle bundle) throws BaseException {
+                mResultAdapter.verifyHelloFromResultBundle(bundle);
+                return null;
             }
         });
     }
@@ -176,7 +168,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     @WorkerThread
     Intent getBrokerAuthorizationIntent(@NonNull final AcquireTokenOperationParameters parameters) throws BaseException {
         final String methodName = ":getBrokerAuthorizationIntent";
-        Logger.verbose(TAG + methodName, "Get the broker authorization intent from Account Manager.");
+        Logger.verbose(TAG + methodName, "Get the broker authorization intent from AccountManager.");
 
         return invokeBrokerAccountManagerOperation(parameters,
                 new OperationInfo<AcquireTokenOperationParameters, Intent>() {

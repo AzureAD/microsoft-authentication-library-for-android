@@ -9,8 +9,8 @@ def getVersionProps() {
     return versionProps
 }
 
-private Integer getVersionNamePatch() {
-    return (getVersionProps()['versionName'] =~ /\d+/)[2].toInteger()
+private String getVersionNamePatch() {
+    return (getVersionProps()['versionName'] =~ /[^.]+/)[2].toString()
 }
 
 private Integer getVersionNameMinor() {

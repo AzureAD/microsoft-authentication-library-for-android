@@ -397,8 +397,8 @@ public class LocalMSALController extends BaseController {
     public boolean getDeviceMode(OperationParameters parameters) throws Exception {
         final String methodName = ":getDeviceMode";
 
-        final String errorMessage = "LocalMSALControler is not eligible to use the broker. Do not check sharedDevice mode and return false immediately.";
-        com.microsoft.identity.common.internal.logging.Logger.error(TAG + methodName, errorMessage, null);
+        final String errorMessage = "LocalMSALController is not eligible to use the broker. Do not check sharedDevice mode and return false immediately.";
+        com.microsoft.identity.common.internal.logging.Logger.warn(TAG + methodName, errorMessage);
 
         return false;
     }

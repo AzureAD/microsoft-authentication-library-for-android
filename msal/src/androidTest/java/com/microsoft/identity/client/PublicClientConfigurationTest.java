@@ -84,9 +84,9 @@ public class PublicClientConfigurationTest {
     @Test
     public void testDefaultConfigurationLoads() {
         assertNotNull(mDefaultConfig);
-        assertNotNull(mDefaultConfig.mAuthorities);
-        assertNotNull(mDefaultConfig.mAuthorizationAgent);
-        assertNotNull(mDefaultConfig.mHttpConfiguration);
+        assertNotNull(mDefaultConfig.getAuthorities());
+        assertNotNull(mDefaultConfig.getAuthorizationAgent());
+        assertNotNull(mDefaultConfig.getHttpConfiguration());
     }
 
     /**
@@ -94,8 +94,8 @@ public class PublicClientConfigurationTest {
      */
     @Test
     public void testDefaultConfigurationLoadsWithHttpConfig() {
-        assertNotNull(mDefaultConfig.mHttpConfiguration);
-        final HttpConfiguration httpConfiguration = mDefaultConfig.mHttpConfiguration;
+        assertNotNull(mDefaultConfig.getHttpConfiguration());
+        final HttpConfiguration httpConfiguration = mDefaultConfig.getHttpConfiguration();
         assertTrue(httpConfiguration.getConnectTimeout() >= 1);
         assertTrue(httpConfiguration.getReadTimeout() >= 1);
     }
@@ -106,8 +106,8 @@ public class PublicClientConfigurationTest {
     @Test
     public void testMinimumConfigurationLoads() {
         final PublicClientApplicationConfiguration minConfig = loadConfig(R.raw.test_pcaconfig_min);
-        assertNotNull(minConfig.mClientId);
-        assertNotNull(minConfig.mRedirectUri);
+        assertNotNull(minConfig.getClientId());
+        assertNotNull(minConfig.getRedirectUri());
     }
 
     /**
@@ -119,19 +119,19 @@ public class PublicClientConfigurationTest {
      */
     private void testMinimumValidConfigurationMerge(PublicClientApplicationConfiguration minConfig) {
         // Record the values of the default config to verify the merge action
-        final List<Authority> authorities = mDefaultConfig.mAuthorities;
-        final AuthorizationAgent agent = mDefaultConfig.mAuthorizationAgent;
-        final HttpConfiguration httpConfiguration = mDefaultConfig.mHttpConfiguration;
+        final List<Authority> authorities = mDefaultConfig.getAuthorities();
+        final AuthorizationAgent agent = mDefaultConfig.getAuthorizationAgent();
+        final HttpConfiguration httpConfiguration = mDefaultConfig.getHttpConfiguration();
 
         // Merge it
         mDefaultConfig.mergeConfiguration(minConfig);
 
         // Assert that the values have merged successfully
-        assertEquals(authorities, mDefaultConfig.mAuthorities);
-        assertEquals(agent, mDefaultConfig.mAuthorizationAgent);
-        assertEquals(httpConfiguration, mDefaultConfig.mHttpConfiguration);
-        assertEquals(minConfig.mClientId, mDefaultConfig.mClientId);
-        assertEquals(minConfig.mRedirectUri, mDefaultConfig.mRedirectUri);
+        assertEquals(authorities, mDefaultConfig.getAuthorities());
+        assertEquals(agent, mDefaultConfig.getAuthorizationAgent());
+        assertEquals(httpConfiguration, mDefaultConfig.getHttpConfiguration());
+        assertEquals(minConfig.getClientId(), mDefaultConfig.getClientId());
+        assertEquals(minConfig.getRedirectUri(), mDefaultConfig.getRedirectUri());
     }
 
     @Test
@@ -150,13 +150,13 @@ public class PublicClientConfigurationTest {
      */
     private void testB2CAuthorityValidConfiguration(PublicClientApplicationConfiguration b2cConfig) {
         assertNotNull(b2cConfig);
-        assertNotNull(b2cConfig.mClientId);
-        assertNotNull(b2cConfig.mRedirectUri);
-        assertNotNull(b2cConfig.mAuthorities);
-        assertEquals(1, b2cConfig.mAuthorities.size());
+        assertNotNull(b2cConfig.getClientId());
+        assertNotNull(b2cConfig.getRedirectUri());
+        assertNotNull(b2cConfig.getAuthorities());
+        assertEquals(1, b2cConfig.getAuthorities().size());
 
         // Grab the Authority from the config
-        final Authority config = b2cConfig.mAuthorities.get(0);
+        final Authority config = b2cConfig.getAuthorities().get(0);
 
         // Test that it is a B2C Authority.
         assertTrue(config instanceof AzureActiveDirectoryB2CAuthority);
@@ -183,13 +183,13 @@ public class PublicClientConfigurationTest {
     public void testADFSAuthorityValidConfiguration() {
         final PublicClientApplicationConfiguration adfsConfig = loadConfig(R.raw.test_pcaconfig_adfs);
         assertNotNull(adfsConfig);
-        assertNotNull(adfsConfig.mClientId);
-        assertNotNull(adfsConfig.mRedirectUri);
-        assertNotNull(adfsConfig.mAuthorities);
-        assertEquals(1, adfsConfig.mAuthorities.size());
+        assertNotNull(adfsConfig.getClientId());
+        assertNotNull(adfsConfig.getRedirectUri());
+        assertNotNull(adfsConfig.getAuthorities());
+        assertEquals(1, adfsConfig.getAuthorities().size());
 
         // Grab the Authority from the config
-        final Authority config = adfsConfig.mAuthorities.get(0);
+        final Authority config = adfsConfig.getAuthorities().get(0);
 
         // Test that it is a B2C Authority.
         assertTrue(config instanceof ActiveDirectoryFederationServicesAuthority);
@@ -203,8 +203,8 @@ public class PublicClientConfigurationTest {
     public void testAudienceAccountsInOneOrganziation() {
         final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_aud_accountsinoneorg);
         assertNotNull(config);
-        assertEquals(1, config.mAuthorities.size());
-        final Authority authority = config.mAuthorities.get(0);
+        assertEquals(1, config.getAuthorities().size());
+        final Authority authority = config.getAuthorities().get(0);
         assertTrue(authority instanceof AzureActiveDirectoryAuthority);
         final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
         assertTrue(azureActiveDirectoryAuthority.mAudience instanceof AccountsInOneOrganization);
@@ -217,8 +217,8 @@ public class PublicClientConfigurationTest {
     public void testAudienceAnyOrganizationAccount() {
         final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_aud_anyorg);
         assertNotNull(config);
-        assertEquals(1, config.mAuthorities.size());
-        final Authority authority = config.mAuthorities.get(0);
+        assertEquals(1, config.getAuthorities().size());
+        final Authority authority = config.getAuthorities().get(0);
         assertTrue(authority instanceof AzureActiveDirectoryAuthority);
         final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
         assertTrue(azureActiveDirectoryAuthority.mAudience instanceof AnyOrganizationalAccount);
@@ -231,8 +231,8 @@ public class PublicClientConfigurationTest {
     public void testAudienceAllAccounts() {
         final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_aud_allaccts);
         assertNotNull(config);
-        assertEquals(1, config.mAuthorities.size());
-        final Authority authority = config.mAuthorities.get(0);
+        assertEquals(1, config.getAuthorities().size());
+        final Authority authority = config.getAuthorities().get(0);
         assertTrue(authority instanceof AzureActiveDirectoryAuthority);
         final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
         assertTrue(azureActiveDirectoryAuthority.mAudience instanceof AllAccounts);
@@ -245,8 +245,8 @@ public class PublicClientConfigurationTest {
     public void testAudienceAnyPersonalAccount() {
         final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_aud_anypersonal);
         assertNotNull(config);
-        assertEquals(1, config.mAuthorities.size());
-        final Authority authority = config.mAuthorities.get(0);
+        assertEquals(1, config.getAuthorities().size());
+        final Authority authority = config.getAuthorities().get(0);
         assertTrue(authority instanceof AzureActiveDirectoryAuthority);
         final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
         assertTrue(azureActiveDirectoryAuthority.mAudience instanceof AnyPersonalAccount);
@@ -259,8 +259,8 @@ public class PublicClientConfigurationTest {
     public void testSliceParametersSet() {
         final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_with_slice);
         assertNotNull(config);
-        assertEquals(1, config.mAuthorities.size());
-        final Authority authority = config.mAuthorities.get(0);
+        assertEquals(1, config.getAuthorities().size());
+        final Authority authority = config.getAuthorities().get(0);
         final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
         assertNotNull(azureActiveDirectoryAuthority.mSlice.getDC());
         assertNotNull(azureActiveDirectoryAuthority.mSlice.getSlice());
@@ -273,8 +273,8 @@ public class PublicClientConfigurationTest {
     public void testFlightParametersSet() {
         final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_with_flight);
         assertNotNull(config);
-        assertEquals(1, config.mAuthorities.size());
-        final Authority authority = config.mAuthorities.get(0);
+        assertEquals(1, config.getAuthorities().size());
+        final Authority authority = config.getAuthorities().get(0);
         final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
         assertFalse(azureActiveDirectoryAuthority.mFlightParameters.isEmpty());
     }
@@ -296,9 +296,9 @@ public class PublicClientConfigurationTest {
     public void testUnknownAudienceException() {
         final PublicClientApplicationConfiguration configWithInvalidAudience = loadConfig(R.raw.test_pcaconfig_unknown_audience);
         assertNotNull(configWithInvalidAudience);
-        assertFalse(configWithInvalidAudience.mAuthorities.isEmpty());
+        assertFalse(configWithInvalidAudience.getAuthorities().isEmpty());
 
-        final Authority authorityWithInvalidAudience = configWithInvalidAudience.mAuthorities.get(0);
+        final Authority authorityWithInvalidAudience = configWithInvalidAudience.getAuthorities().get(0);
         assertNotNull(authorityWithInvalidAudience);
         assertTrue(authorityWithInvalidAudience instanceof AzureActiveDirectoryAuthority);
         configWithInvalidAudience.validateConfiguration();
@@ -329,8 +329,8 @@ public class PublicClientConfigurationTest {
     public void testVerboseLogLevel() {
         final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_log_verbose);
         assertNotNull(config);
-        assertNotNull(config.mLoggerConfiguration);
-        assertEquals(Logger.LogLevel.VERBOSE, config.mLoggerConfiguration.getLogLevel());
+        assertNotNull(config.getLoggerConfiguration());
+        assertEquals(Logger.LogLevel.VERBOSE, config.getLoggerConfiguration().getLogLevel());
     }
 
     /**
@@ -340,8 +340,8 @@ public class PublicClientConfigurationTest {
     public void testInfoLogLevel() {
         final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_log_info);
         assertNotNull(config);
-        assertNotNull(config.mLoggerConfiguration);
-        assertEquals(Logger.LogLevel.INFO, config.mLoggerConfiguration.getLogLevel());
+        assertNotNull(config.getLoggerConfiguration());
+        assertEquals(Logger.LogLevel.INFO, config.getLoggerConfiguration().getLogLevel());
     }
 
     /**
@@ -351,8 +351,8 @@ public class PublicClientConfigurationTest {
     public void testWarningLogLevel() {
         final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_log_warning);
         assertNotNull(config);
-        assertNotNull(config.mLoggerConfiguration);
-        assertEquals(Logger.LogLevel.WARNING, config.mLoggerConfiguration.getLogLevel());
+        assertNotNull(config.getLoggerConfiguration());
+        assertEquals(Logger.LogLevel.WARNING, config.getLoggerConfiguration().getLogLevel());
     }
 
     /**
@@ -362,8 +362,8 @@ public class PublicClientConfigurationTest {
     public void testErrorLogLevel() {
         final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_log_error);
         assertNotNull(config);
-        assertNotNull(config.mLoggerConfiguration);
-        assertEquals(Logger.LogLevel.ERROR, config.mLoggerConfiguration.getLogLevel());
+        assertNotNull(config.getLoggerConfiguration());
+        assertEquals(Logger.LogLevel.ERROR, config.getLoggerConfiguration().getLogLevel());
     }
 
     /**
@@ -373,8 +373,8 @@ public class PublicClientConfigurationTest {
     public void testPiiOn() {
         final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_log_info);
         assertNotNull(config);
-        assertNotNull(config.mLoggerConfiguration);
-        assertTrue(config.mLoggerConfiguration.isPiiEnabled());
+        assertNotNull(config.getLoggerConfiguration());
+        assertTrue(config.getLoggerConfiguration().isPiiEnabled());
     }
 
     /**
@@ -384,8 +384,8 @@ public class PublicClientConfigurationTest {
     public void testPiiOff() {
         final PublicClientApplicationConfiguration config = loadConfig(R.raw.test_pcaconfig_log_error);
         assertNotNull(config);
-        assertNotNull(config.mLoggerConfiguration);
-        assertFalse(config.mLoggerConfiguration.isPiiEnabled());
+        assertNotNull(config.getLoggerConfiguration());
+        assertFalse(config.getLoggerConfiguration().isPiiEnabled());
     }
 
     private PublicClientApplicationConfiguration loadConfig(final int resourceId) {

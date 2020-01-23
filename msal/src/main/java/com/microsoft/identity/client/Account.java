@@ -30,6 +30,7 @@ import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryIdToken;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
+import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.util.Map;
 
@@ -40,6 +41,7 @@ public class Account implements IAccount {
     private static final String TAG = Account.class.getSimpleName();
 
     private final Map<String, ?> mIdTokenClaims;
+    private final String mRawIdToken;
     private String mClientInfo;
     private String mHomeOid;
     private String mHomeTenantId;
@@ -52,8 +54,10 @@ public class Account implements IAccount {
 
         if (null != homeTenantIdToken) {
             mIdTokenClaims = homeTenantIdToken.getTokenClaims();
+            mRawIdToken = homeTenantIdToken.getRawIDToken();
         } else {
             mIdTokenClaims = null;
+            mRawIdToken = null;
         }
     }
 
@@ -115,6 +119,12 @@ public class Account implements IAccount {
         return mEnvironment;
     }
 
+    @Nullable
+    @Override
+    public String getIdToken() {
+        return mRawIdToken;
+    }
+
     /**
      * Gets the claims associated to this Account's IdToken. In the case of the Microsoft Identity
      * Platform, this value can be null if the home tenant has not been authorized.
@@ -141,6 +151,21 @@ public class Account implements IAccount {
             final String upn = (String) getClaims().get(AzureActiveDirectoryIdToken.UPN);
             if (null != upn) {
                 return upn;
+            }
+        }
+
+        return MISSING_FROM_THE_TOKEN_RESPONSE;
+    }
+
+    @Override
+    @NonNull
+    public String getAuthority() {
+        // TODO: The below logic only works for the case of AAD. We need to refactor this once we
+        //  make a proper fix for B2C
+        if (null != getClaims()) {
+            final String iss = (String) getClaims().get("iss");
+            if (!StringUtil.isEmpty(iss)) {
+                return iss;
             }
         }
 

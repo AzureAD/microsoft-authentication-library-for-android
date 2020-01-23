@@ -26,11 +26,11 @@ import android.net.Uri;
 
 import androidx.annotation.NonNull;
 
-import com.microsoft.identity.client.e2e.utils.TestConstants;
 import com.microsoft.identity.common.internal.authorities.AccountsInOneOrganization;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
+import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.authorities.AADTestAuthority;
 import com.microsoft.identity.internal.testutils.authorities.B2CTestAuthority;
 import com.microsoft.identity.internal.testutils.authorities.MockAuthority;
@@ -53,7 +53,8 @@ public class ShadowAuthority {
     private static final String TAG = ShadowAuthority.class.getSimpleName();
 
     private static final String AAD_MOCK_PATH_SEGMENT = "mock";
-    private static final String B2C_TEST_PATH_SEGMENT = "tfp";
+    private static final String B2C_PATH_SEGMENT = "tfp";
+    private static final String B2C_PATH_SEGMENT_ALT = "te";
     private static final String AAD_MOCK_DELAYED_PATH_SEGMENT = "mock_with_delays";
 
     /**
@@ -99,7 +100,8 @@ public class ShadowAuthority {
             case AAD_MOCK_DELAYED_PATH_SEGMENT:
                 authority = new MockDelayedResponseAuthority();
                 break;
-            case B2C_TEST_PATH_SEGMENT:
+            case B2C_PATH_SEGMENT:
+            case B2C_PATH_SEGMENT_ALT:
                 //Return new B2C TEST Authority
                 authority = new B2CTestAuthority(authorityUrl);
                 break;

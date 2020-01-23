@@ -28,6 +28,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
+import androidx.fragment.app.Fragment;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
@@ -49,7 +50,6 @@ import com.microsoft.identity.common.internal.controllers.GetCurrentAccountComma
 import com.microsoft.identity.common.internal.controllers.RemoveCurrentAccountCommand;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
-import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 
 import java.util.List;
@@ -74,10 +74,8 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     private SharedPreferencesFileManager sharedPreferencesFileManager;
 
-    protected SingleAccountPublicClientApplication(@NonNull PublicClientApplicationConfiguration config,
-                                                   @Nullable final String clientId,
-                                                   @Nullable final String authority) {
-        super(config, clientId, authority);
+    protected SingleAccountPublicClientApplication(@NonNull PublicClientApplicationConfiguration config) throws MsalClientException {
+        super(config);
         initializeSharedPreferenceFileManager(config.getAppContext());
     }
 
@@ -95,9 +93,6 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     private void getCurrentAccountAsyncInternal(@NonNull final CurrentAccountCallback callback,
                                                 @NonNull final String publicApiId) {
-        final String methodName = ":getCurrentAccount";
-        final PublicClientApplicationConfiguration configuration = getConfiguration();
-
         final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
         final BaseController controller;
         try {
@@ -197,6 +192,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
         final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
+                null,
                 scopes,
                 null, // account
                 null, // uiBehavior
@@ -427,6 +423,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
         final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
+                null,
                 scopes,
                 getPersistedCurrentAccount(), // account, could be null.
                 null, // uiBehavior
