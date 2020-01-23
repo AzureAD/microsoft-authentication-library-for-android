@@ -198,7 +198,21 @@ public class BrokerMsalController extends BaseController {
                 if (result != null) {
                     break;
                 }
-            } catch (final Exception exception){
+            } catch (final BaseException exception) {
+                if (exception instanceof  BrokerCommunicationException) {
+                    continue;
+                }
+
+                // MSAL is aware of these exceptions. Continue.
+                if (strategyTask.getTelemetryApiId() != null) {
+                    Telemetry.emit(
+                            new ApiEndEvent()
+                                    .putException(exception)
+                                    .putApiId(strategyTask.getTelemetryApiId())
+                    );
+                }
+                throw exception;
+            } catch (final Exception exception) {
                 // We know for a fact that in some OEM, bind service might throw a runtime exception.
                 // Given that the type of exception here could be unpredictable,
                 // it is better to catch 'every' exception so that we could try the next strategy - which could work.
