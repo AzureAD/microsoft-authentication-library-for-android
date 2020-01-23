@@ -85,7 +85,16 @@ public class PoPAuthenticationScheme
         }
 
         public PoPAuthenticationScheme build() {
-            // TODO add validation...
+            String errMsg = "PoP authentication scheme param must not be null: ";
+
+            if (null == mUrl) {
+                throw new IllegalArgumentException(errMsg + "URL");
+            }
+
+            if (null == mHttpMethod) {
+                throw new IllegalArgumentException(errMsg + "HTTP Method");
+            }
+
             return new PoPAuthenticationScheme(mHttpMethod, mUrl);
         }
     }
