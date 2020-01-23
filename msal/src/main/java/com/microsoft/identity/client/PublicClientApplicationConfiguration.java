@@ -172,9 +172,9 @@ public class PublicClientApplicationConfiguration {
     /**
      * Sets the configured client id for the PublicClientApplication.
      *
-     * @@param  The configured clientId.
+     * @@param The configured clientId.
      */
-    public void setClientId(final String clientId){
+    public void setClientId(final String clientId) {
         mClientId = clientId;
     }
 
@@ -445,7 +445,7 @@ public class PublicClientApplicationConfiguration {
     }
 
     // Verifies broker redirect URI against the app's signature, to make sure that this is legit.
-    private void verifyRedirectUriWithAppSignature() {
+    private void verifyRedirectUriWithAppSignature() throws MsalClientException {
         final String packageName = mAppContext.getPackageName();
         try {
             final PackageInfo info = mAppContext.getPackageManager().getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
@@ -469,8 +469,10 @@ public class PublicClientApplicationConfiguration {
             Logger.error(TAG, "Unexpected error in verifyRedirectUriWithAppSignature()", e);
         }
 
-        throw new IllegalStateException("The redirect URI in the configuration file doesn't match with the one " +
-                "generated with package name and signature hash. Please verify the uri in the config file and your app registration in Azure portal.");
+        throw new MsalClientException(
+                MsalClientException.REDIRECT_URI_VALIDATION_ERROR,
+                "The redirect URI in the configuration file doesn't match with the one " +
+                        "generated with package name and signature hash. Please verify the uri in the config file and your app registration in Azure portal.");
     }
 
     @SuppressWarnings("PMD")
