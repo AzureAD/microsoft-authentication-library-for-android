@@ -198,12 +198,10 @@ public class BrokerMsalController extends BaseController {
                 if (result != null) {
                     break;
                 }
+            } catch (final BrokerCommunicationException communicationException) {
+                // These are known MSAL-Broker communication exception. Continue.
+                lastCaughtException = communicationException;
             } catch (final BaseException exception) {
-                if (exception instanceof  BrokerCommunicationException) {
-                    lastCaughtException = exception;
-                    continue;
-                }
-
                 // MSAL is aware of these exceptions. throw.
                 if (strategyTask.getTelemetryApiId() != null) {
                     Telemetry.emit(
