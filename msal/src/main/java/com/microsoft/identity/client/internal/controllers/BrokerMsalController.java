@@ -203,7 +203,7 @@ public class BrokerMsalController extends BaseController {
                     continue;
                 }
 
-                // MSAL is aware of these exceptions. Continue.
+                // MSAL is aware of these exceptions. throw.
                 if (strategyTask.getTelemetryApiId() != null) {
                     Telemetry.emit(
                             new ApiEndEvent()
