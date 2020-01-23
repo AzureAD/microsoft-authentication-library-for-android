@@ -26,7 +26,7 @@ import com.microsoft.identity.common.internal.authscheme.BearerAuthenticationSch
 
 public class BearerAuthenticationScheme extends AuthenticationScheme {
 
-    protected BearerAuthenticationScheme() {
+    public BearerAuthenticationScheme() {
         super(BearerAuthenticationSchemeInternal.SCHEME_BEARER);
     }
 }
