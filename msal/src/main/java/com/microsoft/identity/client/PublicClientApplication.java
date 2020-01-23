@@ -188,7 +188,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         static final String ACTIVITY = "activity";
         static final String SCOPES = "scopes";
         static final String ACCOUNT = "account";
-        static final String AUTH_SCHEME = "authentication_scheme";
 
         static final String NULL_ERROR_SUFFIX = " cannot be null or empty";
     }
