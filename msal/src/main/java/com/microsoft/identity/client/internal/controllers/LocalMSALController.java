@@ -321,7 +321,9 @@ public class LocalMSALController extends BaseController {
                     )
             );
 
-            EstsTelemetry.getInstance().getCurrentRequestTelemetry().setReturningFromCache(true);
+            // need to get the telemetry context and get this value now
+            // something like: EstsTelemetry.getInstance().getCurrentRequestTelemetry().getContext().getReturningFromCache();
+            EstsTelemetry.getInstance().getCurrentTelemetryContext(parameters.getCorrelationId()).setIsResultServicedFromCache(true);
         }
 
         Telemetry.emit(

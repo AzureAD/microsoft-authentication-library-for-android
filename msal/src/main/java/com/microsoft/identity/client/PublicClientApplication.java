@@ -1298,6 +1298,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             );
 
 
+
                     final InteractiveTokenCommand command = new InteractiveTokenCommand(
                             params,
                             MSALControllerFactory.getDefaultController(
