@@ -48,9 +48,9 @@ public class RoboTestCacheHelper {
                 TestConstants.Authorities.AAD_MOCK_AUTHORITY,
                 TestConstants.Authorities.AAD_MOCK_AUTHORITY_TENANT)
         );
-        final OAuth2StrategyParameters strategyOptions = new OAuth2StrategyParameters();
-        strategyOptions.setContext(application.getConfiguration().getAppContext());
-        final OAuth2Strategy strategy = authority.createOAuth2Strategy(strategyOptions);
+        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        strategyParameters.setContext(application.getConfiguration().getAppContext());
+        final OAuth2Strategy strategy = authority.createOAuth2Strategy(strategyParameters);
         final MicrosoftStsAuthorizationRequest mockAuthRequest = Mockito.mock(MicrosoftStsAuthorizationRequest.class);
         Mockito.when(mockAuthRequest.getAuthority()).thenReturn(authority.getAuthorityURL());
         Mockito.when(mockAuthRequest.getClientId()).thenReturn(clientId);
