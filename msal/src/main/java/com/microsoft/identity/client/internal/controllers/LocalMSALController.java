@@ -115,13 +115,13 @@ public class LocalMSALController extends BaseController {
         }
 
         // Build up params for Strategy construction
-        final OAuth2StrategyParameters strategyOptions = new OAuth2StrategyParameters();
-        strategyOptions.setContext(parameters.getAppContext());
+        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        strategyParameters.setContext(parameters.getAppContext());
 
         //1) Get oAuth2Strategy for Authority Type
         final OAuth2Strategy oAuth2Strategy = parameters
                 .getAuthority()
-                .createOAuth2Strategy(strategyOptions);
+                .createOAuth2Strategy(strategyParameters);
 
 
         //2) Request authorization interactively
@@ -254,10 +254,10 @@ public class LocalMSALController extends BaseController {
 
         // Build up params for Strategy construction
         final AbstractAuthenticationScheme authScheme = parameters.getAuthenticationScheme();
-        final OAuth2StrategyParameters strategyOptions = new OAuth2StrategyParameters();
-        strategyOptions.setContext(parameters.getAppContext());
+        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        strategyParameters.setContext(parameters.getAppContext());
 
-        final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy(strategyOptions);
+        final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy(strategyParameters);
 
         final List<ICacheRecord> cacheRecords = tokenCache.loadWithAggregatedAccountData(
                 parameters.getClientId(),
