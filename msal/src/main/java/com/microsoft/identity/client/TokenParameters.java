@@ -48,15 +48,7 @@ public abstract class TokenParameters {
         mAuthority = builder.mAuthority;
         mClaimsRequest = builder.mClaimsRequest;
         mScopes = builder.mScopes;
-
-        // In the future, if more scheme are added, some conditional logic will need to be
-        // introduced here.
-        if (null != builder.mAuthenticationScheme) {
-            mAuthenticationScheme = builder.mAuthenticationScheme;
-        } else {
-            // Fall back to Bearer
-            mAuthenticationScheme = new BearerAuthenticationScheme();
-        }
+        mAuthenticationScheme = builder.mAuthenticationScheme;
     }
 
     /**
