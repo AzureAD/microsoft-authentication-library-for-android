@@ -45,7 +45,6 @@ import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStra
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2StrategyParameters;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
-import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
@@ -161,7 +160,7 @@ public class LocalMSALController extends BaseController {
                                 SdkType.MSAL,
                                 oAuth2Strategy.getAuthorizationHeader(
                                         parameters.getAuthenticationScheme(),
-                                        tokenResult.getTokenResponse()
+                                        tokenResult.getTokenResponse().getAccessToken()
                                 )
                         )
                 );
@@ -340,9 +339,8 @@ public class LocalMSALController extends BaseController {
                             SdkType.MSAL,
                             strategy.getAuthorizationHeader(
                                     parameters.getAuthenticationScheme(),
-                                    new TokenResponse() {{
-                                        setAccessToken(fullCacheRecord.getAccessToken().getSecret());
-                                    }}) // TODO this is a workaround
+                                    fullCacheRecord.getAccessToken().getSecret())
+
                     )
             );
         }
