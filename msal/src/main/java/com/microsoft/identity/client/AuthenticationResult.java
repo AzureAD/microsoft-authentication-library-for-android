@@ -32,8 +32,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.microsoft.identity.common.internal.authscheme.PopAuthenticationSchemeInternal.SCHEME_POP;
-
 /**
  * MSAL successful authentication result. When auth succeeds, token will be wrapped into the
  * {@link AuthenticationResult} and passed back through the {@link AuthenticationCallback}.
@@ -45,31 +43,26 @@ public final class AuthenticationResult implements IAuthenticationResult {
     private final String mTenantId;
     private final AccessTokenRecord mAccessToken;
     private final IAccount mAccount;
-    private final String mAuthorizationHeader;
 
-    AuthenticationResult(@NonNull final List<ICacheRecord> cacheRecords,
-                         @NonNull final String authHeader) {
+    AuthenticationResult(@NonNull final List<ICacheRecord> cacheRecords) {
         final ICacheRecord mostRecentlyAuthorized = cacheRecords.get(0);
         mAccessToken = mostRecentlyAuthorized.getAccessToken();
         mTenantId = mostRecentlyAuthorized.getAccount().getRealm();
         mAccount = AccountAdapter.adapt(cacheRecords).get(0);
-        mAuthorizationHeader = authHeader;
     }
 
     @Override
     @NonNull
     public String getAccessToken() {
-        if (mAuthorizationHeader.startsWith(SCHEME_POP + SCHEME_DELIMITER)) {
-            return mAuthorizationHeader.split(SCHEME_DELIMITER)[1];
-        }
-
         return mAccessToken.getSecret();
     }
 
     @NonNull
     @Override
     public String getAuthorizationHeader() {
-        return mAuthorizationHeader;
+        final String scheme = mAccessToken.getAccessTokenType();
+
+        return scheme + SCHEME_DELIMITER + mAccessToken.getSecret();
     }
 
     @NonNull

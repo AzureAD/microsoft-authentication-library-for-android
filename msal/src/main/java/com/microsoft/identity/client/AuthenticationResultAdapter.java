@@ -40,8 +40,7 @@ class AuthenticationResultAdapter {
 
     static IAuthenticationResult adapt(@NonNull final ILocalAuthenticationResult localAuthenticationResult) {
         final IAuthenticationResult authenticationResult = new AuthenticationResult(
-                localAuthenticationResult.getCacheRecordWithTenantProfileData(),
-                localAuthenticationResult.getAuthorizationHeaderValue()
+                localAuthenticationResult.getCacheRecordWithTenantProfileData()
         );
         return authenticationResult;
     }
