@@ -155,7 +155,10 @@ public class LocalMSALController extends BaseController {
 
                 acquireTokenResult.setLocalAuthenticationResult(
                         new LocalAuthenticationResult(
-                                finalizeCacheRecordForResult(newestRecord, parameters.getAuthenticationScheme()),
+                                finalizeCacheRecordForResult(
+                                        newestRecord,
+                                        parameters.getAuthenticationScheme()
+                                ),
                                 records,
                                 SdkType.MSAL
                         )
@@ -330,7 +333,10 @@ public class LocalMSALController extends BaseController {
             // the result checks out, return that....
             acquireTokenSilentResult.setLocalAuthenticationResult(
                     new LocalAuthenticationResult(
-                            finalizeCacheRecordForResult(fullCacheRecord, parameters.getAuthenticationScheme()),
+                            finalizeCacheRecordForResult(
+                                    fullCacheRecord,
+                                    parameters.getAuthenticationScheme()
+                            ),
                             cacheRecords,
                             SdkType.MSAL
                     )

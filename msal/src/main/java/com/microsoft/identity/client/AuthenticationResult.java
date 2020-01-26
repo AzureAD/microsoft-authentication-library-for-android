@@ -25,6 +25,7 @@ package com.microsoft.identity.client;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.microsoft.identity.common.internal.authscheme.TokenAuthenticationScheme;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccessTokenRecord;
 
@@ -37,8 +38,6 @@ import java.util.concurrent.TimeUnit;
  * {@link AuthenticationResult} and passed back through the {@link AuthenticationCallback}.
  */
 public final class AuthenticationResult implements IAuthenticationResult {
-
-    private static final String SCHEME_DELIMITER = " ";
 
     private final String mTenantId;
     private final AccessTokenRecord mAccessToken;
@@ -62,7 +61,9 @@ public final class AuthenticationResult implements IAuthenticationResult {
     public String getAuthorizationHeader() {
         final String scheme = mAccessToken.getAccessTokenType();
 
-        return scheme + SCHEME_DELIMITER + mAccessToken.getSecret();
+        return scheme
+                + TokenAuthenticationScheme.SCHEME_DELIMITER
+                + mAccessToken.getSecret();
     }
 
     @NonNull

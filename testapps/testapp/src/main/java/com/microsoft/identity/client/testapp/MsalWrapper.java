@@ -35,7 +35,7 @@ public class MsalWrapper {
     private static String PostMsalApplicationLoadedKey = "MsalWrapper_PostMsalApplicationLoaded";
 
     private static MsalWrapper mSharedInstance;
-    private static final boolean USE_POP = true;
+    private static final boolean USE_POP = false;
 
     public static MsalWrapper getInstance() {
         if (mSharedInstance == null) {
