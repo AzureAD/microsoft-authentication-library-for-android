@@ -36,9 +36,9 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import com.google.gson.GsonBuilder;
+import com.microsoft.identity.client.exception.BrokerCommunicationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
-import com.microsoft.identity.common.exception.BrokerCommunicationException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.exception.ServiceException;
@@ -183,6 +183,7 @@ public class BrokerMsalController extends BaseController {
         final List<BrokerBaseStrategy> strategies = getStrategies();
 
         U result = null;
+        Exception lastCaughtException = null;
         for (int ii = 0; ii < strategies.size(); ii++) {
             final BrokerBaseStrategy strategy = strategies.get(ii);
             try {
@@ -197,9 +198,11 @@ public class BrokerMsalController extends BaseController {
                 if (result != null) {
                     break;
                 }
-            } catch (final BrokerCommunicationException exception){
-                // continue
-            } catch (final Exception exception){
+            } catch (final BrokerCommunicationException communicationException) {
+                // These are known MSAL-Broker communication exception. Continue.
+                lastCaughtException = communicationException;
+            } catch (final BaseException exception) {
+                // MSAL is aware of these exceptions. throw.
                 if (strategyTask.getTelemetryApiId() != null) {
                     Telemetry.emit(
                             new ApiEndEvent()
@@ -208,12 +211,20 @@ public class BrokerMsalController extends BaseController {
                     );
                 }
                 throw exception;
+            } catch (final Exception exception) {
+                // We know for a fact that in some OEM, bind service might throw a runtime exception.
+                // Given that the type of exception here could be unpredictable,
+                // it is better to catch 'every' exception so that we could try the next strategy - which could work.
+                lastCaughtException = exception;
             }
         }
 
         // This means that we've tried every strategies...
         if (result == null) {
-            final BrokerCommunicationException exception = new BrokerCommunicationException("MSAL failed to communicate to Broker.");
+            final BrokerCommunicationException exception = new BrokerCommunicationException(
+                    "MSAL failed to communicate to Broker.",
+                    lastCaughtException);
+
             if (strategyTask.getTelemetryApiId() != null) {
                 Telemetry.emit(
                         new ApiEndEvent()
@@ -221,6 +232,7 @@ public class BrokerMsalController extends BaseController {
                                 .putApiId(strategyTask.getTelemetryApiId())
                 );
             }
+
             throw exception;
         }
 
