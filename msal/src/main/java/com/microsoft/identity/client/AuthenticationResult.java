@@ -75,6 +75,9 @@ public final class AuthenticationResult implements IAuthenticationResult {
     @Override
     @NonNull
     public Date getExpiresOn() {
+        // TODO how should this work for PoP?
+        // Middleware will assume 5 min expiry for PoP tokens
+        // Client (MSAL) will not be aware of configured value
         final Date expiresOn;
 
         expiresOn = new Date(
