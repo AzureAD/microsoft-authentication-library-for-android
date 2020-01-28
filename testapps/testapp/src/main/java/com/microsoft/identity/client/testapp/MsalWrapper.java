@@ -3,14 +3,19 @@ package com.microsoft.identity.client.testapp;
 import android.app.Activity;
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
+import com.microsoft.identity.client.HttpMethod;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
+import com.microsoft.identity.client.PoPAuthenticationScheme;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
@@ -19,18 +24,18 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 public class MsalWrapper {
     private static String PostMsalApplicationLoadedKey = "MsalWrapper_PostMsalApplicationLoaded";
 
     private static MsalWrapper mSharedInstance;
+    private static final boolean USE_POP = false;
 
     public static MsalWrapper getInstance() {
         if (mSharedInstance == null) {
@@ -148,14 +153,36 @@ public class MsalWrapper {
             return;
         }
 
-        AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(activity)
+        final AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
+        builder.startAuthorizationFromActivity(activity)
                 .withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")))
                 .withLoginHint(requestOptions.getLoginHint())
                 .withPrompt(requestOptions.getPrompt())
-                .withOtherScopesToAuthorize(Arrays.asList(requestOptions.getExtraScopesToConsent().toLowerCase().split(" ")))
-                .withCallback(getAuthenticationCallback(notifyCallback))
-                .build();
+                .withOtherScopesToAuthorize(
+                        Arrays.asList(
+                                requestOptions
+                                        .getExtraScopesToConsent()
+                                        .toLowerCase()
+                                        .split(" ")
+                        )
+                )
+                .withCallback(getAuthenticationCallback(notifyCallback));
+
+        if (USE_POP) {
+            try {
+                builder.withAuthenticationScheme(
+                        PoPAuthenticationScheme.builder()
+                                .withHttpMethod(HttpMethod.GET)
+                                .withUrl(
+                                        new URL("https://signedhttprequest.azurewebsites.net/api/validateSHR")
+                                ).build()
+                );
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        AcquireTokenParameters parameters = builder.build();
 
         mApplication.acquireToken(parameters);
     }
@@ -253,13 +280,28 @@ public class MsalWrapper {
                         @Override
                         public void onTaskCompleted(final IAccount account) {
                             if (account != null) {
-                                AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
-                                        .withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")))
+                                final AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
+                                builder.withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")))
                                         .forAccount(account)
                                         .fromAuthority(account.getAuthority())
                                         .forceRefresh(requestOptions.forceRefresh())
-                                        .withCallback(getAuthenticationCallback(notifyCallback))
-                                        .build();
+                                        .withCallback(getAuthenticationCallback(notifyCallback));
+
+                                if (USE_POP) {
+                                    try {
+                                        builder.withAuthenticationScheme(
+                                                PoPAuthenticationScheme.builder()
+                                                        .withHttpMethod(HttpMethod.GET)
+                                                        .withUrl(
+                                                                new URL("https://signedhttprequest.azurewebsites.net/api/validateSHR")
+                                                        ).build()
+                                        );
+                                    } catch (MalformedURLException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }
+
+                                final AcquireTokenSilentParameters parameters = builder.build();
                                 mApplication.acquireTokenSilentAsync(parameters);
                             } else {
                                 notifyCallback.notify("No account found matching identifier");
@@ -313,7 +355,7 @@ public class MsalWrapper {
                     // This explicitly indicates that developer needs to prompt the user, it could be refresh token is expired, revoked
                     // or user changes the password; or it could be that no token was found in the token cache.
                     notifyCallback.notify(exception.getMessage());
-                } else if(exception instanceof MsalDeclinedScopeException){
+                } else if (exception instanceof MsalDeclinedScopeException) {
                     // Declined scope implies that not all scopes requested have been granted.
                     // Developer can either continue with Authentication by calling acquireTokenSilent
                     // using the AcquireTokenSilentParameters in the MsalDeclinedScopeException or fail the authentication

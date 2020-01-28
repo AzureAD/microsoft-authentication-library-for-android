@@ -1,12 +1,14 @@
 package com.microsoft.identity.client;
 
 import android.net.Uri;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2StrategyParameters;
 
 import junit.framework.Assert;
 
@@ -119,7 +121,7 @@ public final class AuthorityTest {
         }
 
         @Override
-        public OAuth2Strategy createOAuth2Strategy() {
+        public OAuth2Strategy createOAuth2Strategy(final OAuth2StrategyParameters parameters) {
             return null; // Unimplemented...
         }
     }

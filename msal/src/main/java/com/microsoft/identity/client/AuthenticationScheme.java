@@ -24,23 +24,18 @@ package com.microsoft.identity.client;
 
 import androidx.annotation.NonNull;
 
-import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
+import com.microsoft.identity.common.internal.authscheme.INameable;
 
-/**
- * Class to adapt between AcquireTokenSilentParameters and AcquireTokenParameters.
- */
-public class TokenParametersAdapter {
+public abstract class AuthenticationScheme implements INameable {
 
-    public static AcquireTokenSilentParameters silentParametersFromInteractive(@NonNull final AcquireTokenParameters acquireTokenParameters,
-                                                                               @NonNull final ILocalAuthenticationResult localAuthenticationResult){
-        final IAccount account = AccountAdapter.adapt(localAuthenticationResult.getCacheRecordWithTenantProfileData()).get(0);
-        AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withCallback(acquireTokenParameters.getCallback())
-                .fromAuthority(acquireTokenParameters.getAuthority())
-                .withClaims(acquireTokenParameters.getClaimsRequest())
-                .withScopes(acquireTokenParameters.getScopes())
-                .forAccount(account)
-                .build();
-        return silentParameters;
+    private final String mSchemeName;
+
+    protected AuthenticationScheme(@NonNull final String name) {
+        mSchemeName = name;
+    }
+
+    @Override
+    public final String getName() {
+        return mSchemeName;
     }
 }

@@ -22,63 +22,54 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import java.util.Date;
-
-public interface IAuthenticationResult {
-
-    /**
-     * @return The access token requested.
-     */
-    @NonNull
-    String getAccessToken();
+/**
+ * HTTP Request Methods as defined in <a href="https://tools.ietf.org/html/rfc7231#section-4.3">RFC-7231/§4.3</a>
+ * and <a href="https://tools.ietf.org/html/rfc5789">RFC-5789</a>.
+ */
+public enum HttpMethod {
 
     /**
-     * Gets the fully-formed Authorization header value. Includes the Authentication scheme.
-     * <p>
-     * Example: Bearer eyJ1aWQiOiJj.......
-     *
-     * @return The Authorization header value.
+     * @see <a href="https://tools.ietf.org/html/rfc7231#section-4.3.1">RFC-7231/§4.1</a>
      */
-    @NonNull
-    String getAuthorizationHeader();
+    GET,
 
     /**
-     * Gets the authentication scheme (Bearer, PoP, etc)....
-     *
-     * @return The authentication scheme name.
+     * @see <a href="https://tools.ietf.org/html/rfc7231#section-4.3.2">RFC-7231/§4.2</a>
      */
-    @NonNull
-    String getAuthenticationScheme();
+    HEAD,
 
     /**
-     * @return The expiration time of the access token returned in the Token property.
-     * This value is calculated based on current UTC time measured locally and the value expiresIn returned from the
-     * service.
+     * @see <a href="https://tools.ietf.org/html/rfc7231#section-4.3.3">RFC-7231/§4.3</a>
      */
-    @NonNull
-    Date getExpiresOn();
+    POST,
 
     /**
-     * @return A unique tenant identifier that was used in token acquisition. Could be null if tenant information is not
-     * returned by the service.
+     * @see <a href="https://tools.ietf.org/html/rfc7231#section-4.3.4">RFC-7231/§4.4</a>
      */
-    @Nullable
-    String getTenantId();
+    PUT,
 
     /**
-     * Gets the Account.
-     *
-     * @return The Account to get.
+     * @see <a href="https://tools.ietf.org/html/rfc7231#section-4.3.5">RFC-7231/§4.5</a>
      */
-    @NonNull
-    IAccount getAccount();
+    DELETE,
 
     /**
-     * @return The scopes returned from the service.
+     * @see <a href="https://tools.ietf.org/html/rfc7231#section-4.3.6">RFC-7231/§4.6</a>
      */
-    @NonNull
-    String[] getScope();
+    CONNECT,
+
+    /**
+     * @see <a href="https://tools.ietf.org/html/rfc7231#section-4.3.7">RFC-7231/§4.7</a>
+     */
+    OPTIONS,
+
+    /**
+     * @see <a href="https://tools.ietf.org/html/rfc7231#section-4.3.8">RFC-7231/§4.8</a>
+     */
+    TRACE,
+
+    /**
+     * @see <a href="https://tools.ietf.org/html/rfc5789">RFC-5789</a>
+     */
+    PATCH
 }

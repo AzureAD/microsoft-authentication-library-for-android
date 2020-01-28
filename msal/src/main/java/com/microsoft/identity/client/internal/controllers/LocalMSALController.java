@@ -33,6 +33,7 @@ import com.microsoft.identity.common.exception.ArgumentException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.Authority;
+import com.microsoft.identity.common.internal.authscheme.AbstractAuthenticationScheme;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
@@ -42,6 +43,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResu
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStatus;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
+import com.microsoft.identity.common.internal.providers.oauth2.OAuth2StrategyParameters;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
@@ -111,8 +113,15 @@ public class LocalMSALController extends BaseController {
             throw authorityResult.getClientException();
         }
 
+        // Build up params for Strategy construction
+        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        strategyParameters.setContext(parameters.getAppContext());
+
         //1) Get oAuth2Strategy for Authority Type
-        final OAuth2Strategy oAuth2Strategy = parameters.getAuthority().createOAuth2Strategy();
+        final OAuth2Strategy oAuth2Strategy = parameters
+                .getAuthority()
+                .createOAuth2Strategy(strategyParameters);
+
 
         //2) Request authorization interactively
         final AuthorizationResult result = performAuthorizationRequest(oAuth2Strategy, parameters);
@@ -146,7 +155,10 @@ public class LocalMSALController extends BaseController {
 
                 acquireTokenResult.setLocalAuthenticationResult(
                         new LocalAuthenticationResult(
-                                newestRecord,
+                                finalizeCacheRecordForResult(
+                                        newestRecord,
+                                        parameters.getAuthenticationScheme()
+                                ),
                                 records,
                                 SdkType.MSAL
                         )
@@ -238,12 +250,18 @@ public class LocalMSALController extends BaseController {
 
         final AccountRecord targetAccount = getCachedAccountRecord(parameters);
 
-        final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy();
+        // Build up params for Strategy construction
+        final AbstractAuthenticationScheme authScheme = parameters.getAuthenticationScheme();
+        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        strategyParameters.setContext(parameters.getAppContext());
+
+        final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy(strategyParameters);
 
         final List<ICacheRecord> cacheRecords = tokenCache.loadWithAggregatedAccountData(
                 parameters.getClientId(),
                 TextUtils.join(" ", parameters.getScopes()),
-                targetAccount
+                targetAccount,
+                authScheme
         );
 
         // The first element is the 'fully-loaded' CacheRecord which may contain the AccountRecord,
@@ -255,7 +273,8 @@ public class LocalMSALController extends BaseController {
         if (accessTokenIsNull(fullCacheRecord)
                 || refreshTokenIsNull(fullCacheRecord)
                 || parameters.getForceRefresh()
-                || !isRequestAuthorityRealmSameAsATRealm(parameters.getAuthority(), fullCacheRecord.getAccessToken())) {
+                || !isRequestAuthorityRealmSameAsATRealm(parameters.getAuthority(), fullCacheRecord.getAccessToken())
+                || !strategy.validateCachedResult(authScheme, fullCacheRecord)) {
             if (!refreshTokenIsNull(fullCacheRecord)) {
                 // No AT found, but the RT checks out, so we'll use it
                 Logger.verbose(
@@ -314,7 +333,10 @@ public class LocalMSALController extends BaseController {
             // the result checks out, return that....
             acquireTokenSilentResult.setLocalAuthenticationResult(
                     new LocalAuthenticationResult(
-                            fullCacheRecord,
+                            finalizeCacheRecordForResult(
+                                    fullCacheRecord,
+                                    parameters.getAuthenticationScheme()
+                            ),
                             cacheRecords,
                             SdkType.MSAL
                     )
