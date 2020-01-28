@@ -31,7 +31,7 @@ public abstract class PublicClientApplicationAbstractTest implements IPublicClie
     @Before
     public void setup() {
         mContext = ApplicationProvider.getApplicationContext();
-        //mActivity = TestUtils.getMockActivity(mContext);
+        //mActivity = PlayStoreUtils.getMockActivity(mContext);
         //mActivity = new MainActivity();
         mActivity = mActivityRule.getActivity();
         setupPCA();

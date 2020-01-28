@@ -55,10 +55,13 @@ import static com.microsoft.identity.client.msal.automationapp.AcquireTokenTestH
 import static com.microsoft.identity.client.msal.automationapp.AcquireTokenTestHelper.getAccount;
 import static com.microsoft.identity.client.msal.automationapp.AcquireTokenTestHelper.successfulInteractiveCallback;
 import static com.microsoft.identity.client.msal.automationapp.AcquireTokenTestHelper.successfulSilentCallback;
+import static com.microsoft.identity.client.msal.automationapp.utils.PlayStoreUtils.installAuthenticator;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 
 @RunWith(AndroidJUnit4.class)
 public class AcquireTokenNetworkTest extends AcquireTokenNetworkAbstractTest implements IAcquireTokenNetworkTest {
+
+    final static String TAG = AcquireTokenNetworkTest.class.getSimpleName();
 
 //    @Parameterized.Parameter(0)
 //    public LabUserQuery query;
@@ -214,7 +217,13 @@ public class AcquireTokenNetworkTest extends AcquireTokenNetworkAbstractTest imp
     }
 
     @Test
+    public void testUtils() throws InterruptedException {
+        installAuthenticator();
+    }
+
+    @Test
     public void testAcquireTokenSuccessFollowedBySilentSuccess() throws InterruptedException {
+        installAuthenticator();
         performAcquireTokenInteractive();
         performAcquireTokenSilent(false);
     }

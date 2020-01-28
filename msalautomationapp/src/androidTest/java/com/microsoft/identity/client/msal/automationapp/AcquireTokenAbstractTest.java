@@ -59,11 +59,11 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
         // remove everything from cache after test ends
         TestUtils.clearCache(SHARED_PREFERENCES_NAME);
         //clearCache(mContext, 0);
-        //removeApp();
+        removeApp();
     }
 
     //helper method for clearCache() , recursive
-//returns number of deleted files
+    //returns number of deleted files
     static int clearCacheFolder(final File dir, final int numDays) {
 
         int deletedFiles = 0;
