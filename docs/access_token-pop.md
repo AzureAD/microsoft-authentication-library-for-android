@@ -79,7 +79,7 @@ public void onSuccess(final IAuthenticationResult authenticationResult) {
 ```java
 @Override
 public void onSuccess(final IAuthenticationResult authenticationResult) {
-    // Uses the existing MSAL method, this method returns the SHR minus and scheme-prefix.
+    // Uses the existing MSAL method, this method returns the SHR minus any scheme-prefix.
     final String shr = authenticationResult.getAccessToken();
 }
 ```
@@ -90,7 +90,7 @@ public void onSuccess(final IAuthenticationResult authenticationResult) {
 public void onSuccess(final IAuthenticationResult authenticationResult) {
     // Returns "Bearer", "pop", or whichever scheme was used to acquire this token
     // Note that authentication scheme prefixes are case insensitive
-    final String shr = authenticationResult.getAuthenticationScheme();
+    final String scheme = authenticationResult.getAuthenticationScheme();
 }
 ```
 
