@@ -12,6 +12,8 @@ By default, Bearer access tokens issued by AAD have a 1 hour validity. The valid
 
 When an SHR is created by the client, a timestamp (`ts`) claim is embedded in the JWT. The resource middleware will, upon receipt of the token, inspect its signature and timestamp to ensure integrity (anti-tamper protection) and validity (non-expiry). By default, the SAL middleware honors a 5 minute validity period meaning that once an SHR been signed by the client it may be used for 5 minutes before the resource will require a newly signed access token.
 
+>**Note:**<br/>`AuthenticationResult#getExpiresOn()` does _not_ indicate the expiry/validity period configured on the resource middleware for Signed HTTP Requests. Instead, it reflects the configured expiry period for access tokens emitted by AAD. As such, this value cannot be used to determine whether or not an SHR will be accepted by the middleware. Because of this, `getExpiresOn()` cannot be used to signal cache freshness/eviction criteria; therefore it is recommended that users of MSAL call `acquireTokenSilent()` each time a new SHR is required.
+
 ## Can I continue to use Bearer flows in my application?
 Yes! PoP and Bearer flows may be used interchangeably with MSAL and with supported broker versions **so long as the targeted resource supports it**.
 
