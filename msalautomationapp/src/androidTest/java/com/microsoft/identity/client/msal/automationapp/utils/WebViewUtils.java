@@ -1,4 +1,4 @@
-package com.microsoft.identity.client.msal.automationapp;
+package com.microsoft.identity.client.msal.automationapp.utils;
 
 import android.webkit.WebView;
 import android.widget.Button;
@@ -14,75 +14,78 @@ import androidx.test.uiautomator.Until;
 
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 
-import org.junit.Before;
-
+import static com.microsoft.identity.client.msal.automationapp.utils.CommonUtils.TIMEOUT;
 import static org.junit.Assert.fail;
 
-public class WebViewWithoutLoginHintTest extends AcquireTokenNetworkTest {
+public class WebViewUtils {
 
-    @Before
-    public void setup() {
-        super.setup();
-        mLoginHint = null;
-    }
-
-    @Override
-    public void handleUserInteraction() {
+    public static void handleEmailField(final String username) {
         final UiDevice mDevice =
                 UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
 
-        final int timeOut = 1000 * 60;
-
         // login webview
-        mDevice.wait(Until.findObject(By.clazz(WebView.class)), timeOut);
+        mDevice.wait(Until.findObject(By.clazz(WebView.class)), TIMEOUT);
+
 
         // Set username
         UiObject emailInput = mDevice.findObject(new UiSelector()
                 .instance(0)
                 .className(EditText.class));
 
-        emailInput.waitForExists(timeOut);
+        emailInput.waitForExists(TIMEOUT);
 
         try {
-            emailInput.setText(mUsername);
+            emailInput.setText(username);
         } catch (UiObjectNotFoundException e) {
             fail(e.getMessage());
         }
 
-        // Confirm Button Click
-        UiObject buttonNext = mDevice.findObject(new UiSelector()
-                .instance(1)
-                .className(Button.class));
+        handleNextButton();
+    }
 
-        buttonNext.waitForExists(timeOut);
-        try {
-            buttonNext.click();
-        } catch (UiObjectNotFoundException e) {
-            fail(e.getMessage());
-        }
+    public static void handlePasswordField() {
+        final UiDevice mDevice =
+                UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
 
         // Set Password
         UiObject passwordInput = mDevice.findObject(new UiSelector()
                 .instance(0)
                 .className(EditText.class));
 
-        passwordInput.waitForExists(timeOut);
+        passwordInput.waitForExists(TIMEOUT);
         try {
             passwordInput.setText(LabConfig.getCurrentLabConfig().getLabUserPassword());
         } catch (UiObjectNotFoundException e) {
             fail(e.getMessage());
         }
 
+        handleNextButton();
+    }
+
+    public static void handleNextButton() {
+        final UiDevice mDevice =
+                UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
+
         // Confirm Button Click
-        UiObject buttonLogin = mDevice.findObject(new UiSelector()
+        UiObject buttonNext = mDevice.findObject(new UiSelector()
                 .instance(1)
                 .className(Button.class));
 
-        buttonLogin.waitForExists(timeOut);
+        buttonNext.waitForExists(TIMEOUT);
         try {
-            buttonLogin.click();
+            buttonNext.click();
         } catch (UiObjectNotFoundException e) {
             fail(e.getMessage());
         }
     }
+
+    public static void handleWebViewWithLoginHint() {
+        handlePasswordField();
+    }
+
+    public static void handleWebViewWithoutLoginHint(final String username) {
+        handleEmailField(username);
+        handlePasswordField();
+    }
+
 }

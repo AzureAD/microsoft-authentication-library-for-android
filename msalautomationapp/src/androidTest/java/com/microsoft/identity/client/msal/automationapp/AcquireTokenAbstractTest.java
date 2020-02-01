@@ -22,22 +22,14 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
-import android.content.Context;
-import android.text.format.DateUtils;
-import android.util.Log;
-
-import androidx.test.uiautomator.UiDevice;
-
+import com.microsoft.identity.client.msal.automationapp.utils.CommonUtils;
 import com.microsoft.identity.internal.testutils.TestUtils;
 
 import org.junit.After;
 import org.junit.Before;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Date;
-
-import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_SIGNATURE;
 
 public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAbstractTest implements IAcquireTokenTest {
 
@@ -47,9 +39,13 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
 
     @Before
     public void setup() {
+        // remove existing authenticator and company portal apps - the test app is removed
+        // by the Android Test Orchestrator. See build.gradle
+        CommonUtils.removeApp(AZURE_AUTHENTICATOR_APP_PACKAGE_NAME);
+        CommonUtils.removeApp(COMPANY_PORTAL_APP_SIGNATURE);
+
         mScopes = getScopes();
         super.setup();
-        //installApp();
     }
 
     @After
@@ -58,64 +54,6 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
         AcquireTokenTestHelper.setAccount(null);
         // remove everything from cache after test ends
         TestUtils.clearCache(SHARED_PREFERENCES_NAME);
-        //clearCache(mContext, 0);
-        removeApp();
-    }
-
-    //helper method for clearCache() , recursive
-    //returns number of deleted files
-    static int clearCacheFolder(final File dir, final int numDays) {
-
-        int deletedFiles = 0;
-        if (dir != null && dir.isDirectory()) {
-            try {
-                for (File child : dir.listFiles()) {
-
-                    //first delete subdirectories recursively
-                    if (child.isDirectory()) {
-                        deletedFiles += clearCacheFolder(child, numDays);
-                    }
-
-                    //then delete the files and subdirectories in this dir
-                    //only empty directories can be deleted, so subdirs have been done first
-                    if (child.lastModified() < new Date().getTime() - numDays * DateUtils.DAY_IN_MILLIS) {
-                        if (child.delete()) {
-                            deletedFiles++;
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                Log.e(TAG, String.format("Failed to clean the cache, error %s", e.getMessage()));
-            }
-        }
-        return deletedFiles;
-    }
-
-    /*
-     * Delete the files older than numDays days from the application cache
-     * 0 means all files.
-     */
-    public static void clearCache(final Context context, final int numDays) {
-        Log.i(TAG, String.format("Starting cache prune, deleting files older than %d days", numDays));
-        int numDeletedFiles = clearCacheFolder(context.getCacheDir(), numDays);
-        Log.i(TAG, String.format("Cache pruning completed, %d files deleted", numDeletedFiles));
-    }
-
-    public void installApp() {
-        UiDevice mDevice = UiDevice.getInstance(getInstrumentation());
-        try {
-            String output = mDevice.executeShellCommand("pm install " + "com.azure.authenticator");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void removeApp() {
-        UiDevice mDevice = UiDevice.getInstance(getInstrumentation());
-        try {
-            String output = mDevice.executeShellCommand("pm uninstall " + mContext.getPackageName());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        //CommonUtils.clearApp(mContext.getPackageName());
     }
 }

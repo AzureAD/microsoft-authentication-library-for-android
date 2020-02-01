@@ -39,7 +39,7 @@ public abstract class PublicClientApplicationAbstractTest implements IPublicClie
 
     @After
     public void cleanup() {
-        mActivity.finish();
+        //mActivity.finish();
     }
 
     private void setupPCA() {

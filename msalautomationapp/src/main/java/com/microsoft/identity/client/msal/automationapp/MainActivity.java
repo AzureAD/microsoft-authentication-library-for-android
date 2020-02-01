@@ -15,6 +15,7 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
@@ -24,6 +25,17 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
     }
+
+//    @Override
+//    protected void onDestroy() {
+//        super.onDestroy();
+//        Runtime runtime = Runtime.getRuntime();
+//        try {
+//            runtime.exec("pm clear " + this.getApplicationContext().getPackageName());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     public void acquireToken(View view) {
         final Activity activity = this;

@@ -60,7 +60,7 @@ public class PlayStoreUtils {
         }
     }
 
-    private static void selectGooglePlayAppFromPackageName(final String appName) {
+    private static void selectGooglePlayAppFromPackageNameOld(final String appName) {
         UiDevice device = UiDevice.getInstance(getInstrumentation());
 
         // we will just take the first app in the list
@@ -69,6 +69,21 @@ public class PlayStoreUtils {
         ).index(0).childSelector(new UiSelector().resourceId(
                 getResourceId(GOOGLE_PLAY_PACKAGE_NAME, "play_card")
         )));
+        try {
+            appIconInSearchResult.waitForExists(TIMEOUT);
+            appIconInSearchResult.click();
+        } catch (UiObjectNotFoundException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    private static void selectGooglePlayAppFromPackageName(final String appName) {
+        UiDevice device = UiDevice.getInstance(getInstrumentation());
+
+        // we will just take the first app in the list
+        UiObject appIconInSearchResult = device.findObject(new UiSelector().resourceId(
+                getResourceId(GOOGLE_PLAY_PACKAGE_NAME, "bucket_items")
+        ).childSelector(new UiSelector().textContains(appName)));
         try {
             appIconInSearchResult.waitForExists(TIMEOUT);
             appIconInSearchResult.click();
@@ -88,6 +103,22 @@ public class PlayStoreUtils {
         } catch (UiObjectNotFoundException e) {
             Assert.fail(e.getMessage());
         }
+
+        UiObject openButton = device.findObject(new UiSelector().resourceId(
+                getResourceId(GOOGLE_PLAY_PACKAGE_NAME, "right_button")
+        ).textContains("Open").enabled(true));
+        // if we see uninstall button, then we know that the installation is complete
+        openButton.waitForExists(1000 * 300); // wait at least 5 mins for installation
+    }
+
+    public UiObject findInstallBar() {
+        UiDevice device = UiDevice.getInstance(getInstrumentation());
+        UiObject installBar = device.findObject(new UiSelector().resourceId(
+                getResourceId(GOOGLE_PLAY_PACKAGE_NAME, "install_bar")
+        ));
+
+        installBar.waitForExists(TIMEOUT);
+        return installBar;
     }
 
     public static void installApp(final String searchHint) {

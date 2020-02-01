@@ -34,89 +34,89 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USE
 /**
  * Run all tests in the {@link AcquireTokenNetworkTest} class using AAD
  */
-public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
-
-    @Override
-    public int getConfigFileResourceId() {
-        return R.raw.msal_automation_config;
-    }
-
-    @Override
-    public String[] getScopes() {
-        return USER_READ_SCOPE;
-    }
-
-    @Override
-    public String getAuthority() {
-        return (String) AcquireTokenTestHelper.getAccount().getClaims().get("iss");
-    }
-
-    public static class AzureWorldWideCloudUser extends AcquireTokenAADTest {
-        @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
-            return query;
-        }
-    }
-
-    public static class AzureUsGovCloudUser extends AcquireTokenAADTest {
-        @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
-            return query;
-        }
-    }
-
-    public static class AzureChinaCloudUser extends AcquireTokenAADTest {
-        @Override
-        public int getConfigFileResourceId() {
-            return R.raw.msal_automation_config;
-        }
-
-        @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CHINA_CLOUD;
-            return query;
-        }
-    }
-
-    public static class AzureGermanyCloudUser extends AcquireTokenAADTest {
-        @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_GERMANY_CLOUD;
-            return query;
-        }
-    }
-
-    public static class MamCaUserAadGraphResource extends AcquireTokenAADTest {
-        @Override
-        public String[] getScopes() {
-            return AD_GRAPH_USER_READ_SCOPE;
-        }
-
-        @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.protectionPolicy = LabConstants.ProtectionPolicy.MAM_CA;
-            return query;
-        }
-    }
-
-    public static class MamOnSpoUserOfficeResource extends AcquireTokenAADTest {
-        @Override
-        public String[] getScopes() {
-            return OFFICE_USER_READ_SCOPE;
-        }
-
-        @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.protectionPolicy = LabConstants.ProtectionPolicy.MAM_SPO;
-            return query;
-        }
-    }
-}
+//public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
+//
+//    @Override
+//    public int getConfigFileResourceId() {
+//        return R.raw.msal_automation_config;
+//    }
+//
+//    @Override
+//    public String[] getScopes() {
+//        return USER_READ_SCOPE;
+//    }
+//
+//    @Override
+//    public String getAuthority() {
+//        return (String) AcquireTokenTestHelper.getAccount().getClaims().get("iss");
+//    }
+//
+//    public static class AzureWorldWideCloudUser extends AcquireTokenAADTest {
+//        @Override
+//        public LabUserQuery getLabUserQuery() {
+//            final LabUserQuery query = new LabUserQuery();
+//            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
+//            return query;
+//        }
+//    }
+//
+//    public static class AzureUsGovCloudUser extends AcquireTokenAADTest {
+//        @Override
+//        public LabUserQuery getLabUserQuery() {
+//            final LabUserQuery query = new LabUserQuery();
+//            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
+//            return query;
+//        }
+//    }
+//
+//    public static class AzureChinaCloudUser extends AcquireTokenAADTest {
+//        @Override
+//        public int getConfigFileResourceId() {
+//            return R.raw.msal_automation_config;
+//        }
+//
+//        @Override
+//        public LabUserQuery getLabUserQuery() {
+//            final LabUserQuery query = new LabUserQuery();
+//            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CHINA_CLOUD;
+//            return query;
+//        }
+//    }
+//
+//    public static class AzureGermanyCloudUser extends AcquireTokenAADTest {
+//        @Override
+//        public LabUserQuery getLabUserQuery() {
+//            final LabUserQuery query = new LabUserQuery();
+//            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_GERMANY_CLOUD;
+//            return query;
+//        }
+//    }
+//
+//    public static class MamCaUserAadGraphResource extends AcquireTokenAADTest {
+//        @Override
+//        public String[] getScopes() {
+//            return AD_GRAPH_USER_READ_SCOPE;
+//        }
+//
+//        @Override
+//        public LabUserQuery getLabUserQuery() {
+//            final LabUserQuery query = new LabUserQuery();
+//            query.protectionPolicy = LabConstants.ProtectionPolicy.MAM_CA;
+//            return query;
+//        }
+//    }
+//
+//    public static class MamOnSpoUserOfficeResource extends AcquireTokenAADTest {
+//        @Override
+//        public String[] getScopes() {
+//            return OFFICE_USER_READ_SCOPE;
+//        }
+//
+//        @Override
+//        public LabUserQuery getLabUserQuery() {
+//            final LabUserQuery query = new LabUserQuery();
+//            query.protectionPolicy = LabConstants.ProtectionPolicy.MAM_SPO;
+//            return query;
+//        }
+//    }
+//}

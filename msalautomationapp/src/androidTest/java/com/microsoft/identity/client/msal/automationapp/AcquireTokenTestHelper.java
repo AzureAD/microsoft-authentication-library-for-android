@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
+import android.content.Context;
 import android.widget.Toast;
 
 import com.microsoft.identity.client.AuthenticationCallback;
@@ -50,11 +51,12 @@ public class AcquireTokenTestHelper {
         sAccount = account;
     }
 
-    public static AuthenticationCallback successfulInteractiveCallback(final CountDownLatch latch) {
+    public static AuthenticationCallback successfulInteractiveCallback(final CountDownLatch latch, final Context context) {
         AuthenticationCallback callback = new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
-                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                Toast.makeText(context, authenticationResult.getAccessToken(), Toast.LENGTH_SHORT).show();
+                Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
                 sAccount = authenticationResult.getAccount();
                 latch.countDown();
             }
@@ -75,7 +77,7 @@ public class AcquireTokenTestHelper {
         return callback;
     }
 
-    public static AuthenticationCallback failedSilentRequestDuplicateCommandCallback() {
+    public static AuthenticationCallback failedSilentRequestDuplicateCommandCallback(final Context context) {
         AuthenticationCallback callback = new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -97,7 +99,7 @@ public class AcquireTokenTestHelper {
     }
 
 
-    public static SilentAuthenticationCallback successfulSilentCallback(final CountDownLatch latch) {
+    public static SilentAuthenticationCallback successfulSilentCallback(final CountDownLatch latch, final Context context) {
         SilentAuthenticationCallback callback = new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -116,7 +118,7 @@ public class AcquireTokenTestHelper {
         return callback;
     }
 
-    public static AuthenticationCallback failureInteractiveCallback(final CountDownLatch latch, final String errorCode) {
+    public static AuthenticationCallback failureInteractiveCallback(final CountDownLatch latch, final String errorCode, final Context context) {
         AuthenticationCallback callback = new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -140,7 +142,7 @@ public class AcquireTokenTestHelper {
         return callback;
     }
 
-    public static SilentAuthenticationCallback failureSilentCallback(final CountDownLatch latch, final String errorCode) {
+    public static SilentAuthenticationCallback failureSilentCallback(final CountDownLatch latch, final String errorCode, final Context context) {
         SilentAuthenticationCallback callback = new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {

@@ -14,7 +14,7 @@ import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentat
 
 public class CommonUtils {
 
-    final static long TIMEOUT = 1000 * 60;
+    public final static long TIMEOUT = 1000 * 60;
 
     public static void launchApp(final String packageName) {
         final Context context = ApplicationProvider.getApplicationContext();
@@ -23,7 +23,7 @@ public class CommonUtils {
         context.startActivity(intent);
     }
 
-    public void removeApp(final String packageName) {
+    public static void removeApp(final String packageName) {
         UiDevice mDevice = UiDevice.getInstance(getInstrumentation());
         try {
             String output = mDevice.executeShellCommand("pm uninstall " + packageName);
@@ -32,7 +32,25 @@ public class CommonUtils {
         }
     }
 
-    static String getResourceId(final String appPackageName, final String internalResourceId) {
+    public static void clearApp(final String packageName) {
+        UiDevice mDevice = UiDevice.getInstance(getInstrumentation());
+        try {
+            String output = mDevice.executeShellCommand("pm clear " + packageName);
+        } catch (IOException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    public static void installApp(final String packageName) {
+        UiDevice mDevice = UiDevice.getInstance(getInstrumentation());
+        try {
+            String output = mDevice.executeShellCommand("pm clear " + packageName);
+        } catch (IOException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    public static String getResourceId(final String appPackageName, final String internalResourceId) {
         return appPackageName + ":id/" + internalResourceId;
     }
 
