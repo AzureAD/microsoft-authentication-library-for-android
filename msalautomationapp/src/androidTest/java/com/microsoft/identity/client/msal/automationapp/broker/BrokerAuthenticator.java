@@ -26,6 +26,11 @@ public class BrokerAuthenticator implements ITestBroker {
         final UiDevice mDevice =
                 UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
 
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return mDevice.hasObject(By.res("com.azure.authenticator:id/swipe_list"));
     }
 

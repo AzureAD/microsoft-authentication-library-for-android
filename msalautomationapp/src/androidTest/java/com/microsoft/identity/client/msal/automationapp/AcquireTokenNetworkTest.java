@@ -27,10 +27,10 @@ import androidx.annotation.Nullable;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
-import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -125,25 +125,10 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenNetworkAbstrac
     }
 
     @Test
-    public void testAcquireTokenSuccess() throws InterruptedException {
-        performAcquireTokenInteractive();
-    }
-
-    @Test
     public void testAbc() throws InterruptedException {
         performAcquireTokenInteractive();
         performAcquireTokenInteractive();
-    }
-
-    @Test
-    public void testAcquireTokenSuccessFollowedBySilentSuccess() throws InterruptedException {
-        performAcquireTokenInteractive();
         performAcquireTokenSilent(false);
-    }
-
-    @Test
-    public void testAcquireTokenSilentSuccessForceRefresh() throws InterruptedException {
-        performAcquireTokenInteractive();
         performAcquireTokenSilent(true);
     }
 

@@ -47,16 +47,34 @@ public class PlayStoreUtils {
         device.pressEnter();
     }
 
-    private static void selectGooglePlayAppFromAppName(final String appName) {
+    private static void selectGooglePlayAppFromAppList(final String appName) throws UiObjectNotFoundException {
         UiDevice device = UiDevice.getInstance(getInstrumentation());
         UiObject appIconInSearchResult = device.findObject(new UiSelector().resourceId(
                 getResourceId(GOOGLE_PLAY_PACKAGE_NAME, "play_card")
         ).descriptionContains(appName));
+
+        appIconInSearchResult.waitForExists(TIMEOUT);
+        appIconInSearchResult.click();
+    }
+
+    private static void selectGooglePlayAppFromInstallBar(final String appName) throws UiObjectNotFoundException {
+        UiDevice device = UiDevice.getInstance(getInstrumentation());
+        UiObject appInstallBar = device.findObject(new UiSelector().resourceId(
+                getResourceId(GOOGLE_PLAY_PACKAGE_NAME, "install_bar")
+        ));
+        appInstallBar.waitForExists(TIMEOUT);
+        appInstallBar.click();
+    }
+
+    private static void selectGooglePlayAppFromAppName(final String appName) {
         try {
-            appIconInSearchResult.waitForExists(TIMEOUT);
-            appIconInSearchResult.click();
+            selectGooglePlayAppFromInstallBar(appName);
         } catch (UiObjectNotFoundException e) {
-            Assert.fail(e.getMessage());
+            try {
+                selectGooglePlayAppFromAppList(appName);
+            } catch (UiObjectNotFoundException ex) {
+                Assert.fail(ex.getMessage());
+            }
         }
     }
 

@@ -29,6 +29,7 @@ import org.junit.After;
 import org.junit.Before;
 
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_SIGNATURE;
 
 public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAbstractTest implements IAcquireTokenTest {
@@ -42,7 +43,7 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
         // remove existing authenticator and company portal apps - the test app is removed
         // by the Android Test Orchestrator. See build.gradle
         CommonUtils.removeApp(AZURE_AUTHENTICATOR_APP_PACKAGE_NAME);
-        CommonUtils.removeApp(COMPANY_PORTAL_APP_SIGNATURE);
+        CommonUtils.removeApp(COMPANY_PORTAL_APP_PACKAGE_NAME);
 
         mScopes = getScopes();
         super.setup();

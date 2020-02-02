@@ -1,6 +1,7 @@
 package com.microsoft.identity.client.msal.automationapp;
 
 import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.client.msal.automationapp.broker.BrokerAuthenticator;
 import com.microsoft.identity.client.msal.automationapp.broker.BrokerCompanyPortal;
@@ -27,7 +28,7 @@ public abstract class AcquireTokenNetworkAbstractTest extends AcquireTokenAbstra
     public String mCloudName;
 
     @Parameterized.Parameter(1)
-    public ITestBroker mBroker; // null or Authenticator or CP
+    public ITestBroker mBroker;
 
     @Parameterized.Parameter(2)
     public String mBrokerName;
@@ -39,12 +40,13 @@ public abstract class AcquireTokenNetworkAbstractTest extends AcquireTokenAbstra
     @Parameterized.Parameters(name = "{index}: Cloud={0} Broker={2}")
     public static Collection<Object[]> data() {
         Object[][] data = new Object[][]{
-                {LabConstants.AzureEnvironment.AZURE_CLOUD, null, "NONE"},
+//                {LabConstants.AzureEnvironment.AZURE_CLOUD, null, "NONE"},
                 {LabConstants.AzureEnvironment.AZURE_CLOUD, new BrokerAuthenticator(), "Authenticator"},
-                {LabConstants.AzureEnvironment.AZURE_CLOUD, new BrokerCompanyPortal(), "Company Portal"}
+                {LabConstants.AzureEnvironment.AZURE_CLOUD, new BrokerCompanyPortal(), "Company Portal"},
         };
         return Arrays.asList(data);
     }
+
 
     @Before
     public void setup() {

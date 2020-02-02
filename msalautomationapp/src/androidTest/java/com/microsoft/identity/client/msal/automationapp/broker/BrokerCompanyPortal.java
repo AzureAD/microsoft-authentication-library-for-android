@@ -13,6 +13,7 @@ import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentat
 import static com.microsoft.identity.client.msal.automationapp.utils.CommonUtils.TIMEOUT;
 import static com.microsoft.identity.client.msal.automationapp.utils.CommonUtils.getResourceId;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
 
 public class BrokerCompanyPortal implements ITestBroker {
 
@@ -27,6 +28,12 @@ public class BrokerCompanyPortal implements ITestBroker {
         final UiDevice mDevice =
                 UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
 
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         return mDevice.hasObject(By.res("com.microsoft.windowsintune.companyportal:id/account_list"));
     }
 
@@ -35,7 +42,7 @@ public class BrokerCompanyPortal implements ITestBroker {
         UiDevice device = UiDevice.getInstance(getInstrumentation());
 
         UiObject accountSelected = device.findObject(new UiSelector().resourceId(
-                getResourceId(AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, "account_list")
+                getResourceId(COMPANY_PORTAL_APP_PACKAGE_NAME, "account_list")
         ).index(0).childSelector(new UiSelector().textContains(
                 username
         )));
