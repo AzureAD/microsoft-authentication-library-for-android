@@ -1,5 +1,10 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 1.2.0-hf1
+------------
+- Fixed issue #910
+- Adds spinner to WebView when loading interactive requests using WEBVIEW authorization_user_agent.
+
 Version 1.2.0
 ------------
 - API change
