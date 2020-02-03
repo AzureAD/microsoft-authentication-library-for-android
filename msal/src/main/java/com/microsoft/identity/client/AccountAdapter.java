@@ -314,11 +314,19 @@ class AccountAdapter {
         return result;
     }
 
-    @NonNull
+    @Nullable
     private static IDToken getIdToken(@NonNull final ICacheRecord cacheRecord) {
-        final String rawIdToken = null != cacheRecord.getIdToken()
-                ? cacheRecord.getIdToken().getSecret()
-                : cacheRecord.getV1IdToken().getSecret();
+        final String rawIdToken;
+
+        if (null != cacheRecord.getIdToken()) {
+            rawIdToken = cacheRecord.getIdToken().getSecret();
+        } else if (null != cacheRecord.getV1IdToken()) {
+            rawIdToken = cacheRecord.getV1IdToken().getSecret();
+        } else {
+            // We have no id_token for this account
+            return null;
+        }
+
         try {
             return new IDToken(rawIdToken);
         } catch (ServiceException e) {
