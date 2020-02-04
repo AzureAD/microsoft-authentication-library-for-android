@@ -144,7 +144,7 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '1.0.14-hf1-SNAPSHOT', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '1.0.14-hf1', changing: true)
 
     distApi("com.microsoft.identity:common:1.0.14-hf1") {
         transitive = false
