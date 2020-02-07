@@ -71,6 +71,8 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REQUIRED_BROKER_PROTOCOL_VERSION;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.TELEMETRY;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_CONTROLS_ENABLED;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_ENABLED;
 
 public class PublicClientApplicationConfiguration {
     private static final String TAG = PublicClientApplicationConfiguration.class.getSimpleName();
@@ -90,6 +92,9 @@ public class PublicClientApplicationConfiguration {
         static final String BROWSER_SAFE_LIST = "browser_safelist";
         static final String ACCOUNT_MODE = "account_mode";
         static final String CLIENT_CAPABILITIES = "client_capabilities";
+        static final String WEB_VIEW_ZOOM_CONTROLS_ENABLED = "web_view_zoom_controls_enabled";
+        static final String WEB_VIEW_ZOOM_ENABLED = "web_view_zoom_enabled";
+
     }
 
     @SerializedName(CLIENT_ID)
@@ -133,6 +138,13 @@ public class PublicClientApplicationConfiguration {
 
     @SerializedName(CLIENT_CAPABILITIES)
     private String mClientCapabilities;
+
+    @SerializedName(WEB_VIEW_ZOOM_CONTROLS_ENABLED)
+    private Boolean webViewZoomControlsEnabled;
+
+    @SerializedName(WEB_VIEW_ZOOM_ENABLED)
+    private Boolean webViewZoomEnabled;
+
 
     transient private OAuth2TokenCache mOAuth2TokenCache;
 
@@ -323,6 +335,22 @@ public class PublicClientApplicationConfiguration {
         mIsSharedDevice = isSharedDevice;
     }
 
+    public boolean isWebViewZoomControlsEnabled() {
+        return webViewZoomControlsEnabled;
+    }
+
+    public boolean isWebViewZoomEnabled() {
+        return webViewZoomEnabled;
+    }
+
+    public void setWebViewZoomControlsEnabled(boolean webViewZoomControlsEnabled) {
+        this.webViewZoomControlsEnabled = webViewZoomControlsEnabled;
+    }
+
+    public void setWebViewZoomEnabled(boolean webViewZoomEnabled) {
+        this.webViewZoomEnabled = webViewZoomEnabled;
+    }
+
     public Authority getDefaultAuthority() {
         if (mAuthorities != null) {
             if (mAuthorities.size() > 1) {
@@ -386,12 +414,13 @@ public class PublicClientApplicationConfiguration {
         } else if (config.mBrowserSafeList != null) {
             this.mBrowserSafeList.addAll(config.mBrowserSafeList);
         }
-
         // Multiple is the default mode.
         this.mAccountMode = config.mAccountMode != AccountMode.MULTIPLE ? config.mAccountMode : this.mAccountMode;
         this.mClientCapabilities = config.mClientCapabilities == null ? this.mClientCapabilities : config.mClientCapabilities;
         this.mIsSharedDevice = config.mIsSharedDevice == true ? this.mIsSharedDevice : config.mIsSharedDevice;
         this.mLoggerConfiguration = config.mLoggerConfiguration == null ? this.mLoggerConfiguration : config.mLoggerConfiguration;
+        this.webViewZoomControlsEnabled = config.webViewZoomControlsEnabled == null || config.webViewZoomControlsEnabled;
+        this.webViewZoomEnabled = config.webViewZoomEnabled == null || config.webViewZoomEnabled;
     }
 
     void validateConfiguration() {
