@@ -236,7 +236,12 @@ public class OperationParametersAdapter {
         acquireTokenOperationParameters.setApplicationName(context.getPackageName());
         acquireTokenOperationParameters.setApplicationVersion(getPackageVersion(context));
         acquireTokenOperationParameters.setSdkVersion(PublicClientApplication.getSdkVersion());
-
+        acquireTokenOperationParameters.setWebViewZoomControlsEnabled(
+                publicClientApplicationConfiguration.isWebViewZoomControlsEnabled()
+        );
+        acquireTokenOperationParameters.setWebViewZoomEnabled(
+                publicClientApplicationConfiguration.isWebViewZoomEnabled()
+        );
         return acquireTokenOperationParameters;
     }
 
