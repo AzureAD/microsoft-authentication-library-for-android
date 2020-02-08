@@ -55,7 +55,7 @@ Add to your app's build.gradle:
 
 ```gradle
 dependencies {
-    implementation 'com.microsoft.identity.client:msal:1.2.+'
+    implementation 'com.microsoft.identity.client:msal:1.3.+'
 }
 ```
 
