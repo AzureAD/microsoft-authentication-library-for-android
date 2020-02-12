@@ -14,6 +14,8 @@ The MSAL library for Android gives your app the ability to use the [Microsoft Cl
 
 ### What's new?
 
+> Looking for developers interested in providing early feedback on a x-platform implementation of MSAL written in C++ and Java, callable from Java, Kotlin and C++.  If you're interested please please contact shoatman@microsoft.com.
+
 MSAL Android is now generally available with MSAL 1.0!
 
 - Supported Authorities
