@@ -70,7 +70,7 @@ android {
 dependencies {
     // Compile Dependency
     localImplementation project(':msal')
-    distImplementation 'com.microsoft.identity.client:msal:1.0.+'
+    distImplementation 'com.microsoft.identity.client:msal:1.3.0'
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
