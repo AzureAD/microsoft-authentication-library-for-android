@@ -8,7 +8,7 @@
     {
       "type": "AAD",
       "audience": {
-        "type": "AzureADandPersonalMicrosoftAccount"
+        "type": "AzureADMultipleOrgs"
       }
     }
   ],
