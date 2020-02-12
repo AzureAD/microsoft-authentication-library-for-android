@@ -1,5 +1,18 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 1.3.0
+------------
+- Picks up fixes in common@1.0.15
+- Fix for msal#915
+    * Incorrect id_token returned for B2C app with multiple policies
+- Fix for msal#916
+    * WebView calls loadUrl multiple times over lifecycle
+- Fix for msal#921
+    * WebView displays error when connectivity lost
+- Fix for msal#904
+    * AT caching logic change for scope intersection
+- MSAL Enhancement: WebView zoom controls are now configurable
+
 Version 1.2.0-hf1
 ------------
 - Fixed issue #910
