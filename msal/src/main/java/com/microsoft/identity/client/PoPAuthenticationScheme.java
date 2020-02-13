@@ -23,6 +23,7 @@
 package com.microsoft.identity.client;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.internal.authscheme.IPoPAuthenticationSchemeParams;
 import com.microsoft.identity.common.internal.authscheme.PopAuthenticationSchemeInternal;
@@ -39,7 +40,7 @@ public class PoPAuthenticationScheme
 
     private PoPAuthenticationScheme(@NonNull final HttpMethod method,
                                     @NonNull final URL url,
-                                    @NonNull final String nonce) {
+                                    @Nullable final String nonce) {
         super(PopAuthenticationSchemeInternal.SCHEME_POP);
         mHttpMethod = method;
         mUrl = url;
@@ -85,7 +86,7 @@ public class PoPAuthenticationScheme
             return this;
         }
 
-        public Builder withNonce(@NonNull final String nonce) {
+        public Builder withNonce(@Nullable final String nonce) {
             mNonce = nonce;
             return this;
         }
@@ -99,10 +100,6 @@ public class PoPAuthenticationScheme
 
             if (null == mHttpMethod) {
                 throw new IllegalArgumentException(errMsg + "HTTP Method");
-            }
-
-            if (null == mNonce) {
-                throw new IllegalArgumentException(errMsg + "nonce");
             }
 
             return new PoPAuthenticationScheme(mHttpMethod, mUrl, mNonce);
