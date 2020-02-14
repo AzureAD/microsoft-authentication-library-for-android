@@ -23,12 +23,12 @@
 package com.microsoft.identity.client;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.internal.authscheme.IPoPAuthenticationSchemeParams;
 import com.microsoft.identity.common.internal.authscheme.PopAuthenticationSchemeInternal;
 
 import java.net.URL;
-import java.util.UUID;
 
 public class PoPAuthenticationScheme
         extends AuthenticationScheme
@@ -39,11 +39,12 @@ public class PoPAuthenticationScheme
     private final String mNonce;
 
     private PoPAuthenticationScheme(@NonNull final HttpMethod method,
-                                    @NonNull final URL url) {
+                                    @NonNull final URL url,
+                                    @Nullable final String nonce) {
         super(PopAuthenticationSchemeInternal.SCHEME_POP);
         mHttpMethod = method;
         mUrl = url;
-        mNonce = UUID.randomUUID().toString();
+        mNonce = nonce;
     }
 
     public static Builder builder() {
@@ -69,6 +70,7 @@ public class PoPAuthenticationScheme
 
         private URL mUrl;
         private HttpMethod mHttpMethod;
+        private String mNonce;
 
         private Builder() {
             // Intentionally blank
@@ -84,6 +86,11 @@ public class PoPAuthenticationScheme
             return this;
         }
 
+        public Builder withNonce(@Nullable final String nonce) {
+            mNonce = nonce;
+            return this;
+        }
+
         public PoPAuthenticationScheme build() {
             String errMsg = "PoP authentication scheme param must not be null: ";
 
@@ -95,7 +102,7 @@ public class PoPAuthenticationScheme
                 throw new IllegalArgumentException(errMsg + "HTTP Method");
             }
 
-            return new PoPAuthenticationScheme(mHttpMethod, mUrl);
+            return new PoPAuthenticationScheme(mHttpMethod, mUrl, mNonce);
         }
     }
 }
