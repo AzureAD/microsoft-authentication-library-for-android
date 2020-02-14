@@ -34,7 +34,6 @@ import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.exception.ArgumentException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
-import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
@@ -57,21 +56,15 @@ import com.microsoft.identity.common.internal.providers.oauth2.OpenIdConnectProm
 import com.microsoft.identity.common.internal.providers.oauth2.TokenRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
 import com.microsoft.identity.common.internal.request.SdkType;
-import com.microsoft.identity.common.internal.request.generated.GetCurrentAccountCommandContext;
+import com.microsoft.identity.common.internal.request.generated.CommandContext;
 import com.microsoft.identity.common.internal.request.generated.GetCurrentAccountCommandParameters;
-import com.microsoft.identity.common.internal.request.generated.GetDeviceModeCommandContext;
 import com.microsoft.identity.common.internal.request.generated.GetDeviceModeCommandParameters;
 import com.microsoft.identity.common.internal.request.generated.IContext;
 import com.microsoft.identity.common.internal.request.generated.ITokenRequestParameters;
-import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandContext;
 import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandParameters;
-import com.microsoft.identity.common.internal.request.generated.LoadAccountCommandContext;
 import com.microsoft.identity.common.internal.request.generated.LoadAccountCommandParameters;
-import com.microsoft.identity.common.internal.request.generated.RemoveAccountCommandContext;
 import com.microsoft.identity.common.internal.request.generated.RemoveAccountCommandParameters;
-import com.microsoft.identity.common.internal.request.generated.RemoveCurrentAccountCommandContext;
 import com.microsoft.identity.common.internal.request.generated.RemoveCurrentAccountCommandParameters;
-import com.microsoft.identity.common.internal.request.generated.SilentTokenCommandContext;
 import com.microsoft.identity.common.internal.request.generated.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
@@ -101,7 +94,7 @@ public class LocalMSALController extends BaseController<InteractiveTokenCommandP
 
     @Override
     public AcquireTokenResult acquireToken(
-            @NonNull final InteractiveTokenCommandContext context,
+            @NonNull final CommandContext context,
             @NonNull final InteractiveTokenCommandParameters parameters)
             throws ExecutionException, InterruptedException, ClientException, IOException, ArgumentException {
         final String methodName = ":acquireToken";
@@ -199,7 +192,7 @@ public class LocalMSALController extends BaseController<InteractiveTokenCommandP
     }
 
     private AuthorizationResult performAuthorizationRequest(@NonNull final OAuth2Strategy strategy,
-                                                            @NonNull final InteractiveTokenCommandContext context,
+                                                            @NonNull final CommandContext context,
                                                             @NonNull final InteractiveTokenCommandParameters parameters)
             throws ExecutionException, InterruptedException, ClientException {
 
@@ -249,7 +242,7 @@ public class LocalMSALController extends BaseController<InteractiveTokenCommandP
 
     @Override
     public AcquireTokenResult acquireTokenSilent(
-            @NonNull final SilentTokenCommandContext context,
+            @NonNull final CommandContext context,
             @NonNull final SilentTokenCommandParameters parameters)
             throws IOException, ClientException, ArgumentException {
         final String methodName = ":acquireTokenSilent";
@@ -291,9 +284,8 @@ public class LocalMSALController extends BaseController<InteractiveTokenCommandP
 
         if (accessTokenIsNull(fullCacheRecord)
                 || refreshTokenIsNull(fullCacheRecord)
-                || parametersWithDefaultScopesAdded.forceRefresh()) {
-                || parameters.getForceRefresh()
-                || !isRequestAuthorityRealmSameAsATRealm(parameters.getAuthority(), fullCacheRecord.getAccessToken())) {
+                || parameters.forceRefresh()
+                || !isRequestAuthorityRealmSameAsATRealm(parameters.authority(), fullCacheRecord.getAccessToken())) {
             if (!refreshTokenIsNull(fullCacheRecord)) {
                 // No AT found, but the RT checks out, so we'll use it
                 Logger.verbose(
@@ -373,7 +365,7 @@ public class LocalMSALController extends BaseController<InteractiveTokenCommandP
     @Override
     @WorkerThread
     public List<ICacheRecord> getAccounts(
-            @NonNull final LoadAccountCommandContext context,
+            @NonNull final CommandContext context,
             @NonNull final LoadAccountCommandParameters parameters) {
         /*
         Telemetry.emit(
@@ -405,7 +397,7 @@ public class LocalMSALController extends BaseController<InteractiveTokenCommandP
     @Override
     @WorkerThread
     public boolean removeAccount(
-            @NonNull final RemoveAccountCommandContext context,
+            @NonNull final CommandContext context,
             @NonNull final RemoveAccountCommandParameters parameters) {
         /*
         Telemetry.emit(
@@ -441,7 +433,7 @@ public class LocalMSALController extends BaseController<InteractiveTokenCommandP
 
     @Override
     public boolean getDeviceMode(
-            @NonNull final GetDeviceModeCommandContext context,
+            @NonNull final CommandContext context,
             @NonNull final GetDeviceModeCommandParameters parameters) throws Exception {
         final String methodName = ":getDeviceMode";
 
@@ -453,7 +445,7 @@ public class LocalMSALController extends BaseController<InteractiveTokenCommandP
 
     @Override
     public List<ICacheRecord> getCurrentAccount(
-            @NonNull final GetCurrentAccountCommandContext context,
+            @NonNull final CommandContext context,
             @NonNull final GetCurrentAccountCommandParameters parameters) throws Exception {
         //TODO: Need to convert 1 context to another...
         //return getAccounts(parameters);
@@ -462,7 +454,7 @@ public class LocalMSALController extends BaseController<InteractiveTokenCommandP
 
     @Override
     public boolean removeCurrentAccount(
-            @NonNull final RemoveCurrentAccountCommandContext context,
+            @NonNull final CommandContext context,
             @NonNull final RemoveCurrentAccountCommandParameters parameters) throws Exception {
 
         //TODO: Need to convert 1 context to another
@@ -538,7 +530,7 @@ public class LocalMSALController extends BaseController<InteractiveTokenCommandP
     protected TokenResult performTokenRequest(@NonNull OAuth2Strategy strategy,
                                               @NonNull AuthorizationRequest request,
                                               @NonNull AuthorizationResponse response,
-                                              @NonNull InteractiveTokenCommandContext context) throws IOException, ClientException {
+                                              @NonNull CommandContext context) throws IOException, ClientException {
         final String methodName = ":performTokenRequest";
         HttpWebRequest.throwIfNetworkNotAvailable(context.androidApplicationContext());
 
@@ -554,7 +546,7 @@ public class LocalMSALController extends BaseController<InteractiveTokenCommandP
     }
 
     @Override
-    protected void renewAccessToken(@NonNull SilentTokenCommandContext context,
+    protected void renewAccessToken(@NonNull CommandContext context,
                                     @NonNull SilentTokenCommandParameters parameters,
                                     @NonNull AcquireTokenResult acquireTokenSilentResult,
                                     @NonNull OAuth2TokenCache tokenCache,
@@ -646,7 +638,7 @@ public class LocalMSALController extends BaseController<InteractiveTokenCommandP
 
     @Override
     protected AccountRecord getCachedAccountRecord(
-            @NonNull final SilentTokenCommandContext context,
+            @NonNull final CommandContext context,
             @NonNull final SilentTokenCommandParameters parameters) throws ClientException {
         if (parameters.account() == null) {
             throw new ClientException(

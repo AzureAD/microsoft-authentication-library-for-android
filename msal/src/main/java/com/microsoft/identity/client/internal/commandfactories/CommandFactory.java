@@ -6,9 +6,8 @@ import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
 
-import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.common.internal.controllers.BaseCommand;
+import com.microsoft.identity.common.internal.commands.BaseCommand;
 import com.microsoft.identity.common.internal.controllers.CommandCallback;
 import com.microsoft.identity.common.internal.request.generated.CommandContext;
 import com.microsoft.identity.common.internal.request.generated.CommandParameters;

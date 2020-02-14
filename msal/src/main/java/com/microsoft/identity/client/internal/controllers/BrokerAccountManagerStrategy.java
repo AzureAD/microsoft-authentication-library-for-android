@@ -42,7 +42,6 @@ import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.OperationParameters;
-import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandContext;
 import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.telemetry.Telemetry;

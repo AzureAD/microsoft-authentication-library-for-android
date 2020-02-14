@@ -58,9 +58,9 @@ import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.controllers.CommandCallback;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.controllers.ExceptionAdapter;
-import com.microsoft.identity.common.internal.controllers.GetDeviceModeCommand;
-import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
-import com.microsoft.identity.common.internal.controllers.SilentTokenCommand;
+import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
+import com.microsoft.identity.common.internal.commands.InteractiveTokenCommand;
+import com.microsoft.identity.common.internal.commands.SilentTokenCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.EstsTelemetry;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
@@ -72,11 +72,9 @@ import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.OperationParameters;
-import com.microsoft.identity.common.internal.request.generated.CommandParameters;
+import com.microsoft.identity.common.internal.request.generated.CommandContext;
 import com.microsoft.identity.common.internal.request.generated.GetCurrentAccountCommandContext;
-import com.microsoft.identity.common.internal.request.generated.GetDeviceModeCommandContext;
 import com.microsoft.identity.common.internal.request.generated.GetDeviceModeCommandParameters;
-import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandContext;
 import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.internal.request.generated.SilentTokenCommandContext;
 import com.microsoft.identity.common.internal.request.generated.SilentTokenCommandParameters;
@@ -859,7 +857,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 .setRedirectUri(params.getRedirectUri())
                 .build();
 
-        final GetDeviceModeCommandContext commandContext = GetDeviceModeCommandContext.builder()
+        final CommandContext commandContext = CommandContext.builder()
                 .setAndroidApplicationContext(params.getAppContext())
                 .setApplicationName(params.getApplicationName())
                 .setApplicationVersion(params.getApplicationVersion())
@@ -1344,12 +1342,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             .setRequestHeaders(params.getRequestHeaders())
                             .build();
 
-                    final InteractiveTokenCommandContext commandContext = InteractiveTokenCommandContext.builder()
+                    final CommandContext commandContext = CommandContext.builder()
                             .setAndroidApplicationContext(params.getAppContext())
                             .setApplicationName(params.getApplicationName())
                             .setApplicationVersion(params.getApplicationVersion())
                             .setCorrelationId(params.getCorrelationId())
-                            .setOAuth2TokenCache(params.getTokenCache())
+                            .setTokenCache(params.getTokenCache())
                             .setRequiredBrokerProtocolVersion(params.getRequiredBrokerProtocolVersion())
                             .setSdkType(params.getSdkType())
                             .setSdkVersion(params.getSdkVersion())
@@ -1450,12 +1448,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             .setRedirectUri(params.getRedirectUri())
                             .build();
 
-                    final SilentTokenCommandContext commandContext = SilentTokenCommandContext.builder()
+                    final CommandContext commandContext = CommandContext.builder()
                             .setAndroidApplicationContext(params.getAppContext())
                             .setApplicationName(params.getApplicationName())
                             .setApplicationVersion(params.getApplicationVersion())
                             .setCorrelationId(params.getCorrelationId())
-                            .setOAuth2TokenCache(params.getTokenCache())
+                            .setTokenCache(params.getTokenCache())
                             .setRequiredBrokerProtocolVersion(params.getRequiredBrokerProtocolVersion())
                             .setSdkType(params.getSdkType())
                             .setSdkVersion(params.getSdkVersion())

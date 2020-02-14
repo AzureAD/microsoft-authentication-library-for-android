@@ -28,7 +28,6 @@ import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
@@ -46,9 +45,8 @@ import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.controllers.CommandCallback;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
-import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
-import com.microsoft.identity.common.internal.controllers.RemoveAccountCommand;
-import com.microsoft.identity.common.internal.controllers.SilentTokenCommand;
+import com.microsoft.identity.common.internal.commands.LoadAccountCommand;
+import com.microsoft.identity.common.internal.commands.RemoveAccountCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
@@ -61,7 +59,6 @@ import com.microsoft.identity.common.internal.request.generated.LoadAccountComma
 import com.microsoft.identity.common.internal.request.generated.RemoveAccountCommandContext;
 import com.microsoft.identity.common.internal.request.generated.RemoveAccountCommandParameters;
 import com.microsoft.identity.common.internal.request.generated.SilentTokenCommandContext;
-import com.microsoft.identity.common.internal.request.generated.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 

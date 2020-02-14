@@ -22,12 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
-import android.accounts.AuthenticatorException;
-import android.accounts.OperationCanceledException;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.RemoteException;
 
 import androidx.annotation.NonNull;
 
@@ -40,25 +37,14 @@ import com.microsoft.identity.common.internal.request.AcquireTokenOperationParam
 import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
 import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
 import com.microsoft.identity.common.internal.request.generated.GetCurrentAccountCommandContext;
-import com.microsoft.identity.common.internal.request.generated.GetCurrentAccountCommandParameters;
-import com.microsoft.identity.common.internal.request.generated.GetDeviceModeCommandContext;
-import com.microsoft.identity.common.internal.request.generated.GetDeviceModeCommandParameters;
-import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandContext;
-import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.internal.request.generated.LoadAccountCommandContext;
-import com.microsoft.identity.common.internal.request.generated.LoadAccountCommandParameters;
 import com.microsoft.identity.common.internal.request.generated.RemoveAccountCommandContext;
-import com.microsoft.identity.common.internal.request.generated.RemoveAccountCommandParameters;
 import com.microsoft.identity.common.internal.request.generated.RemoveCurrentAccountCommandContext;
-import com.microsoft.identity.common.internal.request.generated.RemoveCurrentAccountCommandParameters;
 import com.microsoft.identity.common.internal.request.generated.SilentTokenCommandContext;
-import com.microsoft.identity.common.internal.request.generated.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 abstract class BrokerBaseStrategy {
     protected final MsalBrokerRequestAdapter mRequestAdapter = new MsalBrokerRequestAdapter();

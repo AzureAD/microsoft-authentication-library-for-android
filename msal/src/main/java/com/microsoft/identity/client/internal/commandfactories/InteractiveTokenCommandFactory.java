@@ -4,11 +4,10 @@ import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
-import com.microsoft.identity.common.internal.controllers.BaseCommand;
+import com.microsoft.identity.common.internal.commands.BaseCommand;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.controllers.CommandCallback;
-import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
-import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandContext;
+import com.microsoft.identity.common.internal.commands.InteractiveTokenCommand;
 import com.microsoft.identity.common.internal.request.generated.InteractiveTokenCommandParameters;
 
 public class InteractiveTokenCommandFactory extends CommandFactory<InteractiveTokenCommandContext, InteractiveTokenCommandParameters> {

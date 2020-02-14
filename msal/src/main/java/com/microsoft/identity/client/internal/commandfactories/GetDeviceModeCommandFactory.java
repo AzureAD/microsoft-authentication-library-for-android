@@ -5,12 +5,11 @@ import androidx.annotation.NonNull;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
-import com.microsoft.identity.common.internal.controllers.BaseCommand;
+import com.microsoft.identity.common.internal.commands.BaseCommand;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.controllers.CommandCallback;
-import com.microsoft.identity.common.internal.controllers.GetDeviceModeCommand;
+import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
 import com.microsoft.identity.common.internal.request.SdkType;
-import com.microsoft.identity.common.internal.request.generated.GetDeviceModeCommandContext;
 import com.microsoft.identity.common.internal.request.generated.GetDeviceModeCommandParameters;
 
 public class GetDeviceModeCommandFactory extends CommandFactory<GetDeviceModeCommandContext, GetDeviceModeCommandParameters> {
