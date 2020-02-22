@@ -23,9 +23,11 @@
 package com.microsoft.identity.client.testapp;
 
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,12 +62,26 @@ public class UsersFragment extends Fragment {
 
         mUserList = view.findViewById(R.id.user_list);
 
-        MsalWrapper.getInstance().registerPostAccountLoadedJob("UsersFragment.onCreateView",
-                new MsalWrapper.IPostAccountLoaded() {
+        MsalWrapper.create(getContext(),
+                R.raw.msal_config,
+                new INotifyOperationResultCallback<MsalWrapper>() {
                     @Override
-                    public void onLoaded(List<IAccount> loadedAccount) {
-                        createViewWithAccountList(loadedAccount);
-                        MsalWrapper.getInstance().deregisterPostAccountLoadedJob("UsersFragment.onCreateView");
+                    public void onSuccess(MsalWrapper msalWrapper) {
+                        msalWrapper.loadAccounts(
+                                new INotifyOperationResultCallback<List<IAccount>>() {
+                                    @Override
+                                    public void onSuccess(List<IAccount> loadedAccount) {
+                                        createViewWithAccountList(loadedAccount);
+                                    }
+
+                                    @Override
+                                    public void showMessage(String message) {
+                                    }
+                                });
+                    }
+
+                    @Override
+                    public void showMessage(String message) {
                     }
                 });
 

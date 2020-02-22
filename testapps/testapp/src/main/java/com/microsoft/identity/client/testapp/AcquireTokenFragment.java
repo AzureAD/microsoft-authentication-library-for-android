@@ -25,7 +25,10 @@ package com.microsoft.identity.client.testapp;
 
 import android.content.Context;
 import android.os.Bundle;
+
 import androidx.fragment.app.Fragment;
+
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,8 +39,11 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.IAuthenticationResult;
+import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.Prompt;
 
 import java.util.ArrayList;
@@ -67,6 +73,8 @@ public class AcquireTokenFragment extends Fragment {
     private TextView mPublicApplicationMode;
 
     private OnFragmentInteractionListener mOnFragmentInteractionListener;
+    private MsalWrapper mMsalWrapper;
+    private List<IAccount> mLoadedAccounts = new ArrayList<>();
 
     public AcquireTokenFragment() {
         // left empty
@@ -93,100 +101,113 @@ public class AcquireTokenFragment extends Fragment {
         mAADEnvironments = view.findViewById(R.id.environment);
         mPublicApplicationMode = view.findViewById(R.id.public_application_mode);
 
+        bindSelectAccountSpinner(mSelectAccount, null);
         bindSpinnerChoice(mPrompt, Prompt.class);
+
+        final AdapterView.OnItemSelectedListener onReloadPcaItemSelectedListener = new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                loadMsalApplicationFromRequestParameters(getCurrentRequestOptions());
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        };
+
         bindSpinnerChoice(mUserAgent, Constants.UserAgent.class);
+        mUserAgent.setOnItemSelectedListener(onReloadPcaItemSelectedListener);
+
         bindSpinnerChoice(mAADEnvironments, Constants.AzureActiveDirectoryEnvironment.class);
+        mAADEnvironments.setOnItemSelectedListener(onReloadPcaItemSelectedListener);
+
+        final INotifyOperationResultCallback acquireTokenCallback = new INotifyOperationResultCallback<IAuthenticationResult>() {
+            @Override
+            public void onSuccess(IAuthenticationResult result) {
+                mOnFragmentInteractionListener.onGetAuthResult(result);
+            }
+
+            @Override
+            public void showMessage(String message) {
+                showMessageWithToast(message);
+            }
+        };
 
         mAcquireToken.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mOnFragmentInteractionListener.onAcquireTokenClicked(getCurrentRequestOptions());
+                mMsalWrapper.acquireToken(getActivity(), getCurrentRequestOptions(), acquireTokenCallback);
             }
         });
 
         mAcquireTokenSilent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mSelectAccount.getSelectedItem() != null) {
-                    mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
-                }
-                mOnFragmentInteractionListener.onAcquireTokenSilentClicked(getCurrentRequestOptions());
+                mMsalWrapper.acquireTokenSilent(getCurrentRequestOptions(), acquireTokenCallback);
             }
         });
 
         mAcquireTokenWithResource.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mOnFragmentInteractionListener.onAcquireTokenWithResourceClicked(getCurrentRequestOptions());
+                mMsalWrapper.acquireTokenWithResource(getActivity(), getCurrentRequestOptions(), acquireTokenCallback);
             }
         });
 
         mAcquireTokenSilentWithResource.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mSelectAccount.getSelectedItem() != null) {
-                    mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
-                }
-                mOnFragmentInteractionListener.onAcquireTokenSilentWithResourceClicked(getCurrentRequestOptions());
-            }
-        });
-
-        mSelectAccount.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (parent.getSelectedItem() != null) {
-                    mLoginhint.setText(parent.getSelectedItem().toString());
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
+                mMsalWrapper.acquireTokenSilentWithResource(getCurrentRequestOptions(), acquireTokenCallback);
             }
         });
 
         mGetUsers.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mOnFragmentInteractionListener.onGetUser();
+                mOnFragmentInteractionListener.onGetUsers();
             }
         });
 
         mClearCache.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String accountToRemove = null;
-                if (mSelectAccount.getSelectedItem() != null) {
-                    accountToRemove = mSelectAccount.getSelectedItem().toString();
-                }
+                mMsalWrapper.removeAccount(
+                        getAccountFromSpinner(),
+                        new INotifyOperationResultCallback<Void>() {
+                            @Override
+                            public void onSuccess(Void result) {
+                            }
 
-                mOnFragmentInteractionListener.onRemoveUserClicked(accountToRemove);
+                            @Override
+                            public void showMessage(String message) {
+                                showMessageWithToast(message);
+                            }
+                        });
             }
         });
 
+
+        loadMsalApplicationFromRequestParameters(getCurrentRequestOptions());
         return view;
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (mOnFragmentInteractionListener != null) {
-            MsalWrapper.getInstance().registerPostAccountLoadedJob("bindSelectAccountSpinner",
-                    new MsalWrapper.IPostAccountLoaded() {
-                        @Override
-                        public void onLoaded(List<IAccount> loadedAccount) {
-                            mOnFragmentInteractionListener.bindSelectAccountSpinner(mSelectAccount, loadedAccount);
-                            mPublicApplicationMode.setText(MsalWrapper.getInstance().getPublicApplicationMode());
-                        }
-                    });
+    private IAccount getAccountFromSpinner() {
+        if (mLoadedAccounts == null || mLoadedAccounts.isEmpty()) {
+            return null;
         }
-        if (mSelectAccount.getSelectedItem() != null) {
-            mLoginhint.setText(mSelectAccount.getSelectedItem().toString());
+
+        int selectedAccount = mSelectAccount.getSelectedItemPosition();
+
+        // This means that there is no selected account. Just pick the first one.
+        if (selectedAccount == AdapterView.INVALID_POSITION){
+            selectedAccount = 0;
         }
+
+        return mLoadedAccounts.get(selectedAccount);
     }
 
     @Override
-    public void onAttach(final Context context) {
+    public void onAttach(Context context) {
         super.onAttach(context);
 
         if (context instanceof OnFragmentInteractionListener) {
@@ -197,12 +218,52 @@ public class AcquireTokenFragment extends Fragment {
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
-        mOnFragmentInteractionListener = null;
+    public void onResume() {
+        super.onResume();
+        loadAccounts();
     }
 
-    void bindSpinnerChoice(final Spinner spinner, final Class<? extends Enum> spinnerChoiceClass) {
+    private void loadAccounts() {
+        if (mMsalWrapper != null) {
+            mMsalWrapper.loadAccounts(new INotifyOperationResultCallback<List<IAccount>>() {
+                @Override
+                public void onSuccess(List<IAccount> result) {
+                    mLoadedAccounts = result;
+                    refreshUI();
+                }
+
+                @Override
+                public void showMessage(String message) {
+                    showMessageWithToast(message);
+                }
+            });
+        }
+    }
+
+    private void refreshUI() {
+        bindSelectAccountSpinner(mSelectAccount, mLoadedAccounts);
+        mPublicApplicationMode.setText(mMsalWrapper.getMode());
+    }
+
+    private void bindSelectAccountSpinner(final Spinner spinner,
+                                          final List<IAccount> accounts) {
+        final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
+                getContext(),
+                android.R.layout.simple_spinner_item,
+                new ArrayList<String>() {{
+                    if (accounts != null) {
+                        for (IAccount account : accounts) {
+                            add(account.getUsername());
+                        }
+                    }
+                }}
+        );
+        userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(userAdapter);
+        spinner.setSelection(0, false);
+    }
+
+    private void bindSpinnerChoice(final Spinner spinner, final Class<? extends Enum> spinnerChoiceClass) {
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 getContext(), android.R.layout.simple_spinner_item,
                 new ArrayList<String>() {{
@@ -213,114 +274,80 @@ public class AcquireTokenFragment extends Fragment {
 
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
+        spinner.setSelection(0, false);
     }
 
-    RequestOptions getCurrentRequestOptions() {
+    private RequestOptions getCurrentRequestOptions() {
         final Constants.AzureActiveDirectoryEnvironment environment = Constants.AzureActiveDirectoryEnvironment.valueOf(mAADEnvironments.getSelectedItem().toString());
         final String loginHint = mLoginhint.getText().toString();
+        final IAccount account = getAccountFromSpinner();
         final Prompt uiBehavior = Prompt.valueOf(mPrompt.getSelectedItem().toString());
         final Constants.UserAgent userAgent = Constants.UserAgent.valueOf(mUserAgent.getSelectedItem().toString());
         final String scopes = mScope.getText().toString();
         final String extraScopesToConsent = mExtraScope.getText().toString();
         final boolean enablePII = mEnablePII.isChecked();
         final boolean forceRefresh = mForceRefresh.isChecked();
-        return RequestOptions.create(environment, loginHint, uiBehavior, userAgent, scopes, extraScopesToConsent, enablePII, forceRefresh);
+        final String authority = null;  // TODO
+        final boolean usePop = false; // TODO
+        return new RequestOptions(environment, loginHint, account, uiBehavior, userAgent, scopes, extraScopesToConsent, enablePII, forceRefresh, authority, usePop);
     }
 
-    static class RequestOptions {
-        final Constants.AzureActiveDirectoryEnvironment mEnvironment;
-        final String mLoginHint;
-        final Prompt mPrompt;
-        final Constants.UserAgent mUserAgent;
-        final String mScope;
-        final String mExtraScope;
-        final boolean mEnablePII;
-        final boolean mForceRefresh;
-
-        RequestOptions(final Constants.AzureActiveDirectoryEnvironment environment,
-                       final String loginHint,
-                       final Prompt prompt,
-                       final Constants.UserAgent userAgent,
-                       final String scope,
-                       final String extraScope,
-                       final boolean enablePII,
-                       final boolean forceRefresh) {
-            mEnvironment = environment;
-            mLoginHint = loginHint;
-            mPrompt = prompt;
-            mUserAgent = userAgent;
-            mScope = scope;
-            mExtraScope = extraScope;
-            mEnablePII = enablePII;
-            mForceRefresh = forceRefresh;
+    private void loadMsalApplicationFromRequestParameters(final RequestOptions requestOptions) {
+        boolean enablePiiLogging = requestOptions.mEnablePII;
+        // The sample app is having the PII enable setting on the MainActivity. Ideally, app should decide to enable Pii or not,
+        // if it's enabled, it should be set when the application is onCreate.
+        Logger.getInstance().setEnableLogcatLog(enablePiiLogging);
+        if (enablePiiLogging) {
+            Logger.getInstance().setEnablePII(true);
+        } else {
+            Logger.getInstance().setEnablePII(false);
         }
 
-        static RequestOptions create(final Constants.AzureActiveDirectoryEnvironment environment,
-                                     final String loginHint,
-                                     final Prompt uiBehavior,
-                                     final Constants.UserAgent userAgent,
-                                     final String scope,
-                                     final String extraScope,
-                                     final boolean enablePII,
-                                     final boolean forceRefresh) {
-            return new RequestOptions(
-                    environment,
-                    loginHint,
-                    uiBehavior,
-                    userAgent,
-                    scope,
-                    extraScope,
-                    enablePII,
-                    forceRefresh
-            );
+        Constants.UserAgent userAgent = requestOptions.getUserAgent();
+        //Azure Active Environment (PPE vs. Prod)
+        Constants.AzureActiveDirectoryEnvironment environment = requestOptions.getEnvironment();
+
+        int configFileResourceId = R.raw.msal_config;
+
+        if (userAgent.name().equalsIgnoreCase("BROWSER")) {
+            configFileResourceId = R.raw.msal_config_browser;
+        } else if (userAgent.name().equalsIgnoreCase("WEBVIEW")) {
+            configFileResourceId = R.raw.msal_config_webview;
         }
 
-        Constants.AzureActiveDirectoryEnvironment getEnvironment() {
-            return mEnvironment;
+        if (environment == Constants.AzureActiveDirectoryEnvironment.PREPRODUCTION) {
+            configFileResourceId = R.raw.msal_ppe_config;
         }
 
-        String getLoginHint() {
-            return mLoginHint;
-        }
+        MsalWrapper.create(getContext(),
+                configFileResourceId,
+                new INotifyOperationResultCallback<MsalWrapper>() {
+                    @Override
+                    public void onSuccess(MsalWrapper result) {
+                        mMsalWrapper = result;
+                        loadAccounts();
+                    }
 
-        Prompt getPrompt() {
-            return mPrompt;
-        }
+                    @Override
+                    public void showMessage(String message) {
+                        showMessageWithToast(message);
+                    }
+                });
+    }
 
-        String getScopes() {
-            return mScope;
-        }
+    private void showMessageWithToast(final String msg) {
+        new Handler(getActivity().getMainLooper()).post(new Runnable() {
 
-        String getExtraScopesToConsent() {
-            return mExtraScope;
-        }
-
-        boolean enablePiiLogging() {
-            return mEnablePII;
-        }
-
-        boolean forceRefresh() {
-            return mForceRefresh;
-        }
-
-        Constants.UserAgent getUserAgent() {
-            return mUserAgent;
-        }
+            @Override
+            public void run() {
+                Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     public interface OnFragmentInteractionListener {
-        void onGetUser();
+        void onGetAuthResult(IAuthenticationResult result);
 
-        void onRemoveUserClicked(String username);
-
-        void onAcquireTokenClicked(final RequestOptions requestOptions);
-
-        void onAcquireTokenSilentClicked(final RequestOptions requestOptions);
-
-        void bindSelectAccountSpinner(Spinner selectAccount, List<IAccount> accounts);
-
-        void onAcquireTokenWithResourceClicked(final RequestOptions requestOptions);
-
-        void onAcquireTokenSilentWithResourceClicked(final RequestOptions requestOptions);
+        void onGetUsers();
     }
 }
