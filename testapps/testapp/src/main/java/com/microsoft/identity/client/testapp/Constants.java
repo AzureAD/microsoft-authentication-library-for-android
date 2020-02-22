@@ -32,8 +32,8 @@ public class Constants {
         DEFAULT,
         BROWSER,
         WEBVIEW,
-        ARLINGTON,
         FAIRFAX,
+        ARLINGTON,
         MOONCAKE,
         BLACKFOREST,
         INSTANCE_AWARE,
@@ -49,11 +49,11 @@ public class Constants {
             case WEBVIEW:
                 return R.raw.msal_config_webview;
 
-            case ARLINGTON:
-                return R.raw.msal_config_arlington;
-
             case FAIRFAX:
                 return R.raw.msal_config_fairfax;
+
+            case ARLINGTON:
+                return R.raw.msal_config_arlington;
 
             case MOONCAKE:
                 return R.raw.msal_config_mooncake;

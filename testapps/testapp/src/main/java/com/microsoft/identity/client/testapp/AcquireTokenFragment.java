@@ -88,7 +88,7 @@ public class AcquireTokenFragment extends Fragment {
 
         mAuthority = view.findViewById(R.id.authority);
         mLoginhint = view.findViewById(R.id.loginHint);
-        mPrompt = view.findViewById(R.id.uiBehavior);
+        mPrompt = view.findViewById(R.id.promptBehavior);
         mScope = view.findViewById(R.id.scope);
         mExtraScope = view.findViewById(R.id.extraScope);
         mEnablePII = view.findViewById(enablePII);
@@ -178,6 +178,7 @@ public class AcquireTokenFragment extends Fragment {
                         new INotifyOperationResultCallback<Void>() {
                             @Override
                             public void onSuccess(Void result) {
+                                loadAccounts();
                             }
 
                             @Override
@@ -191,21 +192,6 @@ public class AcquireTokenFragment extends Fragment {
 
         loadMsalApplicationFromRequestParameters(getCurrentRequestOptions());
         return view;
-    }
-
-    private IAccount getAccountFromSpinner() {
-        if (mLoadedAccounts == null || mLoadedAccounts.isEmpty()) {
-            return null;
-        }
-
-        int selectedAccount = mSelectAccount.getSelectedItemPosition();
-
-        // This means that there is no selected account. Just pick the first one.
-        if (selectedAccount == AdapterView.INVALID_POSITION){
-            selectedAccount = 0;
-        }
-
-        return mLoadedAccounts.get(selectedAccount);
     }
 
     @Override
@@ -248,6 +234,21 @@ public class AcquireTokenFragment extends Fragment {
         mDefaultBrowser.setText(mMsalWrapper.getDefaultBrowser());
     }
 
+    private IAccount getAccountFromSpinner() {
+        if (mLoadedAccounts == null || mLoadedAccounts.isEmpty()) {
+            return null;
+        }
+
+        int selectedAccountPosition = mSelectAccount.getSelectedItemPosition();
+
+        // This means that there is no selected account.
+        if (selectedAccountPosition == AdapterView.INVALID_POSITION){
+            return null;
+        }
+
+        return mLoadedAccounts.get(selectedAccountPosition);
+    }
+
     private void bindSelectAccountSpinner(final Spinner spinner,
                                           final List<IAccount> accounts) {
         final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
@@ -284,14 +285,14 @@ public class AcquireTokenFragment extends Fragment {
         final Constants.ConfigFile configFile = Constants.ConfigFile.valueOf(mConfigFileSpinner.getSelectedItem().toString());
         final String loginHint = mLoginhint.getText().toString();
         final IAccount account = getAccountFromSpinner();
-        final Prompt uiBehavior = Prompt.valueOf(mPrompt.getSelectedItem().toString());
+        final Prompt promptBehavior = Prompt.valueOf(mPrompt.getSelectedItem().toString());
         final String scopes = mScope.getText().toString();
         final String extraScopesToConsent = mExtraScope.getText().toString();
         final boolean enablePII = mEnablePII.isChecked();
         final boolean forceRefresh = mForceRefresh.isChecked();
         final String authority = mAuthority.getText().toString();
         final Constants.AuthScheme authScheme = Constants.AuthScheme.valueOf(mAuthScheme.getSelectedItem().toString());
-        return new RequestOptions(configFile, loginHint, account, uiBehavior, scopes, extraScopesToConsent, enablePII, forceRefresh, authority, authScheme);
+        return new RequestOptions(configFile, loginHint, account, promptBehavior, scopes, extraScopesToConsent, enablePII, forceRefresh, authority, authScheme);
     }
 
     private void loadMsalApplicationFromRequestParameters(final RequestOptions requestOptions) {

@@ -28,7 +28,7 @@
 
     <string name="authority_text">Authority</string>
     <string name="login_hint_text">Login hint</string>
-    <string name="ui_behavior_text">Ui Behavior</string>
+    <string name="prompt_behavior_text">Prompt</string>
     <string name="data_profile_text">Data Profile</string>
     <string name="scope_text">Scope</string>
     <string name="scope_default_text">user.read</string>

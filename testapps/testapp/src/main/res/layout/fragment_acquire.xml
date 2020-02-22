@@ -72,10 +72,10 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_weight="3"
-                android:text="@string/ui_behavior_text" />
+                android:text="@string/prompt_behavior_text" />
 
             <Spinner
-                android:id="@+id/uiBehavior"
+                android:id="@+id/promptBehavior"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="7" />
