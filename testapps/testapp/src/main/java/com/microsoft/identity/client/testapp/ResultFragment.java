@@ -23,12 +23,16 @@
 
 package com.microsoft.identity.client.testapp;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 /**
@@ -41,6 +45,7 @@ public class ResultFragment extends Fragment {
     static String previousAccessToken = "";
 
     private TextView mTextView;
+    private Button mCopyAuthResultButton;
 
     public ResultFragment() {
         // left empty
@@ -58,8 +63,8 @@ public class ResultFragment extends Fragment {
         String output = "";
 
         // Only display this when the app has acquired an access token at least once in this session.
-        if(!previousAccessToken.isEmpty()){
-            final boolean isTokenChanged = !accessToken.equalsIgnoreCase(previousAccessToken);
+        if(previousAccessToken != null && !previousAccessToken.isEmpty()){
+            final boolean isTokenChanged = !previousAccessToken.equalsIgnoreCase(accessToken);
             output += "Is access token changed? " + ": " + isTokenChanged + '\n';
         }
 
@@ -69,6 +74,18 @@ public class ResultFragment extends Fragment {
         mTextView.setMovementMethod(new ScrollingMovementMethod());
 
         previousAccessToken = accessToken;
+
+        mCopyAuthResultButton = (Button) view.findViewById(R.id.btn_copyAuthResult);
+        mCopyAuthResultButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ClipboardManager clipboard = (ClipboardManager)
+                        getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("Auth Result", mTextView.getText());
+                clipboard.setPrimaryClip(clip);
+            }
+        });
+
         return view;
     }
 

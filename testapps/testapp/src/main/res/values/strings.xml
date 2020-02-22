@@ -46,6 +46,8 @@
     <string name="result_hint_text">Acquire token interactive/silent flow result data goes here...</string>
     <string name="log_hint_text">Log data goes here...</string>
     <string name="clear_log_button">clear logs</string>
+    <string name="copy_log_button">copy logs to clipboard</string>
+    <string name="copy_auth_result_button">copy result to clipboard</string>
     <string name="account">Account</string>
     <string name="btn_getUser">Get Users</string>
     <string name="btn_removeUser">Remove User</string>

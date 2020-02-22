@@ -146,6 +146,8 @@ abstract class MsalWrapper {
 
         if (requestOptions.getAuthority() != null && !requestOptions.getAuthority().isEmpty()) {
             builder.fromAuthority(requestOptions.getAuthority());
+        } else {
+            builder.fromAuthority(requestOptions.getAccount().getAuthority());
         }
 
         if (requestOptions.getAuthScheme() == Constants.AuthScheme.POP) {
@@ -183,6 +185,8 @@ abstract class MsalWrapper {
 
         if (requestOptions.getAuthority() != null && !requestOptions.getAuthority().isEmpty()) {
             builder.fromAuthority(requestOptions.getAuthority());
+        } else {
+            builder.fromAuthority(requestOptions.getAccount().getAuthority());
         }
 
         final AcquireTokenSilentParameters parameters = builder.build();

@@ -82,6 +82,7 @@ public class MainActivity extends AppCompatActivity
     private IAuthenticationResult mAuthResult;
 
     private RelativeLayout mContentMain;
+    private Fragment mCurrentFragment;
 
     /**
      * When initializing the {@link PublicClientApplication}, all the apps should only provide us the application context instead of
@@ -163,8 +164,15 @@ public class MainActivity extends AppCompatActivity
         final Fragment fragment;
         int menuItemId = item.getItemId();
         if (menuItemId == R.id.nav_acquire) {
+            if (mCurrentFragment instanceof AcquireTokenFragment){
+                return false;
+            }
             fragment = new AcquireTokenFragment();
         } else if (menuItemId == R.id.nav_result) {
+            if (mCurrentFragment instanceof ResultFragment){
+                return false;
+            }
+
             fragment = new ResultFragment();
             final Bundle bundle = new Bundle();
             if (mAuthResult != null) {
@@ -178,6 +186,9 @@ public class MainActivity extends AppCompatActivity
             fragment.setArguments(bundle);
             mAuthResult = null;
         } else if (menuItemId == R.id.nav_log) {
+            if (mCurrentFragment instanceof LogFragment){
+                return false;
+            }
             fragment = new LogFragment();
             final String logs = ((MsalSampleApp) this.getApplication()).getLogs();
             final Bundle bundle = new Bundle();
@@ -187,6 +198,7 @@ public class MainActivity extends AppCompatActivity
             fragment = null;
         }
 
+        mCurrentFragment = fragment;
         attachFragment(fragment);
 
         return true;
