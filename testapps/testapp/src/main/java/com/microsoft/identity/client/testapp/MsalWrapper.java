@@ -59,6 +59,8 @@ abstract class MsalWrapper {
                 });
     }
 
+    public abstract String getDefaultBrowser();
+
     public abstract String getMode();
 
     public abstract void loadAccounts(@NonNull final INotifyOperationResultCallback<List<IAccount>> callback);
@@ -89,7 +91,7 @@ abstract class MsalWrapper {
             builder.fromAuthority(requestOptions.getAuthority());
         }
 
-        if (requestOptions.usePop()) {
+        if (requestOptions.getAuthScheme() == Constants.AuthScheme.POP) {
             try {
                 builder.withAuthenticationScheme(
                         PoPAuthenticationScheme.builder()
@@ -146,7 +148,7 @@ abstract class MsalWrapper {
             builder.fromAuthority(requestOptions.getAuthority());
         }
 
-        if (requestOptions.usePop()) {
+        if (requestOptions.getAuthScheme() == Constants.AuthScheme.POP) {
             try {
                 builder.withAuthenticationScheme(
                         PoPAuthenticationScheme.builder()

@@ -8,6 +8,8 @@ import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 
 import java.util.List;
 
@@ -22,6 +24,15 @@ public class MultipleAccountModeWrapper extends MsalWrapper {
     @Override
     public String getMode() {
         return "Multiple Account";
+    }
+
+    @Override
+    public String getDefaultBrowser() {
+        try {
+            return BrowserSelector.select(mApp.getConfiguration().getAppContext(), mApp.getConfiguration().getBrowserSafeList()).getPackageName();
+        } catch (ClientException e) {
+            return "Unknown";
+        }
     }
 
     @Override

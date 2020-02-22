@@ -25,9 +25,6 @@
 
 <resources>
     <string name="app_name">MSAL Sample App</string>
-    <string name="select_account">Select Account </string>
-    <string name="force_login">Force Login</string>
-    <string name="consent">Consent</string>
 
     <string name="authority_text">Authority</string>
     <string name="login_hint_text">Login hint</string>
@@ -37,22 +34,23 @@
     <string name="scope_default_text">user.read</string>
     <string name="extra_scope_text">Extra Scopes</string>
     <string name="scope_text_hint">Type in scopes delimited by space</string>
-    <string name="enable_pii_text">Enable PII logging</string>
+    <string name="enable_pii_text">Enable PII</string>
     <string name="force_refresh">Force Refresh</string>
     <string name="default_browser">Default Browser</string>
-    <string name="public_application_mode">PublicApplication mode</string>
+    <string name="public_application_mode">Mode</string>
     <string name="auth_user_agent">User Agent</string>
     <string name="acquire_token_button">AcquireToken</string>
-    <string name="acquire_token_silent_button">AcquireTokenSilent</string>
+    <string name="acquire_token_silent_button">AcquireToken Silent</string>
     <string name="acquire_token_with_resource_button">AT w/ Resource</string>
     <string name="acquire_token_silent_with_resource_button">ATS w/ Resource</string>
     <string name="result_hint_text">Acquire token interactive/silent flow result data goes here...</string>
     <string name="log_hint_text">Log data goes here...</string>
     <string name="clear_log_button">clear logs</string>
-    <string name="select_user"> Select User</string>
+    <string name="account">Account</string>
     <string name="btn_getUser">Get Users</string>
     <string name="btn_removeUser">Remove User</string>
-    <string name="environment_text">Environment</string>
+    <string name="config_file_text">Config File</string>
+    <string name="auth_scheme_text">Auth Scheme</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

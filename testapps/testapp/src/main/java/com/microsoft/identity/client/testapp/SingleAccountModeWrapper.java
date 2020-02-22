@@ -8,6 +8,8 @@ import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +31,14 @@ public class SingleAccountModeWrapper extends MsalWrapper {
         return "Single Account - Non-shared device";
     }
 
+    @Override
+    public String getDefaultBrowser() {
+        try {
+            return BrowserSelector.select(mApp.getConfiguration().getAppContext(), mApp.getConfiguration().getBrowserSafeList()).getPackageName();
+        } catch (ClientException e) {
+            return "Unknown";
+        }
+    }
 
     @Override
     public void loadAccounts(final @NonNull INotifyOperationResultCallback<List<IAccount>> callback) {

@@ -5,44 +5,41 @@ import com.microsoft.identity.client.Prompt;
 
 class RequestOptions
 {
-    final Constants.AzureActiveDirectoryEnvironment mEnvironment;
+    final Constants.ConfigFile mConfigFile;
     final String mLoginHint;
     final IAccount mAccount;
     final Prompt mPrompt;
-    final Constants.UserAgent mUserAgent;
     final String mScope;
     final String mExtraScope;
     final boolean mEnablePII;
     final boolean mForceRefresh;
     final String mAuthority;
-    final boolean mUsePop;
+    final Constants.AuthScheme mAuthScheme;
 
-    RequestOptions(final Constants.AzureActiveDirectoryEnvironment environment,
+    RequestOptions(final Constants.ConfigFile configFile,
                    final String loginHint,
                    final IAccount account,
                    final Prompt prompt,
-                   final Constants.UserAgent userAgent,
                    final String scope,
                    final String extraScope,
                    final boolean enablePII,
                    final boolean forceRefresh,
                    final String authority,
-                   final boolean usePop) {
-        mEnvironment = environment;
+                   final Constants.AuthScheme authScheme) {
+        mConfigFile = configFile;
         mLoginHint = loginHint;
         mAccount = account;
         mPrompt = prompt;
-        mUserAgent = userAgent;
         mScope = scope;
         mExtraScope = extraScope;
         mEnablePII = enablePII;
         mForceRefresh = forceRefresh;
         mAuthority = authority;
-        mUsePop = usePop;
+        mAuthScheme = authScheme;
     }
 
-    Constants.AzureActiveDirectoryEnvironment getEnvironment() {
-        return mEnvironment;
+    Constants.ConfigFile getConfigFile() {
+        return mConfigFile;
     }
 
     String getLoginHint() {
@@ -73,15 +70,11 @@ class RequestOptions
         return mForceRefresh;
     }
 
-    Constants.UserAgent getUserAgent() {
-        return mUserAgent;
-    }
-
     String getAuthority() {
         return mAuthority;
     }
 
-    boolean usePop() {
-        return mUsePop;
+    Constants.AuthScheme getAuthScheme() {
+        return mAuthScheme;
     }
 }

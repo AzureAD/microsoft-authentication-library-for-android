@@ -55,9 +55,9 @@ import static com.microsoft.identity.client.testapp.R.id.enablePII;
  * acquireToken Fragment, contains the flow for acquireToken interactively, acquireTokenSilent, getUsers, removeUser.
  */
 public class AcquireTokenFragment extends Fragment {
+    private EditText mAuthority;
     private EditText mLoginhint;
     private Spinner mPrompt;
-    private Spinner mUserAgent;
     private EditText mScope;
     private EditText mExtraScope;
     private Switch mEnablePII;
@@ -69,8 +69,10 @@ public class AcquireTokenFragment extends Fragment {
     private Button mAcquireTokenWithResource;
     private Button mAcquireTokenSilentWithResource;
     private Spinner mSelectAccount;
-    private Spinner mAADEnvironments;
+    private Spinner mConfigFileSpinner;
+    private Spinner mAuthScheme;
     private TextView mPublicApplicationMode;
+    private TextView mDefaultBrowser;
 
     private OnFragmentInteractionListener mOnFragmentInteractionListener;
     private MsalWrapper mMsalWrapper;
@@ -84,9 +86,9 @@ public class AcquireTokenFragment extends Fragment {
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_acquire, container, false);
 
+        mAuthority = view.findViewById(R.id.authority);
         mLoginhint = view.findViewById(R.id.loginHint);
         mPrompt = view.findViewById(R.id.uiBehavior);
-        mUserAgent = view.findViewById(R.id.auth_user_agent);
         mScope = view.findViewById(R.id.scope);
         mExtraScope = view.findViewById(R.id.extraScope);
         mEnablePII = view.findViewById(enablePII);
@@ -98,11 +100,14 @@ public class AcquireTokenFragment extends Fragment {
         mAcquireTokenSilent = view.findViewById(R.id.btn_acquiretokensilent);
         mAcquireTokenWithResource = view.findViewById(R.id.btn_acquiretokenWithResource);
         mAcquireTokenSilentWithResource = view.findViewById(R.id.btn_acquiretokensilentWithResource);
-        mAADEnvironments = view.findViewById(R.id.environment);
+        mConfigFileSpinner = view.findViewById(R.id.configFile);
+        mAuthScheme = view.findViewById(R.id.authentication_scheme);
         mPublicApplicationMode = view.findViewById(R.id.public_application_mode);
+        mDefaultBrowser = view.findViewById(R.id.default_browser);
 
         bindSelectAccountSpinner(mSelectAccount, null);
         bindSpinnerChoice(mPrompt, Prompt.class);
+        bindSpinnerChoice(mAuthScheme, Constants.AuthScheme.class);
 
         final AdapterView.OnItemSelectedListener onReloadPcaItemSelectedListener = new AdapterView.OnItemSelectedListener() {
             @Override
@@ -115,11 +120,8 @@ public class AcquireTokenFragment extends Fragment {
             }
         };
 
-        bindSpinnerChoice(mUserAgent, Constants.UserAgent.class);
-        mUserAgent.setOnItemSelectedListener(onReloadPcaItemSelectedListener);
-
-        bindSpinnerChoice(mAADEnvironments, Constants.AzureActiveDirectoryEnvironment.class);
-        mAADEnvironments.setOnItemSelectedListener(onReloadPcaItemSelectedListener);
+        bindSpinnerChoice(mConfigFileSpinner, Constants.ConfigFile.class);
+        mConfigFileSpinner.setOnItemSelectedListener(onReloadPcaItemSelectedListener);
 
         final INotifyOperationResultCallback acquireTokenCallback = new INotifyOperationResultCallback<IAuthenticationResult>() {
             @Override
@@ -243,6 +245,7 @@ public class AcquireTokenFragment extends Fragment {
     private void refreshUI() {
         bindSelectAccountSpinner(mSelectAccount, mLoadedAccounts);
         mPublicApplicationMode.setText(mMsalWrapper.getMode());
+        mDefaultBrowser.setText(mMsalWrapper.getDefaultBrowser());
     }
 
     private void bindSelectAccountSpinner(final Spinner spinner,
@@ -278,18 +281,17 @@ public class AcquireTokenFragment extends Fragment {
     }
 
     private RequestOptions getCurrentRequestOptions() {
-        final Constants.AzureActiveDirectoryEnvironment environment = Constants.AzureActiveDirectoryEnvironment.valueOf(mAADEnvironments.getSelectedItem().toString());
+        final Constants.ConfigFile configFile = Constants.ConfigFile.valueOf(mConfigFileSpinner.getSelectedItem().toString());
         final String loginHint = mLoginhint.getText().toString();
         final IAccount account = getAccountFromSpinner();
         final Prompt uiBehavior = Prompt.valueOf(mPrompt.getSelectedItem().toString());
-        final Constants.UserAgent userAgent = Constants.UserAgent.valueOf(mUserAgent.getSelectedItem().toString());
         final String scopes = mScope.getText().toString();
         final String extraScopesToConsent = mExtraScope.getText().toString();
         final boolean enablePII = mEnablePII.isChecked();
         final boolean forceRefresh = mForceRefresh.isChecked();
-        final String authority = null;  // TODO
-        final boolean usePop = false; // TODO
-        return new RequestOptions(environment, loginHint, account, uiBehavior, userAgent, scopes, extraScopesToConsent, enablePII, forceRefresh, authority, usePop);
+        final String authority = mAuthority.getText().toString();
+        final Constants.AuthScheme authScheme = Constants.AuthScheme.valueOf(mAuthScheme.getSelectedItem().toString());
+        return new RequestOptions(configFile, loginHint, account, uiBehavior, scopes, extraScopesToConsent, enablePII, forceRefresh, authority, authScheme);
     }
 
     private void loadMsalApplicationFromRequestParameters(final RequestOptions requestOptions) {
@@ -303,24 +305,8 @@ public class AcquireTokenFragment extends Fragment {
             Logger.getInstance().setEnablePII(false);
         }
 
-        Constants.UserAgent userAgent = requestOptions.getUserAgent();
-        //Azure Active Environment (PPE vs. Prod)
-        Constants.AzureActiveDirectoryEnvironment environment = requestOptions.getEnvironment();
-
-        int configFileResourceId = R.raw.msal_config;
-
-        if (userAgent.name().equalsIgnoreCase("BROWSER")) {
-            configFileResourceId = R.raw.msal_config_browser;
-        } else if (userAgent.name().equalsIgnoreCase("WEBVIEW")) {
-            configFileResourceId = R.raw.msal_config_webview;
-        }
-
-        if (environment == Constants.AzureActiveDirectoryEnvironment.PREPRODUCTION) {
-            configFileResourceId = R.raw.msal_ppe_config;
-        }
-
         MsalWrapper.create(getContext(),
-                configFileResourceId,
+                Constants.getResourceIdFromConfigFile(requestOptions.getConfigFile()),
                 new INotifyOperationResultCallback<MsalWrapper>() {
                     @Override
                     public void onSuccess(MsalWrapper result) {

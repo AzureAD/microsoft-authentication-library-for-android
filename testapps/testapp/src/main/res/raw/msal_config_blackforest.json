@@ -1,0 +1,11 @@
+{
+  "client_id" : "cb7faed4-b8c0-49ee-b421-f5ed16894c83",
+  "authorization_user_agent" : "DEFAULT",
+  "redirect_uri" : "msalcb7faed4-b8c0-49ee-b421-f5ed16894c83://auth",
+  "authorities" : [
+    {
+      "type": "AAD",
+      "authority_url": "https://login.microsoftonline.de/common"
+    }
+  ]
+}

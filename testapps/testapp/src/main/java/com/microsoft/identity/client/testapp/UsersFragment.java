@@ -63,7 +63,7 @@ public class UsersFragment extends Fragment {
         mUserList = view.findViewById(R.id.user_list);
 
         MsalWrapper.create(getContext(),
-                R.raw.msal_config,
+                R.raw.msal_config_default,
                 new INotifyOperationResultCallback<MsalWrapper>() {
                     @Override
                     public void onSuccess(MsalWrapper msalWrapper) {
