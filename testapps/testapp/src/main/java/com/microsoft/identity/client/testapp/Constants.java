@@ -36,7 +36,8 @@ public class Constants {
         ARLINGTON,
         MOONCAKE,
         BLACKFOREST,
-        INSTANCE_AWARE,
+        INSTANCE_AWARE_COMMON,
+        INSTANCE_AWARE_ORGANIZATION,
         B2C,
         MSA
     }
@@ -61,8 +62,11 @@ public class Constants {
             case BLACKFOREST:
                 return R.raw.msal_config_blackforest;
 
-            case INSTANCE_AWARE:
-                return R.raw.msal_config_instance_aware;
+            case INSTANCE_AWARE_COMMON:
+                return R.raw.msal_config_instance_aware_common;
+
+            case INSTANCE_AWARE_ORGANIZATION:
+                return R.raw.msal_config_instance_aware_organization;
 
             case B2C:
                 return R.raw.msal_config_b2c;
