@@ -225,7 +225,10 @@ public class MainActivity extends AppCompatActivity
 
         final DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         drawerLayout.closeDrawer(GravityCompat.START);
-        fragmentTransaction.replace(mContentMain.getId(), fragment).addToBackStack(null).commitAllowingStateLoss();
+
+
+        fragmentTransaction.replace(mContentMain.getId(), fragment, fragment.getClass().getName())
+                .addToBackStack(fragment.getClass().getName()).commitAllowingStateLoss();
     }
 
 
