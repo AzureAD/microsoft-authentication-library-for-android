@@ -28,7 +28,6 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 
-
 /// Acting as a bridge between the result of MsalWrapper's results and the outside world.
 interface INotifyOperationResultCallback<T> {
     void onSuccess(T result);

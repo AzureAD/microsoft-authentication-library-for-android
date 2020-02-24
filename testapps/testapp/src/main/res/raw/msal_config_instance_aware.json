@@ -6,7 +6,7 @@
   "authorities" : [
     {
       "type": "AAD",
-      "authority_url": "https://login.microsoftonline.us/common"
+      "authority_url": "https://login.microsoftonline.com/common"
     }
   ]
 }

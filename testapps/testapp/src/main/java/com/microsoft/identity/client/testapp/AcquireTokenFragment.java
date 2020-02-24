@@ -20,7 +20,6 @@
 //   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //   THE SOFTWARE.
-
 package com.microsoft.identity.client.testapp;
 
 import android.content.Context;
@@ -124,7 +123,7 @@ public class AcquireTokenFragment extends Fragment {
                     mLoginhint.setCursorVisible(false);
                     mLoginhint.setEnabled(false);
 
-                    mAuthority.setHint("For ATS: Selected account's authority will be used if nothing is provided here");
+                    mAuthority.setHint("Default: account's authority");
                 }
             }
 
