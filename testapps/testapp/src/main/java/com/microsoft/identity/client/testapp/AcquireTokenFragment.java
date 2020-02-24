@@ -25,9 +25,6 @@ package com.microsoft.identity.client.testapp;
 
 import android.content.Context;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,6 +37,8 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.fragment.app.Fragment;
 
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
@@ -106,10 +105,39 @@ public class AcquireTokenFragment extends Fragment {
         mDefaultBrowser = view.findViewById(R.id.default_browser);
 
         bindSelectAccountSpinner(mSelectAccount, null);
+        mSelectAccount.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                // If an account is selected.
+                //  - Gray out mLoginhint.
+                //  - Set hint in mAuthority.
+                if (position == mLoadedAccounts.size()) {
+                    // If an account is selected, grey out this option.
+                    mLoginhint.setHint("");
+                    mLoginhint.setCursorVisible(true);
+                    mLoginhint.setEnabled(true);
+
+                    mAuthority.setHint("");
+                } else {
+                    mLoginhint.setText("");
+                    mLoginhint.setHint("Disabled");
+                    mLoginhint.setCursorVisible(false);
+                    mLoginhint.setEnabled(false);
+
+                    mAuthority.setHint("For ATS: Selected account's authority will be used if nothing is provided here");
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
         bindSpinnerChoice(mPrompt, Prompt.class);
         bindSpinnerChoice(mAuthScheme, Constants.AuthScheme.class);
 
-        final AdapterView.OnItemSelectedListener onReloadPcaItemSelectedListener = new AdapterView.OnItemSelectedListener() {
+        bindSpinnerChoice(mConfigFileSpinner, Constants.ConfigFile.class);
+        mConfigFileSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 loadMsalApplicationFromRequestParameters(getCurrentRequestOptions());
@@ -118,10 +146,7 @@ public class AcquireTokenFragment extends Fragment {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
             }
-        };
-
-        bindSpinnerChoice(mConfigFileSpinner, Constants.ConfigFile.class);
-        mConfigFileSpinner.setOnItemSelectedListener(onReloadPcaItemSelectedListener);
+        });
 
         final INotifyOperationResultCallback acquireTokenCallback = new INotifyOperationResultCallback<IAuthenticationResult>() {
             @Override
@@ -242,7 +267,12 @@ public class AcquireTokenFragment extends Fragment {
         int selectedAccountPosition = mSelectAccount.getSelectedItemPosition();
 
         // This means that there is no selected account.
-        if (selectedAccountPosition == AdapterView.INVALID_POSITION){
+        if (selectedAccountPosition == AdapterView.INVALID_POSITION) {
+            return null;
+        }
+
+        // We're using the last tile to display "-- No Account Selected --"
+        if (selectedAccountPosition == mLoadedAccounts.size()) {
             return null;
         }
 
@@ -260,6 +290,7 @@ public class AcquireTokenFragment extends Fragment {
                             add(account.getUsername());
                         }
                     }
+                    add("-- No Account Selected --");
                 }}
         );
         userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);

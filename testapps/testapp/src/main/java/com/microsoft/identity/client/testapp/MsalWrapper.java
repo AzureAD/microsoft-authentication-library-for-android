@@ -76,6 +76,7 @@ abstract class MsalWrapper {
         builder.startAuthorizationFromActivity(activity)
                 .withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")))
                 .withLoginHint(requestOptions.getLoginHint())
+                .forAccount(requestOptions.getAccount())
                 .withPrompt(requestOptions.getPrompt())
                 .withOtherScopesToAuthorize(
                         Arrays.asList(
@@ -115,6 +116,7 @@ abstract class MsalWrapper {
         final AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
         builder.startAuthorizationFromActivity(activity)
                 .withLoginHint(requestOptions.getLoginHint())
+                .forAccount(requestOptions.getAccount())
                 .withResource(requestOptions.getScopes().toLowerCase().trim())
                 .withPrompt(requestOptions.getPrompt())
                 .withAuthorizationQueryStringParameters(null)
