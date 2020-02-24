@@ -26,7 +26,9 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Bundle;
+
 import androidx.fragment.app.Fragment;
+
 import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -62,7 +64,7 @@ public class ResultFragment extends Fragment {
         String output = "";
 
         // Only display this when the app has acquired an access token at least once in this session.
-        if(previousAccessToken != null && !previousAccessToken.isEmpty()){
+        if (previousAccessToken != null && !previousAccessToken.isEmpty()) {
             final boolean isTokenChanged = !previousAccessToken.equalsIgnoreCase(accessToken);
             output += "Is access token changed? " + ": " + isTokenChanged + '\n';
         }
@@ -74,13 +76,13 @@ public class ResultFragment extends Fragment {
 
         previousAccessToken = accessToken;
 
-        mCopyAuthResultButton = (Button) view.findViewById(R.id.btn_copyAuthResult);
+        mCopyAuthResultButton = view.findViewById(R.id.btn_copyAuthResult);
         mCopyAuthResultButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ClipboardManager clipboard = (ClipboardManager)
+                final ClipboardManager clipboard = (ClipboardManager)
                         getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText("Auth Result", mTextView.getText());
+                final ClipData clip = ClipData.newPlainText("Auth Result", mTextView.getText());
                 clipboard.setPrimaryClip(clip);
             }
         });
