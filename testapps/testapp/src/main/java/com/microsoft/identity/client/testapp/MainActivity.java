@@ -81,7 +81,6 @@ public class MainActivity extends AppCompatActivity
     private IAuthenticationResult mAuthResult;
 
     private RelativeLayout mContentMain;
-    private Fragment mCurrentFragment;
 
     /**
      * When initializing the {@link PublicClientApplication}, all the apps should only provide us the application context instead of
@@ -158,17 +157,29 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private Fragment getCurrentFragment(){
+        int index = getSupportFragmentManager().getBackStackEntryCount() - 1;
+
+        if (index < 0){
+            return null;
+        }
+
+        final FragmentManager.BackStackEntry entry = getSupportFragmentManager().getBackStackEntryAt(index);
+        final String tag = entry.getName();
+        return getSupportFragmentManager().findFragmentByTag(tag);
+    }
+
     @Override
     public boolean onNavigationItemSelected(final MenuItem item) {
         final Fragment fragment;
         int menuItemId = item.getItemId();
         if (menuItemId == R.id.nav_acquire) {
-            if (mCurrentFragment instanceof AcquireTokenFragment){
+            if (getCurrentFragment() instanceof AcquireTokenFragment){
                 return false;
             }
             fragment = new AcquireTokenFragment();
         } else if (menuItemId == R.id.nav_result) {
-            if (mCurrentFragment instanceof ResultFragment){
+            if (getCurrentFragment() instanceof ResultFragment){
                 return false;
             }
 
@@ -185,7 +196,7 @@ public class MainActivity extends AppCompatActivity
             fragment.setArguments(bundle);
             mAuthResult = null;
         } else if (menuItemId == R.id.nav_log) {
-            if (mCurrentFragment instanceof LogFragment){
+            if (getCurrentFragment() instanceof LogFragment){
                 return false;
             }
             fragment = new LogFragment();
@@ -197,7 +208,6 @@ public class MainActivity extends AppCompatActivity
             fragment = null;
         }
 
-        mCurrentFragment = fragment;
         attachFragment(fragment);
 
         return true;
