@@ -8,7 +8,6 @@ import androidx.annotation.NonNull;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
-import com.microsoft.identity.client.HttpMethod;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
@@ -71,20 +70,41 @@ abstract class MsalWrapper {
                              @NonNull final RequestOptions requestOptions,
                              @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
 
+        final AcquireTokenParameters.Builder builder = getAcquireTokenParametersBuilder(activity, requestOptions, callback);
+        builder.withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")));
+        builder.withOtherScopesToAuthorize(
+                Arrays.asList(
+                        requestOptions
+                                .getExtraScopesToConsent()
+                                .toLowerCase()
+                                .split(" ")
+                )
+        );
+
+        final AcquireTokenParameters parameters = builder.build();
+        acquireTokenAsyncInternal(parameters);
+    }
+
+    public void acquireTokenWithResource(@NonNull final Activity activity,
+                                         @NonNull final RequestOptions requestOptions,
+                                         @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
+
+        final AcquireTokenParameters.Builder builder = getAcquireTokenParametersBuilder(activity, requestOptions, callback);
+        builder.withAuthorizationQueryStringParameters(null);
+        builder.withResource(requestOptions.getScopes().toLowerCase().trim());
+
+        final AcquireTokenParameters parameters = builder.build();
+        acquireTokenAsyncInternal(parameters);
+    }
+
+    private AcquireTokenParameters.Builder getAcquireTokenParametersBuilder(@NonNull Activity activity,
+                                                                            @NonNull RequestOptions requestOptions,
+                                                                            @NonNull INotifyOperationResultCallback<IAuthenticationResult> callback) {
         final AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
         builder.startAuthorizationFromActivity(activity)
-                .withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")))
                 .withLoginHint(requestOptions.getLoginHint())
                 .forAccount(requestOptions.getAccount())
                 .withPrompt(requestOptions.getPrompt())
-                .withOtherScopesToAuthorize(
-                        Arrays.asList(
-                                requestOptions
-                                        .getExtraScopesToConsent()
-                                        .toLowerCase()
-                                        .split(" ")
-                        )
-                )
                 .withCallback(getAuthenticationCallback(callback));
 
         if (requestOptions.getAuthority() != null && !requestOptions.getAuthority().isEmpty()) {
@@ -95,39 +115,16 @@ abstract class MsalWrapper {
             try {
                 builder.withAuthenticationScheme(
                         PoPAuthenticationScheme.builder()
-                                .withHttpMethod(HttpMethod.GET)
-                                .withUrl(
-                                        new URL("https://signedhttprequest.azurewebsites.net/api/validateSHR")
-                                ).build()
+                                .withHttpMethod(requestOptions.getPopHttpMethod())
+                                .withUrl(new URL(requestOptions.getPopResourceUrl()))
+                                .build()
                 );
             } catch (MalformedURLException e) {
-                throw new RuntimeException(e);
+                callback.showMessage("Unexpected error." + e.getMessage());
             }
         }
 
-        final AcquireTokenParameters parameters = builder.build();
-        acquireTokenAsyncInternal(parameters);
-    }
-
-    public void acquireTokenWithResource(@NonNull final Activity activity,
-                                         @NonNull final RequestOptions requestOptions,
-                                         @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
-        final AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
-        builder.startAuthorizationFromActivity(activity)
-                .withLoginHint(requestOptions.getLoginHint())
-                .forAccount(requestOptions.getAccount())
-                .withResource(requestOptions.getScopes().toLowerCase().trim())
-                .withPrompt(requestOptions.getPrompt())
-                .withAuthorizationQueryStringParameters(null)
-                .withCallback(getAuthenticationCallback(callback))
-                .build();
-
-        if (requestOptions.getAuthority() != null && !requestOptions.getAuthority().isEmpty()) {
-            builder.fromAuthority(requestOptions.getAuthority());
-        }
-
-        final AcquireTokenParameters parameters = builder.build();
-        acquireTokenAsyncInternal(parameters);
+        return builder;
     }
 
     abstract void acquireTokenAsyncInternal(@NonNull final AcquireTokenParameters parameters);
@@ -139,32 +136,8 @@ abstract class MsalWrapper {
             return;
         }
 
-        final AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
-        builder.withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")))
-                .forAccount(requestOptions.getAccount())
-                .forceRefresh(requestOptions.forceRefresh())
-                .withCallback(getAuthenticationCallback(callback));
-
-        if (requestOptions.getAuthority() != null && !requestOptions.getAuthority().isEmpty()) {
-            builder.fromAuthority(requestOptions.getAuthority());
-        } else {
-            builder.fromAuthority(requestOptions.getAccount().getAuthority());
-        }
-
-        if (requestOptions.getAuthScheme() == Constants.AuthScheme.POP) {
-            try {
-                builder.withAuthenticationScheme(
-                        PoPAuthenticationScheme.builder()
-                                .withHttpMethod(HttpMethod.GET)
-                                .withUrl(
-                                        new URL("https://signedhttprequest.azurewebsites.net/api/validateSHR")
-                                ).build()
-                );
-            } catch (MalformedURLException e) {
-                callback.showMessage("Unexpected error." + e.getMessage());
-                return;
-            }
-        }
+        final AcquireTokenSilentParameters.Builder builder = getAcquireTokenSilentParametersBuilder(requestOptions, callback);
+        builder.withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")));
 
         final AcquireTokenSilentParameters parameters = builder.build();
         acquireTokenSilentAsyncInternal(parameters);
@@ -177,12 +150,19 @@ abstract class MsalWrapper {
             return;
         }
 
+        final AcquireTokenSilentParameters.Builder builder = getAcquireTokenSilentParametersBuilder(requestOptions, callback);
+        builder.withResource(requestOptions.getScopes().toLowerCase().trim());
+
+        final AcquireTokenSilentParameters parameters = builder.build();
+        acquireTokenSilentAsyncInternal(parameters);
+    }
+
+    private AcquireTokenSilentParameters.Builder getAcquireTokenSilentParametersBuilder(@NonNull RequestOptions requestOptions,
+                                                                                        @NonNull INotifyOperationResultCallback<IAuthenticationResult> callback) {
         final AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
-        builder.withResource(requestOptions.getScopes().toLowerCase().trim())
-                .forAccount(requestOptions.getAccount())
+        builder.forAccount(requestOptions.getAccount())
                 .forceRefresh(requestOptions.forceRefresh())
-                .withCallback(getAuthenticationCallback(callback))
-                .build();
+                .withCallback(getAuthenticationCallback(callback));
 
         if (requestOptions.getAuthority() != null && !requestOptions.getAuthority().isEmpty()) {
             builder.fromAuthority(requestOptions.getAuthority());
@@ -190,8 +170,20 @@ abstract class MsalWrapper {
             builder.fromAuthority(requestOptions.getAccount().getAuthority());
         }
 
-        final AcquireTokenSilentParameters parameters = builder.build();
-        acquireTokenSilentAsyncInternal(parameters);
+        if (requestOptions.getAuthScheme() == Constants.AuthScheme.POP) {
+            try {
+                builder.withAuthenticationScheme(
+                        PoPAuthenticationScheme.builder()
+                                .withHttpMethod(requestOptions.getPopHttpMethod())
+                                .withUrl(new URL(requestOptions.getPopResourceUrl())).build()
+                );
+            } catch (MalformedURLException e) {
+                callback.showMessage("Unexpected error." + e.getMessage());
+                return null;
+            }
+        }
+
+        return builder;
     }
 
     abstract void acquireTokenSilentAsyncInternal(@NonNull final AcquireTokenSilentParameters parameters);

@@ -22,6 +22,7 @@
 //   THE SOFTWARE.
 package com.microsoft.identity.client.testapp;
 
+import com.microsoft.identity.client.HttpMethod;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 
@@ -37,6 +38,8 @@ class RequestOptions
     final boolean mForceRefresh;
     final String mAuthority;
     final Constants.AuthScheme mAuthScheme;
+    final HttpMethod mPopHttpMethod;
+    final String mPopResourceUrl;
 
     RequestOptions(final Constants.ConfigFile configFile,
                    final String loginHint,
@@ -47,7 +50,9 @@ class RequestOptions
                    final boolean enablePII,
                    final boolean forceRefresh,
                    final String authority,
-                   final Constants.AuthScheme authScheme) {
+                   final Constants.AuthScheme authScheme,
+                   final HttpMethod popHttpMethod,
+                   final String popResourceUrl) {
         mConfigFile = configFile;
         mLoginHint = loginHint;
         mAccount = account;
@@ -58,6 +63,8 @@ class RequestOptions
         mForceRefresh = forceRefresh;
         mAuthority = authority;
         mAuthScheme = authScheme;
+        mPopHttpMethod = popHttpMethod;
+        mPopResourceUrl = popResourceUrl;
     }
 
     Constants.ConfigFile getConfigFile() {
@@ -98,5 +105,13 @@ class RequestOptions
 
     Constants.AuthScheme getAuthScheme() {
         return mAuthScheme;
+    }
+
+    HttpMethod getPopHttpMethod() {
+        return mPopHttpMethod;
+    }
+
+    String getPopResourceUrl() {
+        return mPopResourceUrl;
     }
 }

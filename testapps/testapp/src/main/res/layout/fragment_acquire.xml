@@ -104,6 +104,59 @@
                 android:layout_weight="7" />
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:id="@+id/pop_section">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:weightSum="10">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_weight="3"
+                    android:text="@string/pop_http_method_text" />
+
+                <Spinner
+                    android:id="@+id/pop_http_method"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="7" />
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:weightSum="10">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:text="@string/pop_resource_url_text" />
+
+                <EditText
+                    android:id="@+id/pop_resource_url"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="7"
+                    android:textSize="12sp"
+                    android:text="@string/pop_default_resource_url"/>
+            </LinearLayout>
+        </LinearLayout>
+
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -111,7 +164,8 @@
             android:orientation="horizontal"
             android:paddingTop="5dp"
             android:paddingBottom="5dp"
-            android:weightSum="10">
+            android:weightSum="10"
+            android:id="@+id/login_hint_section">
 
             <TextView
                 android:layout_width="0dp"
@@ -186,7 +240,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="3"
-                android:text="@string/authority_text"/>
+                android:text="@string/authority_text" />
 
             <EditText
                 android:id="@+id/authority"
@@ -337,18 +391,18 @@
                 android:id="@+id/btn_getUsers"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:layout_weight="5"
                 android:gravity="center"
-                android:layout_gravity="center_vertical"
                 android:text="@string/btn_getUser" />
 
             <Button
                 android:id="@+id/btn_clearCache"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:layout_weight="5"
                 android:gravity="center"
-                android:layout_gravity="center_vertical"
                 android:text="@string/btn_removeUser" />
 
         </LinearLayout>
@@ -365,8 +419,8 @@
                 android:id="@+id/btn_acquiretoken"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="5"
                 android:layout_gravity="center_vertical"
+                android:layout_weight="5"
                 android:gravity="center"
                 android:text="@string/acquire_token_button" />
 
@@ -374,8 +428,8 @@
                 android:id="@+id/btn_acquiretokensilent"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="5"
                 android:layout_gravity="center_vertical"
+                android:layout_weight="5"
                 android:gravity="center"
                 android:text="@string/acquire_token_silent_button" />
 
@@ -393,18 +447,18 @@
                 android:id="@+id/btn_acquiretokenWithResource"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:layout_weight="5"
                 android:gravity="center"
-                android:layout_gravity="center_vertical"
                 android:text="@string/acquire_token_with_resource_button" />
 
             <Button
                 android:id="@+id/btn_acquiretokensilentWithResource"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:layout_weight="5"
                 android:gravity="center"
-                android:layout_gravity="center_vertical"
                 android:text="@string/acquire_token_silent_with_resource_button" />
 
         </LinearLayout>

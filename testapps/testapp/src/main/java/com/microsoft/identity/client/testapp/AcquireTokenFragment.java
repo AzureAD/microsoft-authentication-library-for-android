@@ -32,6 +32,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -39,6 +40,7 @@ import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
+import com.microsoft.identity.client.HttpMethod;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.Logger;
@@ -71,6 +73,11 @@ public class AcquireTokenFragment extends Fragment {
     private Spinner mAuthScheme;
     private TextView mPublicApplicationMode;
     private TextView mDefaultBrowser;
+    private Spinner mPopHttpMethod;
+    private EditText mPopResourceUrl;
+
+    private LinearLayout mPopSection;
+    private LinearLayout mLoginHintSection;
 
     private OnFragmentInteractionListener mOnFragmentInteractionListener;
     private MsalWrapper mMsalWrapper;
@@ -102,29 +109,17 @@ public class AcquireTokenFragment extends Fragment {
         mAuthScheme = view.findViewById(R.id.authentication_scheme);
         mPublicApplicationMode = view.findViewById(R.id.public_application_mode);
         mDefaultBrowser = view.findViewById(R.id.default_browser);
+        mPopHttpMethod = view.findViewById(R.id.pop_http_method);
+        mPopResourceUrl = view.findViewById(R.id.pop_resource_url);
+
+        mPopSection = view.findViewById(R.id.pop_section);
+        mLoginHintSection = view.findViewById(R.id.login_hint_section);
 
         bindSelectAccountSpinner(mSelectAccount, null);
         mSelectAccount.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                // If an account is selected.
-                //  - Gray out mLoginhint.
-                //  - Set hint in mAuthority.
-                if (position == mLoadedAccounts.size()) {
-                    // If an account is selected, grey out this option.
-                    mLoginhint.setHint("");
-                    mLoginhint.setCursorVisible(true);
-                    mLoginhint.setEnabled(true);
-
-                    mAuthority.setHint("");
-                } else {
-                    mLoginhint.setText("");
-                    mLoginhint.setHint("Disabled");
-                    mLoginhint.setCursorVisible(false);
-                    mLoginhint.setEnabled(false);
-
-                    mAuthority.setHint("Default: account's authority");
-                }
+                updateUiBasedOnCurrentAccount();
             }
 
             @Override
@@ -134,6 +129,18 @@ public class AcquireTokenFragment extends Fragment {
 
         bindSpinnerChoice(mPrompt, Prompt.class);
         bindSpinnerChoice(mAuthScheme, Constants.AuthScheme.class);
+        mAuthScheme.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                updateUiBasedOnAuthScheme();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
+        bindSpinnerChoice(mPopHttpMethod, HttpMethod.class);
 
         bindSpinnerChoice(mConfigFileSpinner, Constants.ConfigFile.class);
         mConfigFileSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -218,6 +225,34 @@ public class AcquireTokenFragment extends Fragment {
         return view;
     }
 
+    private void updateUiBasedOnAuthScheme() {
+        final Constants.AuthScheme authScheme = Constants.AuthScheme.valueOf(mAuthScheme.getSelectedItem().toString());
+        if (authScheme == Constants.AuthScheme.POP) {
+            mPopSection.setVisibility(View.VISIBLE);
+        } else {
+            mPopSection.setVisibility(View.GONE);
+        }
+    }
+
+    // If an account is selected.
+    //  - Hide loginhint section.
+    //  - Set hint in mAuthority.
+    private void updateUiBasedOnCurrentAccount() {
+        final IAccount account = getAccountFromSpinner();
+        if (account == null) {
+            mLoginhint.setCursorVisible(true);
+            mLoginhint.setEnabled(true);
+            mLoginHintSection.setVisibility(View.VISIBLE);
+            mAuthority.setHint("");
+        } else {
+            mLoginhint.setText("");
+            mLoginhint.setCursorVisible(false);
+            mLoginhint.setEnabled(false);
+            mLoginHintSection.setVisibility(View.GONE);
+            mAuthority.setHint("Default: account's authority");
+        }
+    }
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -254,6 +289,7 @@ public class AcquireTokenFragment extends Fragment {
 
     private void refreshUI() {
         bindSelectAccountSpinner(mSelectAccount, mLoadedAccounts);
+        updateUiBasedOnAuthScheme();
         mPublicApplicationMode.setText(mMsalWrapper.getMode());
         mDefaultBrowser.setText(mMsalWrapper.getDefaultBrowser());
     }
@@ -322,7 +358,9 @@ public class AcquireTokenFragment extends Fragment {
         final boolean forceRefresh = mForceRefresh.isChecked();
         final String authority = mAuthority.getText().toString();
         final Constants.AuthScheme authScheme = Constants.AuthScheme.valueOf(mAuthScheme.getSelectedItem().toString());
-        return new RequestOptions(configFile, loginHint, account, promptBehavior, scopes, extraScopesToConsent, enablePII, forceRefresh, authority, authScheme);
+        final HttpMethod popHttpMethod = HttpMethod.valueOf(mPopHttpMethod.getSelectedItem().toString());
+        final String popResourceUrl = mPopResourceUrl.getText().toString();
+        return new RequestOptions(configFile, loginHint, account, promptBehavior, scopes, extraScopesToConsent, enablePII, forceRefresh, authority, authScheme, popHttpMethod, popResourceUrl);
     }
 
     private void loadMsalApplicationFromRequestParameters(final RequestOptions requestOptions) {
