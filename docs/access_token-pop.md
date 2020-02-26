@@ -1,6 +1,6 @@
 # (Preview) MSAL Android: Requesting Proof of Possession Protected Access Tokens
 
->**Important:**<br/>Proof of Possession Protected Access Tokens is a **preview** feature for select limited deployment environments. As such, the below-documented APIs are subject to change or removal.<br/><br/>Developers consuming MSAL in their application's are advised to make use of the `Bearer` authentication scheme (default) due to protocol incompatibilties which may arise due to active and evolving development of this feature.
+>**Important:**<br/>Proof of Possession Protected Access Tokens is a **preview** feature for select limited deployment environments. As such, the below-documented APIs are subject to change or removal.<br/><br/>Developers consuming MSAL in their applications are advised to make use of the `Bearer` authentication scheme (default) due to protocol incompatibilties which may arise due to active and evolving development of this feature.
 
 ## What is a PoP/AT?
 To understand the purpose and benefits offered by PoP, it is important to understand the security posture of a standard Bearer token.
