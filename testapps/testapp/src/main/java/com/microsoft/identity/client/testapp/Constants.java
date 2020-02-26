@@ -39,7 +39,8 @@ public class Constants {
         INSTANCE_AWARE_COMMON,
         INSTANCE_AWARE_ORGANIZATION,
         B2C,
-        MSA
+        MSA,
+        MSA_ONLY
     }
 
     public static int getResourceIdFromConfigFile(ConfigFile configFile){
@@ -73,6 +74,9 @@ public class Constants {
 
             case MSA:
                 return R.raw.msal_config_msa;
+
+            case MSA_ONLY:
+                return R.raw.msal_config_msa_only;
         }
 
         return R.raw.msal_config_default;
