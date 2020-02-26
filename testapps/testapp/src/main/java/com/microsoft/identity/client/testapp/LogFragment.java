@@ -22,7 +22,11 @@
 //   THE SOFTWARE.
 package com.microsoft.identity.client.testapp;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.os.Bundle;
+
 import androidx.fragment.app.Fragment;
 import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
@@ -39,6 +43,7 @@ public class LogFragment extends Fragment {
 
     private TextView mTextView;
     private Button mClearLogButton;
+    private Button mCopyLogButton;
 
     public LogFragment() {
         // left empty
@@ -48,14 +53,14 @@ public class LogFragment extends Fragment {
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_log, container, false);
 
-        mTextView = (TextView) view.findViewById(R.id.txt_log);
+        mTextView = view.findViewById(R.id.txt_log);
         final Bundle bundle = getArguments();
         final String logs = (String) bundle.get(LOG_MSG);
 
         mTextView.setText(logs);
         mTextView.setMovementMethod(new ScrollingMovementMethod());
 
-        mClearLogButton = (Button) view.findViewById(R.id.btn_clearLogs);
+        mClearLogButton = view.findViewById(R.id.btn_clearLogs);
         mClearLogButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -63,6 +68,18 @@ public class LogFragment extends Fragment {
                 ((MsalSampleApp) getActivity().getApplication()).clearLogs();
             }
         });
+
+        mCopyLogButton = view.findViewById(R.id.btn_copyLogs);
+        mCopyLogButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final ClipboardManager clipboard = (ClipboardManager)
+                        getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+                final ClipData clip = ClipData.newPlainText("MSAL logs", logs);
+                clipboard.setPrimaryClip(clip);
+            }
+        });
+
         return view;
     }
 

@@ -3,18 +3,10 @@
   "authorization_user_agent" : "DEFAULT",
   "redirect_uri" : "msauth://com.msft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D",
   "multiple_clouds_supported":true,
-  "client_capabilities": "CP1",
   "authorities" : [
     {
       "type": "AAD",
-      "audience": {
-        "type": "AzureADMultipleOrgs"
-      }
+      "authority_url": "https://login.microsoftonline.com/organization"
     }
-  ],
-  "telemetry": {
-    "pii_enabled": true,
-    "notify_on_failure_only": false,
-    "debug_enabled": true
-  }
+  ]
 }

@@ -28,18 +28,58 @@ package com.microsoft.identity.client.testapp;
 
 public class Constants {
 
-    enum UserAgent {
+    enum ConfigFile {
         DEFAULT,
         BROWSER,
-        WEBVIEW
+        WEBVIEW,
+        FAIRFAX,
+        ARLINGTON,
+        MOONCAKE,
+        BLACKFOREST,
+        INSTANCE_AWARE_COMMON,
+        INSTANCE_AWARE_ORGANIZATION,
+        B2C,
+        MSA
     }
 
-    enum AzureActiveDirectoryEnvironment {
-        PRODUCTION,
-        PREPRODUCTION
+    public static int getResourceIdFromConfigFile(ConfigFile configFile){
+        switch (configFile){
+            case BROWSER:
+                return R.raw.msal_config_browser;
+
+            case WEBVIEW:
+                return R.raw.msal_config_webview;
+
+            case FAIRFAX:
+                return R.raw.msal_config_fairfax;
+
+            case ARLINGTON:
+                return R.raw.msal_config_arlington;
+
+            case MOONCAKE:
+                return R.raw.msal_config_mooncake;
+
+            case BLACKFOREST:
+                return R.raw.msal_config_blackforest;
+
+            case INSTANCE_AWARE_COMMON:
+                return R.raw.msal_config_instance_aware_common;
+
+            case INSTANCE_AWARE_ORGANIZATION:
+                return R.raw.msal_config_instance_aware_organization;
+
+            case B2C:
+                return R.raw.msal_config_b2c;
+
+            case MSA:
+                return R.raw.msal_config_msa;
+        }
+
+        return R.raw.msal_config_default;
     }
 
-    final static String AAD_AUTHORITY = "https://login.microsoftonline.com/common";
-    final static String AAD_MSDEVEX = "https://login.microsoftonline.com/msdevex.onmicrosoft.com";
-    final static String AAD_GUEST = "https://login.microsoftonline.com/nomfaad.onmicrosoft.com";
+    public enum AuthScheme {
+        BEARER,
+        POP
+    }
 }

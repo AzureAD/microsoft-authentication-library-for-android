@@ -23,7 +23,7 @@
   ~ //  THE SOFTWARE.
   -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
     <LinearLayout
@@ -47,11 +47,12 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_weight="3"
-                android:text="@string/environment_text" />
+                android:text="@string/config_file_text" />
 
             <Spinner
-                android:id="@+id/environment"
+                android:id="@+id/configFile"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="7" />
@@ -69,21 +70,21 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_weight="3"
-                android:text="@string/ui_behavior_text" />
+                android:text="@string/prompt_behavior_text" />
 
             <Spinner
-                android:id="@+id/uiBehavior"
+                android:id="@+id/promptBehavior"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="7" />
-
         </LinearLayout>
+
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingTop="5dp"
             android:paddingBottom="5dp"
@@ -92,15 +93,68 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_weight="3"
-                android:gravity="center_vertical"
-                android:text="@string/auth_user_agent" />
+                android:text="@string/auth_scheme_text" />
 
             <Spinner
-                android:id="@+id/auth_user_agent"
+                android:id="@+id/authentication_scheme"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="7" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:id="@+id/pop_section">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:weightSum="10">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_weight="3"
+                    android:text="@string/pop_http_method_text" />
+
+                <Spinner
+                    android:id="@+id/pop_http_method"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="7" />
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:weightSum="10">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:text="@string/pop_resource_url_text" />
+
+                <EditText
+                    android:id="@+id/pop_resource_url"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="7"
+                    android:textSize="12sp"
+                    android:text="@string/pop_default_resource_url"/>
+            </LinearLayout>
         </LinearLayout>
 
 
@@ -110,7 +164,8 @@
             android:orientation="horizontal"
             android:paddingTop="5dp"
             android:paddingBottom="5dp"
-            android:weightSum="10">
+            android:weightSum="10"
+            android:id="@+id/login_hint_section">
 
             <TextView
                 android:layout_width="0dp"
@@ -122,7 +177,8 @@
                 android:id="@+id/loginHint"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="7" />
+                android:layout_weight="7"
+                android:textSize="12sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -175,6 +231,76 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:weightSum="10">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:text="@string/authority_text" />
+
+            <EditText
+                android:id="@+id/authority"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="7"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="horizontal"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:weightSum="10">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="4"
+                android:text="@string/default_browser" />
+
+            <TextView
+                android:id="@+id/default_browser"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="6"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:weightSum="10">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="4"
+                android:text="@string/public_application_mode" />
+
+            <TextView
+                android:id="@+id/public_application_mode"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="6"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingTop="5dp"
@@ -199,8 +325,7 @@
                     android:id="@+id/forceRefresh"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="3"
-                    android:gravity="center_vertical"
+                    android:layout_weight="2"
                     android:textOff="off"
                     android:textOn="on" />
             </LinearLayout>
@@ -223,7 +348,7 @@
                     android:id="@+id/enablePII"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="3"
+                    android:layout_weight="2"
                     android:gravity="center_vertical"
                     android:textOff="off"
                     android:textOn="on" />
@@ -233,61 +358,18 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:orientation="horizontal"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
             android:weightSum="10">
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="4"
-                android:text="@string/default_browser" />
-
-            <TextView
-                android:id="@+id/default_browser"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="6"
-                android:textSize="12sp" />
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
-            android:weightSum="10">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="4"
-                android:text="@string/public_application_mode" />
-
-            <TextView
-                android:id="@+id/public_application_mode"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="6"
-                android:textSize="12sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
-            android:weightSum="10">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_weight="3"
-                android:text="@string/select_user" />
+                android:text="@string/account" />
 
             <Spinner
                 android:id="@+id/select_user"
@@ -309,6 +391,7 @@
                 android:id="@+id/btn_getUsers"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:layout_weight="5"
                 android:gravity="center"
                 android:text="@string/btn_getUser" />
@@ -317,90 +400,67 @@
                 android:id="@+id/btn_clearCache"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:layout_weight="5"
                 android:gravity="center"
                 android:text="@string/btn_removeUser" />
 
         </LinearLayout>
 
-
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:paddingTop="5dp">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:weightSum="10">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <Button
+                android:id="@+id/btn_acquiretoken"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="5"
                 android:gravity="center"
-                android:orientation="horizontal">
+                android:text="@string/acquire_token_button" />
 
-                <Button
-                    android:id="@+id/btn_acquiretoken"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/acquire_token_button" />
+            <Button
+                android:id="@+id/btn_acquiretokensilent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="5"
+                android:gravity="center"
+                android:text="@string/acquire_token_silent_button" />
 
-                <Button
-                    android:id="@+id/btn_acquiretokensilent"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/acquire_token_silent_button" />
+        </LinearLayout>
 
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/txt_output"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-            <TextView
-                android:id="@+id/txt_output2"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-        </RelativeLayout>
-
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:paddingTop="5dp">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:weightSum="10">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <Button
+                android:id="@+id/btn_acquiretokenWithResource"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="5"
                 android:gravity="center"
-                android:orientation="horizontal">
+                android:text="@string/acquire_token_with_resource_button" />
 
-                <Button
-                    android:id="@+id/btn_acquiretokenWithResource"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/acquire_token_with_resource_button" />
+            <Button
+                android:id="@+id/btn_acquiretokensilentWithResource"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="5"
+                android:gravity="center"
+                android:text="@string/acquire_token_silent_with_resource_button" />
 
-                <Button
-                    android:id="@+id/btn_acquiretokensilentWithResource"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/acquire_token_silent_with_resource_button" />
-
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/txt_output3"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-            <TextView
-                android:id="@+id/txt_output4"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-        </RelativeLayout>
-
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>
