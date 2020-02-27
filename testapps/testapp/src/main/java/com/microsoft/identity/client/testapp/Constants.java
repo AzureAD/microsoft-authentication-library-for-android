@@ -33,6 +33,7 @@ public class Constants {
         BROWSER,
         BROWSER_SKIP_BROKER,
         WEBVIEW,
+        WEBVIEW_SKIP_BROKER,
         FAIRFAX,
         ARLINGTON,
         MOONCAKE,
@@ -53,6 +54,9 @@ public class Constants {
 
             case WEBVIEW:
                 return R.raw.msal_config_webview;
+
+            case WEBVIEW_SKIP_BROKER:
+                return R.raw.msal_config_webview_skip_broker;
 
             case FAIRFAX:
                 return R.raw.msal_config_fairfax;
