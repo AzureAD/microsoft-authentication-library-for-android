@@ -22,12 +22,12 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.exception;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.common.exception.ErrorStrings;
 
 import java.util.List;
-
-import androidx.annotation.NonNull;
 
 /**
  * Exception class to indicate that one or more requested scopes have been declined by the server.

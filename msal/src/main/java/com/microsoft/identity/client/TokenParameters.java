@@ -20,8 +20,9 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
 package com.microsoft.identity.client;
+
+import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
@@ -40,14 +41,25 @@ public abstract class TokenParameters {
     private String mAuthority;
     private ClaimsRequest mClaimsRequest;
     private AccountRecord mAccountRecord;
+    private AuthenticationScheme mAuthenticationScheme;
 
-    protected TokenParameters(final TokenParameters.Builder builder) {
+    protected TokenParameters(@NonNull final TokenParameters.Builder builder) {
         mAccount = builder.mAccount;
         mAuthority = builder.mAuthority;
         mClaimsRequest = builder.mClaimsRequest;
         mScopes = builder.mScopes;
+        mAuthenticationScheme = builder.mAuthenticationScheme;
     }
 
+    /**
+     * Gets the {@link AuthenticationScheme}.
+     *
+     * @return The AuthenticationScheme to get.
+     */
+    @NonNull
+    public AuthenticationScheme getAuthenticationScheme() {
+        return mAuthenticationScheme;
+    }
 
     /**
      * The non-null array of scopes to be requested for the access token.
@@ -65,7 +77,7 @@ public abstract class TokenParameters {
      *
      * @param scopes
      */
-    void setScopes(final List<String> scopes){
+    void setScopes(final List<String> scopes) {
         mScopes = scopes;
     }
 
@@ -136,6 +148,12 @@ public abstract class TokenParameters {
         private IAccount mAccount;
         private String mAuthority;
         private ClaimsRequest mClaimsRequest;
+        private AuthenticationScheme mAuthenticationScheme;
+
+        public B withAuthenticationScheme(@NonNull final AuthenticationScheme scheme) {
+            mAuthenticationScheme = scheme;
+            return self();
+        }
 
         public B withScopes(List<String> scopes) {
             if (null != mScopes) {

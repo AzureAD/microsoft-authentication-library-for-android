@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
@@ -32,15 +34,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import androidx.annotation.NonNull;
-
 class AuthenticationResultAdapter {
 
     private static final String TAG = AuthenticationResultAdapter.class.getName();
 
     static IAuthenticationResult adapt(@NonNull final ILocalAuthenticationResult localAuthenticationResult) {
-
-        IAuthenticationResult authenticationResult = new AuthenticationResult(
+        final IAuthenticationResult authenticationResult = new AuthenticationResult(
                 localAuthenticationResult.getCacheRecordWithTenantProfileData()
         );
         return authenticationResult;
@@ -65,6 +64,7 @@ class AuthenticationResultAdapter {
                         + " Granted scopes:" + grantedScopes.toString());
 
         AcquireTokenSilentParameters silentParameters;
+
         if (requestParameters instanceof AcquireTokenSilentParameters) {
             silentParameters = (AcquireTokenSilentParameters) requestParameters;
         } else {
@@ -73,6 +73,7 @@ class AuthenticationResultAdapter {
                     localAuthenticationResult
             );
         }
+
         // Set the granted scopes as request scopes.
         silentParameters.setScopes(grantedScopes);
 
@@ -81,24 +82,29 @@ class AuthenticationResultAdapter {
 
     static List<String> getDeclinedScopes(@NonNull final List<String> grantedScopes,
                                           @NonNull final List<String> requestedScopes) {
-
         final Set<String> grantedScopesSet = new HashSet<>();
+
+        // Add each granted scope to the Set
         for (final String grantedScope : grantedScopes) {
             grantedScopesSet.add(grantedScope.toLowerCase());
         }
 
         final Set<String> requestedScopesSet = new HashSet<>();
+
+        // Add each requested scope to the Set
         for (final String requestedScope : requestedScopes) {
             requestedScopesSet.add(requestedScope.toLowerCase());
         }
 
         final List<String> declinedScopes = new ArrayList<>();
 
+        // Iterate over the requested scopes, determining which were declined
         for (final String requestedScope : requestedScopesSet) {
             if (!grantedScopesSet.contains(requestedScope)) {
                 declinedScopes.add(requestedScope);
             }
         }
+
         return declinedScopes;
     }
 }

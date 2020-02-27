@@ -45,6 +45,7 @@ import com.microsoft.identity.client.internal.IntuneAcquireTokenParameters;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
+import com.microsoft.identity.common.internal.authscheme.AuthenticationSchemeFactory;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
@@ -60,9 +61,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 
-import static com.microsoft.identity.common.internal.authorities.AllAccounts.ALL_ACCOUNTS_TENANT_ID;
-import static com.microsoft.identity.common.internal.authorities.AnyPersonalAccount.ANY_PERSONAL_ACCOUNT_TENANT_ID;
-import static com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience.ORGANIZATIONS;
 import static com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken.TENANT_ID;
 
 public class OperationParametersAdapter {
@@ -96,6 +94,12 @@ public class OperationParametersAdapter {
         final String methodName = ":createAcquireTokenOperationParameters";
         final AcquireTokenOperationParameters acquireTokenOperationParameters =
                 new AcquireTokenOperationParameters();
+
+        acquireTokenOperationParameters.setAuthenticationScheme(
+                AuthenticationSchemeFactory.createScheme(
+                        acquireTokenParameters.getAuthenticationScheme()
+                )
+        );
 
         if (StringUtil.isEmpty(acquireTokenParameters.getAuthority())) {
             if (acquireTokenParameters.getAccount() != null) {
@@ -131,18 +135,18 @@ public class OperationParametersAdapter {
             );
             //AzureActiveDirectory supports client capabilities
             ClaimsRequest mergedClaimsRequest = addClientCapabilitiesToClaimsRequest(acquireTokenParameters.getClaimsRequest(),
-                                                    publicClientApplicationConfiguration.getClientCapabilities());
+                    publicClientApplicationConfiguration.getClientCapabilities());
             acquireTokenOperationParameters.setClaimsRequest(
                     ClaimsRequest.getJsonStringFromClaimsRequest(
                             mergedClaimsRequest
                     )
             );
 
-            if(acquireTokenParameters.getClaimsRequest() != null){
+            if (acquireTokenParameters.getClaimsRequest() != null) {
                 acquireTokenOperationParameters.setForceRefresh(true);
             }
 
-        }else{
+        } else {
             //B2C doesn't support client capabilities
             acquireTokenOperationParameters.setClaimsRequest(
                     ClaimsRequest.getJsonStringFromClaimsRequest(
@@ -210,7 +214,7 @@ public class OperationParametersAdapter {
 
         // Special case only for Intune COBO app, where they use IntuneAcquireTokenParameters (an internal class)
         // to set browser support in broker to share SSO from System WebView login.
-        if(acquireTokenParameters instanceof IntuneAcquireTokenParameters){
+        if (acquireTokenParameters instanceof IntuneAcquireTokenParameters) {
             boolean brokerBrowserEnabled = ((IntuneAcquireTokenParameters) acquireTokenParameters)
                     .isBrokerBrowserSupportEnabled();
             Logger.info(TAG + methodName,
@@ -236,15 +240,20 @@ public class OperationParametersAdapter {
         acquireTokenOperationParameters.setApplicationName(context.getPackageName());
         acquireTokenOperationParameters.setApplicationVersion(getPackageVersion(context));
         acquireTokenOperationParameters.setSdkVersion(PublicClientApplication.getSdkVersion());
-
+        acquireTokenOperationParameters.setWebViewZoomControlsEnabled(
+                publicClientApplicationConfiguration.isWebViewZoomControlsEnabled()
+        );
+        acquireTokenOperationParameters.setWebViewZoomEnabled(
+                publicClientApplicationConfiguration.isWebViewZoomEnabled()
+        );
         return acquireTokenOperationParameters;
     }
 
-    public static ClaimsRequest addClientCapabilitiesToClaimsRequest(ClaimsRequest cr, String clientCapabilities){
+    public static ClaimsRequest addClientCapabilitiesToClaimsRequest(ClaimsRequest cr, String clientCapabilities) {
 
         final ClaimsRequest mergedClaimsRequest = (cr == null) ? new ClaimsRequest() : cr;
 
-        if(clientCapabilities != null) {
+        if (clientCapabilities != null) {
             //Add client capabilities to existing claims request
             RequestedClaimAdditionalInformation info = new RequestedClaimAdditionalInformation();
             String[] capabilities = clientCapabilities.split(",");
@@ -305,6 +314,11 @@ public class OperationParametersAdapter {
         atsOperationParams.setForceRefresh(acquireTokenSilentParameters.getForceRefresh());
         atsOperationParams.setRedirectUri(pcaConfig.getRedirectUri());
         atsOperationParams.setAccount(acquireTokenSilentParameters.getAccountRecord());
+        atsOperationParams.setAuthenticationScheme(
+                AuthenticationSchemeFactory.createScheme(
+                        acquireTokenSilentParameters.getAuthenticationScheme()
+                )
+        );
 
         if (atsOperationParams.getAuthority() instanceof AzureActiveDirectoryAuthority) {
             AzureActiveDirectoryAuthority aadAuthority =
@@ -314,8 +328,8 @@ public class OperationParametersAdapter {
 
             ClaimsRequest mergedClaimsRequest = addClientCapabilitiesToClaimsRequest(claimsRequest, pcaConfig.getClientCapabilities());
             //This business logic likely shouldn't be here, but this is the most convenient place I could find
-            if(claimsRequest != null){
-               atsOperationParams.setForceRefresh(true);
+            if (claimsRequest != null) {
+                atsOperationParams.setForceRefresh(true);
             }
             jsonClaimsRequest = ClaimsRequest.getJsonStringFromClaimsRequest(mergedClaimsRequest);
         }
@@ -328,9 +342,9 @@ public class OperationParametersAdapter {
      * For a tenant, assert that claims exist for it. This is a convenience function for throwing
      * exceptions & logging.
      *
-     * @param tenantId The tenantId for which claims are sought.
-     * @param claimable   The claims, which may be null - if they are, an {@link IllegalStateException}
-     *                 is thrown.
+     * @param tenantId  The tenantId for which claims are sought.
+     * @param claimable The claims, which may be null - if they are, an {@link IllegalStateException}
+     *                  is thrown.
      */
     public static void validateClaimsExistForTenant(@NonNull final String tenantId,
                                                     @Nullable final IClaimable claimable)
@@ -361,7 +375,6 @@ public class OperationParametersAdapter {
 
         return isAccountHomeTenant;
     }
-
 
 
     private static Authority getRequestAuthority(

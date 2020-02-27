@@ -22,25 +22,11 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import androidx.annotation.NonNull;
+import com.microsoft.identity.common.internal.authscheme.BearerAuthenticationSchemeInternal;
 
-import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
+public class BearerAuthenticationScheme extends AuthenticationScheme {
 
-/**
- * Class to adapt between AcquireTokenSilentParameters and AcquireTokenParameters.
- */
-public class TokenParametersAdapter {
-
-    public static AcquireTokenSilentParameters silentParametersFromInteractive(@NonNull final AcquireTokenParameters acquireTokenParameters,
-                                                                               @NonNull final ILocalAuthenticationResult localAuthenticationResult){
-        final IAccount account = AccountAdapter.adapt(localAuthenticationResult.getCacheRecordWithTenantProfileData()).get(0);
-        AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withCallback(acquireTokenParameters.getCallback())
-                .fromAuthority(acquireTokenParameters.getAuthority())
-                .withClaims(acquireTokenParameters.getClaimsRequest())
-                .withScopes(acquireTokenParameters.getScopes())
-                .forAccount(account)
-                .build();
-        return silentParameters;
+    public BearerAuthenticationScheme() {
+        super(BearerAuthenticationSchemeInternal.SCHEME_BEARER);
     }
 }
