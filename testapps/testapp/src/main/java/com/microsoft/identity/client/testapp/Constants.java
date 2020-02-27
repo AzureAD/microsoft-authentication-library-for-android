@@ -31,6 +31,7 @@ public class Constants {
     enum ConfigFile {
         DEFAULT,
         BROWSER,
+        BROWSER_SKIP_BROKER,
         WEBVIEW,
         FAIRFAX,
         ARLINGTON,
@@ -46,6 +47,9 @@ public class Constants {
         switch (configFile){
             case BROWSER:
                 return R.raw.msal_config_browser;
+
+            case BROWSER_SKIP_BROKER:
+                return R.raw.msal_config_browser_skip_broker;
 
             case WEBVIEW:
                 return R.raw.msal_config_webview;
