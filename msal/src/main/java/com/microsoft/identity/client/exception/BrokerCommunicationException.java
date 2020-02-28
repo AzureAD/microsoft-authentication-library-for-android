@@ -20,27 +20,24 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client;
 
-import androidx.annotation.NonNull;
+package com.microsoft.identity.client.exception;
 
-import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
+import com.microsoft.identity.common.exception.BaseException;
+import com.microsoft.identity.common.exception.ErrorStrings;
 
 /**
- * Class to adapt between AcquireTokenSilentParameters and AcquireTokenParameters.
+ * An exception that represents an error where MSAL cannot reach Broker (i.e. through Bind Service or AccountManager).
  */
-public class TokenParametersAdapter {
+public class BrokerCommunicationException extends BaseException {
 
-    public static AcquireTokenSilentParameters silentParametersFromInteractive(@NonNull final AcquireTokenParameters acquireTokenParameters,
-                                                                               @NonNull final ILocalAuthenticationResult localAuthenticationResult){
-        final IAccount account = AccountAdapter.adapt(localAuthenticationResult.getCacheRecordWithTenantProfileData()).get(0);
-        AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withCallback(acquireTokenParameters.getCallback())
-                .fromAuthority(acquireTokenParameters.getAuthority())
-                .withClaims(acquireTokenParameters.getClaimsRequest())
-                .withScopes(acquireTokenParameters.getScopes())
-                .forAccount(account)
-                .build();
-        return silentParameters;
+    /**
+     * Initiates the {@link com.microsoft.identity.common.exception.BrokerCommunicationException} with error message and throwable.
+     *
+     * @param errorMessage The error message contained in the exception.
+     * @param throwable    The {@link Throwable} contains the cause for the exception.
+     */
+    public BrokerCommunicationException(final String errorMessage, final Throwable throwable) {
+        super(ErrorStrings.IO_ERROR, errorMessage, throwable);
     }
 }

@@ -20,11 +20,11 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
 package com.microsoft.identity.client.testapp;
 
 import android.os.Bundle;
 import android.os.Handler;
+
 import com.google.android.material.navigation.NavigationView;
 
 import androidx.annotation.NonNull;
@@ -36,6 +36,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.RelativeLayout;
@@ -80,25 +81,6 @@ public class MainActivity extends AppCompatActivity
     private IAuthenticationResult mAuthResult;
 
     private RelativeLayout mContentMain;
-
-    private MsalWrapper.INotifyOperationResultCallback operationResultCallback = new MsalWrapper.INotifyOperationResultCallback() {
-        @Override
-        public void acquireTokenSucceed(IAuthenticationResult result) {
-            mAuthResult = result;
-            onNavigationItemSelected(getNavigationView().getMenu().getItem(1));
-        }
-
-        @Override
-        public void notify(final String message) {
-            getHandler().post(new Runnable() {
-
-                @Override
-                public void run() {
-                    Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
-                }
-            });
-        }
-    };
 
     /**
      * When initializing the {@link PublicClientApplication}, all the apps should only provide us the application context instead of
@@ -166,25 +148,25 @@ public class MainActivity extends AppCompatActivity
                 AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
             }
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | UnsupportedEncodingException ex) {
-            showMessage("Fail to generate secret key:" + ex.getMessage());
+            showMessageWithToast("Fail to generate secret key:" + ex.getMessage());
         }
 
         if (savedInstanceState == null) {
             // auto select the first item
             onNavigationItemSelected(navigationView.getMenu().getItem(0));
         }
-
-        MsalWrapper.getInstance().loadMsalApplication(this.getApplicationContext(),
-                R.raw.msal_config,
-                operationResultCallback,
-                null
-        );
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        MsalWrapper.getInstance().onResume(operationResultCallback);
+    private Fragment getCurrentFragment(){
+        int index = getSupportFragmentManager().getBackStackEntryCount() - 1;
+
+        if (index < 0){
+            return null;
+        }
+
+        final FragmentManager.BackStackEntry entry = getSupportFragmentManager().getBackStackEntryAt(index);
+        final String tag = entry.getName();
+        return getSupportFragmentManager().findFragmentByTag(tag);
     }
 
     @Override
@@ -192,21 +174,31 @@ public class MainActivity extends AppCompatActivity
         final Fragment fragment;
         int menuItemId = item.getItemId();
         if (menuItemId == R.id.nav_acquire) {
+            if (getCurrentFragment() instanceof AcquireTokenFragment){
+                return false;
+            }
             fragment = new AcquireTokenFragment();
         } else if (menuItemId == R.id.nav_result) {
+            if (getCurrentFragment() instanceof ResultFragment){
+                return false;
+            }
+
             fragment = new ResultFragment();
             final Bundle bundle = new Bundle();
             if (mAuthResult != null) {
                 bundle.putString(ResultFragment.ACCESS_TOKEN, mAuthResult.getAccessToken());
                 bundle.putString(
                         ResultFragment.DISPLAYABLE,
-                        getUsernameFromIAccount(mAuthResult.getAccount())
+                        mAuthResult.getAccount().getUsername()
                 );
             }
 
             fragment.setArguments(bundle);
             mAuthResult = null;
         } else if (menuItemId == R.id.nav_log) {
+            if (getCurrentFragment() instanceof LogFragment){
+                return false;
+            }
             fragment = new LogFragment();
             final String logs = ((MsalSampleApp) this.getApplication()).getLogs();
             final Bundle bundle = new Bundle();
@@ -222,7 +214,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onGetUser() {
+    public void onGetUsers() {
         final Fragment fragment = new UsersFragment();
         attachFragment(fragment);
     }
@@ -233,119 +225,12 @@ public class MainActivity extends AppCompatActivity
 
         final DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         drawerLayout.closeDrawer(GravityCompat.START);
-        fragmentTransaction.replace(mContentMain.getId(), fragment).addToBackStack(null).commitAllowingStateLoss();
+
+
+        fragmentTransaction.replace(mContentMain.getId(), fragment, fragment.getClass().getName())
+                .addToBackStack(fragment.getClass().getName()).commitAllowingStateLoss();
     }
 
-    @Override
-    public void onAcquireTokenClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
-        loadMsalApplicationFromRequestParameters(requestOptions, new MsalWrapper.IMsalApplicationLoaded() {
-            @Override
-            public void onApplicationLoaded() {
-                MsalWrapper.getInstance().acquireToken(MainActivity.this, requestOptions, operationResultCallback);
-            }
-        });
-    }
-
-    @Override
-    public void onAcquireTokenWithResourceClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
-        loadMsalApplicationFromRequestParameters(requestOptions, new MsalWrapper.IMsalApplicationLoaded() {
-            @Override
-            public void onApplicationLoaded() {
-                MsalWrapper.getInstance().acquireTokenWithResourceId(MainActivity.this, requestOptions, operationResultCallback);
-            }
-        });
-    }
-
-    @Override
-    public void onAcquireTokenSilentWithResourceClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
-        loadMsalApplicationFromRequestParameters(requestOptions, new MsalWrapper.IMsalApplicationLoaded() {
-            @Override
-            public void onApplicationLoaded() {
-                MsalWrapper.getInstance().acquireTokenSilentWithResource(requestOptions, operationResultCallback);
-            }
-        });
-    }
-
-    public void onRemoveUserClicked(final String username) {
-        MsalWrapper.getInstance().removeAccount(username, operationResultCallback);
-    }
-
-    @Override
-    public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
-        loadMsalApplicationFromRequestParameters(requestOptions, new MsalWrapper.IMsalApplicationLoaded() {
-            @Override
-            public void onApplicationLoaded() {
-                MsalWrapper.getInstance().acquireTokenSilent(requestOptions, operationResultCallback);
-            }
-        });
-    }
-
-    @Override
-    public void bindSelectAccountSpinner(final Spinner selectUser,
-                                         final List<IAccount> accounts) {
-        final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
-                getApplicationContext(), android.R.layout.simple_spinner_item,
-                new ArrayList<String>() {{
-                    if (accounts != null) {
-                        for (IAccount account : accounts) {
-                            add(getUsernameFromIAccount(account));
-                        }
-                    }
-                }}
-        );
-        userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        selectUser.setAdapter(userAdapter);
-    }
-
-    private String getUsernameFromIAccount(@NonNull IAccount account){
-        String username = account.getUsername();
-        if(account.getClaims() == null && account instanceof MultiTenantAccount){
-            // parse tenant profiles to get the account name
-            for(ITenantProfile profile : ((MultiTenantAccount) account).getTenantProfiles().values()){
-                if(profile.getClaims() != null){
-                    username = profile.getUsername();
-                    break;
-                }
-            }
-        }
-        return username;
-    }
-
-    void loadMsalApplicationFromRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions,
-                                                  final MsalWrapper.IMsalApplicationLoaded postApplicationLoaded) {
-
-        boolean enablePiiLogging = requestOptions.mEnablePII;
-        // The sample app is having the PII enable setting on the MainActivity. Ideally, app should decide to enable Pii or not,
-        // if it's enabled, it should be set when the application is onCreate.
-        Logger.getInstance().setEnableLogcatLog(enablePiiLogging);
-        if (enablePiiLogging) {
-            Logger.getInstance().setEnablePII(true);
-        } else {
-            Logger.getInstance().setEnablePII(false);
-        }
-
-        Constants.UserAgent userAgent = requestOptions.getUserAgent();
-        //Azure Active Environment (PPE vs. Prod)
-        Constants.AzureActiveDirectoryEnvironment environment = requestOptions.getEnvironment();
-
-        int configFileResourceId = R.raw.msal_config;
-
-        if (userAgent.name().equalsIgnoreCase("BROWSER")) {
-            configFileResourceId = R.raw.msal_config_browser;
-        } else if (userAgent.name().equalsIgnoreCase("WEBVIEW")) {
-            configFileResourceId = R.raw.msal_config_webview;
-        }
-
-        if (environment == Constants.AzureActiveDirectoryEnvironment.PREPRODUCTION) {
-            configFileResourceId = R.raw.msal_ppe_config;
-        }
-
-        MsalWrapper.getInstance().loadMsalApplication(this.getApplicationContext(),
-                configFileResourceId,
-                operationResultCallback,
-                postApplicationLoaded
-        );
-    }
 
     private NavigationView getNavigationView() {
         final NavigationView navigationView = findViewById(R.id.nav_view);
@@ -354,17 +239,19 @@ public class MainActivity extends AppCompatActivity
         return navigationView;
     }
 
-    private void showMessage(final String msg) {
-        getHandler().post(new Runnable() {
+    @Override
+    public void onGetAuthResult(IAuthenticationResult result) {
+        mAuthResult = result;
+        onNavigationItemSelected(getNavigationView().getMenu().getItem(1));
+    }
+
+    private void showMessageWithToast(final String msg) {
+        new Handler(getMainLooper()).post(new Runnable() {
 
             @Override
             public void run() {
-                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
             }
         });
-    }
-
-    private Handler getHandler() {
-        return new Handler(MainActivity.this.getMainLooper());
     }
 }

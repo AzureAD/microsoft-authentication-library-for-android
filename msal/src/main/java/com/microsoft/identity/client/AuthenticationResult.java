@@ -25,6 +25,7 @@ package com.microsoft.identity.client;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.microsoft.identity.common.internal.authscheme.TokenAuthenticationScheme;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccessTokenRecord;
 
@@ -42,7 +43,7 @@ public final class AuthenticationResult implements IAuthenticationResult {
     private final AccessTokenRecord mAccessToken;
     private final IAccount mAccount;
 
-    public AuthenticationResult(@NonNull final List<ICacheRecord> cacheRecords) {
+    AuthenticationResult(@NonNull final List<ICacheRecord> cacheRecords) {
         final ICacheRecord mostRecentlyAuthorized = cacheRecords.get(0);
         mAccessToken = mostRecentlyAuthorized.getAccessToken();
         mTenantId = mostRecentlyAuthorized.getAccount().getRealm();
@@ -55,9 +56,28 @@ public final class AuthenticationResult implements IAuthenticationResult {
         return mAccessToken.getSecret();
     }
 
+    @NonNull
+    @Override
+    public String getAuthorizationHeader() {
+        final String scheme = mAccessToken.getAccessTokenType();
+
+        return scheme
+                + TokenAuthenticationScheme.SCHEME_DELIMITER
+                + mAccessToken.getSecret();
+    }
+
+    @NonNull
+    @Override
+    public String getAuthenticationScheme() {
+        return mAccessToken.getAccessTokenType();
+    }
+
     @Override
     @NonNull
     public Date getExpiresOn() {
+        // TODO how should this work for PoP?
+        // Middleware will assume 5 min expiry for PoP tokens
+        // Client (MSAL) will not be aware of configured value
         final Date expiresOn;
 
         expiresOn = new Date(

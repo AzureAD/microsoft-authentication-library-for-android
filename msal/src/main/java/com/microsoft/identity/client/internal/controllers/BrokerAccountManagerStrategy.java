@@ -33,10 +33,9 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 
+import com.microsoft.identity.client.exception.BrokerCommunicationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
-import com.microsoft.identity.common.exception.BrokerCommunicationException;
-import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
@@ -57,7 +56,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
 
     public interface OperationInfo<T extends OperationParameters, U> {
         /**
-         * Performs this account manager operation in this method with the given IMicrosoftAuthService.
+         * Performs this AccountManager operation in this method with the given IMicrosoftAuthService.
          */
         Bundle getRequestBundle(T parameters);
 
@@ -107,7 +106,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                             .putErrorCode(ErrorStrings.IO_ERROR)
                             .putErrorDescription(e.getMessage()));
 
-            throw new BrokerCommunicationException("Failed to connect to AccountManager");
+            throw new BrokerCommunicationException("Failed to connect to AccountManager", e);
         } catch (final BaseException e) {
             Logger.error(TAG + methodName, e.getMessage(), e);
             Telemetry.emit(
@@ -135,7 +134,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
             throws BaseException {
 
         if (!BrokerMsalController.isAccountManagerPermissionsGranted(parameters.getAppContext())) {
-            throw new BrokerCommunicationException("Account manager permissions are not granted");
+            throw new BrokerCommunicationException("AccountManager permissions are not granted", null);
         }
 
         invokeBrokerAccountManagerOperation(parameters, new OperationInfo<OperationParameters, Void>() {
@@ -169,7 +168,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     @WorkerThread
     Intent getBrokerAuthorizationIntent(@NonNull final AcquireTokenOperationParameters parameters) throws BaseException {
         final String methodName = ":getBrokerAuthorizationIntent";
-        Logger.verbose(TAG + methodName, "Get the broker authorization intent from Account Manager.");
+        Logger.verbose(TAG + methodName, "Get the broker authorization intent from AccountManager.");
 
         return invokeBrokerAccountManagerOperation(parameters,
                 new OperationInfo<AcquireTokenOperationParameters, Intent>() {

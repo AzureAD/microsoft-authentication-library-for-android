@@ -22,16 +22,12 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
-import android.accounts.AuthenticatorException;
-import android.accounts.OperationCanceledException;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.RemoteException;
 
 import androidx.annotation.NonNull;
 
-import com.google.gson.Gson;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.internal.broker.BrokerRequest;
@@ -43,9 +39,9 @@ import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+
+import static com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter.sRequestAdapterGsonInstance;
 
 abstract class BrokerBaseStrategy {
     protected final MsalBrokerRequestAdapter mRequestAdapter = new MsalBrokerRequestAdapter();
@@ -62,7 +58,7 @@ abstract class BrokerBaseStrategy {
 
     abstract void removeBrokerAccount(@NonNull final OperationParameters parameters) throws BaseException;
 
-    abstract boolean getDeviceMode(@NonNull final OperationParameters parameters)throws BaseException;
+    abstract boolean getDeviceMode(@NonNull final OperationParameters parameters) throws BaseException;
 
     abstract List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull final OperationParameters parameters) throws BaseException;
 
@@ -77,12 +73,13 @@ abstract class BrokerBaseStrategy {
     }
 
     protected Intent completeInteractiveRequestIntent(@NonNull final Intent interactiveRequestIntent,
-                                                      @NonNull final AcquireTokenOperationParameters parameters){
+                                                      @NonNull final AcquireTokenOperationParameters parameters) {
         interactiveRequestIntent.putExtra(
                 AuthenticationConstants.Broker.BROKER_REQUEST_V2,
-                new Gson().toJson(
+                sRequestAdapterGsonInstance.toJson(
                         mRequestAdapter.brokerRequestFromAcquireTokenParameters(parameters),
-                        BrokerRequest.class)
+                        BrokerRequest.class
+                )
         );
 
         return interactiveRequestIntent;

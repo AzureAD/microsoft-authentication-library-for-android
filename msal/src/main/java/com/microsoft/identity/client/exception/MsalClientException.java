@@ -186,6 +186,11 @@ public final class MsalClientException extends MsalException {
     public static final String APP_MANIFEST_VALIDATION_ERROR = "app_manifest_validation_error";
 
     /**
+     * Developer error. The redirect URI in the configuration file doesn't match with the one generated with package name and signature hash.
+     */
+    public static final String REDIRECT_URI_VALIDATION_ERROR = "redirect_uri_validation_error";
+
+    /**
      * Temporary non-exposed error code to indicate that ADFS authority validation fails. ADFS as authority is not supported
      * for preview.
      */
