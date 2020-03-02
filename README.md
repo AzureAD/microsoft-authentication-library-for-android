@@ -221,6 +221,7 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 |12/17/19 | [MSAL 1.1.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.1.0) | | Expose raw id_token IAccount/ITenantProfile from AuthenticationResult|
 | 02/04/20 | [MSAL 1.2.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.2.0) | | Adds spinner to WebView interactive requests, replaced PublicClientApplication create methods, adds fragment support to WebView flow, bug fixes|
 | 02/12/20 | [MSAL 1.3.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.3.0) | | Bug fixes & WebView zoom controls configurable|
+|Projected for end of Q4| Proof of Possession ||Access Token Proof of Possession is currently in preview and is not yet recommended for production environments. [Learn more.](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/docs/access_token-pop.md)
 
 
 ## Security Library
