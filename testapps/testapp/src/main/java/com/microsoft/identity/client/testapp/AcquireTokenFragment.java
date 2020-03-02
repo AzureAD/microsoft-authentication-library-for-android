@@ -60,6 +60,7 @@ public class AcquireTokenFragment extends Fragment {
     private Spinner mPrompt;
     private EditText mScope;
     private EditText mExtraScope;
+    private EditText mClaims;
     private Switch mEnablePII;
     private Switch mForceRefresh;
     private Button mGetUsers;
@@ -96,6 +97,7 @@ public class AcquireTokenFragment extends Fragment {
         mPrompt = view.findViewById(R.id.promptBehavior);
         mScope = view.findViewById(R.id.scope);
         mExtraScope = view.findViewById(R.id.extraScope);
+        mClaims = view.findViewById(R.id.claims);
         mEnablePII = view.findViewById(enablePII);
         mForceRefresh = view.findViewById(R.id.forceRefresh);
         mSelectAccount = view.findViewById(R.id.select_user);
@@ -354,13 +356,14 @@ public class AcquireTokenFragment extends Fragment {
         final Prompt promptBehavior = Prompt.valueOf(mPrompt.getSelectedItem().toString());
         final String scopes = mScope.getText().toString();
         final String extraScopesToConsent = mExtraScope.getText().toString();
+        final String claims = mClaims.getText().toString();
         final boolean enablePII = mEnablePII.isChecked();
         final boolean forceRefresh = mForceRefresh.isChecked();
         final String authority = mAuthority.getText().toString();
         final Constants.AuthScheme authScheme = Constants.AuthScheme.valueOf(mAuthScheme.getSelectedItem().toString());
         final HttpMethod popHttpMethod = HttpMethod.valueOf(mPopHttpMethod.getSelectedItem().toString());
         final String popResourceUrl = mPopResourceUrl.getText().toString();
-        return new RequestOptions(configFile, loginHint, account, promptBehavior, scopes, extraScopesToConsent, enablePII, forceRefresh, authority, authScheme, popHttpMethod, popResourceUrl);
+        return new RequestOptions(configFile, loginHint, account, promptBehavior, scopes, extraScopesToConsent, claims, enablePII, forceRefresh, authority, authScheme, popHttpMethod, popResourceUrl);
     }
 
     private void loadMsalApplicationFromRequestParameters(final RequestOptions requestOptions) {

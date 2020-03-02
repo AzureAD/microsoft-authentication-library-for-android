@@ -15,6 +15,7 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
 import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
@@ -109,6 +110,10 @@ abstract class MsalWrapper {
 
         if (requestOptions.getAuthority() != null && !requestOptions.getAuthority().isEmpty()) {
             builder.fromAuthority(requestOptions.getAuthority());
+        }
+
+        if (requestOptions.getClaims() != null && !requestOptions.getClaims().isEmpty()) {
+            builder.withClaims(ClaimsRequest.getClaimsRequestFromJsonString(requestOptions.getClaims()));
         }
 
         if (requestOptions.getAuthScheme() == Constants.AuthScheme.POP) {
