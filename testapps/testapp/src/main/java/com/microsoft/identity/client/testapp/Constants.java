@@ -37,6 +37,7 @@ public class Constants {
         MOONCAKE,
         BLACKFOREST,
         INSTANCE_AWARE_COMMON,
+        INSTANCE_AWARE_COMMON_SKIP_BROKER,
         INSTANCE_AWARE_ORGANIZATION,
         B2C,
         MSA
@@ -64,6 +65,9 @@ public class Constants {
 
             case INSTANCE_AWARE_COMMON:
                 return R.raw.msal_config_instance_aware_common;
+
+            case INSTANCE_AWARE_COMMON_SKIP_BROKER:
+                return R.raw.msal_config_instance_aware_common_skip_broker;
 
             case INSTANCE_AWARE_ORGANIZATION:
                 return R.raw.msal_config_instance_aware_organization;

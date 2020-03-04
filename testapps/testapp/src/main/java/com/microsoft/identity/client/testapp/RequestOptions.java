@@ -34,6 +34,7 @@ class RequestOptions
     final Prompt mPrompt;
     final String mScope;
     final String mExtraScope;
+    final String mClaims;
     final boolean mEnablePII;
     final boolean mForceRefresh;
     final String mAuthority;
@@ -47,6 +48,7 @@ class RequestOptions
                    final Prompt prompt,
                    final String scope,
                    final String extraScope,
+                   final String claims,
                    final boolean enablePII,
                    final boolean forceRefresh,
                    final String authority,
@@ -59,6 +61,7 @@ class RequestOptions
         mPrompt = prompt;
         mScope = scope;
         mExtraScope = extraScope;
+        mClaims = claims;
         mEnablePII = enablePII;
         mForceRefresh = forceRefresh;
         mAuthority = authority;
@@ -89,6 +92,10 @@ class RequestOptions
 
     String getExtraScopesToConsent() {
         return mExtraScope;
+    }
+
+    String getClaims() {
+        return mClaims;
     }
 
     boolean enablePiiLogging() {
