@@ -23,6 +23,7 @@
 package com.microsoft.identity.client.testapp;
 
 import android.app.Application;
+import android.content.Context;
 import android.util.Log;
 
 import com.microsoft.identity.client.ILoggerCallback;
@@ -31,6 +32,11 @@ import com.microsoft.identity.common.internal.telemetry.Telemetry;
 import com.microsoft.identity.common.internal.telemetry.observers.ITelemetryAggregatedObserver;
 import com.microsoft.identity.common.internal.telemetry.observers.ITelemetryDefaultObserver;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -44,23 +50,36 @@ public class MsalSampleApp extends Application {
     private StringBuilder mLogs;
     private int mLogSize;
 
+    private synchronized void writeToLogFile(Context ctx, String msg) {
+        File directory = ctx.getDir(ctx.getPackageName(), Context.MODE_PRIVATE);
+        File logFile = new File(directory, "msallogs.txt");
+        FileOutputStream outputStream = null;
+        try {
+            outputStream = new FileOutputStream(logFile, true);
+            OutputStreamWriter osw = new OutputStreamWriter(outputStream);
+            osw.write(msg);
+            osw.flush();
+            osw.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
         mLogs = new StringBuilder();
+
+        Logger.getInstance().setEnableLogcatLog(true);
 
         // Logging can be turned on four different levels: error, warning, info, and verbose. By default the sdk is turning on
         // verbose level logging. Any apps can use Logger.getInstance().setLogLevel(Loglevel) to enable different level of logging.
         Logger.getInstance().setExternalLogger(new ILoggerCallback() {
             @Override
             public void log(String tag, Logger.LogLevel logLevel, String message, boolean containsPII) {
-                // contains PII indicates that if the log message contains PII information. If Pii logging is
-                // disabled, the sdk never returns back logs with Pii.
-                mLogSize = mLogs.toString().getBytes().length;
-                if (mLogSize + message.getBytes().length >= LOG_SIZE) {
-                    clearLogs();
-                }
-                mLogs.append(message).append('\n');
+                writeToLogFile(getApplicationContext(), "TAG: " + message);
             }
         });
 
