@@ -46,9 +46,7 @@ import java.util.Map;
  */
 
 public class MsalSampleApp extends Application {
-    private static final int LOG_SIZE = 1024 * 1024;
     private StringBuilder mLogs;
-    private int mLogSize;
 
     private synchronized void writeToLogFile(Context ctx, String msg) {
         File directory = ctx.getDir(ctx.getPackageName(), Context.MODE_PRIVATE);
@@ -73,6 +71,7 @@ public class MsalSampleApp extends Application {
         mLogs = new StringBuilder();
 
         Logger.getInstance().setEnableLogcatLog(true);
+        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
 
         // Logging can be turned on four different levels: error, warning, info, and verbose. By default the sdk is turning on
         // verbose level logging. Any apps can use Logger.getInstance().setLogLevel(Loglevel) to enable different level of logging.
@@ -120,6 +119,6 @@ public class MsalSampleApp extends Application {
 
     void clearLogs() {
         mLogs = new StringBuilder();
-        mLogSize = 0;
+        //mLogSize = 0;
     }
 }
