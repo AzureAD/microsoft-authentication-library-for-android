@@ -1657,24 +1657,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             throw new IllegalStateException(NONNULL_CONSTANTS.CALLBACK + NONNULL_CONSTANTS.NULL_ERROR_SUFFIX);
         }
 
-        // Check if any of the requested scopes are declined by the server, if yes throw a MsalDeclinedScope exception
-        final List<String> declinedScopes = AuthenticationResultAdapter.getDeclinedScopes(
-                Arrays.asList(localAuthenticationResult.getScope()),
-                requestParameters.getScopes()
-        );
-
-        if (!declinedScopes.isEmpty()) {
-            final MsalDeclinedScopeException declinedScopeException =
-                    AuthenticationResultAdapter.declinedScopeExceptionFromResult(
-                            localAuthenticationResult,
-                            declinedScopes,
-                            requestParameters
-                    );
-            authenticationCallback.onError(declinedScopeException);
-        } else {
-            IAuthenticationResult authenticationResult = AuthenticationResultAdapter.adapt(localAuthenticationResult);
-            authenticationCallback.onSuccess(authenticationResult);
-        }
+        IAuthenticationResult authenticationResult = AuthenticationResultAdapter.adapt(localAuthenticationResult);
+        authenticationCallback.onSuccess(authenticationResult);
+    
     }
 
     private OAuth2TokenCache<?, ?, ?> getOAuth2TokenCache() {
