@@ -223,6 +223,59 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
         expectedLast = "2|0|||";
         assertTelemetry(expectedCurrent, expectedLast);
+
+        // failed interactive request - service unavailable
+        for (int i = 0; i < 50; i++) {
+            networkRequestIndex++;
+            MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenFailureServiceUnavailable());
+            mApplication.acquireToken(parametersServiceUnavailable);
+            flushScheduler();
+        }
+
+        String actualLastHeader = sTelemetryHeaders.get(SchemaConstants.LAST_REQUEST_HEADER_NAME);
+        // Errors are accumulating in headers as not being logged by sts
+        Assert.assertTrue(actualLastHeader.length() > 2500 && actualLastHeader.length() < 3000);
+
+        // failed interactive request - service unavailable - do another 50 requests
+        for (int i = 0; i < 50; i++) {
+            networkRequestIndex++;
+            MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenFailureServiceUnavailable());
+            mApplication.acquireToken(parametersServiceUnavailable);
+            flushScheduler();
+        }
+
+        actualLastHeader = sTelemetryHeaders.get(SchemaConstants.LAST_REQUEST_HEADER_NAME);
+        // Errors are accumulating in headers as not being logged by sts
+        // making sure it doesn't go over 4KB limit
+        Assert.assertTrue(actualLastHeader.length() > 3000 && actualLastHeader.length() < 4096);
+
+        // do successful interactive request
+        MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
+        mApplication.acquireToken(parameters);
+        flushScheduler();
+
+        // most of the data should now be sent
+        actualLastHeader = sTelemetryHeaders.get(SchemaConstants.LAST_REQUEST_HEADER_NAME);
+        Assert.assertTrue(actualLastHeader.length() > 3000 && actualLastHeader.length() < 4096);
+
+        // do another successful interactive request
+        MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
+        mApplication.acquireToken(parameters);
+        flushScheduler();
+
+        // remaining data should now be sent
+        actualLastHeader = sTelemetryHeaders.get(SchemaConstants.LAST_REQUEST_HEADER_NAME);
+        Assert.assertTrue(actualLastHeader.length() > 1000 && actualLastHeader.length() < 3000);
+
+        // do another successful interactive request
+        MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
+        mApplication.acquireToken(parameters);
+        flushScheduler();
+
+        // all data should now be sent
+        actualLastHeader = sTelemetryHeaders.get(SchemaConstants.LAST_REQUEST_HEADER_NAME);
+        Assert.assertTrue(actualLastHeader.length() < 100);
+
     }
 
     private void assertTelemetry(final String expectedCurrent, final String expectedLast) {
