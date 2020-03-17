@@ -82,7 +82,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
     }
 
     @Test
-    public void testAcquireTokenSuccess() {
+    public void testServerSideTelemetry() {
         final String username = "fake@test.com";
 
         // successful interactive request
@@ -273,8 +273,10 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // all data should now be sent
-        actualLastHeader = sTelemetryHeaders.get(SchemaConstants.LAST_REQUEST_HEADER_NAME);
-        Assert.assertTrue(actualLastHeader.length() < 100);
+        // assert telem
+        expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
+        expectedLast = "2|0|||";
+        assertTelemetry(expectedCurrent, expectedLast);
 
     }
 
