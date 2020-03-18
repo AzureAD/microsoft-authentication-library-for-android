@@ -48,6 +48,8 @@ import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
+import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
+import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
@@ -57,8 +59,11 @@ import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
+import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
+import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.controllers.CommandCallback;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
@@ -70,8 +75,13 @@ import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.EstsTelemetry;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
+import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
+import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
 import com.microsoft.identity.common.internal.net.HttpRequest;
 import com.microsoft.identity.common.internal.net.cache.HttpCache;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
@@ -84,6 +94,7 @@ import com.microsoft.identity.msal.BuildConfig;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -1819,6 +1830,43 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             return result.getResult();
         } else {
             throw result.getException();
+        }
+    }
+
+    void performMigration(@NonNull final TokenMigrationCallback callback) {
+        // Create the SharedPreferencesFileManager for the legacy accounts/credentials
+        final IStorageHelper storageHelper = new StorageHelper(mPublicClientConfiguration.getAppContext());
+        final ISharedPreferencesFileManager sharedPreferencesFileManager =
+                new SharedPreferencesFileManager(
+                        mPublicClientConfiguration.getAppContext(),
+                        "com.microsoft.aad.adal.cache",
+                        storageHelper
+                );
+
+        // Load the old TokenCacheItems as key/value JSON
+        final Map<String, String> credentials = sharedPreferencesFileManager.getAll();
+
+        final Map<String, String> redirects = new HashMap<>();
+        redirects.put(
+                mPublicClientConfiguration.getClientId(), // Our client id
+                mPublicClientConfiguration.getRedirectUri() // Our redirect uri
+        );
+
+        final AdalMigrationAdapter adalMigrationAdapter = new AdalMigrationAdapter(
+                mPublicClientConfiguration.getAppContext(),
+                redirects,
+                false
+        );
+
+        if (adalMigrationAdapter.getMigrationStatus()) {
+            callback.onMigrationFinished(0);
+        } else {
+            new TokenMigrationUtility<MicrosoftAccount, MicrosoftRefreshToken>()._import(
+                    adalMigrationAdapter,
+                    credentials,
+                    (IShareSingleSignOnState<MicrosoftAccount, MicrosoftRefreshToken>) mPublicClientConfiguration.getOAuth2TokenCache(),
+                    callback
+            );
         }
     }
 }
