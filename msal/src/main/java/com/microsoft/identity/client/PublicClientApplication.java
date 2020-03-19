@@ -1834,18 +1834,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     void performMigration(@NonNull final TokenMigrationCallback callback) {
-        // Create the SharedPreferencesFileManager for the legacy accounts/credentials
-        final IStorageHelper storageHelper = new StorageHelper(mPublicClientConfiguration.getAppContext());
-        final ISharedPreferencesFileManager sharedPreferencesFileManager =
-                new SharedPreferencesFileManager(
-                        mPublicClientConfiguration.getAppContext(),
-                        "com.microsoft.aad.adal.cache",
-                        storageHelper
-                );
-
-        // Load the old TokenCacheItems as key/value JSON
-        final Map<String, String> credentials = sharedPreferencesFileManager.getAll();
-
         final Map<String, String> redirects = new HashMap<>();
         redirects.put(
                 mPublicClientConfiguration.getClientId(), // Our client id
@@ -1861,6 +1849,18 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         if (adalMigrationAdapter.getMigrationStatus()) {
             callback.onMigrationFinished(0);
         } else {
+            // Create the SharedPreferencesFileManager for the legacy accounts/credentials
+            final IStorageHelper storageHelper = new StorageHelper(mPublicClientConfiguration.getAppContext());
+            final ISharedPreferencesFileManager sharedPreferencesFileManager =
+                    new SharedPreferencesFileManager(
+                            mPublicClientConfiguration.getAppContext(),
+                            "com.microsoft.aad.adal.cache",
+                            storageHelper
+                    );
+
+            // Load the old TokenCacheItems as key/value JSON
+            final Map<String, String> credentials = sharedPreferencesFileManager.getAll();
+
             new TokenMigrationUtility<MicrosoftAccount, MicrosoftRefreshToken>()._import(
                     adalMigrationAdapter,
                     credentials,
