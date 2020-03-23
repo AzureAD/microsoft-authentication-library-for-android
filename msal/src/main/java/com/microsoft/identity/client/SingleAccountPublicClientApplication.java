@@ -47,6 +47,7 @@ import com.microsoft.identity.common.internal.controllers.GetCurrentAccountComma
 import com.microsoft.identity.common.internal.controllers.RemoveCurrentAccountCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
+import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
@@ -92,43 +93,50 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     private void getCurrentAccountAsyncInternal(@NonNull final CurrentAccountCallback callback,
                                                 @NonNull final String publicApiId) {
-        final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
-        final BaseController controller;
-        try {
-            controller = MSALControllerFactory.getDefaultController(
-                    mPublicClientConfiguration.getAppContext(),
-                    params.getAuthority(),
-                    mPublicClientConfiguration);
-        } catch (MsalClientException e) {
-            callback.onError(e);
-            return;
-        }
+        TokenMigrationCallback migrationCallback = new TokenMigrationCallback() {
+            @Override
+            public void onMigrationFinished(int numberOfAccountsMigrated) {
+                final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
+                final BaseController controller;
+                try {
+                    controller = MSALControllerFactory.getDefaultController(
+                            mPublicClientConfiguration.getAppContext(),
+                            params.getAuthority(),
+                            mPublicClientConfiguration);
+                } catch (MsalClientException e) {
+                    callback.onError(e);
+                    return;
+                }
 
-        final GetCurrentAccountCommand command = new GetCurrentAccountCommand(
-                params,
-                controller,
-                new CommandCallback<List<ICacheRecord>, BaseException>() {
-                    @Override
-                    public void onTaskCompleted(final List<ICacheRecord> result) {
-                        // To simplify the logic, if more than one account is returned, the first account will be picked.
-                        // We do not support switching from MULTIPLE to SINGLE.
-                        // See getAccountFromICacheRecordList() for more details.
-                        checkCurrentAccountNotifyCallback(callback, result);
-                    }
+                final GetCurrentAccountCommand command = new GetCurrentAccountCommand(
+                        params,
+                        controller,
+                        new CommandCallback<List<ICacheRecord>, BaseException>() {
+                            @Override
+                            public void onTaskCompleted(final List<ICacheRecord> result) {
+                                // To simplify the logic, if more than one account is returned, the first account will be picked.
+                                // We do not support switching from MULTIPLE to SINGLE.
+                                // See getAccountFromICacheRecordList() for more details.
+                                checkCurrentAccountNotifyCallback(callback, result);
+                            }
 
-                    @Override
-                    public void onError(final BaseException exception) {
-                        callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
-                    }
+                            @Override
+                            public void onError(final BaseException exception) {
+                                callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
+                            }
 
-                    @Override
-                    public void onCancel() {
-                        //Do nothing
-                    }
-                });
+                            @Override
+                            public void onCancel() {
+                                //Do nothing
+                            }
+                        });
 
-        command.setPublicApiId(publicApiId);
-        CommandDispatcher.submitSilent(command);
+                command.setPublicApiId(publicApiId);
+                CommandDispatcher.submitSilent(command);
+            }
+        };
+
+        performMigration(migrationCallback);
     }
 
     @Override
