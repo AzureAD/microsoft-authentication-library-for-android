@@ -483,14 +483,24 @@ public class PublicClientApplicationConfiguration {
                 messageDigest.update(signature.toByteArray());
                 final String signatureHash = Base64.encodeToString(messageDigest.digest(), Base64.NO_WRAP);
 
-                final Uri.Builder builder = new Uri.Builder();
-                final Uri uri = builder.scheme("msauth")
+                final Uri decodedUri = new Uri.Builder()
+                        .scheme("msauth")
+                        .authority(packageName)
+                        .appendEncodedPath(signatureHash)
+                        .build();
+
+                // We shipped a bug where we supply encoded signature hash in the portal.
+                // This is kept for backward compatibility.
+                final Uri encodedUri = new Uri.Builder()
+                        .scheme("msauth")
                         .authority(packageName)
                         .appendPath(signatureHash)
                         .build();
 
-                if (mRedirectUri.equalsIgnoreCase(uri.toString())) {
+                if (mRedirectUri.equalsIgnoreCase(decodedUri.toString()) ||
+                        mRedirectUri.equalsIgnoreCase(encodedUri.toString())) {
                     // Life is good.
+                    mRedirectUri = decodedUri.toString();
                     return;
                 }
             }
