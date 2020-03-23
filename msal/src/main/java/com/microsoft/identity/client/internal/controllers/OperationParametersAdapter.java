@@ -97,6 +97,7 @@ public class OperationParametersAdapter {
 
         acquireTokenOperationParameters.setAuthenticationScheme(
                 AuthenticationSchemeFactory.createScheme(
+                        acquireTokenParameters.getActivity(),
                         acquireTokenParameters.getAuthenticationScheme()
                 )
         );
@@ -316,6 +317,7 @@ public class OperationParametersAdapter {
         atsOperationParams.setAccount(acquireTokenSilentParameters.getAccountRecord());
         atsOperationParams.setAuthenticationScheme(
                 AuthenticationSchemeFactory.createScheme(
+                        pcaConfig.getAppContext(),
                         acquireTokenSilentParameters.getAuthenticationScheme()
                 )
         );
