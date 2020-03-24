@@ -37,6 +37,7 @@ import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.mocks.MockServerResponse;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -81,6 +82,13 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         sCorrelationIdList.add(correlationId);
     }
 
+    @Before
+    public void setup() {
+        sTelemetryHeaders = null;
+        sCorrelationIdList.clear();
+        super.setup();
+    }
+
     @Test
     public void testServerSideTelemetry() {
         final String username = "fake@test.com";
@@ -102,7 +110,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
         // assert telem
         String expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
-        String expectedLast = "2|0|||";
+        String expectedLast = "2|0|||1";
         assertTelemetry(expectedCurrent, expectedLast);
 
         // successful silent request - served from cache
@@ -142,7 +150,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
         // assert telem
         expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
-        expectedLast = "2|2|||";
+        expectedLast = "2|2|||1";
         assertTelemetry(expectedCurrent, expectedLast);
 
         // failed silent request - goes to token endpoint - invalid scope
@@ -162,8 +170,8 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
         // assert telem
         expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
-        expectedLast = "2|0|" + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS +"," +
-                sCorrelationIdList.get(networkRequestIndex - 1) + "|invalid_grant|";
+        expectedLast = "2|0|" + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + "," +
+                sCorrelationIdList.get(networkRequestIndex - 1) + "|invalid_grant|1";
         assertTelemetry(expectedCurrent, expectedLast);
 
         // failure interactive request - service unavailable
@@ -183,8 +191,8 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
         // assert telem
         expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
-        expectedLast = "2|0|" + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS +"," +
-                sCorrelationIdList.get(networkRequestIndex - 1) + "|invalid_scope|";
+        expectedLast = "2|0|" + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + "," +
+                sCorrelationIdList.get(networkRequestIndex - 1) + "|invalid_scope|1";
         assertTelemetry(expectedCurrent, expectedLast);
 
         // successful interactive request
@@ -198,9 +206,9 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         // assert telem
         expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
         expectedLast = "2|0|" +
-                PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS +"," + sCorrelationIdList.get(networkRequestIndex - 2) +
+                PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + "," + sCorrelationIdList.get(networkRequestIndex - 2) +
                 "," + PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + "," + sCorrelationIdList.get(networkRequestIndex - 1) +
-                "|invalid_scope,service_unavailable|";
+                "|invalid_scope,service_unavailable|1";
         assertTelemetry(expectedCurrent, expectedLast);
 
         // successful silent request - goes to token endpoint
@@ -221,7 +229,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
         // assert telem
         expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
-        expectedLast = "2|0|||";
+        expectedLast = "2|0|||1";
         assertTelemetry(expectedCurrent, expectedLast);
 
         // failed interactive request - service unavailable
@@ -258,6 +266,9 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         actualLastHeader = sTelemetryHeaders.get(SchemaConstants.LAST_REQUEST_HEADER_NAME);
         Assert.assertTrue(actualLastHeader.length() > 3000 && actualLastHeader.length() < 4096);
 
+        final String lastParts[] = actualLastHeader.split("|");
+        Assert.assertEquals("0", lastParts[lastParts.length - 1]);
+
         // do another successful interactive request
         MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
         mApplication.acquireToken(parameters);
@@ -275,7 +286,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         // all data should now be sent
         // assert telem
         expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
-        expectedLast = "2|0|||";
+        expectedLast = "2|0|||1";
         assertTelemetry(expectedCurrent, expectedLast);
 
     }
