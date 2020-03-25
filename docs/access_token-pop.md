@@ -1,5 +1,7 @@
 # (Preview) MSAL Android: Requesting Proof of Possession Protected Access Tokens
 
+>**Important:**<br/>Proof of Possession Protected Access Tokens is a **preview** feature for select limited deployment environments. As such, the below-documented APIs are subject to change or removal.<br/><br/>Developers consuming MSAL in their applications are advised to make use of the `Bearer` authentication scheme (default) due to protocol incompatibilties which may arise due to active and evolving development of this feature.
+
 ## What is a PoP/AT?
 To understand the purpose and benefits offered by PoP, it is important to understand the security posture of a standard Bearer token.
 
@@ -21,7 +23,7 @@ Yes! PoP and Bearer flows may be used interchangeably with MSAL and with support
 MSAL supports PoP on Android devices running Android 4.3 Jelly Bean (API 18) or higher.
 
 ## Configure MSAL for use with PoP
-In order to use PoP with MSAL, the `minimum_required_broker_protocol_version` must be `"4.0"`. If you application only makes use of Bearer flows, `"3.0"` will work.
+In order to use PoP with MSAL, the `minimum_required_broker_protocol_version` must be `"4.0"`. If your application only makes use of Bearer flows, `"3.0"` will work.
 
 `app_config.json`
 ```json

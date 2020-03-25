@@ -35,30 +35,19 @@ import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
-import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
-import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
-import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
-import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.controllers.CommandCallback;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.controllers.LoadAccountCommand;
 import com.microsoft.identity.common.internal.controllers.RemoveAccountCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
-import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
-import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
-import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
-import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
 
@@ -110,92 +99,43 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
      */
     private void getAccountsInternal(@NonNull final LoadAccountsCallback callback,
                                      @NonNull final String publicApiId) {
-        final String methodName = ":getAccounts";
-        final List<ICacheRecord> accounts =
-                mPublicClientConfiguration
-                        .getOAuth2TokenCache()
-                        .getAccountsWithAggregatedAccountData(
-                                null, // * wildcard
-                                mPublicClientConfiguration.getClientId()
-                        );
+        TokenMigrationCallback migrationCallback = new TokenMigrationCallback() {
+            @Override
+            public void onMigrationFinished(int numberOfAccountsMigrated) {
+                final Handler handler;
 
-        final Handler handler;
+                if (null != Looper.myLooper() && Looper.getMainLooper() != Looper.myLooper()) {
+                    handler = new Handler(Looper.myLooper());
+                } else {
+                    handler = new Handler(Looper.getMainLooper());
+                }
 
-        if (null != Looper.myLooper() && Looper.getMainLooper() != Looper.myLooper()) {
-            handler = new Handler(Looper.myLooper());
-        } else {
-            handler = new Handler(Looper.getMainLooper());
-        }
-
-        if (accounts.isEmpty()) {
-            // Create the SharedPreferencesFileManager for the legacy accounts/credentials
-            final IStorageHelper storageHelper = new StorageHelper(mPublicClientConfiguration.getAppContext());
-            final ISharedPreferencesFileManager sharedPreferencesFileManager =
-                    new SharedPreferencesFileManager(
-                            mPublicClientConfiguration.getAppContext(),
-                            "com.microsoft.aad.adal.cache",
-                            storageHelper
+                try {
+                    final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
+                    final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
+                            params,
+                            MSALControllerFactory.getAllControllers(
+                                    mPublicClientConfiguration.getAppContext(),
+                                    params.getAuthority(),
+                                    mPublicClientConfiguration
+                            ),
+                            getLoadAccountsCallback(callback)
                     );
 
-            // Load the old TokenCacheItems as key/value JSON
-            final Map<String, String> credentials = sharedPreferencesFileManager.getAll();
-
-            final Map<String, String> redirects = new HashMap<>();
-            redirects.put(
-                    mPublicClientConfiguration.getClientId(), // Our client id
-                    mPublicClientConfiguration.getRedirectUri() // Our redirect uri
-            );
-
-            new TokenMigrationUtility<MicrosoftAccount, MicrosoftRefreshToken>()._import(
-                    new AdalMigrationAdapter(
-                            mPublicClientConfiguration.getAppContext(),
-                            redirects,
-                            false
-                    ),
-                    credentials,
-                    (IShareSingleSignOnState<MicrosoftAccount, MicrosoftRefreshToken>) mPublicClientConfiguration.getOAuth2TokenCache(),
-                    new TokenMigrationCallback() {
+                    loadAccountCommand.setPublicApiId(publicApiId);
+                    CommandDispatcher.submitSilent(loadAccountCommand);
+                } catch (final MsalClientException e) {
+                    handler.post(new Runnable() {
                         @Override
-                        public void onMigrationFinished(int numberOfAccountsMigrated) {
-                            final String extendedMethodName = ":onMigrationFinished";
-                            com.microsoft.identity.common.internal.logging.Logger.info(
-                                    TAG + methodName + extendedMethodName,
-                                    "Migrated [" + numberOfAccountsMigrated + "] accounts"
-                            );
+                        public void run() {
+                            callback.onError(e);
                         }
-                    }
-            );
-        } else {
-            // The cache contains items - mark migration as complete
-            new AdalMigrationAdapter(
-                    mPublicClientConfiguration.getAppContext(),
-                    null, // unused for this path
-                    false
-            ).setMigrationStatus(true);
-        }
-
-        try {
-            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
-            final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
-                    params,
-                    MSALControllerFactory.getAllControllers(
-                            mPublicClientConfiguration.getAppContext(),
-                            params.getAuthority(),
-                            mPublicClientConfiguration
-                    ),
-                    getLoadAccountsCallback(callback)
-            );
-
-            loadAccountCommand.setPublicApiId(publicApiId);
-            CommandDispatcher.submitSilent(loadAccountCommand);
-        } catch (final MsalClientException e) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    callback.onError(e);
+                    });
                 }
-            });
-        }
+            }
+        };
+
+        performMigration(migrationCallback);
     }
 
     @Override
@@ -249,87 +189,94 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     private void getAccountInternal(@NonNull final String identifier,
                                     @NonNull final GetAccountCallback callback,
                                     @NonNull final String publicApiId) {
-        final String methodName = ":getAccount";
+        TokenMigrationCallback migrationCallback = new TokenMigrationCallback() {
+            @Override
+            public void onMigrationFinished(int numberOfAccountsMigrated) {
+                final String methodName = ":getAccount";
 
-        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                TAG + methodName,
-                "Get account with the identifier."
-        );
+                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                        TAG + methodName,
+                        "Get account with the identifier."
+                );
 
-        try {
-            final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
-            final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
-                    params,
-                    MSALControllerFactory.getAllControllers(
-                            mPublicClientConfiguration.getAppContext(),
-                            params.getAuthority(),
-                            mPublicClientConfiguration
-                    ),
-                    new CommandCallback<List<ICacheRecord>, BaseException>() {
-                        @Override
-                        public void onTaskCompleted(final List<ICacheRecord> result) {
-                            if (null == result || result.size() == 0) {
-                                com.microsoft.identity.common.internal.logging.Logger.verbose(
-                                        TAG + methodName,
-                                        "No account found.");
-                                callback.onTaskCompleted(null);
-                            } else {
-                                // First, transform the result into IAccount + TenantProfile form
-                                final List<IAccount>
-                                        accounts = AccountAdapter.adapt(result);
+                try {
+                    final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
+                    final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
+                            params,
+                            MSALControllerFactory.getAllControllers(
+                                    mPublicClientConfiguration.getAppContext(),
+                                    params.getAuthority(),
+                                    mPublicClientConfiguration
+                            ),
+                            new CommandCallback<List<ICacheRecord>, BaseException>() {
+                                @Override
+                                public void onTaskCompleted(final List<ICacheRecord> result) {
+                                    if (null == result || result.size() == 0) {
+                                        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                                                TAG + methodName,
+                                                "No account found.");
+                                        callback.onTaskCompleted(null);
+                                    } else {
+                                        // First, transform the result into IAccount + TenantProfile form
+                                        final List<IAccount>
+                                                accounts = AccountAdapter.adapt(result);
 
-                                final String trimmedIdentifier = identifier.trim();
+                                        final String trimmedIdentifier = identifier.trim();
 
-                                // Evaluation precedence...
-                                //     1. home_account_id
-                                //     2. local_account_id
-                                //     3. username
-                                //     4. Give up.
+                                        // Evaluation precedence...
+                                        //     1. home_account_id
+                                        //     2. local_account_id
+                                        //     3. username
+                                        //     4. Give up.
 
-                                final AccountMatcher accountMatcher = new AccountMatcher(
-                                        homeAccountMatcher,
-                                        localAccountMatcher,
-                                        usernameMatcher
-                                );
+                                        final AccountMatcher accountMatcher = new AccountMatcher(
+                                                homeAccountMatcher,
+                                                localAccountMatcher,
+                                                usernameMatcher
+                                        );
 
-                                for (final IAccount account : accounts) {
-                                    if (accountMatcher.matches(trimmedIdentifier, account)) {
-                                        callback.onTaskCompleted(account);
-                                        return;
+                                        for (final IAccount account : accounts) {
+                                            if (accountMatcher.matches(trimmedIdentifier, account)) {
+                                                callback.onTaskCompleted(account);
+                                                return;
+                                            }
+                                        }
+
+                                        callback.onTaskCompleted(null);
                                     }
                                 }
 
-                                callback.onTaskCompleted(null);
+                                @Override
+                                public void onError(final BaseException exception) {
+                                    com.microsoft.identity.common.internal.logging.Logger.error(
+                                            TAG + methodName,
+                                            exception.getMessage(),
+                                            exception
+                                    );
+                                    callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
+                                }
+
+                                @Override
+                                public void onCancel() {
+
+                                }
                             }
-                        }
+                    );
 
-                        @Override
-                        public void onError(final BaseException exception) {
-                            com.microsoft.identity.common.internal.logging.Logger.error(
-                                    TAG + methodName,
-                                    exception.getMessage(),
-                                    exception
-                            );
-                            callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
-                        }
+                    loadAccountCommand.setPublicApiId(publicApiId);
+                    CommandDispatcher.submitSilent(loadAccountCommand);
+                } catch (final MsalClientException e) {
+                    com.microsoft.identity.common.internal.logging.Logger.error(
+                            TAG + methodName,
+                            e.getMessage(),
+                            e
+                    );
+                    callback.onError(e);
+                }
+            }
+        };
 
-                        @Override
-                        public void onCancel() {
-
-                        }
-                    }
-            );
-
-            loadAccountCommand.setPublicApiId(publicApiId);
-            CommandDispatcher.submitSilent(loadAccountCommand);
-        } catch (final MsalClientException e) {
-            com.microsoft.identity.common.internal.logging.Logger.error(
-                    TAG + methodName,
-                    e.getMessage(),
-                    e
-            );
-            callback.onError(e);
-        }
+        performMigration(migrationCallback);
     }
 
     @Override
