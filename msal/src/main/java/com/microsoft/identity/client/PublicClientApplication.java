@@ -181,6 +181,7 @@ import static com.microsoft.identity.common.internal.util.StringUtil.isUuid;
  * </p>
  * </p>
  */
+//test
 public class PublicClientApplication implements IPublicClientApplication, ITokenShare {
 
     private static final String TAG = PublicClientApplication.class.getSimpleName();
