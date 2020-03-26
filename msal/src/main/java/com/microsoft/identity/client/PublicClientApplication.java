@@ -981,7 +981,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         final String methodName = ":initializeApplication";
 
         final Context context = mPublicClientConfiguration.getAppContext();
-        EstsTelemetry.getInstance().setupLastRequestTelemetryCache(context);
         setupTelemetry(context, mPublicClientConfiguration);
 
         AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
