@@ -52,7 +52,7 @@ public class PublicClientApplicationConfigurationFactory {
     private static final String TAG = PublicClientApplicationConfigurationFactory.class.getSimpleName();
 
     /**
-     * Initalizes a default PublicClientApplicationConfiguration object.
+     * Initializes a default PublicClientApplicationConfiguration object.
      **/
     @WorkerThread
     public static PublicClientApplicationConfiguration initializeConfiguration(@NonNull final Context context) {
@@ -60,7 +60,7 @@ public class PublicClientApplicationConfigurationFactory {
     }
 
     /**
-     * Initalizes a PublicClientApplicationConfiguration from the given configResourceId, if there is any,
+     * Initializes a PublicClientApplicationConfiguration from the given configResourceId, if there is any,
      * and merge it to the default config object.
      **/
     @WorkerThread
@@ -70,7 +70,7 @@ public class PublicClientApplicationConfigurationFactory {
     }
 
     /**
-     * Initalizes a PublicClientApplicationConfiguration from the given file, if there is any,
+     * Initializes a PublicClientApplicationConfiguration from the given file, if there is any,
      * and merge it to the default config object.
      **/
     @WorkerThread
