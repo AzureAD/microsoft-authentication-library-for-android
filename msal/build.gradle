@@ -145,9 +145,9 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '2.0.3-dev_snap', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '2.0.4-LauncherAlpha', changing: true)
 
-    distApi("com.microsoft.identity:common:2.0.3-dev_snap") {
+    distApi("com.microsoft.identity:common:2.0.4-LauncherAlpha") {
         transitive = false
     }
 }
