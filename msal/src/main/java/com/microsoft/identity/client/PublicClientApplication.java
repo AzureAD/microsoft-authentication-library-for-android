@@ -198,10 +198,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         static final String ACTIVITY = "activity";
         static final String SCOPES = "scopes";
         static final String ACCOUNT = "account";
-
         static final String NULL_ERROR_SUFFIX = " cannot be null or empty";
     }
-
 
     /**
      * Constant used to signal a home account's tenant id should be used when performing cache
