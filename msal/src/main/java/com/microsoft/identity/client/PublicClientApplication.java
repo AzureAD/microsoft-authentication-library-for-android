@@ -72,7 +72,6 @@ import com.microsoft.identity.common.internal.controllers.GetDeviceModeCommand;
 import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
 import com.microsoft.identity.common.internal.controllers.TokenCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.eststelemetry.EstsTelemetry;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
@@ -288,7 +287,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @see PublicClientApplication#create(Context, int)
      */
     public static void create(@NonNull final Context context,
-                              @Nullable final File configFile,
+                              @NonNull final File configFile,
                               @NonNull final ApplicationCreatedListener listener) {
         validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
         validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
