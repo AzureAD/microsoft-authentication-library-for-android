@@ -203,7 +203,7 @@ if(account != null){
 ```
 
 ## ProGuard
-MSAL uses reflection and generic type information stored in `.class` files at runtime to support various persistence and serialization related functionalities. Accordingly, library support for minification and obfuscation is limited. For reliability, we recommend developers exclude the Microsoft package from ProGuard.
+MSAL uses reflection and generic type information stored in `.class` files at runtime to support various persistence and serialization related functionalities. Accordingly, library support for minification and obfuscation is limited. A default configuration is shipped with this library; please [file an issue](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/new/choose) if you find any issues.
 
 ## Community Help and Support
 
