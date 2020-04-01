@@ -20,7 +20,6 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
 package com.microsoft.identity.client;
 
 import android.app.Activity;
@@ -81,9 +80,10 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * @link AuthenticationCallback#onError(MsalException)}.
      */
     void signIn(@NonNull final Activity activity,
-                @NonNull final String loginHint,
+                @Nullable final String loginHint,
                 @NonNull final String[] scopes,
-                @NonNull final AuthenticationCallback callback);
+                @NonNull final AuthenticationCallback callback
+    );
 
     /**
      * Signs out the current the Account and Credentials (tokens).
@@ -117,7 +117,8 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      */
     void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                  @NonNull final String authority,
-                                 @NonNull final SilentAuthenticationCallback callback);
+                                 @NonNull final SilentAuthenticationCallback callback
+    );
 
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
@@ -139,7 +140,7 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
         /**
          * Invoked when the account is loaded.
          *
-         * @param activeAccount the signed-in account. This could be nil.
+         * @param activeAccount the signed-in account. This could be null.
          */
         void onAccountLoaded(@Nullable final IAccount activeAccount);
 
@@ -147,8 +148,8 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
          * Invoked when signed-in account is changed after the application resumes, or prior to running a scheduled background operation.
          * The calling app is responsible for keeping track of this account and cleaning its states if the account changes.
          *
-         * @param priorAccount   the previous signed-in account. This could be nil.
-         * @param currentAccount the current signed-in account. This could be nil.
+         * @param priorAccount   the previous signed-in account. This could be null.
+         * @param currentAccount the current signed-in account. This could be null.
          */
         void onAccountChanged(@Nullable final IAccount priorAccount, @Nullable final IAccount currentAccount);
 

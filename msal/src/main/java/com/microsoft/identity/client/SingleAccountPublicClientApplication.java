@@ -188,7 +188,7 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
 
     @Override
     public void signIn(@NonNull final Activity activity,
-                       @NonNull final String loginHint,
+                       @Nullable final String loginHint,
                        @NonNull final String[] scopes,
                        @NonNull final AuthenticationCallback callback) {
         final IAccount persistedAccount = getPersistedCurrentAccount();
