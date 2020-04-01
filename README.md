@@ -203,46 +203,7 @@ if(account != null){
 ```
 
 ## ProGuard
-MSAL uses reflection and generic type information stored in `.class` files at runtime to support various persistence and serialization related functionalities. Accordingly, library support for minification and obfuscation is limited. For reliability, we recommend developers exclude the Microsoft package from ProGuard.
-
-Preserve MSAL classes:
-```
--keep class com.microsoft.** { *; }
-```
-
-Users of MSAL must manually add the ProGuard configuration for Gson and Nimbus, dependencies of this library. An example configuration for [Gson 2.8.5](https://github.com/google/gson/releases/tag/gson-parent-2.8.5) and [Nimbus JOSE + JWT](https://search.maven.org/artifact/com.nimbusds/nimbus-jose-jwt) can be found below. Developers are encouraged to consult the documentation of relevant dependencies for the most up-to-date ProGuard guidance.
-
-```
-##---------------Begin: proguard configuration for Gson  ----------
-# Gson uses generic type information stored in a class file when working with fields. Proguard
-# removes such information by default, so configure it to keep all of it.
--keepattributes Signature
-
-# For using GSON @Expose annotation
--keepattributes *Annotation*
-
-# Gson specific classes
--dontwarn sun.misc.**
-#-keep class com.google.gson.stream.** { *; }
-
-# Application classes that will be serialized/deserialized over Gson
--keep class com.google.gson.examples.android.model.** { <fields>; }
-
-# Prevent proguard from stripping interface information from TypeAdapter, TypeAdapterFactory,
-# JsonSerializer, JsonDeserializer instances (so they can be used in @JsonAdapter)
--keep class * implements com.google.gson.TypeAdapter
--keep class * implements com.google.gson.TypeAdapterFactory
--keep class * implements com.google.gson.JsonSerializer
--keep class * implements com.google.gson.JsonDeserializer
-
-# Prevent R8 from leaving Data object members always null
--keepclassmembers,allowobfuscation class * {
-  @com.google.gson.annotations.SerializedName <fields>;
-}
-
-##---------------Begin: proguard configuration for Nimbus  ----------
--keep class com.nimbusds.** { *; }
-```
+MSAL uses reflection and generic type information stored in `.class` files at runtime to support various persistence and serialization related functionalities. Accordingly, library support for minification and obfuscation is limited. A default configuration is shipped with this library; please [file an issue](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/new/choose) if you find any issues.
 
 ## Community Help and Support
 
