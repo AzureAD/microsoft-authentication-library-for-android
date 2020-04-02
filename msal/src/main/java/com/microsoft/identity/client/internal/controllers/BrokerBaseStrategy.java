@@ -32,37 +32,36 @@ import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.internal.broker.BrokerRequest;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
-import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
+import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.RemoveAccountCommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
-import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 
 import java.util.List;
-
-import static com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter.sRequestAdapterGsonInstance;
 
 abstract class BrokerBaseStrategy {
     protected final MsalBrokerRequestAdapter mRequestAdapter = new MsalBrokerRequestAdapter();
 
     protected final MsalBrokerResultAdapter mResultAdapter = new MsalBrokerResultAdapter();
 
-    abstract void hello(@NonNull final OperationParameters parameters) throws BaseException;
+    abstract void hello(@NonNull final CommandParameters parameters) throws BaseException;
 
-    abstract Intent getBrokerAuthorizationIntent(@NonNull AcquireTokenOperationParameters parameters) throws BaseException;
+    abstract Intent getBrokerAuthorizationIntent(@NonNull InteractiveTokenCommandParameters parameters) throws BaseException;
 
-    abstract AcquireTokenResult acquireTokenSilent(AcquireTokenSilentOperationParameters parameters) throws BaseException;
+    abstract AcquireTokenResult acquireTokenSilent(SilentTokenCommandParameters parameters) throws BaseException;
 
-    abstract List<ICacheRecord> getBrokerAccounts(@NonNull final OperationParameters parameters) throws BaseException;
+    abstract List<ICacheRecord> getBrokerAccounts(@NonNull final CommandParameters parameters) throws BaseException;
 
-    abstract void removeBrokerAccount(@NonNull final OperationParameters parameters) throws BaseException;
+    abstract void removeBrokerAccount(@NonNull final RemoveAccountCommandParameters parameters) throws BaseException;
 
-    abstract boolean getDeviceMode(@NonNull final OperationParameters parameters) throws BaseException;
+    abstract boolean getDeviceMode(@NonNull final CommandParameters parameters) throws BaseException;
 
-    abstract List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull final OperationParameters parameters) throws BaseException;
+    abstract List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull final CommandParameters parameters) throws BaseException;
 
-    abstract void signOutFromSharedDevice(@NonNull final OperationParameters parameters) throws BaseException;
+    abstract void signOutFromSharedDevice(@NonNull final RemoveAccountCommandParameters parameters) throws BaseException;
 
     Handler getPreferredHandler() {
         if (null != Looper.myLooper() && Looper.getMainLooper() != Looper.myLooper()) {
@@ -73,10 +72,10 @@ abstract class BrokerBaseStrategy {
     }
 
     protected Intent completeInteractiveRequestIntent(@NonNull final Intent interactiveRequestIntent,
-                                                      @NonNull final AcquireTokenOperationParameters parameters) {
+                                                      @NonNull final InteractiveTokenCommandParameters parameters) {
         interactiveRequestIntent.putExtra(
                 AuthenticationConstants.Broker.BROKER_REQUEST_V2,
-                sRequestAdapterGsonInstance.toJson(
+                MsalBrokerRequestAdapter.sRequestAdapterGsonInstance.toJson(
                         mRequestAdapter.brokerRequestFromAcquireTokenParameters(parameters),
                         BrokerRequest.class
                 )

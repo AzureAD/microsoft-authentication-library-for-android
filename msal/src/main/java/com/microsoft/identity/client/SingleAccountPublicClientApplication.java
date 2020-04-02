@@ -32,23 +32,24 @@ import androidx.annotation.WorkerThread;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.AsyncResult;
+import com.microsoft.identity.client.internal.CommandParametersAdapter;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
-import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.util.JsonExtensions;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.commands.CommandCallback;
+import com.microsoft.identity.common.internal.commands.GetCurrentAccountCommand;
+import com.microsoft.identity.common.internal.commands.RemoveCurrentAccountCommand;
+import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.RemoveAccountCommandParameters;
 import com.microsoft.identity.common.internal.controllers.BaseController;
-import com.microsoft.identity.common.internal.controllers.CommandCallback;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
-import com.microsoft.identity.common.internal.controllers.GetCurrentAccountCommand;
-import com.microsoft.identity.common.internal.controllers.RemoveCurrentAccountCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
-import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 
@@ -96,12 +97,12 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
         TokenMigrationCallback migrationCallback = new TokenMigrationCallback() {
             @Override
             public void onMigrationFinished(int numberOfAccountsMigrated) {
-                final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
+                final CommandParameters params = CommandParametersAdapter.createCommandParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
                 final BaseController controller;
                 try {
                     controller = MSALControllerFactory.getDefaultController(
                             mPublicClientConfiguration.getAppContext(),
-                            params.getAuthority(),
+                            mPublicClientConfiguration.getDefaultAuthority(),
                             mPublicClientConfiguration);
                 } catch (MsalClientException e) {
                     callback.onError(e);
@@ -129,9 +130,10 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                             public void onCancel() {
                                 //Do nothing
                             }
-                        });
+                        },
+                        publicApiId
+                );
 
-                command.setPublicApiId(publicApiId);
                 CommandDispatcher.submitSilent(command);
             }
         };
@@ -287,17 +289,22 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
             return;
         }
 
-        final OperationParameters params = OperationParametersAdapter.createOperationParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
         final AccountRecord requestAccountRecord = new AccountRecord();
         requestAccountRecord.setEnvironment(persistedCurrentAccount.getEnvironment());
         requestAccountRecord.setHomeAccountId(persistedCurrentAccount.getHomeAccountId());
-        params.setAccount(requestAccountRecord);
+
+        final RemoveAccountCommandParameters params =
+                CommandParametersAdapter.createRemoveAccountCommandParameters(
+                        mPublicClientConfiguration,
+                        mPublicClientConfiguration.getOAuth2TokenCache(),
+                        requestAccountRecord
+                );
 
         final BaseController controller;
         try {
             controller = MSALControllerFactory.getDefaultController(
                     mPublicClientConfiguration.getAppContext(),
-                    params.getAuthority(),
+                    mPublicClientConfiguration.getDefaultAuthority(),
                     mPublicClientConfiguration);
         } catch (MsalClientException e) {
             callback.onError(e);
@@ -323,10 +330,10 @@ public class SingleAccountPublicClientApplication extends PublicClientApplicatio
                     public void onCancel() {
                         //Do nothing
                     }
-                }
+                },
+                publicApiId
         );
 
-        command.setPublicApiId(publicApiId);
         CommandDispatcher.submitSilent(command);
     }
 
