@@ -198,10 +198,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         static final String ACTIVITY = "activity";
         static final String SCOPES = "scopes";
         static final String ACCOUNT = "account";
-
         static final String NULL_ERROR_SUFFIX = " cannot be null or empty";
     }
-
 
     /**
      * Constant used to signal a home account's tenant id should be used when performing cache
@@ -253,13 +251,18 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
         validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
-        create(
-                initializeConfiguration(context, configFileResourceId),
-                null, // client id
-                null, // authority
-                null, // redirect uri
-                listener
-        );
+        runOnBackground(new Runnable() {
+            @Override
+            public void run() {
+                create(
+                        initializeConfiguration(context, configFileResourceId),
+                        null, // client id
+                        null, // authority
+                        null, // redirect uri
+                        listener
+                );
+            }
+        });
     }
 
     /**
@@ -287,18 +290,22 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @see PublicClientApplication#create(Context, int)
      */
     public static void create(@NonNull final Context context,
-                              @Nullable final File configFile,
+                              @NonNull final File configFile,
                               @NonNull final ApplicationCreatedListener listener) {
         validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
         validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
-
-        create(
-                initializeConfiguration(context, configFile),
-                null, // client id
-                null, // authority
-                null, // redirect uri
-                listener
-        );
+        runOnBackground(new Runnable() {
+            @Override
+            public void run() {
+                create(
+                        initializeConfiguration(context, configFile),
+                        null, // client id
+                        null, // authority
+                        null, // redirect uri
+                        listener
+                );
+            }
+        });
     }
 
     /**
@@ -333,13 +340,18 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(redirectUri, NONNULL_CONSTANTS.REDIRECT_URI);
         validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
-        create(
-                initializeConfiguration(context),
-                clientId,
-                authority,
-                redirectUri,
-                listener
-        );
+        runOnBackground(new Runnable() {
+            @Override
+            public void run() {
+                create(
+                        initializeConfiguration(context),
+                        clientId,
+                        authority,
+                        redirectUri,
+                        listener
+                );
+            }
+        });
     }
 
     /**
@@ -421,10 +433,15 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
         validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
-        createMultipleAccountPublicClientApplication(
-                initializeConfiguration(context, configFileResourceId),
-                listener
-        );
+        runOnBackground(new Runnable() {
+            @Override
+            public void run() {
+                createMultipleAccountPublicClientApplication(
+                        initializeConfiguration(context, configFileResourceId),
+                        listener
+                );
+            }
+        });
     }
 
     /**
@@ -463,10 +480,15 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
         validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
-        createMultipleAccountPublicClientApplication(
-                initializeConfiguration(context, configFile),
-                listener
-        );
+        runOnBackground(new Runnable() {
+            @Override
+            public void run() {
+                createMultipleAccountPublicClientApplication(
+                        initializeConfiguration(context, configFile),
+                        listener
+                );
+            }
+        });
     }
 
     /**
@@ -596,10 +618,15 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
         validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
-        createSingleAccountPublicClientApplication(
-                initializeConfiguration(context, configFileResourceId),
-                listener
-        );
+        runOnBackground(new Runnable() {
+            @Override
+            public void run() {
+                createSingleAccountPublicClientApplication(
+                        initializeConfiguration(context, configFileResourceId),
+                        listener
+                );
+            }
+        });
     }
 
     /**
@@ -639,10 +666,15 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(configFile, NONNULL_CONSTANTS.CONFIG_FILE);
         validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
-        createSingleAccountPublicClientApplication(
-                initializeConfiguration(context, configFile),
-                listener
-        );
+        runOnBackground(new Runnable() {
+            @Override
+            public void run() {
+                createSingleAccountPublicClientApplication(
+                        initializeConfiguration(context, configFile),
+                        listener
+                );
+            }
+        });
     }
 
     /**
@@ -1866,5 +1898,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     callback
             );
         }
+    }
+
+    private static void runOnBackground(@NonNull final Runnable runnable) {
+        new Thread(runnable).start();
     }
 }
