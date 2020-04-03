@@ -99,7 +99,7 @@ public class CommandParametersAdapter {
 
         final Authority authority = getAuthority(configuration, parameters);
 
-        final String claimsRequest = ClaimsRequest.getJsonStringFromClaimsRequest(
+        final String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(
                 getClaimsRequest(
                         parameters.getClaimsRequest(),
                         configuration,
@@ -122,7 +122,7 @@ public class CommandParametersAdapter {
                 .fragment(parameters.getFragment())
                 .browserSafeList(configuration.getBrowserSafeList())
                 .authority(authority)
-                .claimsRequestJson(claimsRequest)
+                .claimsRequestJson(claimsRequestJson)
                 .scopes(new HashSet<>(parameters.getScopes()))
                 .extraScopesToConsent(parameters.getExtraScopesToConsent())
                 .extraQueryStringParameters(parameters.getExtraQueryStringParameters())
@@ -145,11 +145,15 @@ public class CommandParametersAdapter {
             @NonNull final AcquireTokenSilentParameters parameters) {
         final Authority authority = getAuthority(configuration, parameters);
 
-        final String claimsRequest = ClaimsRequest.getJsonStringFromClaimsRequest(
-                getClaimsRequest(
-                        parameters.getClaimsRequest(),
-                        configuration,
-                        authority)
+        final ClaimsRequest claimsRequest = parameters.getClaimsRequest();
+
+        final ClaimsRequest mergedClaimsRequest = getClaimsRequest(
+                parameters.getClaimsRequest(),
+                configuration,
+                authority);
+
+        final String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(
+                mergedClaimsRequest
         );
 
         final boolean forceRefresh = claimsRequest != null || parameters.getForceRefresh();
@@ -172,7 +176,7 @@ public class CommandParametersAdapter {
                 .sdkType(SdkType.MSAL)
                 .sdkVersion(PublicClientApplication.getSdkVersion())
                 .authority(authority)
-                .claimsRequestJson(claimsRequest)
+                .claimsRequestJson(claimsRequestJson)
                 .forceRefresh(forceRefresh)
                 .account(parameters.getAccountRecord())
                 .authenticationScheme(authenticationScheme)
