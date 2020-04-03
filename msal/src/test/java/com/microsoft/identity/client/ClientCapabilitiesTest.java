@@ -27,6 +27,7 @@ import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
+import com.microsoft.identity.client.internal.CommandParametersAdapter;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -41,14 +42,14 @@ public final class ClientCapabilitiesTest {
 
     @Test
     public void testAddClientCapabilitiesMatching() {
-        ClaimsRequest clientCapabilities = OperationParametersAdapter.addClientCapabilitiesToClaimsRequest(null, "CP1");
-        Assert.assertEquals(clientCapabilities, getAccessTokenClaimsRequest(OperationParametersAdapter.CLIENT_CAPABILITIES_CLAIM, CP1_CAPABILITY));
+        ClaimsRequest clientCapabilities = CommandParametersAdapter.addClientCapabilitiesToClaimsRequest(null, "CP1");
+        Assert.assertEquals(clientCapabilities, getAccessTokenClaimsRequest(CommandParametersAdapter.CLIENT_CAPABILITIES_CLAIM, CP1_CAPABILITY));
     }
 
     @Test
     public void testAddClientCapabilitiesNotMatching() {
-        ClaimsRequest clientCapabilities = OperationParametersAdapter.addClientCapabilitiesToClaimsRequest(null, "CP2");
-        Assert.assertNotEquals(clientCapabilities, getAccessTokenClaimsRequest(OperationParametersAdapter.CLIENT_CAPABILITIES_CLAIM, CP1_CAPABILITY));
+        ClaimsRequest clientCapabilities = CommandParametersAdapter.addClientCapabilitiesToClaimsRequest(null, "CP2");
+        Assert.assertNotEquals(clientCapabilities, getAccessTokenClaimsRequest(CommandParametersAdapter.CLIENT_CAPABILITIES_CLAIM, CP1_CAPABILITY));
     }
 
     private ClaimsRequest getAccessTokenClaimsRequest(@NonNull String claimName, @NonNull String claimValue) {
