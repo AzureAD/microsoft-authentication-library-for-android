@@ -104,7 +104,6 @@ import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArg;
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
 import static com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter.msalExceptionFromBaseException;
-import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isAccountHomeTenant;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_MSA_PERSISTENCE_ERROR;
@@ -119,6 +118,7 @@ import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUN
 import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
 import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
 import static com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience.isHomeTenantAlias;
+import static com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken.TENANT_ID;
 import static com.microsoft.identity.common.internal.util.StringUtil.isUuid;
 
 /**
@@ -1902,5 +1902,16 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     private static void runOnBackground(@NonNull final Runnable runnable) {
         new Thread(runnable).start();
+    }
+
+    private static boolean isAccountHomeTenant(@Nullable final Map<String, ?> claims,
+                                               @NonNull final String tenantId) {
+        boolean isAccountHomeTenant = false;
+
+        if (null != claims && !claims.isEmpty()) {
+            isAccountHomeTenant = claims.get(TENANT_ID).equals(tenantId);
+        }
+
+        return isAccountHomeTenant;
     }
 }
