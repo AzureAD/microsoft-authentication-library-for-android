@@ -97,25 +97,6 @@ public class CommandParametersTest {
         return cp1ClaimsRequest;
     }
 
-    private AcquireTokenParameters getAcquireTokenParametersWithClaims() {
-        AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .withClaims(getAccessTokenClaimsRequest("device_id", ""))
-                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
-                .startAuthorizationFromActivity(mActivity)
-                .build();
-
-        return parameters;
-    }
-
-    private AcquireTokenParameters getAcquireTokenParametersWithoutClaims() {
-        AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
-                .startAuthorizationFromActivity(mActivity)
-                .build();
-
-        return parameters;
-    }
-
     private AcquireTokenSilentParameters getAcquireTokenSilentParametersWithClaims() {
         AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
                 .withClaims(getAccessTokenClaimsRequest("device_id", ""))
