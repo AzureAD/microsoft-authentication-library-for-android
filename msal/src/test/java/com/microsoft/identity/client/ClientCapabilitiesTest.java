@@ -27,7 +27,6 @@ import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
-import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 
 import org.junit.Assert;
 import org.junit.Test;
