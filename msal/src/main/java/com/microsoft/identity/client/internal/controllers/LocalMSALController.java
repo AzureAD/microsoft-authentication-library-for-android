@@ -94,7 +94,7 @@ public class LocalMSALController extends BaseController {
         final AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
 
         //00) Validate MSAL Parameters
-        //parameters.validate();
+        parameters.validate();
 
         // Add default scopes
         addDefaultScopes(parameters);
