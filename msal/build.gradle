@@ -29,7 +29,7 @@ android {
             testCoverageEnabled false
             minifyEnabled false
             debuggable false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            consumerProguardFiles 'consumer-rules.pro'
         }
     }
 

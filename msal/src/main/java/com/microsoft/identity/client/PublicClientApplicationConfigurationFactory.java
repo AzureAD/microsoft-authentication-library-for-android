@@ -28,6 +28,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import androidx.annotation.WorkerThread;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -51,31 +52,35 @@ public class PublicClientApplicationConfigurationFactory {
     private static final String TAG = PublicClientApplicationConfigurationFactory.class.getSimpleName();
 
     /**
-     * Initalizes a default PublicClientApplicationConfiguration object.
+     * Initializes a default PublicClientApplicationConfiguration object.
      **/
+    @WorkerThread
     public static PublicClientApplicationConfiguration initializeConfiguration(@NonNull final Context context) {
         return initializeConfigurationInternal(context, null);
     }
 
     /**
-     * Initalizes a PublicClientApplicationConfiguration from the given configResourceId, if there is any,
+     * Initializes a PublicClientApplicationConfiguration from the given configResourceId, if there is any,
      * and merge it to the default config object.
      **/
+    @WorkerThread
     public static PublicClientApplicationConfiguration initializeConfiguration(@NonNull final Context context,
                                                                                final int configResourceId) {
         return initializeConfigurationInternal(context, loadConfiguration(context, configResourceId));
     }
 
     /**
-     * Initalizes a PublicClientApplicationConfiguration from the given file, if there is any,
+     * Initializes a PublicClientApplicationConfiguration from the given file, if there is any,
      * and merge it to the default config object.
      **/
+    @WorkerThread
     public static PublicClientApplicationConfiguration initializeConfiguration(@NonNull final Context context,
                                                                                @NonNull final File configFile) {
         validateNonNullArgument(configFile, "configFile");
         return initializeConfigurationInternal(context, loadConfiguration(configFile));
     }
 
+    @WorkerThread
     private static PublicClientApplicationConfiguration initializeConfigurationInternal(@NonNull final Context context,
                                                                                         @Nullable final PublicClientApplicationConfiguration developerConfig) {
         validateNonNullArgument(context, "context");
@@ -90,6 +95,7 @@ public class PublicClientApplicationConfigurationFactory {
         return config;
     }
 
+    @WorkerThread
     private static PublicClientApplicationConfiguration loadDefaultConfiguration(@NonNull final Context context) {
         final String methodName = ":loadDefaultConfiguration";
         com.microsoft.identity.common.internal.logging.Logger.verbose(
@@ -103,6 +109,7 @@ public class PublicClientApplicationConfigurationFactory {
     }
 
     @VisibleForTesting
+    @WorkerThread
     static PublicClientApplicationConfiguration loadConfiguration(@NonNull final Context context,
                                                                   final int configResourceId) {
         final InputStream configStream = context.getResources().openRawResource(configResourceId);
@@ -111,6 +118,7 @@ public class PublicClientApplicationConfigurationFactory {
     }
 
     @VisibleForTesting
+    @WorkerThread
     static PublicClientApplicationConfiguration loadConfiguration(@NonNull final File configFile) {
         try {
             return loadConfiguration(new FileInputStream(configFile), false);
@@ -119,6 +127,7 @@ public class PublicClientApplicationConfigurationFactory {
         }
     }
 
+    @WorkerThread
     private static PublicClientApplicationConfiguration loadConfiguration(final @NonNull InputStream configStream,
                                                                           final boolean isDefaultConfiguration) {
         byte[] buffer;

@@ -28,6 +28,11 @@ allprojects {
                 password project.vstsPassword
             }
         }
+        // Adding here because Travis cannot access AndroidADAL feed.
+        maven {
+            url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed%40Local/maven/v1'
+            name 'Duo-SDK-Feed@Local'
+        }
     }
 }
 

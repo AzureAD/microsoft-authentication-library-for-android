@@ -31,6 +31,7 @@ import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.authorities.AADTestAuthority;
 import com.microsoft.identity.internal.testutils.authorities.B2CTestAuthority;
 import com.microsoft.identity.internal.testutils.authorities.MockAuthority;
+import com.microsoft.identity.internal.testutils.authorities.MockAuthorityHttpResponse;
 import com.microsoft.identity.internal.testutils.authorities.MockDelayedResponseAuthority;
 
 import org.robolectric.annotation.Implements;
@@ -50,6 +51,7 @@ public class ShadowMockAuthority {
     private static final String TAG = ShadowMockAuthority.class.getSimpleName();
 
     private static final String AAD_MOCK_PATH_SEGMENT = TestConstants.Authorities.AAD_MOCK_AUTHORITY_TENANT;
+    private static final String AAD_MOCK_HTTP_RESPONSE_PATH_SEGMENT = TestConstants.Authorities.AAD_MOCK_HTTP_RESPONSE_AUTHORITY_TENANT;
     private static final String B2C_TEST_PATH_SEGMENT = "tfp";
     private static final String AAD_MOCK_DELAYED_PATH_SEGMENT = "mock_with_delays";
 
@@ -100,6 +102,14 @@ public class ShadowMockAuthority {
             case B2C_TEST_PATH_SEGMENT:
                 //Return new B2C TEST Authority
                 authority = new B2CTestAuthority(authorityUrl);
+                break;
+            case AAD_MOCK_HTTP_RESPONSE_PATH_SEGMENT:
+                //Return new AAD MOCK Authority
+                authority = new MockAuthorityHttpResponse(new AccountsInOneOrganization(
+                        TestConstants.Authorities.AAD_MOCK_AUTHORITY_HTTP_RESPONSE,
+                        TestConstants.Authorities.AAD_MOCK_HTTP_RESPONSE_AUTHORITY_TENANT
+                )
+                );
                 break;
             default:
                 // return new AAD Test Authority
