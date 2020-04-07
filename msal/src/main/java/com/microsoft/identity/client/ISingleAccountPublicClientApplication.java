@@ -86,6 +86,57 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
     );
 
     /**
+     * Allows a user to sign in to your application with one of their accounts.
+     * <p>
+     * Note: The authority used to make the sign in request will be either the MSAL default: https://login.microsoftonline.com/common
+     * or the default authority specified by you in your configuration
+     *
+     * @param activity  Non-null {@link Activity} that is used as the parent activity for launching the {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity}.
+     * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
+     *                  which will have the UPN pre-populated.
+     * @param scopes    The non-null array of scopes to be consented to during sign in.
+     *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     *                  The access token returned is for MS Graph and will allow you to query for additional information about the signed in account.
+     * @param callback  {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                  sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     *                  Failure case will be sent back via {
+     * @link AuthenticationCallback#onError(MsalException)}.
+     */
+    void signIn(@NonNull final Activity activity,
+                @Nullable final String loginHint,
+                @NonNull final String[] scopes,
+                @Nullable final Prompt prompt,
+                @NonNull final AuthenticationCallback callback
+    );
+
+    /**
+     * Reauthorizes the current account according to the supplied scopes and prompt behavior.
+     * <p>
+     * Note: The authority used to make the sign in request will be either the MSAL default:
+     * https://login.microsoftonline.com/common or the default authority specified by you in your
+     * configuration.
+     *
+     * @param activity Non-null {@link Activity} that is used as the parent activity for
+     *                 launching the {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity}.
+     * @param scopes   The non-null array of scopes to be consented to during sign in.
+     *                 MSAL always sends the scopes 'openid profile offline_access'. Do
+     *                 not include any of these scopes in the scope parameter. The access
+     *                 token returned is for MS Graph and will allow you to query for
+     *                 additional information about the signed in account.
+     * @param prompt   Nullable. Indicates the type of user interaction that is required.
+     *                 If no argument is supplied the default behavior will be used.
+     * @param callback {@link AuthenticationCallback} that is used to send the result back.
+     *                 The success result will be sent back via
+     *                 {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     *                 Failure case will be sent back via {@link AuthenticationCallback#onError(MsalException)}.
+     */
+    void reauthorize(@NonNull final Activity activity,
+                @NonNull final String[] scopes,
+                @Nullable final Prompt prompt,
+                @NonNull final AuthenticationCallback callback
+    );
+
+    /**
      * Signs out the current the Account and Credentials (tokens).
      * NOTE: If a device is marked as a shared device within broker signout will be device wide.
      *
