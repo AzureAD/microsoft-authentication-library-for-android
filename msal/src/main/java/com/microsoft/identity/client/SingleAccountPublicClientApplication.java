@@ -286,7 +286,7 @@ public class SingleAccountPublicClientApplication
     }
 
     @Override
-    public void reauthorize(@NonNull final Activity activity,
+    public void signInAgain(@NonNull final Activity activity,
                             @NonNull final String[] scopes,
                             @Nullable final Prompt prompt,
                             @NonNull final AuthenticationCallback callback) {

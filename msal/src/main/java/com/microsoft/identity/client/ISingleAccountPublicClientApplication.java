@@ -66,7 +66,7 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * Allows a user to sign in to your application with one of their accounts. This method may only
      * be called once: once a user is signed in, they must first be signed out before another user
      * may sign in. If you wish to prompt the existing user for credentials use
-     * {@link #reauthorize(Activity, String[], Prompt, AuthenticationCallback)} or
+     * {@link #signInAgain(Activity, String[], Prompt, AuthenticationCallback)} or
      * {@link #acquireToken(AcquireTokenParameters)}.
      * <p>
      * Note: The authority used to make the sign in request will be either the MSAL default: https://login.microsoftonline.com/common
@@ -93,7 +93,7 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * Allows a user to sign in to your application with one of their accounts. This method may only
      * be called once: once a user is signed in, they must first be signed out before another user
      * may sign in. If you wish to prompt the existing user for credentials use
-     * {@link #reauthorize(Activity, String[], Prompt, AuthenticationCallback)} or
+     * {@link #signInAgain(Activity, String[], Prompt, AuthenticationCallback)} or
      * {@link #acquireToken(AcquireTokenParameters)}.
      * <p>
      * Note: The authority used to make the sign in request will be either the MSAL default: https://login.microsoftonline.com/common
@@ -138,7 +138,7 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      *                 {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
      *                 Failure case will be sent back via {@link AuthenticationCallback#onError(MsalException)}.
      */
-    void reauthorize(@NonNull final Activity activity,
+    void signInAgain(@NonNull final Activity activity,
                      @NonNull final String[] scopes,
                      @Nullable final Prompt prompt,
                      @NonNull final AuthenticationCallback callback
