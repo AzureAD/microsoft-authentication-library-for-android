@@ -27,6 +27,7 @@ import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequestForTelemetry;
 import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
@@ -54,7 +55,13 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Authoritie
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_MOCK_TEST_CONFIG_FILE_PATH;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowStorageHelper.class, ShadowMockAuthority.class, ShadowHttpRequestForTelemetry.class, ShadowMsalUtils.class})
+@Config(shadows = {
+        ShadowStorageHelper.class,
+        ShadowMockAuthority.class,
+        ShadowHttpRequestForTelemetry.class,
+        ShadowMsalUtils.class,
+        ShadowOpenIdProviderConfigurationClient.class
+})
 public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
     private static Map<String, String> sTelemetryHeaders;
