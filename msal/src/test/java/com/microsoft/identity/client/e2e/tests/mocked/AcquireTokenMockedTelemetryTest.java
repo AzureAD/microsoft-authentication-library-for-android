@@ -30,6 +30,7 @@ import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
+import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.eststelemetry.SchemaConstants;
 import com.microsoft.identity.internal.testutils.MockHttpResponse;
@@ -93,6 +94,8 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
     public void testServerSideTelemetry() {
         final String username = "fake@test.com";
 
+        CommandDispatcherHelper.clear();
+
         // successful interactive request
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
@@ -113,6 +116,8 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         String expectedLast = "2|0|||1";
         assertTelemetry(expectedCurrent, expectedLast);
 
+        CommandDispatcherHelper.clear();
+
         // successful silent request - served from cache
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(AcquireTokenTestHelper.getAccount())
@@ -126,12 +131,14 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
 
+        CommandDispatcherHelper.clear();
 
         // successful silent request - served from cache
         MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
 
+        CommandDispatcherHelper.clear();
 
         // failed silent request - goes to token endpoint - invalid grant
         final AcquireTokenSilentParameters silentParametersForceRefreshInvalidGrant = new AcquireTokenSilentParameters.Builder()
@@ -152,6 +159,8 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
         expectedLast = "2|2|||1";
         assertTelemetry(expectedCurrent, expectedLast);
+
+        CommandDispatcherHelper.clear();
 
         // failed silent request - goes to token endpoint - invalid scope
         final AcquireTokenSilentParameters silentParametersForceRefreshInvalidScope = new AcquireTokenSilentParameters.Builder()
@@ -174,6 +183,8 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
                 sCorrelationIdList.get(networkRequestIndex - 1) + "|invalid_grant|1";
         assertTelemetry(expectedCurrent, expectedLast);
 
+        CommandDispatcherHelper.clear();
+
         // failure interactive request - service unavailable
         final AcquireTokenParameters parametersServiceUnavailable = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
@@ -195,6 +206,8 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
                 sCorrelationIdList.get(networkRequestIndex - 1) + "|invalid_scope|1";
         assertTelemetry(expectedCurrent, expectedLast);
 
+        CommandDispatcherHelper.clear();
+
         // successful interactive request
 
         networkRequestIndex++;
@@ -210,6 +223,8 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
                 "," + PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + "," + sCorrelationIdList.get(networkRequestIndex - 1) +
                 "|invalid_scope,service_unavailable|1";
         assertTelemetry(expectedCurrent, expectedLast);
+
+        CommandDispatcherHelper.clear();
 
         // successful silent request - goes to token endpoint
 
@@ -232,12 +247,15 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         expectedLast = "2|0|||1";
         assertTelemetry(expectedCurrent, expectedLast);
 
+        CommandDispatcherHelper.clear();
+
         // failed interactive request - service unavailable
         for (int i = 0; i < 50; i++) {
             networkRequestIndex++;
             MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenFailureServiceUnavailable());
             mApplication.acquireToken(parametersServiceUnavailable);
             flushScheduler();
+            CommandDispatcherHelper.clear();
         }
 
         String actualLastHeader = sTelemetryHeaders.get(SchemaConstants.LAST_REQUEST_HEADER_NAME);
@@ -250,6 +268,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
             MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenFailureServiceUnavailable());
             mApplication.acquireToken(parametersServiceUnavailable);
             flushScheduler();
+            CommandDispatcherHelper.clear();
         }
 
         actualLastHeader = sTelemetryHeaders.get(SchemaConstants.LAST_REQUEST_HEADER_NAME);
@@ -269,6 +288,8 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         final String lastParts[] = actualLastHeader.split("|");
         Assert.assertEquals("0", lastParts[lastParts.length - 1]);
 
+        CommandDispatcherHelper.clear();
+
         // do another successful interactive request
         MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
         mApplication.acquireToken(parameters);
@@ -277,6 +298,8 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         // remaining data should now be sent
         actualLastHeader = sTelemetryHeaders.get(SchemaConstants.LAST_REQUEST_HEADER_NAME);
         Assert.assertTrue(actualLastHeader.length() > 1000 && actualLastHeader.length() < 3000);
+
+        CommandDispatcherHelper.clear();
 
         // do another successful interactive request
         MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
