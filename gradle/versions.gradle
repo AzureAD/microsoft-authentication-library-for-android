@@ -23,6 +23,7 @@ ext {
     gsonVersion = "2.8.5"
     junitVersion = "4.12"
     legacySupportV4Version = "1.0.0"
+    lombokVersion = "1.18.12"
     materialVersion = "1.0.0"
     mockitoCoreVersion = "2.18.3"
     mockitoAndroidVersion = "2.18.3"
