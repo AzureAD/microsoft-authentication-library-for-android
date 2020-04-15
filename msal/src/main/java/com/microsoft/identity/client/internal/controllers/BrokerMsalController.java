@@ -31,11 +31,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.RemoteException;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.WorkerThread;
-
-import com.google.gson.GsonBuilder;
 import com.microsoft.identity.client.exception.BrokerCommunicationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
@@ -63,12 +58,15 @@ import com.microsoft.identity.common.internal.telemetry.Telemetry;
 import com.microsoft.identity.common.internal.telemetry.TelemetryEventStrings;
 import com.microsoft.identity.common.internal.telemetry.events.ApiEndEvent;
 import com.microsoft.identity.common.internal.telemetry.events.ApiStartEvent;
-import com.microsoft.identity.common.internal.util.ICacheRecordGsonAdapter;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 
 /**
  * The implementation of MSAL Controller for Broker
@@ -526,17 +524,7 @@ public class BrokerMsalController extends BaseController {
                                        @NonNull final MsalOAuth2TokenCache msalOAuth2TokenCache) throws ClientException {
         final String methodName = ":saveMsaAccountToCache";
 
-        final BrokerResult brokerResult =
-                new GsonBuilder()
-                        .registerTypeAdapter(
-                                ICacheRecord.class,
-                                new ICacheRecordGsonAdapter()
-                        )
-                        .create()
-                        .fromJson(
-                                resultBundle.getString(AuthenticationConstants.Broker.BROKER_RESULT_V2),
-                                BrokerResult.class
-                        );
+        final BrokerResult brokerResult = new MsalBrokerResultAdapter().brokerResultFromBundle(resultBundle);
 
         if (resultBundle.getBoolean(AuthenticationConstants.Broker.BROKER_REQUEST_V2_SUCCESS)
                 && brokerResult != null &&

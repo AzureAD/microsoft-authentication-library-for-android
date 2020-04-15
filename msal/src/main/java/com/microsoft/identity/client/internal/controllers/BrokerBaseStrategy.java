@@ -74,14 +74,9 @@ abstract class BrokerBaseStrategy {
 
     protected Intent completeInteractiveRequestIntent(@NonNull final Intent interactiveRequestIntent,
                                                       @NonNull final AcquireTokenOperationParameters parameters) {
-        interactiveRequestIntent.putExtra(
-                AuthenticationConstants.Broker.BROKER_REQUEST_V2,
-                sRequestAdapterGsonInstance.toJson(
-                        mRequestAdapter.brokerRequestFromAcquireTokenParameters(parameters),
-                        BrokerRequest.class
-                )
+        interactiveRequestIntent.putExtras(
+                mRequestAdapter.getRequestBundleForAcquireTokenInteractive(parameters)
         );
-
         return interactiveRequestIntent;
     }
 }
