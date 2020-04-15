@@ -168,12 +168,14 @@ public final class MsalClientException extends MsalException {
      /**
      * No account currently signed in to SingleAccountPublicClientApplication
      */
-    public static final String NO_CURRENT_ACCOUNT = "no_current_account";
+     public static final String NO_CURRENT_ACCOUNT = "no_current_account";
+    public static final String NO_CURRENT_ACCOUNT_ERROR_MESSAGE = "There is no signed in account.";
 
     /**
-     * Returned account does not match new account
+     * The account that is being signed in does not match with the provided account.
      */
-    public static final String CURRENT_ACCOUNT_MISMATCH = "returned_account_does_not_match_current_account";
+    public static final String CURRENT_ACCOUNT_MISMATCH = "current_account_mismatch";
+    public static final String CURRENT_ACCOUNT_MISMATCH_ERROR_MESSAGE = "The signed in account does not match with the provided account.";
 
     /**
      * Duplicate command.  The same command is already be processed.
