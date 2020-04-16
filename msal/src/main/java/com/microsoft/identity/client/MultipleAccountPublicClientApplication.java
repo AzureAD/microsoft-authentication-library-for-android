@@ -191,9 +191,11 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     private void getAccountInternal(@NonNull final String identifier,
                                     @NonNull final GetAccountCallback callback,
                                     @NonNull final String publicApiId) {
+        if(callback == null){
+            throw new IllegalArgumentException("callback cannot be null or empty");
+        }
         try {
             validateNonNullArg(identifier, "identifier");
-            validateNonNullArg(identifier, "callback");
         } catch (MsalArgumentException e) {
             callback.onError(e);
         }
