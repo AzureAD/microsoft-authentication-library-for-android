@@ -14,7 +14,18 @@ The MSAL library for Android gives your app the ability to use the [Microsoft Cl
 
 ### What's new?
 
-MSAL Android is now generally available with MSAL 1.0!
+> Looking for developers interested in providing early feedback on a x-platform implementation of MSAL written in C++ and Java, callable from Java, Kotlin and C++.  If you're interested please please contact shoatman@microsoft.com.
+
+***02/12/2020*** New updates with [MSAL 1.3.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.3.0):
+
+  - WebView zoom controls are now configurable 
+  - Bugs/issues fixed:
+    - Incorrect id_token returned for B2C app with multiple policies
+    - WebView calls loadUrl multiple times over lifecycle
+    - WebView displays error when connectivity lost
+    - AT caching logic change for scope intersection
+
+***09/30/2019*** MSAL Android is now generally available with [MSAL 1.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.0.0)!: 
 
 - Supported Authorities
   - Microsoft [identity platform](https://docs.microsoft.com/azure/active-directory/develop/) (also known as the Azure Active Directory v2 Endpoint)
@@ -191,6 +202,9 @@ if(account != null){
 
 ```
 
+## ProGuard
+MSAL uses reflection and generic type information stored in `.class` files at runtime to support various persistence and serialization related functionalities. Accordingly, library support for minification and obfuscation is limited. A default configuration is shipped with this library; please [file an issue](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/new/choose) if you find any issues.
+
 ## Community Help and Support
 
 We use [StackOverflow](http://stackoverflow.com/questions/tagged/msal) with the community to provide support. You should browse existing issues to see if someone has asked about your issue before. If there are workable solutions to your issue then try out those solutions. If not, ask your question and let the community help you out. We're part of the community too and watch for new questions. We help with answers when the community cannot give you a solution.
@@ -204,9 +218,14 @@ We enthusiastically welcome contributions and feedback. You should [clone the re
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments. .
 
 ## Roadmap
-Date | Release | Blog post| Main features
-------| ------- | ---------| ---------
-09/30/19 | MSAL 1.0.0| | General Availability of MSAL 
+|Date | Release | Blog post| Main features|
+|---------| --------- | ---------| ---------|
+|09/30/19 | [MSAL 1.0.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.0.0)| https://developer.microsoft.com/identity/blogs/microsoft-authentication-libraries-for-android-ios-and-macos-are-now-generally-available/ | General Availability of MSAL|
+|12/17/19 | [MSAL 1.1.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.1.0) | | Expose raw id_token IAccount/ITenantProfile from AuthenticationResult|
+| 02/04/20 | [MSAL 1.2.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.2.0) | | Adds spinner to WebView interactive requests, replaced PublicClientApplication create methods, adds fragment support to WebView flow, bug fixes|
+| 02/12/20 | [MSAL 1.3.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.3.0) | | Bug fixes & WebView zoom controls configurable|
+|Projected for end of Q4| Proof of Possession ||Access Token Proof of Possession is currently in preview and is not yet recommended for production environments. [Learn more.](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/docs/access_token-pop.md)
+
 
 ## Security Library
 

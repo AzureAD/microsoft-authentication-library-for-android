@@ -97,6 +97,7 @@ public class OperationParametersAdapter {
 
         acquireTokenOperationParameters.setAuthenticationScheme(
                 AuthenticationSchemeFactory.createScheme(
+                        acquireTokenParameters.getActivity(),
                         acquireTokenParameters.getAuthenticationScheme()
                 )
         );
@@ -240,7 +241,12 @@ public class OperationParametersAdapter {
         acquireTokenOperationParameters.setApplicationName(context.getPackageName());
         acquireTokenOperationParameters.setApplicationVersion(getPackageVersion(context));
         acquireTokenOperationParameters.setSdkVersion(PublicClientApplication.getSdkVersion());
-
+        acquireTokenOperationParameters.setWebViewZoomControlsEnabled(
+                publicClientApplicationConfiguration.isWebViewZoomControlsEnabled()
+        );
+        acquireTokenOperationParameters.setWebViewZoomEnabled(
+                publicClientApplicationConfiguration.isWebViewZoomEnabled()
+        );
         return acquireTokenOperationParameters;
     }
 
@@ -311,6 +317,7 @@ public class OperationParametersAdapter {
         atsOperationParams.setAccount(acquireTokenSilentParameters.getAccountRecord());
         atsOperationParams.setAuthenticationScheme(
                 AuthenticationSchemeFactory.createScheme(
+                        pcaConfig.getAppContext(),
                         acquireTokenSilentParameters.getAuthenticationScheme()
                 )
         );

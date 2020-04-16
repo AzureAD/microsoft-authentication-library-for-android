@@ -48,6 +48,8 @@ import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
+import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
+import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
@@ -57,8 +59,11 @@ import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
+import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
+import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.controllers.CommandCallback;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
@@ -67,11 +72,15 @@ import com.microsoft.identity.common.internal.controllers.GetDeviceModeCommand;
 import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
 import com.microsoft.identity.common.internal.controllers.TokenCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.eststelemetry.EstsTelemetry;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
+import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
+import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
 import com.microsoft.identity.common.internal.net.HttpRequest;
 import com.microsoft.identity.common.internal.net.cache.HttpCache;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
+import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
@@ -84,6 +93,7 @@ import com.microsoft.identity.msal.BuildConfig;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -188,10 +198,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         static final String ACTIVITY = "activity";
         static final String SCOPES = "scopes";
         static final String ACCOUNT = "account";
-
         static final String NULL_ERROR_SUFFIX = " cannot be null or empty";
     }
-
 
     /**
      * Constant used to signal a home account's tenant id should be used when performing cache
@@ -243,13 +251,18 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
         validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
-        create(
-                initializeConfiguration(context, configFileResourceId),
-                null, // client id
-                null, // authority
-                null, // redirect uri
-                listener
-        );
+        runOnBackground(new Runnable() {
+            @Override
+            public void run() {
+                create(
+                        initializeConfiguration(context, configFileResourceId),
+                        null, // client id
+                        null, // authority
+                        null, // redirect uri
+                        listener
+                );
+            }
+        });
     }
 
     /**
@@ -277,18 +290,22 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @see PublicClientApplication#create(Context, int)
      */
     public static void create(@NonNull final Context context,
-                              @Nullable final File configFile,
+                              @NonNull final File configFile,
                               @NonNull final ApplicationCreatedListener listener) {
         validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
         validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
-
-        create(
-                initializeConfiguration(context, configFile),
-                null, // client id
-                null, // authority
-                null, // redirect uri
-                listener
-        );
+        runOnBackground(new Runnable() {
+            @Override
+            public void run() {
+                create(
+                        initializeConfiguration(context, configFile),
+                        null, // client id
+                        null, // authority
+                        null, // redirect uri
+                        listener
+                );
+            }
+        });
     }
 
     /**
@@ -323,13 +340,18 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(redirectUri, NONNULL_CONSTANTS.REDIRECT_URI);
         validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
-        create(
-                initializeConfiguration(context),
-                clientId,
-                authority,
-                redirectUri,
-                listener
-        );
+        runOnBackground(new Runnable() {
+            @Override
+            public void run() {
+                create(
+                        initializeConfiguration(context),
+                        clientId,
+                        authority,
+                        redirectUri,
+                        listener
+                );
+            }
+        });
     }
 
     /**
@@ -411,10 +433,15 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
         validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
-        createMultipleAccountPublicClientApplication(
-                initializeConfiguration(context, configFileResourceId),
-                listener
-        );
+        runOnBackground(new Runnable() {
+            @Override
+            public void run() {
+                createMultipleAccountPublicClientApplication(
+                        initializeConfiguration(context, configFileResourceId),
+                        listener
+                );
+            }
+        });
     }
 
     /**
@@ -453,10 +480,15 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
         validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
-        createMultipleAccountPublicClientApplication(
-                initializeConfiguration(context, configFile),
-                listener
-        );
+        runOnBackground(new Runnable() {
+            @Override
+            public void run() {
+                createMultipleAccountPublicClientApplication(
+                        initializeConfiguration(context, configFile),
+                        listener
+                );
+            }
+        });
     }
 
     /**
@@ -586,10 +618,15 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
         validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
-        createSingleAccountPublicClientApplication(
-                initializeConfiguration(context, configFileResourceId),
-                listener
-        );
+        runOnBackground(new Runnable() {
+            @Override
+            public void run() {
+                createSingleAccountPublicClientApplication(
+                        initializeConfiguration(context, configFileResourceId),
+                        listener
+                );
+            }
+        });
     }
 
     /**
@@ -629,10 +666,15 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(configFile, NONNULL_CONSTANTS.CONFIG_FILE);
         validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
 
-        createSingleAccountPublicClientApplication(
-                initializeConfiguration(context, configFile),
-                listener
-        );
+        runOnBackground(new Runnable() {
+            @Override
+            public void run() {
+                createSingleAccountPublicClientApplication(
+                        initializeConfiguration(context, configFile),
+                        listener
+                );
+            }
+        });
     }
 
     /**
@@ -970,7 +1012,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         final String methodName = ":initializeApplication";
 
         final Context context = mPublicClientConfiguration.getAppContext();
-        EstsTelemetry.getInstance().setupLastRequestTelemetryCache(context);
         setupTelemetry(context, mPublicClientConfiguration);
 
         AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
@@ -1820,5 +1861,46 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         } else {
             throw result.getException();
         }
+    }
+
+    void performMigration(@NonNull final TokenMigrationCallback callback) {
+        final Map<String, String> redirects = new HashMap<>();
+        redirects.put(
+                mPublicClientConfiguration.getClientId(), // Our client id
+                mPublicClientConfiguration.getRedirectUri() // Our redirect uri
+        );
+
+        final AdalMigrationAdapter adalMigrationAdapter = new AdalMigrationAdapter(
+                mPublicClientConfiguration.getAppContext(),
+                redirects,
+                false
+        );
+
+        if (adalMigrationAdapter.getMigrationStatus()) {
+            callback.onMigrationFinished(0);
+        } else {
+            // Create the SharedPreferencesFileManager for the legacy accounts/credentials
+            final IStorageHelper storageHelper = new StorageHelper(mPublicClientConfiguration.getAppContext());
+            final ISharedPreferencesFileManager sharedPreferencesFileManager =
+                    new SharedPreferencesFileManager(
+                            mPublicClientConfiguration.getAppContext(),
+                            "com.microsoft.aad.adal.cache",
+                            storageHelper
+                    );
+
+            // Load the old TokenCacheItems as key/value JSON
+            final Map<String, String> credentials = sharedPreferencesFileManager.getAll();
+
+            new TokenMigrationUtility<MicrosoftAccount, MicrosoftRefreshToken>()._import(
+                    adalMigrationAdapter,
+                    credentials,
+                    (IShareSingleSignOnState<MicrosoftAccount, MicrosoftRefreshToken>) mPublicClientConfiguration.getOAuth2TokenCache(),
+                    callback
+            );
+        }
+    }
+
+    private static void runOnBackground(@NonNull final Runnable runnable) {
+        new Thread(runnable).start();
     }
 }
