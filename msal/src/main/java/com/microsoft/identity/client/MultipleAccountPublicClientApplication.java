@@ -193,7 +193,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                                     @NonNull final String publicApiId) {
         try {
             validateNonNullArg(identifier, "identifier");
-            validateNonNullArg(identifier, "callback");
+            validateNonNullArg(callback, "callback");
         } catch (MsalArgumentException e) {
             callback.onError(e);
         }
