@@ -29,6 +29,7 @@ import android.os.Looper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.AsyncResult;
@@ -50,6 +51,7 @@ import com.microsoft.identity.common.internal.result.ResultFuture;
 import java.util.List;
 
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
+import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArg;
 
 public class MultipleAccountPublicClientApplication extends PublicClientApplication
         implements IMultipleAccountPublicClientApplication {
@@ -189,6 +191,12 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     private void getAccountInternal(@NonNull final String identifier,
                                     @NonNull final GetAccountCallback callback,
                                     @NonNull final String publicApiId) {
+        try {
+            validateNonNullArg(identifier, "identifier");
+        } catch (MsalArgumentException e) {
+            callback.onError(e);
+        }
+
         TokenMigrationCallback migrationCallback = new TokenMigrationCallback() {
             @Override
             public void onMigrationFinished(int numberOfAccountsMigrated) {
