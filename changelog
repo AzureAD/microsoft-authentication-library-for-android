@@ -1,6 +1,6 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
-Version 1.4.0-hf1
+Version 1.4.1
 - Hotfix release for Teams Dog Food.
 - Fixes #1005
 - Fixes common #871
