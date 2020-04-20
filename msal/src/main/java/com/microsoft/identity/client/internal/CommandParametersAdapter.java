@@ -123,6 +123,7 @@ public class CommandParametersAdapter {
                 .browserSafeList(configuration.getBrowserSafeList())
                 .authority(authority)
                 .claimsRequestJson(claimsRequestJson)
+                .forceRefresh(parameters.getClaimsRequest() != null)
                 .scopes(new HashSet<>(parameters.getScopes()))
                 .extraScopesToConsent(parameters.getExtraScopesToConsent())
                 .extraQueryStringParameters(parameters.getExtraQueryStringParameters())
