@@ -45,9 +45,9 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.AsyncResult;
+import com.microsoft.identity.client.internal.CommandParametersAdapter;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
-import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
@@ -64,13 +64,16 @@ import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManage
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.commands.CommandCallback;
+import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
+import com.microsoft.identity.common.internal.commands.InteractiveTokenCommand;
+import com.microsoft.identity.common.internal.commands.SilentTokenCommand;
+import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.controllers.BaseController;
-import com.microsoft.identity.common.internal.controllers.CommandCallback;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.controllers.ExceptionAdapter;
-import com.microsoft.identity.common.internal.controllers.GetDeviceModeCommand;
-import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
-import com.microsoft.identity.common.internal.controllers.TokenCommand;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.logging.Logger;
@@ -83,9 +86,6 @@ import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccou
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
-import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
-import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
-import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 import com.microsoft.identity.msal.BuildConfig;
@@ -104,7 +104,6 @@ import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArg;
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
 import static com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter.msalExceptionFromBaseException;
-import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isAccountHomeTenant;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_MSA_PERSISTENCE_ERROR;
@@ -119,6 +118,7 @@ import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUN
 import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
 import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
 import static com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience.isHomeTenantAlias;
+import static com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken.TENANT_ID;
 import static com.microsoft.identity.common.internal.util.StringUtil.isUuid;
 
 /**
@@ -875,13 +875,13 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             config.setRedirectUri(redirectUri);
         }
 
-        final OperationParameters params = OperationParametersAdapter.createOperationParameters(config, config.getOAuth2TokenCache());
+        final CommandParameters params = CommandParametersAdapter.createCommandParameters(config, config.getOAuth2TokenCache());
 
         final BaseController controller;
         try {
             controller = MSALControllerFactory.getDefaultController(
                     config.getAppContext(),
-                    params.getAuthority(),
+                    config.getDefaultAuthority(),
                     config);
         } catch (MsalClientException e) {
             listener.onError(e);
@@ -916,7 +916,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     public void onCancel() {
                         // Should not be reached.
                     }
-                }
+                },
+                null
         );
 
         CommandDispatcher.submitSilent(command);
@@ -1331,13 +1332,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             )
                     );
 
-                    final AcquireTokenOperationParameters params = OperationParametersAdapter.
-                            createAcquireTokenOperationParameters(
-                                    acquireTokenParameters,
+                    final InteractiveTokenCommandParameters params = CommandParametersAdapter.
+                            createInteractiveTokenCommandParameters(
                                     mPublicClientConfiguration,
-                                    mPublicClientConfiguration.getOAuth2TokenCache()
+                                    mPublicClientConfiguration.getOAuth2TokenCache(),
+                                    acquireTokenParameters
                             );
-
 
                     final InteractiveTokenCommand command = new InteractiveTokenCommand(
                             params,
@@ -1346,10 +1346,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                     params.getAuthority(),
                                     mPublicClientConfiguration
                             ),
-                            localAuthenticationCallback
+                            localAuthenticationCallback,
+                            publicApiId
                     );
 
-                    command.setPublicApiId(publicApiId);
                     CommandDispatcher.beginInteractive(command);
                 } catch (final Exception exception) {
                     // convert exception to BaseException
@@ -1416,25 +1416,25 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             )
                     );
 
-                    final AcquireTokenSilentOperationParameters params =
-                            OperationParametersAdapter.createAcquireTokenSilentOperationParameters(
-                                    acquireTokenSilentParameters,
+                    final SilentTokenCommandParameters params =
+                            CommandParametersAdapter.createSilentTokenCommandParameters(
                                     mPublicClientConfiguration,
-                                    mPublicClientConfiguration.getOAuth2TokenCache()
+                                    mPublicClientConfiguration.getOAuth2TokenCache(),
+                                    acquireTokenSilentParameters
                             );
 
 
-                    final TokenCommand silentTokenCommand = new TokenCommand(
+                    final SilentTokenCommand silentTokenCommand = new SilentTokenCommand(
                             params,
                             MSALControllerFactory.getAllControllers(
                                     mPublicClientConfiguration.getAppContext(),
                                     params.getAuthority(),
                                     mPublicClientConfiguration
                             ),
-                            callback
+                            callback,
+                            publicApiId
                     );
 
-                    silentTokenCommand.setPublicApiId(publicApiId);
                     CommandDispatcher.submitSilent(silentTokenCommand);
                 } catch (final Exception exception) {
                     // convert exception to BaseException
@@ -1902,5 +1902,16 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     private static void runOnBackground(@NonNull final Runnable runnable) {
         new Thread(runnable).start();
+    }
+
+    private static boolean isAccountHomeTenant(@Nullable final Map<String, ?> claims,
+                                               @NonNull final String tenantId) {
+        boolean isAccountHomeTenant = false;
+
+        if (null != claims && !claims.isEmpty()) {
+            isAccountHomeTenant = claims.get(TENANT_ID).equals(tenantId);
+        }
+
+        return isAccountHomeTenant;
     }
 }
