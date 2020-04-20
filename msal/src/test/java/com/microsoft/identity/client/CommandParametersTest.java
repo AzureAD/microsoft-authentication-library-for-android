@@ -34,6 +34,7 @@ import com.microsoft.identity.client.internal.CommandParametersAdapter;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.internal.testutils.TestUtils;
@@ -89,6 +90,30 @@ public class CommandParametersTest {
         Assert.assertEquals(false, commandParameters.isForceRefresh());
     }
 
+    @Test
+    public void testAcquireTokenOperationWithClaimsWithCapabilities() {
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenParametersWithClaims());
+        Assert.assertEquals(true, commandParameters.isForceRefresh());
+    }
+
+    @Test
+    public void testAcquireTokenOperationWithClaimsWithoutCapabilities() {
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenParametersWithClaims());
+        Assert.assertEquals(true, commandParameters.isForceRefresh());
+    }
+
+    @Test
+    public void testAcquireTokenOperationWithoutClaimsWithCapabilities() {
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenParametersWithoutClaims());
+        Assert.assertEquals(false, commandParameters.isForceRefresh());
+    }
+
+    @Test
+    public void testAcquireTokenOperationWithoutClaimsWithoutCapabilities() {
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenParametersWithoutClaims());
+        Assert.assertEquals(false, commandParameters.isForceRefresh());
+    }
+
     private ClaimsRequest getAccessTokenClaimsRequest(@NonNull String claimName, @NonNull String claimValue) {
         ClaimsRequest cp1ClaimsRequest = new ClaimsRequest();
         RequestedClaimAdditionalInformation info = new RequestedClaimAdditionalInformation();
@@ -111,6 +136,25 @@ public class CommandParametersTest {
         AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
                 .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
                 .fromAuthority("https://login.microsoftonline.com/common")
+                .build();
+
+        return parameters;
+    }
+
+    private AcquireTokenParameters getAcquireTokenParametersWithClaims() {
+        AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .withClaims(getAccessTokenClaimsRequest("device_id", ""))
+                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                .startAuthorizationFromActivity(mActivity)
+                .build();
+
+        return parameters;
+    }
+
+    private AcquireTokenParameters getAcquireTokenParametersWithoutClaims() {
+        AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                .startAuthorizationFromActivity(mActivity)
                 .build();
 
         return parameters;
