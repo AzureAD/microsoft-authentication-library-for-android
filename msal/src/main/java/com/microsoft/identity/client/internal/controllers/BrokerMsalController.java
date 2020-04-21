@@ -43,15 +43,16 @@ import com.microsoft.identity.common.internal.broker.BrokerResultFuture;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.RemoveAccountCommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAccount;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
-import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
-import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
-import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 import com.microsoft.identity.common.internal.telemetry.Telemetry;
@@ -80,7 +81,7 @@ public class BrokerMsalController extends BaseController {
     private BrokerResultFuture mBrokerResultFuture;
 
     @Override
-    public AcquireTokenResult acquireToken(AcquireTokenOperationParameters parameters) throws Exception {
+    public AcquireTokenResult acquireToken(InteractiveTokenCommandParameters parameters) throws Exception {
         Telemetry.emit(
                 new ApiStartEvent()
                         .putProperties(parameters)
@@ -96,7 +97,7 @@ public class BrokerMsalController extends BaseController {
         final Intent interactiveRequestIntent = getBrokerAuthorizationIntent(parameters);
 
         //Pass this intent to the BrokerActivity which will be used to start this activity
-        final Intent brokerActivityIntent = new Intent(parameters.getAppContext(), BrokerActivity.class);
+        final Intent brokerActivityIntent = new Intent(parameters.getAndroidApplicationContext(), BrokerActivity.class);
         brokerActivityIntent.putExtra(BrokerActivity.BROKER_INTENT, interactiveRequestIntent);
 
         mBrokerResultFuture = new BrokerResultFuture();
@@ -110,7 +111,7 @@ public class BrokerMsalController extends BaseController {
 
         // For MSA Accounts Broker doesn't save the accounts, instead it just passes the result along,
         // MSAL needs to save this account locally for future token calls.
-        saveMsaAccountToCache(resultBundle, (MsalOAuth2TokenCache) parameters.getTokenCache());
+        saveMsaAccountToCache(resultBundle, (MsalOAuth2TokenCache) parameters.getOAuth2TokenCache());
 
         final AcquireTokenResult result;
         try {
@@ -136,7 +137,7 @@ public class BrokerMsalController extends BaseController {
     /**
      * Info of a broker operation to be performed with available strategies.
      */
-    private interface BrokerOperationInfo<T extends OperationParameters, U> {
+    private interface BrokerOperationInfo<T extends CommandParameters, U> {
         /**
          * Performs this broker operation in this method with the given IMicrosoftAuthService.
          */
@@ -166,8 +167,8 @@ public class BrokerMsalController extends BaseController {
      * A generic method that would initialize and iterate through available strategies.
      * It will return a result immediately if any of the strategy succeeds, or throw an exception if all of the strategies fails.
      */
-    private <T extends OperationParameters, U> U invokeBrokerOperation(@NonNull final T parameters,
-                                                                       @NonNull final BrokerOperationInfo<T, U> strategyTask)
+    private <T extends CommandParameters, U> U invokeBrokerOperation(@NonNull final T parameters,
+                                                                     @NonNull final BrokerOperationInfo<T, U> strategyTask)
             throws Exception {
 
         if (strategyTask.getTelemetryApiId() != null) {
@@ -260,12 +261,12 @@ public class BrokerMsalController extends BaseController {
      * @param parameters
      * @return
      */
-    private Intent getBrokerAuthorizationIntent(@NonNull final AcquireTokenOperationParameters parameters) throws Exception {
+    private Intent getBrokerAuthorizationIntent(@NonNull final InteractiveTokenCommandParameters parameters) throws Exception {
         return invokeBrokerOperation(parameters,
-                new BrokerOperationInfo<AcquireTokenOperationParameters, Intent>() {
+                new BrokerOperationInfo<InteractiveTokenCommandParameters, Intent>() {
                     @Nullable
                     @Override
-                    public Intent perform(BrokerBaseStrategy strategy, AcquireTokenOperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
+                    public Intent perform(BrokerBaseStrategy strategy, InteractiveTokenCommandParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
                         return strategy.getBrokerAuthorizationIntent(parameters);
                     }
 
@@ -314,12 +315,12 @@ public class BrokerMsalController extends BaseController {
     }
 
     @Override
-    public AcquireTokenResult acquireTokenSilent(AcquireTokenSilentOperationParameters parameters) throws Exception {
+    public AcquireTokenResult acquireTokenSilent(SilentTokenCommandParameters parameters) throws Exception {
         return invokeBrokerOperation(parameters,
-                new BrokerOperationInfo<AcquireTokenSilentOperationParameters, AcquireTokenResult>() {
+                new BrokerOperationInfo<SilentTokenCommandParameters, AcquireTokenResult>() {
                     @Nullable
                     @Override
-                    public AcquireTokenResult perform(BrokerBaseStrategy strategy, AcquireTokenSilentOperationParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
+                    public AcquireTokenResult perform(BrokerBaseStrategy strategy, SilentTokenCommandParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
                         return strategy.acquireTokenSilent(parameters);
                     }
 
@@ -349,12 +350,12 @@ public class BrokerMsalController extends BaseController {
      * this needs to be called on background thread.
      */
     @Override
-    public List<ICacheRecord> getAccounts(@NonNull final OperationParameters parameters) throws Exception {
+    public List<ICacheRecord> getAccounts(@NonNull final CommandParameters parameters) throws Exception {
         return invokeBrokerOperation(parameters,
-                new BrokerOperationInfo<OperationParameters, List<ICacheRecord>>() {
+                new BrokerOperationInfo<CommandParameters, List<ICacheRecord>>() {
                     @Nullable
                     @Override
-                    public List<ICacheRecord> perform(BrokerBaseStrategy strategy, OperationParameters parameters) throws RemoteException, InterruptedException, ExecutionException, AuthenticatorException, IOException, OperationCanceledException, BaseException {
+                    public List<ICacheRecord> perform(BrokerBaseStrategy strategy, CommandParameters parameters) throws RemoteException, InterruptedException, ExecutionException, AuthenticatorException, IOException, OperationCanceledException, BaseException {
                         return strategy.getBrokerAccounts(parameters);
                     }
 
@@ -378,12 +379,12 @@ public class BrokerMsalController extends BaseController {
 
     @Override
     @WorkerThread
-    public boolean removeAccount(@NonNull final OperationParameters parameters) throws Exception {
+    public boolean removeAccount(@NonNull final RemoveAccountCommandParameters parameters) throws Exception {
         return invokeBrokerOperation(parameters,
-                new BrokerOperationInfo<OperationParameters, Boolean>() {
+                new BrokerOperationInfo<RemoveAccountCommandParameters, Boolean>() {
                     @Nullable
                     @Override
-                    public Boolean perform(BrokerBaseStrategy strategy, OperationParameters parameters) throws InterruptedException, ExecutionException, BaseException, RemoteException {
+                    public Boolean perform(BrokerBaseStrategy strategy, RemoveAccountCommandParameters parameters) throws InterruptedException, ExecutionException, BaseException, RemoteException {
                         strategy.removeBrokerAccount(parameters);
                         return true;
                     }
@@ -407,12 +408,12 @@ public class BrokerMsalController extends BaseController {
 
     @Override
     @WorkerThread
-    public boolean getDeviceMode(@NonNull final OperationParameters parameters) throws Exception {
+    public boolean getDeviceMode(@NonNull final CommandParameters parameters) throws Exception {
         return invokeBrokerOperation(parameters,
-                new BrokerOperationInfo<OperationParameters, Boolean>() {
+                new BrokerOperationInfo<CommandParameters, Boolean>() {
                     @Nullable
                     @Override
-                    public Boolean perform(BrokerBaseStrategy strategy, OperationParameters parameters) throws Exception {
+                    public Boolean perform(BrokerBaseStrategy strategy, CommandParameters parameters) throws Exception {
                         return strategy.getDeviceMode(parameters);
                     }
 
@@ -435,19 +436,19 @@ public class BrokerMsalController extends BaseController {
     }
 
     @Override
-    public List<ICacheRecord> getCurrentAccount(OperationParameters parameters) throws Exception {
+    public List<ICacheRecord> getCurrentAccount(CommandParameters parameters) throws Exception {
         final String methodName = ":getCurrentAccount";
 
-        if (!parameters.getIsSharedDevice()) {
+        if (!parameters.isSharedDevice()) {
             Logger.verbose(TAG + methodName, "Not a shared device, invoke getAccounts() instead of getCurrentAccount()");
             return getAccounts(parameters);
         }
 
         return invokeBrokerOperation(parameters,
-                new BrokerOperationInfo<OperationParameters, List<ICacheRecord>>() {
+                new BrokerOperationInfo<CommandParameters, List<ICacheRecord>>() {
                     @Nullable
                     @Override
-                    public List<ICacheRecord> perform(BrokerBaseStrategy strategy, OperationParameters parameters) throws Exception {
+                    public List<ICacheRecord> perform(BrokerBaseStrategy strategy, CommandParameters parameters) throws Exception {
                         return strategy.getCurrentAccountInSharedDevice(parameters);
                     }
 
@@ -470,10 +471,10 @@ public class BrokerMsalController extends BaseController {
     }
 
     @Override
-    public boolean removeCurrentAccount(OperationParameters parameters) throws Exception {
+    public boolean removeCurrentAccount(RemoveAccountCommandParameters parameters) throws Exception {
         final String methodName = ":removeCurrentAccount";
 
-        if (!parameters.getIsSharedDevice()) {
+        if (!parameters.isSharedDevice()) {
             Logger.verbose(TAG + methodName, "Not a shared device, invoke removeAccount() instead of removeCurrentAccount()");
             return removeAccount(parameters);
         }
@@ -489,10 +490,10 @@ public class BrokerMsalController extends BaseController {
          * 4. Sign out from default browser.
          */
         return invokeBrokerOperation(parameters,
-                new BrokerOperationInfo<OperationParameters, Boolean>() {
+                new BrokerOperationInfo<RemoveAccountCommandParameters, Boolean>() {
                     @Nullable
                     @Override
-                    public Boolean perform(BrokerBaseStrategy strategy, OperationParameters parameters) throws InterruptedException, ExecutionException, BaseException, RemoteException {
+                    public Boolean perform(BrokerBaseStrategy strategy, RemoveAccountCommandParameters parameters) throws InterruptedException, ExecutionException, BaseException, RemoteException {
                         strategy.signOutFromSharedDevice(parameters);
                         return true;
                     }
