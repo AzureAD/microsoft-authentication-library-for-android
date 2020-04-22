@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
+import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
 
@@ -35,6 +36,10 @@ import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authscheme.AbstractAuthenticationScheme;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.RemoveAccountCommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
@@ -46,9 +51,6 @@ import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2StrategyParameters;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
-import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
-import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
-import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.request.SdkType;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
@@ -60,6 +62,7 @@ import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -73,7 +76,8 @@ public class LocalMSALController extends BaseController {
     private AuthorizationRequest mAuthorizationRequest = null;
 
     @Override
-    public AcquireTokenResult acquireToken(@NonNull final AcquireTokenOperationParameters parameters)
+    public AcquireTokenResult acquireToken(
+            @NonNull final InteractiveTokenCommandParameters parameters)
             throws ExecutionException, InterruptedException, ClientException, IOException, ArgumentException {
         final String methodName = ":acquireToken";
 
@@ -94,13 +98,18 @@ public class LocalMSALController extends BaseController {
         parameters.validate();
 
         // Add default scopes
-        addDefaultScopes(parameters);
+        final Set<String> mergedScopes = addDefaultScopes(parameters);
 
-        logParameters(TAG, parameters);
+        final InteractiveTokenCommandParameters parametersWithScopes = parameters
+                .toBuilder()
+                .scopes(mergedScopes)
+                .build();
+
+        logParameters(TAG, parametersWithScopes);
 
         //0) Get known authority result
-        throwIfNetworkNotAvailable(parameters.getAppContext());
-        Authority.KnownAuthorityResult authorityResult = Authority.getKnownAuthorityResult(parameters.getAuthority());
+        throwIfNetworkNotAvailable(parametersWithScopes.getAndroidApplicationContext());
+        Authority.KnownAuthorityResult authorityResult = Authority.getKnownAuthorityResult(parametersWithScopes.getAuthority());
 
         //0.1 If not known throw resulting exception
         if (!authorityResult.getKnown()) {
@@ -115,16 +124,20 @@ public class LocalMSALController extends BaseController {
 
         // Build up params for Strategy construction
         final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
-        strategyParameters.setContext(parameters.getAppContext());
+        strategyParameters.setContext(parametersWithScopes.getAndroidApplicationContext());
 
         //1) Get oAuth2Strategy for Authority Type
-        final OAuth2Strategy oAuth2Strategy = parameters
+        final OAuth2Strategy oAuth2Strategy = parametersWithScopes
                 .getAuthority()
                 .createOAuth2Strategy(strategyParameters);
 
 
         //2) Request authorization interactively
-        final AuthorizationResult result = performAuthorizationRequest(oAuth2Strategy, parameters);
+        final AuthorizationResult result = performAuthorizationRequest(
+                oAuth2Strategy,
+                parametersWithScopes.getAndroidApplicationContext(),
+                parametersWithScopes
+        );
         acquireTokenResult.setAuthorizationResult(result);
 
         logResult(TAG, result);
@@ -135,7 +148,7 @@ public class LocalMSALController extends BaseController {
                     oAuth2Strategy,
                     mAuthorizationRequest,
                     result.getAuthorizationResponse(),
-                    parameters
+                    parametersWithScopes
             );
 
             acquireTokenResult.setTokenResult(tokenResult);
@@ -146,7 +159,7 @@ public class LocalMSALController extends BaseController {
                         oAuth2Strategy,
                         mAuthorizationRequest,
                         tokenResult.getTokenResponse(),
-                        parameters.getTokenCache()
+                        parametersWithScopes.getOAuth2TokenCache()
                 );
 
                 // The first element in the returned list is the item we *just* saved, the rest of
@@ -157,7 +170,7 @@ public class LocalMSALController extends BaseController {
                         new LocalAuthenticationResult(
                                 finalizeCacheRecordForResult(
                                         newestRecord,
-                                        parameters.getAuthenticationScheme()
+                                        parametersWithScopes.getAuthenticationScheme()
                                 ),
                                 records,
                                 SdkType.MSAL,
@@ -177,10 +190,11 @@ public class LocalMSALController extends BaseController {
     }
 
     private AuthorizationResult performAuthorizationRequest(@NonNull final OAuth2Strategy strategy,
-                                                            @NonNull final AcquireTokenOperationParameters parameters)
+                                                            @NonNull final Context context,
+                                                            @NonNull final InteractiveTokenCommandParameters parameters)
             throws ExecutionException, InterruptedException, ClientException {
 
-        throwIfNetworkNotAvailable(parameters.getAppContext());
+        throwIfNetworkNotAvailable(context);
 
         mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance()
                 .getAuthorizationStrategy(
@@ -225,7 +239,7 @@ public class LocalMSALController extends BaseController {
 
     @Override
     public AcquireTokenResult acquireTokenSilent(
-            @NonNull final AcquireTokenSilentOperationParameters parameters)
+            @NonNull final SilentTokenCommandParameters parameters)
             throws IOException, ClientException, ArgumentException, ServiceException {
         final String methodName = ":acquireTokenSilent";
         Logger.verbose(
@@ -245,22 +259,27 @@ public class LocalMSALController extends BaseController {
         parameters.validate();
 
         // Add default scopes
-        addDefaultScopes(parameters);
+        final Set<String> mergedScopes = addDefaultScopes(parameters);
 
-        final OAuth2TokenCache tokenCache = parameters.getTokenCache();
+        final SilentTokenCommandParameters parametersWithScopes = parameters
+                .toBuilder()
+                .scopes(mergedScopes)
+                .build();
 
-        final AccountRecord targetAccount = getCachedAccountRecord(parameters);
+        final OAuth2TokenCache tokenCache = parametersWithScopes.getOAuth2TokenCache();
+
+        final AccountRecord targetAccount = getCachedAccountRecord(parametersWithScopes);
 
         // Build up params for Strategy construction
-        final AbstractAuthenticationScheme authScheme = parameters.getAuthenticationScheme();
+        final AbstractAuthenticationScheme authScheme = parametersWithScopes.getAuthenticationScheme();
         final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
-        strategyParameters.setContext(parameters.getAppContext());
+        strategyParameters.setContext(parametersWithScopes.getAndroidApplicationContext());
 
-        final OAuth2Strategy strategy = parameters.getAuthority().createOAuth2Strategy(strategyParameters);
+        final OAuth2Strategy strategy = parametersWithScopes.getAuthority().createOAuth2Strategy(strategyParameters);
 
         final List<ICacheRecord> cacheRecords = tokenCache.loadWithAggregatedAccountData(
-                parameters.getClientId(),
-                TextUtils.join(" ", parameters.getScopes()),
+                parametersWithScopes.getClientId(),
+                TextUtils.join(" ", parametersWithScopes.getScopes()),
                 targetAccount,
                 authScheme
         );
@@ -273,8 +292,8 @@ public class LocalMSALController extends BaseController {
 
         if (accessTokenIsNull(fullCacheRecord)
                 || refreshTokenIsNull(fullCacheRecord)
-                || parameters.getForceRefresh()
-                || !isRequestAuthorityRealmSameAsATRealm(parameters.getAuthority(), fullCacheRecord.getAccessToken())
+                || parametersWithScopes.isForceRefresh()
+                || !isRequestAuthorityRealmSameAsATRealm(parametersWithScopes.getAuthority(), fullCacheRecord.getAccessToken())
                 || !strategy.validateCachedResult(authScheme, fullCacheRecord)) {
             if (!refreshTokenIsNull(fullCacheRecord)) {
                 // No AT found, but the RT checks out, so we'll use it
@@ -284,7 +303,7 @@ public class LocalMSALController extends BaseController {
                 );
 
                 renewAccessToken(
-                        parameters,
+                        parametersWithScopes,
                         acquireTokenSilentResult,
                         tokenCache,
                         strategy,
@@ -320,7 +339,7 @@ public class LocalMSALController extends BaseController {
             );
             // Request a new AT
             renewAccessToken(
-                    parameters,
+                    parametersWithScopes,
                     acquireTokenSilentResult,
                     tokenCache,
                     strategy,
@@ -336,7 +355,7 @@ public class LocalMSALController extends BaseController {
                     new LocalAuthenticationResult(
                             finalizeCacheRecordForResult(
                                     fullCacheRecord,
-                                    parameters.getAuthenticationScheme()
+                                    parametersWithScopes.getAuthenticationScheme()
                             ),
                             cacheRecords,
                             SdkType.MSAL,
@@ -356,7 +375,7 @@ public class LocalMSALController extends BaseController {
 
     @Override
     @WorkerThread
-    public List<ICacheRecord> getAccounts(@NonNull final OperationParameters parameters) {
+    public List<ICacheRecord> getAccounts(@NonNull final CommandParameters parameters) {
         Telemetry.emit(
                 new ApiStartEvent()
                         .putProperties(parameters)
@@ -365,7 +384,7 @@ public class LocalMSALController extends BaseController {
 
         final List<ICacheRecord> accountsInCache =
                 parameters
-                        .getTokenCache()
+                        .getOAuth2TokenCache()
                         .getAccountsWithAggregatedAccountData(
                                 null, // * wildcard
                                 parameters.getClientId()
@@ -383,7 +402,8 @@ public class LocalMSALController extends BaseController {
 
     @Override
     @WorkerThread
-    public boolean removeAccount(@NonNull final OperationParameters parameters) {
+    public boolean removeAccount(
+            @NonNull final RemoveAccountCommandParameters parameters) {
         Telemetry.emit(
                 new ApiStartEvent()
                         .putProperties(parameters)
@@ -397,7 +417,7 @@ public class LocalMSALController extends BaseController {
         }
 
         final boolean localRemoveAccountSuccess = !parameters
-                .getTokenCache()
+                .getOAuth2TokenCache()
                 .removeAccount(
                         parameters.getAccount() == null ? null : parameters.getAccount().getEnvironment(),
                         parameters.getClientId(),
@@ -415,7 +435,7 @@ public class LocalMSALController extends BaseController {
     }
 
     @Override
-    public boolean getDeviceMode(OperationParameters parameters) throws Exception {
+    public boolean getDeviceMode(CommandParameters parameters) throws Exception {
         final String methodName = ":getDeviceMode";
 
         final String errorMessage = "LocalMSALController is not eligible to use the broker. Do not check sharedDevice mode and return false immediately.";
@@ -425,12 +445,12 @@ public class LocalMSALController extends BaseController {
     }
 
     @Override
-    public List<ICacheRecord> getCurrentAccount(OperationParameters parameters) throws Exception {
+    public List<ICacheRecord> getCurrentAccount(CommandParameters parameters) throws Exception {
         return getAccounts(parameters);
     }
 
     @Override
-    public boolean removeCurrentAccount(OperationParameters parameters) throws Exception {
+    public boolean removeCurrentAccount(RemoveAccountCommandParameters parameters) throws Exception {
         return removeAccount(parameters);
     }
 }

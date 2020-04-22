@@ -1,5 +1,12 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 1.4.1
+- Hotfix release for Teams.
+- Fixes #1005
+- Fixes common #871
+- Limit silent thread pool to 5 threads.
+- Picks up common@2.0.2-hf1
+
 Version 1.4.0
 - Fix for MSAL #920, 924, 935, 940
     * Crash due to error receiving CANCEL broadcast

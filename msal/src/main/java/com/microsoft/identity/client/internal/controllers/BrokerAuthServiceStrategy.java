@@ -38,10 +38,11 @@ import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthServiceFuture;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.RemoveAccountCommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.logging.Logger;
-import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
-import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
-import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.telemetry.Telemetry;
 import com.microsoft.identity.common.internal.telemetry.TelemetryEventStrings;
@@ -61,7 +62,7 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
      * @return
      */
     @WorkerThread
-    Intent getBrokerAuthorizationIntent(@NonNull final AcquireTokenOperationParameters parameters)
+    Intent getBrokerAuthorizationIntent(@NonNull final InteractiveTokenCommandParameters parameters)
             throws BaseException {
         final String methodName = ":getBrokerAuthorizationIntent";
         Logger.verbose(TAG + methodName, "Get the broker authorization intent from auth service.");
@@ -94,7 +95,6 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
      * Perform an operation with Broker's MicrosoftAuthService on a background thread.
      *
      * @param appContext           app context.
-     * @param callback             a callback function to be invoked to return result/error of the performed task.
      * @param authServiceOperation the task to be performed.
      */
     private <T> T performAuthServiceOperation(@NonNull final Context appContext,
@@ -157,8 +157,8 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     }
 
     @WorkerThread
-    void hello(@NonNull final OperationParameters parameters) throws BaseException {
-        performAuthServiceOperation(parameters.getAppContext(),
+    void hello(@NonNull final CommandParameters parameters) throws BaseException {
+        performAuthServiceOperation(parameters.getAndroidApplicationContext(),
                 new AuthServiceOperation<Void>() {
                     @Override
                     public Void perform(IMicrosoftAuthService service) throws RemoteException, ClientException {
@@ -176,9 +176,9 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                 });
     }
 
-    private Intent getBrokerAuthorizationIntentFromAuthService(@NonNull final AcquireTokenOperationParameters parameters)
+    private Intent getBrokerAuthorizationIntentFromAuthService(@NonNull final InteractiveTokenCommandParameters parameters)
             throws BaseException {
-        return performAuthServiceOperation(parameters.getAppContext(),
+        return performAuthServiceOperation(parameters.getAndroidApplicationContext(),
                 new AuthServiceOperation<Intent>() {
                     @Override
                     public Intent perform(IMicrosoftAuthService service) throws RemoteException {
@@ -193,9 +193,9 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     }
 
     @WorkerThread
-    AcquireTokenResult acquireTokenSilent(final AcquireTokenSilentOperationParameters parameters)
+    AcquireTokenResult acquireTokenSilent(final SilentTokenCommandParameters parameters)
             throws BaseException {
-        return performAuthServiceOperation(parameters.getAppContext(),
+        return performAuthServiceOperation(parameters.getAndroidApplicationContext(),
                 new AuthServiceOperation<AcquireTokenResult>() {
                     @Override
                     public AcquireTokenResult perform(IMicrosoftAuthService service) throws RemoteException, BaseException {
@@ -213,9 +213,9 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     }
 
     @WorkerThread
-    protected List<ICacheRecord> getBrokerAccounts(@NonNull final OperationParameters parameters)
+    protected List<ICacheRecord> getBrokerAccounts(@NonNull final CommandParameters parameters)
             throws BaseException {
-        return performAuthServiceOperation(parameters.getAppContext(),
+        return performAuthServiceOperation(parameters.getAndroidApplicationContext(),
                 new AuthServiceOperation<List<ICacheRecord>>() {
                     @Override
                     public List<ICacheRecord> perform(IMicrosoftAuthService service) throws RemoteException, BaseException {
@@ -234,9 +234,9 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     }
 
     @WorkerThread
-    protected void removeBrokerAccount(@NonNull final OperationParameters parameters)
+    protected void removeBrokerAccount(@NonNull final RemoveAccountCommandParameters parameters)
             throws BaseException {
-        performAuthServiceOperation(parameters.getAppContext(),
+        performAuthServiceOperation(parameters.getAndroidApplicationContext(),
                 new AuthServiceOperation<Void>() {
                     @Override
                     public Void perform(IMicrosoftAuthService service) throws RemoteException, BaseException {
@@ -256,8 +256,8 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     }
 
     @WorkerThread
-    protected boolean getDeviceMode(@NonNull OperationParameters parameters) throws BaseException {
-        return performAuthServiceOperation(parameters.getAppContext(),
+    protected boolean getDeviceMode(@NonNull CommandParameters parameters) throws BaseException {
+        return performAuthServiceOperation(parameters.getAndroidApplicationContext(),
                 new AuthServiceOperation<Boolean>() {
                     @Override
                     public Boolean perform(IMicrosoftAuthService service) throws BaseException, RemoteException {
@@ -274,8 +274,8 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     }
 
     @WorkerThread
-    protected List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull final OperationParameters parameters) throws BaseException {
-        return performAuthServiceOperation(parameters.getAppContext(),
+    protected List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull final CommandParameters parameters) throws BaseException {
+        return performAuthServiceOperation(parameters.getAndroidApplicationContext(),
                 new AuthServiceOperation<List<ICacheRecord>>() {
                     @Override
                     public List<ICacheRecord> perform(IMicrosoftAuthService service) throws RemoteException, BaseException {
@@ -293,8 +293,8 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     }
 
     @WorkerThread
-    protected void signOutFromSharedDevice(@NonNull final OperationParameters parameters) throws BaseException {
-        performAuthServiceOperation(parameters.getAppContext(),
+    protected void signOutFromSharedDevice(@NonNull final RemoveAccountCommandParameters parameters) throws BaseException {
+        performAuthServiceOperation(parameters.getAndroidApplicationContext(),
                 new AuthServiceOperation<Void>() {
                     @Override
                     public Void perform(IMicrosoftAuthService service) throws RemoteException, BaseException {
