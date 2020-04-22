@@ -27,6 +27,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
@@ -47,21 +48,28 @@ abstract class BrokerBaseStrategy {
 
     protected final MsalBrokerResultAdapter mResultAdapter = new MsalBrokerResultAdapter();
 
-    abstract void hello(@NonNull final CommandParameters parameters) throws BaseException;
+    abstract String hello(@NonNull final CommandParameters parameters) throws BaseException;
 
-    abstract Intent getBrokerAuthorizationIntent(@NonNull InteractiveTokenCommandParameters parameters) throws BaseException;
+    abstract Intent getBrokerAuthorizationIntent(@NonNull InteractiveTokenCommandParameters parameters,
+                                                 @Nullable String negotiatedBrokerProtocolVersion) throws BaseException;
 
-    abstract AcquireTokenResult acquireTokenSilent(SilentTokenCommandParameters parameters) throws BaseException;
+    abstract AcquireTokenResult acquireTokenSilent(@NonNull SilentTokenCommandParameters parameters,
+                                                   @Nullable String negotiatedBrokerProtocolVersion) throws BaseException;
 
-    abstract List<ICacheRecord> getBrokerAccounts(@NonNull final CommandParameters parameters) throws BaseException;
+    abstract List<ICacheRecord> getBrokerAccounts(@NonNull final CommandParameters parameters,
+                                                  @Nullable String negotiatedBrokerProtocolVersion) throws BaseException;
 
-    abstract void removeBrokerAccount(@NonNull final RemoveAccountCommandParameters parameters) throws BaseException;
+    abstract void removeBrokerAccount(@NonNull final RemoveAccountCommandParameters parameters,
+                                      @Nullable String negotiatedBrokerProtocolVersion) throws BaseException;
 
-    abstract boolean getDeviceMode(@NonNull final CommandParameters parameters) throws BaseException;
+    abstract boolean getDeviceMode(@NonNull final CommandParameters parameters,
+                                   @Nullable String negotiatedBrokerProtocolVersion) throws BaseException;
 
-    abstract List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull final CommandParameters parameters) throws BaseException;
+    abstract List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull final CommandParameters parameters,
+                                                                @Nullable String negotiatedBrokerProtocolVersion) throws BaseException;
 
-    abstract void signOutFromSharedDevice(@NonNull final RemoveAccountCommandParameters parameters) throws BaseException;
+    abstract void signOutFromSharedDevice(@NonNull final RemoveAccountCommandParameters parameters,
+                                          @Nullable String negotiatedBrokerProtocolVersion) throws BaseException;
 
     Handler getPreferredHandler() {
         if (null != Looper.myLooper() && Looper.getMainLooper() != Looper.myLooper()) {
@@ -72,10 +80,15 @@ abstract class BrokerBaseStrategy {
     }
 
     protected Intent completeInteractiveRequestIntent(@NonNull final Intent interactiveRequestIntent,
-                                                      @NonNull final InteractiveTokenCommandParameters parameters) {
+                                                      @NonNull final InteractiveTokenCommandParameters parameters,
+                                                      @Nullable final String negotiatedProtocolVersion) {
 
         interactiveRequestIntent.putExtras(
-                mRequestAdapter.getRequestBundleForAcquireTokenInteractive(parameters)
+                mRequestAdapter.getRequestBundleForAcquireTokenInteractive(parameters, negotiatedProtocolVersion)
+        );
+        interactiveRequestIntent.putExtra(
+                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                negotiatedProtocolVersion
         );
         return interactiveRequestIntent;
     }

@@ -142,7 +142,7 @@ public class BrokerMsalController extends BaseController {
          * Performs this broker operation in this method with the given IMicrosoftAuthService.
          */
         @Nullable
-        U perform(BrokerBaseStrategy strategy, T parameters) throws Exception;
+        U perform(BrokerBaseStrategy strategy, T parameters, String negotiatedBrokerProtocolVersion) throws Exception;
 
         /**
          * Name of the task (for logging purposes).
@@ -192,8 +192,8 @@ public class BrokerMsalController extends BaseController {
                                 + strategy.getClass().getSimpleName()
                 );
 
-                strategy.hello(parameters);
-                result = strategyTask.perform(strategy, parameters);
+                final String negotiatedBrokerProtocolVersion = strategy.hello(parameters);
+                result = strategyTask.perform(strategy, parameters, negotiatedBrokerProtocolVersion);
                 if (result != null) {
                     break;
                 }
@@ -266,8 +266,11 @@ public class BrokerMsalController extends BaseController {
                 new BrokerOperationInfo<InteractiveTokenCommandParameters, Intent>() {
                     @Nullable
                     @Override
-                    public Intent perform(BrokerBaseStrategy strategy, InteractiveTokenCommandParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
-                        return strategy.getBrokerAuthorizationIntent(parameters);
+                    public Intent perform(@NonNull BrokerBaseStrategy strategy,
+                                          @NonNull InteractiveTokenCommandParameters parameters,
+                                          @Nullable String negotiatedBrokerProtocolVersion)
+                            throws BaseException, InterruptedException, ExecutionException, RemoteException {
+                        return strategy.getBrokerAuthorizationIntent(parameters, negotiatedBrokerProtocolVersion);
                     }
 
                     @Override
@@ -320,8 +323,10 @@ public class BrokerMsalController extends BaseController {
                 new BrokerOperationInfo<SilentTokenCommandParameters, AcquireTokenResult>() {
                     @Nullable
                     @Override
-                    public AcquireTokenResult perform(BrokerBaseStrategy strategy, SilentTokenCommandParameters parameters) throws BaseException, InterruptedException, ExecutionException, RemoteException {
-                        return strategy.acquireTokenSilent(parameters);
+                    public AcquireTokenResult perform(@NonNull BrokerBaseStrategy strategy,
+                                                      @NonNull SilentTokenCommandParameters parameters,
+                                                      @Nullable String negotiatedBrokerProtocolVersion) throws BaseException, InterruptedException, ExecutionException, RemoteException {
+                        return strategy.acquireTokenSilent(parameters, negotiatedBrokerProtocolVersion);
                     }
 
                     @Override
@@ -355,8 +360,10 @@ public class BrokerMsalController extends BaseController {
                 new BrokerOperationInfo<CommandParameters, List<ICacheRecord>>() {
                     @Nullable
                     @Override
-                    public List<ICacheRecord> perform(BrokerBaseStrategy strategy, CommandParameters parameters) throws RemoteException, InterruptedException, ExecutionException, AuthenticatorException, IOException, OperationCanceledException, BaseException {
-                        return strategy.getBrokerAccounts(parameters);
+                    public List<ICacheRecord> perform(@NonNull BrokerBaseStrategy strategy,
+                                                      @NonNull CommandParameters parameters,
+                                                      @Nullable String negotiatedBrokerProtocolVersion) throws RemoteException, InterruptedException, ExecutionException, AuthenticatorException, IOException, OperationCanceledException, BaseException {
+                        return strategy.getBrokerAccounts(parameters, negotiatedBrokerProtocolVersion);
                     }
 
                     @Override
@@ -384,8 +391,10 @@ public class BrokerMsalController extends BaseController {
                 new BrokerOperationInfo<RemoveAccountCommandParameters, Boolean>() {
                     @Nullable
                     @Override
-                    public Boolean perform(BrokerBaseStrategy strategy, RemoveAccountCommandParameters parameters) throws InterruptedException, ExecutionException, BaseException, RemoteException {
-                        strategy.removeBrokerAccount(parameters);
+                    public Boolean perform(@NonNull BrokerBaseStrategy strategy,
+                                           @NonNull RemoveAccountCommandParameters parameters,
+                                           @Nullable String negotiatedBrokerProtocolVersion) throws InterruptedException, ExecutionException, BaseException, RemoteException {
+                        strategy.removeBrokerAccount(parameters, negotiatedBrokerProtocolVersion);
                         return true;
                     }
 
@@ -413,8 +422,10 @@ public class BrokerMsalController extends BaseController {
                 new BrokerOperationInfo<CommandParameters, Boolean>() {
                     @Nullable
                     @Override
-                    public Boolean perform(BrokerBaseStrategy strategy, CommandParameters parameters) throws Exception {
-                        return strategy.getDeviceMode(parameters);
+                    public Boolean perform(@NonNull BrokerBaseStrategy strategy,
+                                           @NonNull CommandParameters parameters,
+                                           @Nullable String negotiatedBrokerProtocolVersion) throws Exception {
+                        return strategy.getDeviceMode(parameters, negotiatedBrokerProtocolVersion);
                     }
 
                     @Override
@@ -448,8 +459,10 @@ public class BrokerMsalController extends BaseController {
                 new BrokerOperationInfo<CommandParameters, List<ICacheRecord>>() {
                     @Nullable
                     @Override
-                    public List<ICacheRecord> perform(BrokerBaseStrategy strategy, CommandParameters parameters) throws Exception {
-                        return strategy.getCurrentAccountInSharedDevice(parameters);
+                    public List<ICacheRecord> perform(@NonNull BrokerBaseStrategy strategy,
+                                                      @NonNull CommandParameters parameters,
+                                                      @Nullable String negotiatedBrokerProtocolVersion) throws Exception {
+                        return strategy.getCurrentAccountInSharedDevice(parameters, negotiatedBrokerProtocolVersion);
                     }
 
                     @Override
@@ -493,8 +506,11 @@ public class BrokerMsalController extends BaseController {
                 new BrokerOperationInfo<RemoveAccountCommandParameters, Boolean>() {
                     @Nullable
                     @Override
-                    public Boolean perform(BrokerBaseStrategy strategy, RemoveAccountCommandParameters parameters) throws InterruptedException, ExecutionException, BaseException, RemoteException {
-                        strategy.signOutFromSharedDevice(parameters);
+                    public Boolean perform(@NonNull BrokerBaseStrategy strategy,
+                                           @NonNull RemoveAccountCommandParameters parameters,
+                                           @Nullable String negotiatedBrokerProtocolVersion)
+                            throws InterruptedException, ExecutionException, BaseException, RemoteException {
+                        strategy.signOutFromSharedDevice(parameters, negotiatedBrokerProtocolVersion);
                         return true;
                     }
 
