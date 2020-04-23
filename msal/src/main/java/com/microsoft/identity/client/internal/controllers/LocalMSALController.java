@@ -108,7 +108,11 @@ public class LocalMSALController extends BaseController {
         logParameters(TAG, parametersWithScopes);
 
         //0) Get known authority result
-        throwIfNetworkNotAvailable(parametersWithScopes.getAndroidApplicationContext());
+        throwIfNetworkNotAvailable(
+                parametersWithScopes.getAndroidApplicationContext(),
+                parametersWithScopes.isPowerOptCheckEnabled()
+        );
+
         Authority.KnownAuthorityResult authorityResult = Authority.getKnownAuthorityResult(parametersWithScopes.getAuthority());
 
         //0.1 If not known throw resulting exception
@@ -194,7 +198,7 @@ public class LocalMSALController extends BaseController {
                                                             @NonNull final InteractiveTokenCommandParameters parameters)
             throws ExecutionException, InterruptedException, ClientException {
 
-        throwIfNetworkNotAvailable(context);
+        throwIfNetworkNotAvailable(context, parameters.isPowerOptCheckEnabled());
 
         mAuthorizationStrategy = AuthorizationStrategyFactory.getInstance()
                 .getAuthorizationStrategy(
