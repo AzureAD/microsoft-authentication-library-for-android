@@ -31,6 +31,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.BrokerCommunicationException;
@@ -131,14 +132,14 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
 
     @WorkerThread
     @SuppressLint("MissingPermission")
-    void hello(@NonNull final CommandParameters parameters)
+    String hello(@NonNull final CommandParameters parameters)
             throws BaseException {
 
         if (!BrokerMsalController.isAccountManagerPermissionsGranted(parameters.getAndroidApplicationContext())) {
             throw new BrokerCommunicationException("AccountManager permissions are not granted", null);
         }
 
-        invokeBrokerAccountManagerOperation(parameters, new OperationInfo<CommandParameters, Void>() {
+        return invokeBrokerAccountManagerOperation(parameters, new OperationInfo<CommandParameters, String>() {
             @Override
             public Bundle getRequestBundle(CommandParameters parameters) {
                 final Bundle requestBundle = mRequestAdapter.getRequestBundleForHello(parameters);
@@ -153,9 +154,8 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
             }
 
             @Override
-            public Void getResultFromBundle(Bundle bundle) throws BaseException {
-                mResultAdapter.verifyHelloFromResultBundle(bundle);
-                return null;
+            public String getResultFromBundle(Bundle bundle) throws BaseException {
+                return mResultAdapter.verifyHelloFromResultBundle(bundle);
             }
         });
     }
@@ -167,7 +167,8 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
      * @return
      */
     @WorkerThread
-    Intent getBrokerAuthorizationIntent(@NonNull final InteractiveTokenCommandParameters parameters) throws BaseException {
+    Intent getBrokerAuthorizationIntent(@NonNull final InteractiveTokenCommandParameters parameters,
+                                        @Nullable final String negotiatedBrokerProtocolVersion) throws BaseException {
         final String methodName = ":getBrokerAuthorizationIntent";
         Logger.verbose(TAG + methodName, "Get the broker authorization intent from AccountManager.");
 
@@ -178,6 +179,10 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                         final Bundle requestBundle = new Bundle();
                         requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
                                 AuthenticationConstants.BrokerAccountManagerOperation.GET_INTENT_FOR_INTERACTIVE_REQUEST);
+                        requestBundle.putString(
+                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                                negotiatedBrokerProtocolVersion
+                        );
                         return requestBundle;
                     }
 
@@ -189,22 +194,34 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                     @Override
                     public Intent getResultFromBundle(Bundle bundle) {
                         final Intent interactiveRequestIntent = bundle.getParcelable(AccountManager.KEY_INTENT);
-                        return completeInteractiveRequestIntent(interactiveRequestIntent, parameters);
+                        return completeInteractiveRequestIntent(
+                                interactiveRequestIntent,
+                                parameters,
+                                negotiatedBrokerProtocolVersion
+                        );
 
                     }
                 });
     }
 
     @WorkerThread
-    AcquireTokenResult acquireTokenSilent(final SilentTokenCommandParameters parameters)
+    AcquireTokenResult acquireTokenSilent(@NonNull final SilentTokenCommandParameters parameters,
+                                          @Nullable final String negotiatedBrokerProtocolVersion)
             throws BaseException {
         return invokeBrokerAccountManagerOperation(parameters,
                 new OperationInfo<SilentTokenCommandParameters, AcquireTokenResult>() {
                     @Override
                     public Bundle getRequestBundle(SilentTokenCommandParameters parameters) {
-                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForAcquireTokenSilent(parameters);
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForAcquireTokenSilent(
+                                parameters,
+                                negotiatedBrokerProtocolVersion
+                        );
                         requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
                                 AuthenticationConstants.BrokerAccountManagerOperation.ACQUIRE_TOKEN_SILENT);
+                        requestBundle.putString(
+                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                                negotiatedBrokerProtocolVersion
+                        );
                         return requestBundle;
                     }
 
@@ -221,7 +238,8 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     }
 
     @WorkerThread
-    protected List<ICacheRecord> getBrokerAccounts(@NonNull final CommandParameters parameters) throws BaseException {
+    protected List<ICacheRecord> getBrokerAccounts(@NonNull final CommandParameters parameters,
+                                                   @Nullable final String negotiatedBrokerProtocolVersion) throws BaseException {
         return invokeBrokerAccountManagerOperation(parameters,
                 new OperationInfo<CommandParameters, List<ICacheRecord>>() {
                     @Override
@@ -229,6 +247,10 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                         final Bundle requestBundle = mRequestAdapter.getRequestBundleForGetAccounts(parameters);
                         requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
                                 AuthenticationConstants.BrokerAccountManagerOperation.GET_ACCOUNTS);
+                        requestBundle.putString(
+                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                                negotiatedBrokerProtocolVersion
+                        );
                         return requestBundle;
                     }
 
@@ -245,7 +267,8 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     }
 
     @WorkerThread
-    protected void removeBrokerAccount(@NonNull final RemoveAccountCommandParameters parameters) throws BaseException {
+    protected void removeBrokerAccount(@NonNull final RemoveAccountCommandParameters parameters,
+                                       @Nullable final String negotiatedBrokerProtocolVersion) throws BaseException {
         invokeBrokerAccountManagerOperation(parameters,
                 new OperationInfo<RemoveAccountCommandParameters, Void>() {
                     @Override
@@ -253,6 +276,10 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                         final Bundle requestBundle = mRequestAdapter.getRequestBundleForRemoveAccount(parameters);
                         requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
                                 AuthenticationConstants.BrokerAccountManagerOperation.REMOVE_ACCOUNT);
+                        requestBundle.putString(
+                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                                negotiatedBrokerProtocolVersion
+                        );
                         return requestBundle;
                     }
 
@@ -270,7 +297,8 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     }
 
     @Override
-    boolean getDeviceMode(@NonNull CommandParameters parameters) throws BaseException {
+    boolean getDeviceMode(@NonNull final CommandParameters parameters,
+                          @Nullable final String negotiatedBrokerProtocolVersion) throws BaseException {
         return invokeBrokerAccountManagerOperation(parameters,
                 new OperationInfo<CommandParameters, Boolean>() {
                     @Override
@@ -278,6 +306,10 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                         final Bundle requestBundle = new Bundle();
                         requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
                                 AuthenticationConstants.BrokerAccountManagerOperation.GET_DEVICE_MODE);
+                        requestBundle.putString(
+                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                                negotiatedBrokerProtocolVersion
+                        );
                         return requestBundle;
                     }
 
@@ -294,7 +326,8 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     }
 
     @Override
-    List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull CommandParameters parameters) throws BaseException {
+    List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull final CommandParameters parameters,
+                                                       @Nullable final String negotiatedBrokerProtocolVersion) throws BaseException {
         return invokeBrokerAccountManagerOperation(parameters,
                 new OperationInfo<CommandParameters, List<ICacheRecord>>() {
                     @Override
@@ -302,6 +335,10 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                         final Bundle requestBundle = mRequestAdapter.getRequestBundleForGetAccounts(parameters);
                         requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
                                 AuthenticationConstants.BrokerAccountManagerOperation.GET_CURRENT_ACCOUNT);
+                        requestBundle.putString(
+                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                                negotiatedBrokerProtocolVersion
+                        );
                         return requestBundle;
                     }
 
@@ -318,7 +355,8 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     }
 
     @Override
-    void signOutFromSharedDevice(@NonNull RemoveAccountCommandParameters parameters) throws BaseException {
+    void signOutFromSharedDevice(@NonNull final RemoveAccountCommandParameters parameters,
+                                 @Nullable final String negotiatedBrokerProtocolVersion) throws BaseException {
         invokeBrokerAccountManagerOperation(parameters,
                 new OperationInfo<RemoveAccountCommandParameters, Void>() {
                     @Override
@@ -326,6 +364,10 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                         final Bundle requestBundle = mRequestAdapter.getRequestBundleForRemoveAccountFromSharedDevice(parameters);
                         requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
                                 AuthenticationConstants.BrokerAccountManagerOperation.REMOVE_ACCOUNT_FROM_SHARED_DEVICE);
+                        requestBundle.putString(
+                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                                negotiatedBrokerProtocolVersion
+                        );
                         return requestBundle;
                     }
 
