@@ -59,6 +59,7 @@ public class CommandParametersAdapter {
                 .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
                 .sdkType(SdkType.MSAL)
                 .sdkVersion(PublicClientApplication.getSdkVersion())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .build();
 
         return commandParameters;
@@ -82,6 +83,7 @@ public class CommandParametersAdapter {
                 .sdkVersion(PublicClientApplication.getSdkVersion())
                 .account(account)
                 .browserSafeList(configuration.getBrowserSafeList())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .build();
 
         return commandParameters;
@@ -135,6 +137,7 @@ public class CommandParametersAdapter {
                 .prompt(getPromptParameter(parameters))
                 .isWebViewZoomControlsEnabled(configuration.isWebViewZoomControlsEnabled())
                 .isWebViewZoomEnabled(configuration.isWebViewZoomEnabled())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .build();
 
         return commandParameters;
@@ -182,6 +185,7 @@ public class CommandParametersAdapter {
                 .account(parameters.getAccountRecord())
                 .authenticationScheme(authenticationScheme)
                 .scopes(new HashSet<>(parameters.getScopes()))
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .build();
 
         return commandParameters;
