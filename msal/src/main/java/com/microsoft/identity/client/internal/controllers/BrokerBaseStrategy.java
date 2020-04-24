@@ -27,42 +27,49 @@ import android.os.Handler;
 import android.os.Looper;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.internal.broker.BrokerRequest;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
-import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
+import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.RemoveAccountCommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter;
-import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
 
 import java.util.List;
-
-import static com.microsoft.identity.common.internal.request.MsalBrokerRequestAdapter.sRequestAdapterGsonInstance;
 
 abstract class BrokerBaseStrategy {
     protected final MsalBrokerRequestAdapter mRequestAdapter = new MsalBrokerRequestAdapter();
 
     protected final MsalBrokerResultAdapter mResultAdapter = new MsalBrokerResultAdapter();
 
-    abstract void hello(@NonNull final OperationParameters parameters) throws BaseException;
+    abstract String hello(@NonNull final CommandParameters parameters) throws BaseException;
 
-    abstract Intent getBrokerAuthorizationIntent(@NonNull AcquireTokenOperationParameters parameters) throws BaseException;
+    abstract Intent getBrokerAuthorizationIntent(@NonNull InteractiveTokenCommandParameters parameters,
+                                                 @Nullable String negotiatedBrokerProtocolVersion) throws BaseException;
 
-    abstract AcquireTokenResult acquireTokenSilent(AcquireTokenSilentOperationParameters parameters) throws BaseException;
+    abstract AcquireTokenResult acquireTokenSilent(@NonNull SilentTokenCommandParameters parameters,
+                                                   @Nullable String negotiatedBrokerProtocolVersion) throws BaseException;
 
-    abstract List<ICacheRecord> getBrokerAccounts(@NonNull final OperationParameters parameters) throws BaseException;
+    abstract List<ICacheRecord> getBrokerAccounts(@NonNull final CommandParameters parameters,
+                                                  @Nullable String negotiatedBrokerProtocolVersion) throws BaseException;
 
-    abstract void removeBrokerAccount(@NonNull final OperationParameters parameters) throws BaseException;
+    abstract void removeBrokerAccount(@NonNull final RemoveAccountCommandParameters parameters,
+                                      @Nullable String negotiatedBrokerProtocolVersion) throws BaseException;
 
-    abstract boolean getDeviceMode(@NonNull final OperationParameters parameters) throws BaseException;
+    abstract boolean getDeviceMode(@NonNull final CommandParameters parameters,
+                                   @Nullable String negotiatedBrokerProtocolVersion) throws BaseException;
 
-    abstract List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull final OperationParameters parameters) throws BaseException;
+    abstract List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull final CommandParameters parameters,
+                                                                @Nullable String negotiatedBrokerProtocolVersion) throws BaseException;
 
-    abstract void signOutFromSharedDevice(@NonNull final OperationParameters parameters) throws BaseException;
+    abstract void signOutFromSharedDevice(@NonNull final RemoveAccountCommandParameters parameters,
+                                          @Nullable String negotiatedBrokerProtocolVersion) throws BaseException;
 
     Handler getPreferredHandler() {
         if (null != Looper.myLooper() && Looper.getMainLooper() != Looper.myLooper()) {
@@ -73,15 +80,16 @@ abstract class BrokerBaseStrategy {
     }
 
     protected Intent completeInteractiveRequestIntent(@NonNull final Intent interactiveRequestIntent,
-                                                      @NonNull final AcquireTokenOperationParameters parameters) {
-        interactiveRequestIntent.putExtra(
-                AuthenticationConstants.Broker.BROKER_REQUEST_V2,
-                sRequestAdapterGsonInstance.toJson(
-                        mRequestAdapter.brokerRequestFromAcquireTokenParameters(parameters),
-                        BrokerRequest.class
-                )
-        );
+                                                      @NonNull final InteractiveTokenCommandParameters parameters,
+                                                      @Nullable final String negotiatedProtocolVersion) {
 
+        interactiveRequestIntent.putExtras(
+                mRequestAdapter.getRequestBundleForAcquireTokenInteractive(parameters, negotiatedProtocolVersion)
+        );
+        interactiveRequestIntent.putExtra(
+                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                negotiatedProtocolVersion
+        );
         return interactiveRequestIntent;
     }
 }

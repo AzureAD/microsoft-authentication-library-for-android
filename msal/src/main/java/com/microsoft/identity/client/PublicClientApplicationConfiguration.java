@@ -29,8 +29,6 @@ import android.content.pm.Signature;
 import android.net.Uri;
 import android.util.Base64;
 
-import androidx.annotation.NonNull;
-
 import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
@@ -57,6 +55,8 @@ import java.util.regex.Pattern;
 
 import javax.crypto.SecretKey;
 
+import androidx.annotation.NonNull;
+
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ACCOUNT_MODE;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORITIES;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_USER_AGENT;
@@ -67,6 +67,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.HTTP;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.LOGGING;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.MULTIPLE_CLOUDS_SUPPORTED;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REQUIRED_BROKER_PROTOCOL_VERSION;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.TELEMETRY;
@@ -94,6 +95,7 @@ public class PublicClientApplicationConfiguration {
         static final String CLIENT_CAPABILITIES = "client_capabilities";
         static final String WEB_VIEW_ZOOM_CONTROLS_ENABLED = "web_view_zoom_controls_enabled";
         static final String WEB_VIEW_ZOOM_ENABLED = "web_view_zoom_enabled";
+        static final String POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED = "power_opt_check_for_network_req_enabled";
 
     }
 
@@ -145,6 +147,8 @@ public class PublicClientApplicationConfiguration {
     @SerializedName(WEB_VIEW_ZOOM_ENABLED)
     private Boolean webViewZoomEnabled;
 
+    @SerializedName(POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED)
+    private Boolean powerOptCheckEnabled;
 
     transient private OAuth2TokenCache mOAuth2TokenCache;
 
@@ -351,6 +355,14 @@ public class PublicClientApplicationConfiguration {
         this.webViewZoomEnabled = webViewZoomEnabled;
     }
 
+    public Boolean isPowerOptCheckForEnabled() {
+        return powerOptCheckEnabled;
+    }
+
+    public void setPowerOptCheckEnabled(Boolean powerOptCheckEnabled) {
+        this.powerOptCheckEnabled = powerOptCheckEnabled;
+    }
+
     public Authority getDefaultAuthority() {
         if (mAuthorities != null) {
             if (mAuthorities.size() > 1) {
@@ -421,6 +433,7 @@ public class PublicClientApplicationConfiguration {
         this.mLoggerConfiguration = config.mLoggerConfiguration == null ? this.mLoggerConfiguration : config.mLoggerConfiguration;
         this.webViewZoomControlsEnabled = config.webViewZoomControlsEnabled == null || config.webViewZoomControlsEnabled;
         this.webViewZoomEnabled = config.webViewZoomEnabled == null || config.webViewZoomEnabled;
+        this.powerOptCheckEnabled = config.powerOptCheckEnabled == null || config.powerOptCheckEnabled;
     }
 
     void validateConfiguration() {

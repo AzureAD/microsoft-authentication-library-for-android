@@ -15,6 +15,7 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
 import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
@@ -109,6 +110,10 @@ abstract class MsalWrapper {
 
         if (requestOptions.getAuthority() != null && !requestOptions.getAuthority().isEmpty()) {
             builder.fromAuthority(requestOptions.getAuthority());
+        }
+
+        if (requestOptions.getClaims() != null && !requestOptions.getClaims().isEmpty()) {
+            builder.withClaims(ClaimsRequest.getClaimsRequestFromJsonString(requestOptions.getClaims()));
         }
 
         if (requestOptions.getAuthScheme() == Constants.AuthScheme.POP) {
@@ -211,7 +216,7 @@ abstract class MsalWrapper {
                 } else if (exception instanceof MsalUiRequiredException) {
                     // This explicitly indicates that developer needs to prompt the user, it could be refresh token is expired, revoked
                     // or user changes the password; or it could be that no token was found in the token cache.
-                    callback.showMessage("MsalDeclinedScopeException.\n" + exception.getMessage());
+                    callback.showMessage("MsalUiRequiredException.\n" + exception.getMessage());
                 } else if (exception instanceof MsalDeclinedScopeException) {
                     // Declined scope implies that not all scopes requested have been granted.
                     // Developer can either continue with Authentication by calling acquireTokenSilent

@@ -29,7 +29,7 @@ android {
             testCoverageEnabled false
             minifyEnabled false
             debuggable false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            consumerProguardFiles 'consumer-rules.pro'
         }
     }
 
@@ -126,6 +126,7 @@ dependencies {
     implementation "androidx.browser:browser:$rootProject.ext.browserVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     implementation "com.nimbusds:nimbus-jose-jwt:$rootProject.ext.nimbusVersion"
+    implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
 
     // test dependencies
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
@@ -144,9 +145,9 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '2.0.2-hf1', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '2.0.7', changing: true)
 
-    distApi("com.microsoft.identity:common:2.0.2-hf1") {
+    distApi("com.microsoft.identity:common:2.0.7") {
         transitive = false
     }
 }

@@ -202,6 +202,9 @@ if(account != null){
 
 ```
 
+## ProGuard
+MSAL uses reflection and generic type information stored in `.class` files at runtime to support various persistence and serialization related functionalities. Accordingly, library support for minification and obfuscation is limited. A default configuration is shipped with this library; please [file an issue](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/new/choose) if you find any issues.
+
 ## Community Help and Support
 
 We use [StackOverflow](http://stackoverflow.com/questions/tagged/msal) with the community to provide support. You should browse existing issues to see if someone has asked about your issue before. If there are workable solutions to your issue then try out those solutions. If not, ask your question and let the community help you out. We're part of the community too and watch for new questions. We help with answers when the community cannot give you a solution.
@@ -212,7 +215,10 @@ If you find and bug or have a feature request, please raise the issue on [GitHub
 
 We enthusiastically welcome contributions and feedback. You should [clone the repo and start contributing now](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/MSAL-Contributing).
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments. .
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+
+## Android Studio Build Requirement
+Please note that this project uses [Lombok](https://projectlombok.org/) internally and while using Android Studio you will need to install [Lobmok Plugin](https://plugins.jetbrains.com/plugin/6317-lombok) to get the project to build successfully within Android Studio.
 
 ## Roadmap
 |Date | Release | Blog post| Main features|
@@ -221,6 +227,7 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 |12/17/19 | [MSAL 1.1.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.1.0) | | Expose raw id_token IAccount/ITenantProfile from AuthenticationResult|
 | 02/04/20 | [MSAL 1.2.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.2.0) | | Adds spinner to WebView interactive requests, replaced PublicClientApplication create methods, adds fragment support to WebView flow, bug fixes|
 | 02/12/20 | [MSAL 1.3.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.3.0) | | Bug fixes & WebView zoom controls configurable|
+|Projected for end of Q4| Proof of Possession ||Access Token Proof of Possession is currently in preview and is not yet recommended for production environments. [Learn more.](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/docs/access_token-pop.md)
 
 
 ## Security Library

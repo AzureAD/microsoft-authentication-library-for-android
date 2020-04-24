@@ -1,13 +1,35 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 1.5.0
+------------
+- Added new Single Account Public Client Application API overloads
+	* Added new signIn() overload which adds a prompt param
+	* Added new reauthorize() method which lets your set a prompt for the already-signed-in account
+- Added default proguard config to project
+- Added MSAL configuration flag to enable/disable power optimization check
+- Added dual screen support
+- Added Throttling
+- Added support to compress broker payload using GZIP
+- Added Dual Client Stack support for FoCI apps
+- Added Client Clock Skew Mitigation for AT/PoP
+- Added changes to client-server telemetry to capture multiple previous errors
+- Fixed #995 (Make persistedAccount operations thread safe)
+- Fixed #963 (onCancel callback not called when Browser is used)
+- Fixed #942 (NPE in create custom tab response intent)
+- Fixed #838 (Fragment state NPE)
+- Fixed #957 (cache migration not performed)
+- Project wide internal code refactoring using Lombok
+
 Version 1.4.1
-- Hotfix release for Teams Dog Food.
+------------
+- Hotfix release for Teams.
 - Fixes #1005
 - Fixes common #871
 - Limit silent thread pool to 5 threads.
 - Picks up common@2.0.2-hf1
 
 Version 1.4.0
+------------
 - Fix for MSAL #920, 924, 935, 940
     * Crash due to error receiving CANCEL broadcast
 - (Preview) Support for AT PoP
