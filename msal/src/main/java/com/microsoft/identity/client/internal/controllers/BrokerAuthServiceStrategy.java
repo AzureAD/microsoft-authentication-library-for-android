@@ -28,10 +28,12 @@ import android.os.Bundle;
 import android.os.RemoteException;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.IMicrosoftAuthService;
 import com.microsoft.identity.client.exception.BrokerCommunicationException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
@@ -62,13 +64,18 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
      * @return
      */
     @WorkerThread
-    Intent getBrokerAuthorizationIntent(@NonNull final InteractiveTokenCommandParameters parameters)
+    Intent getBrokerAuthorizationIntent(@NonNull final InteractiveTokenCommandParameters parameters,
+                                        @Nullable final String negotiatedBrokerProtocolVersion)
             throws BaseException {
         final String methodName = ":getBrokerAuthorizationIntent";
         Logger.verbose(TAG + methodName, "Get the broker authorization intent from auth service.");
         Intent interactiveRequestIntent;
         interactiveRequestIntent = getBrokerAuthorizationIntentFromAuthService(parameters);
-        return completeInteractiveRequestIntent(interactiveRequestIntent, parameters);
+        return completeInteractiveRequestIntent(
+                interactiveRequestIntent,
+                parameters,
+                negotiatedBrokerProtocolVersion
+        );
     }
 
     /**
@@ -157,16 +164,16 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     }
 
     @WorkerThread
-    void hello(@NonNull final CommandParameters parameters) throws BaseException {
-        performAuthServiceOperation(parameters.getAndroidApplicationContext(),
-                new AuthServiceOperation<Void>() {
+    String hello(@NonNull final CommandParameters parameters) throws BaseException {
+        return performAuthServiceOperation(parameters.getAndroidApplicationContext(),
+                new AuthServiceOperation<String>() {
                     @Override
-                    public Void perform(IMicrosoftAuthService service) throws RemoteException, ClientException {
+                    public String perform(IMicrosoftAuthService service) throws RemoteException, ClientException {
                         final Bundle requestBundle = mRequestAdapter.getRequestBundleForHello(parameters);
-                        mResultAdapter.verifyHelloFromResultBundle(
+                        String negotiatedProtocolVersion = mResultAdapter.verifyHelloFromResultBundle(
                                 service.hello(requestBundle)
                         );
-                        return null;
+                        return negotiatedProtocolVersion;
                     }
 
                     @Override
@@ -193,13 +200,21 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     }
 
     @WorkerThread
-    AcquireTokenResult acquireTokenSilent(final SilentTokenCommandParameters parameters)
+    AcquireTokenResult acquireTokenSilent(@NonNull final SilentTokenCommandParameters parameters,
+                                          @Nullable final String negotiatedBrokerProtocolVersion)
             throws BaseException {
         return performAuthServiceOperation(parameters.getAndroidApplicationContext(),
                 new AuthServiceOperation<AcquireTokenResult>() {
                     @Override
                     public AcquireTokenResult perform(IMicrosoftAuthService service) throws RemoteException, BaseException {
-                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForAcquireTokenSilent(parameters);
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForAcquireTokenSilent(
+                                parameters,
+                                negotiatedBrokerProtocolVersion
+                        );
+                        requestBundle.putString(
+                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                                negotiatedBrokerProtocolVersion
+                        );
                         return mResultAdapter.getAcquireTokenResultFromResultBundle(
                                 service.acquireTokenSilently(requestBundle)
                         );
@@ -213,13 +228,18 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     }
 
     @WorkerThread
-    protected List<ICacheRecord> getBrokerAccounts(@NonNull final CommandParameters parameters)
+    protected List<ICacheRecord> getBrokerAccounts(@NonNull final CommandParameters parameters,
+                                                   @Nullable final String negotiatedBrokerProtocolVersion)
             throws BaseException {
         return performAuthServiceOperation(parameters.getAndroidApplicationContext(),
                 new AuthServiceOperation<List<ICacheRecord>>() {
                     @Override
                     public List<ICacheRecord> perform(IMicrosoftAuthService service) throws RemoteException, BaseException {
                         final Bundle requestBundle = mRequestAdapter.getRequestBundleForGetAccounts(parameters);
+                        requestBundle.putString(
+                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                                negotiatedBrokerProtocolVersion
+                        );
                         return mResultAdapter.getAccountsFromResultBundle(
                                 service.getAccounts(requestBundle)
                         );
@@ -234,13 +254,18 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     }
 
     @WorkerThread
-    protected void removeBrokerAccount(@NonNull final RemoveAccountCommandParameters parameters)
+    protected void removeBrokerAccount(@NonNull final RemoveAccountCommandParameters parameters,
+                                       @Nullable final String negotiatedBrokerProtocolVersion)
             throws BaseException {
         performAuthServiceOperation(parameters.getAndroidApplicationContext(),
                 new AuthServiceOperation<Void>() {
                     @Override
                     public Void perform(IMicrosoftAuthService service) throws RemoteException, BaseException {
                         final Bundle requestBundle = mRequestAdapter.getRequestBundleForRemoveAccount(parameters);
+                        requestBundle.putString(
+                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                                negotiatedBrokerProtocolVersion
+                        );
                         mResultAdapter.verifyRemoveAccountResultFromBundle(
                                 service.removeAccount(requestBundle)
                         );
@@ -256,7 +281,8 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     }
 
     @WorkerThread
-    protected boolean getDeviceMode(@NonNull CommandParameters parameters) throws BaseException {
+    protected boolean getDeviceMode(@NonNull CommandParameters parameters,
+                                    @Nullable final String negotiatedBrokerProtocolVersion) throws BaseException {
         return performAuthServiceOperation(parameters.getAndroidApplicationContext(),
                 new AuthServiceOperation<Boolean>() {
                     @Override
@@ -274,12 +300,17 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     }
 
     @WorkerThread
-    protected List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull final CommandParameters parameters) throws BaseException {
+    protected List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull final CommandParameters parameters,
+                                                                 @Nullable final String negotiatedBrokerProtocolVersion) throws BaseException {
         return performAuthServiceOperation(parameters.getAndroidApplicationContext(),
                 new AuthServiceOperation<List<ICacheRecord>>() {
                     @Override
                     public List<ICacheRecord> perform(IMicrosoftAuthService service) throws RemoteException, BaseException {
                         final Bundle requestBundle = mRequestAdapter.getRequestBundleForGetAccounts(parameters);
+                        requestBundle.putString(
+                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                                negotiatedBrokerProtocolVersion
+                        );
                         return mResultAdapter.getAccountsFromResultBundle(
                                 service.getCurrentAccount(requestBundle)
                         );
@@ -293,12 +324,17 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
     }
 
     @WorkerThread
-    protected void signOutFromSharedDevice(@NonNull final RemoveAccountCommandParameters parameters) throws BaseException {
+    protected void signOutFromSharedDevice(@NonNull final RemoveAccountCommandParameters parameters,
+                                           @Nullable final String negotiatedBrokerProtocolVersion) throws BaseException {
         performAuthServiceOperation(parameters.getAndroidApplicationContext(),
                 new AuthServiceOperation<Void>() {
                     @Override
                     public Void perform(IMicrosoftAuthService service) throws RemoteException, BaseException {
                         final Bundle requestBundle = mRequestAdapter.getRequestBundleForRemoveAccountFromSharedDevice(parameters);
+                        requestBundle.putString(
+                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                                negotiatedBrokerProtocolVersion
+                        );
                         mResultAdapter.verifyRemoveAccountResultFromBundle(
                                 service.removeAccountFromSharedDevice(requestBundle)
                         );
