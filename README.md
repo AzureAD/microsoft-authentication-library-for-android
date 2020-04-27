@@ -112,10 +112,12 @@ It's simplest to create your configuration file as a "raw" resource file in your
             <data
                 android:scheme="msauth"
                 android:host="<YOUR_PACKAGE_NAME>"
-                android:path="/<YOUR_BASE64_URL_ENCODED_PACKAGE_SIGNATURE>" />
+                android:path="/<YOUR_BASE64_ENCODED_PACKAGE_SIGNATURE>" />
         </intent-filter>
     </activity>
 ```
+
+>NOTE: The package signature required here needs to be base 64 encoded only as opposed to being base 64 url encoded. Please refer to [this FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/MSAL-FAQ#redirect-uri-issues) for more information on common redirect uri issues.
 
 ### Step 4: Create an MSAL PublicClientApplication
 
