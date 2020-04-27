@@ -89,6 +89,9 @@ android {
                 // example: ./gradlew testLocalDebugUnitTest -Plabtest
                 exclude 'com/microsoft/identity/client/e2e/tests/network'
             }
+
+            systemProperty 'robolectric.offline', 'true'
+            systemProperty 'robolectric.dependency.dir', './libs'
         }
     }
 }
