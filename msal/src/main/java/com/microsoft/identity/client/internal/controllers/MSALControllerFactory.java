@@ -40,6 +40,7 @@ import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAu
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.util.AccountManagerUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -147,7 +148,7 @@ public class MSALControllerFactory {
 
         // Check if MicrosoftAuthService supported or AccountManager permission granted
         if (BrokerMsalController.isMicrosoftAuthServiceSupported(applicationContext)
-                || BrokerMsalController.isAccountManagerPermissionsGranted(applicationContext)) {
+                || AccountManagerUtil.canUseAccountManagerOperation(applicationContext)) {
             Logger.verbose(TAG + methodName, "Eligible to call broker? [true]");
             return true;
         } else if (!BrokerMsalController.isMicrosoftAuthServiceSupported(applicationContext)
