@@ -319,9 +319,6 @@ public class CommandParametersAdapter {
             @NonNull final Authority authority
     ) {
         if (authority instanceof AzureActiveDirectoryAuthority) {
-            AzureActiveDirectoryAuthority aadAuthority =
-                    (AzureActiveDirectoryAuthority) authority;
-
             //AzureActiveDirectory supports client capabilities
             return addClientCapabilitiesToClaimsRequest(requestedClaims,
                     configuration.getClientCapabilities());
