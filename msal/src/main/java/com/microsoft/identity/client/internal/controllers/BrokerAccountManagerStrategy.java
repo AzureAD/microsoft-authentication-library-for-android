@@ -49,6 +49,7 @@ import com.microsoft.identity.common.internal.telemetry.Telemetry;
 import com.microsoft.identity.common.internal.telemetry.TelemetryEventStrings;
 import com.microsoft.identity.common.internal.telemetry.events.BrokerEndEvent;
 import com.microsoft.identity.common.internal.telemetry.events.BrokerStartEvent;
+import com.microsoft.identity.common.internal.util.AccountManagerUtil;
 
 import java.io.IOException;
 import java.util.List;
@@ -135,7 +136,7 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     String hello(@NonNull final CommandParameters parameters)
             throws BaseException {
 
-        if (!BrokerMsalController.isAccountManagerPermissionsGranted(parameters.getAndroidApplicationContext())) {
+        if (!AccountManagerUtil.canUseAccountManagerOperation(parameters.getAndroidApplicationContext())) {
             throw new BrokerCommunicationException("AccountManager permissions are not granted", null);
         }
 
