@@ -1,0 +1,14 @@
+{
+  "client_id" : "a8c8bb57-55f3-4e95-9cf2-a3aac32f0d7a",
+  "authorization_user_agent" : "DEFAULT",
+  "redirect_uri" : "msauth://com.msft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D",
+  "authorities" : [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADMyOrg",
+        "tenant_id": "f645ad92-e38d-4d1a-b510-d1b09a74a8ca"
+      }
+    }
+  ]
+}
