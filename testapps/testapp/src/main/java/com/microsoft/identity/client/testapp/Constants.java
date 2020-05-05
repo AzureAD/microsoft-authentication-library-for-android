@@ -41,11 +41,12 @@ public class Constants {
         INSTANCE_AWARE_ORGANIZATION,
         B2C,
         MSA,
-        MSA_ONLY
+        MSA_ONLY,
+        NO_ADMIN_CONSENT
     }
 
-    public static int getResourceIdFromConfigFile(ConfigFile configFile){
-        switch (configFile){
+    public static int getResourceIdFromConfigFile(ConfigFile configFile) {
+        switch (configFile) {
             case BROWSER:
                 return R.raw.msal_config_browser;
 
@@ -81,6 +82,9 @@ public class Constants {
 
             case MSA_ONLY:
                 return R.raw.msal_config_msa_only;
+
+            case NO_ADMIN_CONSENT:
+                return R.raw.msal_config_no_admin_consent;
         }
 
         return R.raw.msal_config_default;

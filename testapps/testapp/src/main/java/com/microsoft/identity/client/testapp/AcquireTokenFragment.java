@@ -55,6 +55,7 @@ import static com.microsoft.identity.client.testapp.R.id.enablePII;
  * acquireToken Fragment, contains the flow for acquireToken interactively, acquireTokenSilent, getUsers, removeUser.
  */
 public class AcquireTokenFragment extends Fragment {
+    public static final String NONE_NULL = "NONE (NULL)";
     private EditText mAuthority;
     private EditText mLoginhint;
     private Spinner mPrompt;
@@ -337,10 +338,17 @@ public class AcquireTokenFragment extends Fragment {
 
     private void bindSpinnerChoice(final Spinner spinner, final Class<? extends Enum> spinnerChoiceClass) {
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                getContext(), android.R.layout.simple_spinner_item,
+                getContext(),
+                android.R.layout.simple_spinner_item,
                 new ArrayList<String>() {{
-                    for (Enum choice : spinnerChoiceClass.getEnumConstants())
+                    for (Enum choice : spinnerChoiceClass.getEnumConstants()) {
                         add(choice.name());
+                    }
+
+                    if (spinnerChoiceClass.isAssignableFrom(HttpMethod.class)) {
+                        // Add 1 more option for "none"
+                        add(NONE_NULL);
+                    }
                 }}
         );
 
@@ -361,9 +369,27 @@ public class AcquireTokenFragment extends Fragment {
         final boolean forceRefresh = mForceRefresh.isChecked();
         final String authority = mAuthority.getText().toString();
         final Constants.AuthScheme authScheme = Constants.AuthScheme.valueOf(mAuthScheme.getSelectedItem().toString());
-        final HttpMethod popHttpMethod = HttpMethod.valueOf(mPopHttpMethod.getSelectedItem().toString());
+        final String httpMethodTextFromSpinner = mPopHttpMethod.getSelectedItem().toString();
+        final HttpMethod popHttpMethod = httpMethodTextFromSpinner.equals(NONE_NULL)
+                ? null // None specified
+                : HttpMethod.valueOf(httpMethodTextFromSpinner);
         final String popResourceUrl = mPopResourceUrl.getText().toString();
-        return new RequestOptions(configFile, loginHint, account, promptBehavior, scopes, extraScopesToConsent, claims, enablePII, forceRefresh, authority, authScheme, popHttpMethod, popResourceUrl);
+
+        return new RequestOptions(
+                configFile,
+                loginHint,
+                account,
+                promptBehavior,
+                scopes,
+                extraScopesToConsent,
+                claims,
+                enablePII,
+                forceRefresh,
+                authority,
+                authScheme,
+                popHttpMethod,
+                popResourceUrl
+        );
     }
 
     private void loadMsalApplicationFromRequestParameters(final RequestOptions requestOptions) {
