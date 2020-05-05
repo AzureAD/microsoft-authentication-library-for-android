@@ -29,7 +29,6 @@ import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
-import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
@@ -77,33 +76,13 @@ public class AcquireTokenTestHelper {
         return callback;
     }
 
-    public static AuthenticationCallback failedSilentRequestDuplicateCommandCallback(final Context context) {
-        AuthenticationCallback callback = new AuthenticationCallback() {
-            @Override
-            public void onSuccess(IAuthenticationResult authenticationResult) {
-                fail("not expected for this request to succeed");
-            }
-
-            @Override
-            public void onError(MsalException exception) {
-                Assert.assertEquals(MsalClientException.DUPLICATE_COMMAND, exception.getErrorCode());
-            }
-
-            @Override
-            public void onCancel() {
-                fail("No expected to receive cancel");
-            }
-        };
-
-        return callback;
-    }
-
 
     public static SilentAuthenticationCallback successfulSilentCallback(final CountDownLatch latch, final Context context) {
         SilentAuthenticationCallback callback = new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
-                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                Toast.makeText(context, authenticationResult.getAccessToken(), Toast.LENGTH_SHORT).show();
+                Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
                 sAccount = authenticationResult.getAccount();
                 latch.countDown();
             }
@@ -128,6 +107,7 @@ public class AcquireTokenTestHelper {
 
             @Override
             public void onError(MsalException exception) {
+                Toast.makeText(context, exception.getErrorCode(), Toast.LENGTH_SHORT).show();
                 Assert.assertEquals(errorCode, exception.getErrorCode());
                 latch.countDown();
             }
@@ -152,7 +132,7 @@ public class AcquireTokenTestHelper {
 
             @Override
             public void onError(MsalException exception) {
-                Assert.assertEquals(errorCode, exception.getErrorCode());
+                Toast.makeText(context, exception.getErrorCode(), Toast.LENGTH_SHORT).show();
                 latch.countDown();
             }
         };

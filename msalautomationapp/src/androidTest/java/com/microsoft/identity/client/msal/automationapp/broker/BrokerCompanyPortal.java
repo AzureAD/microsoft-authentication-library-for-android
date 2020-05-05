@@ -17,24 +17,14 @@ import static com.microsoft.identity.common.adal.internal.AuthenticationConstant
 
 public class BrokerCompanyPortal implements ITestBroker {
 
-
     @Override
     public String brokerAppName() {
         return "Intune Company Portal";
     }
 
     @Override
-    public boolean isBrokerOpen() {
-        final UiDevice mDevice =
-                UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
+    public void performDeviceRegistration(String username, String password) {
 
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        return mDevice.hasObject(By.res("com.microsoft.windowsintune.companyportal:id/account_list"));
     }
 
     @Override
@@ -42,8 +32,8 @@ public class BrokerCompanyPortal implements ITestBroker {
         UiDevice device = UiDevice.getInstance(getInstrumentation());
 
         UiObject accountSelected = device.findObject(new UiSelector().resourceId(
-                getResourceId(COMPANY_PORTAL_APP_PACKAGE_NAME, "account_list")
-        ).index(0).childSelector(new UiSelector().textContains(
+                getResourceId(COMPANY_PORTAL_APP_PACKAGE_NAME, "account_chooser_listView")
+        ).childSelector(new UiSelector().textContains(
                 username
         )));
 

@@ -41,6 +41,15 @@ public class CommonUtils {
         }
     }
 
+    public static void disableFirstRun(final String packageName) {
+        UiDevice mDevice = UiDevice.getInstance(getInstrumentation());
+        try {
+            String output = mDevice.executeShellCommand("\'echo \"chrome --disable-fre --no-default-browser-check --no-first-run\" > /data/local/tmp/chrome-command-line\'");
+        } catch (IOException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
     public static void installApp(final String packageName) {
         UiDevice mDevice = UiDevice.getInstance(getInstrumentation());
         try {

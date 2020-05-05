@@ -19,14 +19,14 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        applicationId "com.microsoft.identity.client.sample"
-        minSdkVersion 18
+        applicationId "com.msft.identity.client.sample"
+        minSdkVersion rootProject.ext.automationAppMinSDKVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        testApplicationId "com.msft.identity.client.sample.local"
+        testApplicationId "com.msftt.identity.client.sample.local"
 
         // The following argument makes the Android Test Orchestrator run its
         // "pm clear" command after each test invocation. This command ensures
@@ -44,16 +44,16 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
-            //testBuildType "release"
         }
 
         debug {
-            //testBuildType "debug"
             multiDexKeepProguard file('proguard-multidex-rules.pro')
         }
     }
 
-    testBuildType "release"
+    testBuildType = "release"
+
+
 
     lintOptions {
         abortOnError false
@@ -92,12 +92,14 @@ android {
 dependencies {
     // Compile Dependency
     localImplementation project(':msal')
-    distImplementation 'com.microsoft.identity.client:msal:1.2.0'
+    distImplementation 'com.microsoft.identity.client:msal:1.5.0'
     implementation "androidx.constraintlayout:constraintlayout:1.1.3"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
     implementation "com.google.android.material:material:$rootProject.ext.materialVersion"
+    compileOnly "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
     androidTestImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
     androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
     // Set this dependency to use JUnit 4 rules
@@ -106,6 +108,8 @@ dependencies {
     //androidTestImplementation 'androidx.test.espresso:espresso-web:3.2.0'
     androidTestImplementation 'androidx.test.uiautomator:uiautomator:2.2.0'
     androidTestImplementation(project(":testutils"))
-    androidTestImplementation 'androidx.test:runner:1.1.0'
-    androidTestUtil 'androidx.test:orchestrator:1.1.0'
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestUtil 'androidx.test:orchestrator:1.2.0'
+    androidTestCompileOnly "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
+    androidTestAnnotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
 }

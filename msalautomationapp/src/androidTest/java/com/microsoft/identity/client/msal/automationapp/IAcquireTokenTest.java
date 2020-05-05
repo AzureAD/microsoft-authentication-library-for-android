@@ -22,10 +22,14 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
+import com.microsoft.identity.client.msal.automationapp.broker.ITestBroker;
+
 public interface IAcquireTokenTest {
 
     String[] getScopes();
 
     String getAuthority();
+
+    ITestBroker getBroker();
 
 }

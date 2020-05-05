@@ -27,10 +27,11 @@ import androidx.annotation.Nullable;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
+import com.microsoft.identity.client.msal.automationapp.broker.ITestBroker;
+import com.microsoft.identity.client.msal.automationapp.utils.WebViewUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -42,44 +43,7 @@ import static com.microsoft.identity.client.msal.automationapp.AcquireTokenTestH
 import static com.microsoft.identity.client.msal.automationapp.AcquireTokenTestHelper.successfulSilentCallback;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 
-public abstract class AcquireTokenNetworkTest extends AcquireTokenNetworkAbstractTest implements IAcquireTokenNetworkTest {
-
-//    @Override
-//    public void handleUserInteraction() {
-//        final UiDevice mDevice =
-//                UiDevice.getInstance(getInstrumentation());
-//
-//        final int timeOut = 1000 * 60;
-//
-//        // login webview
-//        mDevice.wait(Until.findObject(By.clazz(WebView.class)), timeOut);
-//
-//        // Set Password
-//        UiObject passwordInput = mDevice.findObject(new UiSelector()
-//                .instance(0)
-//                .className(EditText.class));
-//
-//        passwordInput.waitForExists(timeOut);
-//        try {
-//            passwordInput.setText(LabConfig.getCurrentLabConfig().getLabUserPassword());
-//        } catch (UiObjectNotFoundException e) {
-//            // may have webview cache
-//            //fail(e.getMessage());
-//        }
-//
-//        // Confirm Button Click
-//        UiObject buttonLogin = mDevice.findObject(new UiSelector()
-//                .instance(1)
-//                .className(Button.class));
-//
-//        buttonLogin.waitForExists(timeOut);
-//        try {
-//            buttonLogin.click();
-//        } catch (UiObjectNotFoundException e) {
-//            // may have webview cache
-//            //fail(e.getMessage());
-//        }
-//    }
+public class AcquireTokenNetworkTest extends AcquireTokenNetworkAbstractTestOld implements IAcquireTokenNetworkTest {
 
     protected void performAcquireTokenInteractive() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -125,18 +89,69 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenNetworkAbstrac
     }
 
     @Test
-    public void testAbc() throws InterruptedException {
+    public void testAcquireToken() throws InterruptedException {
         performAcquireTokenInteractive();
-        performAcquireTokenInteractive();
-        performAcquireTokenSilent(false);
-        performAcquireTokenSilent(true);
+//        performAcquireTokenInteractive();
+//        performAcquireTokenSilent(false);
+//        performAcquireTokenSilent(true);
     }
+
+    //    @Override
+//    public void handleUserInteraction() {
+//        final UiDevice mDevice =
+//                UiDevice.getInstance(getInstrumentation());
+//
+//        final int timeOut = 1000 * 60;
+//
+//        // login webview
+//        mDevice.wait(Until.findObject(By.clazz(WebView.class)), timeOut);
+//
+//        // Set Password
+//        UiObject passwordInput = mDevice.findObject(new UiSelector()
+//                .instance(0)
+//                .className(EditText.class));
+//
+//        passwordInput.waitForExists(timeOut);
+//        try {
+//            passwordInput.setText(LabConfig.getCurrentLabConfig().getLabUserPassword());
+//        } catch (UiObjectNotFoundException e) {
+//            // may have webview cache
+//            //fail(e.getMessage());
+//        }
+//
+//        // Confirm Button Click
+//        UiObject buttonLogin = mDevice.findObject(new UiSelector()
+//                .instance(1)
+//                .className(Button.class));
+//
+//        buttonLogin.waitForExists(timeOut);
+//        try {
+//            buttonLogin.click();
+//        } catch (UiObjectNotFoundException e) {
+//            // may have webview cache
+//            //fail(e.getMessage());
+//        }
+//    }
+
+    public void handleUserInteraction() {
+        if (mBroker != null) {
+            mBroker.handleAccountPicker(mUsername);
+        } else {
+            WebViewUtils.handleWebViewWithLoginHint();
+        }
+    }
+
 
     @Override
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
         query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
         return query;
+    }
+
+    @Override
+    public String getTempUserType() {
+        return null;
     }
 
     @Override
@@ -152,5 +167,10 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenNetworkAbstrac
     @Override
     public String getAuthority() {
         return getAccount().getAuthority();
+    }
+
+    @Override
+    public ITestBroker getBroker() {
+        return null;
     }
 }

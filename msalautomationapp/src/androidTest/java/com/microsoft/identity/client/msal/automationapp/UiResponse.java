@@ -1,4 +1,6 @@
 package com.microsoft.identity.client.msal.automationapp;
 
-public class BrowserWithoutLoginHintTest {
+public enum UiResponse {
+    ACCEPT,
+    DECLINE
 }

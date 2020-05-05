@@ -1,7 +1,5 @@
 package com.microsoft.identity.client.msal.automationapp.broker;
 
-import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.uiautomator.By;
 import androidx.test.uiautomator.UiDevice;
 import androidx.test.uiautomator.UiObject;
 import androidx.test.uiautomator.UiObjectNotFoundException;
@@ -22,16 +20,8 @@ public class BrokerAuthenticator implements ITestBroker {
     }
 
     @Override
-    public boolean isBrokerOpen() {
-        final UiDevice mDevice =
-                UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
+    public void performDeviceRegistration(String username, String password) {
 
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return mDevice.hasObject(By.res("com.azure.authenticator:id/swipe_list"));
     }
 
     @Override
@@ -39,8 +29,8 @@ public class BrokerAuthenticator implements ITestBroker {
         UiDevice device = UiDevice.getInstance(getInstrumentation());
 
         UiObject accountSelected = device.findObject(new UiSelector().resourceId(
-                getResourceId(AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, "swipe_list")
-        ).index(0).childSelector(new UiSelector().textContains(
+                getResourceId(AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, "account_chooser_listView")
+        ).childSelector(new UiSelector().textContains(
                 username
         )));
 

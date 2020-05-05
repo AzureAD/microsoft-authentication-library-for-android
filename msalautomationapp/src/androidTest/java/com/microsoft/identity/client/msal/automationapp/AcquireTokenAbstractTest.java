@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
+import com.microsoft.identity.client.msal.automationapp.broker.ITestBroker;
 import com.microsoft.identity.client.msal.automationapp.utils.CommonUtils;
 import com.microsoft.identity.internal.testutils.TestUtils;
 
@@ -30,13 +31,13 @@ import org.junit.Before;
 
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_SIGNATURE;
 
 public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAbstractTest implements IAcquireTokenTest {
 
     private static final String TAG = AcquireTokenAbstractTest.class.getSimpleName();
 
     protected String[] mScopes;
+    protected ITestBroker mBroker;
 
     @Before
     public void setup() {
@@ -46,6 +47,7 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
         CommonUtils.removeApp(COMPANY_PORTAL_APP_PACKAGE_NAME);
 
         mScopes = getScopes();
+        mBroker = getBroker();
         super.setup();
     }
 
@@ -55,6 +57,7 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
         AcquireTokenTestHelper.setAccount(null);
         // remove everything from cache after test ends
         TestUtils.clearCache(SHARED_PREFERENCES_NAME);
+        // this is not needed as test app is removed by orchestrator
         //CommonUtils.clearApp(mContext.getPackageName());
     }
 }

@@ -28,7 +28,7 @@ public interface IAcquireTokenNetworkTest extends IAcquireTokenTest {
 
     LabUserQuery getLabUserQuery();
 
-    void handleUserInteraction();
+    String getTempUserType();
 
 }
 
