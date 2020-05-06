@@ -186,11 +186,11 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      *
      * @param scopes    The non-null array of scopes to be requested for the access token.
      *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param authority Optional. Can be passed to override the configured authority.
+     * @param authority Authority to issue the token.
      */
     @WorkerThread
     IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
-                                             @Nullable final String authority) throws MsalException, InterruptedException;
+                                             @NonNull final String authority) throws MsalException, InterruptedException;
 
     /**
      * Callback for asynchronous loading of the msal IAccount account.
