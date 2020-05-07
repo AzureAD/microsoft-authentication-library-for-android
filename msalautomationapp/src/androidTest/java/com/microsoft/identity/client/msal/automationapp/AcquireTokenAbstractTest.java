@@ -22,15 +22,30 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
+import android.content.Context;
+import android.os.Handler;
+import android.widget.Toast;
+
+import com.microsoft.identity.client.AuthenticationCallback;
+import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.IAuthenticationResult;
+import com.microsoft.identity.client.SilentAuthenticationCallback;
+import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.msal.automationapp.app.IApp;
 import com.microsoft.identity.client.msal.automationapp.broker.ITestBroker;
 import com.microsoft.identity.client.msal.automationapp.utils.CommonUtils;
+import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.internal.testutils.TestUtils;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
+
+import java.util.concurrent.CountDownLatch;
 
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
+import static junit.framework.Assert.fail;
 
 public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAbstractTest implements IAcquireTokenTest {
 
@@ -38,6 +53,12 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
 
     protected String[] mScopes;
     protected ITestBroker mBroker;
+    protected IAccount mAccount;
+    protected IApp mBrowser;
+
+    public IAccount getAccount() {
+        return mAccount;
+    }
 
     @Before
     public void setup() {
@@ -48,6 +69,10 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
 
         mScopes = getScopes();
         mBroker = getBroker();
+        mBrowser = getBrowser();
+
+        mBrowser.clear();
+
         super.setup();
     }
 
@@ -59,5 +84,106 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
         TestUtils.clearCache(SHARED_PREFERENCES_NAME);
         // this is not needed as test app is removed by orchestrator
         //CommonUtils.clearApp(mContext.getPackageName());
+    }
+
+    public AuthenticationCallback successfulInteractiveCallback(final CountDownLatch latch, final Context context) {
+        AuthenticationCallback callback = new AuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                showMessageWithToast(authenticationResult.getAccessToken());
+                Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                mAccount = authenticationResult.getAccount();
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                fail(exception.getMessage());
+                latch.countDown();
+            }
+
+            @Override
+            public void onCancel() {
+                fail("User cancelled flow");
+                latch.countDown();
+            }
+        };
+
+        return callback;
+    }
+
+
+    public SilentAuthenticationCallback successfulSilentCallback(final CountDownLatch latch, final Context context) {
+        SilentAuthenticationCallback callback = new SilentAuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                showMessageWithToast(authenticationResult.getAccessToken());
+                Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                mAccount = authenticationResult.getAccount();
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                fail(exception.getMessage());
+                latch.countDown();
+            }
+        };
+
+        return callback;
+    }
+
+    public AuthenticationCallback failureInteractiveCallback(final CountDownLatch latch, final String errorCode, final Context context) {
+        AuthenticationCallback callback = new AuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                fail("Unexpected success");
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                showMessageWithToast(exception.getErrorCode());
+                Assert.assertEquals(errorCode, exception.getErrorCode());
+                latch.countDown();
+            }
+
+            @Override
+            public void onCancel() {
+                fail("User cancelled flow");
+                latch.countDown();
+            }
+        };
+
+        return callback;
+    }
+
+    public SilentAuthenticationCallback failureSilentCallback(final CountDownLatch latch, final String errorCode, final Context context) {
+        SilentAuthenticationCallback callback = new SilentAuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                fail("Unexpected success");
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                showMessageWithToast(exception.getErrorCode());
+                Assert.assertSame(errorCode, exception.getErrorCode());
+                latch.countDown();
+            }
+        };
+
+        return callback;
+    }
+
+    private void showMessageWithToast(final String msg) {
+        new Handler(mActivity.getMainLooper()).post(new Runnable() {
+
+            @Override
+            public void run() {
+                Toast.makeText(mActivity.getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 }

@@ -22,7 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
+import android.app.Activity;
 import android.content.Context;
+import android.os.Handler;
 import android.widget.Toast;
 
 import com.microsoft.identity.client.AuthenticationCallback;
@@ -138,6 +140,16 @@ public class AcquireTokenTestHelper {
         };
 
         return callback;
+    }
+
+    public static void showMessageWithToast(final String msg, final Activity activity) {
+        new Handler(activity.getMainLooper()).post(new Runnable() {
+
+            @Override
+            public void run() {
+                Toast.makeText(activity.getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
 }

@@ -1,10 +1,10 @@
-package com.microsoft.identity.client.msal.automationapp.testpass.broker;
+package com.microsoft.identity.client.msal.automationapp.testpass.usgov;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
+import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.AcquireTokenNetworkAbstractTest;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.msal.automationapp.broker.BrokerAuthenticator;
 import com.microsoft.identity.client.msal.automationapp.broker.ITestBroker;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
@@ -14,25 +14,25 @@ import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-import static com.microsoft.identity.client.msal.automationapp.AcquireTokenTestHelper.successfulInteractiveCallback;
-
-public class TestCase769048 extends AcquireTokenNetworkAbstractTest {
+@Ignore
+public class TestCase938383 extends AcquireTokenNetworkAbstractTest {
 
     @Test
-    public void test_769048() throws InterruptedException {
+    public void test_938383() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(mLoginHint)
+                .startAuthorizationFromActivity(mActivity)
                 .withScopes(Arrays.asList(mScopes))
                 .withCallback(successfulInteractiveCallback(latch, mContext))
-                .withPrompt(Prompt.LOGIN)
+                .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
 
 
@@ -42,17 +42,17 @@ public class TestCase769048 extends AcquireTokenNetworkAbstractTest {
                 new OnInteractionRequired() {
                     @Override
                     public void handleUserInteraction() {
+                        mBrowser.handleFirstRun();
+
                         final String username = mLoginHint;
                         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(Prompt.LOGIN)
+                                .prompt(Prompt.SELECT_ACCOUNT)
                                 .loginHintProvided(true)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
-                                .expectingNonZeroAccountsInBroker(false)
                                 .build();
 
                         new MicrosoftPromptHandler(promptHandlerParameters)
@@ -64,52 +64,25 @@ public class TestCase769048 extends AcquireTokenNetworkAbstractTest {
         interactiveRequest.execute();
         latch.await();
 
-        // SECOND REQUEST WITHOUT LOGIN HINT
+        // do silent request
 
-        final CountDownLatch latchNoLoginHint = new CountDownLatch(1);
+        final CountDownLatch silentLatch = new CountDownLatch(1);
 
-        final AcquireTokenParameters parametersNoLoginHint = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
+        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .forAccount(mAccount)
+                .fromAuthority(mAccount.getAuthority())
                 .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback(latchNoLoginHint, mContext))
-                .withPrompt(Prompt.LOGIN)
+                .withCallback(successfulSilentCallback(silentLatch, mContext))
                 .build();
 
-
-        final InteractiveRequest interactiveRequestNoLoginHint = new InteractiveRequest(
-                mApplication,
-                parametersNoLoginHint,
-                new OnInteractionRequired() {
-                    @Override
-                    public void handleUserInteraction() {
-                        final String username = mLoginHint;
-                        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
-
-                        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(Prompt.LOGIN)
-                                .loginHintProvided(false)
-                                .sessionExpected(true)
-                                .consentPageExpected(false)
-                                .speedBumpExpected(false)
-                                .broker(getBroker())
-                                .expectingNonZeroAccountsInBroker(true)
-                                .build();
-
-                        new MicrosoftPromptHandler(promptHandlerParameters)
-                                .handlePrompt(username, password);
-                    }
-                }
-        );
-
-        interactiveRequestNoLoginHint.execute();
-        latchNoLoginHint.await();
+        mApplication.acquireTokenSilentAsync(silentParameters);
+        silentLatch.await();
     }
-
 
     @Override
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
+        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
         return query;
     }
 
@@ -130,11 +103,12 @@ public class TestCase769048 extends AcquireTokenNetworkAbstractTest {
 
     @Override
     public ITestBroker getBroker() {
-        return new BrokerAuthenticator();
+        return null;
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_default;
+        return R.raw.msal_config_instance_aware_common;
     }
+
 }

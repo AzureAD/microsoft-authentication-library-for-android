@@ -27,6 +27,7 @@ import androidx.annotation.Nullable;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
+import com.microsoft.identity.client.msal.automationapp.app.IApp;
 import com.microsoft.identity.client.msal.automationapp.broker.ITestBroker;
 import com.microsoft.identity.client.msal.automationapp.utils.WebViewUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
@@ -37,10 +38,6 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-import static com.microsoft.identity.client.msal.automationapp.AcquireTokenTestHelper.failureSilentCallback;
-import static com.microsoft.identity.client.msal.automationapp.AcquireTokenTestHelper.getAccount;
-import static com.microsoft.identity.client.msal.automationapp.AcquireTokenTestHelper.successfulInteractiveCallback;
-import static com.microsoft.identity.client.msal.automationapp.AcquireTokenTestHelper.successfulSilentCallback;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 
 public class AcquireTokenNetworkTest extends AcquireTokenNetworkAbstractTestOld implements IAcquireTokenNetworkTest {
@@ -171,6 +168,11 @@ public class AcquireTokenNetworkTest extends AcquireTokenNetworkAbstractTestOld 
 
     @Override
     public ITestBroker getBroker() {
+        return null;
+    }
+
+    @Override
+    public IApp getBrowser() {
         return null;
     }
 }

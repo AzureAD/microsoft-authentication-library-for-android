@@ -2,7 +2,8 @@ package com.microsoft.identity.client.msal.automationapp;
 
 import androidx.test.core.app.ApplicationProvider;
 
-import com.microsoft.identity.client.msal.automationapp.utils.PlayStoreUtils;
+import com.microsoft.identity.client.msal.automationapp.app.IApp;
+import com.microsoft.identity.client.msal.automationapp.browser.BrowserChrome;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
@@ -45,8 +46,13 @@ public abstract class AcquireTokenNetworkAbstractTest extends AcquireTokenAbstra
         super.setup();
 
         if (mBroker != null) {
-            PlayStoreUtils.installApp(mBroker.brokerAppName());
+            mBroker.install();
         }
+    }
+
+    @Override
+    public IApp getBrowser() {
+        return new BrowserChrome();
     }
 
 }

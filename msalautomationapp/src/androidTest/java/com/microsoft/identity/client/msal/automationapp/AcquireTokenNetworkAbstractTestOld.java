@@ -3,6 +3,7 @@ package com.microsoft.identity.client.msal.automationapp;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.microsoft.identity.client.msal.automationapp.app.App;
 import com.microsoft.identity.client.msal.automationapp.broker.BrokerAuthenticator;
 import com.microsoft.identity.client.msal.automationapp.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.msal.automationapp.broker.ITestBroker;
@@ -64,7 +65,7 @@ public abstract class AcquireTokenNetworkAbstractTestOld extends AcquireTokenAbs
         mLoginHint = mUsername = LabUserHelper.loadUserForTest(query);
         super.setup();
         if (mBroker != null) {
-            PlayStoreUtils.installApp(mBroker.brokerAppName());
+            mBroker.install();
         }
     }
 }

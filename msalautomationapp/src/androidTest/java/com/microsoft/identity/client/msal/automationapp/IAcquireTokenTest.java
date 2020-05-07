@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
+import com.microsoft.identity.client.msal.automationapp.app.IApp;
 import com.microsoft.identity.client.msal.automationapp.broker.ITestBroker;
 
 public interface IAcquireTokenTest {
@@ -31,5 +32,7 @@ public interface IAcquireTokenTest {
     String getAuthority();
 
     ITestBroker getBroker();
+
+    IApp getBrowser();
 
 }

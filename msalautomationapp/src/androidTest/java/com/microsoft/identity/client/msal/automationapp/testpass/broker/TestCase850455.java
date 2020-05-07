@@ -20,10 +20,6 @@ import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
 
-import static com.microsoft.identity.client.msal.automationapp.AcquireTokenTestHelper.getAccount;
-import static com.microsoft.identity.client.msal.automationapp.AcquireTokenTestHelper.successfulInteractiveCallback;
-import static com.microsoft.identity.client.msal.automationapp.AcquireTokenTestHelper.successfulSilentCallback;
-
 public class TestCase850455 extends AcquireTokenNetworkAbstractTest {
 
     @Test

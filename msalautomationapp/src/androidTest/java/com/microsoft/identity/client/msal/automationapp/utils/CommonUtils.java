@@ -1,16 +1,21 @@
 package com.microsoft.identity.client.msal.automationapp.utils;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.Intent;
 
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.uiautomator.UiDevice;
 
+import com.microsoft.identity.internal.testutils.TestUtils;
+
 import org.junit.Assert;
 
 import java.io.IOException;
 
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
 
 public class CommonUtils {
 
@@ -65,5 +70,18 @@ public class CommonUtils {
 
     static boolean isStringPackageName(final String hint) {
         return hint.contains("."); // best guess
+    }
+
+    public static boolean removeAccountFromAccountManager(final String upn) {
+        final Context context = TestUtils.getContext();
+        final AccountManager accountManager = AccountManager.get(context);
+        final Account[] workAccounts = accountManager.getAccountsByType(BROKER_ACCOUNT_TYPE);
+        for (final Account account : workAccounts) {
+            if (account.name.equalsIgnoreCase(upn)) {
+                return accountManager.removeAccountExplicitly(account);
+            }
+        }
+
+        return false;
     }
 }

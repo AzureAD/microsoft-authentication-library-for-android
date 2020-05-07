@@ -18,10 +18,6 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-import static com.microsoft.identity.client.msal.automationapp.AcquireTokenTestHelper.getAccount;
-import static com.microsoft.identity.client.msal.automationapp.AcquireTokenTestHelper.successfulInteractiveCallback;
-import static com.microsoft.identity.client.msal.automationapp.AcquireTokenTestHelper.successfulSilentCallback;
-
 public class TestCase99563 extends BrokerLessMsalTest {
 
     @Test

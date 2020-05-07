@@ -1,9 +1,10 @@
-package com.microsoft.identity.client.msal.automationapp.testpass.local;
+package com.microsoft.identity.client.msal.automationapp.testpass.usgov;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.msal.automationapp.AcquireTokenNetworkAbstractTest;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.msal.automationapp.UiResponse;
+import com.microsoft.identity.client.msal.automationapp.broker.ITestBroker;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.msal.automationapp.web.MicrosoftPromptHandler;
@@ -17,18 +18,18 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-public class TestCase99274 extends BrokerLessMsalTest {
+public class TestCase938384 extends AcquireTokenNetworkAbstractTest {
 
     @Test
-    public void test_99274() throws InterruptedException {
+    public void test_938384() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mLoginHint)
                 .withScopes(Arrays.asList(mScopes))
                 .withCallback(successfulInteractiveCallback(latch, mContext))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
+                .fromAuthority(getAuthority())
                 .build();
 
 
@@ -38,52 +39,15 @@ public class TestCase99274 extends BrokerLessMsalTest {
                 new OnInteractionRequired() {
                     @Override
                     public void handleUserInteraction() {
+                        mBrowser.handleFirstRun();
+
                         final String username = mLoginHint;
                         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(Prompt.SELECT_ACCOUNT)
-                                .loginHintProvided(true)
+                                .loginHintProvided(false)
                                 .sessionExpected(false)
-                                .consentPageExpected(true)
-                                .speedBumpExpected(false)
-                                .consentPageResponse(UiResponse.ACCEPT)
-                                .build();
-
-                        new MicrosoftPromptHandler(promptHandlerParameters)
-                                .handlePrompt(username, password);
-                    }
-                }
-        );
-
-        interactiveRequest.execute();
-        latch.await();
-
-        // do second request
-        final CountDownLatch consentRecordCountDownLatch = new CountDownLatch(1);
-
-        final AcquireTokenParameters consentRecordParameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mLoginHint)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback(consentRecordCountDownLatch, mContext))
-                .withPrompt(Prompt.SELECT_ACCOUNT)
-                .build();
-
-
-        final InteractiveRequest interactiveRequestWithExistingConsentRecord = new InteractiveRequest(
-                mApplication,
-                consentRecordParameters,
-                new OnInteractionRequired() {
-                    @Override
-                    public void handleUserInteraction() {
-                        final String username = mLoginHint;
-                        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
-
-                        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(Prompt.SELECT_ACCOUNT)
-                                .loginHintProvided(true)
-                                .sessionExpected(true)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
                                 .build();
@@ -94,19 +58,20 @@ public class TestCase99274 extends BrokerLessMsalTest {
                 }
         );
 
-        interactiveRequestWithExistingConsentRecord.execute();
-        consentRecordCountDownLatch.await();
+        interactiveRequest.execute();
+        latch.await();
     }
-
 
     @Override
     public LabUserQuery getLabUserQuery() {
-        return null;
+        final LabUserQuery query = new LabUserQuery();
+        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
+        return query;
     }
 
     @Override
     public String getTempUserType() {
-        return LabConstants.TempUserType.BASIC;
+        return null;
     }
 
     @Override
@@ -116,11 +81,17 @@ public class TestCase99274 extends BrokerLessMsalTest {
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().toString();
+        return "https://login.microsoftonline.us/common";
+    }
+
+    @Override
+    public ITestBroker getBroker() {
+        return null;
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_no_admin_consent;
+        return R.raw.msal_config_default;
     }
+
 }

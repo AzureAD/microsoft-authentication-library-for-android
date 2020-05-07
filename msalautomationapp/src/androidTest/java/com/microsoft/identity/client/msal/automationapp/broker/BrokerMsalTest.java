@@ -1,7 +1,6 @@
 package com.microsoft.identity.client.msal.automationapp.broker;
 
 import com.microsoft.identity.client.msal.automationapp.AcquireTokenNetworkTest;
-import com.microsoft.identity.client.msal.automationapp.utils.PlayStoreUtils;
 
 import org.junit.Before;
 
@@ -12,7 +11,7 @@ public abstract class BrokerMsalTest extends AcquireTokenNetworkTest {
     @Before
     public void setup() {
         super.setup();
-        PlayStoreUtils.installApp(mBroker.brokerAppName());
+        mBroker.install();
     }
 
     public abstract static class AuthenticatorTest extends BrokerMsalTest {

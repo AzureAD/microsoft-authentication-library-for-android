@@ -10,4 +10,6 @@ public class SettingsUtils {
         launchApp(SETTINGS_APP_PACKAGE_NAME);
         //:TODO figure out how to clear cache in an app through settings screen
     }
+
+
 }

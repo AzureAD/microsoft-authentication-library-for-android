@@ -19,8 +19,6 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-import static com.microsoft.identity.client.msal.automationapp.AcquireTokenTestHelper.successfulInteractiveCallback;
-
 public class TestCase497069 extends AcquireTokenNetworkAbstractTest {
 
     @Test

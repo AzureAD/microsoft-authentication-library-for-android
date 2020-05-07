@@ -1,10 +1,11 @@
-package com.microsoft.identity.client.msal.automationapp.testpass.local;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
-import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.msal.automationapp.AcquireTokenNetworkAbstractTest;
 import com.microsoft.identity.client.msal.automationapp.R;
+import com.microsoft.identity.client.msal.automationapp.broker.BrokerAuthenticator;
+import com.microsoft.identity.client.msal.automationapp.broker.ITestBroker;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.msal.automationapp.web.MicrosoftPromptHandler;
@@ -18,10 +19,10 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-public class TestCase99656 extends BrokerLessMsalTest {
+public class TestCase769049 extends AcquireTokenNetworkAbstractTest {
 
     @Test
-    public void test_99656() throws InterruptedException {
+    public void test_769049() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
@@ -29,7 +30,7 @@ public class TestCase99656 extends BrokerLessMsalTest {
                 .withLoginHint(mLoginHint)
                 .withScopes(Arrays.asList(mScopes))
                 .withCallback(successfulInteractiveCallback(latch, mContext))
-                .withPrompt(Prompt.SELECT_ACCOUNT)
+                .withPrompt(Prompt.LOGIN)
                 .build();
 
 
@@ -43,11 +44,13 @@ public class TestCase99656 extends BrokerLessMsalTest {
                         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(Prompt.SELECT_ACCOUNT)
+                                .prompt(Prompt.LOGIN)
                                 .loginHintProvided(true)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
+                                .broker(getBroker())
+                                .expectingNonZeroAccountsInBroker(false)
                                 .build();
 
                         new MicrosoftPromptHandler(promptHandlerParameters)
@@ -59,37 +62,21 @@ public class TestCase99656 extends BrokerLessMsalTest {
         interactiveRequest.execute();
         latch.await();
 
-        final IAccount account = getAccount();
+        // SECOND REQUEST WITHOUT LOGIN HINT
 
-        final CountDownLatch silentLatch = new CountDownLatch(1);
+        final CountDownLatch latchNoLoginHint = new CountDownLatch(1);
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(account)
-                .fromAuthority(account.getAuthority())
-                .forceRefresh(false)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulSilentCallback(silentLatch, mContext))
-                .build();
-
-        mApplication.acquireTokenSilentAsync(silentParameters);
-        silentLatch.await();
-
-        // second interactive request
-
-        final CountDownLatch latch2 = new CountDownLatch(1);
-
-        final AcquireTokenParameters interactiveParams2 = new AcquireTokenParameters.Builder()
+        final AcquireTokenParameters parametersNoLoginHint = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mLoginHint)
                 .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback(latch2, mContext))
+                .withCallback(successfulInteractiveCallback(latchNoLoginHint, mContext))
                 .withPrompt(Prompt.LOGIN)
                 .build();
 
 
-        final InteractiveRequest interactiveRequest2 = new InteractiveRequest(
+        final InteractiveRequest interactiveRequestNoLoginHint = new InteractiveRequest(
                 mApplication,
-                interactiveParams2,
+                parametersNoLoginHint,
                 new OnInteractionRequired() {
                     @Override
                     public void handleUserInteraction() {
@@ -98,10 +85,12 @@ public class TestCase99656 extends BrokerLessMsalTest {
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(Prompt.LOGIN)
-                                .loginHintProvided(true)
+                                .loginHintProvided(false)
                                 .sessionExpected(true)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
+                                .broker(getBroker())
+                                .expectingNonZeroAccountsInBroker(true)
                                 .build();
 
                         new MicrosoftPromptHandler(promptHandlerParameters)
@@ -110,16 +99,15 @@ public class TestCase99656 extends BrokerLessMsalTest {
                 }
         );
 
-        interactiveRequest2.execute();
-        latch2.await();
-
+        interactiveRequestNoLoginHint.execute();
+        latchNoLoginHint.await();
     }
 
 
     @Override
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
-        query.mfa = LabConstants.Mfa.AUTO_MFA_ON_ALL;
+        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
         return query;
     }
 
@@ -139,7 +127,12 @@ public class TestCase99656 extends BrokerLessMsalTest {
     }
 
     @Override
+    public ITestBroker getBroker() {
+        return new BrokerAuthenticator();
+    }
+
+    @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_webview;
+        return R.raw.msal_config_default;
     }
 }

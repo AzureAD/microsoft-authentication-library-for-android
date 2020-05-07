@@ -39,17 +39,17 @@ public class MicrosoftLoginComponentHandler implements ILoginComponentHandler {
 
     @Override
     public void handleAccountPicker(final String username) {
-        final UiDevice mDevice =
+        final UiDevice uiDevice =
                 UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
 
         // Confirm On Account Picker
-        UiObject accountPicker = UiAutomatorUtils.obtainUiObject("tilesHolder");
+        UiObject accountPicker = UiAutomatorUtils.obtainUiObjectWithResourceId("tilesHolder");
 
         if (!accountPicker.waitForExists(TIMEOUT)) {
             fail("Account picker screen did not show up");
         }
 
-        UiObject account = mDevice.findObject(new UiSelector()
+        UiObject account = uiDevice.findObject(new UiSelector()
                 .text("Sign in with " + username + " work or school account.")
         );
 
@@ -63,7 +63,7 @@ public class MicrosoftLoginComponentHandler implements ILoginComponentHandler {
     }
 
     private UiObject getConsentScreen() {
-        return UiAutomatorUtils.obtainUiObject("consentHeader");
+        return UiAutomatorUtils.obtainUiObjectWithResourceId("consentHeader");
     }
 
     @Override
@@ -86,7 +86,7 @@ public class MicrosoftLoginComponentHandler implements ILoginComponentHandler {
     @Override
     public void handleSpeedBump() {
         // Confirm On Speed Bump Screen
-        UiObject speedBump = UiAutomatorUtils.obtainUiObject("appConfirmTitle");
+        UiObject speedBump = UiAutomatorUtils.obtainUiObjectWithResourceId("appConfirmTitle");
 
         if (!speedBump.waitForExists(TIMEOUT)) {
             fail("Speed Bump screen did not show up");

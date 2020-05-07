@@ -1,29 +1,42 @@
 package com.microsoft.identity.client.msal.automationapp.broker;
 
-import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.uiautomator.By;
 import androidx.test.uiautomator.UiDevice;
 import androidx.test.uiautomator.UiObject;
 import androidx.test.uiautomator.UiObjectNotFoundException;
 import androidx.test.uiautomator.UiSelector;
 
+import com.microsoft.identity.client.msal.automationapp.app.App;
+
 import org.junit.Assert;
+
+import lombok.Getter;
 
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 import static com.microsoft.identity.client.msal.automationapp.utils.CommonUtils.TIMEOUT;
 import static com.microsoft.identity.client.msal.automationapp.utils.CommonUtils.getResourceId;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
 
-public class BrokerCompanyPortal implements ITestBroker {
+@Getter
+public class BrokerCompanyPortal extends App implements ITestBroker {
 
-    @Override
-    public String brokerAppName() {
-        return "Intune Company Portal";
+    private final static String COMPANY_PORTAL_APP_PACKAGE_NAME = "com.microsoft.windowsintune.companyportal";
+    private final static String COMPANY_PORTAL_APP_NAME = "Intune Company Portal";
+
+    public BrokerCompanyPortal() {
+        super(COMPANY_PORTAL_APP_PACKAGE_NAME, COMPANY_PORTAL_APP_NAME);
     }
 
     @Override
     public void performDeviceRegistration(String username, String password) {
+
+    }
+
+    @Override
+    public void performSharedDeviceRegistration(String username, String password) {
+
+    }
+
+    @Override
+    public void handleFirstRun() {
 
     }
 
