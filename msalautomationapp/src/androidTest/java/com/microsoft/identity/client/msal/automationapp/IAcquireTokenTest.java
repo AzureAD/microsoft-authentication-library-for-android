@@ -22,8 +22,8 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
-import com.microsoft.identity.client.msal.automationapp.app.IApp;
-import com.microsoft.identity.client.msal.automationapp.broker.ITestBroker;
+import com.microsoft.identity.client.ui.automation.app.IApp;
+import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 
 public interface IAcquireTokenTest {
 

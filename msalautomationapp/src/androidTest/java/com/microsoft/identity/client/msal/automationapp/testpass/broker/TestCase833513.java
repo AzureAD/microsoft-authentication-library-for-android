@@ -1,17 +1,17 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
-import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.AcquireTokenNetworkAbstractTest;
 import com.microsoft.identity.client.msal.automationapp.ErrorCodes;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.msal.automationapp.broker.BrokerAuthenticator;
-import com.microsoft.identity.client.msal.automationapp.broker.ITestBroker;
-import com.microsoft.identity.client.msal.automationapp.web.MicrosoftPromptHandler;
-import com.microsoft.identity.client.msal.automationapp.web.PromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.PromptParameter;
+import com.microsoft.identity.client.ui.automation.broker.BrokerAuthenticator;
+import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
+import com.microsoft.identity.client.ui.automation.web.MicrosoftPromptHandler;
+import com.microsoft.identity.client.ui.automation.web.PromptHandlerParameters;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
@@ -71,7 +71,7 @@ public class TestCase833513 extends AcquireTokenNetworkAbstractTest {
                 .sessionExpected(false)
                 .consentPageExpected(false)
                 .broker(mBroker)
-                .prompt(Prompt.SELECT_ACCOUNT)
+                .prompt(PromptParameter.SELECT_ACCOUNT)
                 .expectingNonZeroAccountsInBroker(false)
                 .build();
 

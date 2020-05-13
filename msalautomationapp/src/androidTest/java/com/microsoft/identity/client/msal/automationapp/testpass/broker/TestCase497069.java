@@ -4,12 +4,13 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.AcquireTokenNetworkAbstractTest;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.msal.automationapp.broker.BrokerAuthenticator;
-import com.microsoft.identity.client.msal.automationapp.broker.ITestBroker;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.msal.automationapp.web.MicrosoftPromptHandler;
-import com.microsoft.identity.client.msal.automationapp.web.PromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.PromptParameter;
+import com.microsoft.identity.client.ui.automation.broker.BrokerAuthenticator;
+import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
+import com.microsoft.identity.client.ui.automation.web.MicrosoftPromptHandler;
+import com.microsoft.identity.client.ui.automation.web.PromptHandlerParameters;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -44,7 +45,7 @@ public class TestCase497069 extends AcquireTokenNetworkAbstractTest {
                         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(Prompt.SELECT_ACCOUNT)
+                                .prompt(PromptParameter.SELECT_ACCOUNT)
                                 .loginHintProvided(true)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
@@ -84,7 +85,7 @@ public class TestCase497069 extends AcquireTokenNetworkAbstractTest {
                         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(Prompt.SELECT_ACCOUNT)
+                                .prompt(PromptParameter.SELECT_ACCOUNT)
                                 .loginHintProvided(false)
                                 .sessionExpected(true)
                                 .consentPageExpected(false)

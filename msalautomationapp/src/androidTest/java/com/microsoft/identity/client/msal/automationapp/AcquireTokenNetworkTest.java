@@ -27,9 +27,9 @@ import androidx.annotation.Nullable;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
-import com.microsoft.identity.client.msal.automationapp.app.IApp;
-import com.microsoft.identity.client.msal.automationapp.broker.ITestBroker;
-import com.microsoft.identity.client.msal.automationapp.utils.WebViewUtils;
+import com.microsoft.identity.client.ui.automation.app.IApp;
+import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
+import com.microsoft.identity.client.ui.automation.utils.WebViewUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 

@@ -1,13 +1,11 @@
 package com.microsoft.identity.client.msal.automationapp;
 
 import androidx.test.core.app.ApplicationProvider;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.microsoft.identity.client.msal.automationapp.app.App;
-import com.microsoft.identity.client.msal.automationapp.broker.BrokerAuthenticator;
-import com.microsoft.identity.client.msal.automationapp.broker.BrokerCompanyPortal;
-import com.microsoft.identity.client.msal.automationapp.broker.ITestBroker;
-import com.microsoft.identity.client.msal.automationapp.utils.PlayStoreUtils;
+import com.microsoft.identity.client.ui.automation.app.App;
+import com.microsoft.identity.client.ui.automation.broker.BrokerAuthenticator;
+import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
+import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;

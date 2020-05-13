@@ -7,8 +7,9 @@ import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.msal.automationapp.web.MicrosoftPromptHandler;
-import com.microsoft.identity.client.msal.automationapp.web.PromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.PromptParameter;
+import com.microsoft.identity.client.ui.automation.web.MicrosoftPromptHandler;
+import com.microsoft.identity.client.ui.automation.web.PromptHandlerParameters;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -43,7 +44,7 @@ public class TestCase99656 extends BrokerLessMsalTest {
                         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(Prompt.SELECT_ACCOUNT)
+                                .prompt(PromptParameter.SELECT_ACCOUNT)
                                 .loginHintProvided(true)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
@@ -97,7 +98,7 @@ public class TestCase99656 extends BrokerLessMsalTest {
                         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(Prompt.LOGIN)
+                                .prompt(PromptParameter.LOGIN)
                                 .loginHintProvided(true)
                                 .sessionExpected(true)
                                 .consentPageExpected(false)
