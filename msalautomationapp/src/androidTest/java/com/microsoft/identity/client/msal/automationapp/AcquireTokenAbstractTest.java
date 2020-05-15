@@ -79,7 +79,7 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
     @After
     public void cleanup() {
         super.cleanup();
-        AcquireTokenTestHelper.setAccount(null);
+        mAccount = null;
         // remove everything from cache after test ends
         TestUtils.clearCache(SHARED_PREFERENCES_NAME);
         // this is not needed as test app is removed by orchestrator

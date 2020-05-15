@@ -24,7 +24,7 @@ public abstract class AcquireTokenNetworkAbstractTest extends AcquireTokenAbstra
                         .getPath()
         );
 
-        AcquireTokenTestHelper.setAccount(null);
+        mAccount = null;
         final LabUserQuery query = getLabUserQuery();
         final String tempUserType = getTempUserType();
 

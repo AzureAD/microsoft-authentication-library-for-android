@@ -26,17 +26,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
     }
 
-//    @Override
-//    protected void onDestroy() {
-//        super.onDestroy();
-//        Runtime runtime = Runtime.getRuntime();
-//        try {
-//            runtime.exec("pm clear " + this.getApplicationContext().getPackageName());
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
     public void acquireToken(View view) {
         final Activity activity = this;
         PublicClientApplication.create(getApplicationContext(), R.raw.msal_automation_config, new IPublicClientApplication.ApplicationCreatedListener() {
