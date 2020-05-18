@@ -87,7 +87,7 @@ public class TestCase833516 extends AcquireTokenNetworkAbstractTest {
 
         final CountDownLatch latch2 = new CountDownLatch(1);
 
-        // try sign in with an account from a different tenant
+        // try sign in with an account from the same tenant
         singleAccountPCA.signIn(mActivity, anotherUserFromSameTenant, mScopes, failureInteractiveCallback(latch2, ErrorCodes.INVALID_PARAMETER, mContext));
 
         latch2.await();
