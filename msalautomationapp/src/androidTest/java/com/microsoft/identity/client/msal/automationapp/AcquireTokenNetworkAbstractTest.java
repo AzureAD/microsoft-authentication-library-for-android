@@ -1,7 +1,5 @@
 package com.microsoft.identity.client.msal.automationapp;
 
-import androidx.test.core.app.ApplicationProvider;
-
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
@@ -16,14 +14,6 @@ public abstract class AcquireTokenNetworkAbstractTest extends AcquireTokenAbstra
 
     @Before
     public void setup() {
-        System.setProperty(
-                "org.mockito.android.target",
-                ApplicationProvider
-                        .getApplicationContext()
-                        .getCacheDir()
-                        .getPath()
-        );
-
         mAccount = null;
         final LabUserQuery query = getLabUserQuery();
         final String tempUserType = getTempUserType();
