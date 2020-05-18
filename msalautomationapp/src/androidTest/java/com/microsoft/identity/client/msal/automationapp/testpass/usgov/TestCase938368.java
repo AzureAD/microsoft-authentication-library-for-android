@@ -6,10 +6,10 @@ import com.microsoft.identity.client.msal.automationapp.AcquireTokenNetworkAbstr
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.web.MicrosoftPromptHandler;
-import com.microsoft.identity.client.ui.automation.web.PromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.interaction.MicrosoftPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
