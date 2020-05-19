@@ -26,10 +26,12 @@ import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.RemoteException;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.BrokerCommunicationException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
@@ -65,18 +67,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.WorkerThread;
-
 /**
  * The implementation of MSAL Controller for Broker
  */
 public class BrokerMsalController extends BaseController {
 
     private static final String TAG = BrokerMsalController.class.getSimpleName();
-
-    private static final String MANIFEST_PERMISSION_MANAGE_ACCOUNTS = "android.permission.MANAGE_ACCOUNTS";
 
     private BrokerResultFuture mBrokerResultFuture;
 
@@ -581,34 +577,5 @@ public class BrokerMsalController extends BaseController {
         final MicrosoftAuthClient client = new MicrosoftAuthClient(context);
         final Intent microsoftAuthServiceIntent = client.getIntentForAuthService(context);
         return null != microsoftAuthServiceIntent;
-    }
-
-    /**
-     * To verify if App gives permissions to AccountManager to use broker.
-     * <p>
-     * Beginning in Android 6.0 (API level 23), the run-time permission GET_ACCOUNTS is required
-     * which need to be requested in the runtime by the calling app.
-     * <p>
-     * Before Android 6.0, the MANAGE_ACCOUNTS permission is
-     * required in the app's manifest xml file.
-     *
-     * @return true if all required permissions are granted, otherwise return false.
-     */
-    static boolean isAccountManagerPermissionsGranted(@NonNull final Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return true;
-        } else {
-            return isPermissionGranted(context, MANIFEST_PERMISSION_MANAGE_ACCOUNTS);
-        }
-    }
-
-    private static boolean isPermissionGranted(@NonNull final Context context,
-                                               @NonNull final String permissionName) {
-        final String methodName = ":isPermissionGranted";
-        final PackageManager pm = context.getPackageManager();
-        final boolean isGranted = pm.checkPermission(permissionName, context.getPackageName())
-                == PackageManager.PERMISSION_GRANTED;
-        Logger.verbose(TAG + methodName, "is " + permissionName + " granted? [" + isGranted + "]");
-        return isGranted;
     }
 }

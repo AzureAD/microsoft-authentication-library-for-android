@@ -89,6 +89,9 @@ android {
                 // example: ./gradlew testLocalDebugUnitTest -Plabtest
                 exclude 'com/microsoft/identity/client/e2e/tests/network'
             }
+
+            systemProperty 'robolectric.offline', 'true'
+            systemProperty 'robolectric.dependency.dir', './libs'
         }
     }
 }
@@ -145,9 +148,9 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '2.0.6-SNAPSHOT', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '2.0.7-SNAPSHOT', changing: true)
 
-    distApi("com.microsoft.identity:common:2.0.2-hf1") {
+    distApi("com.microsoft.identity:common:2.0.7") {
         transitive = false
     }
 }

@@ -52,8 +52,15 @@ public class PoPAuthenticationScheme
     }
 
     @Override
+    @Nullable
     public String getHttpMethod() {
-        return mHttpMethod.name();
+        String httpMethod = null;
+
+        if (null != mHttpMethod) { // HTTP method is optional
+            httpMethod = mHttpMethod.name();
+        }
+
+        return httpMethod;
     }
 
     @Override
@@ -96,10 +103,6 @@ public class PoPAuthenticationScheme
 
             if (null == mUrl) {
                 throw new IllegalArgumentException(errMsg + "URL");
-            }
-
-            if (null == mHttpMethod) {
-                throw new IllegalArgumentException(errMsg + "HTTP Method");
             }
 
             return new PoPAuthenticationScheme(mHttpMethod, mUrl, mNonce);
