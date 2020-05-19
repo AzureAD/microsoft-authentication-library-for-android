@@ -10,7 +10,6 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 
@@ -22,8 +21,6 @@ public abstract class PublicClientApplicationAbstractTest implements IPublicClie
     public ActivityTestRule<MainActivity> mActivityRule =
             new ActivityTestRule(MainActivity.class);
 
-    protected final String SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache";
-
     protected Context mContext;
     protected Activity mActivity;
     protected IPublicClientApplication mApplication;
@@ -33,11 +30,6 @@ public abstract class PublicClientApplicationAbstractTest implements IPublicClie
         mContext = ApplicationProvider.getApplicationContext();
         mActivity = mActivityRule.getActivity();
         setupPCA();
-    }
-
-    @After
-    public void cleanup() {
-        //mActivity.finish();
     }
 
     private void setupPCA() {

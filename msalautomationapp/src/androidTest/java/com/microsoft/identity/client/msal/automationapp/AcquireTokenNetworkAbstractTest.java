@@ -12,9 +12,10 @@ public abstract class AcquireTokenNetworkAbstractTest extends AcquireTokenAbstra
     protected String mUsername;
     protected String mLoginHint;
 
+    public static final int TEMP_USER_WAIT_TIME = 15000;
+
     @Before
     public void setup() {
-        mAccount = null;
         final LabUserQuery query = getLabUserQuery();
         final String tempUserType = getTempUserType();
 
@@ -25,7 +26,7 @@ public abstract class AcquireTokenNetworkAbstractTest extends AcquireTokenAbstra
             try {
                 // temp user takes some time to actually being created even though it may be
                 // returned by the LAB API. Adding a wait here before we proceed with the test.
-                Thread.sleep(10000);
+                Thread.sleep(TEMP_USER_WAIT_TIME);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -34,10 +35,6 @@ public abstract class AcquireTokenNetworkAbstractTest extends AcquireTokenAbstra
         }
 
         super.setup();
-
-        if (mBroker != null) {
-            mBroker.install();
-        }
     }
 
     @Override

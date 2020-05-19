@@ -35,7 +35,6 @@ import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
 import com.microsoft.identity.common.internal.util.StringUtil;
-import com.microsoft.identity.internal.testutils.TestUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -62,28 +61,28 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
 
     @Before
     public void setup() {
-        // remove existing authenticator and company portal apps - the test app is removed
-        // by the Android Test Orchestrator. See build.gradle
-        CommonUtils.removeApp(AZURE_AUTHENTICATOR_APP_PACKAGE_NAME);
-        CommonUtils.removeApp(COMPANY_PORTAL_APP_PACKAGE_NAME);
-
         mScopes = getScopes();
         mBroker = getBroker();
         mBrowser = getBrowser();
 
+        // clear all cookies in the browser
         mBrowser.clear();
+
+        // remove existing authenticator and company portal apps
+        CommonUtils.removeApp(AZURE_AUTHENTICATOR_APP_PACKAGE_NAME);
+        CommonUtils.removeApp(COMPANY_PORTAL_APP_PACKAGE_NAME);
+
+        if (mBroker != null) {
+            // do a fresh install of broker
+            mBroker.install();
+        }
 
         super.setup();
     }
 
     @After
     public void cleanup() {
-        super.cleanup();
         mAccount = null;
-        // remove everything from cache after test ends
-        TestUtils.clearCache(SHARED_PREFERENCES_NAME);
-        // this is not needed as test app is removed by orchestrator
-        //CommonUtils.clearApp(mContext.getPackageName());
     }
 
     public AuthenticationCallback successfulInteractiveCallback(final CountDownLatch latch, final Context context) {
