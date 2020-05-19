@@ -31,7 +31,6 @@ import org.junit.Before;
 
 public abstract class AcquireTokenNetworkAbstractTest extends AcquireTokenAbstractTest implements IAcquireTokenNetworkTest {
 
-    protected String mUsername;
     protected String mLoginHint;
 
     public static final int TEMP_USER_WAIT_TIME = 15000;
@@ -42,9 +41,9 @@ public abstract class AcquireTokenNetworkAbstractTest extends AcquireTokenAbstra
         final String tempUserType = getTempUserType();
 
         if (query != null) {
-            mLoginHint = mUsername = LabUserHelper.loadUserForTest(query);
+            mLoginHint = LabUserHelper.loadUserForTest(query);
         } else if (tempUserType != null) {
-            mLoginHint = mUsername = LabUserHelper.loadTempUser(tempUserType);
+            mLoginHint = LabUserHelper.loadTempUser(tempUserType);
             try {
                 // temp user takes some time to actually being created even though it may be
                 // returned by the LAB API. Adding a wait here before we proceed with the test.

@@ -56,7 +56,7 @@ public class TestCase833516 extends AcquireTokenNetworkAbstractTest {
 
         // perform shared device registration
         mBroker.performSharedDeviceRegistration(
-                mUsername, LabConfig.getCurrentLabConfig().getLabUserPassword()
+                mLoginHint, LabConfig.getCurrentLabConfig().getLabUserPassword()
         );
 
         // re-create PCA after device registration
