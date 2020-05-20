@@ -44,10 +44,8 @@ public final class AuthenticationResult implements IAuthenticationResult {
     private final IAccount mAccount;
     private boolean mServicedFromCache;
 
-    AuthenticationResult(
-            @NonNull final List<ICacheRecord> cacheRecords,
-            final boolean isServicedFromCache
-    ) {
+    AuthenticationResult(@NonNull final List<ICacheRecord> cacheRecords,
+                         final boolean isServicedFromCache) {
         final ICacheRecord mostRecentlyAuthorized = cacheRecords.get(0);
         mAccessToken = mostRecentlyAuthorized.getAccessToken();
         mTenantId = mostRecentlyAuthorized.getAccount().getRealm();
