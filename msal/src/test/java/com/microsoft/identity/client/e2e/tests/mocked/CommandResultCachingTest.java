@@ -221,7 +221,7 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
                     .forceRefresh(false)
                     .fromAuthority(AAD_MOCK_AUTHORITY)
                     .withClaims(cr)
-                    .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                    .withCallback(AcquireTokenTestHelper.successfulSilentCallback(false))
                     .build();
 
             mApplication.acquireTokenSilentAsync(silentParameters);

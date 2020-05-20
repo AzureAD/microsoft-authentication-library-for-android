@@ -93,7 +93,7 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
                 .fromAuthority(getAuthority())
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
-                .withCallback(successfulSilentCallback())
+                .withCallback(successfulSilentCallback(true))
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
@@ -117,7 +117,7 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
                 .fromAuthority(getAuthority())
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(true)
-                .withCallback(successfulSilentCallback())
+                .withCallback(successfulSilentCallback(false))
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
@@ -171,7 +171,7 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
                 .fromAuthority(getAuthority())
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
-                .withCallback(successfulSilentCallback())
+                .withCallback(successfulSilentCallback(false))
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);

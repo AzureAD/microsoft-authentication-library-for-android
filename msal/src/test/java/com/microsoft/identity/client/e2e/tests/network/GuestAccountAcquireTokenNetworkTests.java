@@ -57,14 +57,14 @@ public class GuestAccountAcquireTokenNetworkTests extends AcquireTokenAbstractTe
         performInteractiveAcquireTokenCall(labGuest.getHomeUpn());
 
         // get token silently for home tenant
-        performSilentAcquireTokenCall(getAccount(), authorityPrefix + labGuest.getHomeTenantId());
+        performSilentAcquireTokenCall(getAccount(), authorityPrefix + labGuest.getHomeTenantId(), true);
 
         // get a token silently for each guest tenant
         for (String guestLabTenant : labGuest.getGuestLabTenants()) {
             // just making sure that it is indeed guest tenant by comparing against home tenant
             Assert.assertNotSame(labGuest.getHomeTenantId(), guestLabTenant);
             // create authority from guest tenant id and use to obtain a token silently for guest tenant
-            performSilentAcquireTokenCall(getAccount(), authorityPrefix + guestLabTenant);
+            performSilentAcquireTokenCall(getAccount(), authorityPrefix + guestLabTenant, false);
         }
 
         Assert.assertTrue(getAccount() instanceof MultiTenantAccount);
@@ -118,7 +118,7 @@ public class GuestAccountAcquireTokenNetworkTests extends AcquireTokenAbstractTe
         }
 
         // now get a token silently for home tenant
-        performSilentAcquireTokenCall(multiTenantAccount, authorityPrefix + labGuest.getHomeTenantId());
+        performSilentAcquireTokenCall(multiTenantAccount, authorityPrefix + labGuest.getHomeTenantId(), false);
 
         multiTenantAccount = (MultiTenantAccount) getAccount();
 

@@ -82,39 +82,43 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
         flushScheduler();
     }
 
-    public void performSilentAcquireTokenCall(final String[] scopes) {
+    public void performSilentAcquireTokenCall(final String[] scopes,
+                                              final boolean expectingResultFromCache) {
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(getAccount())
                 .fromAuthority(getAuthority())
                 .withScopes(Arrays.asList(scopes))
                 .forceRefresh(false)
-                .withCallback(successfulSilentCallback())
+                .withCallback(successfulSilentCallback(expectingResultFromCache))
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
     }
 
-    public void performSilentAcquireTokenCall(final IAccount account) {
+    public void performSilentAcquireTokenCall(final IAccount account,
+                                              final boolean expectingResultFromCache) {
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(account)
                 .fromAuthority(account.getAuthority())
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
-                .withCallback(successfulSilentCallback())
+                .withCallback(successfulSilentCallback(expectingResultFromCache))
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
     }
 
-    public void performSilentAcquireTokenCall(final IAccount account, final String authority) {
+    public void performSilentAcquireTokenCall(final IAccount account,
+                                              final String authority,
+                                              final boolean expectingResultFromCache) {
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(account)
                 .fromAuthority(authority)
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
-                .withCallback(successfulSilentCallback())
+                .withCallback(successfulSilentCallback(expectingResultFromCache))
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);

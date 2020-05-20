@@ -47,10 +47,10 @@ public class AcquireTokenTestHelper {
     }
 
     public static AuthenticationCallback successfulInteractiveCallback() {
-        AuthenticationCallback callback = new AuthenticationCallback() {
+        return new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
-                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
                 sAccount = authenticationResult.getAccount();
             }
 
@@ -64,12 +64,10 @@ public class AcquireTokenTestHelper {
                 fail("User cancelled flow");
             }
         };
-
-        return callback;
     }
 
     public static AuthenticationCallback failedSilentRequestDuplicateCommandCallback() {
-        AuthenticationCallback callback = new AuthenticationCallback() {
+        return new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 fail("not expected for this request to succeed");
@@ -85,16 +83,17 @@ public class AcquireTokenTestHelper {
                 fail("No expected to receive cancel");
             }
         };
-
-        return callback;
     }
 
 
-    public static SilentAuthenticationCallback successfulSilentCallback() {
-        SilentAuthenticationCallback callback = new SilentAuthenticationCallback() {
+    public static SilentAuthenticationCallback successfulSilentCallback(
+            final boolean expectingResultFromCache
+    ) {
+        return new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
-                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                Assert.assertSame(expectingResultFromCache, authenticationResult.isServicedFromCache());
                 sAccount = authenticationResult.getAccount();
             }
 
@@ -103,12 +102,10 @@ public class AcquireTokenTestHelper {
                 fail(exception.getMessage());
             }
         };
-
-        return callback;
     }
 
     public static AuthenticationCallback failureInteractiveCallback(final String errorCode) {
-        AuthenticationCallback callback = new AuthenticationCallback() {
+        return new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 fail("Unexpected success");
@@ -124,12 +121,10 @@ public class AcquireTokenTestHelper {
                 fail("User cancelled flow");
             }
         };
-
-        return callback;
     }
 
     public static SilentAuthenticationCallback failureSilentCallback(final String errorCode) {
-        SilentAuthenticationCallback callback = new SilentAuthenticationCallback() {
+        return new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 fail("Unexpected success");
@@ -140,8 +135,6 @@ public class AcquireTokenTestHelper {
                 Assert.assertEquals(errorCode, exception.getErrorCode());
             }
         };
-
-        return callback;
     }
 
 }

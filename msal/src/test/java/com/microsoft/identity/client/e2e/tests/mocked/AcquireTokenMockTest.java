@@ -194,7 +194,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                .withCallback(AcquireTokenTestHelper.successfulSilentCallback(true))
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
@@ -210,7 +210,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .forceRefresh(true)
                 .forAccount(account)
                 .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                .withCallback(AcquireTokenTestHelper.successfulSilentCallback(false))
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
@@ -226,7 +226,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .forceRefresh(false)
                 .fromAuthority(getAuthority())
                 .forAccount(account)
-                .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                .withCallback(AcquireTokenTestHelper.successfulSilentCallback(true))
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
@@ -244,7 +244,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .forceRefresh(false)
                 .forAccount(account)
                 .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                .withCallback(AcquireTokenTestHelper.successfulSilentCallback(false))
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
@@ -366,8 +366,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     private IAccount loadAccountForTest(IPublicClientApplication application) {
         ICacheRecord cacheRecord = createDataInCache(application);
         final String loginHint = cacheRecord.getAccount().getUsername();
-        final IAccount account = performGetAccount(application, loginHint);
-        return account;
+        return performGetAccount(application, loginHint);
     }
 
 }

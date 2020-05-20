@@ -85,7 +85,7 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
 
         // perform silent call for each account
         for (final IAccount account : accounts) {
-            performSilentAcquireTokenCall(account);
+            performSilentAcquireTokenCall(account, true);
         }
     }
 
@@ -105,10 +105,10 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
         mApplication.acquireToken(parameters);
         flushScheduler();
 
-        performSilentAcquireTokenCall(USER_READ_SCOPE);
-        performSilentAcquireTokenCall(MS_GRAPH_USER_READ_SCOPE);
-        performSilentAcquireTokenCall(OFFICE_USER_READ_SCOPE);
-        performSilentAcquireTokenCall(AD_GRAPH_USER_READ_SCOPE);
+        performSilentAcquireTokenCall(USER_READ_SCOPE, true);
+        performSilentAcquireTokenCall(MS_GRAPH_USER_READ_SCOPE, false);
+        performSilentAcquireTokenCall(OFFICE_USER_READ_SCOPE, false);
+        performSilentAcquireTokenCall(AD_GRAPH_USER_READ_SCOPE, false);
     }
 
 }

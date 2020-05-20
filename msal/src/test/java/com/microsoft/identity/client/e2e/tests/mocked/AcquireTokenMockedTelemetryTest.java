@@ -131,7 +131,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(false)
                 .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                .withCallback(AcquireTokenTestHelper.successfulSilentCallback(true))
                 .build();
 
         MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
@@ -242,7 +242,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
                 .withScopes(Arrays.asList(mScopes))
                 .forceRefresh(true)
                 .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                .withCallback(AcquireTokenTestHelper.successfulSilentCallback(false))
                 .build();
 
         MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
