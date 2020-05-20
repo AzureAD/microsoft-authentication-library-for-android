@@ -82,6 +82,12 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
         flushScheduler();
     }
 
+    // This method is used to perform a silent acquire token call with the provided scopes.
+    // The expectingResultFromCache parameters is used to determine whether we expect the result
+    // of this silent request to be served from cache or not. This value will then be compared
+    // against the actual value of isServicedFromCache in Authentication Result to determine
+    // if the test behaved as expected. If the value does not match with what we expect, then the
+    // test will fail.
     public void performSilentAcquireTokenCall(final String[] scopes,
                                               final boolean expectingResultFromCache) {
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
@@ -96,6 +102,12 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
         flushScheduler();
     }
 
+    // This method is used to perform a silent acquire token call with the provided account.
+    // The expectingResultFromCache parameters is used to determine whether we expect the result
+    // of this silent request to be served from cache or not. This value will then be compared
+    // against the actual value of isServicedFromCache in Authentication Result to determine
+    // if the test behaved as expected. If the value does not match with what we expect, then the
+    // test will fail.
     public void performSilentAcquireTokenCall(final IAccount account,
                                               final boolean expectingResultFromCache) {
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
@@ -110,6 +122,12 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
         flushScheduler();
     }
 
+    // This method is used to perform a silent acquire token call with the provided account and
+    // authority. The expectingResultFromCache parameters is used to determine whether we expect the
+    // result of this silent request to be served from cache or not. This value will then be
+    // compared against the actual value of isServicedFromCache in Authentication Result to
+    // determine if the test behaved as expected. If the value does not match with what we expect,
+    // then the test will fail.
     public void performSilentAcquireTokenCall(final IAccount account,
                                               final String authority,
                                               final boolean expectingResultFromCache) {
