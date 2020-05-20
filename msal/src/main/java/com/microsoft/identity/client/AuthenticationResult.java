@@ -113,7 +113,7 @@ public final class AuthenticationResult implements IAuthenticationResult {
     }
 
     @Override
-    public boolean isServicedFromCache() {
+    public boolean wasServicedFromCache() {
         return mServicedFromCache;
     }
 }

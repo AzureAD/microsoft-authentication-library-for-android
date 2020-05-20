@@ -85,5 +85,5 @@ public interface IAuthenticationResult {
     /**
      * @return A boolean specifying whether the tokens were returned from cache or not.
      */
-    boolean isServicedFromCache();
+    boolean wasServicedFromCache();
 }

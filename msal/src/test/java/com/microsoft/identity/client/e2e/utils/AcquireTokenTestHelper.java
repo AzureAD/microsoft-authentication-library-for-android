@@ -93,7 +93,7 @@ public class AcquireTokenTestHelper {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                Assert.assertSame(expectingResultFromCache, authenticationResult.isServicedFromCache());
+                Assert.assertSame(expectingResultFromCache, authenticationResult.wasServicedFromCache());
                 sAccount = authenticationResult.getAccount();
             }
 
