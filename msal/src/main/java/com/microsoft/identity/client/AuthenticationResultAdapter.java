@@ -39,10 +39,10 @@ class AuthenticationResultAdapter {
     private static final String TAG = AuthenticationResultAdapter.class.getName();
 
     static IAuthenticationResult adapt(@NonNull final ILocalAuthenticationResult localAuthenticationResult) {
-        final IAuthenticationResult authenticationResult = new AuthenticationResult(
-                localAuthenticationResult.getCacheRecordWithTenantProfileData()
+        return new AuthenticationResult(
+                localAuthenticationResult.getCacheRecordWithTenantProfileData(),
+                localAuthenticationResult.isServicedFromCache()
         );
-        return authenticationResult;
     }
 
 

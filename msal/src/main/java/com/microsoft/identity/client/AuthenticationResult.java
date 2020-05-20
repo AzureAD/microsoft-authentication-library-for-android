@@ -42,12 +42,17 @@ public final class AuthenticationResult implements IAuthenticationResult {
     private final String mTenantId;
     private final AccessTokenRecord mAccessToken;
     private final IAccount mAccount;
+    private boolean mServicedFromCache;
 
-    AuthenticationResult(@NonNull final List<ICacheRecord> cacheRecords) {
+    AuthenticationResult(
+            @NonNull final List<ICacheRecord> cacheRecords,
+            final boolean isServicedFromCache
+    ) {
         final ICacheRecord mostRecentlyAuthorized = cacheRecords.get(0);
         mAccessToken = mostRecentlyAuthorized.getAccessToken();
         mTenantId = mostRecentlyAuthorized.getAccount().getRealm();
         mAccount = AccountAdapter.adapt(cacheRecords).get(0);
+        mServicedFromCache = isServicedFromCache;
     }
 
     @Override
@@ -107,5 +112,10 @@ public final class AuthenticationResult implements IAuthenticationResult {
     @NonNull
     public String[] getScope() {
         return mAccessToken.getTarget().split("\\s");
+    }
+
+    @Override
+    public boolean isServicedFromCache() {
+        return mServicedFromCache;
     }
 }
