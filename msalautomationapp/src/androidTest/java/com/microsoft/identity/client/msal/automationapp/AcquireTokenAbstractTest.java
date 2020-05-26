@@ -23,8 +23,6 @@
 package com.microsoft.identity.client.msal.automationapp;
 
 import android.content.Context;
-import android.os.Handler;
-import android.widget.Toast;
 
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
@@ -33,7 +31,7 @@ import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
+import com.microsoft.identity.client.ui.automation.utils.AdbShellUtils;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import org.junit.After;
@@ -69,8 +67,8 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
         mBrowser.clear();
 
         // remove existing authenticator and company portal apps
-        CommonUtils.removeApp(AZURE_AUTHENTICATOR_APP_PACKAGE_NAME);
-        CommonUtils.removeApp(COMPANY_PORTAL_APP_PACKAGE_NAME);
+        AdbShellUtils.removePackage(AZURE_AUTHENTICATOR_APP_PACKAGE_NAME);
+        AdbShellUtils.removePackage(COMPANY_PORTAL_APP_PACKAGE_NAME);
 
         if (mBroker != null) {
             // do a fresh install of broker
@@ -177,12 +175,14 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
     }
 
     private void showMessageWithToast(final String msg) {
-        new Handler(mActivity.getMainLooper()).post(new Runnable() {
-
-            @Override
-            public void run() {
-                Toast.makeText(mActivity.getApplicationContext(), msg, Toast.LENGTH_LONG).show();
-            }
-        });
+        //todo find a better way to show toast (with delay). A toast on the screen hinders
+        // UI Automator's ability to click on elements behind the toast.
+//        new Handler(mActivity.getMainLooper()).post(new Runnable() {
+//
+//            @Override
+//            public void run() {
+//                Toast.makeText(mActivity.getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+//            }
+//        });
     }
 }
