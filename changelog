@@ -1,5 +1,10 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 1.5.1
+------------
+- Fix to add the throwIfNetworkNotAvailable API back to common library for ADAL back compat.
+- Picks up common@2.0.8
+
 Version 1.5.0
 ------------
 - Added new Single Account Public Client Application API overloads
@@ -19,6 +24,7 @@ Version 1.5.0
 - Fixed #838 (Fragment state NPE)
 - Fixed #957 (cache migration not performed)
 - Project wide internal code refactoring using Lombok
+- Picks up common@2.0.7
 
 Version 1.4.1
 ------------
