@@ -119,7 +119,9 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
                 parameters.getAndroidApplicationContext(),
                 contentProviderOperation.getUriPath()
         );
-
+        Logger.info(TAG + methodName, "Request to BrokerContentProvider for uri path " +
+                contentProviderOperation.getUriPath()
+        );
         final Cursor cursor = parameters.getAndroidApplicationContext().getContentResolver().query(
                 uri,
                 contentProviderOperation.getOptions(),
@@ -136,7 +138,7 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
                             .putAction(methodName)
                             .isSuccessful(true)
             );
-            Logger.verbose(TAG + methodName, "Received successful result from broker");
+            Logger.info(TAG + methodName, "Received successful result from broker");
             return result;
         } else {
             final String message = "Failed to get result from Broker Content Provider, cursor is null";
@@ -163,7 +165,7 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
 
             @Override
             public String[] getOptions() {
-                return null;
+                return null; // no additional options to be sent for hello
             }
 
             @Override
@@ -185,13 +187,15 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
 
     @Override
     Intent getBrokerAuthorizationIntent(@NonNull final InteractiveTokenCommandParameters parameters,
-                                        @Nullable final String negotiatedBrokerProtocolVersion) throws BaseException {
+                                        @Nullable final String negotiatedBrokerProtocolVersion)
+            throws BaseException {
         final String methodName = "getBrokerAuthorizationIntentForContentProvider";
+
         return performContentProviderOperation(parameters, new ContentProviderOperation<InteractiveTokenCommandParameters, Intent>() {
 
             @Override
             public String getRequestString(InteractiveTokenCommandParameters parameters) {
-                return null;
+                return null; // broker returns us an intent based on calling uid , no request string needed
             }
 
             @Override
@@ -234,7 +238,8 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
 
     @Override
     AcquireTokenResult acquireTokenSilent(@NonNull final SilentTokenCommandParameters parameters,
-                                          @Nullable final String negotiatedBrokerProtocolVersion) throws BaseException {
+                                          @Nullable final String negotiatedBrokerProtocolVersion)
+            throws BaseException {
         final String methodName = "acquireTokenSilentWithContentProvider";
 
         return performContentProviderOperation(
@@ -243,7 +248,8 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
                     @Nullable
                     @Override
                     public String getRequestString(SilentTokenCommandParameters parameters) {
-                        final BrokerRequest brokerRequest = mRequestAdapter.brokerRequestFromSilentOperationParameters(parameters);
+                        final BrokerRequest brokerRequest = mRequestAdapter.
+                                brokerRequestFromSilentOperationParameters(parameters);
                         return new Gson().toJson(brokerRequest);
                     }
 
@@ -277,7 +283,9 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
     List<ICacheRecord> getBrokerAccounts(@NonNull final CommandParameters parameters,
                                          @Nullable final String negotiatedBrokerProtocolVersion) throws BaseException {
         final String methodName = "getBrokerAccountsWithContentProvider";
-        return performContentProviderOperation(parameters, new ContentProviderOperation<CommandParameters, List<ICacheRecord>>() {
+        return performContentProviderOperation(
+                parameters,
+                new ContentProviderOperation<CommandParameters, List<ICacheRecord>>() {
             @Nullable
             @Override
             public String getRequestString(CommandParameters parameters) {
@@ -316,7 +324,9 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
 
         final String methodName = "removeBrokerAccountWithContentProvider";
 
-        performContentProviderOperation(parameters, new ContentProviderOperation<RemoveAccountCommandParameters, Void>() {
+        performContentProviderOperation(
+                parameters,
+                new ContentProviderOperation<RemoveAccountCommandParameters, Void>() {
             @Nullable
             @Override
             public String getRequestString(RemoveAccountCommandParameters parameters) {
@@ -347,8 +357,6 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
                 mResultAdapter.verifyRemoveAccountResultFromBundle(resultBundle);
                 return null;
             }
-
-            ;
         });
     }
 
@@ -356,12 +364,14 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
     boolean getDeviceMode(@NonNull final CommandParameters parameters,
                           @Nullable final String negotiatedBrokerProtocolVersion) throws BaseException {
         final String methodName = "getDeviceModeWithContentProvider";
-        return performContentProviderOperation(parameters, new ContentProviderOperation<CommandParameters, Boolean>() {
+        return performContentProviderOperation(
+                parameters,
+                new ContentProviderOperation<CommandParameters, Boolean>() {
 
             @Nullable
             @Override
             public String getRequestString(CommandParameters parameters) {
-                return null;
+                return null; // broker returns a boolean to indicate the device mode, no request string needed.
             }
 
             @Nullable
@@ -392,9 +402,12 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
 
     @Override
     List<ICacheRecord> getCurrentAccountInSharedDevice(@NonNull final CommandParameters parameters,
-                                                       @Nullable final String negotiatedBrokerProtocolVersion) throws BaseException {
+                                                       @Nullable final String negotiatedBrokerProtocolVersion)
+            throws BaseException {
         final String method = "getCurrentAccountInSharedDeviceWithContentProvider";
-        return performContentProviderOperation(parameters, new ContentProviderOperation<CommandParameters, List<ICacheRecord>>() {
+        return performContentProviderOperation(
+                parameters,
+                new ContentProviderOperation<CommandParameters, List<ICacheRecord>>() {
             @Nullable
             @Override
             public String getRequestString(CommandParameters parameters) {
