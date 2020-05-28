@@ -58,7 +58,7 @@ import static com.microsoft.identity.common.adal.internal.AuthenticationConstant
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.BrokerContentProvider.AUTHORITY;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.BrokerContentProvider.CONTENT_SCHEME;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.BrokerContentProvider.GET_ACCOUNTS_PATH;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.BrokerContentProvider.GET_CURRENT_ACCOUNT_SHARED_DEVICe_PATH;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.BrokerContentProvider.GET_CURRENT_ACCOUNT_SHARED_DEVICE_PATH;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.BrokerContentProvider.GET_DEVICE_MODE_PATH;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.BrokerContentProvider.HELLO_PATH;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.BrokerContentProvider.REMOVE_ACCOUNTS_PATH;
@@ -429,7 +429,7 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
             @NonNull
             @Override
             public String getUriPath() {
-                return GET_CURRENT_ACCOUNT_SHARED_DEVICe_PATH;
+                return GET_CURRENT_ACCOUNT_SHARED_DEVICE_PATH;
             }
 
             @NonNull
