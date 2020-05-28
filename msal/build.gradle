@@ -148,9 +148,9 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '2.0.8-SNAPSHOT', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '2.0.9-teamsRC2', changing: true)
 
-    distApi("com.microsoft.identity:common:2.0.8") {
+    distApi("com.microsoft.identity:common:2.0.9-teamsRC2") {
         transitive = false
     }
 }
