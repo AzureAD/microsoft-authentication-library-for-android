@@ -86,10 +86,6 @@ abstract class BrokerBaseStrategy {
         interactiveRequestIntent.putExtras(
                 mRequestAdapter.getRequestBundleForAcquireTokenInteractive(parameters, negotiatedProtocolVersion)
         );
-        interactiveRequestIntent.putExtra(
-                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
-                negotiatedProtocolVersion
-        );
         return interactiveRequestIntent;
     }
 }

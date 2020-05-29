@@ -27,12 +27,10 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 
-import com.google.gson.Gson;
 import com.microsoft.identity.client.exception.BrokerCommunicationException;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
-import com.microsoft.identity.common.internal.broker.BrokerRequest;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
@@ -45,14 +43,13 @@ import com.microsoft.identity.common.internal.telemetry.Telemetry;
 import com.microsoft.identity.common.internal.telemetry.TelemetryEventStrings;
 import com.microsoft.identity.common.internal.telemetry.events.BrokerEndEvent;
 import com.microsoft.identity.common.internal.telemetry.events.BrokerStartEvent;
+import com.microsoft.identity.common.internal.util.ParcelableUtil;
 
 import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.BROKER_ACTIVITY_NAME;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.BROKER_PACKAGE_NAME;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.BrokerContentProvider.ACQUIRE_TOKEN_INTERACTIVE_PATH;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.BrokerContentProvider.ACQUIRE_TOKEN_SILENT_PATH;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.BrokerContentProvider.AUTHORITY;
@@ -74,16 +71,7 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
          * Constructs and returns a data string for the request to the broker from the CommandParameters.
          */
         @Nullable
-        String getRequestString(T parameters);
-
-        /**
-         * Returns a String[] with options to be sent to the broker.
-         * Currently we only send negotiatedBrokerProtocolVersion if available.
-         *
-         * @return
-         */
-        @Nullable
-        String[] getOptions();
+        Bundle getRequestBundle(T parameters);
 
         /**
          * Name of task for logging and telemetry purposes
@@ -122,10 +110,19 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
         Logger.info(TAG + methodName, "Request to BrokerContentProvider for uri path " +
                 contentProviderOperation.getUriPath()
         );
+
+        String marshalledRequestString = null;
+
+        final Bundle requestBundle = contentProviderOperation.getRequestBundle(parameters);
+        if (requestBundle != null) {
+            byte[] marshalledBytes = ParcelableUtil.marshall(requestBundle);
+            marshalledRequestString = Base64.encodeToString(marshalledBytes, 0);
+        }
+
         final Cursor cursor = parameters.getAndroidApplicationContext().getContentResolver().query(
                 uri,
-                contentProviderOperation.getOptions(),
-                contentProviderOperation.getRequestString(parameters),
+                null,
+                marshalledRequestString,
                 null,
                 null
         );
@@ -159,13 +156,8 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
 
         return performContentProviderOperation(parameters, new ContentProviderOperation<CommandParameters, String>() {
             @Override
-            public String getRequestString(CommandParameters parameters) {
-                return mRequestAdapter.getRequestStringForHello(parameters);
-            }
-
-            @Override
-            public String[] getOptions() {
-                return null; // no additional options to be sent for hello
+            public Bundle getRequestBundle(CommandParameters parameters) {
+                return mRequestAdapter.getRequestBundleForHello(parameters);
             }
 
             @Override
@@ -191,49 +183,34 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
             throws BaseException {
         final String methodName = "getBrokerAuthorizationIntentForContentProvider";
 
-        return performContentProviderOperation(parameters, new ContentProviderOperation<InteractiveTokenCommandParameters, Intent>() {
+        return performContentProviderOperation(
+                parameters,
+                new ContentProviderOperation<InteractiveTokenCommandParameters, Intent>() {
 
-            @Override
-            public String getRequestString(InteractiveTokenCommandParameters parameters) {
-                return null; // broker returns us an intent based on calling uid , no request string needed
-            }
+                    @Override
+                    public Bundle getRequestBundle(InteractiveTokenCommandParameters parameters) {
+                        return null; // broker returns us an intent based on calling uid , no request string needed
+                    }
 
-            @Override
-            public String[] getOptions() {
-                return new String[]{negotiatedBrokerProtocolVersion};
-            }
+                    @Override
+                    public String getMethodName() {
+                        return methodName;
+                    }
 
-            @Override
-            public String getMethodName() {
-                return methodName;
-            }
+                    @Override
+                    public String getUriPath() {
+                        return ACQUIRE_TOKEN_INTERACTIVE_PATH;
+                    }
 
-            @Override
-            public String getUriPath() {
-                return ACQUIRE_TOKEN_INTERACTIVE_PATH;
-            }
-
-            @Override
-            public Intent getResultFromBundle(Bundle resultBundle) throws BaseException {
-                final Bundle requestBundle = mRequestAdapter.getRequestBundleForAcquireTokenInteractive(
-                        parameters,
-                        negotiatedBrokerProtocolVersion
-                );
-                Intent interactiveRequestIntent = new Intent();
-                interactiveRequestIntent.putExtras(requestBundle);
-                interactiveRequestIntent.putExtras(resultBundle);
-                interactiveRequestIntent.setPackage(resultBundle.getString(BROKER_PACKAGE_NAME));
-                interactiveRequestIntent.setClassName(
-                        resultBundle.getString(BROKER_PACKAGE_NAME, ""),
-                        resultBundle.getString(BROKER_ACTIVITY_NAME, "")
-                );
-                interactiveRequestIntent.putExtra(
-                        AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
-                        negotiatedBrokerProtocolVersion
-                );
-                return interactiveRequestIntent;
-            }
-        });
+                    @Override
+                    public Intent getResultFromBundle(Bundle resultBundle) throws BaseException {
+                        return mRequestAdapter.getRequestIntentForAcquireTokenInteractive(
+                                resultBundle,
+                                parameters,
+                                negotiatedBrokerProtocolVersion
+                        );
+                    }
+                });
     }
 
     @Override
@@ -247,16 +224,11 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
                 new ContentProviderOperation<SilentTokenCommandParameters, AcquireTokenResult>() {
                     @Nullable
                     @Override
-                    public String getRequestString(SilentTokenCommandParameters parameters) {
-                        final BrokerRequest brokerRequest = mRequestAdapter.
-                                brokerRequestFromSilentOperationParameters(parameters);
-                        return new Gson().toJson(brokerRequest);
-                    }
-
-                    @Nullable
-                    @Override
-                    public String[] getOptions() {
-                        return new String[]{negotiatedBrokerProtocolVersion};
+                    public Bundle getRequestBundle(SilentTokenCommandParameters parameters) {
+                        return mRequestAdapter.getRequestBundleForAcquireTokenSilent(
+                                parameters,
+                                negotiatedBrokerProtocolVersion
+                        );
                     }
 
                     @NonNull
@@ -286,36 +258,33 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
         return performContentProviderOperation(
                 parameters,
                 new ContentProviderOperation<CommandParameters, List<ICacheRecord>>() {
-            @Nullable
-            @Override
-            public String getRequestString(CommandParameters parameters) {
-                return mRequestAdapter.getRequestStringForGetAccounts(parameters);
-            }
+                    @Nullable
+                    @Override
+                    public Bundle getRequestBundle(CommandParameters parameters) {
+                        return mRequestAdapter.getRequestBundleForGetAccounts(
+                                parameters,
+                                negotiatedBrokerProtocolVersion
+                        );
+                    }
 
-            @Nullable
-            @Override
-            public String[] getOptions() {
-                return new String[]{negotiatedBrokerProtocolVersion};
-            }
+                    @NonNull
+                    @Override
+                    public String getMethodName() {
+                        return methodName;
+                    }
 
-            @NonNull
-            @Override
-            public String getMethodName() {
-                return methodName;
-            }
+                    @NonNull
+                    @Override
+                    public String getUriPath() {
+                        return GET_ACCOUNTS_PATH;
+                    }
 
-            @NonNull
-            @Override
-            public String getUriPath() {
-                return GET_ACCOUNTS_PATH;
-            }
-
-            @NonNull
-            @Override
-            public List<ICacheRecord> getResultFromBundle(Bundle resultBundle) throws BaseException {
-                return mResultAdapter.getAccountsFromResultBundle(resultBundle);
-            }
-        });
+                    @NonNull
+                    @Override
+                    public List<ICacheRecord> getResultFromBundle(Bundle resultBundle) throws BaseException {
+                        return mResultAdapter.getAccountsFromResultBundle(resultBundle);
+                    }
+                });
     }
 
     @Override
@@ -327,37 +296,35 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
         performContentProviderOperation(
                 parameters,
                 new ContentProviderOperation<RemoveAccountCommandParameters, Void>() {
-            @Nullable
-            @Override
-            public String getRequestString(RemoveAccountCommandParameters parameters) {
-                return mRequestAdapter.getRequestStringForRemoveAccount(parameters);
-            }
 
-            @Nullable
-            @Override
-            public String[] getOptions() {
-                return new String[]{negotiatedBrokerProtocolVersion};
-            }
+                    @Nullable
+                    @Override
+                    public Bundle getRequestBundle(RemoveAccountCommandParameters parameters) {
+                        return mRequestAdapter.getRequestBundleForRemoveAccount(
+                                parameters,
+                                negotiatedBrokerProtocolVersion
+                        );
+                    }
 
-            @NonNull
-            @Override
-            public String getMethodName() {
-                return methodName;
-            }
+                    @NonNull
+                    @Override
+                    public String getMethodName() {
+                        return methodName;
+                    }
 
-            @NonNull
-            @Override
-            public String getUriPath() {
-                return REMOVE_ACCOUNTS_PATH;
-            }
+                    @NonNull
+                    @Override
+                    public String getUriPath() {
+                        return REMOVE_ACCOUNTS_PATH;
+                    }
 
-            @NonNull
-            @Override
-            public Void getResultFromBundle(Bundle resultBundle) throws BaseException {
-                mResultAdapter.verifyRemoveAccountResultFromBundle(resultBundle);
-                return null;
-            }
-        });
+                    @NonNull
+                    @Override
+                    public Void getResultFromBundle(Bundle resultBundle) throws BaseException {
+                        mResultAdapter.verifyRemoveAccountResultFromBundle(resultBundle);
+                        return null;
+                    }
+                });
     }
 
     @Override
@@ -368,36 +335,30 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
                 parameters,
                 new ContentProviderOperation<CommandParameters, Boolean>() {
 
-            @Nullable
-            @Override
-            public String getRequestString(CommandParameters parameters) {
-                return null; // broker returns a boolean to indicate the device mode, no request string needed.
-            }
+                    @Nullable
+                    @Override
+                    public Bundle getRequestBundle(CommandParameters parameters) {
+                        return null; // broker returns a boolean to indicate the device mode, no request string needed.
+                    }
 
-            @Nullable
-            @Override
-            public String[] getOptions() {
-                return new String[]{negotiatedBrokerProtocolVersion};
-            }
+                    @NonNull
+                    @Override
+                    public String getMethodName() {
+                        return methodName;
+                    }
 
-            @NonNull
-            @Override
-            public String getMethodName() {
-                return methodName;
-            }
+                    @NonNull
+                    @Override
+                    public String getUriPath() {
+                        return GET_DEVICE_MODE_PATH;
+                    }
 
-            @NonNull
-            @Override
-            public String getUriPath() {
-                return GET_DEVICE_MODE_PATH;
-            }
-
-            @NonNull
-            @Override
-            public Boolean getResultFromBundle(Bundle resultBundle) throws BaseException {
-                return mResultAdapter.getDeviceModeFromResultBundle(resultBundle);
-            }
-        });
+                    @NonNull
+                    @Override
+                    public Boolean getResultFromBundle(Bundle resultBundle) throws BaseException {
+                        return mResultAdapter.getDeviceModeFromResultBundle(resultBundle);
+                    }
+                });
     }
 
     @Override
@@ -408,74 +369,72 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
         return performContentProviderOperation(
                 parameters,
                 new ContentProviderOperation<CommandParameters, List<ICacheRecord>>() {
-            @Nullable
-            @Override
-            public String getRequestString(CommandParameters parameters) {
-                return mRequestAdapter.getRequestStringForGetAccounts(parameters);
-            }
 
-            @Nullable
-            @Override
-            public String[] getOptions() {
-                return new String[]{negotiatedBrokerProtocolVersion};
-            }
+                    @Nullable
+                    @Override
+                    public Bundle getRequestBundle(CommandParameters parameters) {
+                        return mRequestAdapter.getRequestBundleForGetAccounts(
+                                parameters,
+                                negotiatedBrokerProtocolVersion
+                        );
+                    }
 
-            @NonNull
-            @Override
-            public String getMethodName() {
-                return method;
-            }
+                    @NonNull
+                    @Override
+                    public String getMethodName() {
+                        return method;
+                    }
 
-            @NonNull
-            @Override
-            public String getUriPath() {
-                return GET_CURRENT_ACCOUNT_SHARED_DEVICE_PATH;
-            }
+                    @NonNull
+                    @Override
+                    public String getUriPath() {
+                        return GET_CURRENT_ACCOUNT_SHARED_DEVICE_PATH;
+                    }
 
-            @NonNull
-            @Override
-            public List<ICacheRecord> getResultFromBundle(Bundle resultBundle) throws BaseException {
-                return mResultAdapter.getAccountsFromResultBundle(resultBundle);
-            }
-        });
+                    @NonNull
+                    @Override
+                    public List<ICacheRecord> getResultFromBundle(Bundle resultBundle) throws BaseException {
+                        return mResultAdapter.getAccountsFromResultBundle(resultBundle);
+                    }
+                });
     }
 
     @Override
     void signOutFromSharedDevice(@NonNull final RemoveAccountCommandParameters parameters,
                                  @Nullable final String negotiatedBrokerProtocolVersion) throws BaseException {
         final String methodName = "signOutFromSharedDeviceWithContentProvider";
-        performContentProviderOperation(parameters, new ContentProviderOperation<RemoveAccountCommandParameters, Void>() {
-            @Nullable
-            @Override
-            public String getRequestString(RemoveAccountCommandParameters parameters) {
-                return mRequestAdapter.getRequestStringForSharedDeviceSignOut(parameters);
-            }
+        performContentProviderOperation(
+                parameters,
+                new ContentProviderOperation<RemoveAccountCommandParameters, Void>() {
 
-            @Nullable
-            @Override
-            public String[] getOptions() {
-                return new String[]{negotiatedBrokerProtocolVersion};
-            }
+                    @Nullable
+                    @Override
+                    public Bundle getRequestBundle(RemoveAccountCommandParameters parameters) {
+                        return mRequestAdapter.getRequestBundleForRemoveAccountFromSharedDevice(
+                                parameters,
+                                negotiatedBrokerProtocolVersion
+                        );
+                    }
 
-            @NonNull
-            @Override
-            public String getMethodName() {
-                return methodName;
-            }
+                    @NonNull
+                    @Override
+                    public String getMethodName() {
+                        return methodName;
+                    }
 
-            @NonNull
-            @Override
-            public String getUriPath() {
-                return SIGN_OUT_FROM_SHARED_DEVICE_PATH;
-            }
+                    @NonNull
+                    @Override
+                    public String getUriPath() {
+                        return SIGN_OUT_FROM_SHARED_DEVICE_PATH;
+                    }
 
-            @NonNull
-            @Override
-            public Void getResultFromBundle(Bundle resultBundle) throws BaseException {
-                mResultAdapter.verifyRemoveAccountResultFromBundle(resultBundle);
-                return null;
-            }
-        });
+                    @NonNull
+                    @Override
+                    public Void getResultFromBundle(Bundle resultBundle) throws BaseException {
+                        mResultAdapter.verifyRemoveAccountResultFromBundle(resultBundle);
+                        return null;
+                    }
+                });
     }
 
     private Uri getContentProviderURI(@NonNull final Context context, @NonNull final String path) {

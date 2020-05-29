@@ -217,11 +217,9 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                                 parameters,
                                 negotiatedBrokerProtocolVersion
                         );
-                        requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
-                                AuthenticationConstants.BrokerAccountManagerOperation.ACQUIRE_TOKEN_SILENT);
                         requestBundle.putString(
-                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
-                                negotiatedBrokerProtocolVersion
+                                AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
+                                AuthenticationConstants.BrokerAccountManagerOperation.ACQUIRE_TOKEN_SILENT
                         );
                         return requestBundle;
                     }
@@ -245,12 +243,13 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                 new OperationInfo<CommandParameters, List<ICacheRecord>>() {
                     @Override
                     public Bundle getRequestBundle(CommandParameters parameters) {
-                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForGetAccounts(parameters);
-                        requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
-                                AuthenticationConstants.BrokerAccountManagerOperation.GET_ACCOUNTS);
-                        requestBundle.putString(
-                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForGetAccounts(
+                                parameters,
                                 negotiatedBrokerProtocolVersion
+                        );
+                        requestBundle.putString(
+                                AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
+                                AuthenticationConstants.BrokerAccountManagerOperation.GET_ACCOUNTS
                         );
                         return requestBundle;
                     }
@@ -274,12 +273,14 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                 new OperationInfo<RemoveAccountCommandParameters, Void>() {
                     @Override
                     public Bundle getRequestBundle(RemoveAccountCommandParameters parameters) {
-                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForRemoveAccount(parameters);
-                        requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
-                                AuthenticationConstants.BrokerAccountManagerOperation.REMOVE_ACCOUNT);
-                        requestBundle.putString(
-                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForRemoveAccount(
+                                parameters,
                                 negotiatedBrokerProtocolVersion
+                        );
+                        requestBundle.putString(
+                                AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
+                                AuthenticationConstants.BrokerAccountManagerOperation.REMOVE_ACCOUNT
+
                         );
                         return requestBundle;
                     }
@@ -333,12 +334,13 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                 new OperationInfo<CommandParameters, List<ICacheRecord>>() {
                     @Override
                     public Bundle getRequestBundle(CommandParameters parameters) {
-                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForGetAccounts(parameters);
-                        requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
-                                AuthenticationConstants.BrokerAccountManagerOperation.GET_CURRENT_ACCOUNT);
-                        requestBundle.putString(
-                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForGetAccounts(
+                                parameters,
                                 negotiatedBrokerProtocolVersion
+                        );
+                        requestBundle.putString(
+                                AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
+                                AuthenticationConstants.BrokerAccountManagerOperation.GET_CURRENT_ACCOUNT
                         );
                         return requestBundle;
                     }
@@ -362,12 +364,13 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
                 new OperationInfo<RemoveAccountCommandParameters, Void>() {
                     @Override
                     public Bundle getRequestBundle(RemoveAccountCommandParameters parameters) {
-                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForRemoveAccountFromSharedDevice(parameters);
-                        requestBundle.putString(AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
-                                AuthenticationConstants.BrokerAccountManagerOperation.REMOVE_ACCOUNT_FROM_SHARED_DEVICE);
-                        requestBundle.putString(
-                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForRemoveAccountFromSharedDevice(
+                                parameters,
                                 negotiatedBrokerProtocolVersion
+                        );
+                        requestBundle.putString(
+                                AuthenticationConstants.Broker.BROKER_ACCOUNT_MANAGER_OPERATION_KEY,
+                                AuthenticationConstants.BrokerAccountManagerOperation.REMOVE_ACCOUNT_FROM_SHARED_DEVICE
                         );
                         return requestBundle;
                     }
