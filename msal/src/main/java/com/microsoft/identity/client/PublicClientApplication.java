@@ -1518,6 +1518,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                 authority.getAuthorityURL().toString()
                         );
             }
+            // Set the tenant id obtained for the accountRecord
+            accountRecord.setRealm(tenantId);
 
             IAccount accountForRequest;
 
@@ -1561,6 +1563,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
             accountRecord.setLocalAccountId(accountForRequest.getId());
             accountRecord.setUsername(accountForRequest.getUsername());
+
+
 
             return accountRecord;
         } else {
