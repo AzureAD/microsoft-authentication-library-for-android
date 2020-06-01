@@ -1564,8 +1564,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             accountRecord.setLocalAccountId(accountForRequest.getId());
             accountRecord.setUsername(accountForRequest.getUsername());
 
-
-
             return accountRecord;
         } else {
             // Unrecognized authority type
