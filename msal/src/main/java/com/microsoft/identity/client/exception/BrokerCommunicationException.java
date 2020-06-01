@@ -30,9 +30,8 @@ import com.microsoft.identity.common.exception.ErrorStrings;
  * An exception that represents an error where MSAL cannot reach Broker (i.e. through Bind Service or AccountManager).
  */
 public class BrokerCommunicationException extends BaseException {
-
     /**
-     * Initiates the {@link com.microsoft.identity.common.exception.BrokerCommunicationException} with error message and throwable.
+     * Initiates the {@link com.microsoft.identity.client.exception.BrokerCommunicationException} with error message and throwable.
      *
      * @param errorMessage The error message contained in the exception.
      * @param throwable    The {@link Throwable} contains the cause for the exception.
