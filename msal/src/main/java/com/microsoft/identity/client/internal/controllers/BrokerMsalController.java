@@ -44,6 +44,7 @@ import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.broker.BrokerResult;
 import com.microsoft.identity.common.internal.broker.BrokerResultFuture;
+import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
@@ -606,12 +607,16 @@ public class BrokerMsalController extends BaseController {
     }
 
     private boolean isBrokerContentProviderAvailable() {
+        final String activeBrokerPackageName = new BrokerValidator(mApplicationContext)
+                .getCurrentActiveBrokerPackageName();
+        final String brokerContentProviderAuthority = activeBrokerPackageName + "." +
+                AuthenticationConstants.BrokerContentProvider.AUTHORITY;
+
         final List<ProviderInfo> providers = mApplicationContext.getPackageManager()
                 .queryContentProviders(null, 0, 0);
 
         for (final ProviderInfo providerInfo : providers) {
-            if (providerInfo.authority != null && providerInfo.authority.contains(
-                    AuthenticationConstants.BrokerContentProvider.AUTHORITY)) {
+            if (providerInfo.authority != null && providerInfo.authority.equals(brokerContentProviderAuthority)) {
                 return true;
             }
         }
