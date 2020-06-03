@@ -34,6 +34,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.BrokerCommunicationException;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
@@ -61,6 +62,7 @@ import com.microsoft.identity.common.internal.telemetry.Telemetry;
 import com.microsoft.identity.common.internal.telemetry.TelemetryEventStrings;
 import com.microsoft.identity.common.internal.telemetry.events.ApiEndEvent;
 import com.microsoft.identity.common.internal.telemetry.events.ApiStartEvent;
+import com.microsoft.identity.common.internal.util.AccountManagerUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -75,6 +77,11 @@ public class BrokerMsalController extends BaseController {
     private static final String TAG = BrokerMsalController.class.getSimpleName();
 
     private BrokerResultFuture mBrokerResultFuture;
+    private Context mApplicationContext;
+
+    public BrokerMsalController(final Context applicationContext){
+        mApplicationContext = applicationContext;
+    }
 
     @Override
     public AcquireTokenResult acquireToken(InteractiveTokenCommandParameters parameters) throws Exception {
@@ -184,7 +191,7 @@ public class BrokerMsalController extends BaseController {
             try {
                 com.microsoft.identity.common.internal.logging.Logger.info(
                         TAG + strategyTask.getMethodName(),
-                        "Executing with strategy: "
+                        "Executing with broker strategy: "
                                 + strategy.getClass().getSimpleName()
                 );
 
@@ -216,8 +223,9 @@ public class BrokerMsalController extends BaseController {
 
         // This means that we've tried every strategies...
         if (result == null) {
-            final BrokerCommunicationException exception = new BrokerCommunicationException(
-                    "MSAL failed to communicate to Broker.",
+            final MsalClientException exception = new MsalClientException(
+                    MsalClientException.BROKER_BIND_FAILURE,
+                    "Unable to connect to the broker",
                     lastCaughtException);
 
             if (strategyTask.getTelemetryApiId() != null) {
@@ -247,8 +255,13 @@ public class BrokerMsalController extends BaseController {
     private List<BrokerBaseStrategy> getStrategies() {
         final List<BrokerBaseStrategy> strategies = new ArrayList<>();
         strategies.add(new BrokerContentProviderStrategy());
-        strategies.add(new BrokerAuthServiceStrategy());
-        strategies.add(new BrokerAccountManagerStrategy());
+        if (isMicrosoftAuthServiceSupported(mApplicationContext)) {
+            strategies.add(new BrokerAuthServiceStrategy());
+        }
+        if (AccountManagerUtil.canUseAccountManagerOperation(mApplicationContext)){
+            strategies.add(new BrokerAccountManagerStrategy());
+        }
+
         return strategies;
     }
 

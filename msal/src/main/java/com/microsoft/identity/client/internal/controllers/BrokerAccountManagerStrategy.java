@@ -135,11 +135,6 @@ public class BrokerAccountManagerStrategy extends BrokerBaseStrategy {
     @SuppressLint("MissingPermission")
     String hello(@NonNull final CommandParameters parameters)
             throws BaseException {
-
-        if (!AccountManagerUtil.canUseAccountManagerOperation(parameters.getAndroidApplicationContext())) {
-            throw new BrokerCommunicationException("AccountManager permissions are not granted", null);
-        }
-
         return invokeBrokerAccountManagerOperation(parameters, new OperationInfo<CommandParameters, String>() {
             @Override
             public Bundle getRequestBundle(CommandParameters parameters) {
