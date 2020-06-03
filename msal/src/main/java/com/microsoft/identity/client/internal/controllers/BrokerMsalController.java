@@ -26,6 +26,7 @@ import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ProviderInfo;
 import android.os.Bundle;
 import android.os.RemoteException;
 
@@ -254,13 +255,25 @@ public class BrokerMsalController extends BaseController {
     // The order matters.
     private List<BrokerBaseStrategy> getStrategies() {
         final List<BrokerBaseStrategy> strategies = new ArrayList<>();
-        strategies.add(new BrokerContentProviderStrategy());
-        if (isMicrosoftAuthServiceSupported(mApplicationContext)) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("Broker Strategies added : ");
+
+        if(isBrokerContentProviderAvailable()){
+            sb.append("ContentProviderStrategy, ");
+            strategies.add(new BrokerContentProviderStrategy());
+        }
+
+        if (isMicrosoftAuthServiceSupported()) {
+            sb.append("AuthServiceStrategy, ");
             strategies.add(new BrokerAuthServiceStrategy());
         }
+
         if (AccountManagerUtil.canUseAccountManagerOperation(mApplicationContext)){
+            sb.append("AccountManagerStrategy.");
             strategies.add(new BrokerAccountManagerStrategy());
         }
+
+        Logger.info(TAG, sb.toString());
 
         return strategies;
     }
@@ -586,9 +599,23 @@ public class BrokerMsalController extends BaseController {
 
     }
 
-    static boolean isMicrosoftAuthServiceSupported(@NonNull final Context context) {
-        final MicrosoftAuthClient client = new MicrosoftAuthClient(context);
-        final Intent microsoftAuthServiceIntent = client.getIntentForAuthService(context);
+    private boolean isMicrosoftAuthServiceSupported() {
+        final MicrosoftAuthClient client = new MicrosoftAuthClient(mApplicationContext);
+        final Intent microsoftAuthServiceIntent = client.getIntentForAuthService(mApplicationContext);
         return null != microsoftAuthServiceIntent;
+    }
+
+    private boolean isBrokerContentProviderAvailable() {
+        final List<ProviderInfo> providers = mApplicationContext.getPackageManager()
+                .queryContentProviders(null, 0, 0);
+
+        for (final ProviderInfo providerInfo : providers) {
+            if (providerInfo.authority != null && providerInfo.authority.contains(
+                    AuthenticationConstants.BrokerContentProvider.AUTHORITY)) {
+                return true;
+            }
+        }
+        return false;
+
     }
 }
