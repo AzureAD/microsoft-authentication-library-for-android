@@ -439,7 +439,7 @@ public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
 
     private Uri getContentProviderURI(@NonNull final Context context, @NonNull final String path) {
         final BrokerValidator brokerValidator = new BrokerValidator(context);
-        final String activeBrokerPackage = brokerValidator.getCurrentActiveBrokerPackageName(context);
+        final String activeBrokerPackage = brokerValidator.getCurrentActiveBrokerPackageName();
         final String authority = activeBrokerPackage + "." + AUTHORITY;
         return Uri.parse(CONTENT_SCHEME + authority + path);
     }
