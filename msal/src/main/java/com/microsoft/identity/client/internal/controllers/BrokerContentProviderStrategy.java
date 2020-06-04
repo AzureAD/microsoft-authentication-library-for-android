@@ -61,6 +61,11 @@ import static com.microsoft.identity.common.adal.internal.AuthenticationConstant
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.BrokerContentProvider.REMOVE_ACCOUNTS_PATH;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.BrokerContentProvider.SIGN_OUT_FROM_SHARED_DEVICE_PATH;
 
+/**
+ * Class to invoke active broker's BrokerContentProvider to perform Broker operations from MSAL.
+ * Implements {@link BrokerBaseStrategy}
+ * Defines an interface ContentProviderOperation to perform this operation.
+ */
 public class BrokerContentProviderStrategy extends BrokerBaseStrategy {
 
     private static final String TAG = BrokerContentProviderStrategy.class.getName();
