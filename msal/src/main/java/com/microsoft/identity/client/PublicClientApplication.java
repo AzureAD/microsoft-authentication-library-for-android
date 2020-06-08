@@ -1518,6 +1518,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                 authority.getAuthorityURL().toString()
                         );
             }
+            // Set the tenant id obtained for the accountRecord
+            accountRecord.setRealm(tenantId);
 
             IAccount accountForRequest;
 

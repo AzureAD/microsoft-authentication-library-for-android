@@ -26,6 +26,7 @@ import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ProviderInfo;
 import android.os.Bundle;
 import android.os.RemoteException;
 
@@ -43,6 +44,7 @@ import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.broker.BrokerResult;
 import com.microsoft.identity.common.internal.broker.BrokerResultFuture;
+import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
@@ -254,13 +256,25 @@ public class BrokerMsalController extends BaseController {
     // The order matters.
     private List<BrokerBaseStrategy> getStrategies() {
         final List<BrokerBaseStrategy> strategies = new ArrayList<>();
+        final StringBuilder sb = new StringBuilder();
+        sb.append("Broker Strategies added : ");
 
-        if (isMicrosoftAuthServiceSupported(mApplicationContext)) {
+        if(isBrokerContentProviderAvailable()){
+            sb.append("ContentProviderStrategy, ");
+            strategies.add(new BrokerContentProviderStrategy());
+        }
+
+        if (isMicrosoftAuthServiceSupported()) {
+            sb.append("AuthServiceStrategy, ");
             strategies.add(new BrokerAuthServiceStrategy());
         }
+
         if (AccountManagerUtil.canUseAccountManagerOperation(mApplicationContext)){
+            sb.append("AccountManagerStrategy.");
             strategies.add(new BrokerAccountManagerStrategy());
         }
+
+        Logger.info(TAG, sb.toString());
 
         return strategies;
     }
@@ -586,9 +600,27 @@ public class BrokerMsalController extends BaseController {
 
     }
 
-    static boolean isMicrosoftAuthServiceSupported(@NonNull final Context context) {
-        final MicrosoftAuthClient client = new MicrosoftAuthClient(context);
-        final Intent microsoftAuthServiceIntent = client.getIntentForAuthService(context);
+    private boolean isMicrosoftAuthServiceSupported() {
+        final MicrosoftAuthClient client = new MicrosoftAuthClient(mApplicationContext);
+        final Intent microsoftAuthServiceIntent = client.getIntentForAuthService(mApplicationContext);
         return null != microsoftAuthServiceIntent;
+    }
+
+    private boolean isBrokerContentProviderAvailable() {
+        final String activeBrokerPackageName = new BrokerValidator(mApplicationContext)
+                .getCurrentActiveBrokerPackageName();
+        final String brokerContentProviderAuthority = activeBrokerPackageName + "." +
+                AuthenticationConstants.BrokerContentProvider.AUTHORITY;
+
+        final List<ProviderInfo> providers = mApplicationContext.getPackageManager()
+                .queryContentProviders(null, 0, 0);
+
+        for (final ProviderInfo providerInfo : providers) {
+            if (providerInfo.authority != null && providerInfo.authority.equals(brokerContentProviderAuthority)) {
+                return true;
+            }
+        }
+        return false;
+
     }
 }
