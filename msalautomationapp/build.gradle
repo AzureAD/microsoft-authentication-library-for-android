@@ -99,7 +99,6 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
     // Set this dependency to use JUnit 4 rules
     androidTestImplementation "androidx.test:rules:$rootProject.rulesVersion"
-    androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
     androidTestImplementation "androidx.test.uiautomator:uiautomator:$rootProject.ext.uiAutomatorVersion"
     androidTestImplementation(project(":testutils"))
     androidTestImplementation(project(":uiautomationutilities"))
