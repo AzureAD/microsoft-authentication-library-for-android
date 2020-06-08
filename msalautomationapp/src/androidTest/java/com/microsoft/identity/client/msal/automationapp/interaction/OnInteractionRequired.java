@@ -22,7 +22,14 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.interaction;
 
+/**
+ * Interface for handling user interaction in an interaction acquire token request.
+ */
 public interface OnInteractionRequired {
 
+    /**
+     * A callback that will be invoked after calling an interactive acquire token method.
+     * This method is supposed to implement behaviour for handling user interaction.
+     */
     void handleUserInteraction();
 }

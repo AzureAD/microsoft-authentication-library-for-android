@@ -22,8 +22,6 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
-import android.content.Context;
-
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
@@ -44,16 +42,16 @@ import static com.microsoft.identity.common.adal.internal.AuthenticationConstant
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
 import static junit.framework.Assert.fail;
 
-public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAbstractTest implements IAcquireTokenTest {
+public abstract class AbstractAcquireTokenTest extends AbstractPublicClientApplicationTest implements IAcquireTokenTest {
 
-    private static final String TAG = AcquireTokenAbstractTest.class.getSimpleName();
+    private static final String TAG = AbstractAcquireTokenTest.class.getSimpleName();
 
     protected String[] mScopes;
     protected ITestBroker mBroker;
     protected IAccount mAccount;
     protected IApp mBrowser;
 
-    public IAccount getAccount() {
+    protected IAccount getAccount() {
         return mAccount;
     }
 
@@ -83,11 +81,17 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
         mAccount = null;
     }
 
-    public AuthenticationCallback successfulInteractiveCallback(final CountDownLatch latch, final Context context) {
-        AuthenticationCallback callback = new AuthenticationCallback() {
+    /**
+     * A callback that can be used to perform assertions on completion of an interactive request
+     * (success case) test.
+     *
+     * @param latch the latch associated to this request
+     * @return an {@link AuthenticationCallback} object
+     */
+    protected AuthenticationCallback successfulInteractiveCallback(final CountDownLatch latch) {
+        return new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
-                showMessageWithToast(authenticationResult.getAccessToken());
                 Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
                 mAccount = authenticationResult.getAccount();
                 latch.countDown();
@@ -105,16 +109,19 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
                 latch.countDown();
             }
         };
-
-        return callback;
     }
 
-
-    public SilentAuthenticationCallback successfulSilentCallback(final CountDownLatch latch, final Context context) {
-        SilentAuthenticationCallback callback = new SilentAuthenticationCallback() {
+    /**
+     * A callback that can be used to perform assertions on completion of an silent request
+     * (success case) test.
+     *
+     * @param latch the latch associated to this request
+     * @return an {@link AuthenticationCallback} object
+     */
+    protected SilentAuthenticationCallback successfulSilentCallback(final CountDownLatch latch) {
+        return new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
-                showMessageWithToast(authenticationResult.getAccessToken());
                 Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
                 mAccount = authenticationResult.getAccount();
                 latch.countDown();
@@ -126,12 +133,17 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
                 latch.countDown();
             }
         };
-
-        return callback;
     }
 
-    public AuthenticationCallback failureInteractiveCallback(final CountDownLatch latch, final String errorCode, final Context context) {
-        AuthenticationCallback callback = new AuthenticationCallback() {
+    /**
+     * A callback that can be used to perform assertions on completion of an interactive request
+     * (failure case) test.
+     *
+     * @param latch the latch associated to this request
+     * @return an {@link AuthenticationCallback} object
+     */
+    protected AuthenticationCallback failureInteractiveCallback(final CountDownLatch latch, final String errorCode) {
+        return new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 fail("Unexpected success");
@@ -140,7 +152,6 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
 
             @Override
             public void onError(MsalException exception) {
-                showMessageWithToast(exception.getErrorCode());
                 Assert.assertEquals(errorCode, exception.getErrorCode());
                 latch.countDown();
             }
@@ -151,12 +162,17 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
                 latch.countDown();
             }
         };
-
-        return callback;
     }
 
-    public SilentAuthenticationCallback failureSilentCallback(final CountDownLatch latch, final String errorCode, final Context context) {
-        SilentAuthenticationCallback callback = new SilentAuthenticationCallback() {
+    /**
+     * A callback that can be used to perform assertions on completion of an silent request
+     * (failure case) test.
+     *
+     * @param latch the latch associated to this request
+     * @return an {@link AuthenticationCallback} object
+     */
+    protected SilentAuthenticationCallback failureSilentCallback(final CountDownLatch latch, final String errorCode) {
+        return new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 fail("Unexpected success");
@@ -165,24 +181,9 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
 
             @Override
             public void onError(MsalException exception) {
-                showMessageWithToast(exception.getErrorCode());
                 Assert.assertSame(errorCode, exception.getErrorCode());
                 latch.countDown();
             }
         };
-
-        return callback;
-    }
-
-    private void showMessageWithToast(final String msg) {
-        //todo find a better way to show toast (with delay). A toast on the screen hinders
-        // UI Automator's ability to click on elements behind the toast.
-//        new Handler(mActivity.getMainLooper()).post(new Runnable() {
-//
-//            @Override
-//            public void run() {
-//                Toast.makeText(mActivity.getApplicationContext(), msg, Toast.LENGTH_LONG).show();
-//            }
-//        });
     }
 }

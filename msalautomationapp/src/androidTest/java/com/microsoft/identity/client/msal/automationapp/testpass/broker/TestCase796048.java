@@ -26,15 +26,15 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AcquireTokenNetworkAbstractTest;
+import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.broker.BrokerAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.interaction.MicrosoftPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -43,7 +43,7 @@ import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
 
-public class TestCase796048 extends AcquireTokenNetworkAbstractTest {
+public class TestCase796048 extends AbstractAcquireTokenNetworkTest {
 
     @Test
     public void test_796048() throws InterruptedException {
@@ -53,7 +53,7 @@ public class TestCase796048 extends AcquireTokenNetworkAbstractTest {
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(mLoginHint)
                 .withResource(mScopes[0])
-                .withCallback(successfulInteractiveCallback(latch, mContext))
+                .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
 
@@ -77,7 +77,7 @@ public class TestCase796048 extends AcquireTokenNetworkAbstractTest {
                                 .expectingNonZeroAccountsInBroker(false)
                                 .build();
 
-                        new MicrosoftPromptHandler(promptHandlerParameters)
+                        new AadPromptHandler(promptHandlerParameters)
                                 .handlePrompt(username, password);
                     }
                 }
@@ -97,7 +97,7 @@ public class TestCase796048 extends AcquireTokenNetworkAbstractTest {
                 .fromAuthority(account.getAuthority())
                 .forceRefresh(true)
                 .withResource(mScopes[0])
-                .withCallback(successfulSilentCallback(silentLatch, mContext))
+                .withCallback(successfulSilentCallback(silentLatch))
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);

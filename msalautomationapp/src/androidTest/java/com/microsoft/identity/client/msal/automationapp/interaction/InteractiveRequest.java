@@ -27,6 +27,11 @@ import androidx.annotation.NonNull;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.IPublicClientApplication;
 
+/**
+ * This class is a wrapper around the {@link IPublicClientApplication#acquireToken(AcquireTokenParameters)}
+ * method in MSAL. The wrapper makes it easy (and required) to specify a handler for processing
+ * user interaction in an interactive acquire token test.
+ */
 public class InteractiveRequest {
 
     private IPublicClientApplication application;

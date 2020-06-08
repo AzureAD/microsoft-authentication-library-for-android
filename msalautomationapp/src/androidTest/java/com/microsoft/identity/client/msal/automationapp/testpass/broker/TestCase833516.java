@@ -26,12 +26,12 @@ import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.msal.automationapp.AcquireTokenNetworkAbstractTest;
+import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
 import com.microsoft.identity.client.msal.automationapp.ErrorCodes;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.broker.BrokerAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.interaction.MicrosoftPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
@@ -44,7 +44,7 @@ import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
 
-public class TestCase833516 extends AcquireTokenNetworkAbstractTest {
+public class TestCase833516 extends AbstractAcquireTokenNetworkTest {
 
     @Test
     public void test_833516() throws MsalException, InterruptedException {
@@ -81,7 +81,7 @@ public class TestCase833516 extends AcquireTokenNetworkAbstractTest {
         final CountDownLatch latch = new CountDownLatch(1);
 
         // try sign in with an account from the same tenant
-        singleAccountPCA.signIn(mActivity, username, mScopes, successfulInteractiveCallback(latch, mContext));
+        singleAccountPCA.signIn(mActivity, username, mScopes, successfulInteractiveCallback(latch));
 
         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                 .loginHintProvided(true)
@@ -92,8 +92,8 @@ public class TestCase833516 extends AcquireTokenNetworkAbstractTest {
                 .expectingNonZeroAccountsInBroker(false)
                 .build();
 
-        MicrosoftPromptHandler microsoftPromptHandler = new MicrosoftPromptHandler(promptHandlerParameters);
-        microsoftPromptHandler.handlePrompt(username, password);
+        AadPromptHandler aadPromptHandler = new AadPromptHandler(promptHandlerParameters);
+        aadPromptHandler.handlePrompt(username, password);
 
         latch.await();
 
@@ -110,7 +110,7 @@ public class TestCase833516 extends AcquireTokenNetworkAbstractTest {
         final CountDownLatch latch2 = new CountDownLatch(1);
 
         // try sign in with an account from the same tenant
-        singleAccountPCA.signIn(mActivity, anotherUserFromSameTenant, mScopes, failureInteractiveCallback(latch2, ErrorCodes.INVALID_PARAMETER, mContext));
+        singleAccountPCA.signIn(mActivity, anotherUserFromSameTenant, mScopes, failureInteractiveCallback(latch2, ErrorCodes.INVALID_PARAMETER));
 
         latch2.await();
     }

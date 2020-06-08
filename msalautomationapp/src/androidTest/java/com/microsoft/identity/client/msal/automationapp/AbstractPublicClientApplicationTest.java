@@ -37,7 +37,7 @@ import org.junit.Rule;
 
 import static org.junit.Assert.fail;
 
-public abstract class PublicClientApplicationAbstractTest implements IPublicClientApplicationTest {
+public abstract class AbstractPublicClientApplicationTest implements IPublicClientApplicationTest {
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =

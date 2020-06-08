@@ -24,14 +24,14 @@ package com.microsoft.identity.client.msal.automationapp.testpass.usgov;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AcquireTokenNetworkAbstractTest;
+import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.interaction.MicrosoftPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -41,7 +41,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-public class TestCase938367 extends AcquireTokenNetworkAbstractTest {
+public class TestCase938367 extends AbstractAcquireTokenNetworkTest {
 
     @Test
     public void test_938367() throws InterruptedException {
@@ -51,7 +51,7 @@ public class TestCase938367 extends AcquireTokenNetworkAbstractTest {
                 .withLoginHint(mLoginHint)
                 .startAuthorizationFromActivity(mActivity)
                 .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback(latch, mContext))
+                .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
 
@@ -75,7 +75,7 @@ public class TestCase938367 extends AcquireTokenNetworkAbstractTest {
                                 .speedBumpExpected(false)
                                 .build();
 
-                        new MicrosoftPromptHandler(promptHandlerParameters)
+                        new AadPromptHandler(promptHandlerParameters)
                                 .handlePrompt(username, password);
                     }
                 }

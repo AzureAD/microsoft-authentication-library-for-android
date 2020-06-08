@@ -27,10 +27,10 @@ import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.interaction.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
-import com.microsoft.identity.client.ui.automation.interaction.MicrosoftPromptHandler;
-import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -50,7 +50,7 @@ public class TestCase99274 extends BrokerLessMsalTest {
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(mLoginHint)
                 .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback(latch, mContext))
+                .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
 
@@ -73,7 +73,7 @@ public class TestCase99274 extends BrokerLessMsalTest {
                                 .consentPageResponse(UiResponse.ACCEPT)
                                 .build();
 
-                        new MicrosoftPromptHandler(promptHandlerParameters)
+                        new AadPromptHandler(promptHandlerParameters)
                                 .handlePrompt(username, password);
                     }
                 }
@@ -89,7 +89,7 @@ public class TestCase99274 extends BrokerLessMsalTest {
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(mLoginHint)
                 .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback(consentRecordCountDownLatch, mContext))
+                .withCallback(successfulInteractiveCallback(consentRecordCountDownLatch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
 
@@ -111,7 +111,7 @@ public class TestCase99274 extends BrokerLessMsalTest {
                                 .speedBumpExpected(false)
                                 .build();
 
-                        new MicrosoftPromptHandler(promptHandlerParameters)
+                        new AadPromptHandler(promptHandlerParameters)
                                 .handlePrompt(username, password);
                     }
                 }

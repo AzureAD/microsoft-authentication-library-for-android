@@ -22,6 +22,11 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
+/**
+ * The various errors that are thrown by MSAL in different error scenarios. These values are
+ * duplicated from constants in MSAL library. We use these values to assert for getting back
+ * specific errors from MSAL in expected error cases.
+ */
 public class ErrorCodes {
 
     public static final String ILLEGAL_ARGUMENT_ERROR_CODE = "illegal_argument_exception";

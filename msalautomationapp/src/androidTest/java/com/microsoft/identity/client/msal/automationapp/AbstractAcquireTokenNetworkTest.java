@@ -29,7 +29,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.Before;
 
-public abstract class AcquireTokenNetworkAbstractTest extends AcquireTokenAbstractTest implements IAcquireTokenNetworkTest {
+public abstract class AbstractAcquireTokenNetworkTest extends AbstractAcquireTokenTest implements IAcquireTokenNetworkTest {
 
     protected String mLoginHint;
 
